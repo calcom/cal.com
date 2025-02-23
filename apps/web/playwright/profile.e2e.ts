@@ -3,9 +3,7 @@ import type { Page } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import type { PrismaClient } from "@calcom/prisma";
 
-import type { createEmailsFixture } from "./fixtures/emails";
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser, submitAndWaitForResponse } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
@@ -38,12 +36,7 @@ test.describe("Update Profile", () => {
     page,
     users,
     prisma,
-    features,
   }) => {
-    const emailVerificationEnabled = features.get("email-verification");
-    // eslint-disable-next-line playwright/no-conditional-in-test, playwright/no-skipped-test
-    if (!emailVerificationEnabled?.enabled) test.skip();
-
     const user = await users.create({
       name: "update-profile-user",
     });
@@ -53,6 +46,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -95,13 +89,7 @@ test.describe("Update Profile", () => {
     expect(await emailInputUpdated.inputValue()).toEqual(user.email);
   });
 
-  // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("Can update a users email (verification enabled)", async ({ page, users, prisma, features }) => {
-    const emailVerificationEnabled = features.get("email-verification");
-    // eslint-disable-next-line playwright/no-conditional-in-test, playwright/no-skipped-test
-    if (!emailVerificationEnabled?.enabled) test.skip();
-
+  test("Can update a users email (verification enabled)", async ({ page, users, prisma }) => {
     const user = await users.create({
       name: "update-profile-user",
     });
@@ -111,6 +99,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -120,9 +109,9 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("password").fill(user?.username ?? "Nameless User");
 
-    await page.getByTestId("profile-update-email-submit-button").click();
-
-    await expect(page.getByTestId("toast-success")).toContainText(email);
+    await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+      action: () => page.getByTestId("profile-update-email-submit-button").click(),
+    });
 
     // Instead of dealing with emails in e2e lets just get the token and navigate to it
     const verificationToken = await prisma.verificationToken.findFirst({
@@ -146,15 +135,11 @@ test.describe("Update Profile", () => {
     await page.waitForURL("/event-types");
 
     await page.goto("/settings/my-account/profile");
-    const emailInputUpdated = await page.getByTestId("profile-form-email-0");
+    const emailInputUpdated = page.getByTestId("profile-form-email-0");
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
 
-  test("Can update a users email (verification disabled)", async ({ page, users, prisma, features }) => {
-    const emailVerificationEnabled = features.get("email-verification");
-    // eslint-disable-next-line playwright/no-conditional-in-test, playwright/no-skipped-test
-    if (emailVerificationEnabled?.enabled) test.skip();
-
+  test("Can update a users email (verification disabled)", async ({ page, users }) => {
     const user = await users.create({
       name: "update-profile-user",
     });
@@ -164,6 +149,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -173,42 +159,14 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("password").fill(user?.username ?? "Nameless User");
 
-    await page.getByTestId("profile-update-email-submit-button").click();
-
-    await expect(page.getByTestId("toast-success")).toBeVisible();
+    await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+      action: () => page.getByTestId("profile-update-email-submit-button").click(),
+    });
 
     const emailInputUpdated = page.getByTestId("profile-form-email-0");
 
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
-
-  const testEmailVerificationLink = async ({
-    page,
-    prisma,
-    emails,
-    secondaryEmail,
-  }: {
-    page: Page;
-    prisma: PrismaClient;
-    emails: ReturnType<typeof createEmailsFixture>;
-    secondaryEmail: string;
-  }) => {
-    await test.step("the user receives the correct invitation link", async () => {
-      const verificationToken = await prisma.verificationToken.findFirst({
-        where: {
-          identifier: secondaryEmail,
-        },
-      });
-      const inviteLink = await expectInvitationEmailToBeReceived(
-        page,
-        emails,
-        secondaryEmail,
-        "Verify your email address",
-        "verify-email"
-      );
-      expect(inviteLink).toEqual(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
-    });
-  };
 
   test("Can add a new email as a secondary email", async ({ page, users, prisma, emails }) => {
     const user = await users.create({
@@ -219,6 +177,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     await page.getByTestId("add-secondary-email").click();
 
@@ -281,11 +240,12 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     await page.getByTestId("add-secondary-email").click();
 
     const secondaryEmail = `${emailInfo}-secondary-email@${emailDomain}`;
-    const secondaryEmailInput = await page.getByTestId("secondary-email-input");
+    const secondaryEmailInput = page.getByTestId("secondary-email-input");
     await secondaryEmailInput.fill(secondaryEmail);
 
     await page.getByTestId("add-secondary-email-button").click();
@@ -307,9 +267,7 @@ test.describe("Update Profile", () => {
     await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
   });
 
-  // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
+  test("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
     const { secondaryEmail } = await createSecondaryEmail({ page, users });
 
     await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
@@ -330,8 +288,7 @@ test.describe("Update Profile", () => {
 
     await page.goto(verifyUrl);
 
-    await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
-    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeHidden();
   });
 
   test("Can delete the newly added secondary email", async ({ page, users }) => {
@@ -372,9 +329,7 @@ test.describe("Update Profile", () => {
     await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeHidden();
   });
 
-  // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("Can resend verification link if the secondary email is unverified", async ({
+  test("Can resend verification link if the secondary email is unverified", async ({
     page,
     users,
     prisma,
@@ -388,6 +343,7 @@ test.describe("Update Profile", () => {
       },
     });
     const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail: secondaryEmail });
+    // eslint-disable-next-line playwright/no-conditional-in-test
     if (receivedEmails?.items?.[0]?.ID) {
       await emails.deleteMessage(receivedEmails.items[0].ID);
     }
@@ -396,14 +352,20 @@ test.describe("Update Profile", () => {
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
     await expect(page.locator("button[data-testid=resend-verify-email-button]")).toBeEnabled();
     await page.getByTestId("resend-verify-email-button").click();
-
-    await testEmailVerificationLink({ page, prisma, emails, secondaryEmail });
+    const inviteLink = await expectInvitationEmailToBeReceived(
+      page,
+      emails,
+      secondaryEmail,
+      "Verify your email address",
+      "verify-email"
+    );
 
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
         identifier: secondaryEmail,
       },
     });
+    expect(inviteLink).toEqual(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
     await page.goto(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
 
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
