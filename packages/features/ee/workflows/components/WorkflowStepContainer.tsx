@@ -27,7 +27,6 @@ import {
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   Editor,
   EmailField,
@@ -412,30 +411,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <DropdownItem
-                            type="button"
-                            StartIcon="trash-2"
-                            color="destructive"
-                            onClick={() => {
-                              const steps = form.getValues("steps");
-                              const updatedSteps = steps
-                                ?.filter((currStep) => currStep.id !== step.id)
-                                .map((s) => {
-                                  const updatedStep = s;
-                                  if (step.stepNumber < updatedStep.stepNumber) {
-                                    updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                                  }
-                                  return updatedStep;
-                                });
-                              form.setValue("steps", updatedSteps);
-                              if (setReload) {
-                                setReload(!reload);
-                              }
-                            }}>
-                            {t("delete")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          StartIcon="trash-2"
+                          className="rounded-md"
+                          color="destructive"
+                          onClick={() => {
+                            const steps = form.getValues("steps");
+                            const updatedSteps = steps
+                              ?.filter((currStep) => currStep.id !== step.id)
+                              .map((s) => {
+                                const updatedStep = s;
+                                if (step.stepNumber < updatedStep.stepNumber) {
+                                  updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                }
+                                return updatedStep;
+                              });
+                            form.setValue("steps", updatedSteps);
+                            if (setReload) {
+                              setReload(!reload);
+                            }
+                          }}>
+                          {t("delete")}
+                        </DropdownItem>
                       </DropdownMenuContent>
                     </Dropdown>
                   </div>
