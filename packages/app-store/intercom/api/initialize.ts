@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
+
 import type { NewCanvas } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
