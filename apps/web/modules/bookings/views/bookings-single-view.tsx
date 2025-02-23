@@ -7,8 +7,8 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";

@@ -1,8 +1,8 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef } from "react";
-import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
+import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
