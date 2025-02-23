@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
+import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -15,6 +16,7 @@ const responseSchema = z.object({
   appId: z.string(),
   fullName: z.string(),
   chatAvatarUrl: z.string(),
+  userTier: z.string(),
 });
 
 async function handler() {
@@ -26,6 +28,44 @@ async function handler() {
   const secret = process.env.PLAIN_CHAT_HMAC_SECRET_KEY;
   if (!secret) {
     return NextResponse.json({ error: "Missing Plain Chat secret" }, { status: 500 });
+  }
+
+  // Get user's team membership info
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: {
+      teams: {
+        select: {
+          team: {
+            select: {
+              metadata: true,
+              parentId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Check if user is part of a team and determine tier
+  let userTier = "free";
+
+  if (user?.teams.length) {
+    const teamMemberships = user.teams;
+
+    // Check if any team has isOrganization: true in metadata
+    const isEnterprise = teamMemberships.some(
+      (membership) => (membership.team.metadata as { isOrganization?: boolean })?.isOrganization === true
+    );
+
+    // If not enterprise, check if it's a team (has no parentId)
+    const isTeam = !isEnterprise && teamMemberships.some((membership) => !membership.team.parentId);
+
+    if (isEnterprise) {
+      userTier = "enterprise";
+    } else if (isTeam) {
+      userTier = "teams";
+    }
   }
 
   const hmac = createHmac("sha256", secret);
@@ -43,6 +83,7 @@ async function handler() {
     appId: process.env.NEXT_PUBLIC_PLAIN_CHAT_ID,
     fullName: session.user.name || "User",
     chatAvatarUrl: session.user.avatarUrl || "",
+    userTier,
   });
 
   return NextResponse.json(response);
