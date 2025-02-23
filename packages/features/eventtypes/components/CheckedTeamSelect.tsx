@@ -45,12 +45,19 @@ export const CheckedTeamSelect = ({
   value = [],
   isRRWeightsEnabled,
   customClassNames,
+  onClearAllClick,
+  onOptionChange,
+  assignAllTeamMembers,
+  isFixed,
   ...props
-}: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
+}: Omit<Props<CheckedSelectOption, true>, "value"> & {
   value?: readonly CheckedSelectOption[];
-  onChange: (value: readonly CheckedSelectOption[]) => void;
+  onOptionChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
+  onClearAllClick?: () => void;
+  assignAllTeamMembers?: boolean;
+  isFixed?: boolean;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -60,6 +67,14 @@ export const CheckedTeamSelect = ({
 
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
+
+  const handleRemoveClick = (option: CheckedSelectOption) => {
+    let newOption: CheckedSelectOption[] = [];
+    if (isFixed && assignAllTeamMembers) {
+      newOption = [{ ...option, isFixed: false }];
+    }
+    onOptionChange([...value.filter((item) => item.value !== option.value), ...newOption]);
+  };
 
   return (
     <>
@@ -73,6 +88,13 @@ export const CheckedTeamSelect = ({
         isMulti
         className={customClassNames?.hostsSelect?.select}
         innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
+        onChange={(newValue, { action }) => {
+          onOptionChange(newValue);
+          if (action === "clear" && onClearAllClick) {
+            onClearAllClick();
+          }
+        }}
+        {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
@@ -149,7 +171,7 @@ export const CheckedTeamSelect = ({
 
                 <Icon
                   name="x"
-                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                  onClick={() => handleRemoveClick(option)}
                   className={classNames(
                     "my-auto ml-2 h-4 w-4",
                     customClassNames?.selectedHostList?.listItem?.removeButton
@@ -166,14 +188,14 @@ export const CheckedTeamSelect = ({
             isOpenDialog={priorityDialogOpen}
             setIsOpenDialog={setPriorityDialogOpen}
             option={currentOption}
-            onChange={props.onChange}
+            onChange={onOptionChange}
             customClassNames={customClassNames?.priorityDialog}
           />
           <WeightDialog
             isOpenDialog={weightDialogOpen}
             setIsOpenDialog={setWeightDialogOpen}
             option={currentOption}
-            onChange={props.onChange}
+            onChange={onOptionChange}
             customClassNames={customClassNames?.weightDialog}
           />
         </>

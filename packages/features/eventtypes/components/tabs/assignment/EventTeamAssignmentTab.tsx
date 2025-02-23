@@ -148,9 +148,27 @@ const FixedHosts = ({
   const { t } = useLocale();
   const { getValues, setValue } = useFormContext<FormValues>();
 
-  const hasActiveFixedHosts = isRoundRobinEvent && getValues("hosts").some((host) => host.isFixed);
+  const currentHosts = getValues("hosts");
+  const hasActiveFixedHosts = isRoundRobinEvent && currentHosts.some((host) => host.isFixed);
 
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
+
+  const setAllHostsAsRR = () =>
+    setValue(
+      "hosts",
+      teamMembers.map((teamMember) => {
+        const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+        return {
+          isFixed: false,
+          userId: parseInt(teamMember.value, 10),
+          priority: host?.priority ?? 2,
+          weight: host?.weight ?? 100,
+          // if host was already added, retain scheduleId
+          scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+        };
+      }),
+      { shouldDirty: true }
+    );
 
   return (
     <div className={classNames("mt-5 rounded-lg", customClassNames?.container)}>
@@ -217,6 +235,9 @@ const FixedHosts = ({
           switchContainerClassName={customClassNames?.container}
           onCheckedChange={(checked) => {
             if (!checked) {
+              if (assignAllTeamMembers) {
+                setAllHostsAsRR();
+              }
               const rrHosts = getValues("hosts")
                 .filter((host) => !host.isFixed)
                 .sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
@@ -238,6 +259,7 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
+              onClearAllClick={() => setAllHostsAsRR()}
               onActive={() => {
                 const currentHosts = getValues("hosts");
                 setValue(
@@ -537,7 +559,14 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
+                  onChange([
+                    ...value.filter(
+                      (host: Host) =>
+                        !host.isFixed &&
+                        !changeValue.some((changedHost) => changedHost.userId === host.userId)
+                    ),
+                    ...updatedHosts(changeValue),
+                  ]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
