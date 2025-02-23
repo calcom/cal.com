@@ -2,10 +2,12 @@ import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
-import { filterHostsByLeadThreshold } from "@calcom/lib/bookings/filterHostsByLeadThreshold";
+import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -32,6 +34,8 @@ type EventType = Pick<
   | "assignAllTeamMembers"
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
+  | "isRRWeightsEnabled"
+  | "rescheduleWithSameRoundRobinHost"
 >;
 
 type InputProps = {
@@ -42,7 +46,8 @@ type InputProps = {
   logger: Logger<unknown>;
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
-  isSameHostReschedule: boolean;
+  rescheduleUid: string | null;
+  routingFormResponse: RoutingFormResponse | null;
 };
 
 export async function loadAndValidateUsers({
@@ -53,8 +58,9 @@ export async function loadAndValidateUsers({
   logger,
   routedTeamMemberIds,
   contactOwnerEmail,
-  isSameHostReschedule,
-}: InputProps): Promise<Users> {
+  rescheduleUid,
+  routingFormResponse,
+}: InputProps): Promise<{ qualifiedRRUsers: Users; additionalFallbackRRUsers: Users; fixedUsers: Users }> {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -91,7 +97,7 @@ export async function loadAndValidateUsers({
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
       throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     }
-    users.push(eventTypeUser);
+    users.push(withSelectedCalendars(eventTypeUser));
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
@@ -103,21 +109,32 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-
-  const qualifiedHosts = await filterHostsByLeadThreshold({
-    eventTypeId: eventType.id,
-    hosts: eventType.hosts.map((host) => ({
-      isFixed: host.isFixed,
-      createdAt: host.createdAt,
-      email: host.user.email,
-      user: host.user,
-    })),
-    maxLeadThreshold: isSameHostReschedule ? null : eventType.maxLeadThreshold,
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await findQualifiedHosts({
+    eventType,
+    routedTeamMemberIds: routedTeamMemberIds || [],
+    rescheduleUid,
+    contactOwnerEmail,
+    routingFormResponse,
   });
-  if (qualifiedHosts.length) {
+
+  let qualifiedRRUsers: Users = [];
+  let allFallbackRRUsers: Users = [];
+  let fixedUsers: Users = [];
+
+  if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
-    const qualifiedHostIds = new Set(qualifiedHosts.map((qualifiedHost) => qualifiedHost.user.id));
-    users = users.filter((user) => qualifiedHostIds.has(user.id));
+    const qualifiedHostIds = new Set(qualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
+    qualifiedRRUsers = users.filter((user) => qualifiedHostIds.has(user.id));
+  }
+
+  if (allFallbackRRHosts?.length) {
+    const fallbackHostIds = new Set(allFallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
+    allFallbackRRUsers = users.filter((user) => fallbackHostIds.has(user.id));
+  }
+
+  if (fixedHosts?.length) {
+    const fixedHostIds = new Set(fixedHosts.map((fixedHost) => fixedHost.user.id));
+    fixedUsers = users.filter((user) => fixedHostIds.has(user.id));
   }
 
   logger.debug(
@@ -127,5 +144,13 @@ export async function loadAndValidateUsers({
     })
   );
 
-  return users;
+  const additionalFallbackRRUsers = allFallbackRRUsers.filter(
+    (fallbackUser) => !qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id === fallbackUser.id)
+  );
+
+  return {
+    qualifiedRRUsers,
+    additionalFallbackRRUsers, // without qualified
+    fixedUsers: !qualifiedRRUsers.length && !fixedUsers.length ? users : fixedUsers,
+  };
 }

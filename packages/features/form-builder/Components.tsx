@@ -236,8 +236,6 @@ export const Components: Record<FieldType, Component> = {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
-      const inputClassName =
-        "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle bg-default";
       return (
         <>
           {value.length ? (
@@ -252,9 +250,8 @@ export const Components: Record<FieldType, Component> = {
                       id={`${props.name}.${index}`}
                       disabled={readOnly}
                       value={value[index]}
-                      className={inputClassName}
                       onChange={(e) => {
-                        value[index] = e.target.value;
+                        value[index] = e.target.value.toLowerCase();
                         setValue(value);
                       }}
                       placeholder={placeholder}
@@ -353,7 +350,7 @@ export const Components: Record<FieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
+                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -549,4 +546,4 @@ export const Components: Record<FieldType, Component> = {
     },
   },
 } as const;
-// Should use `statisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config
+// Should use `satisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config

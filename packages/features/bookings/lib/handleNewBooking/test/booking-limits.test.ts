@@ -772,7 +772,9 @@ describe("handleNewBooking", () => {
       mockCalendarToHaveNoBusySlots("googlecalendar", {});
       await createBookingScenario(scenarioData);
 
-      await expect(() => handleNewBooking(req)).rejects.toThrowError("book a meeting in the past");
+      await expect(() => handleNewBooking(req)).rejects.toThrowError(
+        "Attempting to book a meeting in the past."
+      );
     },
     timeout
   );
@@ -865,7 +867,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        expect(() => handleNewBooking(req)).rejects.toThrowError("cannot be booked at this time");
+        expect(() => handleNewBooking(req)).rejects.toThrowError("booking_time_out_of_bounds_error");
       },
       timeout
     );

@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.8.5",
+  "version": "5.0.5",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -87,14 +87,13 @@
     "dompurify": "^3.1.7",
     "dotenv-cli": "^6.0.0",
     "entities": "^4.4.0",
-    "eslint-config-next": "^13.2.1",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
     "jose": "^4.13.1",
     "kbar": "^0.1.0-beta.36",
-    "libphonenumber-js": "^1.10.51",
+    "libphonenumber-js": "^1.11.18",
     "lodash": "^4.17.21",
     "lottie-react": "^2.3.1",
     "markdown-it": "^13.0.1",

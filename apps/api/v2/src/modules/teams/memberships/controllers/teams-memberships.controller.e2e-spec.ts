@@ -24,7 +24,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { api } from "@calcom/app-store/alby";
@@ -51,11 +51,11 @@ describe("Teams Memberships Endpoints", () => {
     let teamMemberMembership: Membership;
     let membershipCreatedViaApi: TeamMembershipOutput;
 
-    const teamAdminEmail = `alice-admin-${randomNumber()}@api.com`;
-    const teamMemberEmail = `bob-member-${randomNumber()}@api.com`;
-    const nonTeamUserEmail = `charlie-outsider-${randomNumber()}@api`;
+    const teamAdminEmail = `alice-admin-${randomString()}@api.com`;
+    const teamMemberEmail = `bob-member-${randomString()}@api.com`;
+    const nonTeamUserEmail = `charlie-outsider-${randomString()}@api`;
 
-    const invitedUserEmail = `david-invited-${randomNumber()}@api.com`;
+    const invitedUserEmail = `david-invited-${randomString()}@api.com`;
 
     let teamAdmin: User;
     let teamMember: User;
@@ -97,7 +97,7 @@ describe("Teams Memberships Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: `Team-${randomNumber()}`,
+        name: `Team-${randomString()}`,
         isOrganization: false,
       });
 

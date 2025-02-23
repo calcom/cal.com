@@ -7,6 +7,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { _EventTypeModel } from "@calcom/prisma/zod";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 
 interface handleChildrenEventTypesProps {
@@ -185,6 +186,7 @@ export default async function handleChildrenEventTypes({
              */
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
+            useEventLevelSelectedCalendars: false,
           },
         });
       })
@@ -224,9 +226,23 @@ export default async function handleChildrenEventTypes({
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
     // Update event types for old users
-    const oldEventTypes = await prisma.$transaction(
-      oldUserIds.map((userId) => {
-        return prisma.eventType.update({
+    const oldEventTypes = await Promise.all(
+      oldUserIds.map(async (userId) => {
+        const existingEventType = await prisma.eventType.findUnique({
+          where: {
+            userId_parentId: {
+              userId,
+              parentId,
+            },
+          },
+          select: {
+            metadata: true,
+          },
+        });
+
+        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(existingEventType?.metadata || {});
+
+        return await prisma.eventType.update({
           where: {
             userId_parentId: {
               userId,
@@ -235,12 +251,21 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...updatePayloadFiltered,
+            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            ...(eventType.scheduleId ? { schedule: { connect: { id: eventType.scheduleId } } } : {}),
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
                 : {
                     deleteMany: {},
                   },
+            metadata: {
+              ...(eventType.metadata as Prisma.JsonObject),
+              ...(metadata?.multipleDuration && "length" in unlockedFieldProps
+                ? { multipleDuration: metadata.multipleDuration }
+                : {}),
+              ...(metadata?.apps && "apps" in unlockedFieldProps ? { apps: metadata.apps } : {}),
+            },
           },
         });
       })

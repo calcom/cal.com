@@ -32,10 +32,12 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -52,20 +54,7 @@ const ORGANIZATIONS_AUTOLINK =
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
-const getVerifiedOrganizationByAutoAcceptEmailDomain = async (domain: string) => {
-  const existingOrg = await prisma.team.findFirst({
-    where: {
-      organizationSettings: {
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: domain,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-  return existingOrg?.id;
-};
+
 const loginWithTotp = async (email: string) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
 
@@ -364,15 +353,17 @@ if (isSAMLLoginEnabled) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
-            const organizationId = await getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
-            if (organizationId) {
+            const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+            if (org) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],
-                organizationId,
                 identityProvider: IdentityProvider.SAML,
                 identityProviderId: email,
               };
-              await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+              await createUsersAndConnectToOrg({
+                createUsersAndConnectToOrgProps,
+                org,
+              });
               user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
                 email: email,
               });
@@ -949,6 +940,12 @@ export const getOptions = ({
                 identityProviderId: account.providerAccountId,
               },
             });
+
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail.email);
+            } else {
+              return true;
+            }
           }
 
           return "/auth/error?error=use-identity-login";
@@ -957,34 +954,39 @@ export const getOptions = ({
         // Associate with organization if enabled by flag and idP is Google (for now)
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
-        const newUser = await prisma.user.create({
-          data: {
-            // Slugify the incoming name and append a few random characters to
-            // prevent conflicts for users with the same name.
-            username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
-            emailVerified: new Date(Date.now()),
-            name: user.name,
-            ...(user.image && { avatarUrl: user.image }),
-            email: user.email,
-            identityProvider: idP,
-            identityProviderId: account.providerAccountId,
-            ...(orgId && {
-              verified: true,
-              organization: { connect: { id: orgId } },
-              teams: {
-                create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
-              },
-            }),
-          },
-        });
+        try {
+          const newUser = await prisma.user.create({
+            data: {
+              // Slugify the incoming name and append a few random characters to
+              // prevent conflicts for users with the same name.
+              username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
+              emailVerified: new Date(Date.now()),
+              name: user.name,
+              ...(user.image && { avatarUrl: user.image }),
+              email: user.email,
+              identityProvider: idP,
+              identityProviderId: account.providerAccountId,
+              ...(orgId && {
+                verified: true,
+                organization: { connect: { id: orgId } },
+                teams: {
+                  create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
+                },
+              }),
+              creationSource: CreationSource.WEBAPP,
+            },
+          });
+          const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
+          await calcomAdapter.linkAccount(linkAccountNewUserData);
 
-        const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
-        await calcomAdapter.linkAccount(linkAccountNewUserData);
-
-        if (account.twoFactorEnabled) {
-          return loginWithTotp(newUser.email);
-        } else {
-          return true;
+          if (account.twoFactorEnabled) {
+            return loginWithTotp(newUser.email);
+          } else {
+            return true;
+          }
+        } catch (err) {
+          log.error("Error creating a new user", err);
+          return "/auth/error?error=use-identity-login";
         }
       }
 
