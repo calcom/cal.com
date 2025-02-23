@@ -11,6 +11,7 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
 import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
+import { i18n } from "@calcom/trpc/server/routers/publicViewer/procedures/i18n";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
 import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
@@ -31,6 +32,7 @@ const routerSlice = router({
       public: router({
         session,
         event,
+        i18n,
       }),
       teams: router({
         hasTeamPlan,

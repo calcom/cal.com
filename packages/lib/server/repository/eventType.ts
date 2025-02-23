@@ -476,6 +476,7 @@ export class EventTypeRepository {
       offsetStart: true,
       hidden: true,
       locations: true,
+      userInterfaceLanguage: true,
       eventName: true,
       customInputs: true,
       timeZone: true,
