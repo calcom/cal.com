@@ -190,6 +190,16 @@ function EventTypeSingleLayout({
                 )}
               </>
             )}
+            <Tooltip content={t("insights")} side="bottom" sideOffset={4}>
+              <Button
+                color="secondary"
+                target="_blank"
+                variant="icon"
+                href={`/insights?isAll=false&filter=event-type&eventTypeId=${eventType.id}`}
+                rel="noreferrer"
+                StartIcon="chart-bar"
+              />
+            </Tooltip>
             {!isChildrenManagedEventType && allowDelete && (
               <Button
                 color="destructive"
@@ -232,6 +242,15 @@ function EventTypeSingleLayout({
                   {t("copy_link")}
                 </DropdownItem>
               </DropdownMenuItem>
+              <DropdownMenuItem className="focus:ring-muted">
+                <DropdownItem
+                  type="button"
+                  StartIcon="chart-bar"
+                  href={`/insights?isAll=false&filter=event-type&eventTypeId=${eventType.id}`}>
+                  {t("insights")}
+                </DropdownItem>
+              </DropdownMenuItem>
+
               {allowDelete && (
                 <DropdownMenuItem className="focus:ring-muted">
                   <DropdownItem
