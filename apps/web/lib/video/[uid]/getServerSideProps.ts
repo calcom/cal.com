@@ -13,14 +13,10 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
-
-  const ssr = await ssrInit(context);
 
   const booking = await BookingRepository.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
@@ -140,7 +136,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
-      trpcState: ssr.dehydrate(),
     },
   };
 }

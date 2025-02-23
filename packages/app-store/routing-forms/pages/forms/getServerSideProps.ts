@@ -30,8 +30,6 @@ export const getServerSideProps = async function getServerSideProps(
   // Prefetch this so that New Button is immediately available
   await ssr.viewer.teamsAndUserProfilesQuery.prefetch();
   return {
-    props: {
-      trpcState: await ssr.dehydrate(),
-    },
+    props: {},
   };
 };

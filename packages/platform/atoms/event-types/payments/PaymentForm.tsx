@@ -25,8 +25,8 @@ export const PaymentForm = ({
   onEventTypePaymentInfoFailure,
 }: {
   paymentUid: string;
-  onPaymentSuccess?: (input: Omit<PaymentPageProps, "trpcState">) => void;
-  onPaymentCancellation?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+  onPaymentSuccess?: (input: PaymentPageProps) => void;
+  onPaymentCancellation?: (input: PaymentPageProps) => void;
   onEventTypePaymentInfoSuccess?: () => void;
   onEventTypePaymentInfoFailure?: () => void;
 }) => {
