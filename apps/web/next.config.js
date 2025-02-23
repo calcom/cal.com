@@ -537,6 +537,11 @@ const nextConfig = {
   async redirects() {
     const redirects = [
       {
+        source: "/settings/organizations",
+        destination: "/settings/organizations/profile",
+        permanent: false,
+      },
+      {
         source: "/apps/routing-forms",
         destination: "/routing/forms",
         permanent: false,
