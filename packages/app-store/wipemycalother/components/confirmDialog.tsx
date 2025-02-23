@@ -35,7 +35,7 @@ const wipeMyCalAction = async (props: IWipeMyCalAction) => {
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      showToast("Error ocurred while trying to cancel bookings", "error");
+      showToast("Error occurred while trying to cancel bookings", "error");
     }
   }
 };

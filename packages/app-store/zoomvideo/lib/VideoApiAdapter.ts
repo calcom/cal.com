@@ -72,7 +72,7 @@ export const zoomUserSettingsSchema = z.object({
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
-// append comma seperated settings here, to retrieve only these specific settings
+// append comma separated settings here, to retrieve only these specific settings
 const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording";
 
 type ZoomRecurrence = {

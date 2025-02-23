@@ -960,7 +960,7 @@ export default class GoogleCalendarService implements Calendar {
         /** Expand the end date to the end of the month */
         timeMax: getTimeMax(),
         // Dont use eventTypeId in key because it can be used by any eventType
-        // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availablity for
+        // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availability for
         items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
       };
       const data = await this.fetchAvailability(parsedArgs);
