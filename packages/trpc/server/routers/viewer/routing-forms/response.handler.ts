@@ -43,7 +43,21 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     form,
   });
 
-  return handleResponse({ response, form: serializableForm, formFillerId, chosenRouteId, isPreview });
+  return handleResponse({
+    query: { formId: serializableForm.id },
+    req: {
+      body: {
+        ...response,
+        formFillerId,
+        chosenRouteId,
+        isPreview,
+        routes: form.routes || [],
+        fields: form.fields || [],
+        settings: form.settings || {},
+      },
+    },
+    form: serializableForm,
+  });
 };
 
 export default responseHandler;
