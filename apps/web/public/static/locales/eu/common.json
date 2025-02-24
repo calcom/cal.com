@@ -2961,5 +2961,6 @@
   "desc": "Beherantz",
   "verify_email": "Egiaztatu emaila",
   "verify_email_change": "Egiaztatu posta elektronikoaren aldaketa",
+  "end_date_not_selected": "Ez duzu zure OOOrako amaiera-datarik ezarri",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
