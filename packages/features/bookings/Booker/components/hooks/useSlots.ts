@@ -4,12 +4,14 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import {
   MINUTES_TO_BOOK,
   PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS,
   PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
 } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
 import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 
@@ -71,7 +73,7 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | null }) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-
+  const searchParams = useCompatSearchParams();
   const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
     useBookerStore(
       (state) => [
@@ -127,6 +129,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
         slotUtcStartDate: dayjs(timeSlotToBeBooked).utc().toISOString(),
         eventTypeId,
         slotUtcEndDate: dayjs(timeSlotToBeBooked).utc().add(eventDuration, "minutes").toISOString(),
+        _isDryRun: isBookingDryRun(searchParams),
       });
     }
   };

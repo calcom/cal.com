@@ -1195,6 +1195,76 @@ export const TestData = {
       availability: [],
       timeZone: Timezones["+5:30"],
     },
+    IstNotAvailableForFullMonth: (monthYear: string) => {
+      const [year, month] = monthYear.split("-").map(Number); // Expecting format 'YYYY-MM'
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T18:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ];
+      // Generate unavailable dates for the entire month
+      const currentDate = new Date(startOfMonth);
+      while (currentDate <= endOfMonth) {
+        const dateString = currentDate.toISOString().split("T")[0];
+        availability.push({
+          days: [],
+          startTime: new Date(`${dateString}T00:00:00.000Z`),
+          endTime: new Date(`${dateString}T00:00:00.000Z`),
+          date: dateString,
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return {
+        name: "Unavailable for the entire month, then available from 18:00AM to 22:00 IST",
+        availability,
+        timeZone: Timezones["+5:30"],
+      };
+    },
+    IstWorkHoursWithFirstTwoWeeksUnavailable: (dateString: string) => {
+      const date = new Date(dateString);
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T18:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ];
+
+      // Generate dateoverride for each day in thes first two weeks
+      for (let i = 0; i < 15; i++) {
+        const dateString = date.toISOString().split("T")[0];
+        availability.push({
+          days: [],
+          startTime: new Date(`${dateString}T00:00:00.000Z`),
+          endTime: new Date(`${dateString}T00:00:00.000Z`),
+          date: dateString,
+        });
+        date.setDate(date.getDate() + 1);
+      }
+
+      return {
+        name: "Unavailable for the first two weeks, then available from 18:00 to 22:00 IST",
+        availability,
+        timeZone: Timezones["+5:30"],
+      };
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [

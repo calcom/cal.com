@@ -85,6 +85,4 @@ function ConnectAndJoin() {
   );
 }
 
-ConnectAndJoin.requiresLicense = true;
-
 export default ConnectAndJoin;

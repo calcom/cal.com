@@ -1,6 +1,6 @@
 "use client";
 
-import type { Table as ReactTableType } from "@tanstack/react-table";
+import type { Table as ReactTableType, VisibilityState } from "@tanstack/react-table";
 import { useEffect, useRef } from "react";
 
 import {
@@ -28,6 +28,7 @@ export type DataTableWrapperProps<TData, TValue> = {
   className?: string;
   containerClassName?: string;
   children?: React.ReactNode;
+  tableContainerRef?: React.RefObject<HTMLDivElement>;
 };
 
 export function DataTableWrapper<TData, TValue>({
@@ -46,8 +47,10 @@ export function DataTableWrapper<TData, TValue>({
   className,
   containerClassName,
   children,
+  tableContainerRef: externalRef,
 }: DataTableWrapperProps<TData, TValue>) {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const internalRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = externalRef || internalRef;
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
@@ -58,11 +61,16 @@ export function DataTableWrapper<TData, TValue>({
   const columnFilters = useColumnFilters();
 
   useEffect(() => {
+    const mergedColumnVisibility = {
+      ...(table.initialState?.columnVisibility || {}),
+      ...columnVisibility,
+    } satisfies VisibilityState;
+
     table.setState((prev) => ({
       ...prev,
       sorting,
       columnFilters,
-      columnVisibility,
+      columnVisibility: mergedColumnVisibility,
     }));
     table.setOptions((prev) => ({
       ...prev,
