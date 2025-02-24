@@ -12,7 +12,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-async function handler(request: NextRequest) {
+async function handler(req: NextRequest) {
   const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
 
   if (!session || !session.user || !session.user.email) {
@@ -38,7 +38,7 @@ async function handler(request: NextRequest) {
     return NextResponse.json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled }, { status: 400 });
   }
 
-  const { oldPassword, newPassword } = await request.json();
+  const { oldPassword, newPassword } = await req.json();
 
   const currentPassword = user.password?.hash;
   if (!currentPassword) {

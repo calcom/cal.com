@@ -16,12 +16,12 @@ const passwordResetRequestSchema = z.object({
   requestId: z.string(), // format doesn't matter.
 });
 
-async function handler(request: NextRequest) {
+async function handler(req: NextRequest) {
   // Bad Method when not POST
-  if (request.method !== "POST") return NextResponse.json({}, { status: 405 });
+  if (req.method !== "POST") return NextResponse.json({}, { status: 405 });
 
   const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(
-    await request.json()
+    await req.json()
   );
   // rate-limited there is a low, very low chance that a password request stays valid long enough
   // to brute force 3.8126967e+40 options.

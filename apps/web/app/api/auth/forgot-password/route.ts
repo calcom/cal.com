@@ -7,17 +7,17 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
 
-async function handler(request: NextRequest) {
-  const email = emailSchema.transform((val) => val.toLowerCase()).safeParse((await request.json())?.email);
+async function handler(req: NextRequest) {
+  const email = emailSchema.transform((val) => val.toLowerCase()).safeParse((await req.json())?.email);
 
   if (!email.success) {
     return NextResponse.json({ message: "email is required" }, { status: 400 });
   }
 
   // fallback to email if ip is not present
-  let ip = (request.headers.get("x-real-ip") as string) ?? email.data;
+  let ip = (req.headers.get("x-real-ip") as string) ?? email.data;
 
-  const forwardedFor = request.headers.get("x-forwarded-for") as string;
+  const forwardedFor = req.headers.get("x-forwarded-for") as string;
   if (!ip && forwardedFor) {
     ip = forwardedFor?.split(",").at(0) ?? email.data;
   }
