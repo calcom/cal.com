@@ -1111,11 +1111,13 @@ async function handler(
   );
 
   if (isTeamEventType) {
-    evt.team = {
-      members: teamMembers,
-      name: eventType.team?.name || "Nameless",
-      id: eventType.team?.id ?? 0,
-    };
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withTeam({
+        members: teamMembers,
+        name: eventType.team?.name || "Nameless",
+        id: eventType.team?.id ?? 0,
+      })
+      .build();
   }
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -1275,7 +1277,10 @@ async function handler(
         .withUid(booking.uid ?? null)
         .build();
 
-      evt.oneTimePassword = booking.oneTimePassword ?? null;
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withOneTimePassword(booking.oneTimePassword ?? null)
+        .build();
+
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
           (attendee) =>
@@ -1369,9 +1374,13 @@ async function handler(
       evt.iCalUID = undefined;
     } else {
       // In case of rescheduling, we need to keep the previous host destination calendar
-      evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
-        ? [originalRescheduledBooking?.destinationCalendar]
-        : evt.destinationCalendar;
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withDestinationCalendar(
+          originalRescheduledBooking?.destinationCalendar
+            ? [originalRescheduledBooking?.destinationCalendar]
+            : evt.destinationCalendar
+        )
+        .build();
     }
 
     const updateManager = await eventManager.reschedule(

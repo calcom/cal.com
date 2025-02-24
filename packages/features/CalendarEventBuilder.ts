@@ -246,6 +246,14 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withOneTimePassword(oneTimePassword?: string | null) {
+    this.event = {
+      ...this.event,
+      oneTimePassword,
+    };
+    return this;
+  }
+
   build(): CalendarEvent {
     // Validate required fields
     if (!this.event.startTime || !this.event.endTime || !this.event.type) {
