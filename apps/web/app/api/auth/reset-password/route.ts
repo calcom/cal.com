@@ -1,4 +1,3 @@
-// app/api/reset-password/route.ts
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -17,9 +16,6 @@ const passwordResetRequestSchema = z.object({
 });
 
 async function handler(req: NextRequest) {
-  // Bad Method when not POST
-  if (req.method !== "POST") return NextResponse.json({}, { status: 405 });
-
   const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(
     await req.json()
   );
