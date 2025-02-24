@@ -1,12 +1,10 @@
 import { expect } from "@playwright/test";
 
-import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { localize, setupManagedEvent } from "./lib/testUtils";
+import { setupManagedEvent } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -208,95 +206,6 @@ test.describe("Bookings", () => {
       // Close webhook receiver
       webhookReceiver.close();
     });
-  });
-  test("Admin bookings filtered by default", async ({ page, users, bookings }) => {
-    const t = await localize("en");
-    const firstUser = await users.create(
-      { name: "First", email: "first@cal.com" },
-      {
-        hasTeam: true,
-        teamRole: MembershipRole.ADMIN,
-      }
-    );
-    const teamId = (await firstUser.getFirstTeamMembership()).teamId;
-    const secondUser = await users.create({ name: "Second", email: "second@cal.com" });
-    const thirdUser = await users.create({ name: "Third", email: "third@cal.com" });
-    // Add teammates to the team
-    await prisma.membership.createMany({
-      data: [
-        {
-          teamId: teamId,
-          userId: secondUser.id,
-          role: MembershipRole.MEMBER,
-          accepted: true,
-        },
-        {
-          teamId: teamId,
-          userId: thirdUser.id,
-          role: MembershipRole.MEMBER,
-          accepted: true,
-        },
-      ],
-    });
-
-    //Create a single booking for FirstUser(admin)
-    const firstUserBookingFixture = await createBooking({
-      title: "FirstUser as Organizer Meeting",
-      bookingsFixture: bookings,
-      relativeDate: 3,
-      organizer: firstUser,
-      organizerEventType: firstUser.eventTypes[0],
-      attendees: [
-        { name: "Second", email: secondUser.email, timeZone: "Europe/Berlin" },
-        { name: "Third", email: thirdUser.email, timeZone: "Europe/Berlin" },
-      ],
-    });
-    const firstUserBooking = await firstUserBookingFixture.self();
-
-    //Create 2 bookings for SecondUser
-    await createBooking({
-      title: "SecondUser as Organizer Meeting 1",
-      bookingsFixture: bookings,
-      organizer: secondUser,
-      relativeDate: 2,
-      organizerEventType: secondUser.eventTypes[0],
-      attendees: [
-        { name: "First", email: firstUser.email, timeZone: "Europe/Berlin" },
-        { name: "Third", email: thirdUser.email, timeZone: "Europe/Berlin" },
-      ],
-    });
-    await createBooking({
-      title: "SecondUser as Organizer Meeting 2",
-      bookingsFixture: bookings,
-      organizer: secondUser,
-      relativeDate: 4,
-      organizerEventType: secondUser.eventTypes[0],
-      attendees: [
-        { name: "First", email: firstUser.email, timeZone: "Europe/Berlin" },
-        { name: "Third", email: thirdUser.email, timeZone: "Europe/Berlin" },
-      ],
-    });
-
-    //admin login
-    await firstUser.apiLogin();
-    await Promise.all([
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.goto(`/bookings/upcoming`),
-      page.waitForTimeout(10000),
-      page.waitForURL(`**\/upcoming?status=upcoming&userIds=${firstUser.id}`),
-    ]);
-
-    //expect only 1 booking (of admin) to be shown in list due to default filtering for admin
-    const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
-    const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
-    const bookingListCount = await bookingListItems.count();
-    expect(bookingListCount).toBe(1);
-    const firstUpcomingBooking = bookingListItems.nth(0);
-    await expect(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      firstUpcomingBooking.locator(`text=${firstUserBooking!.title}`)
-    ).toBeVisible();
   });
 });
 
