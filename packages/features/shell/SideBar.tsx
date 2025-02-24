@@ -55,7 +55,6 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
 
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
-    IS_CALCOM: true,
     isAdmin,
     user,
   });

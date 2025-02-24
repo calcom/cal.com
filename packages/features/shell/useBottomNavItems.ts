@@ -1,6 +1,7 @@
 import type { User as UserAuth } from "next-auth";
 import { useState } from "react";
 
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
@@ -9,14 +10,12 @@ import { type NavigationItemType } from "./navigation/NavigationItem";
 
 type BottomNavItemsProps = {
   publicPageUrl: string;
-  IS_CALCOM: boolean | "";
   isAdmin: boolean;
   user: UserAuth | null | undefined;
 };
 
 export function useBottomNavItems({
   publicPageUrl,
-  IS_CALCOM,
   isAdmin,
   user,
 }: BottomNavItemsProps): NavigationItemType[] {
