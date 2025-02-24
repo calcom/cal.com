@@ -33,15 +33,10 @@ export const useEventTypeForm = ({
   onSubmit: (data: EventTypeUpdateInput) => void;
 }) => {
   const { t } = useLocale();
-  const bookingFields: Record<string, Fields[number]["name"]> = {};
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
-  eventType.bookingFields.forEach(({ name }: { name: string }) => {
-    bookingFields[name] = name;
-  });
-
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
@@ -159,6 +154,12 @@ export const useEventTypeForm = ({
           eventName: z
             .string()
             .superRefine((val, ctx) => {
+              const bookingFields: Record<string, Fields[number]["name"]> = {};
+              const _bookingFields = form.getValues("bookingFields");
+              _bookingFields.forEach(({ name }: { name: string }) => {
+                bookingFields[name] = name;
+              });
+
               const validationResult = validateCustomEventName(val, bookingFields);
               if (validationResult !== true) {
                 ctx.addIssue({

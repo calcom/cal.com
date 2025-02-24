@@ -805,6 +805,7 @@ export class EventTypeRepository {
         metadata: true,
         assignRRMembersUsingSegment: true,
         rrSegmentQueryValue: true,
+        isRRWeightsEnabled: true,
         maxLeadThreshold: true,
         useEventLevelSelectedCalendars: true,
         team: {
@@ -852,6 +853,8 @@ export class EventTypeRepository {
           select: {
             isFixed: true,
             createdAt: true,
+            weight: true,
+            priority: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },

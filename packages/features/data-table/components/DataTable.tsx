@@ -153,7 +153,7 @@ export function DataTable<TData, TValue>({
                         key={header.id}
                         style={{
                           ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                          ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
+                          ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
                           width: `var(--header-${kebabCase(header?.id)}-size)`,
                         }}
                         className={classNames(
@@ -271,7 +271,7 @@ function DataTableBody<TData>({
                     key={cell.id}
                     style={{
                       ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                      ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
+                      ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
                       width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                     }}
                     className={classNames(

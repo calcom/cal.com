@@ -87,7 +87,7 @@ export type CalendarState = {
   loading?: boolean;
   /** Disables all actions on Events*/
   eventsDisabled?: boolean;
-  /** If you don't want the date to be scrollable past a certian date */
+  /** If you don't want the date to be scrollable past a certain date */
   minDate?: Date;
   /** If you don't want the date to be scrollable past a certain date */
   maxDate?: Date;
