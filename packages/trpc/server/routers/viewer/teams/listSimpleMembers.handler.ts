@@ -5,14 +5,11 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TListSimpleMembersInputSchema } from "./listSimpleMembers.schema";
-
 type ListSimpleMembersOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: TListSimpleMembersInputSchema;
 };
 
 export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {

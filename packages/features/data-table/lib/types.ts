@@ -150,7 +150,7 @@ export type SortingState = Array<z.infer<typeof ZSorting>>;
 export const ZColumnVisibility = z.record(z.string(), z.boolean());
 
 export type FacetedValue = {
-  section?: string;
   label: string;
   value: string | number;
+  section?: string;
 };

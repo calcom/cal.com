@@ -9,7 +9,7 @@ import { useEventTypes } from "./useEventTypes";
 export function useFacetedUniqueValues() {
   const eventTypes = useEventTypes();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery({});
+  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery();
 
   return useCallback(
     (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
