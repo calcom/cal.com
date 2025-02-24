@@ -2961,5 +2961,6 @@
   "desc": "Aflopend",
   "verify_email": "E-mail verifiëren",
   "verify_email_change": "Verifieer e-mailwijziging",
+  "end_date_not_selected": "U heeft geen einddatum ingesteld voor uw afwezigheid",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2961,5 +2961,6 @@
   "desc": "Csökkenő",
   "verify_email": "E-mail megerősítése",
   "verify_email_change": "E-mail-cím módosításának megerősítése",
+  "end_date_not_selected": "Nem állítottál be végdátumot az irodán kívüli időszakodhoz",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
