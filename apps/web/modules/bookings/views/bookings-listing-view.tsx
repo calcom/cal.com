@@ -32,6 +32,8 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
+export const BOOKING_LIST_LIMIT = 10;
+
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
@@ -117,13 +119,17 @@ function BookingsContent({ status }: BookingsProps) {
     }
   }, [user, filterQuery.status]);
 
+  const bookingListFilters = useMemo(() => {
+    return {
+      ...filterQuery,
+      status: filterQuery.status ?? status,
+    };
+  }, [status, filterQuery]);
+
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
-      limit: 10,
-      filters: {
-        ...filterQuery,
-        status: filterQuery.status ?? status,
-      },
+      limit: BOOKING_LIST_LIMIT,
+      filters: bookingListFilters,
     },
     {
       enabled: true,
@@ -152,6 +158,7 @@ function BookingsContent({ status }: BookingsProps) {
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
+                bookingListFilters={bookingListFilters}
                 {...booking}
               />
             );
@@ -171,7 +178,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status]);
+  }, [user, status, bookingListFilters]);
 
   const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
@@ -211,7 +218,7 @@ function BookingsContent({ status }: BookingsProps) {
         }))
       ) || []
     );
-  }, [query.data]);
+  }, [query.data, status, user]);
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
@@ -232,7 +239,7 @@ function BookingsContent({ status }: BookingsProps) {
           }))
       ) || []
     );
-  }, [query.data]);
+  }, [query.data, user?.timeZone]);
 
   const finalData = useMemo<RowData[]>(() => {
     if (status !== "upcoming") {
