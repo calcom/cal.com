@@ -66,7 +66,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
   eventType: {
     id: number;
     isRRWeightsEnabled: boolean;
-    team: { parentId?: number | null; rrResetInterval: RRResetInterval } | null;
+    team: { parentId?: number | null; rrResetInterval: RRResetInterval | null } | null;
   };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
