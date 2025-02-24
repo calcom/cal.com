@@ -2961,5 +2961,6 @@
   "desc": "Azalan",
   "verify_email": "E-posta doğrula",
   "verify_email_change": "E-posta değişikliğini doğrula",
+  "end_date_not_selected": "OOO'nuz için bir bitiş tarihi belirlemediniz",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
