@@ -5,12 +5,12 @@ import type { GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 
 import { EventType } from "@calcom/atoms/monorepo";
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -31,10 +31,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
   if (!parsed.success) {
     const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-    const eventType = await getEventTypeById(
-      parseInt(asStringOrThrow(legacyCtx.query.type)),
-      legacyCtx
-    );
+    const eventType = await getEventTypeById(parseInt(asStringOrThrow(legacyCtx.query.type)), legacyCtx);
     if (!eventType) {
       redirect("/event-types");
     }
@@ -47,8 +44,6 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const data = await EventTypeRepository.findTitleById({
     id: parsed.data.type,
   });
-};
-
 
   return await _generateMetadata(
     (t) => (data?.title ? `${data.title} | ${t("event_type")}` : `${t("event_type")}`),
@@ -72,7 +67,8 @@ const getEventTypeById = async (eventTypeId: number, context: GetServerSideProps
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const session = await getServerSessionForAppDir();
+  const session = await getServerSession({ req: context.req });
+
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
