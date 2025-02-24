@@ -1,6 +1,8 @@
 import { expect } from "@playwright/test";
 
+import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
