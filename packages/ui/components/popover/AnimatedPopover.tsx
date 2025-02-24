@@ -28,7 +28,7 @@ export const AnimatedPopover = ({
 }) => {
   const [open, setOpen] = React.useState(defaultOpen ?? false);
   const ref = React.useRef<HTMLButtonElement>(null);
-  // calculate which aligment to open the popover with based on which half of the screen it is on (left or right)
+  // calculate which alignment to open the popover with based on which half of the screen it's on (left or right)
   const [align, setAlign] = React.useState<"start" | "end">("start");
 
   React.useLayoutEffect(() => {

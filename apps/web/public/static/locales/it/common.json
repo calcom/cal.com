@@ -1987,7 +1987,7 @@
   "a_routing_form": "Un modulo di instradamento",
   "form_description_placeholder": "Descrizione modulo",
   "keep_me_connected_with_form": "Mantieni la connessione con il modulo",
-  "fields_in_form_duplicated": "Le eventuali modifiche all'instradatore e ai campi del modulo da duplicare si rifletteranno nel duplicato.",
+  "fields_in_form_duplicated": "Qualsiasi modifica apportata al router o ai campi del modulo duplicato si rifletterà nella copia. Tuttavia, l'eliminazione di un campo non lo rimuoverà dalla copia.",
   "form_deleted": "Modulo eliminato",
   "delete_form": "Confermi l'eliminazione del modulo?",
   "delete_form_action": "Sì, elimina modulo",
