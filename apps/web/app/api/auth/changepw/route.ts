@@ -1,18 +1,22 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession({ req });
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
+export async function handler(request: NextRequest) {
+  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
 
   if (!session || !session.user || !session.user.email) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   const user = await prisma.user.findFirst({
@@ -27,29 +31,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
+    return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
   if (user.identityProvider !== IdentityProvider.CAL) {
-    return res.status(400).json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled });
+    return NextResponse.json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled }, { status: 400 });
   }
 
-  const oldPassword = req.body.oldPassword;
-  const newPassword = req.body.newPassword;
+  const { oldPassword, newPassword } = await request.json();
 
   const currentPassword = user.password?.hash;
   if (!currentPassword) {
-    return res.status(400).json({ error: ErrorCode.UserMissingPassword });
+    return NextResponse.json({ error: ErrorCode.UserMissingPassword }, { status: 400 });
   }
 
   const passwordsMatch = await verifyPassword(oldPassword, currentPassword);
   if (!passwordsMatch) {
-    return res.status(403).json({ error: ErrorCode.IncorrectPassword });
+    return NextResponse.json({ error: ErrorCode.IncorrectPassword }, { status: 403 });
   }
 
   if (oldPassword === newPassword) {
-    return res.status(400).json({ error: ErrorCode.NewPasswordMatchesOld });
+    return NextResponse.json({ error: ErrorCode.NewPasswordMatchesOld }, { status: 400 });
   }
 
   const hashedPassword = await hashPassword(newPassword);
@@ -66,5 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  res.status(200).json({ message: "Password updated successfully" });
+  return NextResponse.json({ message: "Password updated successfully" }, { status: 200 });
 }
+
+const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+
+export { postHandler as POST };
