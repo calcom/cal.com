@@ -156,6 +156,8 @@ export default abstract class BaseCalendarService implements Calendar {
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event),
+        method: "REQUEST",
+        scheduleAgent: "CLIENT",
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
@@ -233,6 +235,8 @@ export default abstract class BaseCalendarService implements Calendar {
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event),
+        method: "REQUEST",
+        scheduleAgent: "CLIENT",
       });
 
       if (error) {

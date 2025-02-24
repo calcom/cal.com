@@ -17,16 +17,25 @@ export const getWhat = (calEvent: Pick<CalendarEvent, "title">, t: TFunction) =>
 };
 
 export const getWhen = (
-  calEvent: Pick<CalendarEvent, "organizer" | "attendees" | "seatsPerTimeSlot">,
+  calEvent: Pick<CalendarEvent, "organizer" | "attendees" | "seatsPerTimeSlot" | "startTime" | "endTime">,
   t: TFunction
 ) => {
   const organizerTimezone = calEvent.organizer?.timeZone ?? "UTC";
   const defaultTimezone = organizerTimezone;
   const attendeeTimezone = calEvent.attendees?.[0]?.timeZone ?? defaultTimezone;
 
+  const startTime = new Date(calEvent.startTime).toLocaleString("en-US", {
+    timeZone: attendeeTimezone,
+    timeZoneName: "short",
+  });
+  const endTime = new Date(calEvent.endTime).toLocaleString("en-US", {
+    timeZone: attendeeTimezone,
+    timeZoneName: "short",
+  });
+
   return calEvent.seatsPerTimeSlot
-    ? `${t("organizer_timezone")}:\n${organizerTimezone}`
-    : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
+    ? `${t("organizer_timezone")}:\n${organizerTimezone}\n${t("start_time")}:\n${startTime}\n${t("end_time")}:\n${endTime}`
+    : `${t("invitee_timezone")}:\n${attendeeTimezone}\n${t("start_time")}:\n${startTime}\n${t("end_time")}:\n${endTime}`;
 };
 
 export const getWho = (
@@ -100,7 +109,7 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
           app.success >= 1 ? `✅ ${app.success > 1 ? `(x${app.success})` : ""}` : ""
         }${
           app.warnings && app.warnings.length >= 1 ? app.warnings.map((warning) => `\n   - ${warning}`) : ""
-        } ${app.failures && app.failures >= 1 ? `❌ ${app.failures > 1 ? `(x${app.failures})` : ""}` : ""} ${
+        } ${app.failures && app.failures >= 1 ? `❌ ${app.failures > 1 ? `(x${app.failures})` : ""} : ""} ${
           app.errors && app.errors.length >= 1 ? app.errors.map((error) => `\n   - ${error}`) : ""
         }`;
       })}

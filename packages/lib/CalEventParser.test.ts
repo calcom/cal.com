@@ -84,4 +84,26 @@ describe("getRichDescription", () => {
     expect(description).toContain("what:");
     expect(description).toContain("who:");
   });
+
+  it("should specify event time in the correct timezone", () => {
+    const eventWithTimezone = {
+      ...mockCalEvent,
+      startTime: "2023-01-01T10:00:00-05:00",
+      endTime: "2023-01-01T11:00:00-05:00",
+    };
+
+    const description = getRichDescription(eventWithTimezone, t);
+    expect(description).toContain("start_time:\n1/1/2023, 10:00:00 AM EST");
+    expect(description).toContain("end_time:\n1/1/2023, 11:00:00 AM EST");
+  });
+
+  it("should set SCHEDULE-AGENT=CLIENT property correctly", () => {
+    const eventWithScheduleAgent = {
+      ...mockCalEvent,
+      scheduleAgent: "CLIENT",
+    };
+
+    const description = getRichDescription(eventWithScheduleAgent, t);
+    expect(description).toContain("scheduleAgent:\nCLIENT");
+  });
 });
