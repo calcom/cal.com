@@ -244,7 +244,7 @@
   "select": "Выбрать...",
   "2fa_confirm_current_password": "Подтвердите свой текущий пароль.",
   "2fa_scan_image_or_use_code": "Отсканируйте изображение ниже с помощью приложения-аутентификатора на вашем телефоне или введите текстовый код вручную.",
-  "text": "Текст",
+  "text": "Вы не указали дату окончания для вашего отсутствия",
   "your_phone_number": "Ваш номер телефона",
   "multiline_text": "Многострочный текст",
   "number": "Число",
@@ -2961,5 +2961,6 @@
   "desc": "По убыванию",
   "verify_email": "Подтвердить email",
   "verify_email_change": "Подтвердить изменение email",
+  "end_date_not_selected": "You didn't set an end date for your OOO",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

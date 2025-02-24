@@ -2961,5 +2961,6 @@
   "desc": "Zostupne",
   "verify_email": "Overiť email",
   "verify_email_change": "Overiť zmenu e-mailu",
+  "end_date_not_selected": "Nenastavili ste koncový dátum pre vašu neprítomnosť",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

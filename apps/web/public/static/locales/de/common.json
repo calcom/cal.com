@@ -2961,5 +2961,6 @@
   "desc": "Absteigend",
   "verify_email": "E-Mail verifizieren",
   "verify_email_change": "E-Mail-Änderung bestätigen",
+  "end_date_not_selected": "Sie haben kein Enddatum für Ihre Abwesenheit festgelegt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
