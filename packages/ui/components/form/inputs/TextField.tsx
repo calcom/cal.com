@@ -173,6 +173,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     size,
     ...passThrough
   } = props;
+  // only when type is number we want to make this component controlled
+  if (props.type === "number") {
+    passThrough.value = inputValue;
+  }
 
   return (
     <div className={classNames(containerClassName)}>
@@ -218,7 +222,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             )}
             {...passThrough}
             onChange={handleChange}
-            value={type === "number" ? inputValue : undefined}
             disabled={readOnly || disabled}
             ref={ref}
           />
@@ -254,7 +257,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           )}
           {...passThrough}
           onChange={handleChange}
-          value={type === "number" ? inputValue : undefined}
           readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
