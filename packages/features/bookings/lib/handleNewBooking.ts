@@ -926,6 +926,29 @@ async function handler(
     });
   const teamMembers = await Promise.all(teamMemberPromises);
 
+  const optionalTeamGuestsDestinationCalendars: DestinationCalendar[] = [];
+  const optionalTeamGuestsPromises = eventType.optionalTeamGuests.map(async (guest) => {
+    if (isTeamEventType && guest.destinationCalendar) {
+      optionalTeamGuestsDestinationCalendars.push({
+        ...guest.destinationCalendar,
+        externalId: processExternalId(guest.destinationCalendar),
+      });
+    }
+
+    return {
+      id: guest.id,
+      name: guest.name ?? "",
+      email: guest.email,
+      timeZone: guest.timeZone,
+      language: {
+        translate: await getTranslation(guest.locale ?? "en", "common"),
+        locale: guest.locale ?? "en",
+      },
+    };
+  });
+
+  const optionalTeamGuests = await Promise.all(optionalTeamGuestsPromises);
+
   const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
@@ -1036,6 +1059,10 @@ async function handler(
     evt.destinationCalendar?.push(...teamDestinationCalendars);
   }
 
+  if (isTeamEventType && optionalTeamGuests) {
+    evt.destinationCalendar?.push(...optionalTeamGuestsDestinationCalendars);
+  }
+
   // data needed for triggering webhooks
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: eventType.title,
@@ -1096,6 +1123,7 @@ async function handler(
 
   if (isTeamEventType) {
     evt.team = {
+      optionalGuests: optionalTeamGuests,
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
       id: eventType.team?.id ?? 0,

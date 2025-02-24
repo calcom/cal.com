@@ -208,6 +208,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
         user={user}
         isUserLoading={isLoggedInUserPending}
         showToast={showToast}
+        teamMembers={teamMembers}
       />
     ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,

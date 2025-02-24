@@ -61,14 +61,21 @@ export default class ExchangeCalendarService implements Calendar {
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
+
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
+
     if (event.team?.members) {
       event.team.members.forEach((member: Person) => {
         appointment.RequiredAttendees.Add(new Attendee(member.email));
       });
     }
+
+    event.team?.optionalGuests.forEach((guest) => {
+      appointment.OptionalAttendees.Add(new Attendee(guest.email));
+    });
+
     return appointment
       .Save(SendInvitationsMode.SendToAllAndSaveCopy)
       .then(() => {
@@ -97,14 +104,21 @@ export default class ExchangeCalendarService implements Calendar {
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
+
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
+
     if (event.team?.members) {
       event.team.members.forEach((member) => {
         appointment.RequiredAttendees.Add(new Attendee(member.email));
       });
     }
+
+    event.team?.optionalGuests.forEach((guest) => {
+      appointment.OptionalAttendees.Add(new Attendee(guest.email));
+    });
+
     return appointment
       .Update(
         ConflictResolutionMode.AlwaysOverwrite,

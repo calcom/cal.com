@@ -68,6 +68,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     children,
     assignAllTeamMembers,
     hosts,
+    optionalTeamGuests,
     id,
     multiplePrivateLinks,
     // Extract this from the input so it doesn't get saved in the db
@@ -101,6 +102,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           priority: true,
           weight: true,
           isFixed: true,
+        },
+      },
+      optionalTeamGuests: {
+        select: {
+          id: true,
         },
       },
       aiPhoneCallConfig: {
@@ -285,66 +291,84 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  if (teamId && hosts) {
+  if (teamId) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const memberships =
       (await ctx.prisma.membership.findMany({
-        where: {
-          teamId,
-          accepted: true,
-        },
+        where: { teamId, accepted: true },
+        select: { userId: true },
       })) || [];
     const teamMemberIds = memberships.map((membership) => membership.userId);
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
     // we let this pass through on organization sub-teams
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-      });
+    if (hosts && !hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+      throw new TRPCError({ code: "FORBIDDEN" });
     }
 
-    // weights were already enabled or are enabled now
-    const isWeightsEnabled =
-      isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
+    if (optionalTeamGuests && !optionalTeamGuests.every((guest) => teamMemberIds.includes(guest.id))) {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
 
-    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+    const areExclusive = areHostsAndOptionalTeamGuestsExclusive(hosts, optionalTeamGuests);
+    if (!areExclusive) throw new TRPCError({ code: "FORBIDDEN" });
 
-    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
-    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
-    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+    if (hosts) {
+      // weights were already enabled or are enabled now
+      const isWeightsEnabled =
+        isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
-    data.hosts = {
-      deleteMany: {
-        OR: removedHosts.map((host) => ({
-          userId: host.userId,
-          eventTypeId: id,
-        })),
-      },
-      create: newHosts.map((host) => {
-        return {
-          ...host,
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-        };
-      }),
-      update: existingHosts.map((host) => ({
-        where: {
-          userId_eventTypeId: {
+      const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+      const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+
+      const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+      const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+      const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+
+      data.hosts = {
+        deleteMany: {
+          OR: removedHosts.map((host) => ({
             userId: host.userId,
             eventTypeId: id,
+          })),
+        },
+        create: newHosts.map((host) => {
+          return {
+            ...host,
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+            priority: host.priority ?? 2,
+            weight: host.weight ?? 100,
+          };
+        }),
+        update: existingHosts.map((host) => ({
+          where: {
+            userId_eventTypeId: {
+              userId: host.userId,
+              eventTypeId: id,
+            },
           },
-        },
-        data: {
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          scheduleId: host.scheduleId ?? null,
-        },
-      })),
-    };
+          data: {
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+            priority: host.priority ?? 2,
+            weight: host.weight ?? 100,
+            scheduleId: host.scheduleId ?? null,
+          },
+        })),
+      };
+    }
+
+    if (optionalTeamGuests) {
+      const oldGuestsSet = new Set(eventType.optionalTeamGuests.map((guest) => guest.id));
+      const newGuestsSet = new Set(optionalTeamGuests.map((guest) => guest.id));
+
+      const newGuests = optionalTeamGuests.filter((newGuest) => !oldGuestsSet.has(newGuest.id));
+      const removedGuests = eventType.optionalTeamGuests.filter((oldGuest) => !newGuestsSet.has(oldGuest.id));
+
+      data.optionalTeamGuests = {
+        connect: newGuests,
+        disconnect: removedGuests,
+      };
+    }
   }
 
   if (input.metadata?.disableStandardEmails?.all) {
@@ -571,4 +595,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
   return { eventType };
+};
+
+const areHostsAndOptionalTeamGuestsExclusive = (
+  hosts: TUpdateInputSchema["hosts"],
+  optionalTeamGuests: TUpdateInputSchema["optionalTeamGuests"]
+) => {
+  optionalTeamGuests?.forEach((guest) => {
+    const inclusiveUser = hosts?.find((host) => host.userId === guest.id);
+    if (inclusiveUser) return false;
+  });
+  return true;
 };
