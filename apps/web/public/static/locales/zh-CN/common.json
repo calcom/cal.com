@@ -1987,7 +1987,7 @@
   "a_routing_form": "途径表格",
   "form_description_placeholder": "表格描述",
   "keep_me_connected_with_form": "让我与表格保持连接",
-  "fields_in_form_duplicated": "所复制的途径表格本身和其字段的任何变化都会反映在副本中。",
+  "fields_in_form_duplicated": "对正在复制的表单的路由器或字段所做的任何更改都将反映在副本中。但是，删除字段不会将其从副本中移除。",
   "form_deleted": "表格已删除",
   "delete_form": "确定要删除此表格吗？",
   "delete_form_action": "是，删除表格",

@@ -82,6 +82,7 @@
             "event-types/dynamic",
             "event-types/collective-events",
             "event-types/create-first-event",
+            "event-types/create-phone-only-event-type",
             "event-types/create-recurring",
             "event-types/create-secret",
             "event-types/custom-name",

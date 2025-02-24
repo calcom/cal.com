@@ -1987,7 +1987,7 @@
   "a_routing_form": "Reitityskaavake",
   "form_description_placeholder": "Lomakkeen kuvaus",
   "keep_me_connected_with_form": "Pidä minut yhteydessä lomakkeeseen",
-  "fields_in_form_duplicated": "Kaikki muutokset kopioitavan lomakkeen reitittimessä ja kentissä heijastuvat kopioituun versioon.",
+  "fields_in_form_duplicated": "Kaikki muutokset, jotka tehdään kopioitavan lomakkeen reitittimeen tai kenttiin, näkyvät myös kopiossa. Kentän poistaminen ei kuitenkaan poista sitä kopiosta.",
   "form_deleted": "Lomake poistettu",
   "delete_form": "Haluatko varmasti poistaa tämän lomakkeen?",
   "delete_form_action": "Kyllä, poista lomake",

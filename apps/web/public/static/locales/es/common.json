@@ -1987,7 +1987,7 @@
   "a_routing_form": "Un formulario de enrutamiento",
   "form_description_placeholder": "Descripción del formulario",
   "keep_me_connected_with_form": "Mantenerme conectado con el formulario",
-  "fields_in_form_duplicated": "Cualquier cambio en el enrutador y los campos del formulario que se está duplicando se reflejará en el duplicado.",
+  "fields_in_form_duplicated": "Cualquier cambio realizado en el enrutador o en los campos del formulario que se está duplicando se reflejará en el duplicado. Sin embargo, eliminar un campo no lo eliminará del duplicado.",
   "form_deleted": "Formulario eliminado",
   "delete_form": "¿Está seguro de que desea eliminar este formulario?",
   "delete_form_action": "Sí, eliminar formulario",
