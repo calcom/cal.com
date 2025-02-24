@@ -1,8 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+// app/api/reset-password/route.ts
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
+import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -13,11 +16,13 @@ const passwordResetRequestSchema = z.object({
   requestId: z.string(), // format doesn't matter.
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(request: NextRequest) {
   // Bad Method when not POST
-  if (req.method !== "POST") return res.status(405).end();
+  if (request.method !== "POST") return NextResponse.json({}, { status: 405 });
 
-  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(req.body);
+  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(
+    await request.json()
+  );
   // rate-limited there is a low, very low chance that a password request stays valid long enough
   // to brute force 3.8126967e+40 options.
   const maybeRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
@@ -54,12 +59,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (e) {
-    return res.status(404).end();
+    return NextResponse.json({}, { status: 404 });
   }
 
   await expireResetPasswordRequest(rawRequestId);
 
-  return res.status(201).json({ message: "Password reset." });
+  return NextResponse.json({ message: "Password reset." }, { status: 201 });
 }
 
 async function expireResetPasswordRequest(rawRequestId: string) {
@@ -73,3 +78,7 @@ async function expireResetPasswordRequest(rawRequestId: string) {
     },
   });
 }
+
+const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+
+export { postHandler as POST };
