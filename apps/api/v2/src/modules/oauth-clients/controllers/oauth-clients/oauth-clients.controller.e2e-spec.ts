@@ -329,7 +329,7 @@ describe("OAuth Clients Endpoints", () => {
         const body: CreateOAuthClientInput = {
           name: oAuthClientName,
           redirectUris: ["http://test-oauth-client.com"],
-          permissions: oAuthClientPermissions,
+          permissions: ["*"],
         };
         return request(app.getHttpServer())
           .post("/api/v2/oauth-clients")
