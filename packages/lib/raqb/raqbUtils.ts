@@ -25,7 +25,7 @@ function getFieldResponseValueAsLabel({
   field: {
     type: string;
     options?: {
-      id: string | null;
+      id?: string | null | undefined;
       label: string;
     }[];
   };

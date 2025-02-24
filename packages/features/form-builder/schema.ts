@@ -266,6 +266,7 @@ export const fieldSchema = baseFieldSchema.merge(
     disableOnPrefill: z.boolean().default(false).optional(),
   })
 );
+export type BookingField = z.infer<typeof fieldSchema>;
 
 export const fieldsSchema = z.array(fieldSchema);
 

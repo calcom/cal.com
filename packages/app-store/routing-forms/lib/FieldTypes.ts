@@ -6,6 +6,12 @@ export const enum RoutingFormFieldType {
   MULTI_SELECT = "multiselect",
   PHONE = "phone",
   EMAIL = "email",
+  URL = "url",
+  ADDRESS = "address",
+  MULTI_EMAIL = "multiemail",
+  RADIO = "radio",
+  CHECKBOX = "checkbox",
+  BOOLEAN = "boolean",
 }
 
 export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFieldType => {
@@ -48,5 +54,29 @@ export const FieldTypes = [
   {
     label: "Email",
     value: RoutingFormFieldType.EMAIL,
+  },
+  {
+    label: "URL",
+    value: RoutingFormFieldType.URL,
+  },
+  {
+    label: "Address",
+    value: RoutingFormFieldType.ADDRESS,
+  },
+  {
+    label: "Multiple Email",
+    value: RoutingFormFieldType.MULTI_EMAIL,
+  },
+  {
+    label: "Radio Group",
+    value: RoutingFormFieldType.RADIO,
+  },
+  {
+    label: "Check box",
+    value: RoutingFormFieldType.CHECKBOX,
+  },
+  {
+    label: "Boolean",
+    value: RoutingFormFieldType.BOOLEAN,
   },
 ] as const;

@@ -67,8 +67,8 @@ export const FormBuilder = function FormBuilder({
   title: string;
   description: string;
   addFieldLabel: string;
-  disabled: boolean;
-  LockedIcon: false | JSX.Element;
+  disabled?: boolean;
+  LockedIcon?: false | JSX.Element;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -492,6 +492,7 @@ function FieldEditDialog({
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
+              containerClassName="data-testid-field-type"
               data-testid="test-field-type"
               id="test-field-type"
               isDisabled={

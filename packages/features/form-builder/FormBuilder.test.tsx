@@ -6,6 +6,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
 
 import { FormBuilder } from "./FormBuilder";
+import { fieldTypesConfigMap } from "./fieldTypes";
 import {
   mockProps,
   verifier,
@@ -48,20 +49,13 @@ describe("FormBuilder", () => {
   });
 
   describe("Basic Tests", () => {
-    const fieldTypes = [
-      { fieldType: "email", label: "Email Field" },
-      { fieldType: "phone", label: "Phone Field" },
-      { fieldType: "address", label: "Address Field" },
-      { fieldType: "text", label: "Short Text Field" },
-      { fieldType: "number", label: "Number Field" },
-      { fieldType: "textarea", label: "LongText Field" },
-      { fieldType: "select", label: "Select Field" },
-      { fieldType: "multiselect", label: "MultiSelect Field" },
-      { fieldType: "multiemail", label: "Multiple Emails Field" },
-      { fieldType: "checkbox", label: "CheckBox Group Field" },
-      { fieldType: "radio", label: "Radio Group Field" },
-      { fieldType: "boolean", label: "Checkbox Field" },
-    ];
+    const fieldTypes = Object.values(fieldTypesConfigMap)
+      .filter((field) => field.value !== "name" && field.value !== "radioInput")
+      .map((field) => ({
+        fieldType: field.value,
+        label: field.label,
+      }));
+
     beforeEach(() => {
       renderComponent({ formBuilderProps: mockProps, formDefaultValues: {} });
     });
