@@ -1987,7 +1987,7 @@
   "a_routing_form": "Útválasztási űrlap",
   "form_description_placeholder": "Űrlap leírása",
   "keep_me_connected_with_form": "Tartson kapcsolatban az űrlappal",
-  "fields_in_form_duplicated": "A duplikált űrlap útválasztójában és mezőiben végzett bármilyen változás a másolatban is tükröződik.",
+  "fields_in_form_duplicated": "A másolandó űrlap útválasztójában vagy mezőiben végrehajtott változtatások megjelennek a másolatban. Azonban egy mező törlése nem távolítja el azt a másolatból.",
   "form_deleted": "Űrlap törölve",
   "delete_form": "Biztosan törli ezt az űrlapot?",
   "delete_form_action": "Igen, törölje az űrlapot",

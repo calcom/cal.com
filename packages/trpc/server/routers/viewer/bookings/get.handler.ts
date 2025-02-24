@@ -326,7 +326,7 @@ export async function getBookings({
   };
 
   const [
-    // Quering these in parallel to save time.
+    // Querying these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
     bookingsQueryUserId,
     bookingsQueryAttendees,

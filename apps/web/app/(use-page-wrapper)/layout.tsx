@@ -9,6 +9,7 @@ import { ssrInit } from "@server/lib/ssr";
 export default async function PageWrapperLayout({ children }: { children: React.ReactNode }) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
+
   const context = buildLegacyCtx(headers(), cookies(), {}, {});
   const ssr = await ssrInit(context);
 

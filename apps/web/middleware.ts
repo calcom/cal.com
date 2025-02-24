@@ -16,7 +16,7 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc"];
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api"];
 // Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
 export const POST_METHODS_ALLOWED_APP_ROUTES = ["/settings/my-account/general"];
 
@@ -194,6 +194,10 @@ export const config = {
     "/booking/:path*",
     "/payment/:path*",
     "/routing-forms/:path*",
+    "/team/:path*",
+    "/org/:path*",
+    "/:user/:type/",
+    "/:user/",
   ],
 };
 
