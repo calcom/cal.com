@@ -231,11 +231,10 @@ describe("handleNewBooking", () => {
       timeout
     );
 
-    test.skip(
-      `should create a successful booking using the office365 domain wide delegation credential
+    test(
+      `should create a successful booking using the office365 domain wide delegation credential with Cal Video as the location
       1. Should create a booking in the database with reference having DWD credential
       2. Should create an event in Outlook calendar with DWD credential
-      3. [TODO] Should use MS Teams as the location even when not explicitly set.
 `,
       async ({ emails }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -416,6 +415,7 @@ describe("handleNewBooking", () => {
           organizer,
           emails,
           iCalUID,
+          calendarType: "office365_calendar",
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -423,7 +423,7 @@ describe("handleNewBooking", () => {
           organizer,
           location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+          videoCallUrl: `http://app.cal.local:3000/video/${createdBooking.uid}`,
         });
       },
       timeout

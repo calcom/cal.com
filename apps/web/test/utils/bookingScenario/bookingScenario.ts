@@ -2317,6 +2317,7 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
 
     return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
   }
+  throw new Error(`Unsupported type: ${type}`);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

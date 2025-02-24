@@ -449,6 +449,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange,
   booking,
   destinationEmail,
+  calendarType,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
@@ -461,6 +462,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange?: { start: Date; end: Date };
   booking: { uid: string; urlOrigin?: string };
   destinationEmail?: string;
+  calendarType?: string;
 }) {
   const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
   expect(emails).toHaveEmail(
@@ -496,12 +498,16 @@ export function expectSuccessfulBookingCreationEmails({
           }
         : null),
       to: `${destinationEmail ?? organizer.email}`,
-      ics: {
-        filename: "event.ics",
-        iCalUID: `${iCalUID}`,
-        recurrence,
-        method: "REQUEST",
-      },
+      ...(calendarType !== "office365_calendar"
+        ? {
+            ics: {
+              filename: "event.ics",
+              iCalUID: `${iCalUID}`,
+              recurrence,
+              method: "REQUEST",
+            },
+          }
+        : {}),
     },
     `${destinationEmail ?? organizer.email}`
   );
