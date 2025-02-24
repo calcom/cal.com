@@ -159,7 +159,7 @@ export function EditForm({
             avatar: values.avatar,
             bio: values.bio,
             timeZone: values.timeZone,
-            // @ts-expect-error theyre there in local types but for some reason it errors?
+            // @ts-expect-error they're there in local types but for some reason it errors?
             attributeOptions: values.attributes
               ? // @ts-expect-error  same as above
                 { userId: selectedUser?.id ?? "", attributes: values.attributes }

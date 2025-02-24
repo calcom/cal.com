@@ -150,7 +150,7 @@ const TravelScheduleModal = ({
         <DialogFooter showDivider className="relative">
           <DialogClose />
           <Button
-            disabled={!endDate}
+            disabled={isNoEndDate ? !startDate : !startDate || !endDate}
             onClick={() => {
               createNewSchedule();
             }}>

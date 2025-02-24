@@ -99,7 +99,7 @@ MeetingTimeInTimezones.displayName = "MeetingTimeInTimezones";
 
 // Prevents propagation so the click on eg booking overview won't
 // bubble to the row of the table, causing a navigation to the
-// detaill page.
+// detail page.
 const preventBubbling = (event: React.MouseEvent) => {
   event.stopPropagation();
   event.nativeEvent.preventDefault();
