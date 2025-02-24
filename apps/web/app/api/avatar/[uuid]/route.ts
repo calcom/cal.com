@@ -10,7 +10,7 @@ const querySchema = z.object({
   uuid: z.string().transform((objectKey) => objectKey.split(".")[0]),
 });
 
-const handleValidationError = (error: z.ZodError): Response => {
+const handleValidationError = (error: z.ZodError): NextResponse => {
   const errors = error.errors.map((err) => ({
     path: err.path.join("."),
     errorCode: `error.validation.${err.code}`,
