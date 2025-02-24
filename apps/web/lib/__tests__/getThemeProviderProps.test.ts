@@ -90,6 +90,10 @@ describe("getThemeProviderProps", () => {
       const result = getThemeProviderProps({
         ...fnArg,
         pathname: "/free/30min",
+        props: {
+          ...fnArg.props,
+          isBookingPage: true,
+        },
       });
 
       expect(result).toEqual({
@@ -183,11 +187,6 @@ describe("getThemeProviderProps", () => {
 });
 
 describe("getUniqueIdentifierForBookingPage", () => {
-  it("should return null if not a booking page", () => {
-    const result = getUniqueIdentifierForBookingPage({ pathname: "/test" });
-    expect(result).toBeNull();
-  });
-
   describe("User Pages", () => {
     it.each([
       { path: "/test", expected: "test" },
