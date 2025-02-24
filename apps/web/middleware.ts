@@ -164,7 +164,6 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
-    // Positive matches (middleware applies here)
     "/",
     "/403",
     "/500",
@@ -199,8 +198,6 @@ export const config = {
     "/org/:path*",
     "/:user/:type/",
     "/:user/",
-    // Negated paths (middleware skips these)
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
 
