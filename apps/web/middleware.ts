@@ -200,11 +200,7 @@ export const config = {
     "/:user/:type/",
     "/:user/",
     // Negated paths (middleware skips these)
-    "!/_next/static/:path*",
-    "!/_next/image/:path*",
-    "!/favicon.ico",
-    "!/sitemap.xml",
-    "!/robots.txt",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
 
