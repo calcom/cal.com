@@ -49,6 +49,7 @@ function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
 
   return async () => {
     if (!cachedModule) {
+      console.log("---------------------------------------importing", importFunc);
       cachedModule = await importFunc();
     }
     return cachedModule;
