@@ -16,7 +16,7 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api"];
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
 // Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
 export const POST_METHODS_ALLOWED_APP_ROUTES = ["/settings/my-account/general"];
 
@@ -164,6 +164,13 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
+    // Negated paths (middleware skips these)
+    "!/_next/static/:path*",
+    "!/_next/image/:path*",
+    "!/favicon.ico/:path*",
+    "!/sitemap.xml/:path*",
+    "!/robots.txt/:path*",
+    // Positive matches (middleware applies here)
     "/",
     "/403",
     "/500",
