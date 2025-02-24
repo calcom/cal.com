@@ -2961,5 +2961,6 @@
   "desc": "تنازلي",
   "verify_email": "التحقق من البريد الإلكتروني",
   "verify_email_change": "تأكيد تغيير البريد الإلكتروني",
+  "end_date_not_selected": "لم تقم بتعيين تاريخ انتهاء لحالة خارج المكتب الخاصة بك",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
