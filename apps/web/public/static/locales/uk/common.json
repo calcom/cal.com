@@ -2961,5 +2961,6 @@
   "desc": "За спаданням",
   "verify_email": "Підтвердити email",
   "verify_email_change": "Підтвердити зміну електронної пошти",
+  "end_date_not_selected": "Ви не встановили кінцеву дату для вашої відсутності",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

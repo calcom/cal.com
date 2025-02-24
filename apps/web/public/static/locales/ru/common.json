@@ -2961,5 +2961,6 @@
   "desc": "По убыванию",
   "verify_email": "Подтвердить email",
   "verify_email_change": "Подтвердить изменение email",
+  "end_date_not_selected": "Вы не указали дату окончания вашего отсутствия",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
