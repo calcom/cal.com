@@ -1,0 +1,32 @@
+{"targetLocale":"ar","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"لم تقم بتعيين تاريخ انتهاء لحالة خارج المكتب الخاصة بك"}
+{"targetLocale":"az","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"OOO üçün son tarix təyin etməmisiniz"}
+{"targetLocale":"bg","key":"end_date_not_selected","source":"You didn't set an end date for your OOO"}
+{"targetLocale":"ca","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"No heu establert una data de finalització per a la vostra absència"}
+{"targetLocale":"cs","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Nenastavili jste koncové datum pro vaši nepřítomnost"}
+{"targetLocale":"da","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Du har ikke angivet en slutdato for din ferie"}
+{"targetLocale":"de","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Sie haben kein Enddatum für Ihre Abwesenheit festgelegt"}
+{"targetLocale":"es","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"No estableciste una fecha de finalización para tu ausencia"}
+{"targetLocale":"es-419","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"No estableciste una fecha de finalización para tu ausencia"}
+{"targetLocale":"et","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Te ei valinud oma OOO lõppkuupäeva"}
+{"targetLocale":"fi","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Et asettanut päättymispäivää poissaolollesi"}
+{"targetLocale":"fr","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Vous n'avez pas défini de date de fin pour votre absence"}
+{"targetLocale":"he","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"לא הגדרת תאריך סיום ליציאה מהמשרד"}
+{"targetLocale":"it","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Non hai impostato una data di fine per la tua assenza"}
+{"targetLocale":"ja","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"OOOの終了日を設定していません"}
+{"targetLocale":"km","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"អ្នកមិនបានកំណត់កាលបរិច្ឆេទបញ្ចប់សម្រាប់ការចេញពីការិយាល័យរបស់អ្នកទេ"}
+{"targetLocale":"ko","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"OOO에 대한 종료 날짜를 설정하지 않았습니다"}
+{"targetLocale":"nl","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"U heeft geen einddatum ingesteld voor uw afwezigheid"}
+{"targetLocale":"no","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Du har ikke satt en sluttdato for ditt fravær"}
+{"targetLocale":"pl","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Nie ustawiłeś daty końcowej dla swojego statusu poza biurem"}
+{"targetLocale":"pt-BR","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Você não definiu uma data final para sua ausência"}
+{"targetLocale":"pt","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Não definiu uma data de fim para a sua ausência"}
+{"targetLocale":"ro","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Nu ați setat o dată de încheiere pentru perioada dvs. de absență"}
+{"targetLocale":"ru","key":"end_date_not_selected","source":"You didn't set an end date for your OOO"}
+{"targetLocale":"sk-SK","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Nenastavili ste koncový dátum pre vašu neprítomnosť"}
+{"targetLocale":"sr","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Niste postavili datum završetka za vaše odsustvo"}
+{"targetLocale":"sv","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Du angav inget slutdatum för din frånvaro"}
+{"targetLocale":"tr","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"OOO'nuz için bir bitiş tarihi belirlememiştiniz"}
+{"targetLocale":"uk","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Ви не встановили кінцеву дату для вашої відсутності в офісі"}
+{"targetLocale":"vi","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"Bạn chưa đặt ngày kết thúc cho thời gian vắng mặt của mình"}
+{"targetLocale":"zh-CN","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"您没有为您的外出设置结束日期"}
+{"targetLocale":"zh-TW","key":"end_date_not_selected","source":"You didn't set an end date for your OOO","processed":"您尚未設定外出辦公的結束日期"}
