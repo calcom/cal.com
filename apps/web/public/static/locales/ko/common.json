@@ -1987,7 +1987,7 @@
   "a_routing_form": "라우팅 양식",
   "form_description_placeholder": "양식 설명",
   "keep_me_connected_with_form": "양식과 연결 상태 유지",
-  "fields_in_form_duplicated": "복제되는 양식에 있는 라우터 및 필드의 변경 사항은 복제본에 반영됩니다.",
+  "fields_in_form_duplicated": "복제되는 폼의 라우터나 필드에 대한 모든 변경 사항은 복제본에 반영됩니다. 그러나 필드를 삭제해도 복제본에서는 제거되지 않습니다.",
   "form_deleted": "양식 삭제됨",
   "delete_form": "이 양식을 삭제하시겠습니까?",
   "delete_form_action": "예, 양식을 삭제하겠습니다",

@@ -20,6 +20,7 @@ export type HorizontalTabItemProps = {
   onClick?: (name: string) => void;
   isActive?: boolean;
   "data-testid"?: string;
+  matchFullPath?: boolean;
 };
 
 const HorizontalTabItem = function ({
@@ -28,9 +29,10 @@ const HorizontalTabItem = function ({
   linkShallow,
   linkScroll,
   avatar,
+  matchFullPath,
   ...props
 }: HorizontalTabItemProps) {
-  const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
+  const isCurrent = useUrlMatchesCurrentUrl(href, matchFullPath) || props?.isActive;
 
   return (
     <Link

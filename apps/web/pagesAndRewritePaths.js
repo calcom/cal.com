@@ -3,22 +3,26 @@ const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
 // Pages found here are excluded from redirects in beforeFiles in next.config.js
 let pages = (exports.pages = glob
-  .sync("{pages,app,app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}", {
-    cwd: __dirname,
-  })
+  .sync(
+    "{pages,app,app/(booking-page-wrapper),app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}",
+    {
+      cwd: __dirname,
+    }
+  )
   .map((filename) =>
     filename
-      .replace(/^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|pages|app)\//, "")
+      .replace(
+        /^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|app\/\(booking-page-wrapper\)|pages|app)\//,
+        ""
+      )
       .replace(/(\.tsx|\.js|\.ts)/, "")
       .replace(/\/.*/, "")
   )
-  // "/future" is a temporary directory for incremental migration to App Router
   .filter(
     (v, i, self) =>
       self.indexOf(v) === i &&
       ![
         "[user]",
-        "future",
         "_trpc",
         "layout",
         "layoutHOC",

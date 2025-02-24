@@ -2,9 +2,9 @@ import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
@@ -122,9 +122,10 @@ export class EventTypesAtomService {
   async updateEventType(eventTypeId: number, body: TUpdateEventTypeInputSchema, user: UserWithProfile) {
     await this.eventTypeService.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
-    const bookingFields = [...(body.bookingFields || [])];
+    const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
 
     if (
+      bookingFields?.length &&
       !bookingFields.find((field) => field.type === "email") &&
       !bookingFields.find((field) => field.type === "phone")
     ) {
