@@ -16,7 +16,7 @@ const responseSchema = z.object({
   appId: z.string(),
   fullName: z.string(),
   chatAvatarUrl: z.string(),
-  userTier: z.string(),
+  userTier: z.enum(["free", "teams", "enterprise"]),
 });
 
 async function handler() {
@@ -58,14 +58,11 @@ async function handler() {
       (membership) => (membership.team.metadata as { isOrganization?: boolean })?.isOrganization === true
     );
 
-    // If not enterprise, check if it's a team (has no parentId)
-    const isTeam = !isEnterprise && teamMemberships.some((membership) => !membership.team.parentId);
-
-    if (isEnterprise) {
-      userTier = "enterprise";
-    } else if (isTeam) {
-      userTier = "teams";
-    }
+    userTier = isEnterprise
+      ? "enterprise"
+      : teamMemberships.some((membership) => !membership.team.parentId)
+      ? "teams"
+      : "free";
   }
 
   const hmac = createHmac("sha256", secret);

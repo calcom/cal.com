@@ -261,7 +261,6 @@ const PlainChat = () => {
     window.plainScriptLoaded = function() {
       if (window.Plain && ${Boolean(config)}) {
         try {
-         ${config ? JSON.stringify(config) : null});
           Plain.init(${config ? JSON.stringify(config) : null});
         } catch (error) {
           console.error("Failed to initialize Plain:", error);
