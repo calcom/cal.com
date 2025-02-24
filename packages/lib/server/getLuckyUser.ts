@@ -635,7 +635,7 @@ async function fetchAllDataNeededForCalculations<
         eventTypeId: eventType.id,
         isFixed: false,
         createdAt: {
-          gte: startOfMonth(),
+          gte: getIntervalStartDate(interval),
         },
       },
     }),
@@ -712,7 +712,7 @@ async function fetchAllDataNeededForCalculations<
       },
       end: {
         lte: new Date(),
-        gte: startOfMonth(),
+        gte: getIntervalStartDate(interval),
       },
     },
     select: {
