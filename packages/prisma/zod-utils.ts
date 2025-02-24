@@ -20,6 +20,7 @@ import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-bu
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import { localeOptions } from "@calcom/lib/i18n";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
@@ -34,6 +35,10 @@ export enum Frequency {
   MINUTELY = 5,
   SECONDLY = 6,
 }
+
+const localeOptionsValues = localeOptions.map((locale) => locale.value) as [string, ...string[]];
+
+export const UserInterfaceLanguage = z.enum(localeOptionsValues).nullish();
 
 export enum BookerLayouts {
   MONTH_VIEW = "month_view",

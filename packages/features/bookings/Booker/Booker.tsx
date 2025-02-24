@@ -5,6 +5,8 @@ import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
+
+
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
@@ -12,9 +14,18 @@ import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hook
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
-import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
+import {
+  CLOUDFLARE_SITE_ID,
+  CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
+  CALCOM_VERSION,
+} from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc";
+
+
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -34,6 +45,7 @@ import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from ".
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
+
 
 const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
@@ -177,13 +189,41 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
+  const { i18n } = useLocale();
+  const eventUILanguage = useMemo(
+    () => localeOptions.find((locale) => locale.value === event.data?.userInterfaceLanguage)?.value,
+    [event.data?.userInterfaceLanguage]
+  );
+
+  const i18nOverrideQuery = trpc.viewer.public.i18n.useQuery(
+    {
+      locale: eventUILanguage || "en",
+      CalComVersion: CALCOM_VERSION,
+    },
+    {
+      staleTime: Infinity,
+      enabled: !!eventUILanguage,
+    }
+  );
+
   useEffect(() => {
-    if (event.isPending) return setBookerState("loading");
+    if (eventUILanguage && i18nOverrideQuery.isSuccess) {
+      i18n.addResourceBundle(
+        eventUILanguage,
+        "common",
+        i18nOverrideQuery.data.i18n._nextI18Next?.initialI18nStore[eventUILanguage].common
+      );
+      i18n.changeLanguage(eventUILanguage);
+    }
+  }, [eventUILanguage, i18n, i18nOverrideQuery.data, i18nOverrideQuery.isSuccess]);
+
+  useEffect(() => {
+    if (event.isPending || (eventUILanguage && i18nOverrideQuery.isPending)) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     if (selectedTimeslot && skipConfirmStep && !isInstantMeeting) return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, i18nOverrideQuery.isPending, eventUILanguage]);
 
   const slot = getQueryParam("slot");
 
