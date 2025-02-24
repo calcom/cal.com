@@ -2961,5 +2961,6 @@
   "desc": "降序",
   "verify_email": "驗證電子郵件",
   "verify_email_change": "驗證電子郵件變更",
+  "end_date_not_selected": "您尚未設定外出的結束日期",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

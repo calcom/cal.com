@@ -2961,5 +2961,6 @@
   "desc": "Opadajuće",
   "verify_email": "Potvrdi email",
   "verify_email_change": "Potvrdi promenu email adrese",
+  "end_date_not_selected": "Niste postavili datum završetka za vaše odsustvo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
