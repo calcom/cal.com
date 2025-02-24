@@ -70,13 +70,11 @@ const RoundRobinResetInterval = ({ team }: ProfileViewProps) => {
           return (
             <div className="border-subtle mt-6 space-x-3 rounded-t-lg border border-b-0 px-4 py-6 sm:px-6">
               <div>
-                <h4 className="text-emphasis text-sm font-semibold leading-5">Round Robin Reset Interval</h4>
-                <p className="text-default text-sm leading-tight">
-                  Determines how often the round robin booking count resets to ensure balanced distribution.
-                </p>
+                <h4 className="text-emphasis text-sm font-semibold leading-5">{t("rr_reset_interval")}</h4>
+                <p className="text-default text-sm leading-tight">{t("rr_reset_interval_description")}</p>
                 <div className="-mx-4 mt-4 border-t sm:-mx-6">
                   <div className="px-4 pt-6 sm:px-6">
-                    <Label>Interval</Label>
+                    <Label>{t("interval")}</Label>
                     <Select
                       options={intervalOptions}
                       value={intervalOptions.find((opt) => opt.value === value)}
