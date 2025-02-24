@@ -214,10 +214,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ),
           };
           const emailLocale = locale || "en";
-          const brandingDisabled =
-            !!reminder.booking.eventType?.team?.parentId ||
-            !!reminder.booking.user?.hideBranding ||
-            !!reminder.booking.eventType?.team?.hideBranding;
+          const brandingDisabled = reminder.booking.eventType?.team
+            ? !!reminder.booking.eventType?.team?.hideBranding
+            : !!reminder.booking.user?.hideBranding;
 
           const emailSubject = customTemplate(
             reminder.workflowStep.emailSubject || "",
@@ -243,10 +242,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
             ).text.length === 0;
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
-          const brandingDisabled =
-            !!reminder.booking.eventType?.team?.parentId ||
-            !!reminder.booking.user?.hideBranding ||
-            !!reminder.booking.eventType?.team?.hideBranding;
+          const brandingDisabled = reminder.booking.eventType?.team
+            ? !!reminder.booking.eventType?.team?.hideBranding
+            : !!reminder.booking.user?.hideBranding;
 
           emailContent = emailReminderTemplate(
             false,
@@ -378,10 +376,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const emailBodyEmpty = false;
 
-        const brandingDisabled =
-          !!reminder.booking.eventType?.team?.parentId ||
-          !!reminder.booking.user?.hideBranding ||
-          !!reminder.booking.eventType?.team?.hideBranding;
+        const brandingDisabled = reminder.booking.eventType?.team
+          ? !!reminder.booking.eventType?.team?.hideBranding
+          : !!reminder.booking.user?.hideBranding;
 
         emailContent = emailReminderTemplate(
           false,

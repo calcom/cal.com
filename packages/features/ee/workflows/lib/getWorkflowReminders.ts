@@ -32,7 +32,7 @@ type PartialBooking =
       eventType:
         | (Partial<EventType> & {
             slug: string;
-            team: { parentId?: number; hideBranding?: boolean } | null;
+            team: { parentId?: number; hideBranding: boolean };
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
         | null;
