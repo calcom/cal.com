@@ -1,7 +1,7 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import React, { forwardRef, useId, useState, useCallback } from "react";
+import React, { forwardRef, useId, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -123,29 +123,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const name = props.name || "";
   const [inputValue, setInputValue] = useState<string>("");
 
-  const handleChange = useCallback(
-    () => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (props.type === "number") {
-        const formattedValue = formatNumberByLocale(value, i18n?.language || "en");
-        setInputValue(formattedValue);
-
-        const syntheticEvent = {
-          ...e,
-          target: {
-            ...e.target,
-            value: getRawValue(value),
-          },
-        };
-        props.onChange?.(syntheticEvent as React.ChangeEvent<HTMLInputElement>);
-      } else {
-        setInputValue(value);
-        props.onChange?.(e);
-      }
-    },
-    [props, i18n?.language]
-  );
-
   const {
     label = t(name),
     labelProps,
@@ -173,10 +150,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     size,
     ...passThrough
   } = props;
-  // only when type is number we want to make this component controlled
-  if (props.type === "number") {
-    passThrough.value = inputValue;
-  }
 
   return (
     <div className={classNames(containerClassName)}>
@@ -221,7 +194,21 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               className
             )}
             {...passThrough}
-            onChange={handleChange}
+            {...(type === "search" && {
+              onChange: (e) => {
+                setInputValue(e.target.value);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
+            {...(type === "number" && {
+              onChange: (e) => {
+                const formattedValue = formatNumberByLocale(e.target.value, i18n?.language || "en");
+                setInputValue(formattedValue);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
             disabled={readOnly || disabled}
             ref={ref}
           />
@@ -256,7 +243,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}
-          onChange={handleChange}
+          {...(type === "number" && {
+            onChange: (e) => {
+              const formattedValue = formatNumberByLocale(e.target.value, i18n?.language || "en");
+              setInputValue(formattedValue);
+              props.onChange && props.onChange(e);
+            },
+            value: inputValue,
+          })}
           readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
