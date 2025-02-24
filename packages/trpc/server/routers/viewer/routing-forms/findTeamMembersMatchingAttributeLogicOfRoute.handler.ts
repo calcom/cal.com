@@ -204,7 +204,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     },
     {
       enablePerf: _enablePerf,
-      // Reuse same flag for enabling troubleshooter. We would normall use them together
+      // Reuse same flag for enabling troubleshooter. We would normally use them together
       enableTroubleshooter: _enablePerf,
       concurrency: _concurrency,
     }
