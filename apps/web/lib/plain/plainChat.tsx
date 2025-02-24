@@ -189,9 +189,6 @@ const PlainChat = () => {
                         labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
                         tierIdentifier: { externalId: data.userTier },
                       },
-                      onClick: () => {
-                        console.log("User selected severity: Unable to use app");
-                      },
                     },
                     {
                       icon: "error",
@@ -200,9 +197,6 @@ const PlainChat = () => {
                         labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
                         tierIdentifier: { externalId: data.userTier },
                       },
-                      onClick: () => {
-                        console.log("User selected severity: Major functionality degraded");
-                      },
                     },
                     {
                       icon: "bug",
@@ -210,9 +204,6 @@ const PlainChat = () => {
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
                         tierIdentifier: { externalId: data.userTier },
-                      },
-                      onClick: () => {
-                        console.log("User selected severity: Minor annoyance");
                       },
                     },
                   ],
@@ -237,8 +228,6 @@ const PlainChat = () => {
         },
       };
 
-      console.log("Plain Chat Config:", JSON.stringify(plainChatConfig, null, 2));
-
       if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
         window.__PLAIN_CONFIG__ = plainChatConfig;
       }
@@ -248,7 +237,6 @@ const PlainChat = () => {
       if (shouldOpenPlain) {
         const timer = setTimeout(() => {
           if (window.Plain) {
-            console.log("Opening Plain Chat with config:", window.__PLAIN_CONFIG__);
             window.Plain.open();
           }
         }, 100);
@@ -273,7 +261,7 @@ const PlainChat = () => {
     window.plainScriptLoaded = function() {
       if (window.Plain && ${Boolean(config)}) {
         try {
-          console.log('Initializing Plain Chat with config:', ${config ? JSON.stringify(config) : null});
+         ${config ? JSON.stringify(config) : null});
           Plain.init(${config ? JSON.stringify(config) : null});
         } catch (error) {
           console.error("Failed to initialize Plain:", error);
