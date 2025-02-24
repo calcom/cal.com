@@ -39,22 +39,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import {
-  Button,
-  HeadSeo,
-  PasswordField,
-  TextField,
-  Form,
-  Alert,
-  CheckboxField,
-  Icon,
-  showToast,
-} from "@calcom/ui";
+import { Button, PasswordField, TextField, Form, Alert, CheckboxField, Icon, showToast } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 const signupSchema = apiSignupSchema.extend({
-  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+  apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
   cfToken: z.string().optional(),
 });
 
@@ -136,7 +126,6 @@ function UsernameField({
         {...props}
         {...register("username")}
         data-testid="signup-usernamefield"
-        addOnFilled={false}
       />
       {(!formState.isSubmitting || !formState.isSubmitted) && (
         <div className="text-gray text-default flex items-center text-sm">
@@ -337,7 +326,6 @@ export default function Signup({
           "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
         )}>
         <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
-          <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
             {displayBackButton && (

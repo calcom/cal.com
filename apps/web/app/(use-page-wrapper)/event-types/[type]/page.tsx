@@ -4,6 +4,8 @@ import { _generateMetadata } from "app/_utils";
 import type { GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import { z } from "zod";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 
 import { EventType } from "@calcom/atoms/monorepo";
 import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
@@ -15,15 +17,41 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { ssrInit } from "@server/lib/ssr";
 
+const querySchema = z.object({
+  type: z
+    .string()
+    .refine((val) => !isNaN(Number(val)), {
+      message: "event-type id must be a string that can be cast to a number",
+    })
+    .transform((val) => Number(val)),
+});
+
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const eventType = await getEventTypeById(parseInt(asStringOrThrow(legacyCtx.query.type)), legacyCtx);
-  if (!eventType) {
-    redirect("/event-types");
+  const parsed = querySchema.safeParse(params);
+
+  if (!parsed.success) {
+    const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+    const eventType = await getEventTypeById(
+      parseInt(asStringOrThrow(legacyCtx.query.type)),
+      legacyCtx
+    );
+    if (!eventType) {
+      redirect("/event-types");
+    }
+    return await _generateMetadata(
+      (t) => `${t("event_type")}`,
+      () => ""
+    );
   }
 
+  const data = await EventTypeRepository.findTitleById({
+    id: parsed.data.type,
+  });
+};
+
+
   return await _generateMetadata(
-    (t) => `${eventType.title} | ${t("event_type")}`,
+    (t) => (data?.title ? `${data.title} | ${t("event_type")}` : `${t("event_type")}`),
     () => ""
   );
 };
