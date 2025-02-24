@@ -2961,5 +2961,6 @@
   "desc": "Decrescente",
   "verify_email": "Verificar e-mail",
   "verify_email_change": "Verificar alteração de e-mail",
+  "end_date_not_selected": "Você não definiu uma data de término para sua ausência",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

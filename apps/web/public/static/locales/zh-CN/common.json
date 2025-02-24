@@ -2961,5 +2961,6 @@
   "desc": "降序",
   "verify_email": "验证邮箱",
   "verify_email_change": "验证邮箱变更",
+  "end_date_not_selected": "您没有为您的外出时间设置结束日期",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
