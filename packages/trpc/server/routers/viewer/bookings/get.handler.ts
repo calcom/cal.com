@@ -433,25 +433,33 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
     return undefined;
   }
 
-  return (
-    await prisma.eventType.findMany({
-      where: {
-        OR: [
-          {
+  const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
+    prisma.eventType
+      .findMany({
+        where: {
+          teamId: { in: teamIds },
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+
+    prisma.eventType
+      .findMany({
+        where: {
+          parent: {
             teamId: { in: teamIds },
           },
-          {
-            parent: {
-              teamId: { in: teamIds },
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((eventType) => eventType.id);
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+  ]);
+
+  return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
 }
 
 async function getIdsFromUserIdsFilter(prisma: PrismaClient, userEmail: string, userIds?: number[]) {
@@ -462,52 +470,61 @@ async function getIdsFromUserIdsFilter(prisma: PrismaClient, userEmail: string, 
     };
   }
 
-  const [attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter] = await Promise.all([
-    prisma.user
-      .findMany({
-        where: {
-          id: {
-            in: userIds,
+  const [attendeeEmailsFromUserIdsFilter, eventTypeIdsFromHostsFilter, eventTypeIdsFromUsersFilter] =
+    await Promise.all([
+      prisma.user
+        .findMany({
+          where: {
+            id: {
+              in: userIds,
+            },
           },
-        },
-        select: {
-          email: true,
-        },
-      })
-      // Include booking if current user is an attendee, regardless of user ID filter
-      .then((users) => users.map((user) => user.email).concat([userEmail])),
+          select: {
+            email: true,
+          },
+        })
+        // Include booking if current user is an attendee, regardless of user ID filter
+        .then((users) => users.map((user) => user.email).concat([userEmail])),
 
-    prisma.eventType
-      .findMany({
-        where: {
-          OR: [
-            {
-              hosts: {
-                some: {
-                  userId: {
-                    in: userIds,
-                  },
-                  isFixed: true,
+      prisma.eventType
+        .findMany({
+          where: {
+            hosts: {
+              some: {
+                userId: {
+                  in: userIds,
+                },
+                isFixed: true,
+              },
+            },
+          },
+          select: {
+            id: true,
+          },
+        })
+        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+
+      prisma.eventType
+        .findMany({
+          where: {
+            users: {
+              some: {
+                id: {
+                  in: userIds,
                 },
               },
             },
-            {
-              users: {
-                some: {
-                  id: {
-                    in: userIds,
-                  },
-                },
-              },
-            },
-          ],
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-  ]);
+          },
+          select: {
+            id: true,
+          },
+        })
+        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+    ]);
+
+  const eventTypeIdsFromUserIdsFilter = Array.from(
+    new Set([...eventTypeIdsFromHostsFilter, ...eventTypeIdsFromUsersFilter])
+  );
 
   return { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter };
 }
@@ -516,54 +533,72 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
   if (!eventTypeIds || eventTypeIds.length === 0) {
     return undefined;
   }
-  return (
-    await prisma.eventType.findMany({
-      where: {
-        OR: [
-          { id: { in: eventTypeIds } },
-          {
-            parent: {
-              id: {
-                in: eventTypeIds,
-              },
+  const [directEventTypeIds, parentEventTypeIds] = await Promise.all([
+    prisma.eventType
+      .findMany({
+        where: {
+          id: { in: eventTypeIds },
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+
+    prisma.eventType
+      .findMany({
+        where: {
+          parent: {
+            id: {
+              in: eventTypeIds,
             },
           },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((eventType) => eventType.id);
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+  ]);
+
+  return Array.from(new Set([...directEventTypeIds, ...parentEventTypeIds]));
 }
 
 async function getEventTypeIdsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
   membershipCondition: PrismaClientType.MembershipListRelationFilter
 ) {
-  return (
-    await prisma.eventType.findMany({
-      where: {
-        OR: [
-          {
+  const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
+    prisma.eventType
+      .findMany({
+        where: {
+          team: {
+            members: membershipCondition,
+          },
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+
+    prisma.eventType
+      .findMany({
+        where: {
+          parent: {
             team: {
               members: membershipCondition,
             },
           },
-          {
-            parent: {
-              team: {
-                members: membershipCondition,
-              },
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((eventType) => eventType.id);
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+  ]);
+
+  return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
 }
 
 async function getUserIdsWhereUserIsOrgAdminOrOwner(
