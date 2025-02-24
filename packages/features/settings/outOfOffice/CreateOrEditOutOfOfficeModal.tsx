@@ -147,7 +147,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         <form
           id="create-or-edit-ooo-form"
           onSubmit={handleSubmit((data) => {
-            createOrEditOutOfOfficeEntry.mutate(data);
+            if (!data.dateRange.endDate) {
+              showToast(t("end_date_not_selected"), "error");
+            } else {
+              createOrEditOutOfOfficeEntry.mutate(data);
+            }
           })}>
           <div className="h-full px-1">
             <DialogHeader
