@@ -152,6 +152,128 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
                 {t("event_duration_info")}
               </p>
             </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-32",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Organiser}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("your_full_name")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-32",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Organiser first name}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("organizer_first_name")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-32",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Scheduler}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("scheduler_full_name")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-32",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Scheduler first name}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("scheduler_first_name")}
+              </p>
+            </div>
+            {isNameFieldSplit && (
+              <div
+                className={classNames(
+                  "mb-2.5 flex font-normal",
+                  customClassNames?.availableVariables?.variableItem?.container
+                )}>
+                <p
+                  className={classNames(
+                    "text-subtle ml-1 mr-5 w-32",
+                    customClassNames?.availableVariables?.variableItem?.variableName
+                  )}>
+                  {`{Scheduler last name}`}
+                </p>
+                <p
+                  className={classNames(
+                    "text-emphasis",
+                    customClassNames?.availableVariables?.variableItem?.variableDescription
+                  )}>
+                  {t("scheduler_last_name")}
+                </p>
+              </div>
+            )}
+            <div
+              className={classNames(
+                "mb-2.5 flex font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-32",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Location}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("location_info")}
+              </p>
+            </div>
             {/* Additional variable items here */}
             {event.bookingFields && (
               <p

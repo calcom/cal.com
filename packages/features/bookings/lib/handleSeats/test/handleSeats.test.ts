@@ -2438,7 +2438,7 @@ describe("handleSeats", () => {
         const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-        // Non-available time slot choosen (7:30PM - 8:00PM IST) while rescheduling
+        // Non-available time slot chosen (7:30PM - 8:00PM IST) while rescheduling
         const secondBookingStartTime = `${plus2DateString}T14:00:00Z`;
         const secondBookingEndTime = `${plus2DateString}T14:30:00Z`;
 

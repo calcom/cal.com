@@ -28,7 +28,6 @@ import {
   DialogHeader,
   DropdownMenuSeparator,
   Form,
-  Meta,
   SettingsToggle,
   showToast,
   TextAreaField,
@@ -761,7 +760,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}>
-          <Meta title={form.name} description={form.description || ""} />
           <ShellMain
             heading={
               <div className="flex">
