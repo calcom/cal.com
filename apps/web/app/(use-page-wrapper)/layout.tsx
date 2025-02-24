@@ -14,7 +14,7 @@ export default async function PageWrapperLayout({ children }: { children: React.
   const ssr = await ssrInit(context);
 
   return (
-    <PageWrapper requiresLicense={false} nonce={nonce} themeBasis={null} dehydratedState={ssr.dehydrate()}>
+    <PageWrapper requiresLicense={false} nonce={nonce} dehydratedState={ssr.dehydrate()}>
       {children}
     </PageWrapper>
   );

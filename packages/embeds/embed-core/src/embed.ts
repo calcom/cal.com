@@ -670,7 +670,13 @@ class CalApi {
       config.prerender = "true";
     }
 
-    const configWithGuestKeyAndColorScheme = withColorScheme(Cal.ensureGuestKey(config), containerEl);
+    const configWithGuestKeyAndColorScheme = withColorScheme(
+      Cal.ensureGuestKey({
+        ...config,
+        embedType: "modal",
+      }),
+      containerEl
+    );
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
     if (existingModalEl) {
@@ -701,7 +707,6 @@ class CalApi {
       throw new Error("iframeAttrs should be an object");
     }
 
-    config.embedType = "modal";
     let iframe = null;
 
     if (!iframe) {

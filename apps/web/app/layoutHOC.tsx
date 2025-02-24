@@ -51,7 +51,6 @@ export function WithLayout<T extends Record<string, any>>({
         getLayout={getLayout}
         requiresLicense={requiresLicense || !!(Page && "requiresLicense" in Page && Page.requiresLicense)}
         nonce={nonce}
-        themeBasis={null}
         isBookingPage={isBookingPage || !!(Page && "isBookingPage" in Page && Page.isBookingPage)}
         {...props}>
         {pageWithServerLayout}
