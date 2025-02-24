@@ -15,6 +15,9 @@ import {
   Command,
   CommandList,
   CommandItem,
+  CommandGroup,
+  CommandSeparator,
+  buttonClasses,
 } from "@calcom/ui";
 
 import { useDataTable, useFilterValue } from "../../hooks";
@@ -32,6 +35,7 @@ import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
 
 type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
+  showClearButton?: boolean;
 };
 
 const getDateRangeFromPreset = (val: string | null) => {
@@ -72,9 +76,9 @@ const getDateRangeFromPreset = (val: string | null) => {
   return { startDate, endDate, preset };
 };
 
-export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
+export const DateRangeFilter = ({ column, showClearButton = false }: DateRangeFilterProps) => {
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
-  const { updateFilter } = useDataTable();
+  const { updateFilter, removeFilter } = useDataTable();
 
   const { t } = useLocale();
   const currentDate = dayjs();
@@ -84,7 +88,11 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
   const [endDate, setEndDate] = useState<Dayjs | undefined>(
     filterValue?.data.endDate ? dayjs(filterValue.data.endDate) : getDefaultEndDate()
   );
-  const [selectedPreset, setSelectedPreset] = useState<PresetOption>(DEFAULT_PRESET);
+  const [selectedPreset, setSelectedPreset] = useState<PresetOption>(
+    filterValue?.data.preset
+      ? PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
+      : DEFAULT_PRESET
+  );
 
   const updateValues = ({
     preset,
@@ -147,7 +155,7 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button color="secondary" className="items-center capitalize">
+        <Button color="secondary" className="items-center capitalize" EndIcon="chevron-down">
           {!isCustomPreset && <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>}
           {isCustomPreset &&
             (endDate ? (
@@ -157,7 +165,6 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
             ) : (
               <span>{format(startDate.toDate(), "LLL dd, y")} - End</span>
             ))}
-          <Icon name="chevron-down" className="ml-2 h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-fit p-0" align="end">
@@ -193,6 +200,23 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
               </CommandItem>
             ))}
           </CommandList>
+          {showClearButton && (
+            <>
+              <CommandSeparator />
+              <CommandGroup>
+                <CommandItem
+                  onSelect={() => {
+                    removeFilter(column.id);
+                  }}
+                  className={classNames(
+                    "w-full justify-center text-center",
+                    buttonClasses({ color: "secondary" })
+                  )}>
+                  {t("clear")}
+                </CommandItem>
+              </CommandGroup>
+            </>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

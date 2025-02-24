@@ -6,9 +6,7 @@ import { NextResponse } from "next/server";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-import { csp } from "@lib/csp";
-
-import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+import { csp } from "./lib/csp";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
@@ -18,7 +16,33 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
+// Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
+export const POST_METHODS_ALLOWED_APP_ROUTES = ["/settings/my-account/general"];
+
+export function checkPostMethod(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+  if (
+    ![...POST_METHODS_ALLOWED_API_ROUTES, ...POST_METHODS_ALLOWED_APP_ROUTES].some((route) =>
+      pathname.startsWith(route)
+    ) &&
+    req.method === "POST"
+  ) {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
+  return null;
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
+
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
@@ -155,22 +179,11 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
+    "/apps/:path*",
     "/auth/:path*",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
     "/event-types/:path*",
-    "/apps/installed/:category/",
-    "/apps/installation/:path*",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
@@ -189,7 +202,7 @@ export const config = {
 };
 
 export default collectEvents({
-  middleware: abTestMiddlewareFactory(middleware),
+  middleware,
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,
