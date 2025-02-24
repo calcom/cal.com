@@ -913,9 +913,10 @@ const InfiniteScrollMain = ({
 
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
     avatar: item.profile.image,
     "data-testid": item.profile.name ?? "",
+    matchFullPath: true,
   }));
 
   const activeEventTypeGroup =

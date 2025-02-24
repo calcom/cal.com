@@ -42,7 +42,9 @@ export default function DryRunSuccessful() {
         <div className="bg-success mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
           <Icon name="check" className="h-6 w-6 text-green-600 dark:text-green-400" />
         </div>
-        <h1 className="text-emphasis mb-4 text-2xl font-medium">{t("booking_dry_run_successful")}</h1>
+        <h1 className="text-emphasis mb-4 text-2xl font-medium" data-testid="dry-run-success-msg">
+          {t("booking_dry_run_successful")}
+        </h1>
         <p className="text-default mb-8 max-w-2xl text-sm">{t("booking_dry_run_successful_description")}</p>
 
         {/* <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left">

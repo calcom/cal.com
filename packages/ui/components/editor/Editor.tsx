@@ -26,7 +26,7 @@ import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
 /*
- Detault toolbar items:
+ Default toolbar items:
   - blockType
   - bold
   - italic
@@ -77,7 +77,7 @@ export const Editor = (props: TextEditorProps) => {
   return (
     <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig }}>
-        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-[10px] p-0 transition focus-within:ring-2">
+        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2">
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}

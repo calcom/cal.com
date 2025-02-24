@@ -4,7 +4,7 @@ import tasksMap from "./tasks";
 
 /**
  * This is the default internal Tasker that uses the Task repository to create tasks.
- * It doens't have any external dependencies and is suitable for most use cases.
+ * It doesn't have any external dependencies and is suitable for most use cases.
  * To use a different Tasker, you can create a new class that implements the Tasker interface.
  * Then, you can use the TaskerFactory to select the new Tasker.
  */
