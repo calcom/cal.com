@@ -2961,5 +2961,6 @@
   "desc": "Faldende",
   "verify_email": "Bekræft e-mail",
   "verify_email_change": "Bekræft ændring af e-mail",
+  "end_date_not_selected": "Du har ikke angivet en slutdato for din ferie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
