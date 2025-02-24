@@ -24,13 +24,13 @@ const querySchema = z.object({
   }),
 });
 
-async function handler(request: NextRequest) {
+async function handler(req: NextRequest) {
   const userCount = await prisma.user.count();
   if (userCount !== 0) {
     throw new HttpError({ statusCode: 400, message: "No setup needed." });
   }
 
-  const parsedQuery = querySchema.safeParse(await request.json());
+  const parsedQuery = querySchema.safeParse(await req.json());
   if (!parsedQuery.success) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
