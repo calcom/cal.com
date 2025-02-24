@@ -46,7 +46,7 @@ const ImpersonationView = () => {
           defaultValue={undefined}
           data-testid="admin-impersonation-input"
         />
-        <Button type="submit" data-testid="impersonation-submit">
+        <Button type="submit" data-testid="impersonation-submit" className="mt-[-8px]">
           {t("impersonate")}
         </Button>
       </div>
