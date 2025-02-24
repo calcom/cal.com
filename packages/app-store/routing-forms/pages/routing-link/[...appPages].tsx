@@ -1,10 +1,9 @@
 "use client";
 
-import Head from "next/head";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -163,9 +162,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       <div>
         {!customPageMessage ? (
           <>
-            <Head>
-              <title>{`${form.name} | Cal.com Forms`}</title>
-            </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
                 <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
@@ -212,8 +208,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
-RoutingLink.isBookingPage = true;
 
 export { getServerSideProps };
 

@@ -209,7 +209,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("value")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToEventObjectMap).map((key) => (
+                {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
                   <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />
@@ -303,7 +303,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("when_to_write")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToRecordFields).map((key) => (
+                {Object.keys(onBookingWriteToRecordFields).map((key) => (
                   <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />

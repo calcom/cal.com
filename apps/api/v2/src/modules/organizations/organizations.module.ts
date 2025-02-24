@@ -41,6 +41,7 @@ import { OrganizationsTeamsService } from "@/modules/organizations/services/orga
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
 import { OrganizationsWebhooksService } from "@/modules/organizations/services/organizations-webhooks.service";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
+import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms-responses.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -62,6 +63,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
+    OrganizationsTeamsRoutingFormsModule,
   ],
   providers: [
     OrganizationsRepository,

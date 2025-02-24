@@ -22,7 +22,7 @@ export const redactError = <T extends Error | unknown>(error: T) => {
   log.debug("Type of Error: ", error.constructor);
   if (shouldRedact(error) && IS_PRODUCTION) {
     log.error("Error: ", JSON.stringify(error));
-    return new Error("An error occured while querying the database.");
+    return new Error("An error occurred while querying the database.");
   }
   return error;
 };
