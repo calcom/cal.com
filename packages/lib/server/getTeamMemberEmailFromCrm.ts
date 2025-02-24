@@ -119,14 +119,24 @@ async function getOwnerEmailFromCrm(
   email: string
 ): Promise<{ email: string | null; recordType: string | null; crmAppSlug: string | null }> {
   const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
-  if (!crmContactOwner?.email) return returnNullValue;
 
+  if (!crmContactOwner?.email) return returnNullValue;
+  log.info(
+    "[getOwnerEmailFromCrm] crmContactOwner",
+    safeStringify({ contactOwnerEmail: crmContactOwner.email, email, eventTypeId: eventData.id })
+  );
   // Determine if the contactOwner is a part of the event type
   const contactOwnerQuery = await findUserByEmailWhoIsAHostOfEventType({
     email: crmContactOwner.email,
     eventTypeId: eventData.id,
   });
-  if (!contactOwnerQuery) return returnNullValue;
+  if (!contactOwnerQuery) {
+    log.info(
+      "[getOwnerEmailFromCrm] contactOwner not found as host, not considering it",
+      safeStringify({ contactOwnerEmail: crmContactOwner.email, email, eventTypeId: eventData.id })
+    );
+    return returnNullValue;
+  }
   return crmContactOwner;
 }
 
