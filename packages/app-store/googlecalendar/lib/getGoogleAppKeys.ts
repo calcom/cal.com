@@ -11,3 +11,18 @@ const googleAppKeysSchema = z.object({
 export const getGoogleAppKeys = async () => {
   return getParsedAppKeysFromSlug("google-calendar", googleAppKeysSchema);
 };
+
+export const getDefaultNotificationTimes = async (userId: number) => {
+  const userPreferences = await prisma.userPreferences.findUnique({
+    where: { userId },
+  });
+
+  if (!userPreferences || !userPreferences.notificationTimes) {
+    return [];
+  }
+
+  return userPreferences.notificationTimes.map((time) => ({
+    method: "popup",
+    minutes: time,
+  }));
+};

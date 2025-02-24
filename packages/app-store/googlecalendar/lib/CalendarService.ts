@@ -287,6 +287,7 @@ export default class GoogleCalendarService implements Calendar {
       attendees: this.getAttendees(formattedCalEvent),
       reminders: {
         useDefault: true,
+        overrides: await this.getDefaultNotificationTimes(),
       },
       guestsCanSeeOtherGuests: !!formattedCalEvent.seatsPerTimeSlot
         ? formattedCalEvent.seatsShowAttendees
@@ -344,6 +345,7 @@ export default class GoogleCalendarService implements Calendar {
               event = instance;
               break;
             }
+
           }
 
           if (!event) {
@@ -454,6 +456,7 @@ export default class GoogleCalendarService implements Calendar {
       attendees: this.getAttendees(formattedCalEvent),
       reminders: {
         useDefault: true,
+        overrides: await this.getDefaultNotificationTimes(),
       },
       guestsCanSeeOtherGuests: !!formattedCalEvent.seatsPerTimeSlot
         ? formattedCalEvent.seatsShowAttendees
@@ -1075,6 +1078,22 @@ export default class GoogleCalendarService implements Calendar {
       logger.error("Error in `getPrimaryCalendar`", { error });
       throw error;
     }
+  }
+
+  private async getDefaultNotificationTimes(): Promise<calendar_v3.Schema$EventReminder[]> {
+    // Fetch the user's preferred notification times from the database or any other storage
+    const userPreferences = await prisma.userPreferences.findUnique({
+      where: { userId: this.credential.userId },
+    });
+
+    if (!userPreferences || !userPreferences.notificationTimes) {
+      return [];
+    }
+
+    return userPreferences.notificationTimes.map((time) => ({
+      method: "popup",
+      minutes: time,
+    }));
   }
 }
 

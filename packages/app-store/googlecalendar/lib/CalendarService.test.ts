@@ -563,6 +563,121 @@ test("`updateTokenObject` should update credential in DB as well as myGoogleAuth
   expect(setCredentialsMock).toHaveBeenCalledWith(newTokenObject);
 });
 
+test("getDefaultNotificationTimes should return user's preferred notification times", async () => {
+  const credentialInDb = await createCredentialInDb();
+  const calendarService = new CalendarService(credentialInDb);
+
+  const mockNotificationTimes = [10, 30, 60];
+  await prismock.userPreferences.create({
+    data: {
+      userId: credentialInDb.userId!,
+      notificationTimes: mockNotificationTimes,
+    },
+  });
+
+  const notificationTimes = await calendarService.getDefaultNotificationTimes();
+  expect(notificationTimes).toEqual(
+    mockNotificationTimes.map((time) => ({
+      method: "popup",
+      minutes: time,
+    }))
+  );
+});
+
+test("createEvent should include default notification times in the event payload", async () => {
+  const credentialInDb = await createCredentialInDb();
+  const calendarService = new CalendarService(credentialInDb);
+
+  const mockNotificationTimes = [10, 30, 60];
+  await prismock.userPreferences.create({
+    data: {
+      userId: credentialInDb.userId!,
+      notificationTimes: mockNotificationTimes,
+    },
+  });
+
+  const eventPayload = {
+    summary: "Test Event",
+    description: "Test Description",
+    start: {
+      dateTime: "2023-12-01T18:00:00Z",
+      timeZone: "UTC",
+    },
+    end: {
+      dateTime: "2023-12-01T19:00:00Z",
+      timeZone: "UTC",
+    },
+    attendees: [],
+    reminders: {
+      useDefault: true,
+      overrides: mockNotificationTimes.map((time) => ({
+        method: "popup",
+        minutes: time,
+      })),
+    },
+    guestsCanSeeOtherGuests: true,
+    iCalUID: "test-ical-uid",
+  };
+
+  const createEventSpy = vi.spyOn(calendarService, "createEvent").mockResolvedValue(eventPayload as any);
+
+  const event = await calendarService.createEvent(eventPayload as any, credentialInDb.id);
+  expect(createEventSpy).toHaveBeenCalledWith(eventPayload, credentialInDb.id);
+  expect(event.reminders?.overrides).toEqual(
+    mockNotificationTimes.map((time) => ({
+      method: "popup",
+      minutes: time,
+    }))
+  );
+});
+
+test("updateEvent should include default notification times in the event payload", async () => {
+  const credentialInDb = await createCredentialInDb();
+  const calendarService = new CalendarService(credentialInDb);
+
+  const mockNotificationTimes = [10, 30, 60];
+  await prismock.userPreferences.create({
+    data: {
+      userId: credentialInDb.userId!,
+      notificationTimes: mockNotificationTimes,
+    },
+  });
+
+  const eventPayload = {
+    summary: "Test Event",
+    description: "Test Description",
+    start: {
+      dateTime: "2023-12-01T18:00:00Z",
+      timeZone: "UTC",
+    },
+    end: {
+      dateTime: "2023-12-01T19:00:00Z",
+      timeZone: "UTC",
+    },
+    attendees: [],
+    reminders: {
+      useDefault: true,
+      overrides: mockNotificationTimes.map((time) => ({
+        method: "popup",
+        minutes: time,
+      })),
+    },
+    guestsCanSeeOtherGuests: true,
+    iCalUID: "test-ical-uid",
+  };
+
+  const updateEventSpy = vi.spyOn(calendarService, "updateEvent").mockResolvedValue(eventPayload as any);
+
+  const event = await calendarService.updateEvent("test-uid", eventPayload as any, "test-external-id");
+  expect(updateEventSpy).toHaveBeenCalledWith("test-uid", eventPayload, "test-external-id");
+  expect(event.reminders?.overrides).toEqual(
+    mockNotificationTimes.map((time) => ({
+      method: "popup",
+      minutes: time,
+    }))
+  );
+});
+
 async function createCredentialInDb() {
   const user = await prismock.user.create({
     data: {

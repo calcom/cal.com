@@ -6,6 +6,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
+import prisma from "@calcom/prisma";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   // Get token from Google Calendar API
@@ -27,6 +28,28 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   res.status(200).json({ url: authUrl });
 }
 
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
+  const { userId, notificationTimes } = req.body;
+
+  if (!userId || !Array.isArray(notificationTimes)) {
+    res.status(400).json({ error: "Invalid request body" });
+    return;
+  }
+
+  try {
+    await prisma.userPreferences.upsert({
+      where: { userId },
+      update: { notificationTimes },
+      create: { userId, notificationTimes },
+    });
+
+    res.status(200).json({ message: "Notification times updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update notification times" });
+  }
+}
+
 export default defaultHandler({
   GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+  POST: Promise.resolve({ default: defaultResponder(postHandler) }),
 });

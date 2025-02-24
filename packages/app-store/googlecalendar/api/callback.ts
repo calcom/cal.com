@@ -141,6 +141,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       );
       return;
     }
+
+    // Save the user's preferred notification times
+    const { notificationTimes } = req.body;
+    if (Array.isArray(notificationTimes)) {
+      await prisma.userPreferences.upsert({
+        where: { userId: req.session.user.id },
+        update: { notificationTimes },
+        create: { userId: req.session.user.id, notificationTimes },
+      });
+    }
   }
 
   // No need to install? Redirect to the returnTo URL

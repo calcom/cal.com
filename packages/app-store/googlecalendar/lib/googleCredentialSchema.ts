@@ -6,4 +6,5 @@ export const googleCredentialSchema = z.object({
   expiry_date: z.number(),
   access_token: z.string(),
   refresh_token: z.string(),
+  notificationTimes: z.array(z.number()).optional(),
 });
