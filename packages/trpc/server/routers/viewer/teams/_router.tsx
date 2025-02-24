@@ -123,13 +123,6 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
-  listSimpleMembers: authedProcedure.query(async (opts) => {
-    const handler = await importHandler(
-      namespaced("listSimpleMembers"),
-      () => import("./listSimpleMembers.handler")
-    );
-    return handler(opts);
-  }),
   legacyListMembers: authedProcedure.input(ZLegacyListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(
       namespaced("legacyListMembers"),

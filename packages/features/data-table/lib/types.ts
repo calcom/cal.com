@@ -128,11 +128,11 @@ export type FilterableColumn = {
 } & (
   | {
       type: ColumnFilterType.SINGLE_SELECT;
-      options: FacetedValue[];
+      options: Array<{ label: string; value: string | number }>;
     }
   | {
       type: ColumnFilterType.MULTI_SELECT;
-      options: FacetedValue[];
+      options: Array<{ label: string; value: string | number }>;
     }
   | {
       type: ColumnFilterType.TEXT;
@@ -186,5 +186,4 @@ export const ZColumnVisibility = z.record(z.string(), z.boolean());
 export type FacetedValue = {
   label: string;
   value: string | number;
-  section?: string;
 };
