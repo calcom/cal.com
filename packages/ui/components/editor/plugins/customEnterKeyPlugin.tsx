@@ -1,4 +1,5 @@
-//handle default behavior of enter key in the editor
+"use client";
+
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $createLineBreakNode,
