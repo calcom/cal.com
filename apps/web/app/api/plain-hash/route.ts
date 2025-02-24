@@ -38,8 +38,14 @@ async function handler() {
         select: {
           team: {
             select: {
+              id: true,
               metadata: true,
               parentId: true,
+              organizationSettings: {
+                select: {
+                  id: true,
+                },
+              },
             },
           },
         },
@@ -53,9 +59,11 @@ async function handler() {
   if (user?.teams.length) {
     const teamMemberships = user.teams;
 
-    // Check if any team has isOrganization: true in metadata
+    // Check if any team has isOrganization: true in metadata OR has an entry in organizationSettings
     const isEnterprise = teamMemberships.some(
-      (membership) => (membership.team.metadata as { isOrganization?: boolean })?.isOrganization === true
+      (membership) =>
+        (membership.team.metadata as { isOrganization?: boolean })?.isOrganization === true ||
+        membership.team.organizationSettings !== null
     );
 
     userTier = isEnterprise
