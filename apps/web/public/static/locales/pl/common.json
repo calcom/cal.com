@@ -2961,5 +2961,6 @@
   "desc": "Malejąco",
   "verify_email": "Zweryfikuj email",
   "verify_email_change": "Zweryfikuj zmianę adresu email",
+  "end_date_not_selected": "Nie ustawiłeś daty końcowej dla swojego statusu poza biurem",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
