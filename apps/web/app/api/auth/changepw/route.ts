@@ -12,7 +12,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export async function handler(request: NextRequest) {
+async function handler(request: NextRequest) {
   const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
 
   if (!session || !session.user || !session.user.email) {
