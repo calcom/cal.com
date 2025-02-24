@@ -82,6 +82,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
   routingFormResponse: RoutingFormResponse | null;
 }
 
+// === dayjs.utc().startOf("month").toDate();
 const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 
 const startOfToday = () =>

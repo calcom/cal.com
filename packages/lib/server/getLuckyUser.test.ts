@@ -335,19 +335,6 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(users[1]);
 
-    await expect(
-      getLuckyUser({
-        availableUsers: users,
-        eventType: {
-          id: 1,
-          isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
-        },
-        allRRHosts,
-        routingFormResponse: null,
-      })
-    ).resolves.toStrictEqual(users[1]);
-
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
