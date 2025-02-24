@@ -57,7 +57,7 @@ export function DeleteMemberModal({
         title={t("remove_member")}
         confirmBtnText={t("confirm_remove_member")}
         onConfirm={() => {
-          // Shouldnt ever happen just for type safety
+          // Shouldn't ever happen just for type safety
           if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
 
           removeMemberMutation.mutate({

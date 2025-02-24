@@ -74,7 +74,7 @@ export const CheckedTeamSelect = ({
         className={customClassNames?.hostsSelect?.select}
         innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
       />
-      {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
+      {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
         className={classNames(
