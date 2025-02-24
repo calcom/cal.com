@@ -2961,5 +2961,6 @@
   "desc": "Laskeva",
   "verify_email": "Vahvista sähköposti",
   "verify_email_change": "Vahvista sähköpostin muutos",
+  "end_date_not_selected": "Et asettanut päättymispäivää poissaolollesi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
