@@ -17,7 +17,6 @@ env:
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
-  DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
   E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
   E2E_TEST_APPLE_CALENDAR_PASSWORD: ${{ secrets.E2E_TEST_APPLE_CALENDAR_PASSWORD }}
   E2E_TEST_MAILHOG_ENABLED: ${{ vars.E2E_TEST_MAILHOG_ENABLED }}
@@ -51,7 +50,8 @@ env:
 jobs:
   analyze:
     if: always()
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
@@ -60,6 +60,7 @@ jobs:
       - name: Analyze bundle
         run: |
           cd apps/web
+          export NODE_OPTIONS="--max_old_space_size=8192"
           npx -p nextjs-bundle-analysis@0.5.0 report
 
       - name: Upload bundle
@@ -67,65 +68,3 @@ jobs:
         with:
           name: bundle
           path: apps/web/.next/analyze/__bundle_analysis.json
-
-      - name: Download base branch bundle stats
-        uses: dawidd6/action-download-artifact@v2
-        if: success()
-        with:
-          workflow: nextjs-bundle-analysis.yml
-          branch: ${{ github.event.pull_request.base.ref }}
-          path: apps/web/.next/analyze/base
-
-      # And here's the second place - this runs after we have both the current and
-      # base branch bundle stats, and will compare them to determine what changed.
-      # There are two configurable arguments that come from package.json:
-      #
-      # - budget: optional, set a budget (bytes) against which size changes are measured
-      #           it's set to 350kb here by default, as informed by the following piece:
-      #           https://infrequently.org/2021/03/the-performance-inequality-gap/
-      #
-      # - red-status-percentage: sets the percent size increase where you get a red
-      #                          status indicator, defaults to 20%
-      #
-      # Either of these arguments can be changed or removed by editing the `nextBundleAnalysis`
-      # entry in your package.json file.
-      - name: Compare with base branch bundle
-        if: success()
-        run: |
-          cd apps/web
-          ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
-
-      - name: Get comment body
-        id: get-comment-body
-        if: success() && github.event.number
-        run: |
-          cd apps/web
-          body=$(cat .next/analyze/__bundle_analysis_comment.txt)
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
-          echo ::set-output name=body::$body
-
-      - name: Find Comment
-        uses: peter-evans/find-comment@v2
-        if: success() && github.event.number
-        id: fc
-        with:
-          issue-number: ${{ github.event.number }}
-          body-includes: "<!-- __NEXTJS_BUNDLE_@calcom/web -->"
-
-      - name: Create Comment
-        uses: peter-evans/create-or-update-comment@v3
-        if: success() && github.event.number && steps.fc.outputs.comment-id == 0
-        with:
-          issue-number: ${{ github.event.number }}
-          body: ${{ steps.get-comment-body.outputs.body }}
-
-      - name: Update Comment
-        uses: peter-evans/create-or-update-comment@v3
-        if: success() && github.event.number && steps.fc.outputs.comment-id != 0
-        with:
-          issue-number: ${{ github.event.number }}
-          body: ${{ steps.get-comment-body.outputs.body }}
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          edit-mode: replace

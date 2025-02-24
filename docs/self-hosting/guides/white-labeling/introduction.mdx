@@ -1,0 +1,29 @@
+---
+title: "How to white label the self hosted instance"
+---
+
+We have made it very easy for you to white label your self-hosted instance.
+
+<Steps>
+    <Step title="Update environment variables">
+        Please update the following env variables to match your desired branding:
+            ```
+            NEXT_PUBLIC_APP_NAME="acme.com"
+            NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS="support@acme.com"
+            NEXT_PUBLIC_COMPANY_NAME="ACME inc."
+            ```
+    </Step>
+    <Step title="Update logos">
+        The images for the logo are placed in `/web/public` . You can update the logo by changing the value of the following constants in `/packages/lib/constants.ts` file:
+            1. LOGO
+            2. LOGO_ICON
+        to the file name of your logo and logo icon, or the paths with file name to your respective logo and logo icon images from `/web/public`.
+    </Step>
+    <Step title="Instance wide theming">
+        The instance wide theme can be easily updated thanks to the color tokens we have in place. Simply modify the hex-codes within the `apps/web/styles/globals.css` file against the [color tokens](/self-hosting/guides/white-labeling/color-tokens), and the entire application can be consistently whitelabeled to your brand identity.
+    </Step>
+</Steps>
+
+<Note>
+If you're using custom SMTP server for emails, you might need to set `NODE_EXTRA_CA_CERTS` env variable equal to the path of your CA certificate so that it can be recognized by the calcom application.
+</Note>

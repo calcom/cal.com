@@ -204,7 +204,6 @@ export default class ExchangeCalendarService implements Calendar {
     if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
       const xhr: XhrApi = new XhrApi({
         rejectUnauthorized: false,
-        gzip: this.payload.useCompression,
       }).useNtlmAuthentication(this.payload.username, this.payload.password);
       service.XHRApi = xhr;
     }

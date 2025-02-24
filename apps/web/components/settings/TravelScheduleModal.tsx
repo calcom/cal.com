@@ -1,4 +1,3 @@
-import type { FormValues } from "@pages/settings/my-account/general";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 
@@ -17,6 +16,8 @@ import {
   SettingsToggle,
   DatePicker,
 } from "@calcom/ui";
+
+import type { FormValues } from "~/settings/my-account/general-view";
 
 interface TravelScheduleModalProps {
   open: boolean;
@@ -101,7 +102,7 @@ const TravelScheduleModal = ({
               <DateRangePicker
                 dates={{
                   startDate,
-                  endDate: endDate ?? startDate,
+                  endDate,
                 }}
                 onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
                   // If newStartDate does become undefined - we resort back to to-todays date
@@ -149,6 +150,7 @@ const TravelScheduleModal = ({
         <DialogFooter showDivider className="relative">
           <DialogClose />
           <Button
+            disabled={isNoEndDate ? !startDate : !startDate || !endDate}
             onClick={() => {
               createNewSchedule();
             }}>

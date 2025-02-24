@@ -3,6 +3,7 @@ import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@pri
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
+import { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
@@ -33,7 +34,7 @@ export const buildPerson = (person?: Partial<Person>): Person => {
 
 export const buildBooking = (
   booking?: Partial<Booking> & { references?: Partial<BookingReference>[] }
-): Booking & { references?: Partial<BookingReference>[] } => {
+): Booking & { references?: Partial<BookingReference>[]; attendees?: [] } => {
   const uid = faker.datatype.uuid();
   return {
     id: faker.datatype.number(),
@@ -53,7 +54,10 @@ export const buildBooking = (
     status: BookingStatus.ACCEPTED,
     paid: false,
     destinationCalendarId: null,
+    cancelledBy: null,
+    rescheduledBy: null,
     cancellationReason: null,
+    reassignReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
@@ -61,6 +65,7 @@ export const buildBooking = (
     fromReschedule: null,
     recurringEventId: null,
     smsReminderNumber: null,
+    reassignById: null,
     scheduledJobs: [],
     metadata: null,
     responses: null,
@@ -70,6 +75,9 @@ export const buildBooking = (
     rating: null,
     noShowHost: null,
     ratingFeedback: null,
+    attendees: [],
+    oneTimePassword: null,
+    creationSource: CreationSource.WEBAPP,
     ...booking,
   };
 };
@@ -82,7 +90,9 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     description: faker.lorem.paragraph(),
     position: 1,
     isInstantEvent: false,
+    instantMeetingParameters: [],
     instantMeetingExpiryTimeOffsetInSeconds: 90,
+    instantMeetingScheduleId: null,
     locations: null,
     length: 15,
     offsetStart: 0,
@@ -90,6 +100,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     userId: null,
     teamId: null,
     requiresBookerEmailVerification: false,
+    canSendCalVideoTranscriptionEmails: true,
     useEventTypeDestinationCalendarEmail: false,
     eventName: faker.lorem.words(),
     timeZone: null,
@@ -101,8 +112,11 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
     requiresConfirmation: false,
+    requiresConfirmationForFreeEmail: false,
+    requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,
+    hideCalendarEventDetails: false,
     minimumBookingNotice: 120,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
@@ -110,11 +124,13 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
     seatsShowAvailabilityCount: null,
+    maxLeadThreshold: null,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
     durationLimits: null,
     assignAllTeamMembers: false,
+    rescheduleWithSameRoundRobinHost: false,
     price: 0,
     currency: "usd",
     slotInterval: null,
@@ -125,6 +141,13 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     parentId: null,
     profileId: null,
     secondaryEmailId: null,
+    isRRWeightsEnabled: false,
+    eventTypeColor: null,
+    assignRRMembersUsingSegment: false,
+    rrSegmentQueryValue: null,
+    autoTranslateDescriptionEnabled: false,
+    useEventLevelSelectedCalendars: false,
+    allowReschedulingPastBookings: false,
     ...eventType,
   };
 };
@@ -142,6 +165,9 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     active: true,
     eventTriggers: [],
     teamId: null,
+    platformOAuthClientId: null,
+    time: null,
+    timeUnit: null,
     ...webhook,
     platform: false,
   };
@@ -247,8 +273,8 @@ type UserPayload = Prisma.UserGetPayload<{
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
-  user?: T & { priority?: number }
-): UserPayload & { priority: number | null } => {
+  user?: T & { priority?: number; weight?: number }
+): UserPayload & { priority: number; weight: number } => {
   return {
     locked: false,
     smsLockState: "UNLOCKED",
@@ -295,7 +321,8 @@ export const buildUser = <T extends Partial<UserPayload>>(
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
     movedToProfileId: null,
-    priority: user?.priority ?? null,
+    priority: user?.priority ?? 2,
+    weight: user?.weight ?? 100,
     isPlatformManaged: false,
     ...user,
   };

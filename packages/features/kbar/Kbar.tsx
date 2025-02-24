@@ -11,14 +11,16 @@ import {
   useRegisterActions,
 } from "kbar";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Icon, Tooltip } from "@calcom/ui";
+
+import { MintlifyChat } from "../mintlify-chat/MintlifyChat";
 
 type shortcutArrayType = {
   shortcuts?: string[];
@@ -36,18 +38,30 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
 
 const useEventTypesAction = () => {
   const router = useRouter();
-  const { data } = trpc.viewer.eventTypes.getByViewer.useQuery();
-  const eventTypeActions = data?.eventTypeGroups.reduce<Action[]>((acc: Action[], group: EventTypeGroup) => {
-    const item: Action[] = group.eventTypes.map((item) => ({
-      id: `event-type-${item.id}`,
-      name: item.title,
-      section: "event_types_page_title",
-      keywords: "event types",
-      perform: () => router.push(`/event-types/${item.id}`),
-    }));
-    acc.push(...item);
-    return acc;
-  }, []);
+  const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+    {
+      limit: 10,
+      group: { teamId: null, parentId: null },
+    },
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 1 * 60 * 60 * 1000,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  const eventTypeActions: Action[] =
+    data?.pages?.flatMap((page) => {
+      return (
+        page?.eventTypes?.map((item) => ({
+          id: `event-type-${item.id}`,
+          name: item.title,
+          section: "event_types_page_title",
+          keywords: "event types",
+          perform: () => router.push(`/event-types/${item.id}`),
+        })) ?? []
+      );
+    }) ?? [];
 
   const actions = eventTypeActions?.length ? eventTypeActions : [];
 
@@ -236,17 +250,29 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
 export const KBarContent = () => {
   const { t } = useLocale();
   useEventTypesAction();
+  const [inputText, setInputText] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const showAiChat = process.env.NEXT_PUBLIC_MINTLIFY_CHAT_API_KEY && process.env.NEXT_PUBLIC_CHAT_API_URL;
+
   return (
     <KBarPortal>
-      <KBarPositioner>
+      <KBarPositioner className="overflow-scroll">
         <KBarAnimator className="bg-default z-10 w-full max-w-screen-sm overflow-hidden rounded-md shadow-lg">
           <div className="border-subtle flex items-center justify-center border-b">
             <Icon name="search" className="text-default mx-3 h-4 w-4" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
               className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none"
+              value={inputText}
+              onChange={(e) => {
+                setInputText(e.currentTarget.value.trim());
+                if (aiResponse) setAiResponse("");
+              }}
             />
           </div>
+          {showAiChat && inputText && (
+            <MintlifyChat aiResponse={aiResponse} setAiResponse={setAiResponse} searchText={inputText} />
+          )}
           <RenderResults />
           <div className="text-subtle border-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
             <Icon name="arrow-up" className="h-4 w-4" />
@@ -289,7 +315,7 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
         return (
           <kbd
             key={shortcut}
-            className="bg-default hover:bg-subtle text-emphasis rounded-sm border px-2 py-1">
+            className="bg-default hover:bg-subtle text-emphasis rounded-sm border px-2 py-1 transition">
             {shortcut}
           </kbd>
         );

@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
 import z from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { default as webPrisma } from "@calcom/prisma";
 
 export const config = {
@@ -13,7 +14,7 @@ export const config = {
 
 const helpscoutRequestBodySchema = z.object({
   customer: z.object({
-    email: z.string().email(),
+    email: emailSchema,
   }),
 });
 

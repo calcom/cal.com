@@ -104,6 +104,10 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     label: "Long Text",
     value: "textarea",
     isTextType: true,
+    supportsLengthCheck: {
+      // Keep it as small as possible. It is easier to change to a higher value but coming back to a lower value(due to any reason) would be problematic for users who have saved higher value.
+      maxLength: 1000,
+    },
   },
   select: {
     label: "Select",
@@ -147,6 +151,11 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     label: "Checkbox",
     value: "boolean",
     isTextType: false,
+  },
+  url: {
+    label: "URL",
+    value: "url",
+    isTextType: true,
   },
 };
 

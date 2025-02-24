@@ -4,6 +4,13 @@
     <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
     <!-- <script src="./src/embed.ts" type="module"></script> -->
     <script>
+      let popupRescheduleUid = null;
+      let calLink = null;
+      (function defineVariables() {
+        const searchParams = new URL(document.URL).searchParams;
+        popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
+        calLink = searchParams.get("calLink");
+      })()
       function generateRandomHexColor() {
         // Generate a random integer between 0 and 16777215 (FFFFFF in hex)
         const randomInt = Math.floor(Math.random() * 16777216);
@@ -17,7 +24,7 @@
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
-      (() => {
+      (function scrollToIframeInPlayground() {
         const url = new URL(document.URL);
         // Only run the example specified by only=, avoids distraction and faster to test.
         const only = (window.only = url.searchParams.get("only") || '');
@@ -25,7 +32,7 @@
         if (elementIdentifier) {
           location.hash = "#cal-booking-place-" + elementIdentifier + "-iframe";
         }
-      })();
+      })(); 
       
       function addInlineEmbedInNewNamespaceWithoutReload(selector) {
         Cal("init", "withoutReloadNamespace", {
@@ -36,6 +43,9 @@
         Cal.ns.withoutReloadNamespace("inline", {
           elementOrSelector: selector,
           calLink: "pro?case=addInlineEmbedInANewNamespaceWithoutReload",
+          config: {
+            "flag.coep":"true"
+          }
         });
       };
     </script>
@@ -88,6 +98,9 @@
           Cal.ns.doubleInstall("inline", {
             elementOrSelector: selector,
             calLink: "pro?case=doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace",
+            config: {
+              "flag.coep":"true"
+            }
           });
           embedSnippet();
           Cal("init", "doubleInstall", {
@@ -97,6 +110,9 @@
           Cal.ns.doubleInstall("inline", {
             elementOrSelector: selector,
             calLink: "pro",
+            config: {
+              "flag.coep":"true"
+            }
           });
         }
 
@@ -109,6 +125,9 @@
           Cal("inline", {
             elementOrSelector: selector,
             calLink: "pro?case=doubleInstallSnippetWithInlineEmbed",
+            config: {
+              "flag.coep":"true"
+            }
           });
           embedSnippet();
           Cal("init", {
@@ -118,6 +137,9 @@
           Cal("inline", {
             elementOrSelector: selector,
             calLink: "pro",
+            config: {
+              "flag.coep":"true"
+            }
           });
         }
 
@@ -133,10 +155,16 @@
           Cal.ns['namespace-init-test-2']("inline", {
             elementOrSelector: '#two-different-namespace-with-different-init-config-content-2',
             calLink: "pro",
+            config: {
+              "flag.coep":"true"
+            }
           });
           Cal.ns['namespace-init-test-1']("inline", {
             elementOrSelector: '#two-different-namespace-with-different-init-config-content-1',
             calLink: "pro",
+            config: {
+              "flag.coep":"true"
+            }
           });
         }
       </script>
@@ -186,19 +214,24 @@
     </div>
     <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
     <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
+    <span style="display: block">
+      <a href="?name=john&email=email&guests=abc&guests=def&notes=NOTES&location=%7B%22optionValue%22%3A%22%2B919999999999%22%2C%22value%22%3A%22phone%22%7D&only=ns%3ApageParamsForwarding">
+        Page Params Forwarding(Prefills various fields by auto-forwarding query params)
+      </a>
+    </span>
     <span style="display: block"
       ><a href="?only=prerender-test">Go to Prerender test page only</a><small></small
     ></span>
     <span style="display: block"
     ><a href="?only=preload-test">Go to Preload test page only</a><small></small
   ></span>
-    <button onclick="document.documentElement.style.colorScheme='dark'">Toggle Dark Scheme</button>
-    <button onclick="document.documentElement.style.colorScheme='light'">Toggle Light Scheme</button>
+    <button onclick="document.documentElement.style.colorScheme='dark'">Toggle Dark Scheme(For Embedding Page)</button>
+    <button onclick="document.documentElement.style.colorScheme='light'">Toggle Light Scheme(For Embedding Page)</button>
     <div>
       <script>
         if (only === "all" || only === "prerender-test") {
           document.write(`
-          <button data-cal-namespace="e2ePrerenderLightTheme"  data-cal-config='{"theme":"dark", "email":"preloaded-prefilled@example.com", "name": "Preloaded Prefilled"}' data-cal-link="free/30min">Book with Free User[Dark Theme]</button>
+          <button data-cal-namespace="e2ePrerenderLightTheme"  data-cal-config='{"theme":"dark", "email":"preloaded-prefilled@example.com", "name": "Preloaded Prefilled", "flag.coep": "true"}' data-cal-link="free/30min">Book with Free User[Dark Theme]</button>
           <i
             >Corresponding Cal Link is being prerendered. Assuming that it would take you some time to click this
             as you are reading this text, it would open up super fast[If you are running a production build on
@@ -208,7 +241,7 @@
         }
         if (only === "all" || only === "preload-test") {
           document.write(`
-          <button data-cal-namespace="preloadTest" data-cal-config='{"theme":"dark", "email":"preloaded-prefilled@example.com", "name": "Preloaded Prefilled"}' data-cal-link="free/30min">Book with Free User[Dark Theme]</button>
+          <button data-cal-namespace="preloadTest" data-cal-config='{"theme":"dark", "email":"preloaded-prefilled@example.com", "name": "Preloaded Prefilled", "flag.coep": "true"}' data-cal-link="free/30min">Book with Free User[Dark Theme]</button>
           <i
             >Corresponding Cal Link is being preloaded. That means that all the resources would be preloaded. This could be useful in preloading possible resources if you don't know before hand which type of embed you want to show</i
           >`);
@@ -221,59 +254,68 @@
     <div>
       <a href="?only=ns:floatingButton">Floating Popup</a>
 
-      <h2>Popup Examples</h2>
-      <button data-cal-namespace="e2ePopupLightTheme" data-cal-link="free" data-cal-config='{"theme":"light"}'>Book an event with Free[Light Theme]</button>
-      <button data-cal-namespace="popupAutoTheme" data-cal-link="free">
+      <h2>Popup Examples - Theme Tests</h2>
+      <button data-cal-namespace="e2ePopupLightTheme" data-cal-link="free" data-cal-config='{"theme":"light", "flag.coep": "true"}'>Book an event with Free[Light Theme]</button>
+      <button data-cal-namespace="popupAutoTheme" data-cal-link="free" data-cal-config='{"flag.coep": "true"}'>
         Book with Free User[Auto Theme]
       </button>
-      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark", "flag.coep": "true"}' data-cal-link="free">
         Book with Free User[Dark Theme]
       </button>
       <button
         data-cal-namespace="popupTeamLinkLightTheme"
-        data-cal-config='{"theme":"light"}'
+        data-cal-config='{"theme":"light", "flag.coep": "true"}'
         data-cal-link="team/seeded-team/collective-seeded-team-event">
         Book with Test Team[Light Theme]
       </button>
       <button
         data-cal-namespace="popupTeamLinkDarkTheme"
-        data-cal-config='{"theme":"dark"}'
+        data-cal-config='{"theme":"dark", "flag.coep": "true"}'
         data-cal-link="team/seeded-team/collective-seeded-team-event">
         Book with Test Team[Dark Theme]
       </button>
-      <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">
+      <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/" data-cal-config='{"flag.coep": "true"}'>
         See Team Links [Auto Theme]
       </button>
-      <script>
-        let popupRescheduleId =
-          new URL(document.URL).searchParams.get("popupRescheduleId") || "qm3kwt3aTnVD7vmP9tiT2f";
-        document.write(
-          `<button data-cal-namespace="popupReschedule" data-cal-link="reschedule/${popupRescheduleId}">Reschedule Event[Auto Theme]</button>`
-        );
-      </script>
-      <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">
+      <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid" data-cal-config='{"flag.coep": "true"}'>
         Book Paid Event [Auto Theme]
       </button>
-      <button data-cal-namespace="popupHideEventTypeDetails" data-cal-link="free/30min">
+      <h2>Popup Examples - Reschedule Tests</h2>
+      <script>
+        document.write(
+          `<button data-cal-namespace="popupRescheduleWithReschedulePath" data-cal-config='{"flag.coep":"true"}' data-cal-link="reschedule/${popupRescheduleUid}">Reschedule Event(with /reschedule) - Needs popupRescheduleUid param</button>`
+        );
+      </script>
+      <script>
+        document.write(
+    `<button data-cal-namespace="popupRescheduleWithRescheduleUidParam" data-cal-config='{"flag.coep":"true", "rescheduleUid": "${popupRescheduleUid}"}' data-cal-link="${calLink}">Reschedule Event(with rescheduleUid param) - Needs popupRescheduleUid and calLink param</button>`
+        );
+      </script>
+      <h2>Popup Examples - Different Configurations</h2>
+      <button data-cal-namespace="popupHideEventTypeDetails" data-cal-link="free/30min" data-cal-config='{"flag.coep": "true"}'>
         Book Free Event [Auto Theme][uiConfig.hideEventTypeDetails=true]
       </button>
-      <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">
+      <button data-cal-namespace="popupPaidEvent" data-cal-config='{"layout":"week_view", "flag.coep": "true"}' data-cal-link="pro/paid">
+        Book Paid Event - weekly view
+      </button>
+      <button data-cal-namespace="popupPaidEvent" data-cal-config='{"layout":"column_view", "flag.coep": "true"}' data-cal-link="pro/paid">
+        Book Paid Event - column view
+      </button>
+      <h2>Popup Examples - Routing Form Tests</h2>
+      <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03" data-cal-config='{"flag.coep": "true"}'>
         Book through Routing Form [Auto Theme] - Test for 'routed' event
       </button>
       <button
         data-cal-namespace="routingFormDark"
-        data-cal-config='{"theme":"dark"}'
+        data-cal-config='{"theme":"dark", "flag.coep": "true"}'
         data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">
         Book through Routing Form [Dark Theme]
       </button>
-      <button data-cal-namespace="popupPaidEvent" data-cal-config='{"layout":"week_view"}' data-cal-link="pro/paid">
-        Book Paid Event - weekly view
+      <button data-cal-namespace="routingFormHeadlessRouter" data-cal-link="router?form=948ae412-d995-4865-875a-48302588de03&Test field=event-routing" data-cal-config='{"flag.coep": "true"}'>
+        Book through Headless Router
       </button>
-      <button data-cal-namespace="popupPaidEvent" data-cal-config='{"layout":"column_view"}' data-cal-link="pro/paid">
-        Book Paid Event - column view
-      </button>
-
-      <a style="display: block;" data-cal-namespace="childElementTarget" href="javascript:void(0)" data-cal-link="free/30min">
+      <h2>Popup Examples - Child Element Target Tests</h2>
+      <a style="display: block;" data-cal-namespace="childElementTarget" href="javascript:void(0)" data-cal-link="free/30min" data-cal-config='{"flag.coep": "true"}'>
         I am Anchor
         <b>[I am Bold inside anchor]</b>
         <span>
@@ -350,6 +392,13 @@
           <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
         </div>
       </div>
+
+      <div class="inline-embed-container" id="cal-booking-place-corpTest">
+        <h3><a href="?only=ns:corpTest">CORP/COEP Blocking Test</a></h3>
+        <div class="place">
+          <div>It would forever load</div>
+        </div>
+      </div>
     </div>
 
     <div class="inline-embed-container" id="cal-booking-place-fifth">
@@ -387,6 +436,19 @@
     </div>
     <div class="inline-embed-container" id="cal-booking-place-columnView">
       <h3><a href="?only=ns:columnView">Test Column View</a></h3>
+      <div class="place" style="width: 100%"></div>
+    </div>
+
+    <div class="inline-embed-container" id="cal-booking-place-columnViewHideEventTypeDetails">
+      <h3><a href="?only=ns:columnViewHideEventTypeDetails">Test Column View Hide Event Type Details</a></h3>
+      <div class="place" style="width: 100%"></div>
+    </div>
+    <div class="inline-embed-container" id="cal-booking-place-pageParamsForwarding">
+      <h3><a href="?only=ns:pageParamsForwarding">Test Page Params Forwarding</a></h3>
+      <div class="place" style="width: 100%"></div>
+    </div>
+    <div class="inline-embed-container" id="cal-booking-place-autoScrollTest">
+      <h3><a href="?only=ns:autoScrollTest">Test Auto Scroll</a></h3>
       <div class="place" style="width: 100%"></div>
     </div>
     <script type="module" src="./playground.ts"></script>

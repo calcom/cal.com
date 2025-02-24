@@ -121,15 +121,12 @@ function addHTMLStyles(html?: string) {
     return "";
   }
   const dom = new JSDOM(html);
-  const document = dom.window.document;
-
   // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
-  const links = document.querySelectorAll("h6 a");
+  const links = Array.from(dom.window.document.querySelectorAll("h6 a")).map((link) => link as HTMLElement);
 
   links.forEach((link) => {
-    const htmlLink = link as HTMLElement;
-    htmlLink.style.fontSize = "20px";
-    htmlLink.style.textDecoration = "none";
+    link.style.fontSize = "20px";
+    link.style.textDecoration = "none";
   });
 
   return dom.serialize();

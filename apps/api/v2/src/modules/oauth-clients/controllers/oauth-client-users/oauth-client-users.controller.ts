@@ -1,11 +1,14 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Locales } from "@/lib/enums/locales";
+import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -27,8 +30,8 @@ import {
   Query,
   NotFoundException,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { User } from "@prisma/client";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { User, MembershipRole } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Pagination } from "@calcom/platform-types";
@@ -37,8 +40,8 @@ import { Pagination } from "@calcom/platform-types";
   path: "/v2/oauth-clients/:clientId/users",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(OAuthClientCredentialsGuard)
-@DocsTags("Managed users")
+@UseGuards(ApiAuthGuard, OAuthClientGuard, OrganizationRolesGuard)
+@DocsTags("Platform / Managed Users")
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 
@@ -50,6 +53,8 @@ export class OAuthClientUsersController {
   ) {}
 
   @Get("/")
+  @ApiOperation({ summary: "Get all managed users" })
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getManagedUsers(
     @Param("clientId") oAuthClientId: string,
     @Query() queryParams: Pagination
@@ -70,6 +75,8 @@ export class OAuthClientUsersController {
   }
 
   @Post("/")
+  @ApiOperation({ summary: "Create a managed user" })
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async createUser(
     @Param("clientId") oAuthClientId: string,
     @Body() body: CreateManagedUserInput
@@ -100,6 +107,8 @@ export class OAuthClientUsersController {
 
   @Get("/:userId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get a managed user" })
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getUserById(
     @Param("clientId") clientId: string,
     @Param("userId") userId: number
@@ -114,6 +123,8 @@ export class OAuthClientUsersController {
 
   @Patch("/:userId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update a managed user" })
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async updateUser(
     @Param("clientId") clientId: string,
     @Param("userId") userId: number,
@@ -132,6 +143,8 @@ export class OAuthClientUsersController {
 
   @Delete("/:userId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete a managed user" })
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async deleteUser(
     @Param("clientId") clientId: string,
     @Param("userId") userId: number
@@ -149,6 +162,12 @@ export class OAuthClientUsersController {
 
   @Post("/:userId/force-refresh")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Force refresh tokens",
+    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.
+    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have \`calAccessToken\` and \`calRefreshToken\` columns.`,
+  })
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
     @Param("userId") userId: number,
     @Param("clientId") oAuthClientId: string
@@ -187,16 +206,14 @@ export class OAuthClientUsersController {
       id: user.id,
       email: user.email,
       username: user.username,
+      name: user.name,
       timeZone: user.timeZone,
       weekStart: user.weekStart,
       createdDate: user.createdDate,
       timeFormat: user.timeFormat,
       defaultScheduleId: user.defaultScheduleId,
       locale: user.locale as Locales,
+      avatarUrl: user.avatarUrl,
     };
   }
 }
-
-export type UserReturned = Pick<User, "id" | "email" | "username">;
-
-export type CreateUserResponse = { user: UserReturned; accessToken: string; refreshToken: string };

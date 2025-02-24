@@ -6,9 +6,11 @@ import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
-import { IS_TEAM_BILLING_ENABLED, MAX_NB_INVITES } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
@@ -42,6 +44,7 @@ type MemberInvitationModalProps = {
   isPending?: boolean;
   disableCopyLink?: boolean;
   isOrg?: boolean;
+  checkMembershipMutation?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -74,17 +77,16 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
 
+  const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
+
   // Check current org role and not team role
   const isOrgAdminOrOwner =
     currentOrg &&
     (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
 
-  const canSeeOrganization = !!(
-    props?.orgMembers &&
-    props.orgMembers?.length > 0 &&
-    currentOrg?.isPrivate &&
-    isOrgAdminOrOwner
-  );
+  const canSeeOrganization = currentOrg?.isPrivate
+    ? isOrgAdminOrOwner
+    : !!(props?.orgMembers && props.orgMembers?.length > 0 && isOrgAdminOrOwner);
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
     canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL"
@@ -136,12 +138,19 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   const newMemberFormMethods = useForm<NewMemberForm>();
 
-  const validateUniqueInvite = (value: string) => {
-    if (!props?.members?.length) return true;
-    return !(
-      props?.members.some((member) => member?.username === value) ||
-      props?.members.some((member) => member?.email === value)
-    );
+  const checkIfMembershipExists = (value: string) => {
+    if (props.checkMembershipMutation) {
+      return checkIfMembershipExistsMutation.mutateAsync({
+        teamId: props.teamId,
+        value,
+      });
+    } else {
+      if (!props?.members?.length) return false;
+      return (
+        props?.members.some((member) => member?.username === value) ||
+        props?.members.some((member) => member?.email === value)
+      );
+    }
   };
 
   const handleFileUpload = (e: FileEvent<HTMLInputElement>) => {
@@ -198,7 +207,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         type="creation"
         title={t("invite_team_member")}
         description={
-          IS_TEAM_BILLING_ENABLED ? (
+          IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
               <Trans i18nKey="invite_new_member_description">
                 Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
@@ -207,12 +216,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </span>
           ) : null
         }>
-        <div>
+        <div className="sm:max-h-9">
           <Label className="sr-only" htmlFor="role">
             {t("import_mode")}
           </Label>
           <ToggleGroup
             isFullWidth={true}
+            className="flex-col sm:flex-row"
             onValueChange={(val) => {
               setModalInputMode(val as ModalMode);
               newMemberFormMethods.clearErrors();
@@ -224,18 +234,20 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
           <div className="mb-10 mt-6 space-y-6">
-            {/* Indivdual Invite */}
+            {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
                 name="emailOrUsername"
                 control={newMemberFormMethods.control}
                 rules={{
                   required: t("enter_email"),
-                  validate: (value) => {
+                  validate: async (value) => {
                     // orgs can only invite members by email
                     if (typeof value === "string" && !isEmail(value)) return t("enter_email");
-                    if (typeof value === "string")
-                      return validateUniqueInvite(value) || t("member_already_invited");
+                    if (typeof value === "string") {
+                      const doesInviteExists = await checkIfMembershipExists(value);
+                      return !doesInviteExists || t("member_already_invited");
+                    }
                   },
                 }}
                 render={({ field: { onChange }, fieldState: { error } }) => (
@@ -421,8 +433,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
+                  StartIcon="link"
                   data-testid="copy-invite-link-button">
-                  <Icon name="link" className="text-default h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
@@ -437,7 +449,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              loading={props.isPending || createInviteMutation.isPending}
+              loading={
+                props.isPending || createInviteMutation.isPending || checkIfMembershipExistsMutation.isPending
+              }
               type="submit"
               color="primary"
               className="me-2 ms-2"
@@ -450,3 +464,91 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     </Dialog>
   );
 }
+
+export const MemberInvitationModalWithoutMembers = ({
+  hideInvitationModal,
+  showMemberInvitationModal,
+  teamId,
+  token,
+  onSettingsOpen,
+  ...props
+}: Partial<MemberInvitationModalProps> & {
+  hideInvitationModal: () => void;
+  showMemberInvitationModal: boolean;
+  teamId: number;
+  token?: string;
+  onSettingsOpen: () => void;
+}) => {
+  const searchParams = useCompatSearchParams();
+  const { t, i18n } = useLocale();
+  const utils = trpc.useUtils();
+
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
+
+  const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
+    trpc.viewer.organizations.getMembers.useQuery(
+      {
+        teamIdToExclude: teamId,
+        distinctUser: true,
+      },
+      {
+        enabled: searchParams !== null && !!teamId && !!showMemberInvitationModal,
+      }
+    );
+
+  return (
+    <MemberInvitationModal
+      {...props}
+      isPending={inviteMemberMutation.isPending || isOrgListLoading}
+      isOpen={showMemberInvitationModal}
+      orgMembers={orgMembersNotInThisTeam}
+      teamId={teamId}
+      token={token}
+      onExit={hideInvitationModal}
+      checkMembershipMutation={true}
+      onSubmit={(values, resetFields) => {
+        inviteMemberMutation.mutate(
+          {
+            teamId,
+            language: i18n.language,
+            role: values.role,
+            usernameOrEmail: values.emailOrUsername,
+            creationSource: CreationSource.WEBAPP,
+          },
+          {
+            onSuccess: async (data) => {
+              await utils.viewer.teams.get.invalidate();
+              await utils.viewer.teams.listMembers.invalidate();
+              await utils.viewer.organizations.getMembers.invalidate();
+              hideInvitationModal();
+
+              if (Array.isArray(data.usernameOrEmail)) {
+                showToast(
+                  t("email_invite_team_bulk", {
+                    userCount: data.numUsersInvited,
+                  }),
+                  "success"
+                );
+                resetFields();
+              } else {
+                showToast(
+                  t("email_invite_team", {
+                    email: data.usernameOrEmail,
+                  }),
+                  "success"
+                );
+              }
+            },
+            onError: (error) => {
+              showToast(error.message, "error");
+            },
+          }
+        );
+      }}
+      onSettingsOpen={() => {
+        hideInvitationModal();
+        onSettingsOpen();
+      }}
+    />
+  );
+};

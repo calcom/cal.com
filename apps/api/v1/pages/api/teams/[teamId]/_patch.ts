@@ -123,8 +123,11 @@ export async function patchHandler(req: NextApiRequest) {
   // TODO: Perhaps there is a better fix for this?
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
+    bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
   } = {
     ...data,
+    smsLockReviewedByAdmin: false,
+    bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
   const team = await prisma.team.update({ where: { id: teamId }, data: cloneData });

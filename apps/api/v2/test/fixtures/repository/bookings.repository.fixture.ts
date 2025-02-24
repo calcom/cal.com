@@ -3,21 +3,39 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { Booking, User } from "@prisma/client";
 
+import { Prisma } from "@calcom/prisma/client";
+
 export class BookingsRepositoryFixture {
-  private primaReadClient: PrismaReadService["prisma"];
+  private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
   constructor(private readonly module: TestingModule) {
-    this.primaReadClient = module.get(PrismaReadService).prisma;
+    this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
   async getById(bookingId: Booking["id"]) {
-    return this.primaReadClient.booking.findFirst({ where: { id: bookingId } });
+    return this.prismaReadClient.booking.findFirst({ where: { id: bookingId } });
+  }
+
+  async getByUid(bookingUid: Booking["uid"]) {
+    return this.prismaReadClient.booking.findUnique({ where: { uid: bookingUid } });
+  }
+
+  async getByRecurringBookingUid(recurringBookingUid: string) {
+    return this.prismaReadClient.booking.findMany({
+      where: {
+        recurringEventId: recurringBookingUid,
+      },
+    });
+  }
+
+  async create(booking: Prisma.BookingCreateInput) {
+    return this.prismaWriteClient.booking.create({ data: booking });
   }
 
   async deleteById(bookingId: Booking["id"]) {
-    return this.prismaWriteClient.booking.delete({ where: { id: bookingId } });
+    return this.prismaWriteClient.booking.deleteMany({ where: { id: bookingId } });
   }
 
   async deleteAllBookings(userId: User["id"], userEmail: User["email"]) {

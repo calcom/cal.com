@@ -1,4 +1,5 @@
 import { CAL_URL } from "@calcom/lib/constants";
+import type { Ensure } from "@calcom/types/utils";
 
 function getUserAndEventTypeSlug(eventTypeRedirectUrl: string) {
   if (eventTypeRedirectUrl.startsWith("/")) {
@@ -13,6 +14,8 @@ function getUserAndEventTypeSlug(eventTypeRedirectUrl: string) {
 }
 
 /**
+ * @param eventTypeRedirectUrl - The event path without a starting slash
+ *
  * Handles the following cases
  * 1. A team form where the team isn't a sub-team
  *    1.1 A team form where team isn't a sub-team and the user is migrated. i.e. User has been migrated but not the team
@@ -31,6 +34,7 @@ export function getAbsoluteEventTypeRedirectUrl({
   eventTypeRedirectUrl,
   form,
   allURLSearchParams,
+  isEmbed,
 }: {
   eventTypeRedirectUrl: string;
   form: {
@@ -56,7 +60,9 @@ export function getAbsoluteEventTypeRedirectUrl({
     teamOrigin: string;
   };
   allURLSearchParams: URLSearchParams;
+  isEmbed?: boolean;
 }) {
+  eventTypeRedirectUrl = `${eventTypeRedirectUrl}${isEmbed ? "/embed" : ""}`;
   // It could be using the old(before migration) username/team-slug or it could be using the new one(after migration)
   // If it's using the old one, it would work by redirection as long as we use CAL_URL(which is non-org domain)
   // But if it's using the new one, it has to use the org domain.
@@ -85,4 +91,10 @@ export function getAbsoluteEventTypeRedirectUrl({
   const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
 
   return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+}
+
+export function getAbsoluteEventTypeRedirectUrlWithEmbedSupport(
+  args: Ensure<Parameters<typeof getAbsoluteEventTypeRedirectUrl>[0], "isEmbed">
+) {
+  return getAbsoluteEventTypeRedirectUrl({ ...args });
 }

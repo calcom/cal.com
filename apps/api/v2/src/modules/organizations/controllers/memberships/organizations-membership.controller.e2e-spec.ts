@@ -11,8 +11,10 @@ import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -24,7 +26,7 @@ describe("Organizations Memberships Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let org: Team;
@@ -32,10 +34,9 @@ describe("Organizations Memberships Endpoints", () => {
     let membership2: Membership;
     let membershipCreatedViaApi: Membership;
 
-    const userEmail = "org-admin-membership-controller-e2e@api.com";
-    const userEmail2 = "org-member-membership-controller-e2e@api.com";
-
-    const invitedUserEmail = "org-member-invited-membership-controller-e2e@api.com";
+    const userEmail = `organizations-memberships-admin-${randomString()}@api.com`;
+    const userEmail2 = `organizations-memberships-member-${randomString()}@api.com`;
+    const invitedUserEmail = `organizations-memberships-invited-${randomString()}@api.com`;
 
     let user: User;
     let user2: User;
@@ -51,7 +52,7 @@ describe("Organizations Memberships Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
@@ -69,7 +70,7 @@ describe("Organizations Memberships Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-memberships-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -210,13 +211,13 @@ describe("Organizations Memberships Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
 
-    const userEmail = "org-member-memberships-controller-e2e@api.com";
+    const userEmail = `organizations-memberships-member-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -228,7 +229,7 @@ describe("Organizations Memberships Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
@@ -237,7 +238,7 @@ describe("Organizations Memberships Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-memberships-organization-${randomString()}`,
         isOrganization: true,
       });
 

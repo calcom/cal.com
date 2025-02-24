@@ -15,6 +15,11 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
+const ensureValidPhoneNumber = (value: string) => {
+  // + in URL could be replaced with space, so we need to replace it back
+  // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
+  return value.replace(/^ +/, "+");
+};
 export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
@@ -29,6 +34,12 @@ export default function getBookingResponsesSchema({ bookingFields, view }: Commo
   return preprocess({ schema, bookingFields, isPartialSchema: false, view });
 }
 
+// Should be used when we want to check if the optional fields are entered and valid as well
+export function getBookingResponsesSchemaWithOptionalChecks({ bookingFields, view }: CommonParams) {
+  const schema = bookingResponses.and(z.record(z.any()));
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view, checkOptional: true });
+}
+
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
 // It allows anyone using FormBuilder to get the same preprocessing automatically
 function preprocess<T extends z.ZodType>({
@@ -36,12 +47,14 @@ function preprocess<T extends z.ZodType>({
   bookingFields,
   isPartialSchema,
   view: currentView,
+  checkOptional = false,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
   // - Not all required fields are need to be provided for prefill.
   // - Even a field response itself can be partial so the content isn't validated e.g. a field with type="phone" can be given a partial phone number(e.g. Specifying the country code like +91)
   isPartialSchema: boolean;
+  checkOptional?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
@@ -89,11 +102,14 @@ function preprocess<T extends z.ZodType>({
           try {
             parsedValue = JSON.parse(value);
           } catch (e) {}
+          const optionsInputs = field.optionsInputs;
+          const optionInputField = optionsInputs?.[parsedValue.value];
+          if (optionInputField && optionInputField.type === "phone") {
+            parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+          }
           newResponses[field.name] = parsedValue;
         } else if (field.type === "phone") {
-          // + in URL could be replaced with space, so we need to replace it back
-          // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
-          newResponses[field.name] = value.replace(/^ +/, "+");
+          newResponses[field.name] = ensureValidPhoneNumber(value);
         } else {
           newResponses[field.name] = value;
         }
@@ -109,6 +125,18 @@ function preprocess<T extends z.ZodType>({
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
+
+      const attendeePhoneNumberField = bookingFields.find((field) => field.name === "attendeePhoneNumber");
+      const isAttendeePhoneNumberFieldHidden = attendeePhoneNumberField?.hidden;
+
+      const emailField = bookingFields.find((field) => field.name === "email");
+      const isEmailFieldHidden = !!emailField?.hidden;
+
+      // To prevent using user's session email as attendee's email, we set email to empty string
+      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+        responses["email"] = "";
+      }
+
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
@@ -129,8 +157,11 @@ function preprocess<T extends z.ZodType>({
         if (bookingField.hideWhenJustOneOption) {
           hidden = hidden || numOptions <= 1;
         }
+        let isRequired = false;
         // If the field is hidden, then it can never be required
-        const isRequired = hidden ? false : isFieldApplicableToCurrentView ? bookingField.required : false;
+        if (!hidden && isFieldApplicableToCurrentView) {
+          isRequired = checkOptional || !!bookingField.required;
+        }
 
         if ((isPartialSchema || !isRequired) && value === undefined) {
           continue;
@@ -142,13 +173,41 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          // Email RegExp to validate if the input is a valid email
-          if (!emailSchema.safeParse(value).success) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: m("email_validation_error"),
-            });
+          if (!bookingField.hidden && checkOptional ? true : bookingField.required) {
+            // Email RegExp to validate if the input is a valid email
+            if (!emailSchema.safeParse(value).success) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("email_validation_error"),
+              });
+            }
+
+            // validate the excluded emails
+            const bookerEmail = value;
+            const excludedEmails =
+              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+
+            const match = excludedEmails.find((email) => bookerEmail.includes(email));
+            if (match) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("exclude_emails_match_found_error_message"),
+              });
+            }
+            const requiredEmails =
+              bookingField.requireEmails
+                ?.split(",")
+                .map((domain) => domain.trim())
+                .filter(Boolean) || [];
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            if (requiredEmails.length > 0 && !requiredEmailsMatch) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("require_emails_no_match_found_error_message"),
+              });
+            }
           }
+
           continue;
         }
 
@@ -197,7 +256,18 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (bookingField.type === "checkbox" || bookingField.type === "multiselect") {
+        if (bookingField.type === "multiselect") {
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+          if (!stringSchema.array().safeParse(value).success) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+          }
+          continue;
+        }
+
+        if (bookingField.type === "checkbox") {
           if (!stringSchema.array().safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
           }
@@ -205,7 +275,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!(await phoneSchema.safeParseAsync(value)).success) {
+          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
           }
           continue;
@@ -226,9 +296,7 @@ function preprocess<T extends z.ZodType>({
             const typeOfOptionInput = optionField?.type;
             if (
               // Either the field is required or there is a radio selected, we need to check if the optionInput is required or not.
-              (isRequired || value?.value) &&
-              optionField?.required &&
-              !optionValue
+              (isRequired || value?.value) && checkOptional ? true : optionField?.required && !optionValue
             ) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
               return;

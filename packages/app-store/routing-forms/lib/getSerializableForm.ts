@@ -2,6 +2,8 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import type { z } from "zod";
 
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
@@ -10,7 +12,9 @@ import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";
+import { getFieldWithOptions } from "./selectOptions";
 
+const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
 /**
  * Doesn't have deleted fields by default
  */
@@ -24,6 +28,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
+    log.error("Error parsing routes", safeStringify({ error: routesParsed.error, routes: form.routes }));
     throw new Error("Error parsing routes");
   }
 
@@ -46,7 +51,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
   const fieldsExistInForm: Record<string, true> = {};
-  parsedFields?.forEach((f) => {
+  parsedFields.forEach((f) => {
     fieldsExistInForm[f.id] = true;
   });
 
@@ -57,7 +62,9 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     name: f.name,
     description: f.description,
   }));
-  const finalFields = fields;
+
+  const finalFields = fields.map((field) => getFieldWithOptions(field));
+
   let teamMembers: SerializableFormTeamMembers[] = [];
   if (form.teamId) {
     teamMembers = await prisma.user.findMany({
@@ -74,6 +81,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
         name: true,
         email: true,
         avatarUrl: true,
+        defaultScheduleId: true,
       },
     });
   }

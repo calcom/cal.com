@@ -1,0 +1,126 @@
+---
+title: "Availability settings"
+---
+
+The availability settings atom enables a user to set their available time slots. This atom allows users to define specific time slots when they are available for meetings or events, helping them manage their schedules effectively and avoid double bookings.
+
+First, for the AvailabilitySettings toggle animation to work set the reading direction on the `<html>` element:
+
+```html
+<html dir="ltr"> ... </html>
+```
+
+Below code snippet can be used to render the availability settings atom
+
+```js
+import { AvailabilitySettings } from "@calcom/atoms";
+
+export default function Availability() {
+  return (
+    <>
+       <AvailabilitySettings
+          onUpdateSuccess={() => {
+            console.log("Updated schedule successfully");
+          }}
+          onDeleteSuccess={() => {
+            console.log("Deleted schedule successfully");
+          }}
+       />
+    </>
+  )
+}
+```
+For a demonstration of the availability settings atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/6fd65789f5744227b4ea6d0189d4fc67?sid=544a6afd-2836-4704-aa56-e801cbd93cbc"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+If a user wishes to add further adjustments to their availability for special occasions or events, they can use the date overrides feature. Date overrides enables users to pick any date that they're currently available and set specific hours for availability on that day or mark themselves entirely unavailable. Once that day is passed, the date override is automatically deleted.
+
+Below code snippet can be used to render date overrides into the availability settings atom
+
+```js
+import { AvailabilitySettings } from "@calcom/atoms";
+
+export default function Availability() {
+  return (
+    <>
+       <AvailabilitySettings
+          enableOverrides={true}
+          onUpdateSuccess={() => {
+            console.log("Updated schedule successfully");
+          }}
+          onDeleteSuccess={() => {
+            console.log("Deleted schedule successfully");
+          }}
+       />
+    </>
+  )
+}
+```
+
+For a demonstration of the availability settings atom with date overrides, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/aa9ba47cbc284496ac51c26e172c7b12?sid=6d2b5bb3-d2eb-4a95-adb5-c67d863d4e34"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+We offer all kinds of customizations to the availability settings atom via props and customClassNames. 
+
+Below is a list of props that can be passed to the availability settings atom.
+<p></p>
+
+| Name               | Required | Description                                                                                               |
+|:--------------------|:----------|:-----------------------------------------------------------------------------------------------------------|
+| id                 | No       | The ID of the schedule which fetches a user's availability                                                |
+| labels             | No       | Helpful if you want to pass in custom labels for i18n                                                     |
+| customClassNames   | No       | To pass in custom classnames from outside for styling the atom                                            |
+| onUpdateSuccess    | No       | A callback function to handle updating user availability successfully                                     |
+| onBeforeUpdate     | No       | Validates schedule before it is sent to the server; if true, the schedule is sent, else it is not         |
+| onUpdateError      | No       | A callback function that gets triggered when the user availability fails to update                        |
+| onDeleteSuccess    | No       | A callback function that gets triggered when the user availability is deleted successfully                |
+| onDeleteError      | No       | A callback function that gets triggered when the user availability fails to delete                        |
+| enableOverrides    | No       | Allows user to enable or disable date overrides display in the atom; defaults to disabled                 |
+| disableEditableHeading    | No       | Prevents users from editing the heading               |
+| allowDelete      | No       | When set to false, this prop hides the delete button                        |
+| allowSetToDefault    | No       |  When set to false, this prop hides the set to default toggle                 |
+| disableToasts    | No       | Allows users to enable or disable toast notifications, with the default setting being disabled.               |
+
+Along with the props, Availability settings atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+<p></p>
+
+| Name                      | Description                                                           |
+|:---------------------------|:-----------------------------------------------------------------------|
+| containerClassName        | Adds styling to the whole availability settings component             |
+| ctaClassName              | Adds stylings only to certain call-to-action buttons                  |
+| editableHeadingClassName  | Editable heading or title can be styled                               |
+| formClassName             | Form which contains the days and toggles                              |
+| timezoneSelectClassName   | Adds styling to the timezone select component                         |
+| subtitlesClassName        | Styles the subtitle                                                   |
+| scheduleContainer         | Styles the entire schedule component                                  |
+| scheduleDay               | Adds styling to just the day of a particular schedule                 |
+| dayRanges                 | Adds styling to day ranges                                            |
+| timeRanges                | Time ranges in the availability settings can be customized            |
+| labelAndSwitchContainer   | Adds styling to label and switches                                    |
+| overridesModalClassNames  | Adds styling to the date overrides modal                              |
+
+<Info>Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.</Info>

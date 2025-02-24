@@ -13,7 +13,7 @@
 }
 
 .editor-container {
-  border-radius: 6px;
+  border-radius: 10px;
   position: relative;
   line-height: 20px;
   font-weight: 400;
@@ -52,7 +52,7 @@
   font-style: italic;
 }
 
-// h6 is only used for emoji links
+/* h6 is only used for emoji links */
 .editor-heading-h6 {
 }
 
@@ -72,7 +72,6 @@ h6 a {
 
 .editor-paragraph {
   margin: 0;
-  margin-top:14px;
   position: relative;
   color: var(--cal-text);
 }

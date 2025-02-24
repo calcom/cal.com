@@ -35,10 +35,22 @@ export class ModalBox extends HTMLElement {
     this.dispatchEvent(event);
   }
 
-  close() {
+  private isLoaderRunning() {
+    const state = this.getAttribute("state");
+    return !state || state === "loading" || state === "reopening";
+  }
+
+  private explicitClose() {
     this.show(false);
     const event = new Event("close");
     this.dispatchEvent(event);
+  }
+
+  close() {
+    if (this.isLoaderRunning()) {
+      return;
+    }
+    this.explicitClose();
   }
 
   hideIframe() {
@@ -92,14 +104,14 @@ export class ModalBox extends HTMLElement {
       this.showIframe();
       this.getLoaderElement().style.display = "none";
     } else if (newValue == "closed") {
-      this.close();
+      this.explicitClose();
     } else if (newValue === "failed") {
       this.getLoaderElement().style.display = "none";
       this.getErrorElement().style.display = "inline-block";
       const errorString = getErrorString(this.dataset.errorCode);
       this.getErrorElement().innerText = errorString;
     } else if (newValue === "prerendering") {
-      this.close();
+      this.explicitClose();
     }
   }
 
@@ -117,13 +129,16 @@ export class ModalBox extends HTMLElement {
         once: true,
       }
     );
+
+    // The backdrop is inside the host element, and a click on host element is only possible if the user clicks outside the iframe.
+    // So, it is backdrop click handler
     this.shadowRoot.host.addEventListener("click", () => {
       this.close();
     });
 
     if (closeEl) {
       closeEl.onclick = () => {
-        this.close();
+        this.explicitClose();
       };
     }
   }

@@ -1,24 +1,37 @@
 import { z } from "zod";
 
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
-import type { EventTypeUpdateInput } from "./types";
+import type { TUpdateInputSchema } from "./types";
+
+type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
 
 export const eventOwnerProcedure = authedProcedure
   .input(
-    z.object({
-      id: z.number(),
-      users: z.array(z.number()).optional().default([]),
-    })
+    z
+      .object({
+        id: z.number().optional(),
+        eventTypeId: z.number().optional(),
+        users: z.array(z.number()).optional().default([]),
+      })
+      .refine((data) => data.id !== undefined || data.eventTypeId !== undefined, {
+        message: "At least one of 'id' or 'eventTypeId' must be present",
+        path: ["id", "eventTypeId"],
+      })
   )
   .use(async ({ ctx, input, next }) => {
+    const id = input.eventTypeId ?? input.id;
     // Prevent non-owners to update/delete a team event
     const event = await ctx.prisma.eventType.findUnique({
-      where: { id: input.id },
+      where: { id },
       include: {
         users: {
           select: {
@@ -127,7 +140,7 @@ export function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeI
   };
 }
 
-export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
+export function ensureUniqueBookingFields(fields: TUpdateInputSchema["bookingFields"]) {
   if (!fields) {
     return;
   }
@@ -145,3 +158,66 @@ export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdate
     return discoveredFields;
   }, {} as Record<string, true>);
 }
+
+export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bookingFields"]) {
+  if (!fields || fields.length === 0) {
+    return;
+  }
+
+  const attendeePhoneNumberField = fields.find((field) => field.name === "attendeePhoneNumber");
+
+  const emailField = fields.find((field) => field.name === "email");
+
+  if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Both Email and Attendee Phone Number cannot be hidden`,
+    });
+  }
+  if (!emailField?.required && !attendeePhoneNumberField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `At least Email or Attendee Phone Number need to be required field.`,
+    });
+  }
+}
+
+type Host = {
+  userId: number;
+  isFixed?: boolean | undefined;
+  priority?: number | null | undefined;
+  weight?: number | null | undefined;
+  scheduleId?: number | null | undefined;
+};
+
+type User = {
+  id: number;
+  email: string;
+};
+
+export const mapEventType = async (eventType: EventType) => ({
+  ...eventType,
+  safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+  users: await Promise.all(
+    (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+      async (u) =>
+        await UserRepository.enrichUserWithItsProfile({
+          user: u,
+        })
+    )
+  ),
+  metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+  children: await Promise.all(
+    (eventType.children || []).map(async (c) => ({
+      ...c,
+      users: await Promise.all(
+        c.users.map(
+          async (u) =>
+            await UserRepository.enrichUserWithItsProfile({
+              user: u,
+            })
+        )
+      ),
+    }))
+  ),
+});

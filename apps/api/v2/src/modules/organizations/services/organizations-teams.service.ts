@@ -1,5 +1,6 @@
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "@/modules/organizations/inputs/update-organization-team.input";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
@@ -31,15 +32,38 @@ export class OrganizationsTeamsService {
     return team;
   }
 
-  async updateOrgTeam(organizationId: number, teamId: number, data: CreateOrgTeamDto) {
+  async updateOrgTeam(organizationId: number, teamId: number, data: UpdateOrgTeamDto) {
     const team = await this.organizationsTeamRepository.updateOrgTeam(organizationId, teamId, data);
     return team;
   }
 
   async createOrgTeam(organizationId: number, data: CreateOrgTeamDto, user: UserWithProfile) {
-    const team = await this.organizationsTeamRepository.createOrgTeam(organizationId, data);
+    const { autoAcceptCreator, ...rest } = data;
+
+    const team = await this.organizationsTeamRepository.createOrgTeam(organizationId, rest);
+
     if (user.role !== "ADMIN") {
-      await this.membershipsRepository.createMembership(team.id, user.id, "OWNER", true);
+      await this.membershipsRepository.createMembership(team.id, user.id, "OWNER", !!autoAcceptCreator);
+    }
+    return team;
+  }
+
+  async createPlatformOrgTeam(
+    organizationId: number,
+    oAuthClientId: string,
+    data: CreateOrgTeamDto,
+    user: UserWithProfile
+  ) {
+    const { autoAcceptCreator, ...rest } = data;
+
+    const team = await this.organizationsTeamRepository.createPlatformOrgTeam(
+      organizationId,
+      oAuthClientId,
+      rest
+    );
+
+    if (user.role !== "ADMIN") {
+      await this.membershipsRepository.createMembership(team.id, user.id, "OWNER", !!autoAcceptCreator);
     }
     return team;
   }

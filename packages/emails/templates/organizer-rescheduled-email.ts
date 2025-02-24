@@ -1,7 +1,8 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
-import generateIcsString from "../lib/generateIcsString";
+import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
@@ -9,17 +10,11 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: generateIcsString({
-          event: this.calEvent,
-          title: this.t("event_type_has_been_rescheduled"),
-          subtitle: this.t("emailed_you_and_any_other_attendees"),
-          role: "organizer",
-          status: "CONFIRMED",
-        }),
-        method: "REQUEST",
-      },
+      icalEvent: generateIcsFile({
+        calEvent: this.calEvent,
+        role: GenerateIcsRole.ORGANIZER,
+        status: "CONFIRMED",
+      }),
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
@@ -27,11 +22,20 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await renderEmail("OrganizerRescheduledEmail", {
-        calEvent: { ...this.calEvent, attendeeSeatId: undefined },
-        attendee: this.calEvent.organizer,
-      }),
+      html: await this.getHtml(
+        { ...this.calEvent, attendeeSeatId: undefined },
+        this.calEvent.organizer,
+        this.teamMember
+      ),
       text: this.getTextBody("event_has_been_rescheduled"),
     };
+  }
+
+  async getHtml(calEvent: CalendarEvent, attendee: Person, teamMember?: Person) {
+    return await renderEmail("OrganizerRescheduledEmail", {
+      calEvent,
+      attendee,
+      teamMember,
+    });
   }
 }

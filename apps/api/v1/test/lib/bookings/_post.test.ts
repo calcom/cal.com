@@ -11,6 +11,8 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
+import type { Booking } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 import handler from "../../../pages/api/bookings/_post";
 
@@ -157,6 +159,7 @@ describe.skipIf(true)("POST /api/bookings", () => {
 
   describe("Success", () => {
     describe("Regular event-type", () => {
+      let createdBooking: Booking;
       test("Creates one single booking", async () => {
         const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
           method: "POST",
@@ -181,7 +184,69 @@ describe.skipIf(true)("POST /api/bookings", () => {
 
         await handler(req, res);
         console.log({ statusCode: res._getStatusCode(), data: JSON.parse(res._getData()) });
+        createdBooking = JSON.parse(res._getData());
+        expect(prismaMock.booking.create).toHaveBeenCalledTimes(1);
+      });
 
+      test("Reschedule created booking", async () => {
+        const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+          method: "POST",
+          body: {
+            name: "testReschedule",
+            start: dayjs().add(2, "day").format(),
+            end: dayjs().add(3, "day").format(),
+            eventTypeId: 2,
+            email: "test@example.com",
+            location: "Cal.com Video",
+            timeZone: "America/Montevideo",
+            language: "en",
+            customInputs: [],
+            metadata: {},
+            userId: 4,
+            rescheduleUid: createdBooking.uid,
+          },
+          prisma,
+        });
+
+        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType());
+        prismaMock.booking.findMany.mockResolvedValue([]);
+
+        await handler(req, res);
+        console.log({ statusCode: res._getStatusCode(), data: JSON.parse(res._getData()) });
+        const rescheduledBooking = JSON.parse(res._getData()) as Booking;
+        expect(prismaMock.booking.create).toHaveBeenCalledTimes(1);
+        expect(rescheduledBooking.fromReschedule).toEqual(createdBooking.uid);
+        const previousBooking = await prisma.booking.findUnique({
+          where: { uid: createdBooking.uid },
+        });
+        expect(previousBooking?.status).toBe("cancelled");
+      });
+
+      test("Creates source as api_v1", async () => {
+        const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+          method: "POST",
+          body: {
+            name: "test",
+            start: dayjs().format(),
+            end: dayjs().add(1, "day").format(),
+            eventTypeId: 2,
+            email: "test@example.com",
+            location: "Cal.com Video",
+            timeZone: "America/Montevideo",
+            language: "en",
+            customInputs: [],
+            metadata: {},
+            userId: 4,
+          },
+          prisma,
+        });
+
+        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType());
+        prismaMock.booking.findMany.mockResolvedValue([]);
+
+        await handler(req, res);
+        createdBooking = JSON.parse(res._getData());
+        expect(createdBooking.creationSource).toEqual(CreationSource.API_V1);
         expect(prismaMock.booking.create).toHaveBeenCalledTimes(1);
       });
     });

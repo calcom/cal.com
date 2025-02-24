@@ -85,5 +85,5 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: embed-react-results
-          path: test-results
+          name: blob-report-embed-react
+          path: blob-report

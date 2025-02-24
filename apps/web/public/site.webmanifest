@@ -1,6 +1,7 @@
 {
     "name": "Cal.com",
     "short_name": "Cal.com",
+    "description": "Scheduling infrastructure for absolutely everyone.",
     "icons": [
         {
             "src": "/api/logo?type=android-chrome-192",
@@ -15,5 +16,7 @@
     ],
     "theme_color": "#ffffff",
     "background_color": "#ffffff",
-    "display": "standalone"
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/"  
 }

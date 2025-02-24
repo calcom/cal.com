@@ -46,7 +46,7 @@ test.describe("Organization - Privacy", () => {
     });
 
     await owner.apiLogin();
-    await page.goto("/settings/organizations/members");
+    await page.goto(`/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
 
     const tableLocator = await page.getByTestId("user-list-data-table");
@@ -54,7 +54,7 @@ test.describe("Organization - Privacy", () => {
     await expect(tableLocator).toBeVisible();
 
     await memberInOrg.apiLogin();
-    await page.goto("/settings/organizations/members");
+    await page.goto(`/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
     const userDataTable = await page.getByTestId("user-list-data-table");
     const membersPrivacyWarning = await page.getByTestId("members-privacy-warning");

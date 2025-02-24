@@ -17,7 +17,7 @@ export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** Fires whenever a selected date is changed. */
-  onChange: (date: Dayjs | null) => void;
+  onChange: (date: Dayjs | null, omitUpdatingParams?: boolean) => void;
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
   /** which date or dates are currently selected (not tracked from here) */
@@ -129,16 +129,6 @@ const NoAvailabilityOverlay = ({
   );
 };
 
-const ReschedulingNotPossibleOverlay = () => {
-  const { t } = useLocale();
-
-  return (
-    <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-2/3 -translate-x-1/2 -translate-y-1/2 transform break-all rounded-md border p-8 shadow-sm">
-      <h4 className="text-emphasis font-medium">{t("rescheduling_not_possible")}</h4>
-    </div>
-  );
-};
-
 const Days = ({
   minDate,
   excludedDates = [],
@@ -246,10 +236,11 @@ const Days = ({
 
     if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
       // If selected date not available in the month, select the first available date of the month
-      props.onChange(firstAvailableDateOfTheMonth);
+      const shouldOmitUpdatingParams = selected?.isValid() ? false : true; // In case a date is selected and it is not available, then we have to change search params
+      props.onChange(firstAvailableDateOfTheMonth, shouldOmitUpdatingParams);
     }
     if (isSelectedDateAvailable) {
-      props.onChange(dayjs(selected));
+      props.onChange(dayjs(selected), true);
     }
     if (!firstAvailableDateOfTheMonth) {
       props.onChange(null);
@@ -291,8 +282,6 @@ const Days = ({
         </div>
       ))}
 
-      {isBookingInPast && <ReschedulingNotPossibleOverlay />}
-
       {!props.isPending && !isBookingInPast && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
@@ -322,7 +311,7 @@ const DatePicker = ({
     scrollToTimeSlots?: () => void;
   }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
-  const { i18n } = useLocale();
+  const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
 
@@ -370,19 +359,19 @@ const DatePicker = ({
               color="minimal"
               variant="icon"
               StartIcon="chevron-left"
+              aria-label={t("view_previous_month")}
             />
             <Button
               className={classNames(
                 `group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180`,
-                isBookingInPast && `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
                 `${customClassNames?.datePickerToggle}`
               )}
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
-              disabled={isBookingInPast}
               variant="icon"
               StartIcon="chevron-right"
+              aria-label={t("view_next_month")}
             />
           </div>
         </div>
@@ -406,13 +395,13 @@ const DatePicker = ({
             datePickerDateActive: customClassNames?.datePickerDatesActive,
           }}
           weekStart={weekStart}
-          selected={!isBookingInPast ? selected : null}
+          selected={selected}
           {...passThroughProps}
           browsingDate={browsingDate}
           month={month}
           nextMonthButton={() => changeMonth(+1)}
-          slots={!isBookingInPast ? slots : {}}
-          includedDates={!isBookingInPast ? includedDates : []}
+          slots={slots}
+          includedDates={includedDates}
           isBookingInPast={isBookingInPast}
         />
       </div>

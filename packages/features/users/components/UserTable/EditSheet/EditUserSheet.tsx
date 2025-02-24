@@ -5,34 +5,49 @@ import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Avatar,
-  Label,
-  Loader,
-  Sheet,
-  SheetContent,
-  SheetBody,
-  Skeleton,
-  SheetHeader,
-  SheetDescription,
-  SheetTitle,
-  SheetFooter,
-} from "@calcom/ui";
+import { Avatar, Loader, Sheet, SheetContent, SheetBody, SheetHeader, SheetFooter } from "@calcom/ui";
 
-import type { Action, State } from "../UserListTable";
+import type { UserTableAction, UserTableState } from "../types";
 import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
+import { OrganizationBanner } from "./OrganizationBanner";
 import { SheetFooterControls } from "./SheetFooterControls";
 import { useEditMode } from "./store";
 
-export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
+function removeProtocol(url: string) {
+  return url.replace(/^(https?:\/\/)/, "");
+}
+
+export function EditUserSheet({
+  state,
+  dispatch,
+}: {
+  state: UserTableState;
+  dispatch: Dispatch<UserTableAction>;
+}) {
   const { t } = useLocale();
   const { user: selectedUser } = state.editSheet;
   const orgBranding = useOrgBranding();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
-  const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery({
-    userId: selectedUser?.id,
-  });
+  const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery(
+    {
+      userId: selectedUser?.id,
+    },
+    {
+      enabled: !!selectedUser?.id,
+    }
+  );
+
+  const { data: usersAttributes, isPending: usersAttributesPending } =
+    trpc.viewer.attributes.getByUserId.useQuery(
+      {
+        // @ts-expect-error We know it exists as it is only called when selectedUser is defined
+        userId: selectedUser?.id,
+      },
+      {
+        enabled: !!selectedUser?.id,
+      }
+    );
 
   const avatarURL = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}/avatar.png`;
 
@@ -47,67 +62,70 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent>
+      <SheetContent className="bg-default">
         {!isPending && loadedUser ? (
           <>
             {!editMode ? (
               <>
-                <SheetHeader>
-                  <Avatar
-                    asChild
-                    className="h-[36px] w-[36px]"
-                    alt={`${loadedUser?.name} avatar`}
-                    imageSrc={loadedUser.avatarUrl}
-                  />
-                  <SheetTitle>
-                    <Skeleton loading={isPending} as="p" waitForTranslation={false}>
-                      <span className="text-emphasis text-lg font-semibold">
-                        {loadedUser?.name ?? "Nameless User"}
-                      </span>
-                    </Skeleton>
-                  </SheetTitle>
-                  <SheetDescription>
-                    <Skeleton loading={isPending} as="p" waitForTranslation={false}>
-                      <p className="subtle text-sm font-normal">
-                        {orgBranding?.fullDomain ?? WEBAPP_URL}/{loadedUser?.username}
-                      </p>
-                    </Skeleton>
-                  </SheetDescription>
-                </SheetHeader>
-                <SheetBody className="flex flex-col space-y-5">
-                  <DisplayInfo label={t("email")} value={loadedUser?.email ?? ""} displayCopy />
-                  <DisplayInfo
-                    label={t("bio")}
-                    badgeColor="gray"
-                    value={loadedUser?.bio ? loadedUser?.bio : t("user_has_no_bio")}
-                  />
-                  <DisplayInfo label={t("role")} value={loadedUser?.role ?? ""} asBadge badgeColor="blue" />
-                  <DisplayInfo label={t("timezone")} value={loadedUser?.timeZone ?? ""} />
-                  <div className="flex flex-col">
-                    <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
-                      {t("availability_schedules")}
-                    </Label>
-                    <div className="flex flex-col">
-                      {schedulesNames
-                        ? schedulesNames.map((scheduleName) => (
-                            <span
-                              key={scheduleName}
-                              className="text-emphasis inline-flex items-center gap-1 text-sm font-normal leading-5">
-                              {scheduleName}
-                            </span>
-                          ))
-                        : t("user_has_no_schedules")}
+                <SheetHeader showCloseButton={false} className="w-full">
+                  <div className="border-sublte bg-default w-full rounded-xl border p-4">
+                    <OrganizationBanner />
+                    <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
+                      <Avatar asChild size="lg" alt={`${loadedUser?.name} avatar`} imageSrc={avatarURL} />
                     </div>
+                    <h2 className="text-emphasis font-sans text-2xl font-semibold">
+                      {loadedUser?.name || "Nameless User"}
+                    </h2>
+                    <p className="text-subtle max-h-[3em] overflow-hidden text-ellipsis text-sm font-normal">
+                      {loadedUser?.bio || "This user does not have a bio..."}
+                    </p>
                   </div>
-
-                  <DisplayInfo
-                    label={t("teams")}
-                    displayCount={teamNames?.length ?? 0}
-                    value={
-                      teamNames && teamNames?.length === 0 ? [t("user_isnt_in_any_teams")] : teamNames ?? "" // TS wtf
-                    }
-                    asBadge={teamNames && teamNames?.length > 0}
-                  />
+                </SheetHeader>
+                <SheetBody className="flex flex-col space-y-4 p-4">
+                  <div className="mb-4 flex flex-col space-y-4">
+                    <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
+                    <DisplayInfo
+                      label="Cal"
+                      value={removeProtocol(
+                        `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}`
+                      )}
+                      icon="external-link"
+                    />
+                    <DisplayInfo label={t("email")} value={loadedUser?.email ?? ""} icon="at-sign" />
+                    <DisplayInfo label={t("role")} value={[loadedUser?.role ?? ""]} icon="fingerprint" />
+                    <DisplayInfo label={t("timezone")} value={loadedUser?.timeZone ?? ""} icon="clock" />
+                    <DisplayInfo
+                      label={t("teams")}
+                      value={!teamNames || teamNames.length === 0 ? "" : teamNames}
+                      icon="users"
+                      coloredBadges
+                    />
+                    <DisplayInfo
+                      label={t("availability")}
+                      value={!schedulesNames || schedulesNames.length === 0 ? "" : schedulesNames}
+                      icon="calendar"
+                    />
+                  </div>
+                  {usersAttributes && usersAttributes?.length > 0 && (
+                    <div className="mt-4 flex flex-col">
+                      <h3 className="text-emphasis mb-5 text-base font-semibold">{t("attributes")}</h3>
+                      <div className="flex flex-col space-y-4">
+                        {usersAttributes.map((attribute, index) => (
+                          <>
+                            <DisplayInfo
+                              key={index}
+                              label={attribute.name}
+                              value={
+                                ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
+                                  ? attribute.options[0].value
+                                  : attribute.options.map((option) => option.value)
+                              }
+                            />
+                          </>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </SheetBody>
                 <SheetFooter>
                   <SheetFooterControls />

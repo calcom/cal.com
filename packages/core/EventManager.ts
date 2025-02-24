@@ -7,8 +7,10 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import CRMScheduler from "@calcom/core/crmManager/tasker/crmScheduler";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {
@@ -57,7 +59,7 @@ const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
-  const eventLocationType = getEventLocationTypeFromApp(location);
+  const eventLocationType = getLocationFromApp(location);
   if (eventLocationType) {
     const requestId = uuidv5(location, uuidv5.URL);
 
@@ -96,11 +98,16 @@ export type EventManagerUser = {
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
+export type EventManagerInitParams = {
+  user: EventManagerUser;
+  eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>;
+};
+
 export default class EventManager {
   calendarCredentials: CredentialPayload[];
   videoCredentials: CredentialPayload[];
   crmCredentials: CredentialPayload[];
-  appOptions: AppOptions;
+  appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -113,8 +120,6 @@ export default class EventManager {
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
-    // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
-    // (type closecom_other_calendar)
     this.calendarCredentials = appCredentials
       .filter(
         // Backwards compatibility until CRM manager is implemented
@@ -132,7 +137,7 @@ export default class EventManager {
       (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
     );
 
-    this.appOptions = this.generateAppOptions(eventTypeAppMetadata);
+    this.appOptions = eventTypeAppMetadata;
   }
 
   /**
@@ -170,6 +175,7 @@ export default class EventManager {
     if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
       log.warn("Falling back to Cal Video integration as Google Calendar not installed");
       evt["location"] = "integrations:daily";
+      evt["conferenceCredentialId"] = undefined;
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -185,9 +191,12 @@ export default class EventManager {
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
         if (evt.location && evt.responses) {
-          evt.responses["location"].value = {
-            optionValue: "",
-            value: evt.location,
+          evt.responses["location"] = {
+            ...(evt.responses["location"] ?? {}),
+            value: {
+              optionValue: "",
+              value: evt.location,
+            },
           };
         }
       }
@@ -208,7 +217,9 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    results.push(...(await this.createAllCRMEvents(clonedCalEvent)));
+    const createdCRMEvents = await this.createAllCRMEvents(clonedCalEvent);
+
+    results.push(...createdCRMEvents);
 
     // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
@@ -255,9 +266,12 @@ export default class EventManager {
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
         if (evt.location && evt.responses) {
-          evt.responses["location"].value = {
-            optionValue: "",
-            value: evt.location,
+          evt.responses["location"] = {
+            ...(evt.responses["location"] ?? {}),
+            value: {
+              optionValue: "",
+              value: evt.location,
+            },
           };
         }
       }
@@ -411,6 +425,9 @@ export default class EventManager {
         userId: true,
         attendees: true,
         references: {
+          where: {
+            deleted: null,
+          },
           // NOTE: id field removed from select as we don't require for deletingMany
           // but was giving error on recreate for reschedule, probably because promise.all() didn't finished
           select: {
@@ -957,31 +974,54 @@ export default class EventManager {
 
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
+
+    const featureRepo = new FeaturesRepository();
+    const isTaskerEnabledForSalesforceCrm = event.team?.id
+      ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
+      : false;
+
     const uid = getUid(event);
     for (const credential of this.crmCredentials) {
-      const crm = new CrmManager(credential);
+      if (isTaskerEnabledForSalesforceCrm) {
+        if (!event.uid) {
+          console.error(
+            `Missing bookingId when scheduling CRM event creation on event type ${event?.eventTypeId}`
+          );
+          continue;
+        }
+
+        await CRMScheduler.createEvent({ bookingUid: event.uid });
+        continue;
+      }
+
+      const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+
+      const crm = new CrmManager(credential, currentAppOption);
 
       let success = true;
-      const skipContactCreation = this.appOptions.crm.skipContactCreation.includes(credential.appId || "");
-      const createdEvent = await crm.createEvent(event, skipContactCreation).catch((error) => {
+      const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
         success = false;
-        log.warn(`Error creating crm event for ${credential.type}`, error);
+        // We don't know the type of the error here, so for an Error instance we can read message but otherwise we stringify the error
+        const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+        log.warn(`Error creating crm event for ${credential.type} for booking ${event?.uid}`, errorMsg);
       });
 
-      createdEvents.push({
-        type: credential.type,
-        appName: credential.appId || "",
-        uid,
-        success,
-        createdEvent: {
-          id: createdEvent?.id || "",
+      if (createdEvent) {
+        createdEvents.push({
           type: credential.type,
+          appName: credential.appId || "",
+          uid,
+          success,
+          createdEvent: {
+            id: createdEvent?.id || "",
+            type: credential.type,
+            credentialId: credential.id,
+          },
+          id: createdEvent?.id || "",
+          originalEvent: event,
           credentialId: credential.id,
-        },
-        id: createdEvent?.id || "",
-        originalEvent: event,
-        credentialId: credential.id,
-      });
+        });
+      }
     }
     return createdEvents;
   }
@@ -997,7 +1037,7 @@ export default class EventManager {
         const crm = new CrmManager(credential);
         const updatedEvent = await crm.updateEvent(reference.uid, event).catch((error) => {
           success = false;
-          log.warn(`Error updating crm event for ${credential.type}`, error);
+          log.warn(`Error updating crm event for ${credential.type} for booking ${event?.uid}`, error);
         });
 
         updatedEvents.push({
@@ -1021,20 +1061,10 @@ export default class EventManager {
     }
   }
 
-  private generateAppOptions(eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
-    const appOptions: AppOptions = {
-      crm: {
-        skipContactCreation: [],
-      },
-    };
+  private getAppOptionsFromEventMetadata(credential: CredentialPayload) {
+    if (!this.appOptions || !credential.appId) return {};
 
-    if (eventTypeAppMetadata) {
-      for (const key in eventTypeAppMetadata) {
-        const app = eventTypeAppMetadata[key as keyof typeof eventTypeAppMetadata];
-        if (app?.skipContactCreation) appOptions.crm.skipContactCreation.push(key);
-      }
-    }
-
-    return appOptions;
+    if (credential.appId in this.appOptions)
+      return this.appOptions[credential.appId as keyof typeof this.appOptions];
   }
 }

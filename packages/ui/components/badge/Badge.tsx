@@ -4,7 +4,8 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Icon, type IconName } from "../..";
+import { Icon } from "../icon";
+import type { IconName } from "../icon";
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {
@@ -14,16 +15,17 @@ export const badgeStyles = cva("font-medium inline-flex items-center justify-cen
       orange: "bg-attention text-attention",
       success: "bg-success text-success",
       green: "bg-success text-success",
-      gray: "bg-subtle text-emphasis",
+      gray: "bg-emphasis text-emphasis",
       blue: "bg-info text-info",
       red: "bg-error text-error",
       error: "bg-error text-error",
       grayWithoutHover: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800",
+      purple: "bg-purple-50 text-purple-800",
     },
     size: {
-      sm: "px-1 py-0.5 text-xs leading-3",
-      md: "py-1 px-1.5 text-xs leading-3",
-      lg: "py-1 px-2 text-sm leading-4",
+      sm: "px-1 py-1 text-[10px] leading-none",
+      md: "py-1 px-1.5 text-xs leading-none",
+      lg: "py-1 px-1.5 text-sm leading-none rounded-lg",
     },
   },
   defaultVariants: {

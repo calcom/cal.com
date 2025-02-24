@@ -1,0 +1,49 @@
+---
+title: How to split fullname into firstname and lastname in the public booking page
+---
+
+By default, Cal.com booking page has a fullname text input field for the scheduler to put their name in. This usually works just fine for most people. However, at times, it is preferable to take the firstname and lastname of the scheduler as separate inputs in the booking form.
+
+Cal.com provides the option to split the fullname input field in the booking form into firstname and lastname. To do that, you can do the following:
+<Steps>
+    <Step title="Access Event Type Settings">
+    Head to the event type settings where you wish to split the fullname into firstname and lastname.
+    </Step>
+    <Step title="Click on Advanced Tab" />
+    <Step title="Scroll to Booking Questions Section" />
+    <Step title="Click on the Edit Button in Front of Your Name">
+    [![](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425758/45f47313a8550e6e2b33b426/i1600x900-WWEmqSwAOD4e_zntxhy.png?expires=1736300700&signature=5faca7a9dccf0d24cbf54cea1c0f06ea54e71d7cb3506a2b7521cf5dd254daae&req=dSEuE818mIZaUfMW1HO4zRpF%2F5DnwTb%2Buk6pbg5F7k82AtvKK9dbf%2FcOYFKU%0AWIVO%0A)](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425758/45f47313a8550e6e2b33b426/i1600x900-WWEmqSwAOD4e_zntxhy.png?expires=1736300700&signature=5faca7a9dccf0d24cbf54cea1c0f06ea54e71d7cb3506a2b7521cf5dd254daae&req=dSEuE818mIZaUfMW1HO4zRpF%2F5DnwTb%2Buk6pbg5F7k82AtvKK9dbf%2FcOYFKU%0AWIVO%0A)
+    </Step>
+    <Step title="Click on the Toggle">
+    In the dialog that opens, click on the toggle that says **`Split "Full name" into "First name" and "last name"`** 
+    [![](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425775/c1a41f7b5fdbb5b98a555efc/i1600x900-je1Ro4IEzLFM_gm67e9.png?expires=1736300700&signature=5d0d4b83085ee6fc9a2c9936827f7fa2c96616be5bcc0dd55227d1cdab728975&req=dSEuE818mIZYXPMW1HO4zUCS0NRKkPxcOVoTwio4u55utG%2FVpYsTtKa3wkL3%0Ayo3l%0A)](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425775/c1a41f7b5fdbb5b98a555efc/i1600x900-je1Ro4IEzLFM_gm67e9.png?expires=1736300700&signature=5d0d4b83085ee6fc9a2c9936827f7fa2c96616be5bcc0dd55227d1cdab728975&req=dSEuE818mIZYXPMW1HO4zUCS0NRKkPxcOVoTwio4u55utG%2FVpYsTtKa3wkL3%0Ayo3l%0A)
+    </Step>
+    <Step title="Fill the label and optional placeholder values, and click on save">
+    Fill the label and optional placeholder values, and click on **save**.
+
+    [![](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425822/1bc89e286966e40fa419b9dd/i1600x900-5uEMac44YaIi_fqr7ov.png?expires=1736300700&signature=6246cd8489971ab67bead3b801c8ceea5d60b2633f847c092d1d4155eb592cf0&req=dSEuE818mIldW%2FMW1HO4zQ7YBJn9dmhxahYRRFXRaWeXimh0FediowPu1elr%0AaEJM%0A)](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425822/1bc89e286966e40fa419b9dd/i1600x900-5uEMac44YaIi_fqr7ov.png?expires=1736300700&signature=6246cd8489971ab67bead3b801c8ceea5d60b2633f847c092d1d4155eb592cf0&req=dSEuE818mIldW%2FMW1HO4zQ7YBJn9dmhxahYRRFXRaWeXimh0FediowPu1elr%0AaEJM%0A)
+    </Step>
+    <Step title="Save Changes">
+    Remember to click on the **save** button in the event type settings as well.
+    </Step>
+    <Step title="Check the Public Booking Page">
+    Head to the public booking page of this event type, you will notice the fullname is now split into firstname and lastname with the labels provided by you in step number 6.
+    [![](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425838/2315c39aa24abf12de2db543/i1600x900-lyOWGLVGiBPA_iia5p8.png?expires=1736300700&signature=2ea549b0539cc94beeb7e338e0c5d945d7b38cfbb5d7f15df8115b73a076563f&req=dSEuE818mIlcUfMW1HO4zdSy2asW%2Fn7YI92dfoGSkLXKz8GPUbKTFLnHqOG%2B%0Aj19S%0A)](https://calcom-inc-0470baa6daee.intercom-attachments-1.com/i/o/1195425838/2315c39aa24abf12de2db543/i1600x900-lyOWGLVGiBPA_iia5p8.png?expires=1736300700&signature=2ea549b0539cc94beeb7e338e0c5d945d7b38cfbb5d7f15df8115b73a076563f&req=dSEuE818mIlcUfMW1HO4zdSy2asW%2Fn7YI92dfoGSkLXKz8GPUbKTFLnHqOG%2B%0Aj19S%0A)
+    </Step>
+</Steps>
+
+You're all set!
+
+## How this affects the Booking API requests
+
+Please note that in case of API requests, your usual **responses object**: 
+```json 
+"responses": { "name": "John Doe", "email": "john.doe@example.com", "location": { "optionValue": "", "value": "Acme Industries" } }
+```
+
+will now be updated to allow **name** to be converted into object containing **firstName** and **lastName** as follows:
+
+```json
+"responses": { "name": { "firstName": "John", "lastName": "Doe" }, "email": "john.doe@example.com", "location": { "optionValue": "", "value": "Acme Industries" } }
+```
+

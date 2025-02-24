@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { classNames as cs } from "@calcom/lib";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
@@ -185,7 +186,7 @@ const DateOverrideForm = ({
                 }}
                 disabled={selectedDates.length === 0}
                 data-testid="add-override-submit-btn">
-                {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
+                {value ? t("date_overrides_update_btn") : t("date_overrides_save_btn")}
               </Button>
               <DialogClose />
             </div>
@@ -205,6 +206,7 @@ const DateOverrideInputDialog = ({
   excludedDates = [],
   userTimeFormat,
   weekStart = 0,
+  className,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
@@ -214,13 +216,14 @@ const DateOverrideInputDialog = ({
   value?: TimeRange[];
   userTimeFormat: number | null;
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  className?: string;
 }) => {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={true} size="md" className="p-0">
+      <DialogContent enableOverflow={true} size="md" className={cs("p-0", className)}>
         <DateOverrideForm
           excludedDates={excludedDates}
           weekStart={weekStart}

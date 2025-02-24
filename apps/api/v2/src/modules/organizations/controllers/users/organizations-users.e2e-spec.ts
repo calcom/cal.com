@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EmailService } from "@/modules/email/email.service";
+import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -8,28 +9,30 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, Membership } from "@calcom/prisma/client";
+import { User, Team, EventType } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
   describe("Member role", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const userEmail = "member1@org.com";
+    const userEmail = `organizations-users-member-${randomString()}@api.com`;
     let user: User;
     let org: Team;
-    let membership: Membership;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -40,12 +43,12 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org 3",
+        name: `organizations-users-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -70,7 +73,7 @@ describe("Organizations Users Endpoints", () => {
         },
       });
 
-      membership = await membershipFixtures.addUserToOrg(user, org, "MEMBER", true);
+      await membershipFixtures.addUserToOrg(user, org, "MEMBER", true);
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -113,27 +116,27 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = "admin1@org.com";
-    const nonMemberEmail = "non-member@test.com";
+    const userEmail = `organizations-users-admin-${randomString()}@api.com`;
+    const nonMemberEmail = `organizations-users-non-member-${randomString()}@api.com`;
     let user: User;
     let org: Team;
     let createdUser: User;
 
     const orgMembersData = [
       {
-        email: "member1@org.com",
-        username: "member1@org.com",
+        email: `organizations-users-member1-${randomString()}@api.com`,
+        username: `organizations-users-member1-${randomString()}@api.com`,
       },
       {
-        email: "member2@org.com",
-        username: "member2@org.com",
+        email: `organizations-users-member2-${randomString()}@api.com`,
+        username: `organizations-users-member2-${randomString()}@api.com`,
       },
       {
-        email: "member3@org.com",
-        username: "member3@org.com",
+        email: `organizations-users-member3-${randomString()}@api.com`,
+        username: `organizations-users-member3-${randomString()}@api.com`,
       },
     ];
 
@@ -148,11 +151,11 @@ describe("Organizations Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org 2",
+        name: `organizations-users-admin-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -232,10 +235,18 @@ describe("Organizations Users Endpoints", () => {
     it("should get all org users", async () => {
       const { body } = await request(app.getHttpServer()).get(`/v2/organizations/${org.id}/users`);
 
-      const userData = body.data;
+      const userData = body.data as GetOrgUsersWithProfileOutput[];
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(4);
+      console.log(
+        "profiles",
+        { userData },
+        userData.map((u) => u.profile)
+      );
+      expect(userData.find((u) => u.profile.username === orgMembersData[0].username)).toBeDefined();
+      expect(userData.find((u) => u.profile.username === orgMembersData[1].username)).toBeDefined();
+      expect(userData.find((u) => u.profile.username === orgMembersData[2].username)).toBeDefined();
 
       expect(userData.filter((user: { email: string }) => user.email === nonMemberEmail).length).toBe(0);
     });
@@ -249,12 +260,13 @@ describe("Organizations Users Endpoints", () => {
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
 
-      const userData = body.data;
+      const userData = body.data as GetOrgUsersWithProfileOutput[];
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(1);
 
-      expect(userData.filter((user: { email: string }) => user.email === userEmail).length).toBe(1);
+      expect(userData.filter((user) => user.email === userEmail).length).toBe(1);
+      expect(userData.find((u) => u.profile.username === user.username)).toBeDefined();
     });
 
     it("should get users within the specified emails array", async () => {
@@ -293,7 +305,7 @@ describe("Organizations Users Endpoints", () => {
 
     it("should create a new org user", async () => {
       const newOrgUser = {
-        email: "new-org-member-b@org.com",
+        email: `organizations-users-new-member-${randomString()}@api.com`,
         organizationRole: "MEMBER",
         autoAccept: true,
       };
@@ -316,7 +328,7 @@ describe("Organizations Users Endpoints", () => {
         usernameOrEmail: newOrgUser.email,
         orgName: org.name,
         orgId: org.id,
-        inviterName: "admin1@org.com",
+        inviterName: userEmail,
         locale: null,
       });
       createdUser = userData;
@@ -341,6 +353,149 @@ describe("Organizations Users Endpoints", () => {
         ...orgMembersData.map((member) => userRepositoryFixture.deleteByEmail(member.email)),
       ]);
       await organizationsRepositoryFixture.delete(org.id);
+      await app.close();
+    });
+  });
+
+  describe("Member event-types", () => {
+    let app: INestApplication;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let teamsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let membershipFixtures: MembershipRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+
+    const authEmail = `organizations-users-auth-${randomString()}@api.com`;
+    let user: User;
+    let org: Team;
+    let team: Team;
+    let managedEventType: EventType;
+    let createdUser: User;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        authEmail,
+        Test.createTestingModule({
+          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+        })
+      ).compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      org = await organizationsRepositoryFixture.create({
+        name: `organizations-users-organization-${randomString()}`,
+        isOrganization: true,
+      });
+
+      team = await teamsRepositoryFixture.create({
+        name: `organizations-users-team-${randomString()}`,
+        isOrganization: false,
+        parent: { connect: { id: org.id } },
+      });
+
+      user = await userRepositoryFixture.create({
+        email: authEmail,
+        username: authEmail,
+        organization: { connect: { id: org.id } },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${user.id}`,
+        username: authEmail,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      });
+
+      await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+
+      await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "Collective Event Type",
+        slug: "collective-event-type",
+        length: 30,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "MANAGED",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "Managed Event Type",
+        slug: "managed-event-type",
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      await app.init();
+    });
+
+    it("should be defined", () => {
+      expect(userRepositoryFixture).toBeDefined();
+      expect(organizationsRepositoryFixture).toBeDefined();
+      expect(user).toBeDefined();
+      expect(org).toBeDefined();
+    });
+
+    it("should create a new org user with team event-types", async () => {
+      const newOrgUser = {
+        email: `organizations-users-new-member-${randomString()}@api.com`,
+        organizationRole: "MEMBER",
+        autoAccept: true,
+      };
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users`)
+        .send({
+          email: newOrgUser.email,
+        })
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+      expect(body.status).toBe(SUCCESS_STATUS);
+      createdUser = userData;
+      teamHasCorrectEventTypes(team.id);
+    });
+
+    async function teamHasCorrectEventTypes(teamId: number) {
+      const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(teamId);
+      expect(eventTypes?.length).toEqual(2);
+    }
+
+    afterAll(async () => {
+      // await membershipFixtures.delete(membership.id);
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(createdUser.email);
+      await organizationsRepositoryFixture.delete(org.id);
+      await app.close();
+
       await app.close();
     });
   });

@@ -19,7 +19,7 @@ export function List(props: ListProps) {
       {...props}
       className={classNames(
         "mx-0 rounded-sm sm:overflow-hidden ",
-        // Add rounded top and bottome if roundContainer is true
+        // Add rounded top and bottom if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
         !props.noBorderTreatment &&
           "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
@@ -46,7 +46,7 @@ export function ListItem(props: ListItemProps) {
       className: classNames(
         "items-center bg-default min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0 border-subtle",
         expanded ? "my-2 border" : "border -mb-px last:mb-0",
-        // Pass rounded false to not round the corners -> Usefull when used in list we can use roundedContainer to create the right design
+        // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
         rounded ? "rounded-md" : "rounded-none",
         props.className,
         (props.onClick || href) && "hover:bg-muted"
@@ -139,7 +139,7 @@ export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "s
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm text-subtle truncate", props.className),
+      className: classNames("text-sm text-subtle truncate prose", props.className),
       "data-testid": "list-item-text",
     },
     props.children

@@ -60,6 +60,8 @@ export async function getBooking(bookingId: number) {
           bookingFields: true,
           team: {
             select: {
+              id: true,
+              name: true,
               parentId: true,
             },
           },
@@ -152,6 +154,13 @@ export async function getBooking(bookingId: number) {
       language: { translate: t, locale: user.locale ?? "en" },
       id: user.id,
     },
+    team: !!booking.eventType?.team
+      ? {
+          name: booking.eventType.team.name,
+          id: booking.eventType.team.id,
+          members: [],
+        }
+      : undefined,
     attendees: attendeesList,
     location: booking.location,
     uid: booking.uid,

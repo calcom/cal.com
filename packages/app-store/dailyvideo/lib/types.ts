@@ -20,6 +20,7 @@ export const dailyReturnTypeSchema = z.object({
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
     enable_transcription_storage: z.boolean().default(false),
+    enable_pip_ui: z.boolean(),
   }),
 });
 
@@ -54,14 +55,17 @@ export const getRooms = z
   })
   .passthrough();
 
-export const meetingTokenSchema = z.object({
-  token: z.string(),
-});
+export const meetingTokenSchema = z
+  .object({
+    token: z.string(),
+  })
+  .passthrough();
 
 export const ZGetMeetingTokenResponseSchema = z
   .object({
     room_name: z.string(),
     exp: z.number(),
     enable_recording_ui: z.boolean().optional(),
+    user_id: z.number().nullable().optional(),
   })
   .passthrough();

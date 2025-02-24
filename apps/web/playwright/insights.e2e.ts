@@ -61,7 +61,7 @@ const createTeamsAndMembership = async (userIdOne: number, userIdTwo: number) =>
   return { teamOne, teamTwo };
 };
 
-test.afterAll(async ({ users }) => {
+test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
@@ -75,11 +75,8 @@ test.describe("Insights", async () => {
 
     // go to insights page
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
 
-    // expect url to have isAll and TeamId in query params
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("teamId=");
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
   });
 
   test("should be able to go to insights as members", async ({ page, users }) => {
@@ -92,12 +89,7 @@ test.describe("Insights", async () => {
     // go to insights page
     await page.goto("/insights");
 
-    await page.waitForLoadState("networkidle");
-
-    // expect url to have isAll and TeamId in query params
-
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).not.toContain("teamId=");
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
   });
 
   test("team select filter should have 2 teams and your account option only as member", async ({
@@ -110,21 +102,22 @@ test.describe("Insights", async () => {
     await user.apiLogin();
 
     await createTeamsAndMembership(user.id, userTwo.id);
+
     // go to insights page
     await page.goto("/insights");
+    await page.locator(`[data-testid=insights-filters-false-undefined-${user.id}]`).waitFor();
 
-    await page.waitForLoadState("networkidle");
+    await page.getByTestId("dashboard-shell").getByText("Your account").click();
 
-    // get div from team select filter with this class flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1
-    await page.getByTestId("dashboard-shell").getByText("Team: test-insights").click();
-    await page
-      .locator('div[class="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1"]')
-      .click();
-    const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
+    await expect(await page.locator('[data-testid="org-teams-filter-item"]')).toHaveCount(3);
+
+    await expect(await page.locator('[data-testid="org-teams-filter-item"]', { hasText: "All" })).toHaveCount(
+      0
     );
 
-    await expect(teamSelectFilter).toHaveCount(3);
+    await expect(
+      await page.locator('[data-testid="org-teams-filter-item"]', { hasText: "Your account" })
+    ).toHaveCount(1);
   });
 
   test("Insights Organization should have isAll option true", async ({ users, page }) => {
@@ -137,18 +130,20 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
+    await page.locator('[data-testid^="insights-filters-true-"]').waitFor();
 
-    await page.getByTestId("dashboard-shell").getByText("All").nth(1).click();
+    await page.locator('[data-testid^="insights-filters-true-"]').getByText("All").click();
 
-    const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
-    );
+    await expect(await page.locator('[data-testid="org-teams-filter-item"]')).toHaveCount(3);
 
-    await expect(teamSelectFilter).toHaveCount(4);
+    await expect(
+      await page
+        .locator('[data-testid="org-teams-filter-item"]', { hasText: "All" })
+        .locator('input[type="checkbox"]')
+    ).toBeChecked();
   });
 
-  test("should have all option in team-and-self filter as admin", async ({ page, users }) => {
+  test("should not have all option as admin in non-org", async ({ page, users }) => {
     const owner = await users.create();
     const member = await users.create();
 
@@ -158,16 +153,13 @@ test.describe("Insights", async () => {
 
     await page.goto("/insights");
 
-    // get div from team select filter with this class flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1
-    await page.getByTestId("dashboard-shell").getByText("Team: test-insights").click();
-    await page
-      .locator('div[class="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1"]')
-      .click();
-    const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
-    );
+    await page.getByTestId("dashboard-shell").getByText("Your account").click();
 
-    await expect(teamSelectFilter).toHaveCount(3);
+    await expect(await page.locator('[data-testid="org-teams-filter-item"]')).toHaveCount(3);
+
+    await expect(await page.locator('[data-testid="org-teams-filter-item"]', { hasText: "All" })).toHaveCount(
+      0
+    );
   });
 
   test("should be able to switch between teams and self profile for insights", async ({ page, users }) => {
@@ -180,25 +172,18 @@ test.describe("Insights", async () => {
 
     await page.goto("/insights");
 
-    // get div from team select filter with this class flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1
-    await page.getByTestId("dashboard-shell").getByText("Team: test-insights").click();
-    await page
-      .locator('div[class="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1"]')
-      .click();
-    const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
-    );
+    await page.getByTestId("dashboard-shell").getByText("Your account").click();
 
-    await expect(teamSelectFilter).toHaveCount(3);
+    await expect(await page.locator('[data-testid="org-teams-filter-item"]')).toHaveCount(3);
 
     // switch to self profile
-    await page.getByTestId("dashboard-shell").getByText("Your Account").click();
+    await page.locator('[data-testid="org-teams-filter-item"]', { hasText: "Your account" }).click();
 
     // switch to team 1
-    await page.getByTestId("dashboard-shell").getByText("test-insights").nth(0).click();
+    await page.locator('[data-testid="org-teams-filter-item"]', { hasText: "test-insights" }).first().click();
 
     // switch to team 2
-    await page.getByTestId("dashboard-shell").getByText("test-insights-2").click();
+    await page.locator('[data-testid="org-teams-filter-item"]', { hasText: "test-insights-2" }).click();
   });
 
   test("should be able to switch between memberUsers", async ({ page, users }) => {
@@ -211,30 +196,39 @@ test.describe("Insights", async () => {
 
     await page.goto("/insights");
 
-    await page.getByText("Add filter").click();
+    // Choose a team
+    await page.getByTestId("dashboard-shell").getByText("Your account").click();
+    await page.locator('[data-testid="org-teams-filter-item"]').nth(1).click();
+    await page.keyboard.press("Escape");
 
-    await page.getByRole("button", { name: "User" }).click();
-    // <div class="flex select-none truncate font-medium" data-state="closed">People</div>
-    await page.locator('div[class="flex select-none truncate font-medium"]').getByText("People").click();
+    // Choose User filter item from dropdown
+    await page.getByTestId("add-filter-button").click();
+    await page.getByTestId("add-filter-item-bookingUserId").click();
+
+    // Wait for the URL to include bookingUserId
+    await page.waitForURL((url) => url.toString().includes("bookingUserId"));
+
+    // Click User filter to see a user list
+    await page.getByTestId("filter-popover-trigger-bookingUserId").click();
 
     await page
-      .locator('div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]')
+      .locator('[data-testid="single-select-options-bookingUserId"]')
+      .getByRole("option")
       .nth(0)
       .click();
-    await page.waitForLoadState("networkidle");
 
     await page
-      .locator('div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]')
+      .locator('[data-testid="single-select-options-bookingUserId"]')
+      .getByRole("option")
       .nth(1)
       .click();
-    await page.waitForLoadState("networkidle");
+
     // press escape button to close the filter
     await page.keyboard.press("Escape");
 
-    await page.getByRole("button", { name: "Clear" }).click();
+    await page.getByTestId("clear-filters-button").click();
 
-    // expect for "Team: test-insight" text in page
-    expect(await page.locator("text=Team: test-insights").isVisible()).toBeTruthy();
+    await expect(page.url()).not.toContain("bookingUserId");
   });
 
   test("should test download button", async ({ page, users }) => {
@@ -246,18 +240,17 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
 
     const downloadPromise = page.waitForEvent("download");
 
     // Expect download button to be visible
-    expect(await page.locator("text=Download").isVisible()).toBeTruthy();
+    await expect(page.locator("text=Download")).toBeVisible();
 
     // Click on Download button
     await page.getByText("Download").click();
 
     // Expect as csv option to be visible
-    expect(await page.locator("text=as CSV").isVisible()).toBeTruthy();
+    await expect(page.locator("text=as CSV")).toBeVisible();
 
     // Start waiting for download before clicking. Note no await.
     await page.getByText("as CSV").click();

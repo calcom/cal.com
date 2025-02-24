@@ -1,0 +1,143 @@
+---
+title: "Booker"
+---
+
+The booker atom is a dynamic component that facilitates the booking process for users. It allows individuals to easily select available time slots and confirm their participation in various events, streamlining the scheduling experience. It is one of the most important atoms and a critical piece of our scheduling system.
+
+Below code snippet can be used to render the booker atom
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <Booker
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+         }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the booker atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/73dbb943cef0409c9bc57d5050453a6e?sid=45575c09-4786-486e-99f9-6cf7f4e8db50"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+It is also possible to change the booker layout into a week or column view, you just need to pass in the view prop the layout you want to use. The layouts are as follows: **MONTH_VIEW,** **WEEK_VIEW** and **COLUMN_VIEW**. Both the week and column layouts come with an Overlay Calendar feature, which allows users to overlay multiple calendars on top of their primary calendar.
+
+Below code snippet can be used to render the booker atom with week view
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <Booker
+        view="WEEK_VIEW"
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+         }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the booker atom along with calendar overlay, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/554e9ef9f7874cbe9d179b63cc2c601b?sid=fc185a1c-1fb9-4705-a222-8ccd131bd5b6"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+We offer all kinds of customizations to the booker atom via props and customClassNames. 
+
+Below is a list of props that can be passed to the booker atom.
+<p></p>
+
+| Name                       | Required | Description                                                                                           |
+|:----------------------------|:----------|:-------------------------------------------------------------------------------------------------------|
+| username                   | Yes      | Username of the person whose schedule is to be displayed                                              |
+| eventSlug                  | Yes      | Unique slug created for a particular event                                                            |
+| orgBannerUrl               | No       | URL of the user's current organization                                                                |
+| customClassNames           | No       | To pass in custom classnames from outside for styling the atom                                        |
+| month                      | No       | The exact month for displaying a user's availability; defaults to the current month                   |
+| selectedDate               | No       | Default selected date for which the slot picker opens                                                 |
+| hideBranding               | No       | For hiding any branding on the booker                                                                 |
+| isAway                     | No       | Sets the booker component to the away state                                                           |
+| allowsDynamicBooking       | No       | Boolean indicating if the booking is a dynamic booking                                                |
+| bookingData                | No       | Data for rescheduling a booking passed in via this prop                                               |
+| defaultFormValues          | No       | Prefilled values for booking form fields like name, email, guests, notes, reschedule reason, etc.     |
+| isTeamEvent                | No       | Boolean indicating if it is a team event                                                              |
+| duration                   | No       | Refers to a multiple-duration event type; selects default if not passed                               |
+| durationConfig             | No       | Configures selectable options for a multi-duration event type                                         |
+| hashedLink                 | No       | Refers to the private link from event types page                                                      |
+| isInstantMeeting           | No       | Boolean indicating if the booking is an instant meeting                                               |
+| rescheduleUid              | No       | Unique ID generated during rescheduling                                                               |
+| bookingUid                 | No       | Unique ID generated during booking                                                                    |
+| locationUrl                | No       | Custom meeting link URL instead of a Cal.com link                                                     |
+| firstName                  | No       | First name of the attendee                                                                            |
+| lastName                   | No       | Last name of the attendee                                                                             |
+| guests                     | No       | Invite a guest to join a meeting                                                                      |
+| name                       | No       | Host name                                                                                             |
+| onCreateBookingSuccess     | No       | Callback function for successful booking creation                                                     |
+| onCreateBookingError       | No       | Callback function triggered on booking creation failure                                               |
+| onCreateRecurringBookingSuccess | No  | Callback function for successful recurring booking creation                                           |
+| onCreateRecurringBookingError | No    | Callback function triggered on recurring booking creation failure                                     |
+| onCreateInstantBookingSuccess | No    | Callback function for successful instant booking creation                                             |
+| onCreateInstantBookingError | No      | Callback function triggered on instant booking creation failure                                       |
+| onReserveSlotSuccess       | No       | Callback function for successful slot reservation                                                     |
+| onReserveSlotError         | No       | Callback function triggered on slot reservation failure                                               |
+| onDeleteSlotSuccess        | No       | Callback function for successful slot deletion                                                        |
+| onDeleteSlotError          | No       | Callback function triggered on slot deletion failure  
+| view         | No       | Specifies the layout of the booker atom into column, week, or month view                                             |
+| metadata        | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`                                                |
+| bannerUrl          | No       | Adds custom banner to the booker atom                                             |
+
+Along with the props, booker atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+<p></p>
+
+| Name                        | Description                                                          |
+|:-----------------------------|:----------------------------------------------------------------------|
+| bookerContainer             | Adds styling to the whole of the booker atom                         |
+| eventMetaContainer          | Styles the event meta component containing details about an event    |
+| eventMetaTitle              | Adds styles to the event meta title                                  |
+| eventMetaTimezoneSelect     | Adds styles to the event meta timezone selector                      |
+| datePickerContainer         | Adds styling to the date picker                                      |
+| datePickerTitle             | Styles the date picker title                                         |
+| datePickerDays              | Adds styling to all days in the date picker                          |
+| datePickerDate              | Adds styling to all dates in the date picker                         |
+| datePickerDatesActive       | Styles only the dates with available slots                           |
+| datePickerToggle            | Styles the left and right toggle buttons                             |
+| availableTimeSlotsContainer | Adds styling to the available time slots component                   |
+| availableTimeSlotsHeaderContainer | Styles only the header container                               |
+| availableTimeSlotsTitle     | Adds styles to the title                                             |
+| availableTimeSlotsTimeFormatToggle | Adds styles to the format toggle buttons                      |
+| availableTimes              | Styles all the available times container                             |

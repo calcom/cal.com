@@ -8,6 +8,7 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
@@ -70,7 +71,7 @@ export type TextLikeComponentProps<TVal extends string | string[] | boolean = st
 export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
   TextLikeComponentProps<TVal> & {
     customProps?: object;
-    type?: "text" | "number" | "email" | "tel";
+    type?: "text" | "number" | "email" | "tel" | "url";
     maxLength?: number;
     noLabel?: boolean;
   };
@@ -118,7 +119,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
       containerClassName="w-full"
       type={type}
       value={textValue}
-      labelSrOnly={noLabel}
+      noLabel={noLabel}
       placeholder={placeholder}
       disabled={readOnly}
       onChange={onChange}
@@ -150,8 +151,6 @@ const MultiSelectWidget = ({
   value,
   ...remainingProps
 }: SelectLikeComponentPropsRAQB<string[]>) => {
-  //TODO: Use Select here.
-  //TODO: Let's set listValue itself as label and value instead of using title.
   if (!listValues) {
     return null;
   }
@@ -163,6 +162,14 @@ const MultiSelectWidget = ({
   });
 
   const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
+
+  // If no value could be found in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
+  // Do it only when it is not already empty, this is to avoid infinite state updates
+  // NOTE: value is some times sent as undefined even though the type will tell you that it can't be
+  if (optionsFromList.length === 0 && value?.length) {
+    setValue([]);
+  }
 
   return (
     <Select
@@ -192,6 +199,13 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
   });
   const optionFromList = selectItems.find((item) => item.value === value);
 
+  // If the value is not in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
+  // Do it only when it is not already empty string, this is to avoid infinite state updates
+  if (!optionFromList && value) {
+    setValue("");
+  }
+
   return (
     <Select
       aria-label="select-dropdown"
@@ -211,6 +225,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 }
 
 function Button({ config, type, label, onClick, readonly }: ButtonProps) {
+  const { t } = useLocale();
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
@@ -220,10 +235,10 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   let dataTestId = "";
   if (type === "addRule") {
-    label = config?.operators.__calReporting ? "Add Filter" : "Add rule";
+    label = config?.operators.__calReporting ? t("add_filter") : t("add_rule");
     dataTestId = "add-rule";
   } else if (type == "addGroup") {
-    label = "Add rule group";
+    label = t("add_rule_group");
     dataTestId = "add-rule-group";
   }
   return (
@@ -286,7 +301,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
       value = value == "any" ? "none" : "all";
     }
     const selectValue = options.find((option) => option.value === value);
-    const summary = !config.operators.__calReporting ? "Rule group when" : "Query where";
+    const summary = !config.operators.__calReporting ? "where" : "Query where";
     return (
       <div className="flex items-center text-sm">
         <span>{summary}</span>

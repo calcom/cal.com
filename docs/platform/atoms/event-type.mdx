@@ -1,0 +1,257 @@
+---
+title: "Event Type"
+---
+
+The event type atom enables a user to create events that others can use to book them. The events can be created for an individual or a team. However, a team event type can only be created by a team admin or owner.
+
+## Individual event type
+
+Below code snippet can be used to render the create event type atom, which is a form with all the required input fields needed to create an event type.
+
+```js
+import { CreateEventType } from "@calcom/atoms";
+
+export default function EventType() {
+  return (
+    <>
+      <CreateEventType
+        onSuccess={(eventType) => {
+          console.log("EventType created successfully", eventType);
+        }}
+        customClassNames={{
+          atomsWrapper: "border p-4 rounded-md",
+          buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+        }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the create event type atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/b0c5d0599b2c48cdbba288b0b772a676?sid=5a1dbf17-8fc4-41f1-8d77-b36332546989"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+## Team event type
+
+For creating an event type for a team, you need to provide the team id of your particular team as a prop to the create event type atom. Also note that a team event type can only be created by a team admin or owner.
+
+Below code snippet can be used to render the create event type atom for a team.
+
+```js
+import { CreateEventType } from "@calcom/atoms";
+
+export default function TeamEventType(teamId: number) {l
+  return (
+    <>
+      <CreateEventType
+        teamId={teamId}
+        onSuccess={(eventType) => {
+          console.log("EventType created successfully", eventType);
+        }}
+        customClassNames={{
+          atomsWrapper: "border p-4 rounded-md",
+          buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+        }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the create event type atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/281c18a1a61c4c44b0bdfd3c88ced8e8?sid=ca68ef1d-eb08-4e23-bd94-9a22a8f7aa7d"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+Below is a list of props that can be passed to the create event type atom
+<p></p>
+
+| Name         | Required | Description                                                                                               |
+|:--------------|:----------|:-----------------------------------------------------------------------------------------------------------|
+| teamId | No       | Unique identifier of the team                                                         |
+| customClassNames   | No       | To pass in custom classnames from outside for styling the atom    
+| onSuccess | No       | Callback function that handles successful creation of event type                                              |
+| onError   | No       | Callback function to handles errors at the time of event type creation
+| onCancel | No       | Callback function that handles cancellation of event type form                                                     |
+
+Along with the props, create event type atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+<p></p>
+| Name                      | Description                                                           |
+|:---------------------------|:-----------------------------------------------------------------------|
+| atomsWrapper              | Adds styling to the whole create event type atom             |
+| buttons              | Object containing classnames for the submit and cancel buttons inside the create event type atom             |
+
+<Info>Individual and team event types take in the same props.</Info>
+
+## Event type settings
+
+The event type settings contains various tabs that can be used to configure or make modifications to the event type that has just been created.
+
+Below code snippet can be used to render the event type settings atom.
+
+```js
+import { EventTypeSettings } from "@calcom/atoms";
+
+export function EventTypeTabs(eventTypeId: number) {
+  return (
+    <>
+      <EventTypeSettings
+        id={eventTypeId}
+        allowDelete={true}
+        onSuccess={(eventType) => {
+          console.log("EventType settings updated successfully", eventType);
+        }}
+        customClassNames={{ atomsWrapper: "!w-[70vw] !m-auto" }}
+      />
+    </>
+  );
+}
+```
+
+For a demonstration of the event type settings atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/2e94c5699dec4fd09d7804d2fd39d71e?sid=04ea09e9-25c3-43cc-be07-33b4b2f32c17"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+<p></p>
+Below is a list of props that can be passed to the event type settings atom.
+<p></p>
+
+| Name         | Required | Description                                                                                               |
+|:--------------|:----------|:-----------------------------------------------------------------------------------------------------------|
+| id | Yes       | The event type id obtained at the time of event type creation     
+| tabs | No       | The tabs you want the event type settings to display                                                  |  
+| onSuccess | No       | Callback function that triggers when the event type is successfully updated                                              |
+| onError   | No       | Callback function to handles errors at the time of event type update |
+| onDeleteSuccess | No       | Callback function that triggers when the event type is successfully deleted                                                     |
+| onDeleteError | No       | Callback function that handles errors at the time of event type deletion |                                                   |
+| allowDelete | No       | Boolean value that determines whether the delete button is displayed or not                                                     |
+| disableToasts | No       | Boolean value that determines whether the toasts are displayed or not                                                     
+| customClassNames   | No       | To pass in custom classnames from outside for styling the atom  
+
+Along with the props, event type settings atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+<p></p>
+| Name                      | Description                                                           |
+|:---------------------------|:-----------------------------------------------------------------------|
+| atomsWrapper              | Adds styling to the whole event type settings atom             |
+
+<Info>
+  Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.
+</Info>
+
+Following are the tabs that are available in the event type settings atom:
+
+<p></p>
+
+**1. Event Setup**
+
+The event setup tab allows users to configure the fundamental aspects of their events. In this tab, users can define or update essential details such as the event title, description, duration, slug, location as well as the event URL. 
+
+<img src="/images/EventSetup.png" alt="Event Setup tab" />
+
+**2. Availability**
+
+The availability tab allows users to manage their scheduling preferences effectively. Within this tab, users can edit their existing availability or set new availability options based on the preferences they have previously established.
+
+<img src="/images/Availability.png" alt="User availability" />
+
+For team event types, availability for a specific event can also be configured for the entire team based on a common schedule. Otherwise each host can be assigned their own specific availability based on their schedules.
+
+<img src="/images/Team_Availability.png" alt="Team availability" />
+
+**3. Assignment**
+
+The assignment tab is only available for team event types. It lets you configure what kind of scheduling you want to enable for your team event, where you can choose from a collective, round robin or managed event. You can also choose who amongst your team can or cannot attend the event.
+
+<img src="/images/Assignment.png" alt="Assignment tab" />
+
+**4. Limits**
+
+The limits tab lets you configure how often you can be booked. You can add a lot of configurations via this tab, such as a buffer time before or after the event and a minimum notice period. 
+
+Also if you want to select how many time a particular event can be booked, or how far in the future the event can be booked that is also possible. Or if you want to limit the event to a specific amount of time, that can also be done via the limits tab.
+
+
+Below video shows a demonstration of the limits tab.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/ac02d393c923413aaa97ab29b43eed48?sid=c130e621-d8e2-4e22-9614-fee97053a194"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+**5. Advanced**
+
+The advanced tab lets you customize your event type with a lot more options. For example, you can set a custom name for the event type that will appear in your calendar, or add questions that will appear on your booking page. Another option would be to add an email verification for the person who is booking the event. 
+
+Below video shows a demonstration of the all the options you get in the advanced tab.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/e0121b51920544eea92251dba99245fa?sid=ac627de7-5673-41b4-aa78-c6c9e439bdb5"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+**6. Recurring**
+
+The recurring tab lets you set up a recurring event. You can set up recurring events such as weekly, monthly, yearly, etc for a maximum of events you want it to repeat.
+
+<img src="/images/Recurring.png" alt="Recurring tab" />
+
+<Info>Recurring events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this.</Info>
+
+**7. Payments**
+
+The payments tab lets you accept payments for your events. At the moment we only support payments via Stripe. 
+
+<img src="/images/StripeConnect.png" alt="Payments tab without stripe connected" />
+
+Once you connect your Stripe account, you can set a custom price along with the currency and payment option; which will determine when to charge your customers.
+
+<img src="/images/StripeConnected.png" alt="Payments tab with stripe connected" />

@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { create } from "zustand";
 
@@ -25,10 +27,15 @@ type StoreInitializeType = {
   bookingData?: GetBookingType | null | undefined;
   verifiedEmail?: string | null;
   rescheduleUid?: string | null;
+  rescheduledBy?: string | null;
   seatReferenceUid?: string;
   durationConfig?: number[] | null;
   org?: string | null;
   isInstantMeeting?: boolean;
+  timezone?: string | null;
+  teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
 };
 
 type SeatedEventData = {
@@ -73,7 +80,7 @@ export type BookerStore = {
    * Date selected by user (exact day). Format is YYYY-MM-DD.
    */
   selectedDate: string | null;
-  setSelectedDate: (date: string | null) => void;
+  setSelectedDate: (date: string | null, omitUpdatingParams?: boolean) => void;
   addToSelectedDate: (days: number) => void;
   /**
    * Multiple Selected Dates and Times
@@ -111,11 +118,12 @@ export type BookerStore = {
   dayCount: number | null;
   setDayCount: (dayCount: number | null) => void;
   /**
-   * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
+   * If booking is being rescheduled or it has seats, it receives a rescheduleUid with rescheduledBy or bookingUid
    * the current booking details are passed in. The `bookingData`
    * object is something that's fetched server side.
    */
   rescheduleUid: string | null;
+  rescheduledBy: string | null;
   bookingUid: string | null;
   bookingData: GetBookingType | null;
   setBookingData: (bookingData: GetBookingType | null | undefined) => void;
@@ -126,7 +134,7 @@ export type BookerStore = {
   initialize: (data: StoreInitializeType) => void;
   /**
    * Stored form state, used when user navigates back and
-   * forth between timeslots and form. Get's cleared on submit
+   * forth between timeslots and form. Gets cleared on submit
    * to prevent sticky data.
    */
   formValues: Record<string, any>;
@@ -144,6 +152,13 @@ export type BookerStore = {
 
   org?: string | null;
   setOrg: (org: string | null | undefined) => void;
+
+  timezone: string | null;
+  setTimezone: (timezone: string | null) => void;
+
+  teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
 };
 
 /**
@@ -167,7 +182,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
-  setSelectedDate: (selectedDate: string | null) => {
+  setSelectedDate: (selectedDate: string | null, omitUpdatingParams = false) => {
     // unset selected date
     if (!selectedDate) {
       removeQueryParam("date");
@@ -177,12 +192,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     const currentSelection = dayjs(get().selectedDate);
     const newSelection = dayjs(selectedDate);
     set({ selectedDate });
-    updateQueryParam("date", selectedDate ?? "");
+    if (!omitUpdatingParams) {
+      updateQueryParam("date", selectedDate ?? "");
+    }
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      updateQueryParam("month", newSelection.format("YYYY-MM"));
+      if (!omitUpdatingParams) {
+        updateQueryParam("month", newSelection.format("YYYY-MM"));
+      }
     }
   },
   selectedDatesAndTimes: null,
@@ -191,7 +210,13 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
-    const newSelection = currentSelection.add(days, "day");
+    let newSelection = currentSelection.add(days, "day");
+
+    // If newSelection is before the current date, set it to today
+    if (newSelection.isBefore(dayjs(), "day")) {
+      newSelection = dayjs();
+    }
+
     const newSelectionFormatted = newSelection.format("YYYY-MM-DD");
 
     if (newSelection.month() !== currentSelection.month()) {
@@ -205,11 +230,17 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   username: null,
   eventSlug: null,
   eventId: null,
+  rescheduledBy: null,
   verifiedEmail: null,
   setVerifiedEmail: (email: string | null) => {
     set({ verifiedEmail: email });
   },
-  month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
+  month:
+    getQueryParam("month") ||
+    (getQueryParam("date") && dayjs(getQueryParam("date")).isValid()
+      ? dayjs(getQueryParam("date")).format("YYYY-MM")
+      : null) ||
+    dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     if (!month) {
       removeQueryParam("month");
@@ -234,12 +265,19 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ seatedEventData });
     updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
   },
+  // This is different from timeZone in timePreferencesStore, because timeZone in timePreferencesStore is the preferred timezone of the booker,
+  // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
+  timezone: getQueryParam("cal.tz") ?? null,
+  setTimezone: (timezone: string | null) => {
+    set({ timezone });
+  },
   initialize: ({
     username,
     eventSlug,
     month,
     eventId,
     rescheduleUid = null,
+    rescheduledBy = null,
     bookingUid = null,
     bookingData = null,
     layout,
@@ -247,6 +285,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     durationConfig,
     org,
     isInstantMeeting,
+    timezone = null,
+    teamMemberEmail,
+    crmOwnerRecordType,
+    crmAppSlug,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -258,7 +300,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().rescheduleUid === rescheduleUid &&
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
-      get().layout === layout
+      get().layout === layout &&
+      get().timezone === timezone &&
+      get().rescheduledBy === rescheduledBy &&
+      get().teamMemberEmail === teamMemberEmail &&
+      get().crmOwnerRecordType === crmOwnerRecordType &&
+      get().crmAppSlug
     )
       return;
     set({
@@ -267,15 +314,20 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventId,
       org,
       rescheduleUid,
+      rescheduledBy,
       bookingUid,
       bookingData,
       layout: layout || BookerLayouts.MONTH_VIEW,
       isTeamEvent: isTeamEvent || false,
       durationConfig,
+      timezone,
       // Preselect today's date in week / column view, since they use this to show the week title.
       selectedDate:
         selectedDateInStore ||
         (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
     });
 
     if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -356,6 +408,7 @@ export const useInitializeBookerStore = ({
   month,
   eventId,
   rescheduleUid = null,
+  rescheduledBy = null,
   bookingData = null,
   verifiedEmail = null,
   layout,
@@ -363,6 +416,10 @@ export const useInitializeBookerStore = ({
   durationConfig,
   org,
   isInstantMeeting,
+  timezone = null,
+  teamMemberEmail,
+  crmOwnerRecordType,
+  crmAppSlug,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -372,6 +429,7 @@ export const useInitializeBookerStore = ({
       month,
       eventId,
       rescheduleUid,
+      rescheduledBy,
       bookingData,
       layout,
       isTeamEvent,
@@ -379,6 +437,10 @@ export const useInitializeBookerStore = ({
       verifiedEmail,
       durationConfig,
       isInstantMeeting,
+      timezone,
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
     });
   }, [
     initializeStore,
@@ -388,11 +450,16 @@ export const useInitializeBookerStore = ({
     month,
     eventId,
     rescheduleUid,
+    rescheduledBy,
     bookingData,
     layout,
     isTeamEvent,
     verifiedEmail,
     durationConfig,
     isInstantMeeting,
+    timezone,
+    teamMemberEmail,
+    crmOwnerRecordType,
+    crmAppSlug,
   ]);
 };

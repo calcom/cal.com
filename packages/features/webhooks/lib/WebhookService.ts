@@ -17,7 +17,7 @@ export class WebhookService {
       return this;
     })() as unknown as WebhookService;
   }
-  async getWebhooks() {
+  getWebhooks() {
     return this.webhooks;
   }
   async sendPayload(payload: Parameters<typeof sendOrSchedulePayload>[4]) {

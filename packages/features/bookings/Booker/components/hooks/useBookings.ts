@@ -13,6 +13,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
@@ -27,7 +28,7 @@ export interface IUseBookings {
           BookerEvent,
           | "id"
           | "slug"
-          | "hosts"
+          | "subsetOfHosts"
           | "requiresConfirmation"
           | "isDynamic"
           | "metadata"
@@ -37,8 +38,8 @@ export interface IUseBookings {
           | "recurringEvent"
           | "schedulingType"
         > & {
-          users: Pick<
-            BookerEvent["users"][number],
+          subsetOfUsers: Pick<
+            BookerEvent["subsetOfUsers"][number],
             "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
           >[];
         })
@@ -47,9 +48,32 @@ export interface IUseBookings {
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
-  teamMemberEmail?: string;
+  teamMemberEmail?: string | null;
 }
 
+const getBookingSuccessfulEventPayload = (booking: {
+  title?: string;
+  startTime: string;
+  endTime: string;
+  eventTypeId?: number | null;
+  status?: BookingStatus;
+  paymentRequired: boolean;
+  uid?: string;
+  isRecurring: boolean;
+}) => {
+  return {
+    uid: booking.uid,
+    title: booking.title,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    eventTypeId: booking.eventTypeId,
+    status: booking.status,
+    paymentRequired: booking.paymentRequired,
+    isRecurring: booking.isRecurring,
+  };
+};
+
+const getRescheduleBookingSuccessfulEventPayload = getBookingSuccessfulEventPayload;
 export interface IUseBookingLoadingStates {
   creatingBooking: boolean;
   creatingRecurringBooking: boolean;
@@ -62,22 +86,64 @@ export interface IUseBookingErrors {
 }
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
+const STORAGE_KEY = "instantBookingData";
+
+const storeInLocalStorage = ({
+  eventTypeId,
+  expiryTime,
+  bookingId,
+}: {
+  eventTypeId: number;
+  expiryTime: Date;
+  bookingId: number;
+}) => {
+  const value = JSON.stringify({ eventTypeId, expiryTime, bookingId });
+  localStorage.setItem(STORAGE_KEY, value);
+};
+
 export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
+  const eventTypeId = useBookerStore((state) => state.eventId);
+  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
+
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStore((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
-  const bookingId = parseInt(getQueryParam("bookingId") || "0");
+  const bookingId = parseInt(getQueryParam("bookingId") ?? "0");
+
+  useEffect(() => {
+    if (!isInstantMeeting) return;
+
+    const storedInfo = localStorage.getItem(STORAGE_KEY);
+
+    if (storedInfo) {
+      const parsedInfo = JSON.parse(storedInfo);
+
+      const parsedInstantBookingInfo =
+        parsedInfo.eventTypeId === eventTypeId &&
+        isInstantMeeting &&
+        new Date(parsedInfo.expiryTime) > new Date()
+          ? parsedInfo
+          : null;
+
+      if (parsedInstantBookingInfo) {
+        setExpiryTime(parsedInstantBookingInfo.expiryTime);
+        updateQueryParam("bookingId", parsedInstantBookingInfo.bookingId);
+      }
+    }
+  }, [eventTypeId, isInstantMeeting]);
 
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
@@ -113,57 +179,65 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
 
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
-    onSuccess: (responseData) => {
-      const { uid, paymentUid } = responseData;
+    onSuccess: (booking) => {
+      if (booking.isDryRun) {
+        router.push("/booking/dry-run-successful");
+        return;
+      }
+      const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
-      const users = !!event.data?.hosts?.length
-        ? event.data?.hosts.map((host) => host.user)
-        : event.data?.users;
+      const users = !!event.data?.subsetOfHosts?.length
+        ? event.data?.subsetOfHosts.map((host) => host.user)
+        : event.data?.subsetOfUsers;
 
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
         ? duration
         : event.data?.length;
-      const eventPayload = {
-        uid: responseData.uid,
-        title: responseData.title,
-        startTime: responseData.startTime,
-        endTime: responseData.endTime,
-        eventTypeId: responseData.eventTypeId,
-        status: responseData.status,
-        paymentRequired: responseData.paymentRequired,
-      };
+
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
-          booking: responseData,
+          booking: booking,
           eventType: event.data,
-          date: responseData?.startTime?.toString() || "",
+          date: booking?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
             name: users?.[0]?.name || "Nameless",
-            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
-            timeZone: responseData.user?.timeZone || "Europe/London",
+            email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+            timeZone: booking.user?.timeZone || "Europe/London",
           },
-          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+          confirmed: !(booking.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
-        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", eventPayload);
+        sdkActionManager?.fire(
+          "rescheduleBookingSuccessfulV2",
+          getRescheduleBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: false,
+          })
+        );
       } else {
         sdkActionManager?.fire("bookingSuccessful", {
-          booking: responseData,
+          booking: booking,
           eventType: event.data,
-          date: responseData?.startTime?.toString() || "",
+          date: booking?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
             name: users?.[0]?.name || "Nameless",
-            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
-            timeZone: responseData.user?.timeZone || "Europe/London",
+            email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+            timeZone: booking.user?.timeZone || "Europe/London",
           },
-          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+          confirmed: !(booking.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
 
-        sdkActionManager?.fire("bookingSuccessfulV2", eventPayload);
+        sdkActionManager?.fire(
+          "bookingSuccessfulV2",
+          getBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: false,
+          })
+        );
       }
 
       if (paymentUid) {
@@ -188,15 +262,16 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         isSuccessBookingPage: true,
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventSlug,
-        seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
+        seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
+        rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly
       };
 
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
-        booking: responseData,
+        booking: booking,
         forwardParamsSuccessRedirect:
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
@@ -204,6 +279,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       });
     },
     onError: (err, _, ctx) => {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
@@ -211,20 +287,34 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const createInstantBookingMutation = useMutation({
     mutationFn: createInstantBooking,
     onSuccess: (responseData) => {
+      if (eventTypeId) {
+        storeInLocalStorage({
+          eventTypeId,
+          expiryTime: responseData.expires,
+          bookingId: responseData.bookingId,
+        });
+      }
+
       updateQueryParam("bookingId", responseData.bookingId);
       setExpiryTime(responseData.expires);
     },
     onError: (err, _, ctx) => {
       console.error("Error creating instant booking", err);
-
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
 
   const createRecurringBookingMutation = useMutation({
     mutationFn: createRecurringBooking,
-    onSuccess: async (responseData) => {
-      const booking = responseData[0] || {};
+    onSuccess: async (bookings) => {
+      const booking = bookings[0] || {};
+
+      if (booking.isDryRun) {
+        router.push("/booking/dry-run-successful");
+        return;
+      }
+
       const { uid } = booking;
 
       if (!uid) {
@@ -240,6 +330,31 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
+
+      if (isRescheduling) {
+        // NOTE: It is recommended to define the event payload in the argument itself to provide a better type safety.
+        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", {
+          ...getRescheduleBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: true,
+          }),
+          allBookings: bookings.map((booking) => ({
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+          })),
+        });
+      } else {
+        sdkActionManager?.fire("bookingSuccessfulV2", {
+          ...getBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: true,
+          }),
+          allBookings: bookings.map((booking) => ({
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+          })),
+        });
+      }
 
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
@@ -258,7 +373,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     bookingForm,
     hashedLink,
     metadata,
-    teamMemberEmail,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,

@@ -21,20 +21,10 @@ function RenderIcon({
 }) {
   const isPlatform = useIsPlatform();
 
-  if (isPlatform) {
-    if (eventLocationType.type === "conferencing") return <Icon name="video" className="me-[10px] h-4 w-4" />;
-    if (eventLocationType.type === "attendeeInPerson" || eventLocationType.type === "inPerson")
-      return <Icon name="map-pin" className="me-[10px] h-4 w-4" />;
-    if (eventLocationType.type === "phone" || eventLocationType.type === "userPhone")
-      return <Icon name="phone" className="me-[10px] h-4 w-4" />;
-    if (eventLocationType.type === "link") return <Icon name="link" className="me-[10px] h-4 w-4" />;
-    return <Icon name="book-user" className="me-[10px] h-4 w-4" />;
-  }
-
   return (
     <img
-      src={eventLocationType.iconUrl}
-      className={classNames(invertLogoOnDark(eventLocationType?.iconUrl, false), "me-[10px] h-4 w-4")}
+      src={`${isPlatform ? process.env.NEXT_PUBLIC_WEBAPP_URL : ""}${eventLocationType.iconUrl}`}
+      className={classNames(invertLogoOnDark(eventLocationType?.iconUrl, isTooltip), "me-[10px] h-4 w-4")}
       alt={`${eventLocationType.label} icon`}
     />
   );

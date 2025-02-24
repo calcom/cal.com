@@ -42,9 +42,9 @@ function UsersTableBare() {
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
       showToast("User has been deleted", "success");
-      // Lets not invalidated the whole cache, just remove the user from the cache.
-      // usefull cause in prod this will be fetching 100k+ users
-      // FIXME: Tested locally and it doesnt't work, need to investigate
+      // Lets not invalidate the whole cache, just remove the user from the cache.
+      // Useful cause in prod this will be fetching 100k+ users
+      // FIXME: Tested locally and it doesn't work, need to investigate
       utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (cachedData) => {
         if (!cachedData) {
           return {
@@ -116,12 +116,12 @@ function UsersTableBare() {
           })),
         };
       });
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
 
   const handleImpersonateUser = async (username: string | null) => {
-    await signIn("impersonation-auth", { redirect: false, username: username });
-    router.push(`/event-types`);
+    await signIn("impersonation-auth", { username: username, callbackUrl: `${WEBAPP_URL}/event-types` });
   };
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
@@ -150,7 +150,7 @@ function UsersTableBare() {
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   return (
-    <>
+    <div>
       <TextField
         placeholder="username or email"
         label="Search"
@@ -187,14 +187,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <span className="text-default">{user.name}</span>
-                      <span className="ml-3">/{user.username}</span>
-                      {user.locked && (
-                        <span className="ml-3">
-                          <Icon name="lock" />
-                        </span>
-                      )}
-                      <br />
+                      <div className="flex flex-row">
+                        <span className="text-default">{user.name}</span>
+                        <span className="ml-3">/{user.username}</span>
+                        {user.locked && (
+                          <span className="ml-3">
+                            <Icon name="lock" />
+                          </span>
+                        )}
+                        <br />
+                      </div>
                       <span className="break-all">{user.email}</span>
                     </div>
                   </div>
@@ -293,7 +295,7 @@ function UsersTableBare() {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 }
 

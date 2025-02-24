@@ -2,7 +2,7 @@
 /// <reference path="../types/ical.d.ts"/>
 import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
-import type { Attendee, DateArray, DurationObject, Person } from "ics";
+import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
 import type { DAVAccount, DAVCalendar, DAVObject } from "tsdav";
 import {
@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
+import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
 import type {
   Calendar,
   CalendarEvent,
@@ -25,6 +26,7 @@ import type {
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  TeamMember,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -95,7 +97,7 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
-const mapAttendees = (attendees: Person[]): Attendee[] =>
+const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
 export default abstract class BaseCalendarService implements Calendar {
@@ -160,6 +162,7 @@ export default abstract class BaseCalendarService implements Calendar {
          * [UPDATE]: Since we're not using the PUBLISH method to publish the iCalendar event and creating the event directly on iCal,
          * this shouldn't be an issue and we should be able to add attendees to the event right here.
          */
+        ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
       });
 
       if (error || !iCalString)

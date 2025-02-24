@@ -5,6 +5,7 @@ import type * as constants from "@calcom/lib/constants";
 const mockedConstants = {
   IS_PRODUCTION: false,
   IS_TEAM_BILLING_ENABLED: false,
+  WEBSITE_URL: "",
 } as typeof constants;
 
 vi.mock("@calcom/lib/constants", () => {
@@ -24,5 +25,10 @@ export const constantsScenarios = {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     mockedConstants.IS_TEAM_BILLING_ENABLED = true;
+  },
+  setWebsiteUrl: (url: string) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    mockedConstants.WEBSITE_URL = url;
   },
 };

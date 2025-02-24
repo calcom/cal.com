@@ -5,6 +5,7 @@ import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { CreationSource } from "@calcom/prisma/enums";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
@@ -47,6 +48,10 @@ import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
  *                 type: string
  *                 format: date-time
  *                 description: 'End time of the Event'
+ *               rescheduleUid:
+ *                 type: string
+ *                 format: UID
+ *                 description: 'Uid of the booking to reschedule'
  *               responses:
  *                 type: object
  *                 required:
@@ -209,6 +214,10 @@ import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
  */
 async function handler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
+  req.body = {
+    ...req.body,
+    creationSource: CreationSource.API_V1,
+  };
   if (isSystemWideAdmin) req.userId = req.body.userId || userId;
 
   if (isOrganizationOwnerOrAdmin) {

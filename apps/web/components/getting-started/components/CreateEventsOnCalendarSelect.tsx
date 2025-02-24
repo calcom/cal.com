@@ -11,6 +11,7 @@ const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps)
   const { calendar } = props;
   const { t } = useLocale();
   const mutation = trpc.viewer.setDestinationCalendar.useMutation();
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
 
   return (
     <>
@@ -26,6 +27,7 @@ const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps)
                 mutation.mutate(calendar);
               }}
               hidePlaceholder
+              calendarsQueryData={connectedCalendarsQuery.data}
             />
           </div>
         </div>

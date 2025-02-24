@@ -1,7 +1,8 @@
 import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 
-import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -13,8 +14,10 @@ import {
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
+const log = logger.getSubLogger({ prefix: ["dsync/handleGroupEvents"] });
+
 const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: number) => {
-  const { dsyncController } = await jackson();
+  log.debug("called", safeStringify(event));
   // Find the group name associated with the event
   const eventData = event.data as Group;
 
@@ -97,11 +100,13 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     if (newUserEmails.length) {
       const createUsersAndConnectToOrgProps = {
         emailsToCreate: newUserEmails,
-        organizationId: org.id,
         identityProvider: IdentityProvider.CAL,
         identityProviderId: null,
       };
-      const newUsers = await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+      const newUsers = await createUsersAndConnectToOrg({
+        createUsersAndConnectToOrgProps,
+        org,
+      });
       await prisma.membership.createMany({
         data: newUsers.map((user) => ({
           userId: user.id,

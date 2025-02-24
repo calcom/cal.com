@@ -1,8 +1,10 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetMembership } from "@/modules/auth/decorators/get-membership/get-membership.decorator";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
@@ -28,25 +30,26 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
-import { Membership } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
-@DocsTags("Organizations Memberships")
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@DocsTags("Orgs / Memberships")
 export class OrganizationsMembershipsController {
   constructor(private organizationsMembershipService: OrganizationsMembershipService) {}
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get all memberships" })
   async getAllMemberships(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -66,8 +69,10 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create a membership" })
   async createMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgMembershipDto
@@ -80,10 +85,16 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  async getUserSchedule(@GetMembership() membership: Membership): Promise<GetOrgMembership> {
+  @ApiOperation({ summary: "Get a membership" })
+  async getOrgMembership(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("membershipId", ParseIntPipe) membershipId: number
+  ): Promise<GetOrgMembership> {
+    const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
@@ -91,9 +102,11 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete a membership" })
   async deleteMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number
@@ -107,8 +120,10 @@ export class OrganizationsMembershipsController {
 
   @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update a membership" })
   async updateMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,

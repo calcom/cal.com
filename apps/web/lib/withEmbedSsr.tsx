@@ -44,6 +44,7 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
     if (!("props" in ssrResponse)) {
       return ssrResponse;
     }
+
     return {
       ...ssrResponse,
       props: {

@@ -1,22 +1,22 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import dynamic from "next/dynamic";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 
+import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithLocaleProps } from "@lib/withLocale";
@@ -54,6 +54,13 @@ export type AppProps = Omit<
   /** Will be defined only is there was an error */
   err?: Error;
 };
+
+const PostHogPageView = dynamic(
+  () => import("@calcom/features/ee/event-tracking/lib/posthog/web/PostHogPageView"),
+  {
+    ssr: false,
+  }
+);
 
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;
@@ -144,10 +151,10 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const embedNamespace = getEmbedNamespace(props.router.query);
   const isEmbedMode = typeof embedNamespace === "string";
 
-  const themeProviderProps = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+  const { key, ...themeProviderProps } = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
 
   return (
-    <ThemeProvider {...themeProviderProps}>
+    <ThemeProvider key={key} {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -181,7 +188,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
  * - There is a side effect of so many factors in `storageKey` that many localStorage keys will be created if a user goes through all these scenarios(e.g like booking a lot of different users)
  * - Some might recommend disabling localStorage persistence but that doesn't give good UX as then we would default to light theme always for a few seconds before switching to dark theme(if that's the user's preference).
  * - We can't disable [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event handling as well because changing theme in one tab won't change the theme without refresh in other tabs. That's again a bad UX
- * - Theme flickering becomes infinitely ongoing in case of embeds because of the browser's delay in processing `storage` event within iframes. Consider two embeds simulatenously opened with pages A and B. Note the timeline and keep in mind that it happened
+ * - Theme flickering becomes infinitely ongoing in case of embeds because of the browser's delay in processing `storage` event within iframes. Consider two embeds simultaneously opened with pages A and B. Note the timeline and keep in mind that it happened
  *  because 'setItem(A)' and 'Receives storageEvent(A)' allowed executing setItem(B) in b/w because of the delay.
  *    - t1 -> setItem(A) & Fires storageEvent(A) - On Page A) - Current State(A)
  *    - t2 -> setItem(B) & Fires storageEvent(B) - On Page B) - Current State(B)
@@ -272,7 +279,6 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
 
@@ -287,25 +293,20 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider session={pageProps.session ?? undefined}>
-        <CustomI18nextProvider {...propsWithoutNonce}>
-          <TooltipProvider>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <CalcomThemeProvider
-              themeBasis={props.pageProps.themeBasis}
-              nonce={props.pageProps.nonce}
-              isThemeSupported={props.Component.isThemeSupported}
-              isBookingPage={props.Component.isBookingPage || isBookingPage}
-              router={props.router}>
-              <FeatureFlagsProvider>
-                <OrgBrandProvider>
-                  <MetaProvider>{props.children}</MetaProvider>
-                </OrgBrandProvider>
-              </FeatureFlagsProvider>
-            </CalcomThemeProvider>
-          </TooltipProvider>
-        </CustomI18nextProvider>
-      </SessionProvider>
+      <CustomI18nextProvider {...propsWithoutNonce}>
+        <TooltipProvider>
+          <CalcomThemeProvider
+            themeBasis={props.pageProps.themeBasis}
+            nonce={props.pageProps.nonce}
+            isThemeSupported={props.Component.isThemeSupported}
+            isBookingPage={props.Component.isBookingPage || isBookingPage}
+            router={props.router}>
+            <FeatureFlagsProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
+            </FeatureFlagsProvider>
+          </CalcomThemeProvider>
+        </TooltipProvider>
+      </CustomI18nextProvider>
     </EventCollectionProvider>
   );
 
@@ -314,9 +315,14 @@ const AppProviders = (props: AppPropsWithChildren) => {
   }
 
   return (
-    <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
-    </DynamicHelpscoutProvider>
+    <>
+      <DynamicHelpscoutProvider>
+        <DynamicPostHogProvider>
+          <PostHogPageView />
+          {RemainingProviders}
+        </DynamicPostHogProvider>
+      </DynamicHelpscoutProvider>
+    </>
   );
 };
 

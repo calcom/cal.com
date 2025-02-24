@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+  <a href="http://nestjs.com/" target="blank"><img src="https://github.com/user-attachments/assets/ce7c2ecf-6097-469a-8512-c846a9fb665d" height="200" alt="Nest Logo" /></a>
 </p>
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
@@ -24,7 +24,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Cal.com is using the [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Installation
 
@@ -44,8 +44,8 @@ Copy `.env.example` to `.env` and fill values.
 
 ## Add license Key to deployments table in DB
 
-id, logo  theme licenseKey                              agreedLicenseAt
-1,  null, null, 'c4234812-12ab-42s6-a1e3-55bedd4a5bb7', '2023-05-15 21:39:47.611'
+id, logo theme licenseKey agreedLicenseAt
+1, null, null, 'c4234812-12ab-42s6-a1e3-55bedd4a5bb7', '2023-05-15 21:39:47.611'
 
 your CALCOM_LICENSE_KEY env var need to contain the same value
 

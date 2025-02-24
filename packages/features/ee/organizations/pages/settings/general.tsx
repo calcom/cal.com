@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -17,7 +17,6 @@ import {
   Button,
   Form,
   Label,
-  Meta,
   Select,
   showToast,
   SkeletonButton,
@@ -29,10 +28,9 @@ import {
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -73,7 +71,7 @@ const OrgGeneralView = () => {
     [error]
   );
 
-  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  if (isPending) return <SkeletonLoader />;
   if (!currentOrg) {
     return null;
   }
@@ -152,12 +150,11 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
           weekStart: values.weekStart.value,
         });
       }}>
-      <Meta
-        title={t("general")}
-        description={t("organization_general_description")}
-        borderInShellHeader={true}
-      />
-      <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
+      <div
+        className={classNames(
+          "border-subtle border-x border-y-0 px-4 py-8 sm:px-6",
+          !isAdminOrOwner && "rounded-b-lg border-y"
+        )}>
         <Controller
           name="timeZone"
           control={formMethods.control}
@@ -217,14 +214,15 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
         />
       </div>
 
-      <SectionBottomActions align="end">
-        <Button disabled={isDisabled} color="primary" type="submit">
-          {t("update")}
-        </Button>
-      </SectionBottomActions>
+      {isAdminOrOwner && (
+        <SectionBottomActions align="end">
+          <Button disabled={isDisabled} color="primary" type="submit">
+            {t("update")}
+          </Button>
+        </SectionBottomActions>
+      )}
     </Form>
   );
 };
 
-OrgGeneralView.getLayout = getLayout;
 export default OrgGeneralView;

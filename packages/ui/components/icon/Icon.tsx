@@ -1,23 +1,29 @@
-// find all lucide icons at https://lucide.dev/
-// github https://github.com/lucide-icons/lucide
-import type { LucideProps } from "lucide-react";
-import dynamic from "next/dynamic";
-import { memo } from "react";
+import { type SVGProps } from "react";
 
-import type { IconName } from "./dynamicIconImports";
+import cn from "@calcom/lib/classNames";
 
-interface IconProps extends Omit<LucideProps, "ref"> {
+import type { IconName } from "./icon-names";
+
+function Icon({
+  name,
+  size = 16,
+  className,
+  ...props
+}: SVGProps<SVGSVGElement> & {
   name: IconName;
+  size?: number | string;
+}) {
+  return (
+    <svg
+      height={size}
+      width={size}
+      // Fill are inherited so we transparent by default. Can be overridden tailwind.
+      className={cn("fill-transparent", className)}
+      {...props}
+      aria-hidden>
+      <use href={`#${name}`} />
+    </svg>
+  );
 }
-
-const IconLazy = dynamic(
-  // Fast refresh doesn't play nice with dynamic imports
-  // This prevent slowdowns in development mode
-  process.env.NODE_ENV === "production" ? () => import("./IconProd") : () => import("./IconDev")
-);
-
-const Icon = memo((props: IconProps) => <IconLazy {...props} />);
-
-Icon.displayName = "Icon";
-
+export { IconName };
 export default Icon;

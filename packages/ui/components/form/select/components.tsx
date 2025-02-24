@@ -3,8 +3,8 @@ import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
-import { Icon } from "../../..";
 import { UpgradeTeamsBadge } from "../../badge";
+import { Icon } from "../../icon";
 import type { SelectProps } from "./Select";
 
 export const InputComponent = <
@@ -17,9 +17,9 @@ export const InputComponent = <
 }: InputProps<Option, IsMulti, Group>) => {
   return (
     <reactSelectComponents.Input
-      // disables our default form focus hightlight on the react-select input element
+      // disables our default form focus highlight on the react-select input element
       inputClassName={classNames(
-        "focus:ring-0 focus:ring-offset-0 dark:!text-darkgray-900 !text-emphasis",
+        "focus:ring-0 focus:ring-offset-0 !text-default dark:!text-white",
         inputClassName
       )}
       {...props}
@@ -41,7 +41,7 @@ export const OptionComponent = <
   ...props
 }: OptionProps<Option, IsMulti, Group>) => {
   return (
-    // This gets styled in the select classNames prop now - handles overrides with styles vs className here doesnt
+    // This gets styled in the select classNames prop now - handles overrides with styles vs className here doesn't
     <reactSelectComponents.Option {...props}>
       <div className="flex">
         <span className="mr-auto" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>

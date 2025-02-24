@@ -22,6 +22,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
@@ -35,7 +36,7 @@ import {
   EventTypesPublic,
   eventTypeBookingFields,
   eventTypeLocations,
-} from "@calcom/platform-libraries-0.0.21";
+} from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {
@@ -77,8 +78,8 @@ describe("Event types Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
-    const userEmail = "event-types-test-e2e@api.com";
-    const name = "bob-the-builder";
+    const userEmail = `event-types-2024-04-15-user-${randomString()}@api.com`;
+    const name = `event-types-2024-04-15-user-${randomString()}`;
     const username = name;
     let eventType: EventType;
     let user: User;
@@ -105,7 +106,9 @@ describe("Event types Endpoints", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
-      organization = await teamRepositoryFixture.create({ name: "organization" });
+      organization = await teamRepositoryFixture.create({
+        name: `event-types-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -139,7 +142,7 @@ describe("Event types Endpoints", () => {
     it("should create an event type", async () => {
       const body: CreateEventTypeInput_2024_04_15 = {
         title: "Test Event Type",
-        slug: "test-event-type",
+        slug: `event-types-event-type-${randomString()}`,
         description: "A description of the test event type.",
         length: 60,
         hidden: false,

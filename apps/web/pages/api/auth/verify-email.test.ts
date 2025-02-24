@@ -3,6 +3,7 @@ import { organizationScenarios } from "@calcom/lib/server/repository/__mocks__/o
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { moveUserToMatchingOrg } from "./verify-email";
@@ -18,7 +19,7 @@ describe("moveUserToMatchingOrg", () => {
   });
 
   it("should not proceed if no matching organization is found", async () => {
-    organizationScenarios.OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.fakeNoMatch();
+    organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
 
     await moveUserToMatchingOrg({ email });
 
@@ -29,6 +30,7 @@ describe("moveUserToMatchingOrg", () => {
     const argToInviteMembersWithNoInviterPermissionCheck = {
       inviterName: null,
       language: "en",
+      creationSource: CreationSource.WEBAPP,
       invitations: [
         {
           usernameOrEmail: email,
@@ -44,7 +46,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );
@@ -65,7 +67,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );

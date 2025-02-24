@@ -1,8 +1,10 @@
+"use client";
+
 import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
 
 export const EditableHeading = function EditableHeading({
   value,
@@ -18,9 +20,7 @@ export const EditableHeading = function EditableHeading({
   const [isEditing, setIsEditing] = useState(false);
   const enableEditing = () => setIsEditing(!disabled);
   return (
-    <div
-      className="group pointer-events-auto relative truncate"
-      onClick={enableEditing}>
+    <div className="group pointer-events-auto relative truncate" onClick={enableEditing}>
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
         <label className="min-w-8 relative inline-block">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>

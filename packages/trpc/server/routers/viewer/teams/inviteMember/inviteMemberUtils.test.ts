@@ -62,6 +62,7 @@ const mockedReturnSuccessCheckPerms = {
     isPrivate: false,
     logoUrl: "",
     calVideoLogo: "",
+    isOrganization: false,
   },
 };
 
@@ -69,7 +70,6 @@ const mockedRegularTeam: TeamWithParent = {
   id: 1,
   name: "Team A",
   slug: null,
-  logo: null,
   appLogo: null,
   appIconLogo: null,
   bio: null,
@@ -93,6 +93,8 @@ const mockedRegularTeam: TeamWithParent = {
   bannerUrl: "",
   isPlatform: false,
   smsLockState: "LOCKED",
+  createdByOAuthClientId: null,
+  smsLockReviewedByAdmin: false,
 };
 
 const mockedSubTeam = {
@@ -177,7 +179,9 @@ describe("Invite Member Utils", () => {
 
     it("should not throw an error if the email is valid", () => {
       const validEmail = "valid-email@example.com";
+      const validEmailWithApostrophe = "valid'email@example.com";
       expect(() => checkInputEmailIsValid(validEmail)).not.toThrow();
+      expect(() => checkInputEmailIsValid(validEmailWithApostrophe)).not.toThrow();
     });
   });
   describe("getOrgConnectionInfo", () => {
@@ -254,6 +258,11 @@ describe("Invite Member Utils", () => {
           isOrganizationConfigured: false,
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "example.com",
+          organizationId: 1,
+          lockEventTypeCreationForUsers: false,
+          adminGetsNoSlotsNotification: false,
+          isAdminReviewed: false,
+          isAdminAPIEnabled: false,
         },
         slug: "abc",
         parent: null,
@@ -279,6 +288,11 @@ describe("Invite Member Utils", () => {
             isOrganizationConfigured: false,
             isOrganizationVerified: false,
             orgAutoAcceptEmail: "example.com",
+            organizationId: 1,
+            lockEventTypeCreationForUsers: false,
+            adminGetsNoSlotsNotification: false,
+            isAdminReviewed: false,
+            isAdminAPIEnabled: false,
           },
         },
       };

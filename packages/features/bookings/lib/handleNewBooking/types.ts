@@ -3,9 +3,10 @@ import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { AwaitedGetDefaultEvent } from "@calcom/lib/defaultEvents";
+import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { userSelect } from "@calcom/prisma";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { Booking } from "./createBooking";
@@ -21,12 +22,11 @@ import type {
 } from "./getBookingData";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType, OriginalRescheduledBooking } from "./getOriginalRescheduledBooking";
-import type { getRequiresConfirmationFlags } from "./getRequiresConfirmationFlags";
-import type { AwaitedLoadUsers } from "./loadUsers";
+import type { LoadedUsers } from "./loadUsers";
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
 
-export type OrganizerUser = AwaitedLoadUsers[number] & {
+export type OrganizerUser = LoadedUsers[number] & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
 };
@@ -37,6 +37,7 @@ export type Invitee = {
   firstName: string;
   lastName: string;
   timeZone: string;
+  phoneNumber?: string;
   language: {
     translate: TFunction;
     locale: string;
@@ -55,13 +56,14 @@ export interface IEventTypePaymentCredentialType {
 export type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
-  organization: { slug: string };
+  organization?: { slug: string };
   priority?: number;
+  weight?: number;
+  userLevelSelectedCalendars: SelectedCalendar[];
+  allSelectedCalendars: SelectedCalendar[];
 };
 
-export type NewBookingEventType = AwaitedGetDefaultEvent | getEventTypeResponse;
-
-export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
+export type NewBookingEventType = DefaultEvent | getEventTypeResponse;
 
 export type {
   AwaitedBookingData,
@@ -76,6 +78,6 @@ export type {
   BookingType,
   Booking,
   OriginalRescheduledBooking,
-  AwaitedLoadUsers,
+  LoadedUsers,
   getEventTypeResponse,
 };

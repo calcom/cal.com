@@ -11,6 +11,10 @@
     "json-logic-js": "^2.0.2",
     "react-awesome-query-builder": "^5.1.2"
   },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix"
+  },
   "devDependencies": {
     "@calcom/types": "*",
     "@types/json-logic-js": "^1.2.1"

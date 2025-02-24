@@ -2,18 +2,22 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/inputs/update-organization-team-membership.input";
+import { OrgTeamMembershipOutputDto } from "@/modules/organizations/outputs/organization-teams-memberships.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { EventType, User } from "@prisma/client";
 import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -24,8 +28,9 @@ describe("Organizations Teams Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
     let app: INestApplication;
 
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
@@ -34,15 +39,16 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let org: Team;
     let orgTeam: Team;
     let nonOrgTeam: Team;
+    let teamEventType: EventType;
+    let managedEventType: EventType;
     let membership: Membership;
     let membership2: Membership;
-    let membershipCreatedViaApi: Membership;
+    let membershipCreatedViaApi: OrgTeamMembershipOutputDto;
 
-    const userEmail = "org-admin-membership-teams-controller-e2e@api.com";
-    const userEmail2 = "org-member-membership-teams-controller-e2e@api.com";
-    const nonOrgUserEmail = "non-org-member-membership-teams-controller-e2e@api.com";
-
-    const invitedUserEmail = "org-member-invited-membership-teams-controller-e2e@api.com";
+    const userEmail = `organizations-teams-memberships-admin-${randomString()}@api.com`;
+    const userEmail2 = `organizations-teams-memberships-member-${randomString()}@api.com`;
+    const nonOrgUserEmail = `organizations-teams-memberships-non-org-${randomString()}@api.com`;
+    const invitedUserEmail = `organizations-teams-memberships-invited-${randomString()}@api.com`;
 
     let user: User;
     let user2: User;
@@ -59,11 +65,12 @@ describe("Organizations Teams Memberships Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -85,18 +92,44 @@ describe("Organizations Teams Memberships Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-teams-memberships-organization-${randomString()}`,
         isOrganization: true,
       });
 
       orgTeam = await teamsRepositoryFixture.create({
-        name: "Org Team",
+        name: `organizations-teams-memberships-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
+      teamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: orgTeam.id },
+        },
+        title: "Collective Event Type",
+        slug: "collective-event-type",
+        length: 30,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "MANAGED",
+        team: {
+          connect: { id: orgTeam.id },
+        },
+        title: "Managed Event Type",
+        slug: "managed-event-type",
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
       nonOrgTeam = await teamsRepositoryFixture.create({
-        name: "Non Org Team",
+        name: `organizations-teams-memberships-non-org-team-${randomString()}`,
         isOrganization: false,
       });
 
@@ -199,7 +232,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership[]> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership.id);
           expect(responseBody.data[1].id).toEqual(membership2.id);
@@ -218,7 +251,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships?skip=1&take=1`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership[]> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership2.id);
           expect(responseBody.data[0].userId).toEqual(user2.id);
@@ -237,10 +270,11 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membership.id}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membership.id);
           expect(responseBody.data.userId).toEqual(user.id);
+          expect(responseBody.data.user.email).toEqual(user.email);
         });
     });
 
@@ -261,7 +295,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .expect(404);
     });
 
-    it("should create the membership of the org's team", async () => {
+    it("should have created the membership of the org's team and assigned team wide events", async () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships`)
         .send({
@@ -271,14 +305,28 @@ describe("Organizations Teams Memberships Endpoints", () => {
         } satisfies CreateOrgTeamMembershipDto)
         .expect(201)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           membershipCreatedViaApi = responseBody.data;
           expect(membershipCreatedViaApi.teamId).toEqual(orgTeam.id);
           expect(membershipCreatedViaApi.role).toEqual("MEMBER");
           expect(membershipCreatedViaApi.userId).toEqual(userToInviteViaApi.id);
+          expect(membershipCreatedViaApi.user.email).toEqual(userToInviteViaApi.email);
+          userHasCorrectEventTypes(membershipCreatedViaApi.userId);
         });
     });
+
+    async function userHasCorrectEventTypes(userId: number) {
+      const managedEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
+      const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(orgTeam.id);
+      expect(managedEventTypes?.length).toEqual(1);
+      expect(teamEventTypes?.length).toEqual(2);
+      const collectiveEvenType = teamEventTypes?.find((eventType) => eventType.slug === teamEventType.slug);
+      expect(collectiveEvenType).toBeTruthy();
+      const userHost = collectiveEvenType?.hosts.find((host) => host.userId === userId);
+      expect(userHost).toBeTruthy();
+      expect(managedEventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+    }
 
     it("should fail to create the membership of the org's team for a non org user", async () => {
       return request(app.getHttpServer())
@@ -299,7 +347,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         } satisfies UpdateOrgTeamMembershipDto)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           membershipCreatedViaApi = responseBody.data;
           expect(membershipCreatedViaApi.role).toEqual("OWNER");
@@ -311,7 +359,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipCreatedViaApi.id}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membershipCreatedViaApi.id);
         });
@@ -335,7 +383,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(nonOrgUser.email);
       await userRepositoryFixture.deleteByEmail(user2.email);
       await organizationsRepositoryFixture.delete(org.id);
-      await organizationsRepositoryFixture.delete(nonOrgTeam.id);
+      await teamsRepositoryFixture.delete(nonOrgTeam.id);
       await app.close();
     });
   });

@@ -1,26 +1,20 @@
-import type { Frame, Page } from "@playwright/test";
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
-import { test } from "./fixtures";
-
-export function todo(title: string) {
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(title, noop);
-}
+import { loadJSON } from "./loadJSON";
 
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
@@ -31,6 +25,14 @@ export const testName = "Test Testson";
 
 export const teamEventTitle = "Team Event - 30min";
 export const teamEventSlug = "team-event-30min";
+
+export const IS_STRIPE_ENABLED = !!(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.STRIPE_PRIVATE_KEY &&
+  process.env.PAYMENT_FEE_FIXED &&
+  process.env.PAYMENT_FEE_PERCENTAGE
+);
 
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
@@ -43,9 +45,11 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
 
-  const waitForRequestCount = (count: number) =>
-    new Promise<void>((resolve) => {
+  const waitForRequestCount = (count: number) => {
+    let resolved = false;
+    return new Promise<void>((resolve, reject) => {
       if (requestList.length === count) {
+        resolved = true;
         resolve();
         return;
       }
@@ -55,11 +59,18 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
           return;
         }
         eventEmitter.off("push", pushHandler);
+        resolved = true;
         resolve();
       };
 
       eventEmitter.on("push", pushHandler);
+      setTimeout(() => {
+        if (resolved) return;
+        // Timeout after 10 seconds
+        reject(new Error("Timeout waiting for webhook"));
+      }, 10000);
     });
+  };
 
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];
@@ -96,7 +107,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
   // Let current month dates fully render.
-  await page.click('[data-testid="incrementMonth"]');
+  await page.getByTestId("incrementMonth").click();
 
   // Waiting for full month increment
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
@@ -106,7 +117,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) 
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  await page.click('[data-testid="incrementMonth"]');
+  await page.getByTestId("incrementMonth").click();
 
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
@@ -135,20 +146,35 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string; title?: string }) => {
+export const bookTimeSlot = async (
+  page: Page,
+  opts?: {
+    name?: string;
+    email?: string;
+    title?: string;
+    attendeePhoneNumber?: string;
+    expectedStatusCode?: number;
+  }
+) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
   await page.fill('[name="email"]', opts?.email ?? testEmail);
   if (opts?.title) {
     await page.fill('[name="title"]', opts.title);
   }
-  await page.press('[name="email"]', "Enter");
+  if (opts?.attendeePhoneNumber) {
+    await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
+  }
+  await submitAndWaitForResponse(page, "/api/book/event", {
+    action: () => page.locator('[name="email"]').press("Enter"),
+    expectedStatusCode: opts?.expectedStatusCode,
+  });
 };
 
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
-  const localeMap = await import(localeModule);
+  const localeMap = loadJSON(localeModule);
   return (message: string) => {
     if (message in localeMap) return localeMap[message];
     throw "No locale found for the given entry message";
@@ -167,9 +193,35 @@ export const createNewEventType = async (page: Page, args: { eventTitle: string 
   });
 };
 
+export async function setupManagedEvent({
+  users,
+  unlockedFields,
+}: {
+  users: Fixtures["users"];
+  unlockedFields?: Record<string, boolean>;
+}) {
+  const teamMateName = "teammate-1";
+  const teamEventTitle = "Managed";
+  const adminUser = await users.create(null, {
+    hasTeam: true,
+    teammates: [{ name: teamMateName }],
+    teamEventTitle,
+    teamEventSlug: "managed",
+    schedulingType: "MANAGED",
+    addManagedEventToTeamMates: true,
+    managedEventUnlockedFields: unlockedFields,
+  });
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const memberUser = users.get().find((u) => u.name === teamMateName)!;
+  const { team } = await adminUser.getFirstTeamMembership();
+  const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
+  return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle, teamId: team.id };
+}
+
 export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
   const eventTitle = args.eventTitle;
   await createNewEventType(page, { eventTitle });
+  await page.waitForSelector('[data-testid="event-title"]');
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
@@ -199,7 +251,7 @@ export async function gotoRoutingLink({
   await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
 
   // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 export async function installAppleCalendar(page: Page) {
@@ -210,8 +262,9 @@ export async function installAppleCalendar(page: Page) {
 }
 
 export async function getInviteLink(page: Page) {
-  const response = await page.waitForResponse("**/api/trpc/teams/createInvite?batch=1");
-  const json = await response.json();
+  const json = await submitAndWaitForJsonResponse(page, "/api/trpc/teams/createInvite?batch=1", {
+    action: () => page.locator(`[data-testid="copy-invite-link-button"]`).click(),
+  });
   return json[0].result.data.json.inviteLink as string;
 }
 
@@ -352,20 +405,51 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.click(".SubmitButton--complete-Shimmer");
 }
 
+export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: string }) {
+  return new Promise<{ success: boolean; url: string }>(async (resolve) => {
+    const onRequestFailed = (request: PlaywrightRequest) => {
+      const failedToLoadUrl = request.url();
+      console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+      resolve({ success: false, url: failedToLoadUrl });
+    };
+    page.on("requestfailed", onRequestFailed);
+    try {
+      await page.goto(url);
+    } catch (e) {}
+    page.off("requestfailed", onRequestFailed);
+    resolve({ success: true, url: page.url() });
+  });
+}
+
+/**
+ * Within this function's callback if a non-org domain is opened, it is considered an org domain identfied from `orgSlug`
+ */
 export async function doOnOrgDomain(
   { orgSlug, page }: { orgSlug: string | null; page: Page },
-  callback: ({ page }: { page: Page }) => Promise<void>
+  callback: ({
+    page,
+  }: {
+    page: Page;
+    goToUrlWithErrorHandling: (url: string) => ReturnType<typeof goToUrlWithErrorHandling>;
+  }) => Promise<any>
 ) {
   if (!orgSlug) {
     throw new Error("orgSlug is not available");
   }
+
   page.setExtraHTTPHeaders({
     "x-cal-force-slug": orgSlug,
   });
-  await callback({ page });
+  const callbackResult = await callback({
+    page,
+    goToUrlWithErrorHandling: (url: string) => {
+      return goToUrlWithErrorHandling({ page, url });
+    },
+  });
   await page.setExtraHTTPHeaders({
     "x-cal-force-slug": "",
   });
+  return callbackResult;
 }
 
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
@@ -388,5 +472,93 @@ export async function gotoBookingPage(page: Page) {
 }
 
 export async function saveEventType(page: Page) {
-  await page.locator("[data-testid=update-eventtype]").click();
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
+}
+
+/**
+ * Fastest way so far to test for saving changes and form submissions
+ * @see https://playwright.dev/docs/api/class-page#page-wait-for-response
+ */
+export async function submitAndWaitForResponse(
+  page: Page,
+  url: string,
+  { action = () => page.locator('[type="submit"]').click(), expectedStatusCode = 200 } = {}
+) {
+  const submitPromise = page.waitForResponse(url);
+  await action();
+  const response = await submitPromise;
+  expect(response.status()).toBe(expectedStatusCode);
+}
+export async function submitAndWaitForJsonResponse(
+  page: Page,
+  url: string,
+  { action = () => page.locator('[type="submit"]').click(), expectedStatusCode = 200 } = {}
+) {
+  const submitPromise = page.waitForResponse(url);
+  await action();
+  const response = await submitPromise;
+  expect(response.status()).toBe(expectedStatusCode);
+  return await response.json();
+}
+
+export async function confirmReschedule(page: Page, url = "/api/book/event") {
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
+  });
+}
+export async function confirmBooking(page: Page, url = "/api/book/event") {
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
+  });
+}
+
+export async function bookTeamEvent({
+  page,
+  team,
+  event,
+  teamMatesObj,
+  opts,
+}: {
+  page: Page;
+  team: {
+    slug: string | null;
+    name: string | null;
+  };
+  event: { slug: string; title: string; schedulingType: SchedulingType | null };
+  teamMatesObj?: { name: string }[];
+  opts?: { attendeePhoneNumber?: string };
+}) {
+  // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
+  // So, we are using /team in the URL to access the team booking
+  // There are separate tests to verify that the next.config.js rewrites are working
+  // Also there are additional checkly tests that verify absolute e2e flow. They are in __checks__/organization.spec.ts
+  await page.goto(`/team/${team.slug}/${event.slug}`);
+
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await bookTimeSlot(page, opts);
+  await expect(page.getByTestId("success-page")).toBeVisible();
+
+  // The title of the booking
+  if (event.schedulingType === SchedulingType.ROUND_ROBIN && teamMatesObj) {
+    const bookingTitle = await page.getByTestId("booking-title").textContent();
+
+    const isMatch = teamMatesObj?.some((teamMate) => {
+      const expectedTitle = `${event.title} between ${teamMate.name} and ${testName}`;
+      return expectedTitle.trim() === bookingTitle?.trim();
+    });
+
+    expect(isMatch).toBe(true);
+  } else {
+    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
+    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
+  }
+  // The booker should be in the attendee list
+  await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
+}
+
+export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
+  await page.goto(`${url}`);
+  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }

@@ -20,8 +20,6 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
 
-const hubspotClient = new hubspot.Client();
-
 interface CustomPublicObjectInput extends SimplePublicObjectInput {
   id?: string;
 }
@@ -33,8 +31,11 @@ export default class HubspotCalendarService implements CRM {
   private log: typeof logger;
   private client_id = "";
   private client_secret = "";
+  private hubspotClient: hubspot.Client;
 
   constructor(credential: CredentialPayload) {
+    this.hubspotClient = new hubspot.Client();
+
     this.integrationName = "hubspot_other_calendar";
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
@@ -63,7 +64,7 @@ export default class HubspotCalendarService implements CRM {
       },
     };
 
-    return hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
+    return this.hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
   };
 
   private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Array<{ id: string }>) => {
@@ -74,7 +75,7 @@ export default class HubspotCalendarService implements CRM {
         type: "meeting_event_to_contact",
       })),
     };
-    return hubspotClient.crm.associations.batchApi.create(
+    return this.hubspotClient.crm.associations.batchApi.create(
       "meetings",
       "contacts",
       batchInputPublicAssociation
@@ -94,11 +95,11 @@ export default class HubspotCalendarService implements CRM {
       },
     };
 
-    return hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
+    return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
   private hubspotDeleteMeeting = async (uid: string) => {
-    return hubspotClient.crm.objects.meetings.basicApi.archive(uid);
+    return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
   private hubspotAuth = async (credential: CredentialPayload) => {
@@ -120,7 +121,7 @@ export default class HubspotCalendarService implements CRM {
       try {
         const hubspotRefreshToken: HubspotToken = await refreshOAuthTokens(
           async () =>
-            await hubspotClient.oauth.tokensApi.createToken(
+            await this.hubspotClient.oauth.tokensApi.createToken(
               "refresh_token",
               undefined,
               `${WEBAPP_URL}/api/integrations/hubspot/callback`,
@@ -131,7 +132,6 @@ export default class HubspotCalendarService implements CRM {
           "hubspot",
           credential.userId
         );
-
         // set expiry date as offset from current time.
         hubspotRefreshToken.expiryDate = Math.round(Date.now() + hubspotRefreshToken.expiresIn * 1000);
         await prisma.credential.update({
@@ -143,7 +143,7 @@ export default class HubspotCalendarService implements CRM {
           },
         });
 
-        hubspotClient.setAccessToken(hubspotRefreshToken.accessToken);
+        this.hubspotClient.setAccessToken(hubspotRefreshToken.accessToken);
       } catch (e: unknown) {
         this.log.error(e);
       }
@@ -198,7 +198,7 @@ export default class HubspotCalendarService implements CRM {
     return await this.hubspotDeleteMeeting(uid);
   }
 
-  async getContacts(emails: string | string[]): Promise<Contact[]> {
+  async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
     const auth = await this.auth;
     await auth.getToken();
 
@@ -220,7 +220,7 @@ export default class HubspotCalendarService implements CRM {
       after: 0,
     };
 
-    const contacts = await hubspotClient.crm.contacts.searchApi
+    const contacts = await this.hubspotClient.crm.contacts.searchApi
       .doSearch(publicObjectSearchRequest)
       .then((apiResponse) => apiResponse.results);
 
@@ -248,7 +248,7 @@ export default class HubspotCalendarService implements CRM {
     });
     const createdContacts = await Promise.all(
       simplePublicObjectInputs.map((contact) =>
-        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
+        this.hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
           // If multiple events are created, subsequent events may fail due to
           // contact was created by previous event creation, so we introduce a
           // fallback taking advantage of the error message providing the contact id
@@ -268,5 +268,9 @@ export default class HubspotCalendarService implements CRM {
         email: contact.properties.email,
       };
     });
+  }
+
+  getAppOptions() {
+    console.log("No options implemented");
   }
 }

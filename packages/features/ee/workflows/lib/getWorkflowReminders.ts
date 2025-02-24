@@ -27,7 +27,16 @@ type PartialBooking =
       | "attendees"
       | "userPrimaryEmail"
       | "smsReminderNumber"
-    > & { eventType: (Partial<EventType> & { team: { parentId?: number } }) | null } & {
+      | "title"
+    > & {
+      eventType:
+        | (Partial<EventType> & {
+            slug: string;
+            team: { parentId?: number };
+            hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
+          })
+        | null;
+    } & {
       user: Partial<User> | null;
     })
   | null;
@@ -75,7 +84,7 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
     method: WorkflowMethods.EMAIL,
     cancelled: true,
     scheduledDate: {
-      lte: dayjs().toISOString(),
+      lt: dayjs().toISOString(),
     },
   };
 
@@ -159,6 +168,20 @@ export const select: Prisma.WorkflowReminderSelect = {
           bookingFields: true,
           title: true,
           slug: true,
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  destinationCalendar: {
+                    select: {
+                      primaryEmail: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           recurringEvent: true,
           team: {
             select: {
@@ -176,7 +199,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
     method: WorkflowMethods.EMAIL,
     scheduled: false,
     scheduledDate: {
-      lte: dayjs().add(72, "hour").toISOString(),
+      lte: dayjs().add(2, "hour").toISOString(),
     },
     OR: [{ cancelled: false }, { cancelled: null }],
   };

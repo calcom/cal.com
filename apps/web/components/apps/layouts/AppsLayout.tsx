@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";
 
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui";
 
@@ -11,7 +11,7 @@ type AppsLayoutProps = {
   children: React.ReactNode;
   actions?: (className?: string) => JSX.Element;
   emptyStore?: boolean;
-} & Omit<ComponentProps<typeof ShellMain>, "actions">;
+} & Omit<ComponentProps<typeof Shell>, "actions">;
 
 export default function AppsLayout({ children, actions, emptyStore, ...rest }: AppsLayoutProps) {
   const { t } = useLocale();
@@ -21,7 +21,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
 
   if (session.status === "loading") return <></>;
   return (
-    <ShellMain {...rest} actions={actions?.("block")} hideHeadingOnMobile>
+    <Shell {...rest} actions={actions?.("block")}>
       <div className="flex flex-col xl:flex-row">
         <main className="w-full">
           {emptyStore ? (
@@ -37,6 +37,6 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
           )}
         </main>
       </div>
-    </ShellMain>
+    </Shell>
   );
 }

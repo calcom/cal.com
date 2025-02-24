@@ -12,7 +12,6 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { GroupBase, Props } from "react-select";
 
-import type { AvailabilityFormValues } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
@@ -48,7 +47,6 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   name,
   weekday,
   control,
-  handleSubmit,
   CopyButton,
   disabled,
   labels,
@@ -58,7 +56,6 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   name: ArrayPath<TFieldValues>;
   weekday: string;
   control: Control<TFieldValues>;
-  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
   CopyButton: JSX.Element;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
@@ -71,7 +68,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
     scheduleContainer?: string;
   };
 }) => {
-  const { watch, setValue, getValues } = useFormContext();
+  const { watch, setValue } = useFormContext();
   const watchDayRange = watch(name);
 
   return (
@@ -97,7 +94,6 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 data-testid={`${weekday}-switch`}
                 onCheckedChange={(isChecked) => {
                   setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
-                  handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
                 }}
               />
             </div>
@@ -115,7 +111,6 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               control={control}
               name={name}
               disabled={disabled}
-              handleSubmit={handleSubmit}
               className={{
                 dayRanges: className?.dayRanges,
                 timeRangeField: className?.timeRangeField,
@@ -133,12 +128,10 @@ const CopyButton = ({
   getValuesFromDayRange,
   weekStart,
   labels,
-  handleSubmit,
 }: {
   getValuesFromDayRange: string;
   weekStart: number;
   labels?: ScheduleLabelsType;
-  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
@@ -167,7 +160,6 @@ const CopyButton = ({
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
             setOpen(false);
-            handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
           }}
           onCancel={() => setOpen(false)}
         />
@@ -184,7 +176,6 @@ const Schedule = <
   control: Control<TFieldValues>;
   weekStart?: number;
   disabled?: boolean;
-  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
   labels?: ScheduleLabelsType;
   userTimeFormat?: number | null;
 }) => {
@@ -200,7 +191,6 @@ export const ScheduleComponent = <
 >({
   name,
   control,
-  handleSubmit,
   disabled,
   weekStart = 0,
   labels,
@@ -209,7 +199,6 @@ export const ScheduleComponent = <
 }: {
   name: TPath;
   control: Control<TFieldValues>;
-  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
   weekStart?: number;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
@@ -245,14 +234,8 @@ export const ScheduleComponent = <
             key={weekday}
             weekday={weekday}
             control={control}
-            handleSubmit={handleSubmit}
             CopyButton={
-              <CopyButton
-                weekStart={weekStart}
-                labels={labels}
-                getValuesFromDayRange={dayRangeName}
-                handleSubmit={handleSubmit}
-              />
+              <CopyButton weekStart={weekStart} labels={labels} getValuesFromDayRange={dayRangeName} />
             }
           />
         );
@@ -268,7 +251,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   labels,
   userTimeFormat,
   className,
-  handleSubmit,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
@@ -279,7 +261,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     dayRanges?: string;
     timeRangeField?: string;
   };
-  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -302,7 +283,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 <TimeRangeField
                   className={className?.timeRangeField}
                   userTimeFormat={userTimeFormat}
-                  handleSubmit={handleSubmit}
                   {...field}
                 />
               )}
@@ -326,23 +306,16 @@ export const DayRanges = <TFieldValues extends FieldValues>({
 
                   if (slotRange?.append) {
                     append(slotRange.append);
-                    handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
                   }
 
                   if (slotRange?.prepend) {
                     prepend(slotRange.prepend);
-                    handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
                   }
                 }}
               />
             )}
             {index !== 0 && (
-              <RemoveTimeButton
-                index={index}
-                remove={remove}
-                handleSubmit={handleSubmit}
-                className="text-default mx-2 border-none"
-              />
+              <RemoveTimeButton index={index} remove={remove} className="text-default border-none" />
             )}
           </div>
         </Fragment>
@@ -357,17 +330,14 @@ const RemoveTimeButton = ({
   disabled,
   className,
   labels,
-  handleSubmit,
 }: {
   index: number | number[];
   remove: UseFieldArrayRemove;
   className?: string;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
-  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { t } = useLocale();
-  const { getValues } = useFormContext();
   return (
     <Button
       disabled={disabled}
@@ -375,10 +345,7 @@ const RemoveTimeButton = ({
       variant="icon"
       color="destructive"
       StartIcon="trash"
-      onClick={() => {
-        remove(index);
-        handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
-      }}
+      onClick={() => remove(index)}
       className={className}
       tooltip={labels?.deleteTime ?? t("delete")}
     />
@@ -391,14 +358,11 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
-  handleSubmit,
 }: {
   className?: string;
   disabled?: boolean;
   userTimeFormat: number | null;
-  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
 } & ControllerRenderProps) => {
-  const { getValues } = useFormContext();
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
     <div className={classNames("flex flex-row gap-2 sm:gap-3", className)}>
@@ -417,7 +381,6 @@ const TimeRangeField = ({
           } else {
             onChange({ ...value, start: newStart });
           }
-          handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
       />
       <span className="text-default w-2 self-center"> - </span>
@@ -430,7 +393,6 @@ const TimeRangeField = ({
         menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
-          handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
       />
     </div>

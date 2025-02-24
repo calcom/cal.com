@@ -1,4 +1,4 @@
-import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/app-store/stripepayment/lib/currencyConversions";
+import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/app-store/_utils/payments/currencyConversions";
 
 export const formatPrice = (price: number, currency: string | undefined, locale = "en") => {
   switch (currency) {

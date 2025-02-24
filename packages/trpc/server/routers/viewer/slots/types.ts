@@ -20,16 +20,26 @@ export const getScheduleSchema = z
       .string()
       .optional()
       .transform((val) => val && parseInt(val)),
-    rescheduleUid: z.string().optional().nullable(),
+    rescheduleUid: z.string().nullish(),
     // whether to do team event or user event
     isTeamEvent: z.boolean().optional().default(false),
-    orgSlug: z.string().optional(),
-    bookerEmail: z.string().optional(),
+    orgSlug: z.string().nullish(),
+    teamMemberEmail: z.string().nullish(),
+    routedTeamMemberIds: z.array(z.number()).nullish(),
+    skipContactOwner: z.boolean().nullish(),
+    _enableTroubleshooter: z.boolean().optional(),
+    _bypassCalendarBusyTimes: z.boolean().optional(),
+    _shouldServeCache: z.boolean().optional(),
+    routingFormResponseId: z.number().optional(),
+    email: z.string().nullish(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API
     if (val.usernameList) {
       val.usernameList = Array.isArray(val.usernameList) ? val.usernameList : [val.usernameList];
+    }
+    if (!val.orgSlug) {
+      val.orgSlug = null;
     }
     return val;
   })
@@ -46,6 +56,7 @@ export const reserveSlotSchema = z
     // endTime ISOString
     slotUtcEndDate: z.string(),
     bookingUid: z.string().optional(),
+    _isDryRun: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,

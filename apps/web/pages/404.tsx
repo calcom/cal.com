@@ -9,11 +9,10 @@ import {
   getOrgDomainConfigFromHostname,
   subdomainSuffix,
 } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, IS_CALCOM, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
-import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -34,7 +33,7 @@ export default function Custom404() {
 
   const links = [
     {
-      title: "Enterprise",
+      title: t("enterprise"),
       description: "Learn more about organizations and subdomains in our enterprise plan.",
       icon: "shield" as const,
       href: `${WEBSITE_URL}/enterprise`,
@@ -156,7 +155,7 @@ export default function Custom404() {
             ) : (
               <span className="mt-2 inline-block text-lg">
                 {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
-                <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
+                <strong className="mt-2 inline-block text-lg text-green-500">{username}</strong>{" "}
                 {t("is_still_available")}
               </span>
             )}
@@ -233,29 +232,6 @@ export default function Custom404() {
                     </a>
                   </li>
                 ))}
-              <li className="px-4 py-2">
-                <a
-                  href={JOIN_DISCORD}
-                  className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                  <div className="flex-shrink-0">
-                    <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                      <Discord className="text-default h-6 w-6" />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-emphasis text-base font-medium">
-                      <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        Discord
-                      </span>
-                    </h3>
-                    <p className="text-subtle text-base">{t("join_our_community")}</p>
-                  </div>
-                  <div className="flex-shrink-0 self-center">
-                    <Icon name="chevron-right" className="text-muted h-5 w-5" aria-hidden="true" />
-                  </div>
-                </a>
-              </li>
             </ul>
             <div className="mt-8">
               <Link href={WEBSITE_URL} className="hover:text-subtle text-emphasis text-base font-medium">

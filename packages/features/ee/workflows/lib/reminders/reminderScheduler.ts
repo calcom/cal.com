@@ -6,7 +6,8 @@ import {
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
+import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
@@ -14,9 +15,16 @@ import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
-export type ExtendedCalendarEvent = CalendarEvent & {
+export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
-  eventType: { slug?: string };
+  eventType: {
+    slug: string;
+    schedulingType?: SchedulingType | null;
+    hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
+  };
+  rescheduleReason?: string | null;
+  cancellationReason?: string | null;
+  bookerUrl: string;
 };
 
 type ProcessWorkflowStepParams = {
@@ -32,6 +40,7 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
+  isDryRun?: boolean;
 }
 
 const processWorkflowStep = async (
@@ -85,13 +94,38 @@ const processWorkflowStep = async (
         break;
       case WorkflowActions.EMAIL_HOST:
         sendTo = [evt.organizer?.email || ""];
+
+        const schedulingType = evt.eventType.schedulingType;
+        const isTeamEvent =
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+        if (isTeamEvent && evt.team?.members) {
+          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
+        }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
         const attendees = !!emailAttendeeSendToOverride
           ? [emailAttendeeSendToOverride]
           : evt.attendees?.map((attendee) => attendee.email);
 
-        sendTo = attendees;
+        const limitGuestsDate = new Date("2025-01-13");
+
+        if (workflow.userId) {
+          const user = await prisma.user.findFirst({
+            where: {
+              id: workflow.userId,
+            },
+            select: {
+              createdDate: true,
+            },
+          });
+          if (user?.createdDate && user.createdDate > limitGuestsDate) {
+            sendTo = attendees.slice(0, 1);
+          } else {
+            sendTo = attendees;
+          }
+        } else {
+          sendTo = attendees;
+        }
 
         break;
     }
@@ -147,7 +181,9 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
+    isDryRun = false,
   } = args;
+  if (isDryRun) return;
   if (isNotConfirmed || !workflows.length) return;
 
   for (const workflow of workflows) {

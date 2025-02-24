@@ -5,27 +5,19 @@ import type { SSRConfig } from "next-i18next";
 // import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
-import type { ReactNode } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 
-import type { AppProps } from "@lib/app-providers-app-dir";
 import AppProviders from "@lib/app-providers-app-dir";
 
-export interface CalPageWrapper {
-  (props?: AppProps): JSX.Element;
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-}
-
 export type PageWrapperProps = Readonly<{
-  getLayout: ((page: React.ReactElement) => ReactNode) | null;
+  getLayout?: ((page: React.ReactElement) => React.ReactNode) | null;
   children: React.ReactNode;
   requiresLicense: boolean;
   nonce: string | undefined;
   themeBasis: string | null;
   dehydratedState?: DehydratedState;
-  isThemeSupported?: boolean;
   isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;
@@ -38,6 +30,8 @@ function PageWrapper(props: PageWrapperProps) {
     pageStatus = "404";
   } else if (pathname === "/500") {
     pageStatus = "500";
+  } else if (pathname === "/403") {
+    pageStatus = "403";
   }
 
   // On client side don't let nonce creep into DOM
@@ -50,7 +44,7 @@ function PageWrapper(props: PageWrapperProps) {
     nonce,
   };
 
-  const getLayout: (page: React.ReactElement) => ReactNode = props.getLayout ?? ((page) => page);
+  const getLayout: (page: React.ReactElement) => React.ReactNode = props.getLayout ?? ((page) => page);
 
   return (
     <AppProviders {...providerProps}>
@@ -59,6 +53,9 @@ function PageWrapper(props: PageWrapperProps) {
         <Script
           nonce={nonce}
           id="page-status"
+          // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+          // And we don't want it to error here anyways
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
         />
         {getLayout(

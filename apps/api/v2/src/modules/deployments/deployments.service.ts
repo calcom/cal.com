@@ -33,7 +33,7 @@ export class DeploymentsService {
     if (!licenseKey) {
       return false;
     }
-    const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `?key=${licenseKey}`;
+    const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `/${licenseKey}`;
     const cachedData = await this.redisService.redis.get(getLicenseCacheKey(licenseKey));
     if (cachedData) {
       return (JSON.parse(cachedData) as LicenseCheckResponse)?.valid;

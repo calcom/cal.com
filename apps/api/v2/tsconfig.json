@@ -17,7 +17,8 @@
       "@prisma/client/*": ["@calcom/prisma/client/*"],
       "@calcom/platform-constants": ["../../../packages/platform/constants/index.ts"],
       "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],
-      "@calcom/platform-utils": ["../../../packages/platform/utils/index.ts"]
+      "@calcom/platform-utils": ["../../../packages/platform/utils/index.ts"],
+      "@calcom/platform-enums": ["../../../packages/platform/enums/index.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { parseBookingLimit } from "@calcom/lib";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -100,6 +101,13 @@ export async function getTeamWithMembers(args: {
           isOrganization: true,
           logoUrl: true,
           metadata: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+              orgProfileRedirectsToVerifiedDomain: true,
+              orgAutoAcceptEmail: true,
+            },
+          },
         },
       },
       parentId: true,
@@ -155,6 +163,13 @@ export async function getTeamWithMembers(args: {
           expires: true,
           expiresInDays: true,
           identifier: true,
+        },
+      },
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
+          orgProfileRedirectsToVerifiedDomain: true,
+          orgAutoAcceptEmail: true,
         },
       },
     },
@@ -260,6 +275,107 @@ export async function getTeamWithMembers(args: {
   };
 }
 
+export async function getTeamWithoutMembers(args: {
+  id?: number;
+  slug?: string;
+  userId?: number;
+  orgSlug?: string | null;
+  /**
+   * If true, means that you are fetching an organization and not a team
+   */
+  isOrgView?: boolean;
+}) {
+  const { id, slug, userId, orgSlug, isOrgView } = args;
+
+  let lookupBy;
+
+  if (id) {
+    lookupBy = { id, havingMemberWithId: userId };
+  } else if (slug) {
+    lookupBy = { slug, havingMemberWithId: userId };
+  } else {
+    throw new Error("Must provide either id or slug");
+  }
+
+  const arg = {
+    lookupBy,
+    forOrgWithSlug: orgSlug ?? null,
+    isOrg: !!isOrgView,
+    teamSelect: {
+      id: true,
+      name: true,
+      slug: true,
+      isOrganization: true,
+      logoUrl: true,
+      bio: true,
+      hideBranding: true,
+      hideBookATeamMember: true,
+      isPrivate: true,
+      metadata: true,
+      bookingLimits: true,
+      includeManagedEventsInLimits: true,
+      parent: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          isPrivate: true,
+          isOrganization: true,
+          logoUrl: true,
+          metadata: true,
+        },
+      },
+      parentId: true,
+      children: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+      theme: true,
+      brandColor: true,
+      darkBrandColor: true,
+      inviteTokens: {
+        select: {
+          token: true,
+          expires: true,
+          expiresInDays: true,
+          identifier: true,
+        },
+      },
+    },
+  } as const;
+
+  const teamOrOrg = isOrgView ? await getOrg(arg) : await getTeam(arg);
+
+  if (!teamOrOrg) return null;
+
+  // Don't leak invite tokens to the frontend
+  const { inviteTokens, ...teamWithoutInviteTokens } = teamOrOrg;
+
+  // Don't leak stripe payment ids
+  const teamMetadata = teamOrOrg.metadata;
+  const {
+    paymentId: _,
+    subscriptionId: __,
+    subscriptionItemId: ___,
+    ...restTeamMetadata
+  } = teamMetadata || {};
+
+  return {
+    ...teamWithoutInviteTokens,
+    ...(teamWithoutInviteTokens.logoUrl ? { logo: teamWithoutInviteTokens.logoUrl } : {}),
+    /** To prevent breaking we only return non-email attached token here, if we have one */
+    inviteToken: inviteTokens.find(
+      (token) =>
+        token.identifier === `invite-link-for-teamId-${teamOrOrg.id}` &&
+        token.expires > new Date(new Date().setHours(24))
+    ),
+    metadata: restTeamMetadata,
+    bookingLimits: parseBookingLimit(teamOrOrg.bookingLimits),
+  };
+}
+
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
   const team = await prisma.membership.findFirst({
@@ -317,7 +433,9 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
     },
   });
 
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
+    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  });
 
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
@@ -346,12 +464,15 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
               bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
               durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+              eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
+              rrSegmentQueryValue:
+                (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
               onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
               userId,
               users: {
                 connect: [{ id: userId }],
               },
-              parentId: eventType.parentId,
+              parentId: eventType.id,
               hidden: false,
               workflows: currentWorkflowIds && {
                 create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),

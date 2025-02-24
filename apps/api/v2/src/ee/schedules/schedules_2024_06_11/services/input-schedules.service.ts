@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 
-import {
-  transformApiScheduleOverrides,
-  transformApiScheduleAvailability,
-} from "@calcom/platform-libraries-0.0.21";
+import { transformApiScheduleOverrides, transformApiScheduleAvailability } from "@calcom/platform-libraries";
 import { CreateScheduleInput_2024_06_11, ScheduleAvailabilityInput_2024_06_11 } from "@calcom/platform-types";
 import { ScheduleOverrideInput_2024_06_11 } from "@calcom/platform-types";
 

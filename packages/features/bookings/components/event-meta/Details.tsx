@@ -4,7 +4,7 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import classNames from "@calcom/lib/classNames";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, type IconName } from "@calcom/ui";
 
@@ -142,7 +142,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         switch (block) {
           case EventDetailBlocks.DURATION:
             return (
-              <EventMetaBlock key={block} icon="clock">
+              <EventMetaBlock key={block} icon="clock" className="items-center">
                 <EventDuration event={event} />
               </EventMetaBlock>
             );

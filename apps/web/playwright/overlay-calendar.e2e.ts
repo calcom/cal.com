@@ -2,7 +2,7 @@ export {};
 //  TODO: @sean - I can't run E2E locally - causing me a lot of pain to try and debug.
 //  Will tackle in follow up once i reset my system.
 // test.describe("User can overlay their calendar", async () => {
-//   test.afterAll(async ({ users }) => {
+//   test.afterEach(async ({ users }) => {
 //     await users.deleteAll();
 //   });
 //   test("Continue with Cal.com flow", async ({ page, users }) => {
@@ -31,7 +31,6 @@ export {};
 //     await test.step("Settings should so no calendars connected", async () => {
 //       const settingsCog = page.locator(`[data-testid=overlay-calendar-settings-button]`);
 //       await settingsCog.click();
-//       await page.waitForLoadState("networkidle");
 //       const emptyScreenLocator = page.locator(`[data-testid=empty-screen]`);
 //       await expect(emptyScreenLocator).toBeVisible();
 //     });

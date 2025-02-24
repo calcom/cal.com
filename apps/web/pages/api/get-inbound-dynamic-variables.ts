@@ -3,11 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { ZGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import type { TGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { getRetellLLMSchema } from "@calcom/prisma/zod-utils";
-import type { TGetRetellLLMSchema } from "@calcom/prisma/zod-utils";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 dayjs.extend(advancedFormat);
@@ -53,7 +53,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const body = response.data;
 
-  const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(getRetellLLMSchema.parse);
+  const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(ZGetRetellLLMSchema.parse);
 
   const { eventTypeId, timezone } = getEventTypeIdFromRetellLLM(retellLLM);
 
@@ -85,7 +85,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const startTime = now.startOf("month").toISOString();
   const endTime = now.add(2, "month").endOf("month").toISOString();
-  const orgSlug = eventType?.team?.parent?.slug ?? undefined;
+  const orgSlug = eventType?.team?.parent?.slug ?? null;
 
   const availableSlots = await getAvailableSlots({
     input: {

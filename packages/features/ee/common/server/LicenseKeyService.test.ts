@@ -92,6 +92,7 @@ describe("LicenseKeyService", () => {
         },
         method: "POST",
         mode: "cors",
+        signal: expect.any(AbortSignal),
       });
     });
 
@@ -113,6 +114,7 @@ describe("LicenseKeyService", () => {
         },
         method: "POST",
         mode: "cors",
+        signal: expect.any(AbortSignal),
       });
     });
   });
@@ -161,6 +163,7 @@ describe("LicenseKeyService", () => {
           "x-cal-license-key": "test-license-key",
         },
         mode: "cors",
+        signal: expect.any(AbortSignal),
       });
     });
 
@@ -184,6 +187,7 @@ describe("LicenseKeyService", () => {
           "x-cal-license-key": "test-license-key",
         },
         mode: "cors",
+        signal: expect.any(AbortSignal),
       });
     });
   });

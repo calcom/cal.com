@@ -3,15 +3,17 @@
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import { Button, HeadSeo, Icon, EmptyScreen } from "@calcom/ui";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import { Button, Icon, EmptyScreen } from "@calcom/ui";
 
-import { type PageProps } from "./videos-meeting-not-started-single-view.getServerSideProps";
+import type { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function MeetingNotStarted(props: PageProps) {
   const { t } = useLocale();
   return (
     <>
-      <HeadSeo title={t("this_meeting_has_not_started_yet")} description={props.booking.title} />
       <main className="mx-auto my-24 max-w-3xl">
         <EmptyScreen
           Icon="clock"

@@ -4,9 +4,12 @@ import type { Dispatch } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
 
-import type { Action, State } from "./UserListTable";
+import type { UserTableAction, UserTableState } from "./types";
 
-export function ImpersonationMemberModal(props: { state: State; dispatch: Dispatch<Action> }) {
+export function ImpersonationMemberModal(props: {
+  state: UserTableState;
+  dispatch: Dispatch<UserTableAction>;
+}) {
   const { t } = useLocale();
   const { data: session } = useSession();
   const teamId = session?.user.org?.id;

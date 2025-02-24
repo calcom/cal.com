@@ -8,9 +8,11 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -31,10 +33,10 @@ describe("Organizations Schedules Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = "mr-robot@schedules-api.com";
+    const userEmail = `organizations-schedules-member-${randomString()}@api.com`;
     let user: User;
     let org: Team;
     let membership: Membership;
@@ -48,11 +50,11 @@ describe("Organizations Schedules Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Ecorp",
+        name: `organizations-schedules-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -110,16 +112,19 @@ describe("Organizations Schedules Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const userEmail = "mr-robot@schedules-api.com";
-    const username = "mr-robot";
+    const userEmail = `organizations-schedules-admin-${randomString()}@api.com`;
+    const userEmail2 = `organizations-schedules-member-${randomString()}@api.com`;
     let user: User;
+    let user2: User;
     let org: Team;
-    let profile: Profile;
     let membership: Membership;
+    let membership2: Membership;
+    let profile: Profile;
+    let profile2: Profile;
 
     let createdSchedule: ScheduleOutput_2024_06_11;
 
@@ -146,12 +151,12 @@ describe("Organizations Schedules Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Ecorp",
+        name: `organizations-schedules-admin-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -163,7 +168,7 @@ describe("Organizations Schedules Endpoints", () => {
 
       profile = await profileRepositoryFixture.create({
         uid: `usr-${user.id}`,
-        username: username,
+        username: userEmail,
         organization: {
           connect: {
             id: org.id,

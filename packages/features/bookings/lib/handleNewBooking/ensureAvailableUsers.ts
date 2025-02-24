@@ -4,11 +4,12 @@ import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
-import { checkForConflicts } from "../conflictChecker/checkForConflicts";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { IsFixedAwareUser, BookingType } from "./types";
 
@@ -52,8 +53,10 @@ export async function ensureAvailableUsers(
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  loggerWithEventDetails: Logger<unknown>
-) {
+  loggerWithEventDetails: Logger<unknown>,
+  shouldServeCache?: boolean
+  // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
+): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> {
   const availableUsers: IsFixedAwareUser[] = [];
 
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);
@@ -87,11 +90,31 @@ export async function ensureAvailableUsers(
       returnDateOverrides: false,
       dateFrom: startDateTimeUtc.format(),
       dateTo: endDateTimeUtc.format(),
+      beforeEventBuffer: eventType.beforeEventBuffer,
+      afterEventBuffer: eventType.afterEventBuffer,
+      bypassBusyCalendarTimes: false,
+      shouldServeCache,
     },
     initialData: {
       eventType,
       rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
       busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+    },
+  });
+
+  const piiFreeInputDataForLogging = safeStringify({
+    startDateTimeUtc,
+    endDateTimeUtc,
+    ...{
+      ...input,
+      originalRescheduledBooking: input.originalRescheduledBooking
+        ? {
+            ...input.originalRescheduledBooking,
+            user: input.originalRescheduledBooking?.user
+              ? getPiiFreeUser(input.originalRescheduledBooking.user)
+              : null,
+          }
+        : undefined,
     },
   });
 
@@ -106,31 +129,23 @@ export async function ensureAvailableUsers(
     if (!dateRanges.length) {
       loggerWithEventDetails.error(
         `User does not have availability at this time.`,
-        safeStringify({
-          startDateTimeUtc,
-          endDateTimeUtc,
-          input,
-        })
+        piiFreeInputDataForLogging
       );
       return;
     }
 
     //check if event time is within the date range
     if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
-      loggerWithEventDetails.error(
-        `No date range for booking.`,
-        safeStringify({
-          startDateTimeUtc,
-          endDateTimeUtc,
-          input,
-        })
-      );
+      loggerWithEventDetails.error(`No date range for booking.`, piiFreeInputDataForLogging);
       return;
     }
 
     try {
-      const foundConflict = checkForConflicts(bufferedBusyTimes, startDateTimeUtc, duration);
-      // no conflicts found, add to available users.
+      const foundConflict = checkForConflicts({
+        busy: bufferedBusyTimes,
+        time: startDateTimeUtc,
+        eventLength: duration,
+      });
       if (!foundConflict) {
         availableUsers.push(user);
       }
@@ -139,17 +154,10 @@ export async function ensureAvailableUsers(
     }
   });
 
-  if (!availableUsers.length) {
-    loggerWithEventDetails.error(
-      `No available users found.`,
-      safeStringify({
-        startDateTimeUtc,
-        endDateTimeUtc,
-        input,
-      })
-    );
+  if (availableUsers.length === 0) {
+    loggerWithEventDetails.error(`No available users found.`, piiFreeInputDataForLogging);
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
-
-  return availableUsers;
+  // make sure TypeScript understands availableUsers is at least one.
+  return availableUsers.length === 1 ? [availableUsers[0]] : [availableUsers[0], ...availableUsers.slice(1)];
 }
