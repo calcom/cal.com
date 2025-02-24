@@ -287,7 +287,7 @@ const AppProviders = (props: PageWrapperProps) => {
     RemainingProviders
   );
 
-  if (isBookingPage) {
+  if (props.isBookingPage || isBookingPage) {
     return Hydrated;
   }
 

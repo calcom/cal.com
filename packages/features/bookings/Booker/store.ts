@@ -134,7 +134,7 @@ export type BookerStore = {
   initialize: (data: StoreInitializeType) => void;
   /**
    * Stored form state, used when user navigates back and
-   * forth between timeslots and form. Get's cleared on submit
+   * forth between timeslots and form. Gets cleared on submit
    * to prevent sticky data.
    */
   formValues: Record<string, any>;
@@ -210,7 +210,13 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
-    const newSelection = currentSelection.add(days, "day");
+    let newSelection = currentSelection.add(days, "day");
+
+    // If newSelection is before the current date, set it to today
+    if (newSelection.isBefore(dayjs(), "day")) {
+      newSelection = dayjs();
+    }
+
     const newSelectionFormatted = newSelection.format("YYYY-MM-DD");
 
     if (newSelection.month() !== currentSelection.month()) {

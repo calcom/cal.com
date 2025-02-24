@@ -1,6 +1,6 @@
 "use client";
 
-import type { Table as ReactTableType } from "@tanstack/react-table";
+import type { Table as ReactTableType, VisibilityState } from "@tanstack/react-table";
 import { useEffect, useRef } from "react";
 
 import {
@@ -61,11 +61,16 @@ export function DataTableWrapper<TData, TValue>({
   const columnFilters = useColumnFilters();
 
   useEffect(() => {
+    const mergedColumnVisibility = {
+      ...(table.initialState?.columnVisibility || {}),
+      ...columnVisibility,
+    } satisfies VisibilityState;
+
     table.setState((prev) => ({
       ...prev,
       sorting,
       columnFilters,
-      columnVisibility,
+      columnVisibility: mergedColumnVisibility,
     }));
     table.setOptions((prev) => ({
       ...prev,
