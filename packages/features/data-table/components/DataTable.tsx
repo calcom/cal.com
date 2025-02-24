@@ -265,6 +265,7 @@ function DataTableBody<TData>({
               className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
               {row.getVisibleCells().map((cell) => {
                 const column = cell.column;
+                const meta = column?.columnDef.meta;
                 return (
                   <TableCell
                     key={cell.id}
