@@ -2961,5 +2961,6 @@
   "desc": "Φθίνουσα",
   "verify_email": "Επαλήθευση email",
   "verify_email_change": "Επαλήθευση αλλαγής email",
+  "end_date_not_selected": "Δεν ορίσατε ημερομηνία λήξης για την απουσία σας",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
