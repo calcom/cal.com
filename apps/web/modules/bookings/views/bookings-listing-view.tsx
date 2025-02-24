@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -17,7 +17,6 @@ import {
   DataTableFilters,
   ColumnFilterType,
   useFilterValue,
-  useDataTable,
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
@@ -111,20 +110,10 @@ function BookingsContent({ status }: BookingsProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   useProperHeightForMobile(tableContainerRef);
 
-  const { updateFilter } = useDataTable();
-
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const dateRange = useFilterValue("time", ZDateRangeFilterValue)?.data;
-
-  useEffect(() => {
-    // For team admins/owners, initialize the userId filter to their own ID
-    // This only happens once on initial load if no userIds are already selected
-    if (user && user.isTeamAdminOrOwner && !userIds?.length) {
-      updateFilter("userId", { type: ColumnFilterType.MULTI_SELECT, data: [user.id] });
-    }
-  }, [user, status]);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
