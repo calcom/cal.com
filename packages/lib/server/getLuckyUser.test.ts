@@ -6,7 +6,7 @@ import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
-import { AttributeType } from "@calcom/prisma/enums";
+import { AttributeType, RRResetInterval } from "@calcom/prisma/enums";
 
 import { getLuckyUser, prepareQueuesAndAttributesData } from "./getLuckyUser";
 
@@ -65,7 +65,7 @@ it("can find lucky user with maximize availability", async () => {
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -118,7 +118,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -175,7 +175,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -237,7 +237,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -328,7 +328,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -426,7 +426,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -524,7 +524,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -609,7 +609,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -706,7 +706,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -791,7 +791,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -816,7 +816,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -1190,7 +1190,7 @@ describe("attribute weights and virtual queues", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { parentId: 1 },
+          team: { parentId: 1, rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse,
