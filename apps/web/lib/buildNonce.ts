@@ -17,7 +17,7 @@ export const buildNonce = (uint8array: Uint8Array): string => {
   // for each random byte, we take:
   // a) only the last 6 bits (so we map them to the base64 alphabet)
   // b) for the last byte, we are interested in two bits
-  // explaination:
+  // explanation:
   // 16*8 bits = 128 bits of information (order: left->right)
   // 22*6 bits = 132 bits (order: left->right)
   // thus the last byte has 4 redundant (least-significant, right-most) bits

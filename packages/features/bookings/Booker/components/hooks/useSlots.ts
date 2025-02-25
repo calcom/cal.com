@@ -4,30 +4,29 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import {
   MINUTES_TO_BOOK,
   PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS,
   PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
 } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
+import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 
-export type SlotQuickCheckStatus = "available" | "reserved";
-
-export type QuickAvailabilityCheck = {
-  utcStartIso: string;
-  utcEndIso: string;
-  status: SlotQuickCheckStatus;
-};
+export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
 
 const useQuickAvailabilityChecks = ({
   eventTypeId,
   eventDuration,
   timeslotsAsISOString,
+  slotReservationId,
 }: {
   eventTypeId: number | undefined;
   eventDuration: number;
   timeslotsAsISOString: string[];
+  slotReservationId: string | undefined | null;
 }) => {
   // Maintain a cache to ensure previous state is maintained as the request is fetched
   // It is important because tentatively selecting a new timeslot will cause a new request which is uncached.
@@ -52,12 +51,17 @@ const useQuickAvailabilityChecks = ({
     {
       refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
       refetchOnWindowFocus: true,
-      enabled: !!(eventTypeId && timeslotsAsISOString.length > 0),
+      // We must have slotReservationId because it is possible that slotReservationId is set right after isAvailable request is made and we accidentally could consider the slot as unavailable.
+      // isAvailable request also prevents querying reserved slots if uid is not set. We are safe from both sides.
+      // TODO: We should move to creating uuid client side for reservation and not waiting for server to set uid cookie.
+      enabled: !!(eventTypeId && timeslotsAsISOString.length > 0 && slotReservationId),
       staleTime: PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS * 1000,
     }
   );
 
   const quickAvailabilityChecks = isAvailableQuery.data?.slots;
+
+  // Only valid slots response should override the cache. In worst case, we let the actual booking flow(book/event call) decide whether to go ahead with the booking or not.
   if (quickAvailabilityChecks && quickAvailabilityChecks.length > 0) {
     cachedQuickAvailabilityChecksRef.current = quickAvailabilityChecks;
   }
@@ -69,7 +73,7 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | null }) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-
+  const searchParams = useCompatSearchParams();
   const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
     useBookerStore(
       (state) => [
@@ -113,6 +117,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     eventTypeId,
     eventDuration,
     timeslotsAsISOString: allUniqueSelectedTimeslots,
+    slotReservationId,
   });
 
   // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
@@ -124,6 +129,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
         slotUtcStartDate: dayjs(timeSlotToBeBooked).utc().toISOString(),
         eventTypeId,
         slotUtcEndDate: dayjs(timeSlotToBeBooked).utc().add(eventDuration, "minutes").toISOString(),
+        _isDryRun: isBookingDryRun(searchParams),
       });
     }
   };

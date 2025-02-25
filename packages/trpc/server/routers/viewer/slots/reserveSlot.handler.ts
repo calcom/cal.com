@@ -22,7 +22,7 @@ interface ReserveSlotOptions {
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
   const uid = req?.cookies?.uid || uuid();
-  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid } = input;
+  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid, _isDryRun } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
@@ -65,11 +65,12 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
     uid,
   });
 
-  if (eventType && shouldReserveSlot && !reservedBySomeoneElse) {
+  if (eventType && shouldReserveSlot && !reservedBySomeoneElse && !_isDryRun) {
     try {
       await Promise.all(
         // FIXME: In case of team event, users doesn't have assignees, those are in hosts. users just have the creator of the event which is wrong.
         // Also, we must not block all the users' slots, we must use routedTeamMemberIds if set like we do in getSchedule.
+        // We could even improve it by identifying the next person being booked now that we have a queue of assignees.
         eventType.users.map((user) =>
           prisma.selectedSlots.upsert({
             where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },

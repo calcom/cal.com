@@ -66,9 +66,9 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
       eventEmitter.on("push", pushHandler);
       setTimeout(() => {
         if (resolved) return;
-        // Timeout after 5 seconds
+        // Timeout after 10 seconds
         reject(new Error("Timeout waiting for webhook"));
-      }, 5000);
+      }, 10000);
     });
   };
 
@@ -171,6 +171,13 @@ export const bookTimeSlot = async (
   });
 };
 
+export async function expectSlotNotAllowedToBook(page: Page) {
+  await page.waitForResponse((response) => {
+    return response.url().includes("/slots/isAvailable");
+  });
+  await expect(page.locator("[data-testid=slot-not-allowed-to-book]")).toBeVisible();
+}
+
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
@@ -221,6 +228,7 @@ export async function setupManagedEvent({
 export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
   const eventTitle = args.eventTitle;
   await createNewEventType(page, { eventTitle });
+  await page.waitForSelector('[data-testid="event-title"]');
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();

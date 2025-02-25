@@ -13,6 +13,7 @@ import {
   bookTimeSlot,
   confirmBooking,
   confirmReschedule,
+  expectSlotNotAllowedToBook,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -63,6 +64,20 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
 
 todo("check SSR and OG - Team Event Type");
 
+test.describe("user with a special character in the username", () => {
+  test("/[user] page shouldn't 404", async ({ page, users }) => {
+    const user = await users.create({ username: "franz-janßen" });
+    const response = await page.goto(`/${user.username}`);
+    expect(response?.status()).not.toBe(404);
+  });
+
+  test("/[user]/[type] page shouldn't 404", async ({ page, users }) => {
+    const user = await users.create({ username: "franz-janßen" });
+    const response = await page.goto(`/${user.username}/30-min`);
+    expect(response?.status()).not.toBe(404);
+  });
+});
+
 test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
@@ -92,10 +107,7 @@ test.describe("free user", () => {
 
     await page.goto(bookingUrl);
 
-    // book same time spot again
-    await bookTimeSlot(page, { expectedStatusCode: 409 });
-
-    await page.locator("[data-testid=booking-fail]").waitFor({ state: "visible" });
+    await expectSlotNotAllowedToBook(page);
   });
 });
 
@@ -288,23 +300,24 @@ test.describe("pro user", () => {
     await Promise.all(promises);
   });
 
-  test("Time slots should be reserved when selected", async ({ context, page }) => {
+  test("Time slots should be reserved when selected", async ({ context, page, browser }) => {
     const initialUrl = page.url();
     await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
-    const pageTwo = await context.newPage();
-    await pageTwo.goto(initialUrl);
-    await pageTwo.waitForURL(initialUrl);
-    await pageTwo.locator('[data-testid="event-type-link"]').first().click();
+    const newContext = await browser.newContext();
+    const pageTwoInNewContext = await newContext.newPage();
+    await pageTwoInNewContext.goto(initialUrl);
+    await pageTwoInNewContext.waitForURL(initialUrl);
+    await pageTwoInNewContext.locator('[data-testid="event-type-link"]').first().click();
 
-    await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
-    await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+    await pageTwoInNewContext.locator('[data-testid="incrementMonth"]').waitFor();
+    await pageTwoInNewContext.click('[data-testid="incrementMonth"]');
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
     // 9:30 should be the first available time slot
-    await pageTwo.locator('[data-testid="time"]').nth(0).waitFor();
-    const firstSlotAvailable = pageTwo.locator('[data-testid="time"]').nth(0);
+    await pageTwoInNewContext.locator('[data-testid="time"]').nth(0).waitFor();
+    const firstSlotAvailable = pageTwoInNewContext.locator('[data-testid="time"]').nth(0);
     // Find text inside the element
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:30");

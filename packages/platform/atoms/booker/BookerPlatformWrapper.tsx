@@ -81,6 +81,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   metadata?: Record<string, string>;
   bannerUrl?: string;
   onDryRunSuccess?: () => void;
+  hostsLimit?: number;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -101,7 +102,14 @@ export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomPro
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW", bannerUrl, routingFormSearchParams } = props;
+  const {
+    view = "MONTH_VIEW",
+    bannerUrl,
+    routingFormSearchParams,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
+  } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -151,7 +159,7 @@ export const BookerPlatformWrapper = (
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamEventTypeData,
-  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent);
+  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, props.hostsLimit);
 
   const event = useMemo(() => {
     if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
@@ -161,7 +169,12 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.defaultFormValues)
+            ? transformApiTeamEventTypeForAtom(
+                teamEventTypeData[0],
+                props.entity,
+                props.defaultFormValues,
+                !!props.hostsLimit
+              )
             : undefined,
       };
     }
@@ -172,7 +185,7 @@ export const BookerPlatformWrapper = (
       isPending,
       data:
         data && data.length > 0
-          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues)
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues, !!props.hostsLimit)
           : undefined,
     };
   }, [
@@ -187,6 +200,7 @@ export const BookerPlatformWrapper = (
     isTeamPending,
     isTeamSuccess,
     isTeamError,
+    props.hostsLimit,
   ]);
 
   if (isDynamic && props.duration && event.data) {
@@ -198,6 +212,9 @@ export const BookerPlatformWrapper = (
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
     eventId: event.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
@@ -289,7 +306,6 @@ export const BookerPlatformWrapper = (
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
   }, [routingFormSearchParams]);
-
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
@@ -298,6 +314,7 @@ export const BookerPlatformWrapper = (
     timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
+    teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
           isTeamEvent: props.isTeamEvent,
@@ -469,6 +486,9 @@ export const BookerPlatformWrapper = (
   return (
     <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
+        teamMemberEmail={teamMemberEmail}
+        crmAppSlug={crmAppSlug}
+        crmOwnerRecordType={crmOwnerRecordType}
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
         username={username}
@@ -501,8 +521,8 @@ export const BookerPlatformWrapper = (
         onOverlaySwitchStateChange={onOverlaySwitchStateChange}
         extraOptions={extraOptions ?? {}}
         bookings={{
-          handleBookEvent: () => {
-            handleBookEvent();
+          handleBookEvent: (timeSlot?: string) => {
+            handleBookEvent(timeSlot);
             return;
           },
           expiryTime: undefined,

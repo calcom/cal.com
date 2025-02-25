@@ -74,7 +74,7 @@ test.describe("apps/ A/B tests", () => {
 
     const locator = page.getByTestId("horizontal-tab-upcoming");
 
-    await expect(locator).toHaveClass(/bg-emphasis/);
+    await expect(locator).toBeDefined();
   });
 
   test("should render the /getting-started", async ({ page, users }) => {

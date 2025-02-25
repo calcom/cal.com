@@ -126,14 +126,14 @@ export const BookEventForm = ({
             />
           </div>
         ) : isTimeslotUnavailable ? (
-          <div data-testid="booking-fail">
+          <div data-testid="slot-not-allowed-to-book">
             <Alert
               severity="info"
               title={t("unavailable_timeslot_title")}
               message={
                 <Trans i18nKey="timeslot_unavailable_book_a_new_time">
                   The selected time slot is no longer available.{" "}
-                  <button className="underline" onClick={onCancel}>
+                  <button type="button" className="underline" onClick={onCancel}>
                     Please select a new time
                   </button>
                 </Trans>
@@ -142,7 +142,6 @@ export const BookEventForm = ({
           </div>
         ) : null}
 
-        {/* Cloudflare Turnstile Captcha */}
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
             <Trans

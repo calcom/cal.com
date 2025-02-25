@@ -53,14 +53,14 @@ export class SelectedSlotsRepository {
     });
   }
 
-  static async findManyReservedByOthers(slots: TimeSlot[], eventTypeId: number, uid?: string) {
+  static async findManyReservedByOthers(slots: TimeSlot[], eventTypeId: number, uid: string) {
     return await this.findMany({
       where: {
         OR: slots.map((slot) => ({
           slotUtcStartDate: slot.utcStartIso,
           slotUtcEndDate: slot.utcEndIso,
           eventTypeId,
-          uid: uid ? { not: uid } : undefined,
+          uid: { not: uid },
           releaseAt: { gt: new Date() },
         })),
       },

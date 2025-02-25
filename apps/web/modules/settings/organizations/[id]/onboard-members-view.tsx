@@ -6,7 +6,7 @@ import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMe
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { WizardLayout } from "@calcom/ui";
 
-export const LayoutWrapper = (page: React.ReactElement) => {
+export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const router = useRouter();
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -19,7 +19,7 @@ export const LayoutWrapper = (page: React.ReactElement) => {
       isOptionalCallback={() => {
         router.push(`/settings/organizations/${query.get("id")}/add-teams`);
       }}>
-      {page}
+      {children}
     </WizardLayout>
   );
 };

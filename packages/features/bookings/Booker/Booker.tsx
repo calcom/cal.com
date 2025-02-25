@@ -31,11 +31,11 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
-import type { SlotQuickCheckStatus } from "./components/hooks/useSlots";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
+import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
 const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
@@ -47,50 +47,6 @@ const UnpublishedEntity = dynamic(() =>
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
-
-/**
- * Checks if a given time slot is available in the schedule
- * It could be unavailable for any number of reasons including the slot being reserved and not actually booked
- * @returns boolean - true if the slot is available, false otherwise.
- */
-const isTimeSlotAvailable = ({
-  schedule,
-  slotToCheckInIso,
-  dateString,
-  quickAvailabilityChecks,
-}: {
-  schedule: WrappedBookerProps["schedule"];
-  slotToCheckInIso: string;
-  dateString: string | null;
-  quickAvailabilityChecks: {
-    utcStartIso: string;
-    utcEndIso: string;
-    status: SlotQuickCheckStatus;
-  }[];
-}) => {
-  const isUnavailableAsPerQuickCheck =
-    quickAvailabilityChecks &&
-    quickAvailabilityChecks.some(
-      (slot) => slot.utcStartIso === slotToCheckInIso && slot.status !== "available"
-    );
-
-  if (isUnavailableAsPerQuickCheck) return false;
-
-  // If schedule is not loaded or other variables are unavailable consider the slot available
-  if (!schedule?.data || !dateString) {
-    return true;
-  }
-
-  // Get the slots for this date
-  const slotsForDateInIso = schedule.data.slots[dateString];
-  if (!slotsForDateInIso) return false;
-
-  // Check if the exact time slot exists in the available slots
-  return slotsForDateInIso.some((slot) => {
-    const slotTimeInIso = slot.time;
-    return slotTimeInIso === slotToCheckInIso;
-  });
-};
 
 const BookerComponent = ({
   username,
@@ -124,6 +80,7 @@ const BookerComponent = ({
   hasValidLicense,
   isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
+  hashedLink,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -205,7 +162,12 @@ const BookerComponent = ({
     }
   };
 
-  const skipConfirmStep = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
+  const skipConfirmStep = useSkipConfirmStep(
+    bookingForm,
+    bookerState,
+    isInstantMeeting,
+    event?.data?.bookingFields
+  );
 
   // Cloudflare Turnstile Captcha
   const shouldRenderCaptcha = !!(
@@ -219,15 +181,15 @@ const BookerComponent = ({
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot || skipConfirmStep) return setBookerState("selecting_time");
+    if (!selectedTimeslot) return setBookerState("selecting_time");
+    if (selectedTimeslot && skipConfirmStep && !isInstantMeeting) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 
   const unavailableTimeSlots = allSelectedTimeslots.filter((slot) => {
     return !isTimeSlotAvailable({
-      schedule,
+      scheduleData: schedule?.data ?? null,
       slotToCheckInIso: slot,
-      dateString: selectedDate,
       quickAvailabilityChecks: slots.quickAvailabilityChecks,
     });
   });
@@ -249,7 +211,6 @@ const BookerComponent = ({
         shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
-          console.log("PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM");
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
           if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
             // Ensures that user has latest available slots when they want to re-choose from the slots
@@ -272,22 +233,6 @@ const BookerComponent = ({
         isVerificationCodeSending={isVerificationCodeSending}
         isPlatform={isPlatform}>
         <>
-          {verifyCode && formEmail ? (
-            <VerifyCodeDialog
-              isOpenDialog={isEmailVerificationModalVisible}
-              setIsOpenDialog={setEmailVerificationModalVisible}
-              email={formEmail}
-              isUserSessionRequiredToVerify={false}
-              verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
-              verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
-              error={verifyCode.error}
-              resetErrors={verifyCode.resetErrors}
-              isPending={verifyCode.isPending}
-              setIsPending={verifyCode.setIsPending}
-            />
-          ) : (
-            <></>
-          )}
           {!isPlatform && (
             <RedirectToInstantMeetingModal
               expiryTime={expiryTime}
@@ -313,26 +258,17 @@ const BookerComponent = ({
     event,
     expiryTime,
     extraOptions,
-    formEmail,
     formErrors,
     handleBookEvent,
     handleVerifyEmail,
-    isEmailVerificationModalVisible,
     key,
     loadingStates,
     onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
     rescheduleUid,
     seatedEventData,
-    setEmailVerificationModalVisible,
     setSeatedEventData,
     setSelectedTimeslot,
-    verifyCode?.error,
-    verifyCode?.isPending,
-    verifyCode?.resetErrors,
-    verifyCode?.setIsPending,
-    verifyCode?.verifyCodeWithSessionNotRequired,
-    verifyCode?.verifyCodeWithSessionRequired,
     isPlatform,
     shouldRenderCaptcha,
     isVerificationCodeSending,
@@ -451,6 +387,7 @@ const BookerComponent = ({
                   event={event.data}
                   isPending={event.isPending}
                   isPlatform={isPlatform}
+                  isPrivateLink={!!hashedLink}
                   locale={userLocale}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
@@ -592,6 +529,25 @@ const BookerComponent = ({
           </m.span>
         )}
       </div>
+
+      <>
+        {verifyCode && formEmail ? (
+          <VerifyCodeDialog
+            isOpenDialog={isEmailVerificationModalVisible}
+            setIsOpenDialog={setEmailVerificationModalVisible}
+            email={formEmail}
+            isUserSessionRequiredToVerify={false}
+            verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
+            verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
+            error={verifyCode.error}
+            resetErrors={verifyCode.resetErrors}
+            isPending={verifyCode.isPending}
+            setIsPending={verifyCode.setIsPending}
+          />
+        ) : (
+          <></>
+        )}
+      </>
 
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
