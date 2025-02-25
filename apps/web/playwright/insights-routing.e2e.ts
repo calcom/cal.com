@@ -30,7 +30,11 @@ test.describe("Insights > Routing", () => {
     });
 
     await page.goto(`/insights/routing`);
+    await page.locator('[data-testid="filter-popover-trigger-formId"]').getByText(formName).waitFor();
 
+    // The routing form filter is persisted
+    // even if user tries to clear it.
+    await page.locator('[data-testid="single-select-options-formId"]').getByText("Clear").click();
     await page.locator('[data-testid="filter-popover-trigger-formId"]').getByText(formName).waitFor();
   });
 });
