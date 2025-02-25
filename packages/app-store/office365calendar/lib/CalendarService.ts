@@ -73,37 +73,32 @@ export default class Office365CalendarService implements Calendar {
       currentTokenObject: tokenResponse,
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
         const isDomainWideDelegated = Boolean(credential?.delegatedTo);
+
         if (!isDomainWideDelegated && !refreshToken) {
           return null;
         }
-        const { client_id, client_secret } = await getOfficeAppKeys();
+
+        const { client_id, client_secret } = await this.getAuthCredentials(isDomainWideDelegated);
 
         const url = this.getAuthUrl(
           isDomainWideDelegated,
           credential?.delegatedTo?.serviceAccountKey?.tenant_id
         );
 
-        const dwdClientId = credential?.delegatedTo?.serviceAccountKey?.client_id;
-        const dwdClientSecret = credential?.delegatedTo?.serviceAccountKey?.private_key;
+        const bodyParams = {
+          scope: isDomainWideDelegated
+            ? "https://graph.microsoft.com/.default"
+            : "User.Read Calendars.Read Calendars.ReadWrite",
+          client_id,
+          client_secret,
+          grant_type: isDomainWideDelegated ? "client_credentials" : "refresh_token",
+          ...(isDomainWideDelegated ? {} : { refresh_token: refreshToken ?? "" }),
+        };
 
-        if (isDomainWideDelegated && (!dwdClientId || !dwdClientSecret)) {
-          throw new CalendarAppDomainWideDelegationConfigurationError(
-            "Domain Wide Delegated credential without clientId or Secret"
-          );
-        }
-
-        return await fetch(url, {
+        return fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            scope: isDomainWideDelegated
-              ? "https://graph.microsoft.com/.default"
-              : "User.Read Calendars.Read Calendars.ReadWrite",
-            client_id: dwdClientId ?? client_id,
-            ...(isDomainWideDelegated ? {} : { refresh_token: refreshToken ?? "" }),
-            grant_type: isDomainWideDelegated ? "client_credentials" : "refresh_token",
-            client_secret: dwdClientSecret ?? client_secret,
-          }),
+          body: new URLSearchParams(bodyParams),
         });
       },
       isTokenObjectUnusable: async function () {
@@ -140,6 +135,23 @@ export default class Office365CalendarService implements Calendar {
     }
 
     return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+  }
+
+  private async getAuthCredentials(isDomainWideDelegated: boolean) {
+    if (isDomainWideDelegated) {
+      const client_id = this.credential?.delegatedTo?.serviceAccountKey?.client_id;
+      const client_secret = this.credential?.delegatedTo?.serviceAccountKey?.private_key;
+
+      if (!client_id || !client_secret) {
+        throw new CalendarAppDomainWideDelegationConfigurationError(
+          "Domain Wide Delegated credential without clientId or Secret"
+        );
+      }
+
+      return { client_id, client_secret };
+    }
+
+    return getOfficeAppKeys();
   }
 
   private async getAzureUserId(credential: CredentialForCalendarServiceWithTenantId) {

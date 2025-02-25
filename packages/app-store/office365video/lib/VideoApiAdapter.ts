@@ -54,31 +54,36 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         return null;
       }
 
-      const { client_id, client_secret } = await getO365VideoAppKeys();
+      const credentials = isDomainWideDelegated
+        ? {
+            client_id: credential?.delegatedTo?.serviceAccountKey?.client_id,
+            client_secret: credential?.delegatedTo?.serviceAccountKey?.private_key,
+          }
+        : await getO365VideoAppKeys();
 
-      const url = getAuthUrl(isDomainWideDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
-
-      const dwdClientId = credential?.delegatedTo?.serviceAccountKey?.client_id;
-      const dwdClientSecret = credential?.delegatedTo?.serviceAccountKey?.private_key;
-
-      if (isDomainWideDelegated && (!dwdClientId || !dwdClientSecret)) {
+      if (isDomainWideDelegated && (!credentials.client_id || !credentials.client_secret)) {
         throw new CalendarAppDomainWideDelegationConfigurationError(
           "Domain Wide Delegated credential without clientId or Secret"
         );
       }
 
+      const url = getAuthUrl(isDomainWideDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+      const scope = isDomainWideDelegated
+        ? "https://graph.microsoft.com/.default"
+        : "User.Read Calendars.Read Calendars.ReadWrite";
+
+      const params: Record<string, string> = {
+        scope,
+        client_id: credentials.client_id || "",
+        client_secret: credentials.client_secret || "",
+        grant_type: isDomainWideDelegated ? "client_credentials" : "refresh_token",
+        ...(isDomainWideDelegated ? {} : { refresh_token: refreshToken ?? "" }),
+      };
+
       return await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          scope: isDomainWideDelegated
-            ? "https://graph.microsoft.com/.default"
-            : "User.Read Calendars.Read Calendars.ReadWrite",
-          client_id: dwdClientId ?? client_id,
-          ...(isDomainWideDelegated ? {} : { refresh_token: refreshToken ?? "" }),
-          grant_type: isDomainWideDelegated ? "client_credentials" : "refresh_token",
-          client_secret: dwdClientSecret ?? client_secret,
-        }),
+        body: new URLSearchParams(params),
       });
     },
     isTokenObjectUnusable: async function () {
