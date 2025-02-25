@@ -2961,5 +2961,6 @@
   "desc": "내림차순",
   "verify_email": "이메일 인증",
   "verify_email_change": "이메일 변경 확인",
+  "end_date_not_selected": "부재 중(OOO) 종료 날짜를 설정하지 않았습니다",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
