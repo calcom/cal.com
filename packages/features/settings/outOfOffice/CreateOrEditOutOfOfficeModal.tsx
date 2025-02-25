@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -32,6 +33,7 @@ export type BookingRedirectForm = {
   reasonId: number;
   notes?: string;
   uuid?: string | null;
+  toUserName?: string;
 };
 
 type Option = { value: number; label: string };
@@ -46,7 +48,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
   const [searchText, setSearchText] = useState("");
   const debouncedSearch = useDebounce(searchText, 500);
@@ -115,6 +117,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const watchedTeamUserId = watch("toTeamUserId");
 
+  const handleRefetch = () => {
+    queryClient.invalidateQueries({
+      queryKey: [["outOfOfficeEntriesList", { limit: 10, recordType: "current" }]],
+    });
+  };
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
@@ -123,7 +130,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      utils.viewer.outOfOfficeEntriesList.invalidate();
+      // if (setOOOEntriesAddedOrUpdated) {
+      //   setOOOEntriesAddedOrUpdated((previousValue) => previousValue + 1);
+      // }
+      handleRefetch();
       closeModal();
     },
     onError: (error) => {

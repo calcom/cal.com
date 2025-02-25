@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
@@ -399,14 +400,50 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
   return {};
 };
 
-export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable<TrpcSessionUser> } }) => {
+export enum OutOfOfficeRecordType {
+  CURRENT = "current",
+  PREVIOUS = "previous",
+}
+
+export const ZOutOfOfficeEntriesListSchema = z.object({
+  limit: z.number().min(1).max(100),
+  cursor: z.number().nullish(),
+  recordType: z.nativeEnum(OutOfOfficeRecordType).default(OutOfOfficeRecordType.CURRENT),
+});
+
+export type TOutOfOfficeEntriesListSchema = z.infer<typeof ZOutOfOfficeEntriesListSchema>;
+
+type GetOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TOutOfOfficeEntriesListSchema;
+};
+
+export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
+  const { cursor, limit, recordType } = input;
+
+  const whereClause = {
+    userId: ctx.user.id,
+    ...(recordType === OutOfOfficeRecordType.PREVIOUS
+      ? {
+          end: {
+            lt: new Date().toISOString(),
+          },
+        }
+      : {
+          end: {
+            gte: new Date().toISOString(),
+          },
+        }),
+  };
+
+  const getTotalEntries = await prisma.outOfOfficeEntry.count({
+    where: whereClause,
+  });
+
   const outOfOfficeEntries = await prisma.outOfOfficeEntry.findMany({
-    where: {
-      userId: ctx.user.id,
-      end: {
-        gte: new Date().toISOString(),
-      },
-    },
+    where: whereClause,
     orderBy: {
       start: "asc",
     },
@@ -419,6 +456,7 @@ export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable
       toUser: {
         select: {
           username: true,
+          name: true,
         },
       },
       reason: {
@@ -431,7 +469,21 @@ export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable
       },
       notes: true,
     },
+    cursor: cursor ? { id: cursor } : undefined,
+    take: limit + 1,
   });
 
-  return outOfOfficeEntries;
+  let nextCursor: number | undefined = undefined;
+  if (outOfOfficeEntries && outOfOfficeEntries.length > limit) {
+    const nextItem = outOfOfficeEntries.pop();
+    nextCursor = nextItem?.id;
+  }
+
+  return {
+    rows: outOfOfficeEntries || [],
+    nextCursor,
+    meta: {
+      totalRowCount: getTotalEntries || 0,
+    },
+  };
 };

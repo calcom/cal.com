@@ -2962,5 +2962,7 @@
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
   "end_date_not_selected": "You didn't set an end date for your OOO",
+  "previous_ooo_empty_title": "No previous OOO found",
+  "previous": "Previous",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

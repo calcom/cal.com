@@ -482,6 +482,56 @@ test.describe("Out of office", () => {
     await selectDateAndCreateOOO(page, "2", "5", "owner", 400);
     await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
   });
+
+  test("On clicking 'Previous' tab, Previous OOO records are fetched and displayed", async ({
+    page,
+    users,
+  }) => {
+    const t = await localize("en");
+    const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }];
+    const owner = await users.create(
+      { name: "owner" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: teamMatesObj,
+      }
+    );
+    const member1User = users.get().find((user) => user.name === "member-1");
+
+    await owner.apiLogin();
+
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
+
+    //OOO is created on Previous month 1st - 3rd, forwarding to 'member-1'
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "1", "3", "member-1", 200, "previous");
+    //expect created OOO is not displayed in 'Current' (default) tab
+    expect(
+      await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
+    ).toEqual(0);
+
+    //switch to 'Previous' tab and expect created OOO is displayed
+    await page.locator(`data-testid=toggle-group-item-previous`).click();
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+    expect(
+      await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
+    ).toEqual(1);
+  });
 });
 
 async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
@@ -505,10 +555,11 @@ async function selectDateAndCreateOOO(
   fromDate: string,
   toDate: string,
   redirectToUser?: string,
-  expectedStatusCode = 200
+  expectedStatusCode = 200,
+  month: "previous" | "next" = "next"
 ) {
   const t = await localize("en");
-  await page.locator(`button[name="next-month"]`).click();
+  await page.locator(`button[name="${month}-month"]`).click();
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
   await page.locator(`text=${t("create_an_out_of_office")}`).click();
