@@ -2,6 +2,10 @@ import { useMemo } from "react";
 
 import type { RoutingFormSearchParamsForEmbed } from "@calcom/platform-types";
 
+import type { BookerPlatformWrapperAtomPropsForTeam } from "../booker/BookerPlatformWrapper";
+
+export type useGetRoutingFormUrlPropsReturnType = RoutingFormSearchParamsForEmbed;
+
 export const useGetRoutingFormUrlProps = ({ routingFormUrl }: { routingFormUrl?: string }) => {
   const routingFormUrlProps = useMemo(() => {
     if (routingFormUrl) {
@@ -22,7 +26,31 @@ export const useGetRoutingFormUrlProps = ({ routingFormUrl }: { routingFormUrl?:
       if (!isTeamUrl && !username) {
         throw new Error("username not defined within the routing form url");
       }
-      return {
+      const defaultFormValues = {
+        ...(routingSearchParams.get("firstName") && {
+          ["firstName"]: routingSearchParams.get("firstName") ?? undefined,
+        }),
+        ...(routingSearchParams.get("lastName") && {
+          ["lastName"]: routingSearchParams.get("lastName") ?? undefined,
+        }),
+        ...(routingSearchParams.get("name") && {
+          ["name"]: routingSearchParams.get("name") ?? undefined,
+        }),
+        ...(routingSearchParams.get("email") && {
+          ["email"]: routingSearchParams.get("email") ?? undefined,
+        }),
+        ...(routingSearchParams.get("notes") && {
+          ["notes"]: routingSearchParams.get("notes") ?? undefined,
+        }),
+        ...(routingSearchParams.get("rescheduleReason") && {
+          ["rescheduleReason"]: routingSearchParams.get("rescheduleReason") ?? undefined,
+        }),
+        ...(routingSearchParams.get("guests") && {
+          ["guests"]: routingSearchParams.getAll("guests") ?? undefined,
+        }),
+      } satisfies Partial<BookerPlatformWrapperAtomPropsForTeam["defaultFormValues"]>;
+
+      const routingformProps = {
         organizationId: routingSearchParams.get("cal.orgId")
           ? Number(routingSearchParams.get("cal.orgId"))
           : undefined,
@@ -53,7 +81,17 @@ export const useGetRoutingFormUrlProps = ({ routingFormUrl }: { routingFormUrl?:
           ["cal.salesforce.rrSkipToAccountLookupField"]:
             routingSearchParams.get("cal.salesforce.rrSkipToAccountLookupField") ?? undefined,
         }),
+        ...(routingSearchParams.get("cal.teamMemberEmail") && {
+          teamMemberEmail: routingSearchParams.get("cal.teamMemberEmail") ?? undefined,
+        }),
+        ...(routingSearchParams.get("cal.crmOwnerRecordType") && {
+          crmOwnerRecordType: routingSearchParams.get("cal.crmOwnerRecordType") ?? undefined,
+        }),
+        ...(routingSearchParams.get("cal.crmAppSlug") && {
+          crmAppSlug: routingSearchParams.get("cal.crmAppSlug") ?? undefined,
+        }),
       } satisfies RoutingFormSearchParamsForEmbed;
+      return { ...routingformProps, defaultFormValues };
     }
     return;
   }, [routingFormUrl]);

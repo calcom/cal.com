@@ -1,6 +1,6 @@
 "use client";
 
-import type { Table as ReactTableType } from "@tanstack/react-table";
+import type { Table as ReactTableType, VisibilityState } from "@tanstack/react-table";
 import { useEffect, useRef } from "react";
 
 import {
@@ -28,6 +28,7 @@ export type DataTableWrapperProps<TData, TValue> = {
   className?: string;
   containerClassName?: string;
   children?: React.ReactNode;
+  tableContainerRef?: React.RefObject<HTMLDivElement>;
 };
 
 export function DataTableWrapper<TData, TValue>({
@@ -46,28 +47,37 @@ export function DataTableWrapper<TData, TValue>({
   className,
   containerClassName,
   children,
+  tableContainerRef: externalRef,
 }: DataTableWrapperProps<TData, TValue>) {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const internalRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = externalRef || internalRef;
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
     fetchNextPage,
     isFetching,
   });
-  const { sorting, setSorting } = useDataTable();
+  const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
   const columnFilters = useColumnFilters();
 
   useEffect(() => {
+    const mergedColumnVisibility = {
+      ...(table.initialState?.columnVisibility || {}),
+      ...columnVisibility,
+    } satisfies VisibilityState;
+
     table.setState((prev) => ({
       ...prev,
       sorting,
       columnFilters,
+      columnVisibility: mergedColumnVisibility,
     }));
     table.setOptions((prev) => ({
       ...prev,
       onSortingChange: setSorting,
+      onColumnVisibilityChange: setColumnVisibility,
     }));
-  }, [table, sorting, columnFilters]);
+  }, [table, sorting, columnFilters, columnVisibility]);
 
   return (
     <DataTable
@@ -82,7 +92,7 @@ export function DataTableWrapper<TData, TValue>({
       className={className}
       containerClassName={containerClassName}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-      {(ToolbarLeft || ToolbarRight) && (
+      {(ToolbarLeft || ToolbarRight || children) && (
         <DataTableToolbar.Root>
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-wrap justify-between gap-2">
