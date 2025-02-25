@@ -184,11 +184,12 @@ export const useBookingSuccessRedirect = () => {
         return;
       }
 
-      if (booking.uid) {
-        url.searchParams.append("uid", booking.uid);
+      const bookingExtraParams = getBookingRedirectExtraParams(booking);
+
+      if (bookingExtraParams.uid) {
+        url.searchParams.append("uid", bookingExtraParams.uid.toString());
       }
 
-      const bookingExtraParams = getBookingRedirectExtraParams(booking);
       const { uid, ...otherParams } = bookingExtraParams;
 
       const newSearchParams = getNewSearchParams({
