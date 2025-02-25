@@ -2422,13 +2422,13 @@
         "tags": ["Orgs / Teams / Memberships"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routing}-formId/responses": {
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses": {
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",
         "summary": "Get routing form responses",
         "parameters": [
           {
-            "name": "routing-formId",
+            "name": "routingFormId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7780,6 +7780,17 @@
         },
         "required": ["slug"]
       },
+      "InputOrganizersDefaultApp_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only allowed value for type is `organizersDefaultApp`"
+          }
+        },
+        "required": ["type"]
+      },
       "BookerLayouts_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7879,6 +7890,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
                 }
               ]
             }
@@ -8100,7 +8114,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "address",
             "description": "only allowed value for type is `address`"
@@ -8127,7 +8142,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "link",
             "description": "only allowed value for type is `link`"
@@ -8155,6 +8171,7 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
@@ -8221,7 +8238,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
@@ -8236,7 +8254,7 @@
         },
         "required": ["type", "phone", "public"]
       },
-      "OutputConferencingLocation_2024_06_14": {
+      "OutputOrganizersDefaultAppLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -8249,6 +8267,7 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
@@ -8271,6 +8290,7 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
@@ -9245,7 +9265,7 @@
                   "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
@@ -9568,6 +9588,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
@@ -10925,6 +10948,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
                 }
               ]
             }
@@ -11283,7 +11309,7 @@
                   "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
@@ -11693,6 +11719,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"

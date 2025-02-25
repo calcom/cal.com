@@ -1,5 +1,5 @@
 import type {
-  OutputConferencingLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputIntegration_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputAddressLocation_2024_06_14,
@@ -106,7 +106,7 @@ export function transformLocationsInternalToApi(internalLocations: InternalLocat
         return attendeeDefinedLocation;
       }
       case "conferencing": {
-        const conferencingLocation: OutputConferencingLocation_2024_06_14 = {
+        const conferencingLocation: OutputOrganizersDefaultAppLocation_2024_06_14 = {
           type: "conferencing",
         };
         return conferencingLocation;

@@ -66,6 +66,7 @@ import {
   InputAddressLocation_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
+  InputOrganizersDefaultApp_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputIntegrationLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
@@ -115,7 +116,8 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   TitleDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
-  RescheduleReasonDefaultFieldInput_2024_06_14
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  InputOrganizersDefaultApp_2024_06_14
 )
 export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
@@ -162,6 +164,7 @@ export class CreateEventTypeInput_2024_06_14 {
       { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
       { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputOrganizersDefaultApp_2024_06_14) },
     ],
     type: "array",
   })

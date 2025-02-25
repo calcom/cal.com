@@ -87,7 +87,7 @@ export class OutputIntegrationLocation_2024_06_14 {
   credentialId?: number;
 }
 
-export class OutputConferencingLocation_2024_06_14 {
+export class OutputOrganizersDefaultAppLocation_2024_06_14 {
   @IsIn(outputLocations)
   @DocsProperty({ example: "conferencing", description: "only allowed value for type is `conferencing`" })
   type!: "conferencing";
@@ -111,7 +111,7 @@ export type OutputLocation_2024_06_14 =
   | OutputAttendeeAddressLocation_2024_06_14
   | OutputAttendeePhoneLocation_2024_06_14
   | OutputAttendeeDefinedLocation_2024_06_14
-  | OutputConferencingLocation_2024_06_14
+  | OutputOrganizersDefaultAppLocation_2024_06_14
   | OutputUnknownLocation_2024_06_14;
 
 @ValidatorConstraint({ async: true })
@@ -124,7 +124,7 @@ class OutputLocationValidator_2024_06_14 implements ValidatorConstraintInterface
     attendeePhone: OutputAttendeePhoneLocation_2024_06_14,
     attendeeAddress: OutputAttendeeAddressLocation_2024_06_14,
     attendeeDefined: OutputAttendeeDefinedLocation_2024_06_14,
-    conferencing: OutputConferencingLocation_2024_06_14,
+    conferencing: OutputOrganizersDefaultAppLocation_2024_06_14,
     unknown: OutputUnknownLocation_2024_06_14,
   };
 

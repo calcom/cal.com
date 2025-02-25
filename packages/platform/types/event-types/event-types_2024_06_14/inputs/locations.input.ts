@@ -13,6 +13,7 @@ export const inputLocations = [
   "attendeeAddress",
   "attendeePhone",
   "attendeeDefined",
+  "organizersDefaultApp",
 ] as const;
 
 export class InputAddressLocation_2024_06_14 {
@@ -27,6 +28,15 @@ export class InputAddressLocation_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   public!: boolean;
+}
+
+export class InputOrganizersDefaultApp_2024_06_14 {
+  @IsIn(inputLocations)
+  @DocsProperty({
+    example: "organizersDefaultApp",
+    description: "only allowed value for type is `organizersDefaultApp`",
+  })
+  type!: "organizersDefaultApp";
 }
 
 export class InputLinkLocation_2024_06_14 {
@@ -100,7 +110,8 @@ export type InputLocation_2024_06_14 =
   | InputPhoneLocation_2024_06_14
   | InputAttendeeAddressLocation_2024_06_14
   | InputAttendeePhoneLocation_2024_06_14
-  | InputAttendeeDefinedLocation_2024_06_14;
+  | InputAttendeeDefinedLocation_2024_06_14
+  | InputOrganizersDefaultApp_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputLocationValidator_2024_06_14 implements ValidatorConstraintInterface {
@@ -112,6 +123,7 @@ class InputLocationValidator_2024_06_14 implements ValidatorConstraintInterface 
     attendeePhone: InputAttendeePhoneLocation_2024_06_14,
     attendeeAddress: InputAttendeeAddressLocation_2024_06_14,
     attendeeDefined: InputAttendeeDefinedLocation_2024_06_14,
+    organizersDefaultApp: InputOrganizersDefaultApp_2024_06_14,
   };
 
   async validate(locations: { type: string }[]) {

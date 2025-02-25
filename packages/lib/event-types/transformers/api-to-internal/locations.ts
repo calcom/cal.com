@@ -9,6 +9,7 @@ import type {
   OrganizerIntegrationLocation,
   OrganizerLinkLocation,
   OrganizerPhoneLocation,
+  OrganizerConferencingSchema,
 } from "../internal/locations";
 
 const apiToInternalintegrationsMapping: Record<
@@ -54,6 +55,8 @@ export function transformLocationsApiToInternal(inputLocations: InputLocation_20
         return { type: "phone" } satisfies AttendeePhoneLocation;
       case "attendeeDefined":
         return { type: "somewhereElse" } satisfies AttendeeDefinedLocation;
+      case "organizersDefaultApp":
+        return { type: "conferencing" } satisfies OrganizerConferencingSchema;
       default:
         throw new Error(`Unsupported input location type '${type}'`);
     }
