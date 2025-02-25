@@ -2,7 +2,7 @@ import { mergeRouters, router } from "../../trpc";
 
 let _viewerRouter: ReturnType<typeof mergeRouters> | null = null;
 
-async function initializeViewerRouter() {
+export async function getViewerRouter() {
   if (_viewerRouter) {
     return _viewerRouter;
   }
@@ -143,8 +143,4 @@ async function initializeViewerRouter() {
   );
 
   return _viewerRouter;
-}
-
-export async function getViewerRouter() {
-  return initializeViewerRouter();
 }
