@@ -137,6 +137,10 @@ type CreateDelegationData = {
   serviceAccountKey: ServiceAccountKey;
 };
 
+type CreateDelegationFormData = Omit<CreateDelegationData, "serviceAccountKey"> & {
+  serviceAccountKey: string;
+};
+
 type EditDelegationData = {
   id: string;
   domain: string;
@@ -157,23 +161,27 @@ function CreateDelegationDialog({
 }) {
   const { t } = useLocale();
 
-  const form = useForm<CreateDelegationData>();
+  const form = useForm<CreateDelegationFormData>();
 
-  const handleSubmit = (values: CreateDelegationData) => {
+  const handleSubmit = (values: CreateDelegationFormData) => {
     try {
-      const validatedKey = serviceAccountKeySchema.safeParse(values.serviceAccountKey);
+      const parsedKey = JSON.parse(values.serviceAccountKey);
+      const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
 
       if (!validatedKey.success) {
         form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
         return;
       }
 
-      values.serviceAccountKey = validatedKey.data;
+      handleCreate({
+        ...values,
+        serviceAccountKey: validatedKey.data,
+      });
     } catch (e) {
+      console.log("error", e);
       form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
       return;
     }
-    handleCreate(values);
   };
 
   return (
