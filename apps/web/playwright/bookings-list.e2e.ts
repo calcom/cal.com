@@ -301,17 +301,24 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
-    await Promise.all([
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.goto(`/bookings/upcoming?status=upcoming&userIds=${thirdUser.id}`),
-    ]);
+    await page.goto(`/bookings/upcoming`);
+
+    await page.locator('[data-testid="add-filter-button"]').click();
+    await page.locator('[data-testid="add-filter-item-userId"]').click();
+    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+
+    await page
+      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
+      .click();
+
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee
     const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
     const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
     const bookingListCount = await bookingListItems.count();
+
     expect(bookingListCount).toBe(3);
 
     //verify with the booking titles
