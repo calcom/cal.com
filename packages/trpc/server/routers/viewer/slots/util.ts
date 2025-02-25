@@ -669,7 +669,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         }
         return (
           !isFutureLimitViolationForTheSlot &&
-          // TODO: Perf Optmization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
+          // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
           !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
         );
       });

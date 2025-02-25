@@ -177,7 +177,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -344,7 +344,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -476,7 +476,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
