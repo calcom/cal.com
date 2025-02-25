@@ -90,7 +90,6 @@ const _buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; 
 
 const _buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   log.debug("buildDomainWideDelegationCredential", safeStringify({ dwd, user }));
-  console.log("dwd.workspacePlatform.slug", dwd.workspacePlatform, dwd);
   // TODO: Build for other platforms as well
   if (!isValidWorkspaceSlug(dwd.workspacePlatform.slug)) {
     log.warn(
@@ -163,8 +162,6 @@ export async function getAllDwdCredentialsForUser({ user }: { user: { email: str
     _buildDwdCalendarCredential({ dwd, user }),
     _buildDwdConferencingCredential({ dwd, user }),
   ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
-
-  console.log("domainWideDelegationCredentials", _buildDwdCalendarCredential({ dwd, user }));
 
   log.debug("Returned", safeStringify({ domainWideDelegationCredentials }));
   return domainWideDelegationCredentials;
