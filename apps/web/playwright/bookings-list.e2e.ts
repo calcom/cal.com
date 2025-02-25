@@ -245,7 +245,7 @@ test.describe("Bookings", () => {
       await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible();
 
-      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeHidden();
     });
   });
 
