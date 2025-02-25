@@ -8,7 +8,7 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, getQueryKey } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
@@ -119,7 +119,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const handleRefetch = () => {
     queryClient.invalidateQueries({
-      queryKey: [["outOfOfficeEntriesList", { limit: 10, recordType: "current" }]],
+      queryKey: getQueryKey(trpc.viewer.outOfOfficeEntriesList),
+      exact: false,
     });
   };
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({

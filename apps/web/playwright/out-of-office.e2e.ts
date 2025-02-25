@@ -517,20 +517,26 @@ test.describe("Out of office", () => {
     await reasonListRespPromise;
 
     //OOO is created on Previous month 1st - 3rd, forwarding to 'member-1'
-    await dateButton.click();
-    await selectDateAndCreateOOO(page, "1", "3", "member-1", 200, "previous");
-    //expect created OOO is not displayed in 'Current' (default) tab
-    expect(
-      await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
-    ).toEqual(0);
+    await test.step("Create OOO entry for previous month", async () => {
+      await dateButton.click();
+      await selectDateAndCreateOOO(page, "1", "3", "member-1", 200, "previous");
+      //expect created OOO is not displayed in 'Current' (default) tab
+      expect(
+        await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
+      ).toEqual(0);
+    });
 
     //switch to 'Previous' tab and expect created OOO is displayed
-    await page.locator(`data-testid=toggle-group-item-previous`).click();
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-    expect(
-      await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
-    ).toEqual(1);
+    await test.step("Switch to 'Previous' tab and expect created OOO is displayed", async () => {
+      await page.locator(`data-testid=toggle-group-item-previous`).click();
+      await page.waitForLoadState("domcontentloaded");
+      await entriesListRespPromise;
+      await entriesListRespPromise;
+      await page.waitForURL("/settings/my-account/out-of-office?previous=true");
+      expect(
+        await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
+      ).toEqual(1);
+    });
   });
 });
 
