@@ -2961,5 +2961,6 @@
   "desc": "Descrescător",
   "verify_email": "Verifică email-ul",
   "verify_email_change": "Verifică schimbarea adresei de email",
+  "end_date_not_selected": "Nu ai setat o dată de încheiere pentru perioada ta de absență",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2961,5 +2961,6 @@
   "desc": "Desc",
   "verify_email": "Vérifier l'e-mail",
   "verify_email_change": "Vérifier le changement d'e-mail",
+  "end_date_not_selected": "Vous n'avez pas défini de date de fin pour votre absence",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
