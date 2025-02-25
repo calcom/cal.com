@@ -1987,7 +1987,7 @@
   "a_routing_form": "טופס ניתוב",
   "form_description_placeholder": "תיאור הטופס",
   "keep_me_connected_with_form": "שמור אותי מחובר לטופס",
-  "fields_in_form_duplicated": "כל שינוי בניתוב ובשדות הטופס שמשוכפל, ישפיעו על הטופס המשוכפל.",
+  "fields_in_form_duplicated": "כל שינוי שנעשה בנתב או בשדות של הטופס המשוכפל ישתקף בעותק. עם זאת, מחיקת שדה לא תסיר אותו מהעותק.",
   "form_deleted": "הטופס נמחק",
   "delete_form": "האם אתה בטוח שאתה רוצה למחוק את הטופס?",
   "delete_form_action": "כן, מחק את הטופס",

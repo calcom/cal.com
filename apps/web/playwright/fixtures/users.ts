@@ -86,7 +86,7 @@ const createTeamWorkflow = async (user: { id: number }, team: { id: number }) =>
   });
 };
 
-const createTeamEventType = async (
+export const createTeamEventType = async (
   user: { id: number },
   team: { id: number },
   scenario?: {
@@ -268,6 +268,7 @@ export const createUsersFixture = (
       opts?:
         | (CustomUserOpts & {
             organizationId?: number | null;
+            overrideDefaultEventTypes?: boolean;
           })
         | null,
       scenario: {
@@ -300,18 +301,20 @@ export const createUsersFixture = (
         },
       });
 
-      let defaultEventTypes: SupportedTestEventTypes[] = [
-        { title: "30 min", slug: "30-min", length: 30 },
-        { title: "Paid", slug: "paid", length: 30, price: 1000 },
-        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
-        { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
-        {
-          title: "Multiple duration",
-          slug: "multiple-duration",
-          length: 30,
-          metadata: { multipleDuration: [30, 60, 90] },
-        },
-      ];
+      let defaultEventTypes: SupportedTestEventTypes[] = opts?.overrideDefaultEventTypes
+        ? []
+        : [
+            { title: "30 min", slug: "30-min", length: 30 },
+            { title: "Paid", slug: "paid", length: 30, price: 1000 },
+            { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+            { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+            {
+              title: "Multiple duration",
+              slug: "multiple-duration",
+              length: 30,
+              metadata: { multipleDuration: [30, 60, 90] },
+            },
+          ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
       for (const eventTypeData of defaultEventTypes) {
