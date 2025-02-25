@@ -40,7 +40,7 @@ type SlotItemProps = {
   slot: Slot;
   seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
-  onTimeSelect: TOnTimeSelect;
+  onTimeSelect?: TOnTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
@@ -167,6 +167,7 @@ const SlotItem = ({
                   StartIcon={layout === "column_view" ? "chevron-right" : undefined}
                   type="button"
                   onClick={() =>
+                    onTimeSelect &&
                     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
                   }
                   data-testid="skip-confirm-book-button"
