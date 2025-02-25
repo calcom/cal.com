@@ -1,9 +1,10 @@
+import type { Params } from "app/_types";
+import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
@@ -25,9 +26,8 @@ const handleValidationError = (error: z.ZodError): NextResponse => {
   );
 };
 
-async function handler(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams;
-  const result = querySchema.safeParse(Object.fromEntries(searchParams));
+async function handler(req: NextRequest, { params }: { params: Params }) {
+  const result = querySchema.safeParse(params);
   if (!result.success) {
     return handleValidationError(result.error);
   }
@@ -63,6 +63,6 @@ async function handler(req: NextRequest) {
   });
 }
 
-const getHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const getHandler = apiRouteMiddleware(handler);
 
 export { getHandler as GET };
