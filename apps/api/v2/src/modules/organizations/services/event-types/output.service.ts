@@ -1,9 +1,9 @@
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host, DestinationCalendar } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
+import { SchedulingType, Team } from "@prisma/client";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
@@ -12,6 +12,10 @@ type EventTypeRelations = {
   schedule: Schedule | null;
   hosts: Host[];
   destinationCalendar?: DestinationCalendar | null;
+  team?: Pick<
+    Team,
+    "bannerUrl" | "name" | "logoUrl" | "slug" | "weekStart" | "brandColor" | "darkBrandColor" | "theme"
+  > | null;
 };
 export type DatabaseTeamEventType = EventType & EventTypeRelations;
 
@@ -66,22 +70,24 @@ type Input = Pick<
   | "eventName"
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
+  | "team"
 >;
 
 @Injectable()
 export class OutputOrganizationsEventTypesService {
   constructor(
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
-    private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly usersRepository: UsersRepository
   ) {}
 
-  async getResponseTeamEventType(databaseEventType: Input) {
+  async getResponseTeamEventType(databaseEventType: Input, isOrgTeamEvent: boolean) {
     const { teamId, userId, parentId, assignAllTeamMembers } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
       0,
-      databaseEventType
+      databaseEventType,
+      isOrgTeamEvent
     );
     const hosts =
       databaseEventType.schedulingType === "MANAGED"
@@ -96,11 +102,22 @@ export class OutputOrganizationsEventTypesService {
       parentEventTypeId: parentId,
       schedulingType: databaseEventType.schedulingType,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
+      team: {
+        id: teamId,
+        name: databaseEventType?.team?.name,
+        slug: databaseEventType?.team?.slug,
+        bannerUrl: databaseEventType?.team?.bannerUrl,
+        logoUrl: databaseEventType?.team?.logoUrl,
+        weekStart: databaseEventType?.team?.weekStart,
+        brandColor: databaseEventType?.team?.brandColor,
+        darkBrandColor: databaseEventType?.team?.darkBrandColor,
+        theme: databaseEventType?.team?.theme,
+      },
     };
   }
 
   async getManagedEventTypeHosts(eventTypeId: number) {
-    const children = await this.organizationEventTypesRepository.getEventTypeChildren(eventTypeId);
+    const children = await this.teamsEventTypesRepository.getEventTypeChildren(eventTypeId);
     const transformedHosts: TeamEventTypeResponseHost[] = [];
     for (const child of children) {
       if (child.userId) {
@@ -129,9 +146,14 @@ export class OutputOrganizationsEventTypesService {
           name: databaseUser?.name || "",
           mandatory: databaseHost.isFixed,
           priority: getPriorityLabel(databaseHost.priority || 2),
+          avatarUrl: databaseUser?.avatarUrl,
         });
       } else {
-        transformedHosts.push({ userId: databaseHost.userId, name: databaseUser?.name || "" });
+        transformedHosts.push({
+          userId: databaseHost.userId,
+          name: databaseUser?.name || "",
+          avatarUrl: databaseUser?.avatarUrl,
+        });
       }
     }
 

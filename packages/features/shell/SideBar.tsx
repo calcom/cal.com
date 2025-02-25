@@ -3,33 +3,18 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
-import { IS_CALCOM, IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
+import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications, ButtonState } from "@calcom/lib/hooks/useNotifications";
-import {
-  Avatar,
-  Button,
-  ButtonOrLink,
-  Credits,
-  Icon,
-  SkeletonText,
-  Tooltip,
-  Logo,
-  showToast,
-} from "@calcom/ui";
+import { UserPermissionRole } from "@calcom/prisma/enums";
+import { Avatar, ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo } from "@calcom/ui";
 
 import { KBarTrigger } from "../kbar/Kbar";
-import type { LayoutProps } from "./Shell";
 import { Navigation } from "./navigation/Navigation";
-import { type NavigationItemType } from "./navigation/NavigationItem";
+import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 
@@ -60,75 +45,24 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 }
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
-  const { fetchAndCopyToClipboard } = useCopy();
+  const session = useSession();
   const { t, isLocaleReady } = useLocale();
-  const orgBranding = useOrgBranding();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
-  const [isReferalLoading, setIsReferalLoading] = useState(false);
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const publicPageUrl = useMemo(() => {
-    if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
-    const publicPageUrl = orgBranding?.slug ? getOrgFullOrigin(orgBranding.slug) : "";
-    return publicPageUrl;
-  }, [orgBranding?.slug, user?.username, user?.org?.id]);
+  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
+
+  const bottomNavItems = useBottomNavItems({
+    publicPageUrl,
+    isAdmin,
+    user,
+  });
 
   const sidebarStylingAttributes = {
     maxHeight: `calc(100vh - ${bannersHeight}px)`,
     top: `${bannersHeight}px`,
   };
-
-  // Todo: extract this to a hook
-  const bottomNavItems: NavigationItemType[] = [
-    {
-      name: "view_public_page",
-      href: publicPageUrl,
-      icon: "external-link",
-      target: "__blank",
-    },
-    {
-      name: "copy_public_page_link",
-      href: "",
-      onClick: (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-        navigator.clipboard.writeText(publicPageUrl);
-        showToast(t("link_copied"), "success");
-      },
-      icon: "copy",
-    },
-    IS_CALCOM
-      ? {
-          name: "copy_referral_link",
-          href: "",
-          onClick: (e: { preventDefault: () => void }) => {
-            e.preventDefault();
-            setIsReferalLoading(true);
-            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
-            setTimeout(() => {
-              fetchAndCopyToClipboard(
-                fetch("/api/generate-referral-link", {
-                  method: "POST",
-                })
-                  .then((res) => res.json())
-                  .then((res) => res.shortLink),
-                {
-                  onSuccess: () => showToast(t("link_copied"), "success"),
-                  onFailure: () => showToast("Copy to clipboard failed", "error"),
-                }
-              );
-              setIsReferalLoading(false);
-            }, 1000);
-          },
-          icon: "gift",
-          isLoading: isReferalLoading,
-        }
-      : null,
-    {
-      name: "settings",
-      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
-      icon: "settings",
-    },
-  ].filter(Boolean) as NavigationItemType[];
 
   return (
     <div className="relative">
@@ -140,17 +74,17 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
-            {orgBranding ? (
+            {user?.org ? (
               !ENABLE_PROFILE_SWITCHER ? (
                 <Link href="/settings/organizations/profile" className="w-full px-1.5">
                   <div className="flex items-center gap-2 font-medium">
                     <Avatar
-                      alt={`${orgBranding.name} logo`}
-                      imageSrc={getPlaceholderAvatar(orgBranding.logoUrl, orgBranding.name)}
+                      alt={`${user.org.name} logo`}
+                      imageSrc={getPlaceholderAvatar(user.org.logoUrl, user.org.name)}
                       size="xsm"
                     />
                     <p className="text line-clamp-1 text-sm">
-                      <span>{orgBranding.name}</span>
+                      <span>{user.org.name}</span>
                     </p>
                   </div>
                 </Link>
@@ -186,7 +120,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                   className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
                 />
               </button>
-              {!!orgBranding && (
+              {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
                   <UserDropdown small />
                 </div>
@@ -245,98 +179,5 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         )}
       </aside>
     </div>
-  );
-}
-
-export function ShellMain(props: LayoutProps) {
-  const router = useRouter();
-  const { isLocaleReady, t } = useLocale();
-
-  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
-
-  return (
-    <>
-      {(props.heading || !!props.backPath) && (
-        <div
-          className={classNames(
-            "flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
-          )}>
-          {!!props.backPath && (
-            <Button
-              variant="icon"
-              size="sm"
-              color="minimal"
-              onClick={() =>
-                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-              }
-              StartIcon="arrow-left"
-              aria-label="Go Back"
-              className="rounded-md ltr:mr-2 rtl:ml-2"
-              data-testid="go-back-button"
-            />
-          )}
-          {props.heading && (
-            <header
-              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
-              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-              <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
-                {props.heading && (
-                  <h3
-                    className={classNames(
-                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                      props.smallHeading ? "text-base" : "text-xl",
-                      props.hideHeadingOnMobile && "hidden"
-                    )}>
-                    {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
-                  </h3>
-                )}
-                {props.subtitle && (
-                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
-                    {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
-                  </p>
-                )}
-              </div>
-              {props.beforeCTAactions}
-              {props.CTA && (
-                <div
-                  className={classNames(
-                    props.backPath
-                      ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
-                  )}>
-                  {isLocaleReady && props.CTA}
-                </div>
-              )}
-              {props.actions && props.actions}
-              {props.heading === "Bookings" && buttonToShow && (
-                <Button
-                  color="primary"
-                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
-                  loading={isLoading}
-                  disabled={buttonToShow === ButtonState.DENIED}
-                  tooltipSide="bottom"
-                  tooltip={
-                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
-                  }>
-                  {t(
-                    buttonToShow === ButtonState.DISABLE
-                      ? "disable_browser_notifications"
-                      : "allow_browser_notifications"
-                  )}
-                </Button>
-              )}
-            </header>
-          )}
-        </div>
-      )}
-      {props.afterHeading && <>{props.afterHeading}</>}
-      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
-        {props.children}
-      </div>
-    </>
   );
 }

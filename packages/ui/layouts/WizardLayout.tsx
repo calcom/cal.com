@@ -4,7 +4,7 @@
 import { noop } from "lodash";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,9 +31,7 @@ export function WizardLayout({
   }, [pathname]);
 
   return (
-    <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
-      data-testid="onboarding">
+    <div className="bg-default text-emphasis min-h-screen" data-testid="onboarding">
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -56,7 +54,7 @@ export function WizardLayout({
                   </>
                 )}
               </header>
-              <Steps maxSteps={maxSteps} currentStep={currentStep} navigateToStep={noop} />
+              <Steps maxSteps={maxSteps} currentStep={currentStep} nextStep={noop} />
             </div>
             <StepCard>{children}</StepCard>
           </div>

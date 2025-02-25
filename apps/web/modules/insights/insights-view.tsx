@@ -1,6 +1,13 @@
 "use client";
 
 import {
+  DataTableProvider,
+  DataTableFilters,
+  DateRangeFilter,
+  ColumnFilterType,
+  type FilterableColumn,
+} from "@calcom/features/data-table";
+import {
   AverageEventDurationChart,
   BookingKPICards,
   BookingStatusLineChart,
@@ -12,109 +19,78 @@ import {
   HighestRatedMembersTable,
   LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
-import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { Filters } from "@calcom/features/insights/filters";
-import Shell from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import "@calcom/features/insights/components/tremor.css";
+import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { Download } from "@calcom/features/insights/filters/Download";
+import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
+import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
+import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
-import { Button, ButtonGroup } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
-
-import type { getServerSideProps } from "@lib/insights/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function InsightsPage() {
-  const { t } = useLocale();
-  const { data: user } = trpc.viewer.me.useQuery();
+  return (
+    <DataTableProvider>
+      <InsightsOrgTeamsProvider>
+        <InsightsPageContent />
+      </InsightsOrgTeamsProvider>
+    </DataTableProvider>
+  );
+}
 
-  const features = [
-    {
-      icon: <Icon name="users" className="h-5 w-5" />,
-      title: t("view_bookings_across"),
-      description: t("view_bookings_across_description"),
-    },
-    {
-      icon: <Icon name="refresh-ccw" className="h-5 w-5" />,
-      title: t("identify_booking_trends"),
-      description: t("identify_booking_trends_description"),
-    },
-    {
-      icon: <Icon name="user-plus" className="h-5 w-5" />,
-      title: t("spot_popular_event_types"),
-      description: t("spot_popular_event_types_description"),
-    },
-  ];
+const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "createdAt",
+  title: "createdAt",
+  type: ColumnFilterType.DATE_RANGE,
+};
+
+function InsightsPageContent() {
+  const { t } = useLocale();
+  const { table } = useInsightsBookings();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
 
   return (
-    <div>
-      <Shell
-        withoutMain={false}
-        heading={t("insights")}
-        subtitle={t("insights_subtitle")}
-        title={t("insights")}
-        description={t("insights_subtitle")}>
-        <UpgradeTip
-          plan="team"
-          title={t("make_informed_decisions")}
-          description={t("make_informed_decisions_description")}
-          features={features}
-          background="/tips/insights"
-          buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-              <ButtonGroup>
-                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("create_team")}
-                </Button>
-                <Button color="minimal" href="https://go.cal.com/insights" target="_blank">
-                  {t("learn_more")}
-                </Button>
-              </ButtonGroup>
-            </div>
-          }>
-          {!user ? (
-            <></>
-          ) : (
-            <FiltersProvider>
-              <Filters />
+    <>
+      <div
+        className="flex flex-wrap items-center gap-2"
+        data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
+        <OrgTeamsFilter />
+        <DataTableFilters.AddFilterButton table={table} />
+        <DataTableFilters.ActiveFilters table={table} />
+        <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+        <div className="grow" />
+        <Download />
+        <DateRangeFilter column={createdAtColumn} />
+      </div>
 
-              <div className="mb-4 space-y-4">
-                <BookingKPICards />
+      <div className="my-4 space-y-4">
+        <BookingKPICards />
 
-                <BookingStatusLineChart />
+        <BookingStatusLineChart />
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <PopularEventsTable />
-
-                  <AverageEventDurationChart />
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <MostBookedTeamMembersTable />
-                  <LeastBookedTeamMembersTable />
-                </div>
-                <RecentFeedbackTable />
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <HighestNoShowHostTable />
-                  <HighestRatedMembersTable />
-                  <LowestRatedMembersTable />
-                </div>
-                <small className="text-default block text-center">
-                  {t("looking_for_more_insights")}{" "}
-                  <a
-                    className="text-blue-500 hover:underline"
-                    href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
-                    {" "}
-                    {t("contact_support")}
-                  </a>
-                </small>
-              </div>
-            </FiltersProvider>
-          )}
-        </UpgradeTip>
-      </Shell>
-    </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <PopularEventsTable />
+          <AverageEventDurationChart />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <MostBookedTeamMembersTable />
+          <LeastBookedTeamMembersTable />
+        </div>
+        <RecentFeedbackTable />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <HighestNoShowHostTable />
+          <HighestRatedMembersTable />
+          <LowestRatedMembersTable />
+        </div>
+        <small className="text-default block text-center">
+          {t("looking_for_more_insights")}{" "}
+          <a
+            className="text-blue-500 hover:underline"
+            href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+            {" "}
+            {t("contact_support")}
+          </a>
+        </small>
+      </div>
+    </>
   );
 }

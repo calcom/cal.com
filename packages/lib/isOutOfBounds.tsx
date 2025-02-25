@@ -245,24 +245,44 @@ export function isTimeViolatingFutureLimit({
   const dateInSystemTz = dayjs(time);
   if (periodLimits.endOfRollingPeriodEndDayInBookerTz) {
     const isAfterRollingEndDay = dateInSystemTz.isAfter(periodLimits.endOfRollingPeriodEndDayInBookerTz);
-    log.debug("rollingEndDayCheck", {
+    log.silly("rollingEndDayCheck", {
       formattedDate: dateInSystemTz.format(),
       isAfterRollingEndDay,
       endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
     });
+    if (isAfterRollingEndDay)
+      log.warn(
+        "Booking is out of bounds due to rolling period end day.",
+        safeStringify({
+          formattedDate: dateInSystemTz.format(),
+          isAfterRollingEndDay,
+          endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
+        })
+      );
     return isAfterRollingEndDay;
   }
 
   if (periodLimits.startOfRangeStartDayInEventTz && periodLimits.endOfRangeEndDayInEventTz) {
     const isBeforeRangeStart = dateInSystemTz.isBefore(periodLimits.startOfRangeStartDayInEventTz);
     const isAfterRangeEnd = dateInSystemTz.isAfter(periodLimits.endOfRangeEndDayInEventTz);
-    log.debug("rangeCheck", {
+    log.silly("rangeCheck", {
       formattedDate: dateInSystemTz.format(),
       isAfterRangeEnd,
       isBeforeRangeStart,
       startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
       endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
     });
+    if (isBeforeRangeStart || isAfterRangeEnd)
+      log.warn(
+        "Booking is out of bounds due to range start and end.",
+        safeStringify({
+          formattedDate: dateInSystemTz.format(),
+          isBeforeRangeStart,
+          isAfterRangeEnd,
+          startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
+          endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
+        })
+      );
     return isBeforeRangeStart || isAfterRangeEnd;
   }
   return false;
@@ -287,22 +307,37 @@ export default function isOutOfBounds(
   },
   minimumBookingNotice?: number
 ) {
-  return (
-    isTimeOutOfBounds({ time, minimumBookingNotice }) ||
-    isTimeViolatingFutureLimit({
-      time,
-      periodLimits: calculatePeriodLimits({
-        periodType,
-        periodDays,
-        periodCountCalendarDays,
-        periodStartDate,
-        periodEndDate,
-        // Temporary till we find a way to provide allDatesWithBookabilityStatus in handleNewBooking without re-computing availability for the booked timeslot
-        allDatesWithBookabilityStatusInBookerTz: null,
-        _skipRollingWindowCheck: true,
-        eventUtcOffset,
-        bookerUtcOffset,
-      }),
-    })
-  );
+  const log = logger.getSubLogger({ prefix: ["isOutOfBounds"] });
+  const isOutOfBoundsByTime = isTimeOutOfBounds({ time, minimumBookingNotice });
+  const periodLimits = calculatePeriodLimits({
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodStartDate,
+    periodEndDate,
+    allDatesWithBookabilityStatusInBookerTz: null, // Temporary workaround
+    _skipRollingWindowCheck: true,
+    eventUtcOffset,
+    bookerUtcOffset,
+  });
+
+  const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
+    time,
+    periodLimits,
+  });
+
+  if (isOutOfBoundsByTime) {
+    log.warn(
+      "Booking is out of bounds due to minimum booking notice.",
+      safeStringify({ minimumBookingNotice })
+    );
+    return true;
+  }
+
+  if (isOutOfBoundsByPeriod) {
+    log.warn("Booking is out of bounds due to period restrictions", safeStringify({ periodLimits }));
+    return true;
+  }
+
+  return false;
 }

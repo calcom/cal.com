@@ -18,6 +18,7 @@ export const METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED";
 export const UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY";
 export const ACCESS_TOKEN_EXPIRED = "ACCESS_TOKEN_IS_EXPIRED";
 export const INVALID_ACCESS_TOKEN = "Invalid Access Token.";
+export const CONFLICT = "CONFLICT";
 
 // Server Errors (5xx)
 export const INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
@@ -47,6 +48,7 @@ export const API_ERROR_CODES = [
 // Request headers
 export const X_CAL_SECRET_KEY = "x-cal-secret-key";
 export const X_CAL_CLIENT_ID = "x-cal-client-id";
+export const X_CAL_PLATFORM_EMBED = "x-cal-platform-embed";
 
 // HTTP status codes
 export const HTTP_CODE_TOKEN_EXPIRED = 498;
@@ -55,12 +57,14 @@ export const VERSION_2024_06_14 = "2024-06-14";
 export const VERSION_2024_06_11 = "2024-06-11";
 export const VERSION_2024_04_15 = "2024-04-15";
 export const VERSION_2024_08_13 = "2024-08-13";
+export const VERSION_2024_09_04 = "2024-09-04";
 
 export const API_VERSIONS = [
   VERSION_2024_06_14,
   VERSION_2024_06_11,
   VERSION_2024_04_15,
   VERSION_2024_08_13,
+  VERSION_2024_09_04,
 ] as const;
 
 export type API_VERSIONS_ENUM = (typeof API_VERSIONS)[number];

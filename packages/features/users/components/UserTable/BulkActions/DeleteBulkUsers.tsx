@@ -1,11 +1,12 @@
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
 
 import type { UserTableUser } from "../types";
 
 interface Props {
-  users: UserTableUser[];
+  users: Array<{ id: UserTableUser["id"] }>;
   onRemove: () => void;
 }
 
@@ -38,7 +39,9 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button StartIcon="ban">{t("Delete")}</Button>
+        <DataTableSelectionBar.Button icon="ban" color="destructive">
+          {t("Delete")}
+        </DataTableSelectionBar.Button>
       </DialogTrigger>
       <ConfirmationDialogContent
         variety="danger"

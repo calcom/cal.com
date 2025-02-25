@@ -9,6 +9,7 @@ import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
+import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 export type FormInputFieldsProps = {
   form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
@@ -26,14 +27,20 @@ export type FormInputFieldsProps = {
 export default function FormInputFields(props: FormInputFieldsProps) {
   const { form, response, setResponse, disabledFields = [] } = props;
 
-  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(form);
+  const formFieldsQueryBuilderConfig = withRaqbSettingsAndWidgets({
+    config: getQueryBuilderConfigForFormFields(form),
+    configFor: ConfigFor.FormFields,
+  });
 
   return (
     <>
       {form.fields?.map((field) => {
         if (isRouterLinkedField(field)) {
           // @ts-expect-error FIXME @hariombalhara
-          field = field.routerField;
+          const routerField = field.routerField;
+          // A field that has been deleted from the main form would still be there in the duplicate form but disconnected
+          // In that case, it could mistakenly be categorized as RouterLinkedField, so if routerField is nullish, we use the field itself
+          field = routerField ?? field;
         }
         const widget = formFieldsQueryBuilderConfig.widgets[field.type];
         if (!("factory" in widget)) {
@@ -66,6 +73,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                     ...response,
                     [field.id]: {
                       label: field.label,
+                      identifier: field?.identifier,
                       value: getFieldResponseForJsonLogic({ field, value }),
                     },
                   };

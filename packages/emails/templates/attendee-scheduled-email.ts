@@ -42,12 +42,16 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
       subject: `${this.calEvent.title}`,
-      html: await renderEmail("AttendeeScheduledEmail", {
-        calEvent: clonedCalEvent,
-        attendee: this.attendee,
-      }),
+      html: await this.getHtml(clonedCalEvent, this.attendee),
       text: this.getTextBody(),
     };
+  }
+
+  async getHtml(calEvent: CalendarEvent, attendee: Person) {
+    return await renderEmail("AttendeeScheduledEmail", {
+      calEvent,
+      attendee,
+    });
   }
 
   protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {

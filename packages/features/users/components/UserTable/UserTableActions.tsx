@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownItem,
   DropdownMenuSeparator,
   showToast,
@@ -52,7 +53,7 @@ export function TableActions({
   const orgId = session?.user?.org?.id;
 
   return (
-    <>
+    <div className="flex w-full justify-center">
       <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
         <Tooltip content={t("view_public_page")}>
           <Button
@@ -74,50 +75,125 @@ export function TableActions({
                 StartIcon="ellipsis"
               />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {permissionsForUser.canEdit && (
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    onClick={() =>
-                      dispatch({
-                        type: "EDIT_USER_SHEET",
-                        payload: {
-                          user,
-                          showModal: true,
-                        },
-                      })
-                    }
-                    StartIcon="pencil">
-                    {t("edit")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              )}
-              {permissionsForUser.canImpersonate && (
-                <>
+            <DropdownMenuPortal>
+              <DropdownMenuContent>
+                {permissionsForUser.canEdit && (
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
                       onClick={() =>
                         dispatch({
-                          type: "SET_IMPERSONATE_ID",
+                          type: "EDIT_USER_SHEET",
                           payload: {
                             user,
                             showModal: true,
                           },
                         })
                       }
-                      StartIcon="lock">
-                      {t("impersonate")}
+                      StartIcon="pencil">
+                      {t("edit")}
                     </DropdownItem>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                )}
+                {permissionsForUser.canImpersonate && (
+                  <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_IMPERSONATE_ID",
+                            payload: {
+                              user,
+                              showModal: true,
+                            },
+                          })
+                        }
+                        StartIcon="lock">
+                        {t("impersonate")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {permissionsForUser.canRemove && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: "SET_DELETE_ID",
+                          payload: {
+                            user,
+                            showModal: true,
+                          },
+                        })
+                      }
+                      color="destructive"
+                      StartIcon="user-x">
+                      {t("remove")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                {permissionsForUser.canResendInvitation && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={() => {
+                        resendInvitationMutation.mutate({
+                          teamId: orgId,
+                          language: i18n.language,
+                          email: user.email,
+                          isOrg: true,
+                        });
+                      }}
+                      StartIcon="send">
+                      {t("resend_invitation")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenuPortal>
+          </Dropdown>
+        )}
+      </ButtonGroup>
+      <div className="flex md:hidden">
+        <Dropdown>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+          </DropdownMenuTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuContent>
+              <DropdownMenuItem className="outline-none">
+                <DropdownItem type="button" StartIcon="external-link">
+                  {t("view_public_page")}
+                </DropdownItem>
+              </DropdownMenuItem>
+              {permissionsForUser.canEdit && (
+                <>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: "EDIT_USER_SHEET",
+                          payload: {
+                            user,
+                            showModal: true,
+                          },
+                        })
+                      }
+                      StartIcon="pencil">
+                      {t("edit")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
                 </>
               )}
               {permissionsForUser.canRemove && (
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
+                    color="destructive"
                     onClick={() =>
                       dispatch({
                         type: "SET_DELETE_ID",
@@ -127,86 +203,15 @@ export function TableActions({
                         },
                       })
                     }
-                    color="destructive"
                     StartIcon="user-x">
                     {t("remove")}
                   </DropdownItem>
                 </DropdownMenuItem>
               )}
-              {permissionsForUser.canResendInvitation && (
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    onClick={() => {
-                      resendInvitationMutation.mutate({
-                        teamId: orgId,
-                        language: i18n.language,
-                        email: user.email,
-                        isOrg: true,
-                      });
-                    }}
-                    StartIcon="send">
-                    {t("resend_invitation")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              )}
             </DropdownMenuContent>
-          </Dropdown>
-        )}
-      </ButtonGroup>
-      <div className="flex md:hidden">
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem className="outline-none">
-              <DropdownItem type="button" StartIcon="external-link">
-                {t("view_public_page")}
-              </DropdownItem>
-            </DropdownMenuItem>
-            {permissionsForUser.canEdit && (
-              <>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    onClick={() =>
-                      dispatch({
-                        type: "EDIT_USER_SHEET",
-                        payload: {
-                          user,
-                          showModal: true,
-                        },
-                      })
-                    }
-                    StartIcon="pencil">
-                    {t("edit")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              </>
-            )}
-            {permissionsForUser.canRemove && (
-              <DropdownMenuItem>
-                <DropdownItem
-                  type="button"
-                  color="destructive"
-                  onClick={() =>
-                    dispatch({
-                      type: "SET_DELETE_ID",
-                      payload: {
-                        user,
-                        showModal: true,
-                      },
-                    })
-                  }
-                  StartIcon="user-x">
-                  {t("remove")}
-                </DropdownItem>
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
+          </DropdownMenuPortal>
         </Dropdown>
       </div>
-    </>
+    </div>
   );
 }

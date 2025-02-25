@@ -22,6 +22,8 @@ type Props = {
   switchContainerClassName?: string;
   labelClassName?: string;
   descriptionClassName?: string;
+  noIndentation?: boolean;
+  hideSwitch?: boolean;
 };
 
 function SettingsToggle({
@@ -39,6 +41,8 @@ function SettingsToggle({
   switchContainerClassName,
   labelClassName,
   descriptionClassName,
+  noIndentation = false,
+  hideSwitch,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -75,16 +79,18 @@ function SettingsToggle({
                   </p>
                 )}
               </div>
-              <div className="my-auto h-full">
-                <Switch
-                  data-testid={rest["data-testid"]}
-                  fitToHeight={true}
-                  checked={checked}
-                  onCheckedChange={onCheckedChange}
-                  disabled={disabled}
-                  tooltip={tooltip}
-                />
-              </div>
+              {!hideSwitch && (
+                <div className="my-auto h-full">
+                  <Switch
+                    data-testid={rest["data-testid"]}
+                    fitToHeight={true}
+                    checked={checked}
+                    onCheckedChange={onCheckedChange}
+                    disabled={disabled}
+                    tooltip={tooltip}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex space-x-3">
@@ -108,7 +114,7 @@ function SettingsToggle({
             </div>
           )}
           {children && (
-            <div className={classNames("lg:ml-14", childrenClassName)} ref={animateRef}>
+            <div className={classNames(noIndentation ? "" : "lg:ml-14", childrenClassName)} ref={animateRef}>
               {checked && <div className={classNames(!toggleSwitchAtTheEnd && "mt-4")}>{children}</div>}
             </div>
           )}

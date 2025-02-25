@@ -9,6 +9,7 @@ import {
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -53,6 +54,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           user: booking.user,
         })
       ).profile
+    : null;
+
+  const calVideoLogo = profile?.organization
+    ? await OrganizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
     : null;
 
   //daily.co calls have a 14 days exit buffer when a user enters a call when it's not available it will trigger the modals
@@ -101,7 +106,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
-  // Only for backward compatibility and setting user id in particpants for organizer
+  // Only for backward compatibility and setting user id in participants for organizer
   else {
     const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
       oldVideoReference.id,
@@ -134,6 +139,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           : bookingObj.user,
       },
       hasTeamPlan: !!hasTeamPlan,
+      calVideoLogo,
       trpcState: ssr.dehydrate(),
     },
   };

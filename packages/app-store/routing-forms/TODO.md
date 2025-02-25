@@ -1,18 +1,4 @@
-## Ready for Review Requirements
-- Authorization check for fetch form response and form
-
- 
-
 ## TODO - Routing
-- [x] Use teamMemberIds to calculate availabilithy as well in addition to doing it in handleNewBooking
-- [x] Don't let the Routing Form with attributesQueryValue be picked
-- [x] Use a subset of event assignees using teamMemberIds
-- [x] Ensure that renaming an attribute option doesn't remove it from routing logic
-- [x] Add support for multiselect_contains and multiselect_not_contains operators in attributes
-- [x] Fix bug with Multiselect attribute
-- [x] Connect Form Response to Booking
-- [x] Test with non option based attributes and form field input
-- [x] We might want to disable attributes query builder for non-orgs. Same for Re-routing.
 - [ ] Switching from Select to MultiSelect in attribute 
     - [ ] It immediately makes the Routing logic to not work. Fix it.
     - [ ] It removes the selected option from Routing. Fix it.
@@ -20,13 +6,9 @@
 - [ ] Test Seated events as routing targets.
 - Improvements
     - [ ] When choosing 'Value of Field' option in RAQB, show a warning somewhere if all options of the Form field aren't present in the attribute option.
-        - So, if Form Field is 'What is Comapny Size' with options Enterprise, Large, Medium, Small and Attribute for which Value of 'What is compnay size' has options Enterprise, Large, Medium. It would show a warning that 'Small' option is not present in the attribute.
+        - So, if Form Field is 'What is Company Size' with options Enterprise, Large, Medium, Small and Attribute for which Value of 'What is compnay size' has options Enterprise, Large, Medium. It would show a warning that 'Small' option is not present in the attribute.
     - [ ] When logic can't be built(Short text maps to an attribute with given set of options but the short text value doesn't match any of the options), the team member matching route throws error but Test Preview still shows the previous value - It show should the error in there.
     - [ ] When routing to a team that doesn't have the team members assigned that are chosen, we are unable to select those users. FIX it by ignoring the assigned members(except the fixed hosts) and just using the attributes matched team members.
-- [x] Start storing eventTypeId in routing Action.
-- [x] Make sure that without making the FORM dirty, user can't reroute
-- [x] When 'Verify Route' is clicked, it doesn't seem to run the form field logic as there is a warning in console. Fix it.
-- [x] Give a proper icon to Reroute button
 - [ ] Fetch bookings on window focus but not when rerouting dialog is open. As soon as it is closed, we need to refetch again.
 - [ ] Seated Events
     - [ ] Disable routing for seated events. Disable only during creation.
@@ -45,22 +27,13 @@
 - [ ] findTeamMembersMatchingAttributesQuery - Parallelize jsonLogic.apply across team members.
 
 ### Unit Tests
-- [ ] findTeamMembersMatchingAttributesQuery
-    - [x] Basic Tests
-    - [ ] Performance Tests with say 1000 team members and 100 attributes to ensure no regression
 - [ ] evaluateRAQB
     - [x] Basic Tests
     - [ ] More Detailed Tests
-- [ ] jsonLogic
-    - [x] Basic Tests
 - [ ] getAttributes
     - [ ] Querying Logic Test
-- [x] getRoutedUsers tests
 - [ ] getAvailableSlots 
     - [ ] should use routedTeamMemberIds in availability query
-- [ ] RerouteDialog
-    - [x] BASIC
-    - [ ] New Tab rescheduling
 
 
 ### Documentation / Tooltip
@@ -74,6 +47,7 @@
 
 ### V2.0
 - [ ] Fallback for when no team member matches the criteria.
-    - Fallback will be attributes query builder that would match a different set of users. Though the booking will use the team members assigned to the event type, it might be better to be able to identify such a scenario and use a different set of users. It also makes it easy to identify when the fallback scenario happens.
+    - [x] Fallback will be attributes query builder that would match a different set of users. Though the booking will use the team members assigned to the event type, it might be better to be able to identify such a scenario and use a different set of users. It also makes it easy to identify when the fallback scenario happens.
+    - [ ] Mark if fallback was used by the router for a response. 
 - [ ] cal.routedTeamMembersIds query param - Could possible become a big payload and possibly break the URL limit. We could work on a short-lived row in a table that would hold that info and we pass the id of that row only in query param. handleNewBooking can then retrieve the routedTeamMembersIds from that short-lived row and delete the entry after successfully creating a booking.
 - [ ] Better ability to test with contact owner from Routing Form Preview itself(if possible). Right now, we need to test the entire booking flow to verify that.

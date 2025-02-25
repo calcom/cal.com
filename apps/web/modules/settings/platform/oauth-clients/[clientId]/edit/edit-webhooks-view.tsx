@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui";
 
@@ -18,6 +19,7 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 
 export default function EditOAuthClientWebhooks() {
+  const { t } = useLocale();
   const router = useRouter();
   const params = useParams<{ clientId: string }>();
   const clientId = params?.clientId || "";
@@ -40,14 +42,16 @@ export default function EditOAuthClientWebhooks() {
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell title="OAuth client updation form" isPlatformUser={true}>
+        <Shell withoutSeo={true} title={t("webhook_update_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
                 <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                  Webhook update form
+                  {t("webhook_update_form")}
                 </h1>
-                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">Add a webhook to your OAuthClient.</p>
+                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
+                  {t("webhook_update_form_description")}
+                </p>
               </div>
             </div>
 
@@ -92,10 +96,10 @@ export default function EditOAuthClientWebhooks() {
                         webhookId,
                         body,
                       });
-                      showToast("Webhook updated successfully.", "success");
+                      showToast(t("webhook_updated_successfully"), "success");
                     } else {
                       await createWebhook(body);
-                      showToast("Webhook created successfully.", "success");
+                      showToast(t("webhook_created_successfully"), "success");
                     }
                     await refetchWebhooks();
                     router.push("/settings/platform/");
@@ -122,7 +126,7 @@ export default function EditOAuthClientWebhooks() {
 
   return (
     <div>
-      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

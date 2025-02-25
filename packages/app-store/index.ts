@@ -42,6 +42,7 @@ const appStore = {
   basecamp3: createCachedImport(() => import("./basecamp3")),
   telegramvideo: createCachedImport(() => import("./telegram")),
   shimmervideo: createCachedImport(() => import("./shimmervideo")),
+  hitpay: createCachedImport(() => import("./hitpay")),
 };
 
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
@@ -49,7 +50,6 @@ function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
 
   return async () => {
     if (!cachedModule) {
-      console.log("---------------------------------------importing", importFunc);
       cachedModule = await importFunc();
     }
     return cachedModule;

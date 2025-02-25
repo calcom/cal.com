@@ -10,6 +10,7 @@ import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/cons
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
@@ -233,7 +234,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
           <div className="mb-10 mt-6 space-y-6">
-            {/* Indivdual Invite */}
+            {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
                 name="emailOrUsername"
@@ -432,8 +433,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
+                  StartIcon="link"
                   data-testid="copy-invite-link-button">
-                  <Icon name="link" className="text-default h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
@@ -512,6 +513,7 @@ export const MemberInvitationModalWithoutMembers = ({
             language: i18n.language,
             role: values.role,
             usernameOrEmail: values.emailOrUsername,
+            creationSource: CreationSource.WEBAPP,
           },
           {
             onSuccess: async (data) => {

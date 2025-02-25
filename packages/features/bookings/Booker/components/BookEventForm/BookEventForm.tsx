@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 
@@ -28,6 +29,7 @@ type BookEventFormProps = {
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
+  shouldRenderCaptcha?: boolean;
 };
 
 export const BookEventForm = ({
@@ -44,6 +46,7 @@ export const BookEventForm = ({
   extraOptions,
   isVerificationCodeSending,
   isPlatform = false,
+  shouldRenderCaptcha,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -58,6 +61,7 @@ export const BookEventForm = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -85,6 +89,8 @@ export const BookEventForm = ({
     console.warn("No event type found for event", extraOptions);
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
+
+  const watchedCfToken = bookingForm.watch("cfToken");
 
   return (
     <div className="flex h-full flex-col">
@@ -141,6 +147,28 @@ export const BookEventForm = ({
             />
           </div>
         )}
+
+        {isPlatformBookerEmbed && (
+          <div className="text-subtle my-3 w-full text-xs">
+            {t("proceeding_agreement")}{" "}
+            <Link
+              className="text-emphasis hover:underline"
+              key="terms"
+              href={`${WEBSITE_TERMS_URL}`}
+              target="_blank">
+              {t("terms")}
+            </Link>{" "}
+            {t("and")}{" "}
+            <Link
+              className="text-emphasis hover:underline"
+              key="privacy"
+              href={`${WEBSITE_PRIVACY_POLICY_URL}`}
+              target="_blank">
+              {t("privacy_policy")}
+            </Link>
+            .
+          </div>
+        )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
@@ -153,9 +181,11 @@ export const BookEventForm = ({
                   {t("back")}
                 </Button>
               )}
+
               <Button
                 type="submit"
                 color="primary"
+                disabled={!!shouldRenderCaptcha && !watchedCfToken}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||

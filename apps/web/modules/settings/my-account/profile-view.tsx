@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -361,7 +362,8 @@ const ProfileView = () => {
               <Button
                 color="primary"
                 data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}>
+                onClick={(e) => onConfirmButton(e)}
+                loading={deleteMeMutation.isPending}>
                 {t("delete_my_account")}
               </Button>
             </DialogFooter>
@@ -598,6 +600,11 @@ const ProfileForm = ({
     handleAccountDisconnect(getUpdatedFormValues(formMethods.getValues()));
   };
 
+  const { data: usersAttributes, isPending: usersAttributesPending } =
+    trpc.viewer.attributes.getByUserId.useQuery({
+      userId: user.id,
+    });
+
   const {
     formState: { isSubmitting, isDirty },
   } = formMethods;
@@ -696,8 +703,30 @@ const ProfileForm = ({
             height="80px"
           />
         </div>
-        {/* // For Non-Cal indentities, we merge the values from DB and the user logging in,
-        so essentially there is no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
+        {usersAttributes && usersAttributes?.length > 0 && (
+          <div className="mt-6 flex flex-col">
+            <Label>{t("attributes")}</Label>
+            <div className="flex flex-col space-y-4">
+              {usersAttributes.map((attribute, index) => (
+                <>
+                  <DisplayInfo
+                    key={index}
+                    label={attribute.name}
+                    labelClassname="font-normal text-sm text-subtle"
+                    valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
+                    value={
+                      ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
+                        ? attribute.options[0].value
+                        : attribute.options.map((option) => option.value)
+                    }
+                  />
+                </>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
+        so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
         {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
           <div className="mt-6">
             <Label>Connected accounts</Label>

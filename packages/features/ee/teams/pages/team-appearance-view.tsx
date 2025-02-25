@@ -14,7 +14,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
+import { Button, Form, showToast, SettingsToggle } from "@calcom/ui";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -23,9 +23,9 @@ type BrandColorsFormValues = {
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] } & { isAppDir?: boolean };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
-const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
+const ProfileView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -79,13 +79,6 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
 
   return (
     <>
-      {!isAppDir ? (
-        <Meta
-          title={t("booking_appearance")}
-          description={t("appearance_team_description")}
-          borderInShellHeader={false}
-        />
-      ) : null}
       {isAdmin ? (
         <>
           <Form
@@ -98,8 +91,8 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
               <div>
-                <p className="font-semibold">{t("theme")}</p>
-                <p className="text-default">{t("theme_applies_note")}</p>
+                <p className="mt-0.5 text-base font-semibold leading-none">{t("theme")}</p>
+                <p className="text-default text-sm leading-normal">{t("theme_applies_note")}</p>
               </div>
             </div>
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
@@ -183,7 +176,7 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
   );
 };
 
-const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
+const ProfileViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
@@ -209,18 +202,11 @@ const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
     [error]
   );
 
-  if (isPending)
-    return (
-      <AppearanceSkeletonLoader
-        isAppDir={isAppDir}
-        title={t("appearance")}
-        description={t("appearance_team_description")}
-      />
-    );
+  if (isPending) return <AppearanceSkeletonLoader />;
 
   if (!team) return null;
 
-  return <ProfileView team={team} isAppDir={isAppDir} />;
+  return <ProfileView team={team} />;
 };
 
 export default ProfileViewWrapper;

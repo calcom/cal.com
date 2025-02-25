@@ -6,7 +6,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
-import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -91,7 +90,7 @@ function Field({
     }) || [];
 
   const setOptions = (updatedOptions: SelectOption[]) => {
-    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
+    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions, { shouldDirty: true });
   };
 
   const handleRemoveOptions = (index: number) => {
@@ -206,6 +205,9 @@ function Field({
               defaultValue={label || routerField?.label || ""}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
+              onChange={(e) => {
+                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+              }}
             />
           </div>
           <div className="mb-6 w-full">
@@ -220,7 +222,7 @@ function Field({
               // The identifier field will have the same value as the label field until it is changed
               value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value);
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
               }}
             />
           </div>
@@ -465,22 +467,14 @@ const FormEdit = ({
 };
 
 export default function FormEditPage({
-  form,
   appUrl,
+  ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <SingleForm
-      form={form}
+      {...props}
       appUrl={appUrl}
       Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
     />
   );
 }
-
-FormEditPage.getLayout = (page: React.ReactElement) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};

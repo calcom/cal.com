@@ -44,7 +44,7 @@ export const handleNewRecurringBooking = async (
       thirdPartyRecurringEventId,
       numSlotsToCheckForAvailability,
       currentRecurringIndex: 0,
-      noEmail: false,
+      noEmail: req.noEmail !== undefined ? req.noEmail : false,
     };
 
     const firstBookingResult = await handleNewBooking(recurringEventReq);

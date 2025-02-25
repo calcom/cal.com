@@ -2,10 +2,9 @@ import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
-import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
@@ -19,6 +18,9 @@ import {
   getAppFromSlug,
   MembershipRole,
   EventTypeMetaDataSchema,
+  getClientSecretFromPayment,
+  getBulkEventTypes,
+  bulkUpdateEventsToDefaultLocation,
 } from "@calcom/platform-libraries";
 import type {
   App,
@@ -29,8 +31,7 @@ import type {
   TDependencyData,
   CredentialPayload,
 } from "@calcom/platform-libraries";
-import { getClientSecretFromPayment } from "@calcom/platform-libraries";
-import { PrismaClient } from "@calcom/prisma/client";
+import { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
@@ -44,12 +45,11 @@ export class EventTypesAtomService {
     private readonly membershipsRepository: MembershipsRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly atomsRepository: AtomsRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
     private readonly usersService: UsersService,
     private readonly dbWrite: PrismaWriteService,
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly teamEventTypeService: OrganizationsEventTypesService
+    private readonly teamEventTypeService: TeamsEventTypesService
   ) {}
 
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
@@ -79,6 +79,10 @@ export class EventTypesAtomService {
     }
 
     return eventType;
+  }
+
+  async getUserEventTypes(userId: number) {
+    return getBulkEventTypes(userId);
   }
 
   async updateTeamEventType(
@@ -118,9 +122,10 @@ export class EventTypesAtomService {
   async updateEventType(eventTypeId: number, body: TUpdateEventTypeInputSchema, user: UserWithProfile) {
     await this.eventTypeService.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
-    const bookingFields = [...(body.bookingFields || [])];
+    const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
 
     if (
+      bookingFields?.length &&
       !bookingFields.find((field) => field.type === "email") &&
       !bookingFields.find((field) => field.type === "phone")
     ) {
@@ -177,7 +182,7 @@ export class EventTypesAtomService {
     let credentials = await this.credentialsRepository.getAllUserCredentialsById(userId);
     let userTeams: TeamQuery[] = [];
     if (teamId) {
-      const teamsQuery = await this.organizationsTeamsRepository.getUserTeamsById(userId);
+      const teamsQuery = await this.atomsRepository.getUserTeams(userId);
       // If a team is a part of an org then include those apps
       // Don't want to iterate over these parent teams
       const filteredTeams: TeamQuery[] = [];
@@ -316,5 +321,13 @@ export class EventTypesAtomService {
       clientSecret: getClientSecretFromPayment(payment),
       profile,
     };
+  }
+
+  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[]) {
+    return bulkUpdateEventsToDefaultLocation({
+      eventTypeIds,
+      user,
+      prisma: this.dbWrite.prisma as unknown as PrismaClient,
+    });
   }
 }

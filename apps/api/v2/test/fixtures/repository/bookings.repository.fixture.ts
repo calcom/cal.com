@@ -22,12 +22,20 @@ export class BookingsRepositoryFixture {
     return this.prismaReadClient.booking.findUnique({ where: { uid: bookingUid } });
   }
 
+  async getByRecurringBookingUid(recurringBookingUid: string) {
+    return this.prismaReadClient.booking.findMany({
+      where: {
+        recurringEventId: recurringBookingUid,
+      },
+    });
+  }
+
   async create(booking: Prisma.BookingCreateInput) {
     return this.prismaWriteClient.booking.create({ data: booking });
   }
 
   async deleteById(bookingId: Booking["id"]) {
-    return this.prismaWriteClient.booking.delete({ where: { id: bookingId } });
+    return this.prismaWriteClient.booking.deleteMany({ where: { id: bookingId } });
   }
 
   async deleteAllBookings(userId: User["id"], userEmail: User["email"]) {

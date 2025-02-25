@@ -11,9 +11,9 @@ import { Connect } from "@calcom/atoms";
 
 export default function Connect() {
   return (
-    <main>
+    <>
       <Connect.GoogleCalendar />
-    </main>
+    </>
   )
 }
 ```
@@ -23,8 +23,8 @@ For a demonstration of the Google calendar connect integration, please refer to 
 <p></p>
 
     <iframe
-      width="560"
       height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
       src="https://www.loom.com/embed/dcfcaf8c25754b8daec8fe309fbf7c7c?sid=3181cba5-2e16-4f6e-99de-4408a5109c37"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -42,9 +42,9 @@ import { Connect } from "@calcom/atoms";
 
 export default function Connect() {
   return (
-    <main>
+    <>
       <Connect.GoogleCalendar isMultiCalendar={true} />
-    </main>
+    </>
   )
 }
 ```
@@ -54,8 +54,8 @@ For a demonstration of the Google calendar connect integration for multiple user
 <p></p>
 
     <iframe
-      width="560"
       height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
       src="https://www.loom.com/embed/7a34123b3bd94fbc80809392aab5f712?sid=12bacd7e-62b2-40aa-9fd6-30d69ab22e0a"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -77,7 +77,7 @@ We offer all kinds of customizations to the Google calendar connect via props. B
 | onCheckError          | No       | A callback function to handle errors when checking the connection status                  |
 | redir                 | No       | A custom redirect URL link where the user gets redirected after successful authentication |
 | initialData           | No       | Initial data to be passed                                                                 |
-| isMultiCalendar       | No       | Specfies if the button supports integration for multiple users                            |
+| isMultiCalendar       | No       | Specifies if the button supports integration for multiple users                           |
 | tooltip               | No       | In case user wants to pass external tooltip component                                     |
 | tooltipSide           | No       | Specifies what direction the tooltip appears                                              |
 | isClickable           | No       | Boolean to disable button or not                                                          |

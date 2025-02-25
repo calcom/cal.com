@@ -1,16 +1,15 @@
-import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -22,9 +21,6 @@ const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
 });
 
-// Booker page fetches a tiny bit of data server side:
-// 1. Check if team exists, to show 404
-// 2. If rescheduling, get the booking details
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
   const session = await getServerSession({ req });
@@ -46,62 +42,65 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const team = await prisma.team.findFirst({
-    where: {
-      ...getSlugOrRequestedSlug(teamSlug),
-      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
-    select: {
-      id: true,
-      hideBranding: true,
-      parent: true,
-      name: true,
-      slug: true,
-      eventTypes: {
-        where: {
-          slug: meetingSlug,
-        },
-        select: {
-          id: true,
-          isInstantEvent: true,
-          schedulingType: true,
-          metadata: true,
-          length: true,
-        },
-      },
-    },
-  });
+  const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
 
   if (!team || !team.eventTypes?.[0]) {
-    return {
-      notFound: true,
-    } as const;
+    return { notFound: true } as const;
   }
 
   const eventData = team.eventTypes[0];
+  const eventTypeId = eventData.id;
+  const eventHostsUserData = await getUsersData(
+    team.isPrivate,
+    eventTypeId,
+    eventData.hosts.map((h) => h.user)
+  );
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  const name = team.parent?.name ?? team.name ?? null;
 
-  let booking: GetBookingType | null = null;
-  if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-  }
-
+  const booking = rescheduleUid ? await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : null;
   const ssr = await ssrInit(context);
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
+  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+    "@calcom/lib/server/getTeamMemberEmailFromCrm"
+  );
+  const {
+    email: teamMemberEmail,
+    recordType: crmOwnerRecordType,
+    crmAppSlug,
+  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+    query,
+    eventData,
+  });
+
+  const organizationSettings = getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
   return {
     props: {
       eventData: {
-        eventTypeId: eventData.id,
+        eventTypeId,
         entity: {
           fromRedirectOfNonOrgLink,
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
-          orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+          orgSlug,
           teamSlug: team.slug ?? null,
-          name: team.parent?.name ?? team.name ?? null,
+          name,
         },
         length: eventData.length,
         metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+        profile: {
+          image: team.parent
+            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+            : getPlaceholderAvatar(team.logoUrl, team.name),
+          name,
+          username: orgSlug ?? null,
+        },
+        title: eventData.title,
+        users: eventHostsUserData,
+        hidden: eventData.hidden,
       },
       booking,
       user: teamSlug,
@@ -112,36 +111,120 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
+      isSEOIndexable: allowSEOIndexing,
     },
   };
 };
 
-async function getTeamMemberEmail(
-  eventData: {
-    id: number;
-    isInstantEvent: boolean;
-    schedulingType: SchedulingType | null;
-    metadata: Prisma.JsonValue | null;
-    length: number;
-  },
-  email?: string
-): Promise<string | null> {
-  // Pre-requisites
-  if (!eventData || !email || eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
-  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
-  if (!crmContactOwnerEmail) return null;
-  // Determine if the contactOwner is a part of the event type
-  const contactOwnerQuery = await prisma.user.findFirst({
+const getTeamWithEventsData = async (
+  teamSlug: string,
+  meetingSlug: string,
+  isValidOrgDomain: boolean,
+  currentOrgDomain: string | null
+) => {
+  return await prisma.team.findFirst({
     where: {
-      email: crmContactOwnerEmail,
-      hosts: {
-        some: {
-          eventTypeId: eventData.id,
+      ...getSlugOrRequestedSlug(teamSlug),
+      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    orderBy: {
+      slug: { sort: "asc", nulls: "last" },
+    },
+    select: {
+      id: true,
+      isPrivate: true,
+      hideBranding: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+          bannerUrl: true,
+          logoUrl: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+            },
+          },
+        },
+      },
+      logoUrl: true,
+      name: true,
+      slug: true,
+      eventTypes: {
+        where: {
+          slug: meetingSlug,
+        },
+        select: {
+          id: true,
+          title: true,
+          isInstantEvent: true,
+          schedulingType: true,
+          metadata: true,
+          length: true,
+          hidden: true,
+          hosts: {
+            take: 3,
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  username: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      isOrganization: true,
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
         },
       },
     },
   });
-  if (!contactOwnerQuery) return null;
-  return crmContactOwnerEmail;
-}
+};
+
+const getUsersData = async (
+  isPrivateTeam: boolean,
+  eventTypeId: number,
+  users: Pick<User, "username" | "name">[]
+) => {
+  if (!isPrivateTeam && users.length > 0) {
+    return users
+      .filter((user) => user.username)
+      .map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      }));
+  }
+  if (!isPrivateTeam && users.length === 0) {
+    const { users: data } = await prisma.eventType.findUniqueOrThrow({
+      where: { id: eventTypeId },
+      select: {
+        users: {
+          take: 1,
+          select: {
+            username: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return data.length > 0
+      ? [
+          {
+            username: data[0].username ?? "",
+            name: data[0].name ?? "",
+          },
+        ]
+      : [];
+  }
+
+  return [];
+};

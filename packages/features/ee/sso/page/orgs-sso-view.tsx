@@ -4,18 +4,17 @@ import { useSession } from "next-auth/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { AppSkeletonLoader as SkeletonLoader, Meta } from "@calcom/ui";
+import { AppSkeletonLoader as SkeletonLoader } from "@calcom/ui";
 
 import SSOConfiguration from "../components/SSOConfiguration";
 
-const SAMLSSO = ({ isAppDir }: { isAppDir?: boolean }) => {
+const SAMLSSO = () => {
   const { t } = useLocale();
 
   const { data, status } = useSession();
   const org = data?.user.org;
 
-  if (status === "loading")
-    <SkeletonLoader title={t("sso_saml_heading")} description={t("sso_configuration_description_orgs")} />;
+  if (status === "loading") <SkeletonLoader />;
 
   if (!org) {
     return null;
@@ -25,9 +24,6 @@ const SAMLSSO = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return !!isAdminOrOwner ? (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
-      {!isAppDir ? (
-        <Meta title={t("sso_configuration")} description={t("sso_configuration_description_orgs")} />
-      ) : null}
       <SSOConfiguration teamId={org.id} />
     </div>
   ) : (

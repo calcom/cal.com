@@ -4,7 +4,11 @@ title: "Availability settings"
 
 The availability settings atom enables a user to set their available time slots. This atom allows users to define specific time slots when they are available for meetings or events, helping them manage their schedules effectively and avoid double bookings.
 
-First, for the AvailabilitySettings toggle animation to work set the reading direction on the <html> element `<html dir="ltr"> ... </html>`.
+First, for the AvailabilitySettings toggle animation to work set the reading direction on the `<html>` element:
+
+```html
+<html dir="ltr"> ... </html>
+```
 
 Below code snippet can be used to render the availability settings atom
 
@@ -22,7 +26,7 @@ export default function Availability() {
             console.log("Deleted schedule successfully");
           }}
        />
-    <>
+    </>
   )
 }
 ```
@@ -31,8 +35,8 @@ For a demonstration of the availability settings atom, please refer to the video
 <p></p>
 
     <iframe
-      width="560"
       height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
       src="https://www.loom.com/embed/6fd65789f5744227b4ea6d0189d4fc67?sid=544a6afd-2836-4704-aa56-e801cbd93cbc"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -60,7 +64,7 @@ export default function Availability() {
             console.log("Deleted schedule successfully");
           }}
        />
-    <>
+    </>
   )
 }
 ```
@@ -70,8 +74,8 @@ For a demonstration of the availability settings atom with date overrides, pleas
 <p></p>
 
     <iframe
-      width="560"
       height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
       src="https://www.loom.com/embed/aa9ba47cbc284496ac51c26e172c7b12?sid=6d2b5bb3-d2eb-4a95-adb5-c67d863d4e34"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -96,6 +100,10 @@ Below is a list of props that can be passed to the availability settings atom.
 | onDeleteSuccess    | No       | A callback function that gets triggered when the user availability is deleted successfully                |
 | onDeleteError      | No       | A callback function that gets triggered when the user availability fails to delete                        |
 | enableOverrides    | No       | Allows user to enable or disable date overrides display in the atom; defaults to disabled                 |
+| disableEditableHeading    | No       | Prevents users from editing the heading               |
+| allowDelete      | No       | When set to false, this prop hides the delete button                        |
+| allowSetToDefault    | No       |  When set to false, this prop hides the set to default toggle                 |
+| disableToasts    | No       | Allows users to enable or disable toast notifications, with the default setting being disabled.               |
 
 Along with the props, Availability settings atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
 <p></p>

@@ -29,6 +29,8 @@ export function hashPassword(password: string) {
 
 type UserFixture = ReturnType<typeof createUserFixture>;
 
+export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
+
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
   workflows: true,
@@ -84,7 +86,7 @@ const createTeamWorkflow = async (user: { id: number }, team: { id: number }) =>
   });
 };
 
-const createTeamEventType = async (
+export const createTeamEventType = async (
   user: { id: number },
   team: { id: number },
   scenario?: {
@@ -94,6 +96,7 @@ const createTeamEventType = async (
     teamEventLength?: number;
     seatsPerTimeSlot?: number;
     managedEventUnlockedFields?: Record<string, boolean>;
+    assignAllTeamMembers?: boolean;
   }
 ) => {
   return await prisma.eventType.create({
@@ -138,6 +141,7 @@ const createTeamEventType = async (
               },
             }
           : undefined,
+      assignAllTeamMembers: scenario?.assignAllTeamMembers,
     },
   });
 };
@@ -154,6 +158,7 @@ const createTeamAndAddUser = async (
     index,
     orgRequestedSlug,
     schedulingType,
+    assignAllTeamMembersForSubTeamEvents,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -165,6 +170,7 @@ const createTeamAndAddUser = async (
     index?: number;
     orgRequestedSlug?: string;
     schedulingType?: SchedulingType;
+    assignAllTeamMembersForSubTeamEvents?: boolean;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -193,6 +199,7 @@ const createTeamAndAddUser = async (
     const team = await createTeamAndAddUser({ user }, workerInfo);
     await createTeamEventType(user, team, {
       schedulingType: schedulingType,
+      assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
     });
     await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
@@ -239,7 +246,7 @@ export const createUsersFixture = (
   const store = { users: [], trackedEmails: [], page, teams: [] } as {
     users: UserFixture[];
     trackedEmails: { email: string }[];
-    page: typeof page;
+    page: Page;
     teams: Team[];
   };
   return {
@@ -282,6 +289,8 @@ export const createUsersFixture = (
         addManagedEventToTeamMates?: boolean;
         managedEventUnlockedFields?: Record<string, boolean>;
         orgRequestedSlug?: string;
+        assignAllTeamMembers?: boolean;
+        assignAllTeamMembersForSubTeamEvents?: boolean;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -537,6 +546,7 @@ export const createUsersFixture = (
               organizationId: opts?.organizationId,
               orgRequestedSlug: scenario.orgRequestedSlug,
               schedulingType: scenario.schedulingType,
+              assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
             },
             workerInfo
           );
@@ -870,7 +880,8 @@ type CustomUserOptsKeys =
   | "organizationId"
   | "twoFactorEnabled"
   | "disableImpersonation"
-  | "role";
+  | "role"
+  | "identityProvider";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -936,6 +947,7 @@ const createUser = (
             },
           }
         : undefined,
+    identityProvider: opts?.identityProvider,
   };
 
   function getOrganizationRelatedProps({

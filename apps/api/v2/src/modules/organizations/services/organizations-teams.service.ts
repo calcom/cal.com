@@ -5,8 +5,6 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/repositori
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
-
 @Injectable()
 export class OrganizationsTeamsService {
   constructor(
@@ -68,24 +66,5 @@ export class OrganizationsTeamsService {
       await this.membershipsRepository.createMembership(team.id, user.id, "OWNER", !!autoAcceptCreator);
     }
     return team;
-  }
-
-  async addUserToTeamEvents(userId: number, organizationId: number) {
-    const orgTeams = await this.organizationsTeamRepository.findOrgTeams(organizationId);
-
-    for (const team of orgTeams) {
-      await updateNewTeamMemberEventTypes(userId, team.id);
-    }
-  }
-
-  async addUserToPlatformTeamEvents(userId: number, organizationId: number, oAuthClientId: string) {
-    const oAuthClientTeams = await this.organizationsTeamRepository.getPlatformOrgTeams(
-      organizationId,
-      oAuthClientId
-    );
-
-    for (const team of oAuthClientTeams) {
-      await updateNewTeamMemberEventTypes(userId, team.id);
-    }
   }
 }
