@@ -1,6 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { getUserTierFromTeams, type SimplifiedTeam, type UserTier } from "../../lib/userTierUtils";
+
+// Add type declaration for window.Plain
+declare global {
+  interface Window {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
+      open: () => void;
+    };
+  }
+}
 
 // Mock fetch for API calls
 global.fetch = vi.fn();
