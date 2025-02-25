@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -8,7 +7,7 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, getQueryKey } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
@@ -48,7 +47,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
 }) => {
   const { t } = useLocale();
-  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
 
   const [searchText, setSearchText] = useState("");
   const debouncedSearch = useDebounce(searchText, 500);
@@ -117,12 +116,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const watchedTeamUserId = watch("toTeamUserId");
 
-  const handleRefetch = () => {
-    queryClient.invalidateQueries({
-      queryKey: getQueryKey(trpc.viewer.outOfOfficeEntriesList),
-      exact: false,
-    });
-  };
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
@@ -131,7 +124,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      handleRefetch();
+      utils.viewer.outOfOfficeEntriesList.invalidate();
       closeModal();
     },
     onError: (error) => {
