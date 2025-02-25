@@ -1,21 +1,10 @@
 import { ShellSubHeading } from "../layout";
-import Meta from "../meta/Meta";
 import { SkeletonText } from "../skeleton";
 
-export function SkeletonLoader({
-  className,
-  title,
-  description,
-}: {
-  className?: string;
-  title?: string;
-  description?: string;
-}) {
+export function SkeletonLoader({ className }: { className?: string }) {
   return (
     <>
       <ShellSubHeading title={<div className="bg-subtle h-6 w-32" />} {...{ className }} />
-      {title && description && <Meta title={title} description={description} />}
-
       <ul className="bg-default border-subtle divide-subtle -mx-4 animate-pulse divide-y rounded-md border sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />

@@ -1,7 +1,7 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
-import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
+import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
@@ -155,7 +155,12 @@ const BookerComponent = ({
     }
   };
 
-  const skipConfirmStep = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
+  const skipConfirmStep = useSkipConfirmStep(
+    bookingForm,
+    bookerState,
+    isInstantMeeting,
+    event?.data?.bookingFields
+  );
 
   // Cloudflare Turnstile Captcha
   const shouldRenderCaptcha = !!(
@@ -169,7 +174,8 @@ const BookerComponent = ({
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot || skipConfirmStep) return setBookerState("selecting_time");
+    if (!selectedTimeslot) return setBookerState("selecting_time");
+    if (selectedTimeslot && skipConfirmStep && !isInstantMeeting) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 
@@ -206,22 +212,6 @@ const BookerComponent = ({
         isVerificationCodeSending={isVerificationCodeSending}
         isPlatform={isPlatform}>
         <>
-          {verifyCode && formEmail ? (
-            <VerifyCodeDialog
-              isOpenDialog={isEmailVerificationModalVisible}
-              setIsOpenDialog={setEmailVerificationModalVisible}
-              email={formEmail}
-              isUserSessionRequiredToVerify={false}
-              verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
-              verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
-              error={verifyCode.error}
-              resetErrors={verifyCode.resetErrors}
-              isPending={verifyCode.isPending}
-              setIsPending={verifyCode.setIsPending}
-            />
-          ) : (
-            <></>
-          )}
           {!isPlatform && (
             <RedirectToInstantMeetingModal
               expiryTime={expiryTime}
@@ -247,26 +237,17 @@ const BookerComponent = ({
     event,
     expiryTime,
     extraOptions,
-    formEmail,
     formErrors,
     handleBookEvent,
     handleVerifyEmail,
-    isEmailVerificationModalVisible,
     key,
     loadingStates,
     onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
     rescheduleUid,
     seatedEventData,
-    setEmailVerificationModalVisible,
     setSeatedEventData,
     setSelectedTimeslot,
-    verifyCode?.error,
-    verifyCode?.isPending,
-    verifyCode?.resetErrors,
-    verifyCode?.setIsPending,
-    verifyCode?.verifyCodeWithSessionNotRequired,
-    verifyCode?.verifyCodeWithSessionRequired,
     isPlatform,
     shouldRenderCaptcha,
     isVerificationCodeSending,
@@ -525,6 +506,25 @@ const BookerComponent = ({
           </m.span>
         )}
       </div>
+
+      <>
+        {verifyCode && formEmail ? (
+          <VerifyCodeDialog
+            isOpenDialog={isEmailVerificationModalVisible}
+            setIsOpenDialog={setEmailVerificationModalVisible}
+            email={formEmail}
+            isUserSessionRequiredToVerify={false}
+            verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
+            verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
+            error={verifyCode.error}
+            resetErrors={verifyCode.resetErrors}
+            isPending={verifyCode.isPending}
+            setIsPending={verifyCode.setIsPending}
+          />
+        ) : (
+          <></>
+        )}
+      </>
 
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}

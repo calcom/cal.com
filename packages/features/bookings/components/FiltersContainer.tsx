@@ -28,14 +28,13 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
   return (
     <div ref={animationParentRef}>
       {isFiltersVisible ? (
-        <div className="no-scrollbar flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
+        <div className="no-scrollbar mb-2 flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
           <PeopleFilter />
           <EventTypeFilter />
           <TeamsFilter />
           <StartTimeFilters />
           <Tooltip content={t("remove_filters")}>
             <Button
-              data-testid="btn_bookings_list_remove_filters"
               disabled={!hasValidQueryParams}
               color="secondary"
               type="button"
