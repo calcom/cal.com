@@ -10,12 +10,13 @@ import { OrganizationsOrganizationsController } from "@/modules/organizations/or
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
 import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managed-organizations.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, RedisModule, StripeModule, MembershipsModule, ApiKeysModule],
+  imports: [PrismaModule, RedisModule, StripeModule, MembershipsModule, ApiKeysModule, ProfilesModule],
   providers: [
     ManagedOrganizationsService,
     ManagedOrganizationsRepository,

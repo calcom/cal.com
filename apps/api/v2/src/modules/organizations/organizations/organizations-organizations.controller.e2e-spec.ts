@@ -4,6 +4,7 @@ import { getEnv } from "@/env";
 import { hashAPIKey, stripApiKey } from "@/lib/api-key";
 import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import {
@@ -31,6 +32,19 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
+import {
+  APPS_READ,
+  APPS_WRITE,
+  BOOKING_READ,
+  BOOKING_WRITE,
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  PROFILE_READ,
+  PROFILE_WRITE,
+  SCHEDULE_READ,
+  SCHEDULE_WRITE,
+  X_CAL_SECRET_KEY,
+} from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
@@ -56,6 +70,13 @@ describe("Organizations Organizations Endpoints", () => {
   let managerOrgBilling: PlatformBilling;
 
   let managedOrgApiKey: string;
+  let managedOrgOAuthClientId: string;
+  let managedOrgOAuthClientSecret: string;
+  const createOAuthClientBody: CreateOAuthClientInput = {
+    name: "OAuth client for managed organization",
+    redirectUris: ["http://localhost:4321"],
+    permissions: ["*"],
+  };
 
   const newDate = new Date(2035, 0, 9, 15, 0, 0);
 
@@ -171,6 +192,11 @@ describe("Organizations Organizations Endpoints", () => {
         );
         expect(membership?.role ?? "").toEqual("OWNER");
         expect(membership?.accepted).toEqual(true);
+        // note(Lauris): test that auth user who made request to create managed organization has profile in it
+        const profile = await profilesRepositoryFixture.findByOrgIdUserId(managedOrg.id, managerOrgAdmin.id);
+        expect(profile).toBeDefined();
+        expect(profile?.id).toBeDefined();
+        expect(profile?.username).toEqual(managerOrgAdmin.username);
         // note(Lauris): check that platform billing is setup correctly for manager and managed orgs
         const managerOrgBilling = await platformBillingRepositoryFixture.get(managerOrg.id);
         expect(managerOrgBilling).toBeDefined();
@@ -316,15 +342,9 @@ describe("Organizations Organizations Endpoints", () => {
   });
 
   it("should create OAuth client for managed organization", async () => {
-    const body: CreateOAuthClientInput = {
-      name: "OAuth client for managed organization",
-      redirectUris: ["http://localhost:4321"],
-      permissions: 64,
-    };
-
     return request(app.getHttpServer())
       .post(`/v2/oauth-clients`)
-      .send(body)
+      .send(createOAuthClientBody)
       .set("Authorization", `Bearer ${managedOrgApiKey}`)
       .expect(201)
       .then(async (response) => {
@@ -341,9 +361,50 @@ describe("Organizations Organizations Endpoints", () => {
         expect(managedOrgOAuthClients?.[0]?.id).toBeDefined();
         expect(managedOrgOAuthClients?.[0]?.id).toEqual(clientId);
         expect(managedOrgOAuthClients?.[0]?.secret).toEqual(clientSecret);
-        expect(managedOrgOAuthClients?.[0]?.name).toEqual(body.name);
-        expect(managedOrgOAuthClients?.[0]?.redirectUris).toEqual(body.redirectUris);
-        expect(managedOrgOAuthClients?.[0]?.permissions).toEqual(body.permissions);
+        expect(managedOrgOAuthClients?.[0]?.name).toEqual(createOAuthClientBody.name);
+        expect(managedOrgOAuthClients?.[0]?.redirectUris).toEqual(createOAuthClientBody.redirectUris);
+        expect(managedOrgOAuthClients?.[0]?.permissions).toEqual(
+          EVENT_TYPE_READ +
+            EVENT_TYPE_WRITE +
+            BOOKING_READ +
+            BOOKING_WRITE +
+            SCHEDULE_READ +
+            SCHEDULE_WRITE +
+            APPS_READ +
+            APPS_WRITE +
+            PROFILE_READ +
+            PROFILE_WRITE
+        );
+        managedOrgOAuthClientId = clientId;
+        managedOrgOAuthClientSecret = clientSecret;
+      });
+  });
+
+  it("should fetch OAuth client for managed organization", async () => {
+    return request(app.getHttpServer())
+      .get(`/v2/oauth-clients/${managedOrgOAuthClientId}`)
+      .set(X_CAL_SECRET_KEY, managedOrgOAuthClientSecret)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: GetOAuthClientResponseDto = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseData = responseBody.data;
+        expect(responseData?.id).toEqual(managedOrgOAuthClientId);
+        expect(responseData?.secret).toEqual(managedOrgOAuthClientSecret);
+        expect(responseData?.name).toEqual(createOAuthClientBody.name);
+        expect(responseData?.redirectUris).toEqual(createOAuthClientBody.redirectUris);
+        expect(responseData?.permissions).toEqual([
+          "EVENT_TYPE_READ",
+          "EVENT_TYPE_WRITE",
+          "BOOKING_READ",
+          "BOOKING_WRITE",
+          "SCHEDULE_READ",
+          "SCHEDULE_WRITE",
+          "APPS_READ",
+          "APPS_WRITE",
+          "PROFILE_READ",
+          "PROFILE_WRITE",
+        ]);
       });
   });
 

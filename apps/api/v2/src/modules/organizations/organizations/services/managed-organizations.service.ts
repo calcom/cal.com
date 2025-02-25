@@ -1,4 +1,5 @@
 import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
@@ -6,7 +7,8 @@ import { CreateOrganizationInput } from "@/modules/organizations/organizations/i
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -16,11 +18,12 @@ export class ManagedOrganizationsService {
     private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService,
     private readonly organizationsMembershipService: OrganizationsMembershipService,
     private readonly apiKeysService: ApiKeysService,
-    private readonly managedOrganizationsOutputService: ManagedOrganizationsOutputService
+    private readonly managedOrganizationsOutputService: ManagedOrganizationsOutputService,
+    private readonly profilesRepository: ProfilesRepository
   ) {}
 
   async createManagedOrganization(
-    authUserId: number,
+    authUser: ApiAuthGuardUser,
     managerOrganizationId: number,
     organizationInput: CreateOrganizationInput
   ) {
@@ -44,17 +47,24 @@ export class ManagedOrganizationsService {
     );
 
     await this.organizationsMembershipService.createOrgMembership(organization.id, {
-      userId: authUserId,
+      userId: authUser.id,
       accepted: true,
       role: "OWNER",
     });
+
+    const defaultProfileUsername = `${organization.name}-${authUser.id}`;
+    await this.profilesRepository.createProfile(
+      organization.id,
+      authUser.id,
+      authUser.username || defaultProfileUsername
+    );
 
     await this.managedOrganizationsBillingService.createManagedOrganizationBilling(
       managerOrganizationId,
       organization.id
     );
 
-    const apiKey = await this.apiKeysService.createApiKey(authUserId, {
+    const apiKey = await this.apiKeysService.createApiKey(authUser.id, {
       apiKeyDaysValid,
       apiKeyNeverExpires,
       note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,

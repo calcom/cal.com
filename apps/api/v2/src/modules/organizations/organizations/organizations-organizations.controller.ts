@@ -8,6 +8,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsManagedOrgInManagerOrg } from "@/modules/auth/guards/organizations/is-managed-org-in-manager-org.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { CreateManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/create-managed-organization.output";
@@ -48,11 +49,11 @@ export class OrganizationsOrganizationsController {
   @ApiOperation({ summary: "Create an organization within an organization" })
   async createOrganization(
     @Param("orgId", ParseIntPipe) managerOrganizationId: number,
-    @GetUser("id") authUserId: number,
+    @GetUser() authUser: ApiAuthGuardUser,
     @Body() body: CreateOrganizationInput
   ): Promise<CreateManagedOrganizationOutput> {
     const organization = await this.managedOrganizationsService.createManagedOrganization(
-      authUserId,
+      authUser,
       managerOrganizationId,
       body
     );

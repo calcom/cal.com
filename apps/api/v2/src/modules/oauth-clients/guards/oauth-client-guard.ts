@@ -1,4 +1,4 @@
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { ApiAuthGuardRequest, ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import {
@@ -15,9 +15,9 @@ export class OAuthClientGuard implements CanActivate {
   constructor(private oAuthClientRepository: OAuthClientRepository, private usersService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { user: ApiAuthGuardUser }>();
+    const request = context.switchToHttp().getRequest<ApiAuthGuardRequest>();
+    const organizationId = request.organizationId;
     const user: ApiAuthGuardUser = request.user;
-    const organizationId = user ? this.usersService.getUserMainOrgId(user) : null;
     const oAuthClientId = request.params.clientId;
 
     if (!oAuthClientId) {
