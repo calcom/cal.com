@@ -163,7 +163,6 @@ const PlainChat = () => {
             threadDetails: {
               labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
               tierIdentifier: { externalId: data.userTier },
-              tierIdentifier: { externalId: data.userTier },
             },
           },
           {
@@ -171,7 +170,6 @@ const PlainChat = () => {
             text: "Send feedback",
             threadDetails: {
               labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-              tierIdentifier: { externalId: data.userTier },
               tierIdentifier: { externalId: data.userTier },
             },
           },
