@@ -30171,15 +30171,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"goober@npm:^2.1.10":
-  version: 2.1.10
-  resolution: "goober@npm:2.1.10"
-  peerDependencies:
-    csstype: ^3.0.10
-  checksum: 55a353a477665ea3ae748153132a32184a6a0db42b24ec66cdca97d1e046a2b63af29f698e245fe2f51c05d0eaefeda2cce4a106bc2b6293ea67490c39b6b5c8
-  languageName: node
-  linkType: hard
-
 "google-auth-library@npm:^7.0.2, google-auth-library@npm:^7.14.0":
   version: 7.14.1
   resolution: "google-auth-library@npm:7.14.1"
@@ -42449,18 +42440,6 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18
   checksum: 16e03e42d07f696e36d67c0d60671df6d0bc73b9e48876ea99b85cf3aaa4cf40acb0c0e2870169d4a22504c7111c0f658b0b17a4f3fd191ef69c7eea70785a9d
-  languageName: node
-  linkType: hard
-
-"react-hot-toast@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "react-hot-toast@npm:2.3.0"
-  dependencies:
-    goober: ^2.1.10
-  peerDependencies:
-    react: ">=16"
-    react-dom: ">=16"
-  checksum: d2526f4bf62d94ca1874de1d618e30537aa8123b5d954cf1ff4e41f063d4ab410fc4f10a0ad134d533c1e0ae3d910af1d21f5a4f37f46dcbdb1710380cbb4bc1
   languageName: node
   linkType: hard
 
