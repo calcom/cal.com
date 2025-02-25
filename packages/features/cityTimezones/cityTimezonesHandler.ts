@@ -19,7 +19,7 @@ export const cityTimezonesHandler = async () => {
     }
   });
   const uniqueCities = Object.values(topPopulatedCities);
-  /** Add specific overries in here */
+  /** Add specific overrides in here */
   uniqueCities.forEach((city) => {
     if (city.city === "London") city.timezone = "Europe/London";
     if (city.city === "Londonderry") city.city = "London";
