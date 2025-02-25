@@ -59,7 +59,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
-  const ssr = await ssrInit(buildLegacyCtx(h, cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -163,7 +162,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/insights",
           ]}
         />
-        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
