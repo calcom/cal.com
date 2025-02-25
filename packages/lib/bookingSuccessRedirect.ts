@@ -62,10 +62,6 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "responses",
   ];
 
-  const result: ResultType = {
-    uid: booking.uid,
-  };
-
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
   function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
     const result: ResultType = { ...obj };
@@ -126,12 +122,15 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 
   const bookingParams = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
-    .reduce<ResultType>((obj, key) => {
-      if (key === "responses") return extractResponseDetails(booking, obj);
-      if (key === "user") return extractUserDetails(booking, obj);
-      if (key === "attendees") return extractAttendeesAndGuests(booking, obj);
-      return { ...obj, [key]: booking[key] };
-    }, result);
+    .reduce<ResultType>(
+      (obj, key) => {
+        if (key === "responses") return extractResponseDetails(booking, obj);
+        if (key === "user") return extractUserDetails(booking, obj);
+        if (key === "attendees") return extractAttendeesAndGuests(booking, obj);
+        return { ...obj, [key]: booking[key] };
+      },
+      { uid: booking.uid }
+    );
 
   const queryCompatibleParams: Record<string, string | boolean | null | undefined> = {
     ...Object.fromEntries(
