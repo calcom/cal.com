@@ -87,6 +87,16 @@
             }
           },
           {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "emails",
             "required": false,
             "in": "query",
