@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { PlatformOAuthClient } from "@prisma/client";
+import { PlatformOAuthClient, Prisma } from "@prisma/client";
 
 import { CreateOAuthClientInput } from "@calcom/platform-types";
 
@@ -33,7 +33,11 @@ export class OAuthClientRepositoryFixture {
     return response?.users;
   }
 
-  async create(organizationId: number, data: CreateOAuthClientInput, secret: string) {
+  async create(
+    organizationId: number,
+    data: Omit<Prisma.PlatformOAuthClientCreateInput, "organization">,
+    secret: string
+  ) {
     return this.prismaWriteClient.platformOAuthClient.create({
       data: {
         ...data,

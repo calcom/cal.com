@@ -7605,7 +7605,24 @@
             }
           },
           "permissions": {
-            "type": "number"
+            "type": "array",
+            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]. Use [\"*\"] to grant all permissions.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EVENT_TYPE_READ",
+                "EVENT_TYPE_WRITE",
+                "BOOKING_READ",
+                "BOOKING_WRITE",
+                "SCHEDULE_READ",
+                "SCHEDULE_WRITE",
+                "APPS_READ",
+                "APPS_WRITE",
+                "PROFILE_READ",
+                "PROFILE_WRITE",
+                "*"
+              ]
+            }
           },
           "bookingRedirectUri": {
             "type": "string"
@@ -7687,12 +7704,30 @@
             "example": "secretValue"
           },
           "permissions": {
-            "type": "number",
-            "example": 3
+            "type": "array",
+            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EVENT_TYPE_READ",
+                "EVENT_TYPE_WRITE",
+                "BOOKING_READ",
+                "BOOKING_WRITE",
+                "SCHEDULE_READ",
+                "SCHEDULE_WRITE",
+                "APPS_READ",
+                "APPS_WRITE",
+                "PROFILE_READ",
+                "PROFILE_WRITE"
+              ]
+            },
+            "example": [
+              "BOOKING_READ",
+              "BOOKING_WRITE"
+            ]
           },
           "logo": {
-            "type": "string",
-            "nullable": true,
+            "type": "object",
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -7712,6 +7747,22 @@
             "format": "date-time",
             "type": "string",
             "example": "2024-03-23T08:33:21.851Z"
+          },
+          "bookingRedirectUri": {
+            "type": "string",
+            "example": "https://example.com/booking-redirect"
+          },
+          "bookingCancelRedirectUri": {
+            "type": "string",
+            "example": "https://example.com/booking-cancel"
+          },
+          "bookingRescheduleRedirectUri": {
+            "type": "string",
+            "example": "https://example.com/booking-reschedule"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean",
+            "example": false
           }
         },
         "required": [
