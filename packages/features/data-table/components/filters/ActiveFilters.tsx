@@ -25,7 +25,14 @@ export function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
         if (!column) return null;
 
         if (column.type === ColumnFilterType.DATE_RANGE) {
-          return <DateRangeFilter key={column.id} column={column} showClearButton />;
+          return (
+            <DateRangeFilter
+              key={column.id}
+              column={column}
+              options={column.dateRangeOptions}
+              showClearButton
+            />
+          );
         } else {
           return <FilterPopover key={column.id} column={column} />;
         }

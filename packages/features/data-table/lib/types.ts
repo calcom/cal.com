@@ -116,10 +116,20 @@ export const ZFilterValue = z.union([
   ZDateRangeFilterValue,
 ]);
 
-export type ColumnFilterMeta = {
-  type?: ColumnFilterType;
-  icon?: IconName;
+export type DateRangeFilterOptions = {
+  range: "past" | "custom";
 };
+
+export type ColumnFilterMeta =
+  | {
+      type: ColumnFilterType.DATE_RANGE;
+      icon?: IconName;
+      dateRangeOptions: DateRangeFilterOptions;
+    }
+  | {
+      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE>;
+      icon?: IconName;
+    };
 
 export type FilterableColumn = {
   id: string;
@@ -142,6 +152,7 @@ export type FilterableColumn = {
     }
   | {
       type: ColumnFilterType.DATE_RANGE;
+      dateRangeOptions?: DateRangeFilterOptions;
     }
 );
 

@@ -26,6 +26,7 @@ export type DataTableWrapperProps<TData, TValue> = {
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
+  LoaderView?: React.ReactNode;
   className?: string;
   containerClassName?: string;
   children?: React.ReactNode;
@@ -46,6 +47,7 @@ export function DataTableWrapper<TData, TValue>({
   ToolbarLeft,
   ToolbarRight,
   EmptyView,
+  LoaderView,
   className,
   containerClassName,
   children,
@@ -81,7 +83,12 @@ export function DataTableWrapper<TData, TValue>({
     }));
   }, [table, sorting, columnFilters, columnVisibility]);
 
-  const showEmptyView = table.getRowCount() === 0 && EmptyView;
+  let view: "loader" | "empty" | "table" = "table";
+  if (isPending && LoaderView) {
+    view = "loader";
+  } else if (table.getRowCount() === 0 && EmptyView) {
+    view = "empty";
+  }
 
   return (
     <>
@@ -97,8 +104,9 @@ export function DataTableWrapper<TData, TValue>({
           {children}
         </div>
       )}
-      {showEmptyView && EmptyView}
-      {!showEmptyView && (
+      {view === "loader" && LoaderView}
+      {view === "empty" && EmptyView}
+      {view === "table" && (
         <DataTable
           testId={testId}
           bodyTestId={bodyTestId}

@@ -113,7 +113,7 @@ function BookingsContent({ status }: BookingsProps) {
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const dateRange = useFilterValue("time", ZDateRangeFilterValue)?.data;
+  const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -176,7 +176,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
       columnHelper.accessor((row) => row, {
-        id: "time",
+        id: "dateRange",
         header: t("date_range"),
         enableColumnFilter: true,
         enableSorting: false,
@@ -185,6 +185,9 @@ function BookingsContent({ status }: BookingsProps) {
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              range: status === "past" ? "past" : "custom",
+            },
           },
         },
       }),
@@ -311,7 +314,7 @@ function BookingsContent({ status }: BookingsProps) {
         eventTypeId: false,
         teamId: false,
         userId: false,
-        time: false,
+        dateRange: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
@@ -335,8 +338,7 @@ function BookingsContent({ status }: BookingsProps) {
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
-          {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
-          {query.status === "success" && (
+          {query.status !== "error" && (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
@@ -347,7 +349,7 @@ function BookingsContent({ status }: BookingsProps) {
                 testId={`${status}-bookings`}
                 bodyTestId="bookings"
                 hideHeader={true}
-                isPending={query.isFetching && !flatData}
+                isPending={query.isPending}
                 hasNextPage={query.hasNextPage}
                 fetchNextPage={query.fetchNextPage}
                 isFetching={query.isFetching}
@@ -359,6 +361,7 @@ function BookingsContent({ status }: BookingsProps) {
                     <DataTableFilters.ClearFiltersButton />
                   </>
                 }
+                LoaderView={<SkeletonLoader />}
                 EmptyView={
                   <div className="flex items-center justify-center pt-2 xl:pt-0">
                     <EmptyScreen
