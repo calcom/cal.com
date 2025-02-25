@@ -4399,8 +4399,8 @@ __metadata:
     jimp: ^0.16.1
     next-collect: ^0.2.1
     next-i18next: ^13.2.2
-    react-hot-toast: ^2.3.0
     rrule: ^2.7.1
+    sonner: ^1.7.4
     tailwind-merge: ^1.13.2
     tsdav: 2.0.3
     tslog: ^4.9.2
@@ -5218,7 +5218,6 @@ __metadata:
     react-dom: ^18.2.0
     react-easy-crop: ^3.5.2
     react-hook-form: ^7.43.3
-    react-hot-toast: ^2.3.0
     react-intl: ^5.25.1
     react-live-chat-loader: ^2.8.1
     react-multi-email: ^0.5.3
@@ -5235,6 +5234,7 @@ __metadata:
     sanitize-html: ^2.10.0
     schema-dts: ^1.1.0
     short-uuid: ^4.2.0
+    sonner: ^1.7.4
     stripe: ^9.16.0
     superjson: 1.9.1
     tailwindcss: ^3.3.3
@@ -27470,15 +27470,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"goober@npm:^2.1.10":
-  version: 2.1.10
-  resolution: "goober@npm:2.1.10"
-  peerDependencies:
-    csstype: ^3.0.10
-  checksum: 55a353a477665ea3ae748153132a32184a6a0db42b24ec66cdca97d1e046a2b63af29f698e245fe2f51c05d0eaefeda2cce4a106bc2b6293ea67490c39b6b5c8
-  languageName: node
-  linkType: hard
-
 "google-auth-library@npm:^7.0.2, google-auth-library@npm:^7.14.0":
   version: 7.14.1
   resolution: "google-auth-library@npm:7.14.1"
@@ -37934,18 +37925,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hot-toast@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "react-hot-toast@npm:2.3.0"
-  dependencies:
-    goober: ^2.1.10
-  peerDependencies:
-    react: ">=16"
-    react-dom: ">=16"
-  checksum: d2526f4bf62d94ca1874de1d618e30537aa8123b5d954cf1ff4e41f063d4ab410fc4f10a0ad134d533c1e0ae3d910af1d21f5a4f37f46dcbdb1710380cbb4bc1
-  languageName: node
-  linkType: hard
-
 "react-i18next@npm:^12.2.0":
   version: 12.3.1
   resolution: "react-i18next@npm:12.3.1"
@@ -40809,6 +40788,16 @@ __metadata:
     ip-address: ^9.0.5
     smart-buffer: ^4.2.0
   checksum: 7a6b7f6eedf7482b9e4597d9a20e09505824208006ea8f2c49b71657427f3c137ca2ae662089baa73e1971c62322d535d9d0cf1c9235cf6f55e315c18203eadd
+  languageName: node
+  linkType: hard
+
+"sonner@npm:^1.7.4":
+  version: 1.7.4
+  resolution: "sonner@npm:1.7.4"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+    react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+  checksum: f6388f0ccb64e0d6973991e24c23515a377c9c45b2da304f077cadac8534d03b6f90005187ac89a69086cdb4c4fd68ba682bf1119c73ca6674ead557786e746f
   languageName: node
   linkType: hard
 

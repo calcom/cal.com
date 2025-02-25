@@ -2,6 +2,7 @@
 
 import type { FilterableColumn } from "../../lib/types";
 import { ColumnFilterType } from "../../lib/types";
+import { DateRangeFilter } from "./DateRangeFilter";
 import { MultiSelectFilterOptions } from "./MultiSelectFilterOptions";
 import { NumberFilterOptions } from "./NumberFilterOptions";
 import { SingleSelectFilterOptions } from "./SingleSelectFilterOptions";
@@ -20,6 +21,8 @@ export function FilterOptions({ column }: FilterOptionsProps) {
     return <SingleSelectFilterOptions column={column} />;
   } else if (column.type === ColumnFilterType.NUMBER) {
     return <NumberFilterOptions column={column} />;
+  } else if (column.type === ColumnFilterType.DATE_RANGE) {
+    return <DateRangeFilter column={column} />;
   } else {
     return null;
   }

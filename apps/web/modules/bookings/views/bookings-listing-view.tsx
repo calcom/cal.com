@@ -7,19 +7,18 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { useMemo, useRef } from "react";
+// eslint-disable-next-line no-restricted-imports
+import { debounce } from "lodash";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
-import {
-  DataTableProvider,
-  DataTableWrapper,
-  DataTableFilters,
-  ColumnFilterType,
-  useFilterValue,
-  ZMultiSelectFilterValue,
-  ZDateRangeFilterValue,
-} from "@calcom/features/data-table";
+import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
+import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
+import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
+import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -31,11 +30,9 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-import { useProperHeightForMobile } from "~/bookings/hooks/useProperHeightForMobile";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
-type BookingListingStatus = (typeof validStatuses)[number];
+type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
@@ -73,7 +70,7 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   },
 ];
 
-const descriptionByStatus: Record<BookingListingStatus, string> = {
+const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",
@@ -105,29 +102,24 @@ type RowData =
     };
 
 function BookingsContent({ status }: BookingsProps) {
+  const { data: filterQuery } = useFilterQuery();
+
   const { t } = useLocale();
   const user = useMeQuery().data;
+  const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   useProperHeightForMobile(tableContainerRef);
-
-  const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const dateRange = useFilterValue("time", ZDateRangeFilterValue)?.data;
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
       filters: {
-        status,
-        eventTypeIds,
-        teamIds,
-        userIds,
-        afterStartDate: dateRange?.startDate ?? undefined,
-        beforeEndDate: dateRange?.endDate ?? undefined,
+        ...filterQuery,
+        status: filterQuery.status ?? status,
       },
     },
     {
+      enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
@@ -136,60 +128,8 @@ function BookingsContent({ status }: BookingsProps) {
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
-        id: "eventTypeId",
-        header: t("event_type"),
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-        filterFn: () => true,
-        meta: {
-          filter: {
-            type: ColumnFilterType.MULTI_SELECT,
-          },
-        },
-      }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
-        id: "teamId",
-        header: t("team"),
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-        filterFn: () => true,
-        meta: {
-          filter: {
-            type: ColumnFilterType.MULTI_SELECT,
-          },
-        },
-      }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
-        id: "userId",
-        header: t("people"),
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-        filterFn: () => true,
-        meta: {
-          filter: {
-            type: ColumnFilterType.MULTI_SELECT,
-          },
-        },
-      }),
-      columnHelper.accessor((row) => row, {
-        id: "time",
-        header: t("date_range"),
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-        filterFn: () => true,
-        meta: {
-          filter: {
-            type: ColumnFilterType.DATE_RANGE,
-          },
-        },
-      }),
       columnHelper.display({
-        id: "customView",
+        id: "custom-view",
         cell: (props) => {
           if (props.row.original.type === "data") {
             const { booking, recurringInfo, isToday } = props.row.original;
@@ -224,7 +164,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, t]);
+  }, [user, status]);
 
   const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
@@ -301,23 +241,12 @@ function BookingsContent({ status }: BookingsProps) {
     return merged;
   }, [bookingsToday, flatData, status]);
 
-  const getFacetedUniqueValues = useFacetedUniqueValues();
-
   const table = useReactTable<RowData>({
     data: finalData,
     columns,
-    initialState: {
-      columnVisibility: {
-        eventTypeId: false,
-        teamId: false,
-        userId: false,
-        time: false,
-      },
-    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedUniqueValues,
   });
 
   return (
@@ -329,14 +258,16 @@ function BookingsContent({ status }: BookingsProps) {
             name: t(tab.name),
           }))}
         />
+        <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
       </div>
+      <FiltersContainer isFiltersVisible={isFiltersVisible} />
       <main className="w-full">
         <div className="flex w-full flex-col">
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
           {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
-          {query.status === "success" && (
+          {query.status === "success" && !isEmpty && (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
@@ -352,30 +283,59 @@ function BookingsContent({ status }: BookingsProps) {
                 fetchNextPage={query.fetchNextPage}
                 isFetching={query.isFetching}
                 variant="compact"
-                ToolbarLeft={
-                  <>
-                    <DataTableFilters.AddFilterButton table={table} />
-                    <DataTableFilters.ActiveFilters table={table} />
-                    <DataTableFilters.ClearFiltersButton />
-                  </>
-                }
-                EmptyView={
-                  <div className="flex items-center justify-center pt-2 xl:pt-0">
-                    <EmptyScreen
-                      Icon="calendar"
-                      headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
-                      description={t("no_status_bookings_yet_description", {
-                        status: t(status).toLowerCase(),
-                        description: t(descriptionByStatus[status]),
-                      })}
-                    />
-                  </div>
-                }
               />
             </>
+          )}
+          {query.status === "success" && isEmpty && (
+            <div className="flex items-center justify-center pt-2 xl:pt-0">
+              <EmptyScreen
+                Icon="calendar"
+                headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
+                description={t("no_status_bookings_yet_description", {
+                  status: t(status).toLowerCase(),
+                  description: t(descriptionByStatus[status]),
+                })}
+              />
+            </div>
           )}
         </div>
       </main>
     </div>
   );
+}
+
+// Dynamically adjusts DataTable height on mobile to prevent nested scrolling
+// and ensure the table fits within the viewport without overflowing (hacky)
+function useProperHeightForMobile(ref: React.RefObject<HTMLDivElement>) {
+  const lastOffsetY = useRef<number>();
+  const lastWindowHeight = useRef<number>();
+  const BOTTOM_NAV_HEIGHT = 64;
+  const BUFFER = 32;
+
+  const updateHeight = useCallback(
+    debounce(() => {
+      if (!ref.current || window.innerWidth >= 640) return;
+      const rect = ref.current.getBoundingClientRect();
+      if (rect.top !== lastOffsetY.current || window.innerHeight !== lastWindowHeight.current) {
+        lastOffsetY.current = rect.top;
+        lastWindowHeight.current = window.innerHeight;
+        const height = window.innerHeight - lastOffsetY.current - BOTTOM_NAV_HEIGHT - BUFFER;
+        ref.current.style.height = `${height}px`;
+      }
+    }, 200),
+    [ref.current]
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      updateHeight();
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [updateHeight]);
+
+  updateHeight();
 }
