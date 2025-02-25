@@ -182,7 +182,8 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
           color="secondary"
           className="items-center capitalize"
           StartIcon="calendar-range"
-          EndIcon="chevron-down">
+          EndIcon="chevron-down"
+          data-testid={`filter-popover-trigger-${column.id}`}>
           {!isCustomPreset && <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>}
           {isCustomPreset && <span>{customButtonLabel}</span>}
         </Button>
@@ -195,6 +196,7 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
                 startDate: startDate?.toDate(),
                 endDate: endDate?.toDate(),
               }}
+              data-testid="date-range-calendar"
               minDate={forcePast ? currentDate.subtract(2, "year").toDate() : null}
               maxDate={forcePast ? currentDate.toDate() : undefined}
               disabled={false}
@@ -219,6 +221,7 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
               {PRESET_OPTIONS.map((option) => (
                 <CommandItem
                   key={option.value}
+                  data-testid={`date-range-options-${option.value}`}
                   className={classNames(
                     "cursor-pointer justify-between px-3 py-2",
                     selectedPreset.value === option.value && "bg-emphasis"
