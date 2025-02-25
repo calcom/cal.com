@@ -2961,5 +2961,6 @@
   "desc": "Низх",
   "verify_email": "Потвърди имейл",
   "verify_email_change": "Потвърди промяната на имейл",
+  "end_date_not_selected": "Не сте задали крайна дата за вашето отсъствие",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

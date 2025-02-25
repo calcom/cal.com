@@ -2961,5 +2961,6 @@
   "desc": "Synkende",
   "verify_email": "Bekreft e-post",
   "verify_email_change": "Bekreft endring av e-post",
+  "end_date_not_selected": "Du har ikke satt en sluttdato for din fravær",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
