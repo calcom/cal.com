@@ -13,12 +13,7 @@ export default async function BookingPageWrapperLayout({ children }: { children:
   const ssr = await ssrInit(context);
 
   return (
-    <PageWrapper
-      isBookingPage={true}
-      requiresLicense={false}
-      nonce={nonce}
-      themeBasis={null}
-      dehydratedState={ssr.dehydrate()}>
+    <PageWrapper isBookingPage={true} requiresLicense={false} nonce={nonce} dehydratedState={ssr.dehydrate()}>
       {children}
     </PageWrapper>
   );
