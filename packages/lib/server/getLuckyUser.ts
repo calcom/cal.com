@@ -26,7 +26,7 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 };
 
 type PartialUser = Pick<User, "id" | "email">;
-type RoutingFormResponse = {
+export type RoutingFormResponse = {
   response: Prisma.JsonValue;
   chosenRouteId: string | null;
   form: {

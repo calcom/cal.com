@@ -117,7 +117,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (!parentTeam?.slug) {
-      throw new Error(`Parent team wth slug: ${parentTeam?.slug} not found`);
+      throw new Error(`Parent team with slug: ${parentTeam?.slug} not found`);
     }
 
     const orgUrlPrefix = getOrgFullOrigin(parentTeam.slug);

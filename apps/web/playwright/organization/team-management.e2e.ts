@@ -45,7 +45,7 @@ test.describe("Teams", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(inviteeEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: inviteeEmail })).toBeVisible();
 
       // locator.count() does not await for the expected number of elements
       // https://github.com/microsoft/playwright/issues/14278
