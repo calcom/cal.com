@@ -5,9 +5,21 @@
 - Fixes #XXXX (GitHub issue number)
 - Fixes CAL-XXXX (Linear issue number - should be visible at the bottom of the GitHub issue description)
 
-<!-- Please provide a loom video for visual changes to speed up reviews
- Loom Video: https://www.loom.com/
--->
+
+## A Visual Demo (For contributors especially)
+
+A visual demonstration is strongly recommended , for both the original and new change **(video / image - any one)**.
+
+#### Video Demo (if applicable):
+
+- Show screen recordings of the issue or feature.
+- Demonstrate how to reproduce the issue , the behavior before and after the change.
+
+#### Image Demo (if applicable):
+
+- Add side-by-side screenshots of the original and updated change.
+
+- Highlight any significant change(s) (if required).
 
 ## Mandatory Tasks (DO NOT REMOVE)
 
