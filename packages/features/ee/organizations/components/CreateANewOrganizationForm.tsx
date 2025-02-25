@@ -229,7 +229,6 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
             }}
             render={({ field: { value } }) => (
               <TextField
-                className="mt-2"
                 name="slug"
                 label={t("organization_url")}
                 placeholder="acme"
