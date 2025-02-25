@@ -23,7 +23,7 @@ export class OrganizationRolesGuard implements CanActivate {
     const organizationId = this.getOrganizationId(context);
 
     if (!user || !organizationId) {
-      throw new ForbiddenException("No organization associated with the user.");
+      throw new ForbiddenException("OrganizationRolesGuard - No organization associated with the user.");
     }
 
     await this.isPlatform(organizationId);
@@ -40,7 +40,7 @@ export class OrganizationRolesGuard implements CanActivate {
   async isPlatform(organizationId: number) {
     const isPlatform = await this.organizationsService.isPlatform(organizationId);
     if (!isPlatform) {
-      throw new ForbiddenException("Organization is not a platform (SHP).");
+      throw new ForbiddenException("OrganizationRolesGuard - Organization is not a platform (SHP).");
     }
   }
 
@@ -56,7 +56,9 @@ export class OrganizationRolesGuard implements CanActivate {
 
   isMembershipAccepted(accepted: boolean) {
     if (!accepted) {
-      throw new ForbiddenException(`User has not accepted membership in the organization.`);
+      throw new ForbiddenException(
+        `OrganizationRolesGuard - User has not accepted membership in the organization.`
+      );
     }
   }
 
@@ -67,7 +69,9 @@ export class OrganizationRolesGuard implements CanActivate {
 
     const hasRequiredRole = allowedRoles.includes(membershipRole);
     if (!hasRequiredRole) {
-      throw new ForbiddenException(`User must have one of the roles: ${allowedRoles.join(", ")}.`);
+      throw new ForbiddenException(
+        `OrganizationRolesGuard - User must have one of the roles: ${allowedRoles.join(", ")}.`
+      );
     }
   }
 }
