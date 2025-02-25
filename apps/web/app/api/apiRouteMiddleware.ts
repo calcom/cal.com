@@ -1,15 +1,16 @@
 import { captureException } from "@sentry/nextjs";
+import type { Params } from "app/_types";
 import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
+import { getServerErrorFromUnknown } from "@calcom/lib/server";
 
 export const apiRouteMiddleware =
-  (handler: (req: NextRequest, res?: NextResponse) => Promise<NextResponse>) =>
-  async (req: NextRequest, res: NextResponse) => {
+  (handler: (req: NextRequest, { params }: { params: Params }) => Promise<NextResponse>) =>
+  async (req: NextRequest, { params }: { params: Params }) => {
     try {
-      return await handler(req, res);
+      return await handler(req, { params });
     } catch (error) {
       if (error instanceof ApiError) {
         return NextResponse.json({ message: error.message }, { status: error.statusCode });
