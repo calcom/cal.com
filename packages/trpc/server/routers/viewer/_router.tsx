@@ -1,49 +1,109 @@
-const globalForTrpc = global as unknown as {
-  mergedRouters;
-};
+import { mergeRouters, router } from "../../trpc";
 
-console.log("---------------LOADING the _router");
+let _viewerRouter: ReturnType<typeof mergeRouters> | null = null;
 
-if (globalForTrpc.mergedRouters) {
-  console.log("--------------_CACHED ROUTER");
-}
+async function initializeViewerRouter() {
+  if (_viewerRouter) {
+    return _viewerRouter;
+  }
 
-if (!globalForTrpc.mergedRouters) {
-  const app_Basecamp3 = await import("@calcom/app-store/basecamp3/trpc-router");
-  const app_RoutingForms = await import("@calcom/app-store/routing-forms/trpc-router");
-  const { userAdminRouter } = await import("@calcom/features/ee/users/server/trpc-router");
-  const { featureFlagRouter } = await import("@calcom/features/flags/server/router");
-  const { insightsRouter } = await import("@calcom/features/insights/server/trpc-router");
+  const [
+    app_Basecamp3Module,
+    app_RoutingFormsModule,
+    userAdminRouterModule,
+    featureFlagRouterModule,
+    insightsRouterModule,
+    loggedInViewerRouterModule,
+    publicViewerRouterModule,
+    timezonesRouterModule,
+    adminRouterModule,
+    apiKeysRouterModule,
+    appsRouterModule,
+    attributesRouterModule,
+    authRouterModule,
+    availabilityRouterModule,
+    bookingsRouterModule,
+    deploymentSetupRouterModule,
+    domainWideDelegationRouterModule,
+    dsyncRouterModule,
+    eventTypesRouterModule,
+    googleWorkspaceRouterModule,
+    highPerfRouterModule,
+    oAuthRouterModule,
+    viewerOrganizationsRouterModule,
+    paymentsRouterModule,
+    routingFormsRouterModule,
+    slotsRouterModule,
+    ssoRouterModule,
+    viewerTeamsRouterModule,
+    webhookRouterModule,
+    workflowsRouterModule,
+  ] = await Promise.all([
+    import("@calcom/app-store/basecamp3/trpc-router"),
+    import("@calcom/app-store/routing-forms/trpc-router"),
+    import("@calcom/features/ee/users/server/trpc-router"),
+    import("@calcom/features/flags/server/router"),
+    import("@calcom/features/insights/server/trpc-router"),
+    import("../loggedInViewer/_router"),
+    import("../publicViewer/_router"),
+    import("../publicViewer/timezones/_router"),
+    import("./admin/_router"),
+    import("./apiKeys/_router"),
+    import("./apps/_router"),
+    import("./attributes/_router"),
+    import("./auth/_router"),
+    import("./availability/_router"),
+    import("./bookings/_router"),
+    import("./deploymentSetup/_router"),
+    import("./domainWideDelegation/_router"),
+    import("./dsync/_router"),
+    import("./eventTypes/_router"),
+    import("./googleWorkspace/_router"),
+    import("./highPerf/_router"),
+    import("./oAuth/_router"),
+    import("./organizations/_router"),
+    import("./payments/_router"),
+    import("./routing-forms/_router"),
+    import("./slots/_router"),
+    import("./sso/_router"),
+    import("./teams/_router"),
+    import("./webhook/_router"),
+    import("./workflows/_router"),
+  ]);
 
-  const { mergeRouters, router } = await import("../../trpc");
-  const { loggedInViewerRouter } = await import("../loggedInViewer/_router");
-  const { publicViewerRouter } = await import("../publicViewer/_router");
-  const { timezonesRouter } = await import("../publicViewer/timezones/_router");
-  const { adminRouter } = await import("./admin/_router");
-  const { apiKeysRouter } = await import("./apiKeys/_router");
-  const { appsRouter } = await import("./apps/_router");
-  const { attributesRouter } = await import("./attributes/_router");
-  const { authRouter } = await import("./auth/_router");
-  const { availabilityRouter } = await import("./availability/_router");
-  const { bookingsRouter } = await import("./bookings/_router");
-  const { deploymentSetupRouter } = await import("./deploymentSetup/_router");
-  const { domainWideDelegationRouter } = await import("./domainWideDelegation/_router");
-  const { dsyncRouter } = await import("./dsync/_router");
-  const { eventTypesRouter } = await import("./eventTypes/_router");
-  const { googleWorkspaceRouter } = await import("./googleWorkspace/_router");
-  const { highPerfRouter } = await import("./highPerf/_router");
-  const { oAuthRouter } = await import("./oAuth/_router");
-  const { viewerOrganizationsRouter } = await import("./organizations/_router");
-  const { paymentsRouter } = await import("./payments/_router");
-  const { routingFormsRouter } = await import("./routing-forms/_router");
-  const { slotsRouter } = await import("./slots/_router");
-  const { ssoRouter } = await import("./sso/_router");
-  const { viewerTeamsRouter } = await import("./teams/_router");
-  const { webhookRouter } = await import("./webhook/_router");
-  const { workflowsRouter } = await import("./workflows/_router");
+  const app_Basecamp3 = app_Basecamp3Module.default; // Assuming default export
+  const app_RoutingForms = app_RoutingFormsModule.default;
+  const userAdminRouter = userAdminRouterModule.userAdminRouter; // Correct access
+  const featureFlagRouter = featureFlagRouterModule.featureFlagRouter;
+  const insightsRouter = insightsRouterModule.insightsRouter;
+  const loggedInViewerRouter = loggedInViewerRouterModule.loggedInViewerRouter;
+  const publicViewerRouter = publicViewerRouterModule.publicViewerRouter;
+  const timezonesRouter = timezonesRouterModule.timezonesRouter;
+  const adminRouter = adminRouterModule.adminRouter;
+  const apiKeysRouter = apiKeysRouterModule.apiKeysRouter;
+  const appsRouter = appsRouterModule.appsRouter;
+  const attributesRouter = attributesRouterModule.attributesRouter;
+  const authRouter = authRouterModule.authRouter;
+  const availabilityRouter = availabilityRouterModule.availabilityRouter;
+  const bookingsRouter = bookingsRouterModule.bookingsRouter;
+  const deploymentSetupRouter = deploymentSetupRouterModule.deploymentSetupRouter;
+  const domainWideDelegationRouter = domainWideDelegationRouterModule.domainWideDelegationRouter;
+  const dsyncRouter = dsyncRouterModule.dsyncRouter;
+  const eventTypesRouter = eventTypesRouterModule.eventTypesRouter;
+  const googleWorkspaceRouter = googleWorkspaceRouterModule.googleWorkspaceRouter;
+  const highPerfRouter = highPerfRouterModule.highPerfRouter;
+  const oAuthRouter = oAuthRouterModule.oAuthRouter;
+  const viewerOrganizationsRouter = viewerOrganizationsRouterModule.viewerOrganizationsRouter;
+  const paymentsRouter = paymentsRouterModule.paymentsRouter;
+  const routingFormsRouter = routingFormsRouterModule.routingFormsRouter;
+  const slotsRouter = slotsRouterModule.slotsRouter;
+  const ssoRouter = ssoRouterModule.ssoRouter;
+  const viewerTeamsRouter = viewerTeamsRouterModule.viewerTeamsRouter;
+  const webhookRouter = webhookRouterModule.webhookRouter;
+  const workflowsRouter = workflowsRouterModule.workflowsRouter;
 
   console.log("--------------------------loading mergedRouters");
-  globalForTrpc.mergedRouters = mergeRouters(
+  _viewerRouter = mergeRouters(
     loggedInViewerRouter,
 
     router({
@@ -81,6 +141,10 @@ if (!globalForTrpc.mergedRouters) {
       routingForms: routingFormsRouter,
     })
   );
+
+  return _viewerRouter;
 }
 
-export const viewerRouter = globalForTrpc.mergedRouters;
+export async function getViewerRouter() {
+  return initializeViewerRouter();
+}

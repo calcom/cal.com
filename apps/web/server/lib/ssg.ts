@@ -5,7 +5,7 @@ import superjson from "superjson";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
 import { createServerSideHelpers } from "@calcom/trpc/react/server";
-import { appRouter } from "@calcom/trpc/server/routers/_app";
+import { createAppRouter } from "@calcom/trpc/server/routers/_app";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { i18n } = require("@calcom/config/next-i18next.config");
@@ -24,7 +24,10 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   }
   const locale = isSupportedLocale ? requestedLocale : i18n.defaultLocale;
 
-  const _i18n = await serverSideTranslations(locale, ["common"]);
+  const [_i18n, appRouter] = await Promise.all([
+    serverSideTranslations(locale, ["common"]),
+    createAppRouter(),
+  ]);
 
   const ssg = createServerSideHelpers({
     router: appRouter,
