@@ -1,4 +1,3 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
 import { createHmac } from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -7,7 +6,6 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
-
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

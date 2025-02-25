@@ -163,6 +163,7 @@ const PlainChat = () => {
             threadDetails: {
               labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
               tierIdentifier: { externalId: data.userTier },
+              tierIdentifier: { externalId: data.userTier },
             },
           },
           {
@@ -170,6 +171,7 @@ const PlainChat = () => {
             text: "Send feedback",
             threadDetails: {
               labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+              tierIdentifier: { externalId: data.userTier },
               tierIdentifier: { externalId: data.userTier },
             },
           },
@@ -189,6 +191,9 @@ const PlainChat = () => {
                         labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
                         tierIdentifier: { externalId: data.userTier },
                       },
+                      onClick: () => {
+                        console.log("User selected severity: Unable to use app");
+                      },
                     },
                     {
                       icon: "error",
@@ -197,6 +202,9 @@ const PlainChat = () => {
                         labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
                         tierIdentifier: { externalId: data.userTier },
                       },
+                      onClick: () => {
+                        console.log("User selected severity: Major functionality degraded");
+                      },
                     },
                     {
                       icon: "bug",
@@ -204,6 +212,9 @@ const PlainChat = () => {
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
                         tierIdentifier: { externalId: data.userTier },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Minor annoyance");
                       },
                     },
                   ],
