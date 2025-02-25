@@ -71,9 +71,9 @@ async function initializeViewerRouter() {
     import("./workflows/_router"),
   ]);
 
-  const app_Basecamp3 = app_Basecamp3Module.default; // Assuming default export
+  const app_Basecamp3 = app_Basecamp3Module.default;
   const app_RoutingForms = app_RoutingFormsModule.default;
-  const userAdminRouter = userAdminRouterModule.userAdminRouter; // Correct access
+  const userAdminRouter = userAdminRouterModule.userAdminRouter;
   const featureFlagRouter = featureFlagRouterModule.featureFlagRouter;
   const insightsRouter = insightsRouterModule.insightsRouter;
   const loggedInViewerRouter = loggedInViewerRouterModule.loggedInViewerRouter;
