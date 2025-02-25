@@ -391,7 +391,7 @@ export default class SalesforceCRMService implements CRM {
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
         // For an account let's assume that the first email is the one we should be querying against
         const attendeeEmail = emailArray[0];
-        log.info("Searching account for email", safeStringify({ attendeeEmail }));
+        log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
         soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
       } else {
         // Handle Contact/Lead record types
@@ -472,7 +472,7 @@ export default class SalesforceCRMService implements CRM {
         };
       });
     } catch (error) {
-      log.error("Error in getContacts", safeStringify({ error }));
+      log.error("Error in getContacts", safeStringify(error));
       return [];
     }
   }
@@ -482,7 +482,7 @@ export default class SalesforceCRMService implements CRM {
     organizerEmail?: string,
     calEventResponses?: CalEventResponses | null
   ) {
-    const log = logger.getSubLogger({ prefix: [`[getContacts]`] });
+    const log = logger.getSubLogger({ prefix: [`[createContacts]`] });
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
@@ -901,13 +901,15 @@ export default class SalesforceCRMService implements CRM {
   private async getAccountBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
-
+    const log = logger.getSubLogger({ prefix: [`[getAccountBasedOnEmailDomainOfContacts]:${email}`] });
+    log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
+      log.info("Found account matching email domain", safeStringify({ emailDomain }));
       return {
         ...(accountQuery.records[0] as { Id?: string; OwnerId?: string; Owner?: { Email?: string } }),
         Email: undefined,
@@ -928,6 +930,7 @@ export default class SalesforceCRMService implements CRM {
     const dominantAccountId = this.getDominantAccountId(contacts);
 
     const contactUnderAccount = contacts.find((contact) => contact.AccountId === dominantAccountId);
+    log.info("Using dominant account's owner", safeStringify({ dominantAccountId }));
 
     return {
       Id: dominantAccountId,
