@@ -95,7 +95,8 @@ export const AvailableTimeSlots = ({
     // We could start doing that after we fix this behaviour.
     // schedule?.invalidate();
 
-    setTentativeSelectedTimeslots(Array.from(new Set([...tentativeSelectedTimeslots, time])));
+    // Earlier we had multiple tentative slots, but now we can only have one tentative slot.
+    setTentativeSelectedTimeslots([time]);
   };
 
   const scheduleData = schedule?.data;

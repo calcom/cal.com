@@ -1,6 +1,6 @@
 // Basic ISO format validation using string checks
 // Without RegExp check, to keep it fast and simple
-const isValidISOFormat = (dateStr: string) => {
+export const isValidISOFormat = (dateStr: string) => {
   if (dateStr.length < 16) return false;
 
   // Check for required separators

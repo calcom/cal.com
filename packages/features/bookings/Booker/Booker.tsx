@@ -31,12 +31,11 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
-import type { QuickAvailabilityCheck } from "./components/hooks/useSlots";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
-import { isSlotEquivalent } from "./utils/isSlotEquivalent";
+import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
 const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
@@ -48,46 +47,6 @@ const UnpublishedEntity = dynamic(() =>
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
-
-/**
- * Checks if a given time slot is available in the schedule
- * It should never give false negative, false positives are fine.
- * It could be unavailable for any number of reasons including the slot being reserved and not actually booked
- * @returns boolean - true if the slot is available, false otherwise.
- */
-const isTimeSlotAvailable = ({
-  schedule,
-  slotToCheckInIso,
-  dateString,
-  quickAvailabilityChecks,
-}: {
-  schedule: WrappedBookerProps["schedule"];
-  slotToCheckInIso: string;
-  dateString: string | null;
-  quickAvailabilityChecks: QuickAvailabilityCheck[];
-}) => {
-  const isUnavailableAsPerQuickCheck =
-    quickAvailabilityChecks &&
-    quickAvailabilityChecks.some(
-      (slot) => slot.utcStartIso === slotToCheckInIso && slot.status !== "available"
-    );
-
-  if (isUnavailableAsPerQuickCheck) return false;
-
-  // If schedule is not loaded or other variables are unavailable consider the slot available
-  if (!schedule?.data || !dateString) {
-    return true;
-  }
-
-  // Get the slots for this date
-  const slotsForDateInIso = schedule.data.slots[dateString];
-  if (!slotsForDateInIso) return false;
-
-  // Check if the exact time slot exists in the available slots
-  return slotsForDateInIso.some((slot) => {
-    return isSlotEquivalent({ slotTimeInIso: slot.time, slotToCheckInIso });
-  });
-};
 
 const BookerComponent = ({
   username,
@@ -229,9 +188,8 @@ const BookerComponent = ({
 
   const unavailableTimeSlots = allSelectedTimeslots.filter((slot) => {
     return !isTimeSlotAvailable({
-      schedule,
+      scheduleData: schedule?.data ?? null,
       slotToCheckInIso: slot,
-      dateString: selectedDate,
       quickAvailabilityChecks: slots.quickAvailabilityChecks,
     });
   });
