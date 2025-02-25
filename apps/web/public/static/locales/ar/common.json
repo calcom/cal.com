@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "إعدادات تعارض التقويم",
   "select_calendars_conflict_check": "حدد التقويمات التي تريد التحقق من تعارضاتها",
   "group_meeting": "اجتماع جماعي",
+  "are_you_sure_you_want_to_remove_this_app_from": "هل أنت متأكد أنك تريد إزالة هذا التطبيق من",
+  "disconnect_app_from": "فصل التطبيق من",
   "salesforce_ignore_guests": "عدم إنشاء سجلات جديدة للضيوف المضافين إلى الحجز",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "تنازلي",
   "verify_email": "التحقق من البريد الإلكتروني",
   "verify_email_change": "تأكيد تغيير البريد الإلكتروني",
+  "end_date_not_selected": "لم تقم بتحديد تاريخ انتهاء لفترة غيابك",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

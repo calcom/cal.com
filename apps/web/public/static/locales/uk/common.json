@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Налаштування конфліктів календаря",
   "select_calendars_conflict_check": "Оберіть календарі для перевірки конфліктів",
   "group_meeting": "Групова зустріч",
+  "are_you_sure_you_want_to_remove_this_app_from": "Ви впевнені, що хочете видалити цей додаток з",
+  "disconnect_app_from": "Від'єднати додаток від",
   "salesforce_ignore_guests": "Не створювати нові записи для гостей, доданих до бронювання",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "За спаданням",
   "verify_email": "Підтвердити email",
   "verify_email_change": "Підтвердити зміну електронної пошти",
+  "end_date_not_selected": "Ви не встановили дату завершення вашої відсутності",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

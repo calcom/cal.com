@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Настройки за конфликти в календара",
   "select_calendars_conflict_check": "Изберете кои календари да се проверяват за конфликти",
   "group_meeting": "Групова среща",
+  "are_you_sure_you_want_to_remove_this_app_from": "Сигурни ли сте, че искате да премахнете това приложение от",
+  "disconnect_app_from": "Прекъсни връзката на приложението от",
   "salesforce_ignore_guests": "Да не се създават нови записи за гости, добавени към резервацията",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Низх",
   "verify_email": "Потвърди имейл",
   "verify_email_change": "Потвърди промяната на имейл",
+  "end_date_not_selected": "Не сте задали крайна дата за вашето отсъствие от офиса",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

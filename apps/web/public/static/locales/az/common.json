@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Təqvim münaqişəsi parametrləri",
   "select_calendars_conflict_check": "Münaqişələri yoxlamaq üçün təqvimləri seçin",
   "group_meeting": "Qrup görüşü",
+  "are_you_sure_you_want_to_remove_this_app_from": "Bu tətbiqi buradan silmək istədiyinizə əminsiniz:",
+  "disconnect_app_from": "Tətbiqi buradan ayırın:",
   "salesforce_ignore_guests": "Rezervasiyaya əlavə edilən qonaqlar üçün yeni qeydlər yaratma",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Azalan",
   "verify_email": "E-poçtu təsdiqlə",
   "verify_email_change": "E-poçt dəyişikliyini təsdiqlə",
+  "end_date_not_selected": "OOO (ofisdən kənarda) üçün son tarix təyin etməmisiniz",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
