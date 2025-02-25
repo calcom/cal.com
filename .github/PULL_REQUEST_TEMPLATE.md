@@ -17,7 +17,6 @@ A visual demonstration is strongly recommended, for both the original and new ch
 #### Image Demo (if applicable):
 
 - Add side-by-side screenshots of the original and updated change.
-
 - Highlight any significant change(s).
 
 ## Mandatory Tasks (DO NOT REMOVE)
