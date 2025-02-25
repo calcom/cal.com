@@ -31,13 +31,12 @@ describe("Plain Chat Integration", () => {
     vi.clearAllMocks();
 
     // Mock window.Plain
-    global.window = {
-      ...global.window,
+    global.window = Object.assign({}, global.window, {
       Plain: {
         init: vi.fn(),
         open: vi.fn(),
       },
-    };
+    });
   });
 
   /**
@@ -92,7 +91,7 @@ describe("Plain Chat Integration", () => {
     };
 
     // Simulate initializing Plain
-    window.Plain.init(plainChatConfig);
+    window.Plain?.init(plainChatConfig);
 
     return plainChatConfig;
   }
@@ -152,7 +151,7 @@ describe("Plain Chat Integration", () => {
     };
 
     // Simulate initializing Plain
-    window.Plain.init(plainChatConfig);
+    window.Plain?.init(plainChatConfig);
 
     return plainChatConfig;
   }
@@ -160,8 +159,8 @@ describe("Plain Chat Integration", () => {
   it("should pass 'free' tier from API to Plain Chat config for users with no teams", async () => {
     const config = await initPlainChat("free");
 
-    expect(window.Plain.init).toHaveBeenCalledTimes(1);
-    expect(window.Plain.init).toHaveBeenCalledWith(
+    expect(window.Plain?.init).toHaveBeenCalledTimes(1);
+    expect(window.Plain?.init).toHaveBeenCalledWith(
       expect.objectContaining({
         chatButtons: expect.arrayContaining([
           expect.objectContaining({
@@ -181,8 +180,8 @@ describe("Plain Chat Integration", () => {
   it("should pass 'teams' tier from API to Plain Chat config for users in a team (including sub-teams)", async () => {
     const config = await initPlainChat("teams");
 
-    expect(window.Plain.init).toHaveBeenCalledTimes(1);
-    expect(window.Plain.init).toHaveBeenCalledWith(
+    expect(window.Plain?.init).toHaveBeenCalledTimes(1);
+    expect(window.Plain?.init).toHaveBeenCalledWith(
       expect.objectContaining({
         chatButtons: expect.arrayContaining([
           expect.objectContaining({
@@ -202,8 +201,8 @@ describe("Plain Chat Integration", () => {
   it("should pass 'enterprise' tier from API to Plain Chat config for users in an organization", async () => {
     const config = await initPlainChat("enterprise");
 
-    expect(window.Plain.init).toHaveBeenCalledTimes(1);
-    expect(window.Plain.init).toHaveBeenCalledWith(
+    expect(window.Plain?.init).toHaveBeenCalledTimes(1);
+    expect(window.Plain?.init).toHaveBeenCalledWith(
       expect.objectContaining({
         chatButtons: expect.arrayContaining([
           expect.objectContaining({
@@ -303,7 +302,7 @@ describe("Plain Chat Integration", () => {
     };
 
     // Simulate initializing Plain
-    window.Plain.init(plainChatConfig);
+    window.Plain?.init(plainChatConfig);
 
     // Verify all buttons have the correct tier
     expect(plainChatConfig.chatButtons[0].threadDetails.tierIdentifier.externalId).toBe("teams");
