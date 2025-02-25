@@ -112,6 +112,8 @@ export function RoutingFormResponsesTable() {
     const routingForms = convertMapToFacetedValues(getInsightsFacetedUniqueValues(table, "formId")());
     const newRoutingFormId = routingForms?.[0]?.value;
     if (newRoutingFormId) {
+      // if routing form filter is not set, set it to the first form
+      // this also prevents user from clearing the routing form filter
       updateFilter("formId", { type: ColumnFilterType.SINGLE_SELECT, data: newRoutingFormId });
     }
   }, [table, getInsightsFacetedUniqueValues, routingFormId]);
