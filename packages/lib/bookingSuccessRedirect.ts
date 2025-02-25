@@ -185,16 +185,10 @@ export const useBookingSuccessRedirect = () => {
 
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
 
-      if (bookingExtraParams.uid) {
-        url.searchParams.append("uid", bookingExtraParams.uid.toString());
-      }
-
-      const { uid, ...otherParams } = bookingExtraParams;
-
       const newSearchParams = getNewSearchParams({
         query: {
           ...query,
-          ...otherParams,
+          ...bookingExtraParams,
         },
         searchParams: searchParams ?? undefined,
       });
