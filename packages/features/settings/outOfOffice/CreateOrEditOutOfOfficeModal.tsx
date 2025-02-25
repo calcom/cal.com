@@ -131,9 +131,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      // if (setOOOEntriesAddedOrUpdated) {
-      //   setOOOEntriesAddedOrUpdated((previousValue) => previousValue + 1);
-      // }
       handleRefetch();
       closeModal();
     },
