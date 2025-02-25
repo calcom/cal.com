@@ -6,7 +6,7 @@
 - Fixes CAL-XXXX (Linear issue number - should be visible at the bottom of the GitHub issue description)
 
 
-## A Visual Demo (For contributors especially)
+## Visual Demo (For contributors especially)
 
 A visual demonstration is strongly recommended , for both the original and new change **(video / image - any one)**.
 
