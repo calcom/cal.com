@@ -151,8 +151,8 @@ export const AppPage = ({
       setExistingCredentials(data?.credentials || []);
 
       const appInstalledForAllTargets =
-        availableForTeams && Array.isArray(data?.userAdminTeams) && data.userAdminTeams.length > 0
-          ? credentialsCount >= data?.userAdminTeams.length
+        availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
+          ? credentialsCount >= data.userAdminTeams.length
           : credentialsCount > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
