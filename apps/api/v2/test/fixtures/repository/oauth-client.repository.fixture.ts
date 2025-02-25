@@ -35,7 +35,7 @@ export class OAuthClientRepositoryFixture {
 
   async create(
     organizationId: number,
-    data: Omit<Prisma.PlatformOAuthClientCreateInput, "organization">,
+    data: Omit<Prisma.PlatformOAuthClientCreateInput, "organization" | "secret">,
     secret: string
   ) {
     return this.prismaWriteClient.platformOAuthClient.create({
