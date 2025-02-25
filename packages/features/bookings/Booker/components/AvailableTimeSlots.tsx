@@ -1,10 +1,11 @@
-import { useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -12,6 +13,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
+import { getQueryParam } from "../utils/query-param";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -55,37 +57,18 @@ export const AvailableTimeSlots = ({
   isLoading,
   customClassNames,
   skipConfirmStep,
+  seatsPerTimeSlot,
   onSubmit,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
+
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const [layout] = useBookerStore((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const onTimeSelect = (
-    time: string,
-    attendees: number,
-    seatsPerTimeSlot?: number | null,
-    bookingUid?: string
-  ) => {
-    setSelectedTimeslot(time);
-    if (seatsPerTimeSlot) {
-      setSeatedEventData({
-        seatsPerTimeSlot,
-        attendees,
-        bookingUid,
-        showAvailableSeatsCount,
-      });
-    }
-    if (skipConfirmStep) {
-      onSubmit(time);
-    }
-    return;
-  };
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
@@ -94,13 +77,53 @@ export const AvailableTimeSlots = ({
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
-  const dates = !extraDays
-    ? [date]
-    : nonEmptyScheduleDaysFromSelectedDate.length > 0
-    ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
-    : [];
+  const dates = useMemo(() => {
+    if (!extraDays) return [date];
+    if (nonEmptyScheduleDaysFromSelectedDate.length > 0) {
+      return nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays);
+    }
+    return [];
+  }, [date, extraDays, nonEmptyScheduleDaysFromSelectedDate]);
 
-  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
+  const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(dates, schedule?.slots);
+
+  const overlayCalendarToggled =
+    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+
+  const onTimeSelect = useCallback(
+    (time: string, attendees: number, seatsPerTimeSlot?: number | null, bookingUid?: string) => {
+      setSelectedTimeslot(time);
+      if (seatsPerTimeSlot) {
+        setSeatedEventData({
+          seatsPerTimeSlot,
+          attendees,
+          bookingUid,
+          showAvailableSeatsCount,
+        });
+      }
+      if (skipConfirmStep) {
+        onSubmit(time);
+      }
+      return;
+    },
+    [onSubmit, setSeatedEventData, setSelectedTimeslot, skipConfirmStep, showAvailableSeatsCount]
+  );
+
+  const handleSlotClick = useCallback(
+    (selectedSlot: Slot, isOverlapping: boolean) => {
+      if ((overlayCalendarToggled && isOverlapping) || skipConfirmStep) {
+        toggleConfirmButton(selectedSlot);
+      } else {
+        onTimeSelect(
+          selectedSlot.time,
+          selectedSlot?.attendees || 0,
+          seatsPerTimeSlot,
+          selectedSlot.bookingUid
+        );
+      }
+    },
+    [overlayCalendarToggled, onTimeSelect, seatsPerTimeSlot, skipConfirmStep, toggleConfirmButton]
+  );
 
   return (
     <>
@@ -150,6 +173,8 @@ export const AvailableTimeSlots = ({
                 slots={slots.slots}
                 showAvailableSeatsCount={showAvailableSeatsCount}
                 skipConfirmStep={skipConfirmStep}
+                seatsPerTimeSlot={seatsPerTimeSlot}
+                handleSlotClick={handleSlotClick}
                 {...props}
               />
             </div>

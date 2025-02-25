@@ -298,7 +298,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           </>
         )}
 
-        {/* This radio group does nothing - its just for visuall purposes */}
+        {/* This radio group does nothing - its just for visual purposes */}
         {!isAdmin && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">

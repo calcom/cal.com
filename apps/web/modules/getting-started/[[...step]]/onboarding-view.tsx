@@ -4,7 +4,7 @@ import { signOut } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
