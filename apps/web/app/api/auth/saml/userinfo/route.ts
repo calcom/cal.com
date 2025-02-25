@@ -34,3 +34,5 @@ async function handler(req: NextRequest) {
 const getHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
 
 export { getHandler as GET };
+
+export const dynamic = "force-dynamic";
