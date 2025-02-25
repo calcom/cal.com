@@ -11,6 +11,7 @@ const useSkipConfirmStep = (
   bookingForm: UseBookingFormReturnType["bookingForm"],
   bookerState: BookerState,
   isInstantMeeting: boolean,
+  isWeekView: boolean,
   bookingFields?: BookerEvent["bookingFields"]
 ) => {
   const bookingFormValues = bookingForm.getValues();
@@ -38,8 +39,8 @@ const useSkipConfirmStep = (
       }
     };
 
-    bookerState === "selecting_time" && !isInstantMeeting && checkSkipStep();
-  }, [bookingFormValues, bookingFields, rescheduleUid, bookerState]);
+    bookerState === "selecting_time" && !isInstantMeeting && !isWeekView && checkSkipStep();
+  }, [bookingFormValues, bookingFields, rescheduleUid, bookerState, isWeekView, isInstantMeeting]);
 
   return canSkip;
 };
