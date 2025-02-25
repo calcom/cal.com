@@ -10,6 +10,38 @@ Below are hooks you can use to interact with the Cal.com API:
 
 ### 1. `useBookings`
 
+The useBookings hook returns an array of all the booking data, allowing you to filter bookings by status, such as "upcoming," "recurring," "past," "cancelled," or "unconfirmed." It also supports pagination through the take and skip parameters. Additionally, various properties can be passed to useBookings, which can be referenced in the [following](https://github.com/calcom/cal.com/blob/307b2946a2cb6dcdb32dbee6c4f448e8a01c4285/packages/platform/types/bookings/2024-08-13/inputs/get-bookings.input.ts#L32) documentation for detailed information.
+
+Below code snippet shows how to use the useBookings hook to fetch bookings for a specific user.
+
+```js
+import { useBookings } from "@calcom/atoms";
+
+export default function Bookings() {
+  const { isLoading: isLoadingUpcomingBookings, data: upcomingBookings } = useBookings({
+    take: 50,
+    skip: 0,
+    status: ["upcoming"],
+  });
+
+  return (
+    <>
+      <h1>Upcoming bookings</h1>
+      {isLoadingUpcomingBookings && <p>Loading...</p>}
+      {!isLoadingUpcomingBookings && !upcomingBookings && <p>No upcoming bookings found</p>}
+      {!isLoading &&
+        upcomingBookings &&
+        (Boolean(upcomingBookings?.length)) &&
+        [...upcomingBookings].map((booking) => {
+            return (
+                <div key={booking.id}><h1>{booking.title}</h1></div>
+            );
+       })}
+    </>
+  );
+}
+```
+
 ### 2. `useBooking`
 
 ### 3. `useCancelBooking`
