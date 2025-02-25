@@ -1,7 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { cookies } from "next/headers";
+import { headers } from "next/headers";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
 
 import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/onboarding-handover";
@@ -12,9 +15,15 @@ export const generateMetadata = async () =>
     (t) => t("handover_onboarding_page_description")
   );
 
-export default WithLayout({
-  requiresLicense: true,
-  getLayout: LayoutWrapper,
-  Page: LegacyPage,
-  getData: withAppDirSsr(getServerSideProps),
-});
+const getData = withAppDirSsr(getServerSideProps);
+
+const ServerPage = async ({ params, searchParams }: PageProps) => {
+  await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  return (
+    <LayoutWrapper>
+      <LegacyPage />
+    </LayoutWrapper>
+  );
+};
+
+export default ServerPage;
