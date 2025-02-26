@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import z from "zod";
 
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
@@ -119,7 +120,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   });
   timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
-  const response: any = {}; // Using any here to avoid importing FormResponse type
+  const response: FormResponse = {};
   if (!serializableForm.fields) {
     throw new Error("Form has no fields");
   }
