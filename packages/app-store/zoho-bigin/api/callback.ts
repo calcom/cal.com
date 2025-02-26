@@ -9,7 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 function isAuthorizedAccountsServerUrl(accountsServer: string) {
   // As per https://www.zoho.com/crm/developer/docs/api/v6/multi-dc.html#:~:text=US:%20https://accounts.zoho,https://accounts.zohocloud.ca&text=The%20%22location=us%22%20parameter,domain%20in%20all%20API%20endpoints.&text=You%20must%20make%20the%20authorization,.zoho.com.cn.
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const appKeys = await getAppKeysFromSlug(appConfig.slug);
+  const appKeys = await getAppKeysFromSlug(metadata.slug);
 
   const clientId = typeof appKeys.client_id === "string" ? appKeys.client_id : "";
   const clientSecret = typeof appKeys.client_secret === "string" ? appKeys.client_secret : "";
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!clientSecret) return res.status(400).json({ message: "Zoho Bigin client_secret missing." });
 
   const accountsUrl = `${accountsServer}/oauth/v2/token`;
-  const redirectUri = `${WEBAPP_URL}/api/integrations/${appConfig.slug}/callback`;
+  const redirectUri = `${WEBAPP_URL}/api/integrations/${metadata.slug}/callback`;
 
   const formData = {
     client_id: clientId,
@@ -77,10 +77,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   tokenInfo.data.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
   tokenInfo.data.accountServer = accountsServer;
 
-  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, tokenInfo.data, req);
+  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, tokenInfo.data, req);
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
-      getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
+      getInstalledAppPath({ variant: metadata.variant, slug: metadata.slug })
   );
 }
