@@ -1,3 +1,4 @@
+import { GetSlotsInput_2024_09_04 } from "@/modules/slots/inputs/get-slots-input.pipe";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { v4 as uuid } from "uuid";
 
@@ -54,5 +55,9 @@ export class SlotsService {
 
     const event = await this.eventTypeRepo.getEventTypeById(eventTypeId);
     return !!event?.teamId;
+  }
+
+  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
+    return ["firstTest"];
   }
 }
