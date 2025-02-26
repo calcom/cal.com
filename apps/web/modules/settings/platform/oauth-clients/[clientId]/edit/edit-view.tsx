@@ -9,8 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
 
-import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
+import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClient";
+import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useUpdateOAuthClient";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
@@ -59,6 +59,7 @@ export default function EditOAuthClient() {
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
+      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
     });
   };
 
@@ -85,6 +86,7 @@ export default function EditOAuthClient() {
                 defaultValues={{
                   name: data?.name ?? "",
                   areEmailsEnabled: data.areEmailsEnabled ?? false,
+                  areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
                   redirectUris: data?.redirectUris?.map((uri) => ({ uri })) ?? [{ uri: "" }],
                   bookingRedirectUri: data?.bookingRedirectUri ?? "",
                   bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",
