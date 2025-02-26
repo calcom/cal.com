@@ -76,6 +76,7 @@ test("Edge Case: Same day OOO entries that could accidentally be considered in p
     frequency: 45,
     minimumBookingNotice: 0,
     workingHours: TestData.schedules.IstWorkHours.availability.map((wh) => ({
+      userId: 1,
       ...wh,
       startTime: 210, // 03:30 UTC = 9:00 AM IST
       endTime: 690, // 11:30 UTC = 5:00 PM IST
@@ -137,11 +138,13 @@ test("Working Hours with Gaps: Should handle working hours with gaps correctly",
     minimumBookingNotice: 0,
     workingHours: [
       {
+        userId: 1,
         days: [0, 1, 2, 3, 4, 5, 6],
         startTime: 210, // 03:30 UTC = 9:00 AM IST
         endTime: 390, // 06:30 UTC = 12:00 PM IST (Gap until 2 PM)
       },
       {
+        userId: 1,
         days: [0, 1, 2, 3, 4, 5, 6],
         startTime: 510, // 08:30 UTC = 2:00 PM IST (Gap from 12 PM to 2 PM)
         endTime: 690, // 11:30 UTC = 5:00 PM IST
