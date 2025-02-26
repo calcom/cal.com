@@ -3,8 +3,30 @@ import { vi } from "vitest";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
-type Contact = { Id?: string; Email?: string; AccountId?: string; Account?: Account };
-type Lead = { Id?: string; Email?: string; AccountId?: string; Account?: Account };
+type Contact = {
+  Id?: string;
+  FirstName?: string;
+  LastName?: string;
+  Email?: string;
+  AccountId?: string;
+  Account?: Account;
+  Owner?: {
+    Email?: string;
+  };
+  OwnerId?: string;
+};
+type Lead = {
+  Id?: string;
+  FirstName?: string;
+  LastName?: string;
+  Email?: string;
+  AccountId?: string;
+  Account?: Account;
+  Owner?: {
+    Email?: string;
+  };
+  OwnerId?: string;
+};
 type Account = { Id?: string; OwnerId?: string; Owner?: { Email?: string }; Website?: string };
 type User = { Id?: string; IsActive?: boolean; Email?: string };
 
