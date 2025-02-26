@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Naptárütközési beállítások",
   "select_calendars_conflict_check": "Válaszd ki, mely naptárakat ellenőrizzük ütközések szempontjából",
   "group_meeting": "Csoportos megbeszélés",
+  "are_you_sure_you_want_to_remove_this_app_from": "Biztosan el szeretné távolítani ezt az alkalmazást innen:",
+  "disconnect_app_from": "Alkalmazás leválasztása innen:",
   "salesforce_ignore_guests": "Ne hozzon létre új rekordokat a foglaláshoz hozzáadott vendégek számára",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Csökkenő",
   "verify_email": "E-mail megerősítése",
   "verify_email_change": "E-mail-cím módosításának megerősítése",
+  "end_date_not_selected": "Nem állított be végdátumot a távollétéhez",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

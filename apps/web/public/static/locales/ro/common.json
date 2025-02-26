@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Setări pentru conflicte de calendar",
   "select_calendars_conflict_check": "Selectează calendarele pentru verificarea conflictelor",
   "group_meeting": "Întâlnire de grup",
+  "are_you_sure_you_want_to_remove_this_app_from": "Sigur doriți să eliminați această aplicație din",
+  "disconnect_app_from": "Deconectați aplicația de la",
   "salesforce_ignore_guests": "Nu crea înregistrări noi pentru invitații adăugați la programare",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Descrescător",
   "verify_email": "Verifică email-ul",
   "verify_email_change": "Verifică schimbarea adresei de email",
+  "end_date_not_selected": "Nu ați setat o dată de încheiere pentru perioada dvs. de absență",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

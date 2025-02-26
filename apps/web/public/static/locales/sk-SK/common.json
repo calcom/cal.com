@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Nastavenia konfliktov v kalendári",
   "select_calendars_conflict_check": "Vyberte kalendáre, ktoré sa majú kontrolovať na konflikty",
   "group_meeting": "Skupinové stretnutie",
+  "are_you_sure_you_want_to_remove_this_app_from": "Ste si istí, že chcete odstrániť túto aplikáciu z",
+  "disconnect_app_from": "Odpojiť aplikáciu od",
   "salesforce_ignore_guests": "Nevytvárať nové záznamy pre hostí pridaných do rezervácie",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Zostupne",
   "verify_email": "Overiť email",
   "verify_email_change": "Overiť zmenu e-mailu",
+  "end_date_not_selected": "Nenastavili ste dátum ukončenia vašej neprítomnosti",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
