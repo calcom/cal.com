@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import { getServerErrorFromUnknown } from "@calcom/lib/server";
 
 export const apiRouteMiddleware =
-  (handler: (req: NextRequest, { params }: { params: Params }) => Promise<NextResponse>) =>
+  (handler: (req: NextRequest, { params }: { params: Params }) => Promise<NextResponse | Response>) =>
   async (req: NextRequest, { params }: { params: Params }) => {
     try {
       return await handler(req, { params });
