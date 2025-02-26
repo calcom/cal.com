@@ -2898,6 +2898,8 @@ checksums:
     calendar_conflict_settings: 9d5721f39701b71ed421797e44e0a701
     select_calendars_conflict_check: f4147c353f07390fcb44caa27c34ac57
     group_meeting: d30d80ebb9c0b0256130a3c516cb4b4f
+    are_you_sure_you_want_to_remove_this_app_from: ce0c1b2a56b55da014d482e8bcdce9f3
+    disconnect_app_from: 75de687560c61351111ddb1ee3e5d852
     salesforce_ignore_guests: f56d10682d9a637a4bec42abcd212a35
     google_meet: e30a500b4e93f691c4b2ab046b96e753
     zoom: 1029e5d2d8697381dc767ce4090aace0
@@ -2958,4 +2960,5 @@ checksums:
     desc: 55089d006e5eb530227e6f1c41707fc9
     verify_email: 42dcab68d931f9145d9b6d76740a5c66
     verify_email_change: b7a83c7a3100b128e8d1a8f36a8171ba
+    end_date_not_selected: 56faae4c9bed0ff6ecee2f3dfbdfab92
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

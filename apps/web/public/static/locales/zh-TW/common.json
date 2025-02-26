@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "行事曆衝突設定",
   "select_calendars_conflict_check": "選擇要檢查衝突的行事曆",
   "group_meeting": "群組會議",
+  "are_you_sure_you_want_to_remove_this_app_from": "您確定要從以下位置移除此應用程式嗎",
+  "disconnect_app_from": "從以下位置中斷應用程式連結",
   "salesforce_ignore_guests": "不為預約中新增的來賓建立新記錄",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "降序",
   "verify_email": "驗證電子郵件",
   "verify_email_change": "驗證電子郵件變更",
+  "end_date_not_selected": "您尚未為您的外出時間設定結束日期",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
