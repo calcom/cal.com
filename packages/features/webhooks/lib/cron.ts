@@ -1,7 +1,7 @@
 /* Cron job for scheduled webhook events triggers */
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
 
 import { handleWebhookScheduledTriggers } from "./handleWebhookScheduledTriggers";
