@@ -544,8 +544,6 @@ describe("getSchedule", () => {
       });
     });
 
-    //todo: add test for end of month and start of month, cut off first two weeks
-
     test("correctly get slots for event when contact owner has no availability at all", async () => {
       vi.setSystemTime("2024-05-01T00:00:13Z");
 
@@ -654,6 +652,201 @@ describe("getSchedule", () => {
         }
       );
     });
+
+    test("correctly gets slot for event when contact owner is available in the first two weeks and the next month is loaded (within the two weeks)", async () => {
+      vi.setSystemTime("2024-05-23T00:00:13Z");
+
+      const startTime = "2024-06-01";
+      const endTime = "2024-06-31";
+
+      const crmCredential = {
+        id: 1,
+        type: "salesforce_crm",
+        key: {
+          clientId: "test-client-id",
+        },
+        userId: 1,
+        teamId: null,
+        appId: "salesforce",
+        invalid: false,
+        user: { email: "test@test.com" },
+      };
+
+      await createCredentials([crmCredential]);
+
+      mockCrmApp("salesforce", {
+        getContacts: [
+          {
+            id: "contact-id",
+            email: "test@test.com",
+            ownerEmail: "example@example.com",
+          },
+        ],
+        createContacts: [{ id: "contact-id", email: "test@test.com" }],
+      });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+            metadata: {
+              apps: {
+                salesforce: {
+                  enabled: true,
+                  appCategories: ["crm"],
+                  roundRobinLeadSkip: true,
+                },
+              },
+            },
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstNotAvailableForFullMonth("2024-06")],
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 2,
+          },
+        ],
+        bookings: [],
+      });
+
+      const scheduleWithLeadSkip = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${startTime}T18:30:00.000Z`,
+          endTime: `${endTime}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          teamMemberEmail: "example@example.com",
+          orgSlug: null,
+        },
+      });
+
+      // slots for example@example.com, because user is available in the first two weeks (prev month)
+      expect(scheduleWithLeadSkip).toHaveDateDisabled({
+        dateString: "2024-06-03",
+      });
+    });
+
+    test("correctly gets slot for event when contact owner is available in the first two weeks and it's end of the month", async () => {
+      vi.setSystemTime("2024-05-23T00:00:13Z");
+
+      const startTime = "2024-05-23";
+      const endTime = "2024-05-31";
+
+      const crmCredential = {
+        id: 1,
+        type: "salesforce_crm",
+        key: {
+          clientId: "test-client-id",
+        },
+        userId: 1,
+        teamId: null,
+        appId: "salesforce",
+        invalid: false,
+        user: { email: "test@test.com" },
+      };
+
+      await createCredentials([crmCredential]);
+
+      mockCrmApp("salesforce", {
+        getContacts: [
+          {
+            id: "contact-id",
+            email: "test@test.com",
+            ownerEmail: "example@example.com",
+          },
+        ],
+        createContacts: [{ id: "contact-id", email: "test@test.com" }],
+      });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+            metadata: {
+              apps: {
+                salesforce: {
+                  enabled: true,
+                  appCategories: ["crm"],
+                  roundRobinLeadSkip: true,
+                },
+              },
+            },
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstNotAvailableForFullMonth("2024-05")],
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 2,
+          },
+        ],
+        bookings: [],
+      });
+
+      const scheduleWithLeadSkip = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${startTime}T18:30:00.000Z`,
+          endTime: `${endTime}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          teamMemberEmail: "example@example.com",
+          orgSlug: null,
+        },
+      });
+
+      // slots for example@example.com, because user is available in the first two weeks (next month)
+      expect(scheduleWithLeadSkip).toHaveDateDisabled({
+        dateString: "2024-05-29",
+      });
+    });
+
     test("Negative case(i.e. skipContactOwner is true) - when teamMemberEmail is provided but not used", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 

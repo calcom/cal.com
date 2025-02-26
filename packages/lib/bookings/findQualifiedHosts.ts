@@ -43,7 +43,6 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
   return host.isFixed;
 };
 
-//todo: if contact owner is fixed hosts return all RR hosts
 export const findQualifiedHosts = async <
   T extends {
     email: string;
