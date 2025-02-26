@@ -1,9 +1,10 @@
-import type { NextApiRequest } from "next";
+import type { NextRequest } from "next/server";
 import { ImageResponse } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
+import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 
 const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
   res.arrayBuffer()
@@ -17,9 +18,7 @@ const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf
   (res) => res.arrayBuffer()
 );
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
 
 const meetingSchema = z.object({
   imageType: z.literal("meeting"),
@@ -43,8 +42,8 @@ const genericSchema = z.object({
   description: z.string(),
 });
 
-export default async function handler(req: NextApiRequest) {
-  const { searchParams } = new URL(`${req.url}`);
+async function handler(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
   const imageType = searchParams.get("type");
 
   const [calFontData, interFontData, interFontMediumData] = await Promise.all([
@@ -118,3 +117,7 @@ export default async function handler(req: NextApiRequest) {
       return new Response("What you're looking for is not here..", { status: 404 });
   }
 }
+
+const getHandler = apiRouteMiddleware(handler);
+
+export { getHandler as GET };
