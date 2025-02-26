@@ -472,8 +472,7 @@ export class UrlFieldInput_2024_06_14 {
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
-      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,\
-      the text field will be prefilled with this value and disabled.",
+      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
 
@@ -869,7 +868,8 @@ export type InputBookingField_2024_06_14 =
   | MultiEmailFieldInput_2024_06_14
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
-  | BooleanFieldInput_2024_06_14;
+  | BooleanFieldInput_2024_06_14
+  | UrlFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
