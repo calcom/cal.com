@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "הגדרות התנגשות יומנים",
   "select_calendars_conflict_check": "בחר אילו יומנים לבדוק להתנגשויות",
   "group_meeting": "פגישה קבוצתית",
+  "are_you_sure_you_want_to_remove_this_app_from": "האם אתה בטוח שברצונך להסיר את האפליקציה הזו מ-",
+  "disconnect_app_from": "נתק את האפליקציה מ-",
   "salesforce_ignore_guests": "אל תיצור רשומות חדשות עבור אורחים שנוספו להזמנה",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "סדר יורד",
   "verify_email": "אימות אימייל",
   "verify_email_change": "אימות שינוי כתובת דוא\"ל",
+  "end_date_not_selected": "לא הגדרת תאריך סיום עבור ה-OOO שלך",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

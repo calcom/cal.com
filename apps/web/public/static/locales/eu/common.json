@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Egutegien arteko gatazken ezarpenak",
   "select_calendars_conflict_check": "Hautatu zein egutegi egiaztatu nahi dituzun gatazkarik dagoen ikusteko",
   "group_meeting": "Talde bilera",
+  "are_you_sure_you_want_to_remove_this_app_from": "Ziur zaude aplikazio hau hemendik kendu nahi duzula:",
+  "disconnect_app_from": "Deskonektatu aplikazioa hemendik:",
   "salesforce_ignore_guests": "Ez sortu erregistro berririk erreserbara gehitutako gonbidatuentzat",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Beherantz",
   "verify_email": "Egiaztatu emaila",
   "verify_email_change": "Egiaztatu posta elektronikoaren aldaketa",
+  "end_date_not_selected": "Ez duzu amaiera data ezarri zure OOOrako",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Innstillinger for kalenderkonflikt",
   "select_calendars_conflict_check": "Velg hvilke kalendere som skal sjekkes for konflikter",
   "group_meeting": "Gruppemøte",
+  "are_you_sure_you_want_to_remove_this_app_from": "Er du sikker på at du vil fjerne denne appen fra",
+  "disconnect_app_from": "Koble fra appen fra",
   "salesforce_ignore_guests": "Ikke opprett nye poster for gjester som legges til i bookingen",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Synkende",
   "verify_email": "Bekreft e-post",
   "verify_email_change": "Bekreft endring av e-post",
+  "end_date_not_selected": "Du har ikke satt en sluttdato for din fravær",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
