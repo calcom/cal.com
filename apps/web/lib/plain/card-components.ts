@@ -72,7 +72,7 @@ const Container = z.object({
   containerContent: z.array(ContainerContentUnionInput).min(1),
 });
 
-export const Component = z.object({
+export const CardComponent = z.object({
   componentText: Text.optional(),
   componentDivider: Divider.optional(),
   componentLinkButton: LinkButton.optional(),
@@ -83,4 +83,4 @@ export const Component = z.object({
   componentContainer: Container.optional(),
 });
 
-export type Component = z.infer<typeof Component>;
+export type CardComponent = z.infer<typeof CardComponent>;
