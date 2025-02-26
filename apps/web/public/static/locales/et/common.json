@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Kalendri konfliktide seaded",
   "select_calendars_conflict_check": "Vali kalendrid, mida kontrollida konfliktide suhtes",
   "group_meeting": "Grupikohtumise",
+  "are_you_sure_you_want_to_remove_this_app_from": "Kas olete kindel, et soovite selle rakenduse eemaldada kohast",
+  "disconnect_app_from": "Katkesta rakenduse ühendus kohast",
   "salesforce_ignore_guests": "Ära loo broneeringule lisatud külaliste jaoks uusi kirjeid",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Kahanev",
   "verify_email": "Kinnita e-post",
   "verify_email_change": "Kinnita e-posti aadressi muutmine",
+  "end_date_not_selected": "Te ei määranud oma kontorist eemaloleku lõppkuupäeva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "日历冲突设置",
   "select_calendars_conflict_check": "选择需要检查冲突的日历",
   "group_meeting": "群组会议",
+  "are_you_sure_you_want_to_remove_this_app_from": "您确定要从以下位置移除此应用吗",
+  "disconnect_app_from": "从以下位置断开应用连接",
   "salesforce_ignore_guests": "不为预约中添加的访客创建新记录",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "降序",
   "verify_email": "验证邮箱",
   "verify_email_change": "验证邮箱变更",
+  "end_date_not_selected": "您没有为您的外出时间设置结束日期",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

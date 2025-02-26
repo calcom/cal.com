@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "캘린더 충돌 설정",
   "select_calendars_conflict_check": "일정 충돌을 확인할 캘린더 선택",
   "group_meeting": "그룹 미팅",
+  "are_you_sure_you_want_to_remove_this_app_from": "이 앱을 다음에서 제거하시겠습니까",
+  "disconnect_app_from": "다음에서 앱 연결 해제",
   "salesforce_ignore_guests": "예약에 추가된 게스트에 대한 새 레코드를 생성하지 않음",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "내림차순",
   "verify_email": "이메일 인증",
   "verify_email_change": "이메일 변경 확인",
+  "end_date_not_selected": "부재 기간의 종료일을 설정하지 않았습니다",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

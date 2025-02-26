@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Nastavení konfliktů kalendáře",
   "select_calendars_conflict_check": "Vyberte kalendáře pro kontrolu konfliktů",
   "group_meeting": "Skupinová schůzka",
+  "are_you_sure_you_want_to_remove_this_app_from": "Opravdu chcete odstranit tuto aplikaci z",
+  "disconnect_app_from": "Odpojit aplikaci od",
   "salesforce_ignore_guests": "Nevytvářet nové záznamy pro hosty přidané do rezervace",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Sestupně",
   "verify_email": "Ověřit e-mail",
   "verify_email_change": "Ověřit změnu e-mailu",
+  "end_date_not_selected": "Nenastavili jste datum konce pro vaši nepřítomnost",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

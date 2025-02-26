@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Kalenterin päällekkäisyysasetukset",
   "select_calendars_conflict_check": "Valitse kalenterit, joista päällekkäisyydet tarkistetaan",
   "group_meeting": "Ryhmätapaaminen",
+  "are_you_sure_you_want_to_remove_this_app_from": "Haluatko varmasti poistaa tämän sovelluksen kohteesta",
+  "disconnect_app_from": "Katkaise sovelluksen yhteys kohteesta",
   "salesforce_ignore_guests": "Älä luo uusia tietueita varaukseen lisätyille vieraille",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Laskeva",
   "verify_email": "Vahvista sähköposti",
   "verify_email_change": "Vahvista sähköpostin muutos",
+  "end_date_not_selected": "Et asettanut loppupäivämäärää poissaolollesi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
