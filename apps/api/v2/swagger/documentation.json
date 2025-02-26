@@ -8950,8 +8950,8 @@
               "conferencing",
               "unknown"
             ],
-            "example": "conferencing",
-            "description": "only allowed value for type is `conferencing`"
+            "example": "organizersDefaultApp",
+            "description": "only allowed value for type is `organizersDefaultApp`"
           }
         },
         "required": [

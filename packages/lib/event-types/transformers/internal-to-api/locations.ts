@@ -107,7 +107,7 @@ export function transformLocationsInternalToApi(internalLocations: InternalLocat
       }
       case "conferencing": {
         const conferencingLocation: OutputOrganizersDefaultAppLocation_2024_06_14 = {
-          type: "conferencing",
+          type: "organizersDefaultApp",
         };
         return conferencingLocation;
       }

@@ -89,8 +89,11 @@ export class OutputIntegrationLocation_2024_06_14 {
 
 export class OutputOrganizersDefaultAppLocation_2024_06_14 {
   @IsIn(outputLocations)
-  @DocsProperty({ example: "conferencing", description: "only allowed value for type is `conferencing`" })
-  type!: "conferencing";
+  @DocsProperty({
+    example: "organizersDefaultApp",
+    description: "only allowed value for type is `organizersDefaultApp`",
+  })
+  type!: "organizersDefaultApp";
 }
 
 export class OutputUnknownLocation_2024_06_14 {
