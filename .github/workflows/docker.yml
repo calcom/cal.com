@@ -1,70 +1,54 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Build and push image to DockerHub
 
-# Controls when the workflow will run
 on:
   push:
     branches:
       - 'main'
     tags:
       - 'v*'
-  # update on run of Update Calendso nightly submodule update
   workflow_run:
     workflows: ["Update Calendso"]
     branches: [main]
     types:
       - completed
-  # Allow running workflow manually from the Actions tab
   workflow_dispatch:
-  # Uncomment below to allow specific version workflow run
-  # inputs:
-  #   version:
-  #     description: 'Version to build'
-  #     required: true
 
-  # Leaving in example for releases. Initially we simply push to 'latest'
-  # on:
-  # release:
-  # types: [ created ]
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: calcom
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
-          # Free about 4.5 GB, elminating our disk space issues
           tool-cache: true
 
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it, uncomment below
-      # - name: Checkout code at specified version
-      #   uses: actions/checkout@v2
-      #   with:
-      #     ref: ${{ github.event.inputs.version }}
-
-      - name: checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Git submodule update
-        run: |
-          git submodule update --init
+        run: git submodule update --init
 
       - name: Log in to the Docker Hub registry
         uses: docker/login-action@v3
         with:
-          # Username used to log against the Docker registry
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          # Password or personal access token used to log against the Docker registry
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-          # Log out from the Docker registry at the end of a job
-          logout: true # optional, default is true
 
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3
@@ -81,7 +65,6 @@ jobs:
             docker.io/calendso/calendso
             docker.io/calcom/cal.com
             ghcr.io/calcom/cal.com
-          # Add flavor latest only on full releases, not on pre-releases
           flavor: |
             latest=${{ !github.event.release.prerelease }}
 
@@ -90,32 +73,34 @@ jobs:
           grep -o '^[^#]*' .env.example > .env
           cat .env >> $GITHUB_ENV
           echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
-          eval $(sed -e '/^#/d' -e 's/^/export /' -e 's/$/;/' .env) ;
-
-      # Temporarily disable ARM build due to runner performance issues
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v2
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "PostgreSQL is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "PostgreSQL failed to start"
+          exit 1
+
       - name: Set up database
         run: yarn prisma migrate deploy
         env:
-          DATABASE_URL: postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2
-          DATABASE_DIRECT_URL: postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2
-
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_DIRECT_URL: ${{ secrets.DATABASE_DIRECT_URL }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            network=container:database
-          buildkitd-flags: |
-            --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
-      #           config-inline: |
-      #             [worker.oci]
-      #               max-parallelism = 1
+
+      - name: Create Docker Network
+        run: docker network create stack || true
 
       - name: Build image
         id: docker_build
@@ -123,60 +108,53 @@ jobs:
         with:
           context: ./
           file: ./Dockerfile
-          load: true  # Load the image into the Docker daemon
-          push: false  # Do not push the image at this stage
+          load: true
+          push: false
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/calcom:main
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
             NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
             NEXT_PUBLIC_LICENSE_CONSENT=${{ env.NEXT_PUBLIC_LICENSE_CONSENT }}
             NEXT_PUBLIC_TELEMETRY_KEY=${{ env.NEXT_PUBLIC_TELEMETRY_KEY }}
-            DATABASE_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
-            DATABASE_DIRECT_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DATABASE_DIRECT_URL=${{ secrets.DATABASE_DIRECT_URL }}
 
       - name: Test runtime
         run: |
           tags="${{ steps.meta.outputs.tags }}"
-          IFS=',' read -ra ADDR <<< "$tags"  # Convert string to array using ',' as delimiter
-          tag=${ADDR[0]}  # Get the first tag
+          IFS=',' read -ra ADDR <<< "$tags"
+          tag=${ADDR[0]}
 
           docker run --rm --network stack \
             -p 3000:3000 \
-            -e DATABASE_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@database/${{ env.POSTGRES_DB }} \
-            -e DATABASE_DIRECT_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@database/${{ env.POSTGRES_DB }} \
-            -e NEXTAUTH_SECRET=${{ env.NEXTAUTH_SECRET }} \
-            -e CALENDSO_ENCRYPTION_KEY=${{ env.CALENDSO_ENCRYPTION_KEY }} \
+            -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            -e DATABASE_DIRECT_URL=${{ secrets.DATABASE_DIRECT_URL }} \
+            -e NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }} \
+            -e CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }} \
             $tag &
 
-            server_pid=$!
+          server_pid=$!
 
+          echo "Waiting for the server to start..."
+          sleep 60
 
-            echo "Waiting for the server to start..."
-            sleep 120
+          echo "Checking server health..."
+          for i in {1..30}; do
+            response=$(curl -o /dev/null -s -w "%{http_code}" ${{ env.NEXT_PUBLIC_WEBAPP_URL }}/auth/login)
+            echo "HTTP Status Code: $response"
+            if [[ "$response" == "200" ]] || [[ "$response" == "307" ]]; then
+              echo "Server is healthy"
+              kill $server_pid
+              exit 0
+            fi
+            sleep 2
+          done
 
-            echo ${{ env.NEXT_PUBLIC_WEBAPP_URL }}/auth/login
-
-            for i in {1..60}; do
-              echo "Checking server health ($i/60)..."
-              response=$(curl -o /dev/null -s -w "%{http_code}" ${{ env.NEXT_PUBLIC_WEBAPP_URL }}/auth/login)
-              echo "HTTP Status Code: $response"
-              if [[ "$response" == "200" ]] || [[ "$response" == "307" ]]; then
-                echo "Server is healthy"
-                # Now, shutdown the server
-                kill $server_pid
-                exit 0
-              fi
-              sleep 1
-            done
-
-            echo "Server health check failed"
-            kill $server_pid
-            exit 1
-        env:
-          NEXTAUTH_SECRET: 'EI4qqDpcfdvf4A+0aQEEx8JjHxHSy4uWiZw/F32K+pA='
-          CALENDSO_ENCRYPTION_KEY: '0zfLtY99wjeLnsM7qsa8xsT+Q0oSgnOL'
+          echo "Server health check failed"
+          kill $server_pid
+          exit 1
 
       - name: Push image
         id: docker_push
@@ -186,20 +164,19 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/calcom:main
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
             NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
             NEXT_PUBLIC_LICENSE_CONSENT=${{ env.NEXT_PUBLIC_LICENSE_CONSENT }}
             NEXT_PUBLIC_TELEMETRY_KEY=${{ env.NEXT_PUBLIC_TELEMETRY_KEY }}
-            DATABASE_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
-            DATABASE_DIRECT_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DATABASE_DIRECT_URL=${{ secrets.DATABASE_DIRECT_URL }}
         if: ${{ !github.event.release.prerelease }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
 
       - name: Cleanup
-        run: |
-          docker compose down
+        run: docker compose down
