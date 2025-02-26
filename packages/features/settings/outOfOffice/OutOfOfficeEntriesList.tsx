@@ -3,6 +3,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { Trans } from "next-i18next";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
@@ -12,7 +13,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, Tooltip } from "@calcom/ui";
+import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, ToggleGroup, Tooltip } from "@calcom/ui";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -39,11 +40,37 @@ interface OutOfOfficeEntry {
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
 }
 
+enum OutOfOfficeRecordType {
+  CURRENT = "current",
+  PREVIOUS = "previous",
+}
+
 export const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
+  const searchParams = useCompatSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams ?? undefined);
+      params.set(name, value);
+
+      return params.toString();
+    },
+    [searchParams]
+  );
+  const [recordType, setRecordType] = useState(
+    searchParams?.get("previous") === "true" ? OutOfOfficeRecordType.PREVIOUS : OutOfOfficeRecordType.CURRENT
+  );
+  const toggleGroupOptions = [
+    { value: OutOfOfficeRecordType.CURRENT, label: t("current") },
+    { value: OutOfOfficeRecordType.PREVIOUS, label: t("previous") },
+  ];
+
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
   const [openModal, setOpenModal] = useState(false);
@@ -52,7 +79,6 @@ export const OutOfOfficeEntriesList = () => {
     setOpenModal(true);
   };
 
-  const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const { data, isPending, fetchNextPage, isFetching, refetch } =
@@ -61,6 +87,7 @@ export const OutOfOfficeEntriesList = () => {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
         searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
+        recordType,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -296,14 +323,40 @@ export const OutOfOfficeEntriesList = () => {
 
   return (
     <>
+      <div className="mb-2 mt-2 flex justify-start">
+        <ToggleGroup
+          className="hidden md:block"
+          defaultValue={recordType}
+          onValueChange={(value) => {
+            if (!value) return;
+            const newQuery = createQueryString(
+              "previous",
+              value === OutOfOfficeRecordType.PREVIOUS ? "true" : "false"
+            );
+            router.push(`${pathname}?${newQuery}`);
+            setRecordType(value as OutOfOfficeRecordType);
+          }}
+          options={toggleGroupOptions}
+        />
+      </div>
       {data === null ||
       (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && searchTerm === "") ||
       (data === undefined && !isPending) ? (
         <EmptyScreen
           className="mt-6"
-          headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+          headline={
+            recordType === OutOfOfficeRecordType.PREVIOUS
+              ? t("previous_ooo_empty_title")
+              : selectedTab === OutOfOfficeTab.TEAM
+              ? t("ooo_team_empty_title")
+              : t("ooo_empty_title")
+          }
           description={
-            selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_description") : t("ooo_empty_description")
+            recordType === OutOfOfficeRecordType.PREVIOUS
+              ? ""
+              : selectedTab === OutOfOfficeTab.TEAM
+              ? t("ooo_team_empty_description")
+              : t("ooo_empty_description")
           }
           buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
           customIcon={

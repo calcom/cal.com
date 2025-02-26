@@ -485,6 +485,61 @@ test.describe("Out of office", () => {
     });
   });
 
+  test("On clicking 'Previous' tab, Previous OOO records are fetched and displayed", async ({
+    page,
+    users,
+  }) => {
+    const t = await localize("en");
+    const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }];
+    const owner = await users.create(
+      { name: "owner" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: teamMatesObj,
+      }
+    );
+    const member1User = users.get().find((user) => user.name === "member-1");
+
+    await owner.apiLogin();
+
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
+
+    //OOO is created on Previous month 1st - 3rd, forwarding to 'member-1'
+    await test.step("Create OOO entry for previous month", async () => {
+      await dateButton.click();
+      await selectDateAndCreateOOO(page, "1", "3", member1User?.id, 200, false, "previous");
+      //expect created OOO is not displayed in 'Current' (default) tab
+      expect(
+        await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
+      ).toEqual(0);
+    });
+    //switch to 'Previous' tab and expect created OOO is displayed
+    await test.step("Switch to 'Previous' tab and expect created OOO is displayed", async () => {
+      await page.locator(`data-testid=toggle-group-item-previous`).click();
+      await page.waitForLoadState("domcontentloaded");
+      await entriesListRespPromise;
+      await entriesListRespPromise;
+      await page.waitForURL("/settings/my-account/out-of-office?previous=true");
+      expect(
+        await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
+      ).toEqual(1);
+    });
+  });
+
   test.describe("Team OOO", () => {
     test("Create, edit and delete", async ({ page, users }) => {
       const t = await localize("en");
@@ -562,66 +617,25 @@ test.describe("Out of office", () => {
         ).toBeVisible();
       });
 
+      await test.step("Edit OOO and change date to previous month", async () => {
+        await page.getByTestId(`ooo-edit-${member3User?.username}`).click();
+        await reasonListRespPromise;
+        await legacyListMembersRespPromise;
+        await legacyListMembersRespPromise;
+
+        await dateButton.click();
+        await selectDateAndCreateOOO(page, "1", "3", undefined, 200, true, "previous", true);
+        //Switch to 'previous' tab and check if the entry is visible
+        await page.locator(`data-testid=toggle-group-item-previous`).click();
+        await expect(
+          page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
+        ).toBeVisible();
+      });
+
       await test.step("Delete OOO successfully", async () => {
         await page.getByTestId(`ooo-delete-${member3User?.username}`).click();
         expect(page.locator(`text=${t("success_deleted_entry_out_of_office")}`)).toBeTruthy();
       });
-    });
-  });
-
-  test("On clicking 'Previous' tab, Previous OOO records are fetched and displayed", async ({
-    page,
-    users,
-  }) => {
-    const t = await localize("en");
-    const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }];
-    const owner = await users.create(
-      { name: "owner" },
-      {
-        hasTeam: true,
-        isOrg: true,
-        teammates: teamMatesObj,
-      }
-    );
-    const member1User = users.get().find((user) => user.name === "member-1");
-
-    await owner.apiLogin();
-
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await addOOOButton.click();
-    await reasonListRespPromise;
-
-    //OOO is created on Previous month 1st - 3rd, forwarding to 'member-1'
-    await test.step("Create OOO entry for previous month", async () => {
-      await dateButton.click();
-      await selectDateAndCreateOOO(page, "1", "3", "member-1", 200, "previous");
-      //expect created OOO is not displayed in 'Current' (default) tab
-      expect(
-        await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
-      ).toEqual(0);
-    });
-
-    //switch to 'Previous' tab and expect created OOO is displayed
-    await test.step("Switch to 'Previous' tab and expect created OOO is displayed", async () => {
-      await page.locator(`data-testid=toggle-group-item-previous`).click();
-      await page.waitForLoadState("domcontentloaded");
-      await entriesListRespPromise;
-      await entriesListRespPromise;
-      await page.waitForURL("/settings/my-account/out-of-office?previous=true");
-      expect(
-        await page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).count()
-      ).toEqual(1);
     });
   });
 });
@@ -649,7 +663,7 @@ async function selectDateAndCreateOOO(
   redirectToUserId?: number,
   expectedStatusCode = 200,
   forTeamMember = false,
-  month: "previous-month" | "next-month" = "next-month",
+  month: "previous" | "next" = "next",
   editMode = false
 ) {
   const t = await localize("en");
