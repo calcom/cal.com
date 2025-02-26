@@ -86,7 +86,8 @@ const operators: Operators = {
     labelForFormat: "Contains",
     reversedOp: "not_like",
     jsonLogic: "in",
-    _jsonLogicIsRevArgs: true,
+    // This is true by default / removed in v6
+    // _jsonLogicIsRevArgs: true,
     valueSources: ["value"],
   },
   not_like: {
