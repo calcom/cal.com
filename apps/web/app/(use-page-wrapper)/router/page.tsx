@@ -15,7 +15,11 @@ const getCachedRoutingFormData = cache(async (legacyCtx: GetServerSidePropsConte
 export default async function RouterPage({ params, searchParams }: _PageProps) {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
 
-  const result = await getCachedRoutingFormData(legacyCtx);
+  const result = await getRoutedUrl(legacyCtx);
+
+  console.log("----");
+  console.log("result", result);
+  console.log("----");
 
   if (result.redirect) {
     redirect(result.redirect.destination);
@@ -32,12 +36,12 @@ export default async function RouterPage({ params, searchParams }: _PageProps) {
   );
 }
 
-export async function generateMetadata({ params, searchParams }: _PageProps) {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+// export async function generateMetadata({ params, searchParams }: _PageProps) {
+//   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
 
-  const result = await getCachedRoutingFormData(legacyCtx);
+//   const result = await getCachedRoutingFormData(legacyCtx);
 
-  return {
-    title: `${result.props?.form?.name} | Cal.com Forms`,
-  };
-}
+//   return {
+//     title: `${result.props?.form?.name} | Cal.com Forms`,
+//   };
+// }

@@ -2,11 +2,12 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Prisma } from "@prisma/client";
+import { Utils as QbUtils } from "@react-awesome-query-builder/core";
+import type { ImmutableTree, Config, JsonTree } from "@react-awesome-query-builder/core";
+import { Query, Builder } from "@react-awesome-query-builder/ui";
+import type { BuilderProps } from "@react-awesome-query-builder/ui";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 

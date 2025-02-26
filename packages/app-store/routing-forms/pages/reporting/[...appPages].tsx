@@ -1,14 +1,10 @@
 "use client";
 
+import type { Config, ImmutableTree, JsonLogicResult, JsonTree } from "@react-awesome-query-builder/core";
+import { Utils as QbUtils } from "@react-awesome-query-builder/core";
+import type { BuilderProps } from "@react-awesome-query-builder/ui";
+import { Builder, Query } from "@react-awesome-query-builder/ui";
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import type {
-  BuilderProps,
-  Config,
-  ImmutableTree,
-  JsonLogicResult,
-  JsonTree,
-} from "react-awesome-query-builder";
-import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
 import { classNames } from "@calcom/lib";
 import { downloadAsCsv, sanitizeValue } from "@calcom/lib/csvUtils";
