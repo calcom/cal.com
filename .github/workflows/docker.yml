@@ -52,6 +52,14 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/calcom
 
+      - name: Set DockerHub Username Fallback
+        run: |
+          if [[ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]]; then
+            echo "DOCKERHUB_USERNAME=defaultuser" >> $GITHUB_ENV
+          else
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" >> $GITHUB_ENV
+          fi
+
       - name: Build image
         id: docker_build
         uses: docker/build-push-action@v5
