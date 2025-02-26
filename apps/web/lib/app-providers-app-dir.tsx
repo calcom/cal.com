@@ -1,5 +1,4 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { HydrateClient } from "app/_trpc/HydrateClient";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -21,7 +20,6 @@ import { useFlags } from "@calcom/features/flags/hooks";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
-import PlainChat from "@lib/plain/dynamicProvider";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -266,7 +264,6 @@ const AppProviders = (props: PageWrapperProps) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <PlainChat />
       <CustomI18nextProvider i18n={props.i18n}>
         <TooltipProvider>
           {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
@@ -283,20 +280,15 @@ const AppProviders = (props: PageWrapperProps) => {
       </CustomI18nextProvider>
     </EventCollectionProvider>
   );
-  const Hydrated = props.dehydratedState ? (
-    <HydrateClient state={props.dehydratedState}>{RemainingProviders}</HydrateClient>
-  ) : (
-    RemainingProviders
-  );
 
-  if (isBookingPage) {
-    return Hydrated;
+  if (props.isBookingPage || isBookingPage) {
+    return RemainingProviders;
   }
 
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
+        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
       </DynamicHelpscoutProvider>
     </>
   );

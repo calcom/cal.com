@@ -139,7 +139,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           emailChangeWaitingForVerification: input.email?.toLocaleLowerCase(),
         };
 
-        // Check to ensure this email isnt in use
+        // Check to ensure this email isn't in use
         // Don't include email in the data payload if we need to verify
         delete data.email;
       }

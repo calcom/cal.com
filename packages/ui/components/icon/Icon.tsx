@@ -17,7 +17,7 @@ function Icon({
     <svg
       height={size}
       width={size}
-      // Fill are inherited so we transparent by default. Can be overiden tailwind.
+      // Fill are inherited so we transparent by default. Can be overridden tailwind.
       className={cn("fill-transparent", className)}
       {...props}
       aria-hidden>

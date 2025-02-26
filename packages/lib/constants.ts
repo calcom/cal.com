@@ -65,6 +65,17 @@ export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES |
 
 export const IS_EUROPE = dayjs.tz.guess()?.indexOf("Europe") !== -1;
 
+export const PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS =
+  parseInt(process.env.NEXT_PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS ?? "", 10) || 30;
+
+// Must be lower than PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS
+export const PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS =
+  parseInt(process.env.NEXT_PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS ?? "", 10) || 20;
+export const PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS =
+  parseInt(process.env.NEXT_PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS ?? "", 10) || 5 * 60;
+export const PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM =
+  process.env.NEXT_PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM === "1";
+
 export const CURRENT_TIMEZONE = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
 
 /** @deprecated use `WEBAPP_URL` */

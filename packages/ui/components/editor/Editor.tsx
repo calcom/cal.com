@@ -23,10 +23,11 @@ import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import EditablePlugin from "./plugins/EditablePlugin";
 import PlainTextPlugin from "./plugins/PlainTextPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
+import CustomEnterKeyPlugin from "./plugins/customEnterKeyPlugin";
 import "./stylesEditor.css";
 
 /*
- Detault toolbar items:
+ Default toolbar items:
   - blockType
   - bold
   - italic
@@ -77,7 +78,7 @@ export const Editor = (props: TextEditorProps) => {
   return (
     <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig }}>
-        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 transition focus-within:ring-2">
+        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2">
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}
@@ -111,6 +112,7 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            <CustomEnterKeyPlugin />
             {props?.variables ? <AddVariablesPlugin variables={props.variables} /> : null}
             <HistoryPlugin />
             <MarkdownShortcutPlugin

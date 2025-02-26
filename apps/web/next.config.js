@@ -299,6 +299,14 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
+        source: "/routing",
+        destination: "/routing/forms",
+      },
+      {
+        source: "/routing/:path*",
+        destination: "/apps/routing-forms/:path*",
+      },
+      {
         source: "/success/:path*",
         has: [
           {
@@ -529,6 +537,11 @@ const nextConfig = {
   },
   async redirects() {
     const redirects = [
+      {
+        source: "/apps/routing-forms",
+        destination: "/routing/forms",
+        permanent: false,
+      },
       {
         source: "/api/app-store/:path*",
         destination: "/app-store/:path*",

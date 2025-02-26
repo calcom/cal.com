@@ -8,7 +8,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 import {
   DataTableWrapper,
@@ -17,6 +17,7 @@ import {
   useDataTable,
   DateRangeFilter,
   ColumnFilterType,
+  convertMapToFacetedValues,
   type FilterableColumn,
 } from "@calcom/features/data-table";
 import { trpc } from "@calcom/trpc";
@@ -54,9 +55,9 @@ export function RoutingFormResponsesTable() {
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
-  const { sorting } = useDataTable();
+  const { sorting, updateFilter } = useDataTable();
 
-  const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
+  const { data, fetchNextPage, isFetching, isPending, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId,
@@ -104,6 +105,19 @@ export function RoutingFormResponsesTable() {
     getFacetedUniqueValues: getInsightsFacetedUniqueValues,
   });
 
+  useEffect(() => {
+    if (routingFormId) {
+      return;
+    }
+    const routingForms = convertMapToFacetedValues(getInsightsFacetedUniqueValues(table, "formId")());
+    const newRoutingFormId = routingForms?.[0]?.value;
+    if (newRoutingFormId) {
+      // if routing form filter is not set, set it to the first form
+      // this also prevents user from clearing the routing form filter
+      updateFilter("formId", { type: ColumnFilterType.SINGLE_SELECT, data: newRoutingFormId });
+    }
+  }, [table, getInsightsFacetedUniqueValues, routingFormId]);
+
   if ((isHeadersLoading && !headers) || ((isFetching || isLoading) && !data)) {
     return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
   }
@@ -113,7 +127,7 @@ export function RoutingFormResponsesTable() {
       <div className="flex-1">
         <DataTableWrapper
           table={table}
-          isPending={isFetching && !data}
+          isPending={isPending}
           hasNextPage={hasNextPage}
           fetchNextPage={fetchNextPage}
           isFetching={isFetching}

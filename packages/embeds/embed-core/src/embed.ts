@@ -2,6 +2,7 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
+import { addAppCssVars } from "./addAppCssVars";
 import type { InterfaceWithParent, interfaceWithParent, PrefillAndIframeAttrsConfig } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -131,7 +132,7 @@ function withColorScheme(
   // https://fvsch.com/transparent-iframes#:~:text=the%20resolution%20was%3A-,If%20the%20color%20scheme%20of%20an%20iframe%20differs%20from%20embedding%20document%2C%20iframe%20gets%20an%20opaque%20canvas%20background%20appropriate%20to%20its%20color%20scheme.,-So%20the%20dark
   if (!config["ui.color-scheme"]) {
     const colorScheme = getColorScheme(containerEl);
-    // Only handle two color-schemes for now. We don't want to have unintented affect by always explicitly adding color-scheme
+    // Only handle two color-schemes for now. We don't want to have unintended affect by always explicitly adding color-scheme
     if (colorScheme) {
       config["ui.color-scheme"] = colorScheme;
     }
@@ -387,7 +388,7 @@ export class Cal {
         // But it's okay to do it here for now because the embedded calLink also keeps itself hidden till it receives `parentKnowsIframeReady` message(It has it's own reasons for that)
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
 
-        // Imp: Don't use visiblity:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visiblity:hidden set. Just reset the visibility to default
+        // Imp: Don't use visibility:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visibility:hidden set. Just reset the visibility to default
         this.iframe.style.visibility = "";
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
@@ -1049,6 +1050,8 @@ function initializeGlobalCalProps() {
   // Use if configured by user otherwise set default
   globalCal.config.forwardQueryParams = globalCal.config.forwardQueryParams ?? false;
 }
+
+addAppCssVars();
 
 function log(...args: unknown[]) {
   console.log(...args);

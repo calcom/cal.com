@@ -195,15 +195,16 @@ export default class SalesforceCRMService implements CRM {
     } else {
       log.warn("No organizer email found for event", event?.organizer);
     }
+    log.info(`Organizer found with Salesforce id ${ownerId}`);
 
     /**
      * Current code assume that contacts is not empty.
-     * I'm not going to reject the promise since I don't know if this is a valid assumption.
      **/
     const [firstContact] = contacts;
 
     if (!firstContact?.id) {
-      log.warn("No contacts found for event", contacts);
+      log.error("No contacts found for event", { contacts });
+      throw new Error("No contacts found for event");
     }
 
     const eventWhoIds = contacts.reduce((contactIds, contact) => {
@@ -481,12 +482,15 @@ export default class SalesforceCRMService implements CRM {
     organizerEmail?: string,
     calEventResponses?: CalEventResponses | null
   ) {
+    const log = logger.getSubLogger({ prefix: [`[getContacts]`] });
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
     // See if the organizer exists in the CRM
     const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
     const createdContacts: { id: string; email: string }[] = [];
+
+    log.info("createContacts", safeStringify({ createEventOn, organizerId, contactsToCreate }));
 
     if (createEventOn === SalesforceRecordEnum.CONTACT) {
       await Promise.all(
@@ -523,6 +527,11 @@ export default class SalesforceCRMService implements CRM {
           if (createdAccountContacts.length > 0) {
             createdContacts.push(...createdAccountContacts);
           }
+        } else {
+          log.info(
+            "createEventOn=LEAD, No account found for attendee, not creating a contact",
+            safeStringify({ attendeeEmail: attendee.email })
+          );
         }
       } else {
         await this.createAttendeeRecord({
@@ -565,7 +574,7 @@ export default class SalesforceCRMService implements CRM {
         const leadQuery = await conn.query(
           `SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}' LIMIT 1`
         );
-        if (leadQuery.records.length) {
+        if (leadQuery.records.length > 0) {
           const contact = leadQuery.records[0] as { Id: string; Email: string };
           return [{ id: contact.Id, email: contact.Email }];
         }
@@ -695,6 +704,7 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private getDominantAccountId(contacts: { AccountId: string }[]) {
+    const log = logger.getSubLogger({ prefix: [`[getDominantAccountId]:${contacts}`] });
     // To get the dominant AccountId we only need to iterate through half the array
     const iterateLength = Math.ceil(contacts.length / 2);
     // Store AccountId frequencies
@@ -718,6 +728,7 @@ export default class SalesforceCRMService implements CRM {
       }
     }
 
+    log.info("Dominant AccountId", safeStringify({ dominantAccountId }));
     return dominantAccountId;
   }
 
@@ -734,6 +745,8 @@ export default class SalesforceCRMService implements CRM {
     accountId?: string;
     calEventResponses?: CalEventResponses | null;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[createAttendeeRecord]:${attendee.email}`] });
+    log.info("createAttendeeRecord", safeStringify({ attendee, recordType, organizerId, accountId }));
     const conn = await this.conn;
 
     const createBody = await this.generateCreateRecordBody({
@@ -865,7 +878,8 @@ export default class SalesforceCRMService implements CRM {
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
-
+    const log = logger.getSubLogger({ prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${email}`] });
+    log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
@@ -1223,13 +1237,15 @@ export default class SalesforceCRMService implements CRM {
     accountId: string;
     organizerId?: string;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[createNewContactUnderAnAccount]:${attendee.email}`] });
+    log.info("createNewContactUnderAnAccount", safeStringify({ attendee, accountId, organizerId }));
     const conn = await this.conn;
 
     // First see if the contact already exists and connect it to the account
     const userQuery = await conn.query(
       `SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}' LIMIT 1`
     );
-    if (userQuery.records.length) {
+    if (userQuery.records.length > 0) {
       const contact = userQuery.records[0] as { Id: string; Email: string };
       await conn.sobject(SalesforceRecordEnum.CONTACT).update({
         // The first argument is the WHERE clause

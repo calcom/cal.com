@@ -1,13 +1,13 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
-import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/teams/getServerSideProps";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-import type { PageProps as ClientPageProps } from "~/teams/teams-view";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 import TeamsView, { TeamsCTA } from "~/teams/teams-view";
 
 export const generateMetadata = async () =>
@@ -16,11 +16,16 @@ export const generateMetadata = async () =>
     (t) => t("create_manage_teams_collaborative")
   );
 
-const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
+const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const searchParams = await _searchParams;
+  const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
+  const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;
 
-const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(context);
+  if (!session) {
+    redirect(callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login");
+  }
+
   const t = await getTranslate();
 
   return (
@@ -28,7 +33,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
       CTA={<TeamsCTA />}
       heading={t("teams")}
       subtitle={t("create_manage_teams_collaborative")}>
-      <TeamsView {...props} />
+      <TeamsView />
     </ShellMainAppDir>
   );
 };

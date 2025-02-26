@@ -1,11 +1,11 @@
 import { cardExamples } from "@pages/api/plain/example-cards";
+import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
