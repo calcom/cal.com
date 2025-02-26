@@ -113,8 +113,9 @@ export class CreateBookingInput_2024_04_15 {
   @ApiPropertyOptional()
   seatReferenceUid?: string;
 
-  @Type(() => Response)
   @ApiProperty({ type: Response })
+  @ValidateNested()
+  @Type(() => Response)
   responses!: Response;
 
   @IsString()
