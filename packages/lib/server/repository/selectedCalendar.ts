@@ -10,6 +10,7 @@ export type UpdateArguments = {
   where: FindManyArgs["where"];
   data: Prisma.SelectedCalendarUpdateManyArgs["data"];
 };
+
 export type FindManyArgs = {
   // https://github.com/microsoft/TypeScript/issues/55217 It crashes atoms build with this if we become too generic here. Seems like a TS bug with complex prisma types.
   where?: {
@@ -269,24 +270,40 @@ export class SelectedCalendarRepository {
     return calendars[0];
   }
 
-  static async findFirstByGoogleChannelId(googleChannelId: string) {
+  static async findFirstByGoogleChannelIdAndResourceId(
+    googleChannelId: string,
+    googleChannelResourceId: string
+  ) {
     return await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
+        googleChannelResourceId,
       },
       select: {
+        id: true,
+        credentialId: true,
+        externalId: true,
         credential: {
-          select: {
-            ...credentialForCalendarServiceSelect,
-            selectedCalendars: {
-              orderBy: {
-                externalId: "asc",
-              },
-            },
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+  }
+
+  static async findFromCredentialId(credentialId: number) {
+    const credential = await prisma.credential.findUniqueOrThrow({
+      where: {
+        id: credentialId,
+      },
+      select: {
+        selectedCalendars: {
+          orderBy: {
+            externalId: "asc",
           },
         },
       },
     });
+    return credential.selectedCalendars;
   }
 
   static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {

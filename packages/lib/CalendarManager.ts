@@ -359,6 +359,12 @@ export const createEvent = async (
       creationResult,
     })
   );
+
+  // Because in some legacy cases, externalId is not passed to createEvent(this fn), we rely on CalendarService to return the externalId it used
+  // This externalId is what we store in BookingReference record and also used to watch for calendar-sync events
+  // TODO: Best way could be to compute externalId here itself the way calendarService does it but we would need to go through all CalendarServices and fix all of them. This is a good candidate for a refactor later
+  const usedExternalCalendarId = externalId || creationResult?.usedExternalCalendarId;
+
   return {
     appName: credential.appId || "",
     type: credential.type,
@@ -369,7 +375,7 @@ export const createEvent = async (
     originalEvent: calEvent,
     calError,
     calWarnings: creationResult?.additionalInfo?.calWarnings || [],
-    externalId,
+    externalId: usedExternalCalendarId,
     credentialId: credential.id,
     delegatedToId: credential.delegatedToId ?? undefined,
   };
@@ -444,11 +450,15 @@ export const updateEvent = async (
     calWarnings = updatedResult?.additionalInfo?.calWarnings || [];
   }
 
+  const firstUpdatedResult = updatedResult instanceof Array ? updatedResult[0] : updatedResult;
+  const usedExternalCalendarId = externalCalendarId || firstUpdatedResult?.usedExternalCalendarId;
   return {
     appName: credential.appId || "",
     type: credential.type,
     success,
     uid,
+    externalId: usedExternalCalendarId,
+    credentialId: credential.id,
     updatedEvent: updatedResult,
     originalEvent: calEvent,
     calError,
