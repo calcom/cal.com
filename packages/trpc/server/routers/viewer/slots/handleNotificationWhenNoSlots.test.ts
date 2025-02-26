@@ -46,10 +46,10 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       },
     ]);
 
-    // @ts-expect-error FIXME - also type error in bookingScenario
     i18nMock.getTranslation.mockImplementation(() => {
       return new Promise((resolve) => {
         const identityFn = (key: string) => key;
+        // @ts-expect-error Target allows only 1 element(s) but source may have more.
         resolve(identityFn);
       });
     });
