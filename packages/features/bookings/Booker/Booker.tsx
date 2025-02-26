@@ -197,6 +197,14 @@ const BookerComponent = ({
     });
   });
 
+  const unavailableTimeSlots = allSelectedTimeslots.filter((slot) => {
+    return !isTimeSlotAvailable({
+      scheduleData: schedule?.data ?? null,
+      slotToCheckInIso: slot,
+      quickAvailabilityChecks: slots.quickAvailabilityChecks,
+    });
+  });
+
   const slot = getQueryParam("slot");
 
   useEffect(() => {
