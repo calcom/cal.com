@@ -124,7 +124,6 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        {/* Cloudflare Turnstile Captcha */}
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
             <Trans

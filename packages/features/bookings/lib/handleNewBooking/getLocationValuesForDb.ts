@@ -2,7 +2,7 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { loadAndValidateUsers } from "./loadAndValidateUsers";
 
-type Users = Awaited<ReturnType<typeof loadAndValidateUsers>>;
+type Users = Awaited<ReturnType<typeof loadAndValidateUsers>>["qualifiedRRUsers"];
 
 const sortUsersByDynamicList = (users: Users, dynamicUserList: string[]) => {
   return users.sort((a, b) => {

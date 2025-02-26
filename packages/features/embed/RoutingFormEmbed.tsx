@@ -16,10 +16,11 @@ export const RoutingFormEmbedDialog = () => {
       tabs={tabs}
       eventTypeHideOptionDisabled={true}
       defaultBrandColor={user ? { brandColor: user.brandColor, darkBrandColor: user.darkBrandColor } : null}
+      noQueryParamMode={true}
     />
   );
 };
 
 export const RoutingFormEmbedButton = (props: ComponentProps<typeof EmbedButton>) => {
-  return <EmbedButton {...props} />;
+  return <EmbedButton {...props} noQueryParamMode={true} />;
 };
