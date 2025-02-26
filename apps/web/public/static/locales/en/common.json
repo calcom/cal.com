@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Calendar Conflict Settings",
   "select_calendars_conflict_check": "Select which calendars to check for conflicts",
   "group_meeting": "Group Meeting",
+  "are_you_sure_you_want_to_remove_this_app_from": "Are you sure you want to remove this app from",
+  "disconnect_app_from": "Disconnect app from",
   "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
