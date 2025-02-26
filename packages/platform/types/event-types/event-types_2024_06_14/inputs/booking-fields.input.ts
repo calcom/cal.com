@@ -752,7 +752,7 @@ export class RadioGroupFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
-      the 'italian' radio buttom will be selected and the select field will be disabled.",
+      the 'italian' radio button will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
 
