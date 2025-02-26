@@ -27,10 +27,10 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-cmd "pg_isready -U postgres -h 127.0.0.1 -p 5432"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -72,22 +72,19 @@ jobs:
         run: |
           grep -o '^[^#]*' .env.example > .env
           cat .env >> $GITHUB_ENV
-          echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
+          echo "DATABASE_HOST=127.0.0.1:5432" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          echo "Waiting for PostgreSQL to be ready..."
+          echo "Waiting for PostgreSQL..."
           for i in {1..30}; do
-            if pg_isready -h localhost -p 5432 -U postgres; then
-              echo "PostgreSQL is ready!"
-              exit 0
-            fi
+            nc -zv 127.0.0.1 5432 && echo "PostgreSQL is running!" && exit 0 || echo "Retrying..."
             sleep 2
           done
-          echo "PostgreSQL failed to start"
+          echo "PostgreSQL did not start in time"
           exit 1
 
       - name: Set up database
