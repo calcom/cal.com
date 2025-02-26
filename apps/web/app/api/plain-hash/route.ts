@@ -39,13 +39,8 @@ async function handler() {
           team: {
             select: {
               id: true,
-              metadata: true,
+              isOrganization: true,
               parentId: true,
-              organizationSettings: {
-                select: {
-                  id: true,
-                },
-              },
             },
           },
         },
@@ -59,18 +54,10 @@ async function handler() {
   if (user?.teams.length) {
     const teamMemberships = user.teams;
 
-    // Check if any team has isOrganization: true in metadata OR has an entry in organizationSettings
-    const isEnterprise = teamMemberships.some(
-      (membership) =>
-        (membership.team.metadata as { isOrganization?: boolean })?.isOrganization === true ||
-        membership.team.organizationSettings !== null
-    );
+    const isEnterprise = teamMemberships.some((membership) => membership.team.isOrganization === true);
+    const isTeams = teamMemberships.some((membership) => membership.team.isOrganization === false);
 
-    userTier = isEnterprise
-      ? "enterprise"
-      : teamMemberships.some((membership) => !membership.team.parentId)
-      ? "teams"
-      : "free";
+    userTier = isEnterprise ? "enterprise" : isTeams ? "teams" : "free";
   }
 
   const hmac = createHmac("sha256", secret);

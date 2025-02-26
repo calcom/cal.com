@@ -55,11 +55,8 @@ describe("Plain Integration API", () => {
 
   const tiers = [
     { tier: "free", teams: [] },
-    { tier: "teams", teams: [{ team: { id: 2, metadata: {}, organizationSettings: null } }] },
-    {
-      tier: "enterprise",
-      teams: [{ team: { id: 3, metadata: { isOrganization: true }, organizationSettings: { id: 1 } } }],
-    },
+    { tier: "teams", teams: [{ team: { id: 2, isOrganization: false } }] },
+    { tier: "enterprise", teams: [{ team: { id: 3, isOrganization: true } }] },
   ];
 
   it.each(tiers)("should return $tier tier", async ({ tier, teams }) => {
