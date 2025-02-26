@@ -1,5 +1,6 @@
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
 import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
@@ -99,6 +100,23 @@ export class OAuthClientUsersService {
   async getExistingUserByEmail(oAuthClientId: string, email: string) {
     const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
     return await this.userRepository.findByEmail(oAuthEmail);
+  }
+
+  async getManagedUsers(oAuthClientId: string, queryParams: GetManagedUsersInput) {
+    const { offset, limit, emails } = queryParams;
+
+    const oAuthEmails = emails?.map((email) =>
+      email.includes(oAuthClientId) ? email : this.getOAuthUserEmail(oAuthClientId, email)
+    );
+
+    const managedUsers = await this.userRepository.findManagedUsersByOAuthClientIdAndEmails(
+      oAuthClientId,
+      offset ?? 0,
+      limit ?? 50,
+      oAuthEmails
+    );
+
+    return managedUsers;
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {

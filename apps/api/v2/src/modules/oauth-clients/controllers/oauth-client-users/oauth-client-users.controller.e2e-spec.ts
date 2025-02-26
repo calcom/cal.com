@@ -88,8 +88,12 @@ describe("OAuth Client Users Endpoints", () => {
     const platformAdminEmail = `oauth-client-users-admin-${randomString()}@api.com`;
     let platformAdmin: User;
 
-    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
+    const userEmail = `oauth-client-users-user-1-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
+
+    const userEmailTwo = `oauth-client-users-user-2-${randomString()}@api.com`;
+    const userTimeZoneTwo = "Europe/Rome";
+    let postResponseDataTwo: CreateManagedUserOutput["data"];
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -218,17 +222,56 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
-      await userConnectedToOAuth(responseBody.data.user.email);
+      await userConnectedToOAuth(responseBody.data.user.email, 1);
       await userHasDefaultEventTypes(responseBody.data.user.id);
       await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
       await userHasOnlyOneSchedule(responseBody.data.user.id);
     });
 
-    async function userConnectedToOAuth(userEmail: string) {
+    it(`/POST`, async () => {
+      const requestBody: CreateManagedUserInput = {
+        email: userEmailTwo,
+        timeZone: userTimeZoneTwo,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+        name: "Bob Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(201);
+
+      const responseBody: CreateManagedUserOutput = response.body;
+
+      postResponseDataTwo = responseBody.data;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+      expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
+      expect(responseBody.data.user.name).toEqual(requestBody.name);
+      expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
+      expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
+      expect(responseBody.data.user.locale).toEqual(requestBody.locale);
+      expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
+
+      await userConnectedToOAuth(responseBody.data.user.email, 2);
+      await userHasDefaultEventTypes(responseBody.data.user.id);
+      await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
+    });
+
+    async function userConnectedToOAuth(userEmail: string, usersCount: number) {
       const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClient.id);
       const newOAuthUser = oAuthUsers?.find((user) => user.email === userEmail);
 
-      expect(oAuthUsers?.length).toEqual(1);
+      expect(oAuthUsers?.length).toEqual(usersCount);
       expect(newOAuthUser?.email).toEqual(userEmail);
     }
 
@@ -303,9 +346,99 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data?.length).toBeGreaterThan(0);
-      expect(responseBody.data[0].email).toEqual(postResponseData.user.email);
-      expect(responseBody.data[0].name).toEqual(postResponseData.user.name);
+      expect(responseBody.data?.length).toEqual(2);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      const userTwo = responseBody.data.find((user) => user.email === postResponseDataTwo.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
+      expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
+    });
+
+    it(`/GET: managed user by original email`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${userEmail}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+    });
+
+    it(`/GET: managed users by original emails`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(
+          `/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${userEmail},${userEmailTwo}`
+        )
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      const userTwo = responseBody.data.find((user) => user.email === postResponseDataTwo.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
+      expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
+    });
+
+    it(`/GET: managed user by oAuth email`, async () => {
+      const response = await request(app.getHttpServer())
+        // note(Lauris): we use encodeURIComponent because email stored on our side includes "+" which without encoding becomes an empty space.
+        .get(
+          `/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${encodeURIComponent(
+            postResponseData.user.email
+          )}`
+        )
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+    });
+
+    it(`/GET: managed users by oAuth emails`, async () => {
+      const response = await request(app.getHttpServer())
+        // note(Lauris): we use encodeURIComponent because email stored on our side includes "+" which without encoding becomes an empty space.
+        .get(
+          `/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${encodeURIComponent(
+            postResponseData.user.email
+          )},${encodeURIComponent(postResponseDataTwo.user.email)}`
+        )
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      const userTwo = responseBody.data.find((user) => user.email === postResponseDataTwo.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
+      expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
     });
 
     it(`/GET/:id`, async () => {
