@@ -5,17 +5,14 @@ import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
-const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
+const calFont = fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer());
+
+const interFont = fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer());
+
+const interFontMedium = fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) =>
   res.arrayBuffer()
-);
-
-const interFont = fetch(new URL("../../../../public/fonts/Inter-Regular.ttf", import.meta.url)).then((res) =>
-  res.arrayBuffer()
-);
-
-const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf", import.meta.url)).then(
-  (res) => res.arrayBuffer()
 );
 
 export const runtime = "edge";
