@@ -495,6 +495,7 @@ describe("Event types Endpoints", () => {
               placeholder: "add video url",
               disableOnPrefill: true,
               hidden: false,
+              isDefault: false,
             },
             { ...defaultResponseBookingFieldTitle },
             { ...defaultResponseBookingFieldNotes },

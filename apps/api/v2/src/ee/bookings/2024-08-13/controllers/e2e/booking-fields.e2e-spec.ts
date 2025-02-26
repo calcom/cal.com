@@ -309,6 +309,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
               placeholder: "matrix",
               disableOnPrefill: false,
             },
+            {
+              name: "video-url",
+              type: "url",
+              label: "video url",
+              sources: [
+                {
+                  id: "user",
+                  type: "user",
+                  label: "User",
+                  fieldRequired: true,
+                },
+              ],
+              editable: "user",
+              required: false,
+              placeholder: "add video url",
+              disableOnPrefill: false,
+            },
           ],
         },
         user.id
@@ -499,6 +516,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           location: "https://meet.google.com/abc-def-ghi",
           bookingFieldsResponses: {
             "favorite-movie": "lord of the rings",
+            "video-url": "http://video-url.com",
           },
         };
         return request(app.getHttpServer())
@@ -515,6 +533,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             if (responseDataIsBooking(responseBody.data)) {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.bookingFieldsResponses["favorite-movie"]).toEqual("lord of the rings");
+              expect(data.bookingFieldsResponses["url"]).toEqual("http://video-url.com");
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibily recurring bookings"

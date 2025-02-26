@@ -892,6 +892,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     checkbox: CheckboxGroupFieldInput_2024_06_14,
     radio: RadioGroupFieldInput_2024_06_14,
     boolean: BooleanFieldInput_2024_06_14,
+    url: UrlFieldInput_2024_06_14,
   };
 
   async validate(bookingFields: { type: string; slug: string }[]) {

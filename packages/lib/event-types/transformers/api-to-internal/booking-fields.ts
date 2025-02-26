@@ -220,6 +220,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       name: field.slug,
       type: field.type,
       label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
       labelAsSafeHtml: `<p>${field.label}</p>\n`,
       sources: [
         {
