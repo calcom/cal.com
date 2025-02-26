@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
-
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import { confirmHandler } from "./confirm.handler";
@@ -100,94 +98,5 @@ describe.skip("confirmHandler", () => {
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
-  });
-  test("should successfully reject booking and trigger BOOKING_REJECTED workflow", async ({ emails }) => {
-    const attendeeUser = getOrganizer({
-      email: "test@example.com",
-      name: "test name",
-      id: 102,
-      schedules: [TestData.schedules.IstWorkHours],
-    });
-
-    const organizer = getOrganizer({
-      name: "Organizer",
-      email: "organizer@example.com",
-      id: 101,
-      schedules: [TestData.schedules.IstWorkHours],
-    });
-
-    const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
-    const iCalUID = `${uidOfBooking}@Cal.com`;
-
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 15,
-            length: 15,
-            locations: [],
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        workflows: [
-          {
-            userId: organizer.id,
-            trigger: "BOOKING_REJECTED",
-            action: "EMAIL_HOST",
-            template: "REMINDER",
-            activeOn: [1],
-          },
-        ],
-        bookings: [
-          {
-            id: 101,
-            uid: uidOfBooking,
-            eventTypeId: 1,
-            status: BookingStatus.PENDING,
-            startTime: `${plus1DateString}T05:00:00.000Z`,
-            endTime: `${plus1DateString}T05:15:00.000Z`,
-            references: [],
-            iCalUID,
-            location: "integrations:daily",
-            attendees: [attendeeUser],
-            responses: { name: attendeeUser.name, email: attendeeUser.email, guests: [] },
-          },
-        ],
-        organizer,
-        apps: [TestData.apps["daily-video"]],
-      })
-    );
-
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-    });
-
-    const ctx = {
-      user: {
-        id: organizer.id,
-        name: organizer.name,
-        timeZone: organizer.timeZone,
-        username: organizer.username,
-        email: organizer.email,
-      } as NonNullable<TrpcSessionUser>,
-    };
-
-    const res = await confirmHandler({
-      ctx,
-      input: { bookingId: 101, confirmed: false, reason: "" },
-    });
-
-    expect(res?.status).toBe(BookingStatus.REJECTED);
-    expectWorkflowToBeTriggered({
-      emailsToReceive: [organizer.email],
-      emails,
-    });
   });
 });
