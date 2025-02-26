@@ -1,10 +1,10 @@
+import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
 import type { NextRequest } from "next/server";
 import { ImageResponse } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 
 const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
   res.arrayBuffer()
