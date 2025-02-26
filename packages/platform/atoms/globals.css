@@ -26426,3 +26426,24 @@ input:hover+.\[input\:hover_\+_\&\]\:border-l-default {
   padding: 0 2px;
   white-space: nowrap
 }
+
+.scheduler-wrapper {
+  --gridDefaultSize: 1.75rem;
+  --hoursInDay: 24;
+  --minuteInHour: 60;
+  --gridMobileSize: 100vw;
+  --calendar-offset-top: 28px;
+}
+
+.scheduler-grid-row-template {
+  grid-template-rows: var(--gridMobileSize) repeat(attr(data-gridstoperperday number), var(--gridMobileSize)) auto;
+}
+
+@media (min-width: 640px) {
+  .scheduler-grid-row-template {
+    grid-template-rows: var(--gridDefaultSize) repeat(
+        attr(data-gridstoperperday number),
+        var(--gridDefaultSize)
+      ) auto;
+  }
+}
