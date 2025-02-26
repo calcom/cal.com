@@ -168,13 +168,13 @@ export async function getBookings({
 
   const [
     eventTypeIdsFromTeamIdsFilter,
-    { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter },
+    attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwener,
     userIdsWhereUserIsOrgAdminOrOwener,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
-    getIdsFromUserIdsFilter(prisma, user.email, filters?.userIds),
+    getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
     getUserIdsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
@@ -224,7 +224,7 @@ export async function getBookings({
               },
             ]
           : []),
-        ...(filters?.userIds && filters.userIds.length > 0 && eventTypeIdsFromUserIdsFilter
+        ...(filters?.userIds && filters.userIds.length > 0
           ? [
               {
                 OR: [
@@ -233,15 +233,6 @@ export async function getBookings({
                       in: filters.userIds,
                     },
                   },
-                  ...(eventTypeIdsFromUserIdsFilter?.length
-                    ? [
-                        {
-                          eventTypeId: {
-                            in: eventTypeIdsFromUserIdsFilter,
-                          },
-                        },
-                      ]
-                    : []),
                   ...(attendeeEmailsFromUserIdsFilter?.length
                     ? [
                         {
@@ -462,71 +453,30 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
   return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
 }
 
-async function getIdsFromUserIdsFilter(prisma: PrismaClient, userEmail: string, userIds?: number[]) {
+async function getAttendeeEmailsFromUserIdsFilter(
+  prisma: PrismaClient,
+  userEmail: string,
+  userIds?: number[]
+) {
   if (!userIds || userIds.length === 0) {
-    return {
-      eventTypeIdsFromUserIdsFilter: undefined,
-      attendeeEmailsFromUserIdsFilter: undefined,
-    };
+    return;
   }
 
-  const [attendeeEmailsFromUserIdsFilter, eventTypeIdsFromHostsFilter, eventTypeIdsFromUsersFilter] =
-    await Promise.all([
-      prisma.user
-        .findMany({
-          where: {
-            id: {
-              in: userIds,
-            },
-          },
-          select: {
-            email: true,
-          },
-        })
-        // Include booking if current user is an attendee, regardless of user ID filter
-        .then((users) => users.map((user) => user.email).concat([userEmail])),
+  const attendeeEmailsFromUserIdsFilter = await prisma.user
+    .findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        email: true,
+      },
+    })
+    // Include booking if current user is an attendee, regardless of user ID filter
+    .then((users) => users.map((user) => user.email).concat([userEmail]));
 
-      prisma.eventType
-        .findMany({
-          where: {
-            hosts: {
-              some: {
-                userId: {
-                  in: userIds,
-                },
-                isFixed: true,
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-
-      prisma.eventType
-        .findMany({
-          where: {
-            users: {
-              some: {
-                id: {
-                  in: userIds,
-                },
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-    ]);
-
-  const eventTypeIdsFromUserIdsFilter = Array.from(
-    new Set([...eventTypeIdsFromHostsFilter, ...eventTypeIdsFromUsersFilter])
-  );
-
-  return { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter };
+  return attendeeEmailsFromUserIdsFilter;
 }
 
 async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, eventTypeIds?: number[]) {
