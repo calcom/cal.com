@@ -240,3 +240,5 @@ export { getBookingFieldsWithSystemFields };
 export { getRoutedUrl };
 
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
+
+export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
