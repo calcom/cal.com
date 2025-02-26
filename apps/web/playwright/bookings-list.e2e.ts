@@ -65,6 +65,25 @@ test.describe("Bookings", () => {
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
     });
+
+    test("Cannot choose date range presets", async ({ page, users, bookings, webhooks }) => {
+      const firstUser = await users.create();
+      await firstUser.apiLogin();
+      await page.goto(`/bookings/upcoming`);
+
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeHidden();
+
+      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeVisible();
+    });
   });
   test.describe("Past bookings", () => {
     test("Mark first guest as no-show", async ({ page, users, bookings, webhooks }) => {
@@ -209,6 +228,25 @@ test.describe("Bookings", () => {
       // Close webhook receiver
       webhookReceiver.close();
     });
+
+    test("Can choose date range presets", async ({ page, users, bookings, webhooks }) => {
+      const firstUser = await users.create();
+      await firstUser.apiLogin();
+      await page.goto(`/bookings/past`);
+
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible();
+
+      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeHidden();
+    });
   });
 
   test("People filter includes bookings where filtered person is attendee", async ({
@@ -301,17 +339,24 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
-    await Promise.all([
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.goto(`/bookings/upcoming?status=upcoming&userIds=${thirdUser.id}`),
-    ]);
+    await page.goto(`/bookings/upcoming`);
+
+    await page.locator('[data-testid="add-filter-button"]').click();
+    await page.locator('[data-testid="add-filter-item-userId"]').click();
+    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+
+    await page
+      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
+      .click();
+
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee
     const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
     const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
     const bookingListCount = await bookingListItems.count();
+
     expect(bookingListCount).toBe(3);
 
     //verify with the booking titles
