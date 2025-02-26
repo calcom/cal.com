@@ -38,8 +38,10 @@ const useSkipConfirmStep = (
         setCanSkip(false);
       }
     };
-
-    bookerState === "selecting_time" && !isInstantMeeting && !isWeekView && checkSkipStep();
+    const isSkipConfirmStepSupported = !isInstantMeeting && !isWeekView;
+    if (bookerState === "selecting_time" && isSkipConfirmStepSupported) {
+      checkSkipStep();
+    }
   }, [bookingFormValues, bookingFields, rescheduleUid, bookerState, isWeekView, isInstantMeeting]);
 
   return canSkip;
