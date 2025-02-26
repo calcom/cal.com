@@ -1,12 +1,12 @@
 import { useRouter } from "next/navigation";
 
-import type { PlatformOAuthClient } from "@calcom/prisma/client";
+import type { PlatformOAuthClientDto } from "@calcom/platform-types";
 import { EmptyScreen, Button } from "@calcom/ui";
 
 import { OAuthClientCard } from "@components/settings/platform/oauth-clients/OAuthClientCard";
 
 type OAuthClientsListProps = {
-  oauthClients: PlatformOAuthClient[];
+  oauthClients: PlatformOAuthClientDto[];
   isDeleting: boolean;
   handleDelete: (id: string) => Promise<void>;
 };

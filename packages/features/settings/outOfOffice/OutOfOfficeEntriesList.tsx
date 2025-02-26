@@ -1,23 +1,23 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { Trans } from "next-i18next";
-import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { DataTable } from "@calcom/features/data-table";
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Icon, showToast, SkeletonText, ToggleGroup, Tooltip } from "@calcom/ui";
+import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, Tooltip } from "@calcom/ui";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
+import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -39,50 +39,28 @@ interface OutOfOfficeEntry {
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
 }
 
-enum OutOfOfficeRecordType {
-  CURRENT = "current",
-  PREVIOUS = "previous",
-}
-
 export const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
-  const searchParams = useCompatSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams ?? undefined);
-      params.set(name, value);
-
-      return params.toString();
-    },
-    [searchParams]
-  );
-  const [recordType, setRecordType] = useState(
-    searchParams?.get("previous") === "true" ? OutOfOfficeRecordType.PREVIOUS : OutOfOfficeRecordType.CURRENT
-  );
-  const toggleGroupOptions = [
-    { value: OutOfOfficeRecordType.CURRENT, label: t("current") },
-    { value: OutOfOfficeRecordType.PREVIOUS, label: t("previous") },
-  ];
-
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
   const [openModal, setOpenModal] = useState(false);
-
   const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
     setCurrentlyEditingOutOfOfficeEntry(entry);
     setOpenModal(true);
   };
 
+  const searchParams = useCompatSearchParams();
+  const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
+
   const { data, isPending, fetchNextPage, isFetching, refetch } =
     trpc.viewer.outOfOfficeEntriesList.useInfiniteQuery(
       {
         limit: 10,
-        recordType,
+        fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
+        searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -92,22 +70,67 @@ export const OutOfOfficeEntriesList = () => {
 
   useEffect(() => {
     refetch();
-  }, [deletedEntry, refetch]);
+    if (selectedTab === OutOfOfficeTab.MINE) {
+      setSearchTerm("");
+    }
+  }, [deletedEntry, selectedTab, refetch]);
 
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
-    [data, isPending, isFetching]
+    [data, selectedTab, isPending, isFetching, searchTerm]
   ) as OutOfOfficeEntry[];
   const totalFetched = flatData.length;
 
   const memoColumns = useMemo(() => {
     const columns: ColumnDef<OutOfOfficeEntry>[] = [];
+    if (selectedTab === OutOfOfficeTab.TEAM) {
+      columns.push({
+        id: "member",
+        header: `Member`,
+        size: 300,
+        cell: ({ row }) => {
+          if (!row.original || !row.original.user || isPending || isFetching) {
+            return <SkeletonText className="h-8 w-full" />;
+          }
+          const { avatarUrl, username, email, name } = row.original.user;
+          const memberName =
+            name ||
+            (() => {
+              const emailName = email.split("@")[0];
+              return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+            })();
+          return (
+            <div className="flex items-center gap-2">
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl,
+                })}
+              />
+              <div className="">
+                <div
+                  data-testid={`ooo-member-${username}-username`}
+                  className="text-emphasis text-sm font-medium leading-none">
+                  {memberName}
+                </div>
+                <div
+                  data-testid={`ooo-member-${username}-email`}
+                  className="text-subtle mt-1 text-sm leading-none">
+                  {email}
+                </div>
+              </div>
+            </div>
+          );
+        },
+      });
+    }
     columns.push({
       id: "outOfOffice",
       header: `${t("out_of_office")} (${totalDBRowCount})`,
-      size: 660,
+      size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
       cell: ({ row }) => {
         const item = row.original;
         return (
@@ -186,6 +209,15 @@ export const OutOfOfficeEntriesList = () => {
                         toTeamUserId: item.toUserId,
                         reasonId: item.reason?.id ?? 1,
                         notes: item.notes ?? undefined,
+                        forUserId: item.user?.id || null,
+                        forUserName:
+                          item.user?.name ||
+                          (item.user?.email &&
+                            (() => {
+                              const emailName = item.user?.email.split("@")[0];
+                              return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                            })()),
+                        forUserAvatar: item.user?.avatarUrl,
                         toUserName: item.toUser?.name || item.toUser?.username,
                       };
                       editOutOfOfficeEntry(outOfOfficeEntryData);
@@ -205,6 +237,7 @@ export const OutOfOfficeEntriesList = () => {
                     onClick={() => {
                       deleteOutOfOfficeEntryMutation.mutate({
                         outOfOfficeUid: item.uuid,
+                        userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
                       });
                     }}
                   />
@@ -218,7 +251,7 @@ export const OutOfOfficeEntriesList = () => {
       },
     });
     return columns;
-  }, [isPending, isFetching]);
+  }, [selectedTab, isPending, isFetching]);
 
   const fetchMoreOnBottomReached = useCallback(
     (containerRefElement?: HTMLDivElement | null) => {
@@ -236,6 +269,7 @@ export const OutOfOfficeEntriesList = () => {
     },
     [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
   );
+
   const table = useReactTable({
     data: flatData,
     columns: memoColumns,
@@ -262,33 +296,15 @@ export const OutOfOfficeEntriesList = () => {
 
   return (
     <>
-      <div className="mb-2 mt-2 flex justify-start">
-        <ToggleGroup
-          className="hidden md:block"
-          defaultValue={recordType}
-          onValueChange={(value) => {
-            if (!value) return;
-            const newQuery = createQueryString(
-              "previous",
-              value === OutOfOfficeRecordType.PREVIOUS ? "true" : "false"
-            );
-            router.push(`${pathname}?${newQuery}`);
-            setRecordType(value as OutOfOfficeRecordType);
-          }}
-          options={toggleGroupOptions}
-        />
-      </div>
       {data === null ||
-      (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0) ||
+      (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && searchTerm === "") ||
       (data === undefined && !isPending) ? (
         <EmptyScreen
           className="mt-6"
-          headline={
-            recordType === OutOfOfficeRecordType.PREVIOUS
-              ? t("previous_ooo_empty_title")
-              : t("ooo_empty_title")
+          headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+          description={
+            selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_description") : t("ooo_empty_description")
           }
-          description={recordType === OutOfOfficeRecordType.PREVIOUS ? "" : t("ooo_empty_description")}
           buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
           customIcon={
             <div className="mt-4 h-[102px]">
@@ -313,12 +329,17 @@ export const OutOfOfficeEntriesList = () => {
       ) : (
         <div>
           <DataTable
-            hideHeader={true}
+            hideHeader={selectedTab === OutOfOfficeTab.MINE}
             table={table}
             tableContainerRef={tableContainerRef}
             isPending={isPending}
-            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-          />
+            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+            {selectedTab === OutOfOfficeTab.TEAM && (
+              <DataTableToolbar.Root>
+                <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
+              </DataTableToolbar.Root>
+            )}
+          </DataTable>
           {openModal && (
             <CreateOrEditOutOfOfficeEntryModal
               openModal={openModal}
