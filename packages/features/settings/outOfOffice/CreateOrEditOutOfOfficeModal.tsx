@@ -230,7 +230,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       value={searchMember}
                       disabled={!!currentlyEditingOutOfOfficeEntry}
                     />
-                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
+                    <div
+                      className={`scroll-bar bg-default mt-2 flex ${
+                        !!currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
+                      } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}>
                       {oooMemberListOptions.map((member) => (
                         <label
                           key={member.value}
