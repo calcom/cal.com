@@ -3,17 +3,6 @@ import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import z from "zod";
 
-import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
-import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
-import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
-import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
-import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
-import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
@@ -32,6 +21,41 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
+async function getRoutingFormModules() {
+  // Dynamically import modules that might contain client components
+  const { enrichFormWithMigrationData } = await import(
+    "@calcom/app-store/routing-forms/enrichFormWithMigrationData"
+  );
+  const { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } = await import(
+    "@calcom/app-store/routing-forms/getEventTypeRedirectUrl"
+  );
+  const getFieldIdentifier = (await import("@calcom/app-store/routing-forms/lib/getFieldIdentifier")).default;
+  const { getSerializableForm } = await import("@calcom/app-store/routing-forms/lib/getSerializableForm");
+  const { getServerTimingHeader } = await import("@calcom/app-store/routing-forms/lib/getServerTimingHeader");
+  const { handleResponse } = await import("@calcom/app-store/routing-forms/lib/handleResponse");
+  const { findMatchingRoute } = await import("@calcom/app-store/routing-forms/lib/processRoute");
+  const { substituteVariables } = await import("@calcom/app-store/routing-forms/lib/substituteVariables");
+  const { getFieldResponseForJsonLogic } = await import(
+    "@calcom/app-store/routing-forms/lib/transformResponse"
+  );
+  const { getUrlSearchParamsToForward } = await import(
+    "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward"
+  );
+
+  return {
+    enrichFormWithMigrationData,
+    getAbsoluteEventTypeRedirectUrlWithEmbedSupport,
+    getFieldIdentifier,
+    getSerializableForm,
+    getServerTimingHeader,
+    handleResponse,
+    findMatchingRoute,
+    substituteVariables,
+    getFieldResponseForJsonLogic,
+    getUrlSearchParamsToForward,
+  };
+}
+
 export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
@@ -45,6 +69,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       notFound: true,
     };
   }
+
+  // Dynamically import modules that might contain client components
+  const routingModules = await getRoutingFormModules();
 
   // TODO: Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
   // But they must be present in `paramsToBeForwardedAsIs` as they could be needed by Booking Page as well.
@@ -87,25 +114,25 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   }
 
   const getSerializableFormStart = performance.now();
-  const serializableForm = await getSerializableForm({
-    form: enrichFormWithMigrationData(formWithUserProfile),
+  const serializableForm = await routingModules.getSerializableForm({
+    form: routingModules.enrichFormWithMigrationData(formWithUserProfile),
   });
   timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
-  const response: FormResponse = {};
+  const response: any = {}; // Using any here to avoid importing FormResponse type
   if (!serializableForm.fields) {
     throw new Error("Form has no fields");
   }
   serializableForm.fields.forEach((field) => {
-    const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
+    const fieldResponse = fieldsResponses[routingModules.getFieldIdentifier(field)] || "";
 
     response[field.id] = {
       label: field.label,
-      value: getFieldResponseForJsonLogic({ field, value: fieldResponse }),
+      value: routingModules.getFieldResponseForJsonLogic({ field, value: fieldResponse }),
     };
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  const matchingRoute = routingModules.findMatchingRoute({ form: serializableForm, response });
 
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
@@ -118,7 +145,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   let formResponseId = null;
   let attributeRoutingConfig = null;
   try {
-    const result = await handleResponse({
+    const result = await routingModules.handleResponse({
       form: serializableForm,
       formFillerId: uuidv4(),
       response: response,
@@ -145,7 +172,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   }
 
   // TODO: To be done using sentry tracing
-  console.log("Server-Timing", getServerTimingHeader(timeTaken));
+  console.log("Server-Timing", routingModules.getServerTimingHeader(timeTaken));
 
   //TODO: Maybe take action after successful mutation
   if (decidedAction.type === "customPageMessage") {
@@ -157,7 +184,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
-    const eventTypeUrlWithResolvedVariables = substituteVariables(
+    const eventTypeUrlWithResolvedVariables = routingModules.substituteVariables(
       decidedAction.value,
       response,
       serializableForm.fields
@@ -165,10 +192,10 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
 
     return {
       redirect: {
-        destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
+        destination: routingModules.getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
           eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
           form: serializableForm,
-          allURLSearchParams: getUrlSearchParamsToForward({
+          allURLSearchParams: routingModules.getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
             searchParams: new URLSearchParams(
