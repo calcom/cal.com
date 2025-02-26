@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
+import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 
 import { TRPCError } from "@trpc/server";
@@ -35,6 +36,11 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
+  const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
+  if (parsedStripeError.success) {
+    return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
+  }
+
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
     return new HttpError({ statusCode, message: cause.message });
@@ -54,9 +60,6 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   }
   if (isPrismaError(cause)) {
     return getServerErrorFromPrismaError(cause);
-  }
-  if ((cause as any)?.type === "StripeInvalidRequestError") {
-    return getHttpError({ statusCode: 400, cause: cause as any });
   }
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
