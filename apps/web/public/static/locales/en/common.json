@@ -2964,5 +2964,17 @@
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
   "end_date_not_selected": "You didn't set an end date for your OOO",
+  "my_ooo": "My OOO",
+  "team_ooo": "Team OOO",
+  "out_of_office_team_description": "Manage you're team's OOO.",
+  "create_ooo_dialog_team_title": "Create Out of Office",
+  "create_ooo_dialog_team_subtitle": "Create an OOO for a team member",
+  "edit_ooo_dialog_team_subtitle": "Edit an OOO for team member",
+  "ooo_team_empty_title": "Create OOO for your team",
+  "ooo_team_empty_description": "Communicate to bookers when your team members are not available to take bookings. They can still be booked upon their return or you can forward them to another team member.",
+  "forward_to_team_member_only": "OOO Forwarding is only allowed to a member of the same team.",
+  "ooo_team_redirect_infinite_not_allowed": "There is already a reverse forwarding between these users.",
+  "previous_ooo_empty_title": "No previous OOO found",
+  "previous": "Previous",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
