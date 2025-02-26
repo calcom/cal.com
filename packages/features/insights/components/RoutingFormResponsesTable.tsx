@@ -57,7 +57,7 @@ export function RoutingFormResponsesTable() {
 
   const { sorting, updateFilter } = useDataTable();
 
-  const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
+  const { data, fetchNextPage, isFetching, isPending, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId,
@@ -127,7 +127,7 @@ export function RoutingFormResponsesTable() {
       <div className="flex-1">
         <DataTableWrapper
           table={table}
-          isPending={isFetching && !data}
+          isPending={isPending}
           hasNextPage={hasNextPage}
           fetchNextPage={fetchNextPage}
           isFetching={isFetching}
