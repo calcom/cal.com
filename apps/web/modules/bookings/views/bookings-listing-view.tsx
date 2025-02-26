@@ -118,8 +118,6 @@ function BookingsContent({ status }: BookingsProps) {
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
 
-  console.log("💡 test", { attendeeName, attendeeEmail });
-
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
