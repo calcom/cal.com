@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { ApiSuccessResponse } from "@calcom/platform-types";
-import type { PlatformOAuthClient } from "@calcom/prisma/client";
+import type { ApiSuccessResponse, PlatformOAuthClientDto } from "@calcom/platform-types";
 
 export type ManagedUser = {
   id: number;
@@ -15,7 +14,7 @@ export type ManagedUser = {
 };
 
 export const useOAuthClients = () => {
-  const query = useQuery<ApiSuccessResponse<PlatformOAuthClient[]>>({
+  const query = useQuery<ApiSuccessResponse<PlatformOAuthClientDto[]>>({
     queryKey: ["oauth-clients"],
     queryFn: () => {
       return fetch("/api/v2/oauth-clients", {
@@ -39,7 +38,7 @@ export const useOAuthClient = (clientId?: string) => {
     isSuccess,
     isFetchedAfterMount,
     refetch,
-  } = useQuery<ApiSuccessResponse<PlatformOAuthClient>>({
+  } = useQuery<ApiSuccessResponse<PlatformOAuthClientDto>>({
     queryKey: ["oauth-client", clientId],
     queryFn: () => {
       return fetch(`/api/v2/oauth-clients/${clientId}`, {

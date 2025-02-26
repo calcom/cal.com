@@ -198,7 +198,9 @@ export async function getRecurringBookings(recurringEventId: string | null) {
   const recurringBookings = await prisma.booking.findMany({
     where: {
       recurringEventId,
-      status: BookingStatus.ACCEPTED,
+      status: {
+        in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+      },
     },
     select: {
       startTime: true,
