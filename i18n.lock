@@ -2898,6 +2898,8 @@ checksums:
     calendar_conflict_settings: 9d5721f39701b71ed421797e44e0a701
     select_calendars_conflict_check: f4147c353f07390fcb44caa27c34ac57
     group_meeting: d30d80ebb9c0b0256130a3c516cb4b4f
+    are_you_sure_you_want_to_remove_this_app_from: ce0c1b2a56b55da014d482e8bcdce9f3
+    disconnect_app_from: 75de687560c61351111ddb1ee3e5d852
     salesforce_ignore_guests: f56d10682d9a637a4bec42abcd212a35
     google_meet: e30a500b4e93f691c4b2ab046b96e753
     zoom: 1029e5d2d8697381dc767ce4090aace0
@@ -2958,4 +2960,17 @@ checksums:
     desc: 55089d006e5eb530227e6f1c41707fc9
     verify_email: 42dcab68d931f9145d9b6d76740a5c66
     verify_email_change: b7a83c7a3100b128e8d1a8f36a8171ba
+    end_date_not_selected: 56faae4c9bed0ff6ecee2f3dfbdfab92
+    my_ooo: 34216a309f9038b7ed013189f07b170f
+    team_ooo: 2041010159a3f1c0c54d43dcce6209d9
+    out_of_office_team_description: a5d50772e465383f8a5da95d1addacc2
+    create_ooo_dialog_team_title: 466bb87215fd04f38ffe728c3cf0ae04
+    create_ooo_dialog_team_subtitle: 1578cee5db0d88854df48868cc33ddbe
+    edit_ooo_dialog_team_subtitle: 270e99ad506c58df72bba57b6f2d4d22
+    ooo_team_empty_title: ca163593587a63ccbf81766ecbab3630
+    ooo_team_empty_description: 095f964b8c28e857e5a22f8603dee545
+    forward_to_team_member_only: b3870ccb77bd5e2e9206d7cb1284af72
+    ooo_team_redirect_infinite_not_allowed: 340a6b95f291fadbe02dcc6ccf4af285
+    previous_ooo_empty_title: 11e626c50f478fa6ece2f371ec87b42b
+    previous: 25c58dd62f190368a3d2c4c97b385ea9
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
