@@ -96,9 +96,13 @@ jobs:
       # - name: Set up QEMU
       #   uses: docker/setup-qemu-action@v2
 
-      - name: Start database
+      - name: Set up database
         run: |
-          docker compose up -d database
+          yarn prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2
+          DATABASE_DIRECT_URL: postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2
+
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
