@@ -55,7 +55,7 @@ describe("Plain Integration API", () => {
 
   const tiers = [
     { tier: "free", teams: [] },
-    { tier: "teams", teams: [{ team: { id: 2, isOrganization: false } }] },
+    { tier: "teams", teams: [{ team: { id: 2 } }] },
     { tier: "enterprise", teams: [{ team: { id: 3, isOrganization: true } }] },
   ];
 

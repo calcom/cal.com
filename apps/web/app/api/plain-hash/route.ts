@@ -38,9 +38,7 @@ async function handler() {
         select: {
           team: {
             select: {
-              id: true,
               isOrganization: true,
-              parentId: true,
             },
           },
         },
@@ -55,7 +53,7 @@ async function handler() {
     const teamMemberships = user.teams;
 
     const isEnterprise = teamMemberships.some((membership) => membership.team.isOrganization === true);
-    const isTeams = teamMemberships.some((membership) => membership.team.isOrganization === false);
+    const isTeams = user?.teams.length > 0;
 
     userTier = isEnterprise ? "enterprise" : isTeams ? "teams" : "free";
   }
