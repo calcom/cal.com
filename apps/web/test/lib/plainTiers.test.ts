@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
+import type { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -66,12 +67,12 @@ describe("Plain Integration API", () => {
     (getServerSession as any).mockResolvedValue({ user: userData });
     prismaMock.user.findUnique.mockResolvedValue({ ...userData, teams });
 
-    const data = await (await POST()).json();
+    const data = await (await POST({} as NextRequest, { params: {} })).json();
     expect(data).toMatchObject({ userTier: tier, email: userData.email, fullName: userData.name });
   });
 
   it("should return 401 when no session exists", async () => {
     (getServerSession as any).mockResolvedValue(null);
-    expect((await POST()).status).toBe(401);
+    expect((await POST({} as NextRequest, { params: {} })).status).toBe(401);
   });
 });
