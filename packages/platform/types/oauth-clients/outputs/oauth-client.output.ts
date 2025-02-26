@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsString, IsNumber, IsOptional, IsDate, IsBoolean } from "class-validator";
+import { IsArray, IsEnum, IsString, IsNumber, IsOptional, IsDate, IsBoolean, IsUrl } from "class-validator";
+
+import { PERMISSION_MAP } from "@calcom/platform-constants";
 
 export class PlatformOAuthClientDto {
   @ApiProperty({ example: "clsx38nbl0001vkhlwin9fmt0" })
@@ -14,9 +16,15 @@ export class PlatformOAuthClientDto {
   @IsString()
   secret!: string;
 
-  @ApiProperty({ example: 3 })
-  @IsNumber()
-  permissions!: number;
+  @ApiProperty({ example: ["BOOKING_READ", "BOOKING_WRITE"] })
+  @IsArray()
+  @IsEnum(PERMISSION_MAP, { each: true })
+  @ApiProperty({
+    type: [String],
+    description: 'Array of permission keys like ["BOOKING_READ", "BOOKING_WRITE"]',
+    enum: Object.keys(PERMISSION_MAP),
+  })
+  permissions!: Array<keyof typeof PERMISSION_MAP>;
 
   @ApiPropertyOptional({ example: "https://example.com/logo.png" })
   @IsOptional()
@@ -47,4 +55,19 @@ export class PlatformOAuthClientDto {
       "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.",
   })
   areDefaultEventTypesEnabled!: boolean;
+
+  @ApiPropertyOptional({ example: "https://example.com/booking-redirect" })
+  @IsOptional()
+  @IsUrl()
+  bookingRedirectUri?: string;
+
+  @ApiPropertyOptional({ example: "https://example.com/booking-cancel" })
+  @IsOptional()
+  @IsUrl()
+  bookingCancelRedirectUri?: string;
+
+  @ApiPropertyOptional({ example: "https://example.com/booking-reschedule" })
+  @IsOptional()
+  @IsUrl()
+  bookingRescheduleRedirectUri?: string;
 }

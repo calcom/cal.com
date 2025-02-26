@@ -17,10 +17,8 @@ import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/p
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import PlainChat from "@lib/plain/dynamicProvider";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -295,7 +293,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <PlainChat />
       <CustomI18nextProvider {...propsWithoutNonce}>
         <TooltipProvider>
           <CalcomThemeProvider
@@ -305,9 +302,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>
-                <MetaProvider>{props.children}</MetaProvider>
-              </OrgBrandProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>

@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { ApiSuccessResponse } from "@calcom/platform-types";
-import type { PlatformOAuthClient } from "@calcom/prisma/client";
+import type { ApiSuccessResponse, PlatformOAuthClientDto } from "@calcom/platform-types";
 
 export const useOAuthClients = () => {
-  const query = useQuery<ApiSuccessResponse<PlatformOAuthClient[]>>({
+  const query = useQuery<ApiSuccessResponse<PlatformOAuthClientDto[]>>({
     queryKey: ["oauth-clients"],
     queryFn: () => {
       return fetch("/api/v2/oauth-clients", {

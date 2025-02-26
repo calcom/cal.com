@@ -38,7 +38,7 @@ const ImpersonationView = () => {
       }}>
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         <TextField
-          containerClassName="w-full"
+          containerClassName="w-full [&_input:-webkit-autofill]:!shadow-[0_0_0_1000px_white_inset]"
           name={t("user_impersonation_heading")}
           addOnLeading={<>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
           ref={usernameRef}
@@ -46,7 +46,7 @@ const ImpersonationView = () => {
           defaultValue={undefined}
           data-testid="admin-impersonation-input"
         />
-        <Button type="submit" data-testid="impersonation-submit">
+        <Button type="submit" data-testid="impersonation-submit" className="mt-[-8px]">
           {t("impersonate")}
         </Button>
       </div>

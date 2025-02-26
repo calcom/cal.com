@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsArray, IsNumber, IsOptional, IsBoolean, IsString } from "class-validator";
+import { IsArray, IsEnum, IsOptional, IsBoolean, IsString } from "class-validator";
+
+import { PERMISSION_MAP } from "@calcom/platform-constants";
 
 export const ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS =
   "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user.";
@@ -19,9 +21,15 @@ export class CreateOAuthClientInput {
   @ApiProperty({ type: [String] })
   redirectUris!: string[];
 
-  @IsNumber()
-  @ApiProperty()
-  permissions!: number;
+  @IsArray()
+  @IsEnum([...Object.keys(PERMISSION_MAP), "*"], { each: true })
+  @ApiProperty({
+    type: [String],
+    description:
+      'Array of permission keys like ["BOOKING_READ", "BOOKING_WRITE"]. Use ["*"] to grant all permissions.',
+    enum: [...Object.keys(PERMISSION_MAP), "*"],
+  })
+  permissions!: Array<keyof typeof PERMISSION_MAP | "*">;
 
   @IsOptional()
   @IsString()

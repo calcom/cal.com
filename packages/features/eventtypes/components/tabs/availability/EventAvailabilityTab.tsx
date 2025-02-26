@@ -576,7 +576,7 @@ const UseCommonScheduleSettingsToggle = ({
   const { t } = useLocale();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   return (
-    <>
+    <div className="border-subtle space-y-6 rounded-lg border p-6">
       <SettingsToggle
         checked={!useHostSchedulesForTeamEvent}
         onCheckedChange={toggleScheduleState}
@@ -598,7 +598,7 @@ const UseCommonScheduleSettingsToggle = ({
           />
         </div>
       )}
-    </>
+    </div>
   );
 };
 
