@@ -1,6 +1,8 @@
 import { Prisma as PrismaClientType } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { makeWhereClause } from "@calcom/features/data-table/lib/server";
+import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
@@ -266,20 +268,47 @@ export async function getBookings({
               },
             ]
           : []),
-        ...(filters?.attendeeEmail
+
+        ...(typeof filters?.attendeeEmail === "string"
           ? [
               {
                 attendees: { some: { email: filters.attendeeEmail.trim() } },
               },
             ]
           : []),
-        ...(filters?.attendeeName
+        ...(isTextFilterValue(filters?.attendeeEmail)
+          ? [
+              {
+                attendees: {
+                  some: makeWhereClause({
+                    columnName: "email",
+                    filterValue: filters.attendeeEmail,
+                  }),
+                },
+              },
+            ]
+          : []),
+
+        ...(typeof filters?.attendeeName === "string"
           ? [
               {
                 attendees: { some: { name: filters.attendeeName.trim() } },
               },
             ]
           : []),
+        ...(isTextFilterValue(filters?.attendeeName)
+          ? [
+              {
+                attendees: {
+                  some: makeWhereClause({
+                    columnName: "name",
+                    filterValue: filters.attendeeName,
+                  }),
+                },
+              },
+            ]
+          : []),
+
         ...(filters?.afterStartDate
           ? [
               {
