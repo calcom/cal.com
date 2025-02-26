@@ -29,6 +29,7 @@ import {
   Query,
   NotFoundException,
   UseGuards,
+  BadRequestException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
@@ -198,6 +199,12 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
+    const isUidNumber = !isNaN(Number(bookingUid));
+
+    if (isUidNumber) {
+      throw new BadRequestException("Please provide booking uid instead of booking id.");
+    }
+
     if (bookingUid) {
       try {
         req.body.uid = bookingUid;
