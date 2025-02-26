@@ -335,6 +335,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
   const twoWeeksFromNow = dayjs().add(2, "week");
 
+  const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
+
   let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
     await calculateHostsAndAvailabilities({
       input,
@@ -342,15 +344,21 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       hosts: allHosts,
       loggerWithEventDetails,
       // adjust start time so we can check for available slots in the first two weeks
-      startTime: startTime.isBefore(twoWeeksFromNow)
-        ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
-        : startTime,
-      endTime,
+      startTime:
+        hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
+          ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
+          : startTime,
+      // adjust end time so we can check for available slots in the first two weeks
+      endTime:
+        hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
+          ? getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+          : endTime,
       bypassBusyCalendarTimes,
       shouldServeCache,
     });
+
   // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
-  if (allFallbackRRHosts && allFallbackRRHosts.length > 0) {
+  if (hasFallbackRRHosts) {
     let diff = 0;
     if (startTime.isBefore(twoWeeksFromNow)) {
       //check if first two week have availability

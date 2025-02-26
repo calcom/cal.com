@@ -544,6 +544,8 @@ describe("getSchedule", () => {
       });
     });
 
+    //todo: add test for end of month and start of month, cut off first two weeks
+
     test("correctly get slots for event when contact owner has no availability at all", async () => {
       vi.setSystemTime("2024-05-01T00:00:13Z");
 
