@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Ρυθμίσεις διενέξεων ημερολογίου",
   "select_calendars_conflict_check": "Επιλέξτε ποια ημερολόγια θα ελέγχονται για διενέξεις",
   "group_meeting": "Ομαδική συνάντηση",
+  "are_you_sure_you_want_to_remove_this_app_from": "Είστε βέβαιοι ότι θέλετε να αφαιρέσετε αυτή την εφαρμογή από",
+  "disconnect_app_from": "Αποσύνδεση εφαρμογής από",
   "salesforce_ignore_guests": "Να μην δημιουργούνται νέες εγγραφές για καλεσμένους που προστίθενται στην κράτηση",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Φθίνουσα",
   "verify_email": "Επαλήθευση email",
   "verify_email_change": "Επαλήθευση αλλαγής email",
+  "end_date_not_selected": "Δεν ορίσατε ημερομηνία λήξης για την απουσία σας",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

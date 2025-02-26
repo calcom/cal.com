@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Configuració de conflictes del calendari",
   "select_calendars_conflict_check": "Selecciona els calendaris per comprovar els conflictes",
   "group_meeting": "Reunió de grup",
+  "are_you_sure_you_want_to_remove_this_app_from": "Estàs segur que vols eliminar aquesta aplicació de",
+  "disconnect_app_from": "Desconnecta l'aplicació de",
   "salesforce_ignore_guests": "No crear nous registres per als convidats afegits a la reserva",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Desc",
   "verify_email": "Verifica el correu",
   "verify_email_change": "Verifica el canvi de correu electrònic",
+  "end_date_not_selected": "No has establert una data de finalització per a la teva absència",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "ការកំណត់ជម្លោះប្រតិទិន",
   "select_calendars_conflict_check": "ជ្រើសរើសប្រតិទិនណាមួយដើម្បីពិនិត្យមើលជម្លោះ",
   "group_meeting": "ការប្រជុំក្រុម",
+  "are_you_sure_you_want_to_remove_this_app_from": "តើអ្នកប្រាកដថាចង់យកកម្មវិធីនេះចេញពី",
+  "disconnect_app_from": "ផ្ដាច់កម្មវិធីចេញពី",
   "salesforce_ignore_guests": "កុំបង្កើតកំណត់ត្រាថ្មីសម្រាប់ភ្ញៀវដែលបានបន្ថែមទៅក្នុងការកក់",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "ចុះ",
   "verify_email": "ផ្ទៀងផ្ទាត់អ៊ីមែល",
   "verify_email_change": "ផ្ទៀងផ្ទាត់ការផ្លាស់ប្តូរអ៊ីមែល",
+  "end_date_not_selected": "អ្នកមិនបានកំណត់កាលបរិច្ឆេទបញ្ចប់សម្រាប់ការអវត្តមានរបស់អ្នកទេ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

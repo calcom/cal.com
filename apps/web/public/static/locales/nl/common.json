@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Agenda-conflictinstellingen",
   "select_calendars_conflict_check": "Selecteer welke agenda's gecontroleerd moeten worden op conflicten",
   "group_meeting": "Groepsbijeenkomst",
+  "are_you_sure_you_want_to_remove_this_app_from": "Weet je zeker dat je deze app wilt verwijderen van",
+  "disconnect_app_from": "App ontkoppelen van",
   "salesforce_ignore_guests": "Maak geen nieuwe records aan voor gasten die aan de boeking zijn toegevoegd",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Aflopend",
   "verify_email": "E-mail verifiëren",
   "verify_email_change": "Verifieer e-mailwijziging",
+  "end_date_not_selected": "Je hebt geen einddatum ingesteld voor je afwezigheid",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

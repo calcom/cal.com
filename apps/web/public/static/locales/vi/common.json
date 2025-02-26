@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Cài đặt xung đột lịch",
   "select_calendars_conflict_check": "Chọn lịch cần kiểm tra xung đột",
   "group_meeting": "Cuộc họp nhóm",
+  "are_you_sure_you_want_to_remove_this_app_from": "Bạn có chắc chắn muốn gỡ bỏ ứng dụng này khỏi",
+  "disconnect_app_from": "Ngắt kết nối ứng dụng khỏi",
   "salesforce_ignore_guests": "Không tạo bản ghi mới cho khách được thêm vào lịch hẹn",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Giảm dần",
   "verify_email": "Xác thực email",
   "verify_email_change": "Xác minh thay đổi email",
+  "end_date_not_selected": "Bạn chưa đặt ngày kết thúc cho thời gian vắng mặt của mình",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

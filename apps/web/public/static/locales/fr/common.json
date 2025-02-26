@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Paramètres de conflit de calendrier",
   "select_calendars_conflict_check": "Sélectionnez les calendriers à vérifier pour les conflits",
   "group_meeting": "Réunion de groupe",
+  "are_you_sure_you_want_to_remove_this_app_from": "Êtes-vous sûr de vouloir supprimer cette application de",
+  "disconnect_app_from": "Déconnecter l'application de",
   "salesforce_ignore_guests": "Ne pas créer de nouveaux enregistrements pour les invités ajoutés à la réservation",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Desc",
   "verify_email": "Vérifier l'e-mail",
   "verify_email_change": "Vérifier le changement d'e-mail",
+  "end_date_not_selected": "Vous n'avez pas défini de date de fin pour votre absence",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

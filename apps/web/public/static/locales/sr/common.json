@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Podešavanja konflikta kalendara",
   "select_calendars_conflict_check": "Izaberite kalendare za proveru konflikata",
   "group_meeting": "Grupni sastanak",
+  "are_you_sure_you_want_to_remove_this_app_from": "Da li ste sigurni da želite da uklonite ovu aplikaciju iz",
+  "disconnect_app_from": "Diskonektuj aplikaciju iz",
   "salesforce_ignore_guests": "Ne kreiraj nove zapise za goste dodate u rezervaciju",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Opadajuće",
   "verify_email": "Potvrdi email",
   "verify_email_change": "Potvrdi promenu email adrese",
+  "end_date_not_selected": "Niste postavili datum završetka za vaše odsustvo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
