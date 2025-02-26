@@ -42,8 +42,8 @@ const genericSchema = z.object({
   description: z.string(),
 });
 
-async function handler(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
+async function handler(req: NextRequest) {
+  const { searchParams } = new URL(`${req.url}`);
   const imageType = searchParams.get("type");
 
   const [calFontData, interFontData, interFontMediumData] = await Promise.all([
