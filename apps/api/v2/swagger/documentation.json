@@ -8528,38 +8528,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -8761,6 +8729,35 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                }
+              ]
+            }
           }
         },
         "required": [
@@ -10428,38 +10425,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -10661,6 +10626,35 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                }
+              ]
+            }
           }
         }
       },
@@ -12017,38 +12011,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -12263,6 +12225,38 @@
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
+                }
+              ]
+            }
           }
         },
         "required": [
@@ -12855,38 +12849,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -13098,6 +13060,38 @@
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
+                }
+              ]
+            }
           }
         }
       },

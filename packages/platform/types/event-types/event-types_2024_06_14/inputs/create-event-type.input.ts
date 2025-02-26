@@ -72,8 +72,9 @@ import {
   InputLinkLocation_2024_06_14,
   InputPhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
+  ValidateTeamLocations_2024_06_14,
 } from "./locations.input";
-import type { InputLocation_2024_06_14 } from "./locations.input";
+import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
 
@@ -119,7 +120,7 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   RescheduleReasonDefaultFieldInput_2024_06_14,
   InputOrganizersDefaultApp_2024_06_14
 )
-export class CreateEventTypeInput_2024_06_14 {
+class BaseCreateEventTypeInput {
   @IsInt()
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
@@ -150,26 +151,6 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsString()
   @DocsPropertyOptional({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE })
   description?: string;
-
-  @IsOptional()
-  @ValidateLocations_2024_06_14()
-  @DocsPropertyOptional({
-    description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-    oneOf: [
-      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputOrganizersDefaultApp_2024_06_14) },
-    ],
-    type: "array",
-  })
-  @Type(() => Object)
-  locations?: InputLocation_2024_06_14[];
 
   @IsOptional()
   @ValidateInputBookingFields_2024_06_14()
@@ -412,6 +393,26 @@ export class CreateEventTypeInput_2024_06_14 {
   })
   successRedirectUrl?: string;
 }
+export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
+  @IsOptional()
+  @ValidateLocations_2024_06_14()
+  @DocsPropertyOptional({
+    description:
+      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+    oneOf: [
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
+    ],
+    type: "array",
+  })
+  @Type(() => Object)
+  locations?: InputLocation_2024_06_14[];
+}
 
 export enum HostPriority {
   lowest = "lowest",
@@ -442,7 +443,7 @@ export class Host {
   priority?: keyof typeof HostPriority = "medium";
 }
 
-export class CreateTeamEventTypeInput_2024_06_14 extends CreateEventTypeInput_2024_06_14 {
+export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
     if (value === "collective") {
       return SchedulingType.COLLECTIVE;
@@ -471,4 +472,24 @@ export class CreateTeamEventTypeInput_2024_06_14 extends CreateEventTypeInput_20
     description: "If true, all current and future team members will be assigned to this event type",
   })
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  @ValidateTeamLocations_2024_06_14()
+  @DocsPropertyOptional({
+    description:
+      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+    oneOf: [
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputOrganizersDefaultApp_2024_06_14) },
+    ],
+    type: "array",
+  })
+  @Type(() => Object)
+  locations?: InputTeamLocation_2024_06_14[];
 }
