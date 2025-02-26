@@ -702,14 +702,22 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
   await Promise.all(emailsToSend);
 };
 
-export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, transcripts: string[]) => {
+export const sendDailyVideoTranscriptEmails = async (
+  calEvent: CalendarEvent,
+  transcripts: string[],
+  summaries: string[]
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadTranscriptEmail(calEvent, transcripts)));
+  emailsToSend.push(
+    sendEmail(() => new OrganizerDailyVideoDownloadTranscriptEmail(calEvent, transcripts, summaries))
+  );
 
   for (const attendee of calEvent.attendees) {
     emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadTranscriptEmail(calEvent, attendee, transcripts))
+      sendEmail(
+        () => new AttendeeDailyVideoDownloadTranscriptEmail(calEvent, attendee, transcripts, summaries)
+      )
     );
   }
   await Promise.all(emailsToSend);
