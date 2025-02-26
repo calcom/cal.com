@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -465,7 +466,6 @@ async function handler(request: NextRequest) {
   const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
     .update(JSON.stringify(requestBody))
     .digest("hex");
-
   if (incomingSignature !== expectedSignature) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
