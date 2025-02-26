@@ -533,7 +533,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             if (responseDataIsBooking(responseBody.data)) {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.bookingFieldsResponses["favorite-movie"]).toEqual("lord of the rings");
-              expect(data.bookingFieldsResponses["url"]).toEqual("http://video-url.com");
+              expect(data.bookingFieldsResponses["video-url"]).toEqual("http://video-url.com");
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibily recurring bookings"
