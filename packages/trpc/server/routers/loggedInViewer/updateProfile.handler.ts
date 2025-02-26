@@ -10,7 +10,7 @@ import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";

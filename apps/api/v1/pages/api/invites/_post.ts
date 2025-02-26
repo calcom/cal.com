@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
