@@ -31,7 +31,6 @@ import {
   ImageUploader,
   Label,
   LinkIconButton,
-  Meta,
   showToast,
   SkeletonContainer,
   SkeletonText,
@@ -54,7 +53,7 @@ const teamProfileFormSchema = z.object({
   bio: z.string(),
 });
 
-const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const OtherTeamProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -169,7 +168,6 @@ const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <>
-      {!isAppDir ? <Meta title={t("profile")} description={t("profile_team_description")} /> : null}
       {!isPending ? (
         <>
           {isAdmin ? (
@@ -288,7 +286,8 @@ const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
                       className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
                     />
                   </>
                 )}

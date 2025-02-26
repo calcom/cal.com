@@ -5,7 +5,6 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -117,7 +116,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (!parentTeam?.slug) {
-      throw new Error(`Parent team wth slug: ${parentTeam?.slug} not found`);
+      throw new Error(`Parent team with slug: ${parentTeam?.slug} not found`);
     }
 
     const orgUrlPrefix = getOrgFullOrigin(parentTeam.slug);
@@ -135,9 +134,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
   }
-
-  // Sync Services: Close.com
-  if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
 
   return {
     logoUrl: updatedTeam.logoUrl,

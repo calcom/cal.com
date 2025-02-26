@@ -1,3 +1,4 @@
+import type { MouseEventHandler } from "react";
 import { useContext } from "react";
 import { useStore } from "zustand";
 
@@ -86,7 +87,10 @@ function isCurrentHourInRange({
 export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
   const store = useContext(TBContext);
   if (!store) throw new Error("Missing TBContext.Provider in the tree");
-  const browsingDate = useStore(store, (s) => s.browsingDate);
+  const { browsingDate, emitCellPosition } = useStore(store, ({ browsingDate, emitCellPosition }) => ({
+    browsingDate,
+    emitCellPosition,
+  }));
 
   const usersTimezoneDate = dayjs(browsingDate).tz(timezone);
 
@@ -102,16 +106,27 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
     hours.filter((i) => i >= 24).map((i) => i % 24),
   ];
 
-  let minuteOffsetApplied = false;
+  const handleMouseEnter: MouseEventHandler<HTMLDivElement> = (e) => {
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const x = rect.left; // x position within the element
+    const y = rect.top; // y position within the element
+    emitCellPosition(x);
+  };
 
   return (
     <>
-      <div className="flex items-end justify-center overflow-auto text-sm">
+      <div data-time-dial className="flex items-end justify-center overflow-auto text-sm">
         {days.map((day, i) => {
           if (!day.length) return null;
           const dateWithDaySet = usersTimezoneDate.add(i - 1, "day");
           return (
-            <div key={i} className={classNames("border-subtle overflow-hidden rounded-lg border-2")}>
+            <div
+              key={i}
+              className={classNames(
+                "border-subtle overflow-hidden rounded-lg border-2",
+                i !== 0 && "ml-[-4px]" // border-2 adds 4px to the width, and offsets the alignment
+              )}>
               <div className="flex flex-none">
                 {day.map((h) => {
                   const hours = Math.floor(h); // Whole number part
@@ -154,11 +169,14 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                     }
                   }
 
-                  const minuteOffsetStyles: { marginLeft?: string } = {};
-                  if (hours !== 0 && !minuteOffsetApplied) {
-                    minuteOffsetApplied = true;
-                    minuteOffsetStyles.marginLeft = `${DAY_CELL_WIDTH * (offset % 1)}px`;
-                  }
+                  const TimeLabel = () => (
+                    <>
+                      {hourSet.format("H")}
+                      {minutes !== 0 && (
+                        <span className="align-text-top text-[.5rem]">{hourSet.format("mm")}</span>
+                      )}
+                    </>
+                  );
 
                   return (
                     <div
@@ -169,19 +187,20 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                         isInRange && !rangeOverlap ? "bg-success" : "",
                         hours ? "" : "bg-subtle font-medium"
                       )}
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={() => emitCellPosition(-1)}
                       style={{
-                        ...minuteOffsetStyles,
                         width: `${DAY_CELL_WIDTH}px`,
                         backgroundImage: rangeGradients.backgroundGradient,
                       }}>
                       {hours ? (
                         <div title={hourSet.format("DD/MM HH:mm")}>
-                          <div className="flex flex-col text-center text-xs leading-3">
+                          <div className="flex flex-col text-center text-xs font-bold leading-3 ">
                             {rangeGradients.textGradient ? (
                               <>
                                 {/* light mode */}
-                                <span className={classNames("text-1xl font-bold dark:hidden")}>
-                                  {hourSet.format("H")}
+                                <span className={classNames("font-bold dark:hidden")}>
+                                  <TimeLabel />
                                 </span>
                                 {/* dark mode */}
                                 <span
@@ -189,14 +208,16 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                                     backgroundImage: rangeGradients.darkTextGradient,
                                   }}
                                   className={classNames(
-                                    "text-1xl hidden font-bold dark:block",
+                                    "hidden dark:block",
                                     rangeOverlap ? "bg-clip-text text-transparent" : ""
                                   )}>
-                                  {hourSet.format("H")}
+                                  <TimeLabel />
                                 </span>
                               </>
                             ) : (
-                              <span className="text-1xl font-bold">{hourSet.format("H")}</span>
+                              <span>
+                                <TimeLabel />
+                              </span>
                             )}
                           </div>
                         </div>

@@ -7,6 +7,7 @@ import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import esTranslations from "@calcom/web/public/static/locales/es/common.json";
 import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
+import nlTranslations from "@calcom/web/public/static/locales/nl/common.json";
 import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
@@ -27,6 +28,7 @@ import type {
   ptBrTranslationKeys,
   deTranslationKeys,
   esTranslationKeys,
+  nlTranslationKeys,
 } from "./CalProvider";
 
 export function BaseCalProvider({
@@ -39,6 +41,7 @@ export function BaseCalProvider({
   language = EN,
   organizationId,
   onTimezoneChange,
+  isEmbed,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
@@ -63,6 +66,7 @@ export function BaseCalProvider({
   useTimezone(getTimezoneChangeHandler());
 
   const { isInit } = useOAuthClient({
+    isEmbed,
     clientId,
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
@@ -152,6 +156,7 @@ export function BaseCalProvider({
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
         organizationId: organizationId || stateOrgId || me?.data.organizationId || 0,
         userId: me?.data.id,
+        isEmbed,
         ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>
@@ -171,6 +176,7 @@ export function BaseCalProvider({
         isRefreshing: false,
         ...translations,
         organizationId: 0,
+        isEmbed: false,
       }}>
       <>
         <TooltipProvider>{children}</TooltipProvider>
@@ -204,6 +210,8 @@ function getTranslation(key: string, language: CalProviderLanguagesType) {
       return deTranslations[key as deTranslationKeys];
     case "es":
       return esTranslations[key as esTranslationKeys];
+    case "nl":
+      return nlTranslations[key as nlTranslationKeys];
     default:
       return enTranslations[key as enTranslationKeys];
   }

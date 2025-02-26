@@ -38,6 +38,7 @@ import AttendeeLocationChangeEmail from "./templates/attendee-location-change-em
 import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import AttendeeUpdatedEmail from "./templates/attendee-updated-email";
 import type { EmailVerifyCode } from "./templates/attendee-verify-email";
 import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
@@ -193,6 +194,22 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   }
 
   await Promise.all(emailsAndSMSToSend);
+};
+
+export const sendRoundRobinUpdatedEmailsAndSMS = async ({
+  calEvent,
+  eventTypeMetadata,
+}: {
+  calEvent: CalendarEvent;
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
+
+  const emailsToSend = calEvent.attendees.map((attendee) =>
+    sendEmail(() => new AttendeeUpdatedEmail(calEvent, attendee))
+  );
+
+  await Promise.all(emailsToSend);
 };
 
 export const sendRoundRobinCancelledEmailsAndSMS = async (

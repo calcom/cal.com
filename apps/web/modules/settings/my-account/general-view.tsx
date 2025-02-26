@@ -180,7 +180,11 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
   const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState(
     !!user.allowDynamicBooking
   );
-  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(!!user.allowSEOIndexing);
+  const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(
+    user.organizationSettings?.allowSEOIndexing === false
+      ? !!user.organizationSettings?.allowSEOIndexing
+      : !!user.allowSEOIndexing
+  );
   const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
     !!user.receiveMonthlyDigestEmail
   );
@@ -246,7 +250,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
           ) : (
             <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
               <Label>{t("travel_schedule")}</Label>
-              <div className="dark:bg-darkgray-100 border-subtle mt-4 rounded-md border bg-white text-sm">
+              <div className="border-subtle bg-default mt-4 rounded-md border text-sm">
                 {watchedTzSchedules.map((schedule, index) => {
                   return (
                     <div
@@ -359,10 +363,11 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
       />
 
       <SettingsToggle
+        data-testid="my-seo-indexing-switch"
         toggleSwitchAtTheEnd={true}
         title={t("seo_indexing")}
         description={t("allow_seo_indexing")}
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
         checked={isAllowSEOIndexingChecked}
         onCheckedChange={(checked) => {
           setIsAllowSEOIndexingChecked(checked);

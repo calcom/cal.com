@@ -5,7 +5,6 @@ import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -40,6 +39,14 @@ const updateOrganizationSettings = async ({
 
   if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
+  }
+
+  if (input.hasOwnProperty("allowSEOIndexing")) {
+    data.allowSEOIndexing = input.allowSEOIndexing;
+  }
+
+  if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
+    data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
   // If no settings values have changed lets skip this update
@@ -132,7 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
+  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata ?? {});
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     logoUrl: input.logoUrl,
@@ -157,7 +164,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       teamId: currentOrgId,
       isBanner: true,
     });
-  } else if (input.banner === "") {
+  } else {
     data.bannerUrl = null;
   }
 
@@ -196,9 +203,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     return updatedOrganisation;
   });
-
-  // Sync Services: Close.com
-  if (prevOrganisation) closeComUpdateTeam(prevOrganisation, updatedOrganisation);
 
   return { update: true, userId: ctx.user.id, data: updatedOrganisation };
 };

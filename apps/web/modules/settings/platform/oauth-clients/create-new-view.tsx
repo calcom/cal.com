@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
 
@@ -18,6 +20,7 @@ import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oau
 export default function CreateOAuthClient() {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
+  const { t } = useLocale();
   const clientId = searchParams?.get("clientId") || "";
 
   const { isUserLoading, isPlatformUser, isPaidUser } = useGetUserAttributes();
@@ -33,22 +36,20 @@ export default function CreateOAuthClient() {
   });
 
   const onSubmit = (data: FormValues) => {
-    let userPermissions = 0;
+    const userPermissions: Array<keyof typeof PERMISSION_MAP> = [];
     const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
 
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
       const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
       const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
-      const read = PERMISSIONS_GROUPED_MAP[entity].read;
-      const write = PERMISSIONS_GROUPED_MAP[entity].write;
-      if (data[`${entityKey}Read`]) userPermissions |= read;
-      if (data[`${entityKey}Write`]) userPermissions |= write;
+
+      if (data[`${entityKey}Read`]) userPermissions.push(`${entity}_READ`);
+      if (data[`${entityKey}Write`]) userPermissions.push(`${entity}_WRITE`);
     });
 
     save({
       name: data.name,
       permissions: userPermissions,
-      // logo: data.logo,
       redirectUris: userRedirectUris,
       bookingRedirectUri: data.bookingRedirectUri,
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
@@ -62,15 +63,15 @@ export default function CreateOAuthClient() {
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell title={`OAuth client ${!!clientId ? "updation" : "creation"} form`} isPlatformUser={true}>
+        <Shell title={t("oAuth_client_creation_form")} isPlatformUser={true} withoutSeo={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
                 <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                  OAuth client creation form
+                  {t("oAuth_client_creation_form")}
                 </h1>
                 <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
-                  This is the form to create a new OAuth client
+                  {t("oAuth_client_creation_form_description")}
                 </p>
               </div>
             </div>
@@ -83,7 +84,7 @@ export default function CreateOAuthClient() {
 
   return (
     <div>
-      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

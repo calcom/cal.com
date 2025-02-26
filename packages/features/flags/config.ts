@@ -4,6 +4,7 @@
  **/
 export type AppFlags = {
   "calendar-cache": boolean;
+  "calendar-cache-serve": boolean;
   emails: boolean;
   insights: boolean;
   teams: boolean;
@@ -15,4 +16,6 @@ export type AppFlags = {
   "disable-signup": boolean;
   attributes: boolean;
   "organizer-request-email-v2": boolean;
+  "domain-wide-delegation": boolean;
+  "salesforce-crm-tasker": boolean;
 };

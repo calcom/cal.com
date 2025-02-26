@@ -92,6 +92,10 @@ export function getFieldResponse({
   };
 }
 
+/**
+ * Not called in preview mode or dry run mode
+ * It takes care of sending webhooks and emails for form submissions
+ */
 export async function onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
@@ -112,6 +116,7 @@ export async function onFormSubmission(
       throw new Error(`Field with id ${fieldId} not found`);
     }
     // Use the label lowercased as the key to identify a field.
+    // TODO: We seem to be using label from the response, Can we not use the field.label
     const key =
       form.fields.find((f) => f.id === fieldId)?.identifier ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
@@ -167,7 +172,8 @@ export async function onFormSubmission(
   });
 
   const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
-    const scheduledAt = dayjs().add(10, "minute").toDate();
+    const scheduledAt = dayjs().add(15, "minute").toDate();
+
     return tasker.create(
       "triggerFormSubmittedNoEventWebhook",
       {
@@ -189,21 +195,23 @@ export async function onFormSubmission(
     return acc;
   }, [] as OrderedResponses);
 
-  if (form.settings?.emailOwnerOnSubmission) {
+  if (form.teamId) {
+    if (form.userWithEmails?.length) {
+      moduleLogger.debug(
+        `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
+      );
+      await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+    }
+  } else if (form.settings?.emailOwnerOnSubmission) {
     moduleLogger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
     await sendResponseEmail(form, orderedResponses, [form.user.email]);
-  } else if (form.userWithEmails?.length) {
-    moduleLogger.debug(
-      `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
-    );
-    await sendResponseEmail(form, orderedResponses, form.userWithEmails);
   }
 }
 
 export const sendResponseEmail = async (
-  form: Pick<App_RoutingForms_Form, "id" | "name">,
+  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
   orderedResponses: OrderedResponses,
   toAddresses: string[]
 ) => {

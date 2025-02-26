@@ -28,7 +28,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
-    log.error("Error parsing routes", safeStringify(routesParsed.error));
+    log.error("Error parsing routes", safeStringify({ error: routesParsed.error, routes: form.routes }));
     throw new Error("Error parsing routes");
   }
 
@@ -51,7 +51,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
   const fieldsExistInForm: Record<string, true> = {};
-  parsedFields?.forEach((f) => {
+  parsedFields.forEach((f) => {
     fieldsExistInForm[f.id] = true;
   });
 
@@ -86,7 +86,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     });
   }
 
-  // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
+  // Ideally we shouldn't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
     ...form,
     settings,

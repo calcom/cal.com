@@ -3,11 +3,11 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
-
-import { moveUserToOrg } from "@lib/orgMigration";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
-import { getInviteLink } from "../lib/testUtils";
+import { moveUserToOrg } from "../lib/orgMigration";
+import { bookTeamEvent, doOnOrgDomain, expectPageToBeNotFound, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -23,7 +23,7 @@ test.describe("Organization", () => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
-      await page.goto("/settings/organizations/members");
+      await page.goto(`/settings/organizations/${org.slug}/members`);
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
@@ -41,6 +41,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: false,
@@ -60,6 +61,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -77,6 +79,7 @@ test.describe("Organization", () => {
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -118,6 +121,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: false,
@@ -155,6 +159,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -183,6 +188,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -202,7 +208,7 @@ test.describe("Organization", () => {
       });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
-      await page.goto("/settings/organizations/members");
+      await page.goto(`/settings/organizations/${org.slug}/members`);
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
@@ -218,6 +224,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -237,6 +244,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -254,6 +262,7 @@ test.describe("Organization", () => {
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -345,6 +354,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -381,6 +391,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -410,12 +421,58 @@ test.describe("Organization", () => {
         });
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
           email: email,
         });
       });
+    });
+
+    test("can book an event with auto accepted invitee (not completed on-boarding) added as fixed host.", async ({
+      page,
+      users,
+    }) => {
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        hasSubteam: true,
+        isOrgVerified: true,
+        isDnsSetup: true,
+        orgRequestedSlug: "example",
+        schedulingType: SchedulingType.ROUND_ROBIN,
+      });
+      const { team: org } = await orgOwner.getOrgMembership();
+      const { team } = await orgOwner.getFirstTeamMembership();
+
+      await orgOwner.apiLogin();
+      await page.goto(`/settings/teams/${team.id}/members`);
+      const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
+      await inviteAnEmail(page, invitedUserEmail, true);
+
+      //add invitee as fixed host to team event
+      const teamEvent = await orgOwner.getFirstTeamEvent(team.id);
+      await page.goto(`/event-types/${teamEvent.id}?tabName=team`);
+      await page.locator('[data-testid="fixed-hosts-switch"]').click();
+      await page.locator('[data-testid="fixed-hosts-select"]').click();
+      await page.locator(`text="${invitedUserEmail}"`).click();
+      await page.locator('[data-testid="update-eventtype"]').click();
+      await page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
+
+      await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async ({ page, goToUrlWithErrorHandling }) => {
+          const result = await goToUrlWithErrorHandling(`/team/${team.slug}/${teamEvent.slug}`);
+          await bookTeamEvent({ page, team, event: teamEvent });
+          await expect(page.getByText(invitedUserEmail, { exact: true })).toBeVisible();
+          return { url: result.url };
+        }
+      );
     });
   });
 });
@@ -489,26 +546,28 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: bo
   }
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
-  await page.locator('button:text("Send invite")').click();
+  await page.getByTestId("invite-new-member-button").click();
   const response = await submitPromise;
   expect(response.status()).toBe(200);
 }
 
 async function expectUserToBeAMemberOfOrganization({
   page,
+  orgSlug,
   username,
   email,
   role,
   isMemberShipAccepted,
 }: {
   page: Page;
+  orgSlug: string | null;
   username: string;
   role: string;
   isMemberShipAccepted: boolean;
   email: string;
 }) {
   // Check newly invited member is not pending anymore
-  await page.goto("/settings/organizations/members");
+  await page.goto(`/settings/organizations/${orgSlug}/members`);
   await expect(page.locator(`[data-testid="member-${username}-username"]`)).toHaveText(username);
   await expect(page.locator(`[data-testid="member-${username}-email"]`)).toHaveText(email);
   expect((await page.locator(`[data-testid="member-${username}-role"]`).textContent())?.toLowerCase()).toBe(

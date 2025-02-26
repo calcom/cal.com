@@ -17,9 +17,12 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
   const getTotalUsers = await prisma.user.count();
 
   let searchFilters: Prisma.UserWhereInput = {};
+  const bothLockedAndUnlockedWhere = { OR: [{ locked: false }, { locked: true }] };
 
   if (searchTerm) {
     searchFilters = {
+      // To bypass the excludeLockedUsersExtension
+      AND: bothLockedAndUnlockedWhere,
       OR: [
         {
           email: {
@@ -33,12 +36,17 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
         },
       ],
     };
+  } else {
+    // To bypass the excludeLockedUsersExtension
+    searchFilters = bothLockedAndUnlockedWhere;
   }
 
   const users = await prisma.user.findMany({
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
-    where: searchFilters,
+    where: {
+      ...searchFilters,
+    },
     orderBy: {
       id: "asc",
     },

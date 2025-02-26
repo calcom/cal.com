@@ -25,18 +25,29 @@ async function getTeamMembers({
   teamIds,
   cursor,
   limit,
+  searchString,
 }: {
   teamId?: number;
   organizationId: number | null;
   teamIds?: number[];
   cursor: number | null | undefined;
   limit: number;
+  searchString?: string | null;
 }) {
   const memberships = await prisma.membership.findMany({
     where: {
       teamId: {
         in: teamId ? [teamId] : teamIds,
       },
+      ...(searchString
+        ? {
+            OR: [
+              { user: { username: { contains: searchString } } },
+              { user: { name: { contains: searchString } } },
+              { user: { email: { contains: searchString } } },
+            ],
+          }
+        : {}),
     },
     select: {
       id: true,
@@ -56,9 +67,7 @@ async function getTeamMembers({
     },
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
-    orderBy: {
-      id: "asc",
-    },
+    orderBy: [{ userId: "asc" }, { id: "asc" }], // Prisma require a unique field for tie breaking duplicate value for pagination
     distinct: ["userId"],
   });
 
@@ -128,13 +137,22 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
 }
 
 async function getInfoForAllTeams({ ctx, input }: GetOptions) {
-  const { cursor, limit } = input;
+  const { cursor, limit, searchString } = input;
 
   // Get all teamIds for the user
   const teamIds = await prisma.membership
     .findMany({
       where: {
         userId: ctx.user.id,
+        ...(searchString
+          ? {
+              OR: [
+                { user: { username: { contains: searchString } } },
+                { user: { name: { contains: searchString } } },
+                { user: { email: { contains: searchString } } },
+              ],
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -152,6 +170,7 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
     organizationId: ctx.user.organizationId,
     cursor,
     limit,
+    searchString,
   });
 
   // Get total team count across all teams the user is in (for pagination)
@@ -169,7 +188,7 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
 }
 
 export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) => {
-  const { cursor, limit } = input;
+  const { cursor, limit, searchString } = input;
   const teamId = input.teamId || ctx.user.organizationId;
 
   let teamMembers: Member[] = [];
@@ -198,6 +217,15 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
       totalTeamMembers = await prisma.membership.count({
         where: {
           teamId: teamId,
+          ...(searchString
+            ? {
+                OR: [
+                  { user: { username: { contains: searchString } } },
+                  { user: { name: { contains: searchString } } },
+                  { user: { email: { contains: searchString } } },
+                ],
+              }
+            : {}),
         },
       });
 
@@ -207,6 +235,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
         cursor,
         limit,
         organizationId: ctx.user.organizationId,
+        searchString,
       });
     }
   }
@@ -224,11 +253,26 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
 
   const members = await Promise.all(buildMembers);
 
+  let belongsToTeam = true;
+
+  if (totalTeamMembers === 0) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId: ctx.user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    belongsToTeam = !!membership;
+  }
+
   return {
     rows: members || [],
     nextCursor,
     meta: {
       totalRowCount: totalTeamMembers,
+      isApartOfAnyTeam: belongsToTeam,
     },
   };
 };

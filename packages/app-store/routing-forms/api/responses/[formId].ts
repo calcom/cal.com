@@ -2,6 +2,7 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
+import { sanitizeValue } from "@calcom/lib/csvUtils";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import prisma from "@calcom/prisma";
 
@@ -10,9 +11,6 @@ import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../../lib/rep
 import type { FormResponse, SerializableForm } from "../../types/types";
 
 type Fields = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>;
-function escapeCsvText(str: string) {
-  return str.replace(/,/, "%2C");
-}
 
 function getHumanReadableFieldResponseValue({
   field,
@@ -52,9 +50,8 @@ async function* getResponses(formId: string, fields: Fields) {
       fields.forEach((field) => {
         const fieldResponse = fieldResponses[field.id];
         const value = fieldResponse?.value || "";
-        const serializedValue = getHumanReadableFieldResponseValue({ field, value })
-          .map((value) => escapeCsvText(value))
-          .join(" | ");
+        const readableValues = getHumanReadableFieldResponseValue({ field, value });
+        const serializedValue = readableValues.map((value) => sanitizeValue(value)).join(" | ");
         csvCells.push(serializedValue);
       });
       csvCells.push(response.createdAt.toISOString());
@@ -90,20 +87,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: formId,
       ...entityPrismaWhereClause({ userId: user.id }),
     },
-    include: {
-      team: {
-        select: {
-          members: true,
-        },
-      },
-    },
   });
 
   if (!form) {
     return res.status(404).json({ message: "Form not found or unauthorized" });
   }
 
-  if (!canEditEntity(form, user.id)) {
+  if (!(await canEditEntity(form, user.id))) {
     return res.status(404).json({ message: "Form not found or unauthorized" });
   }
 

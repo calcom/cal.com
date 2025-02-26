@@ -8,7 +8,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { VerticalTabItemProps } from "@calcom/ui";
 
@@ -63,41 +63,44 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
       currentTab,
     });
 
-    if (!requirePayment) {
+    if (!requirePayment && tabs.includes("recurring")) {
       navigation.splice(3, 0, {
-        name: "recurring",
+        name: t("recurring"),
         onClick: () => setCurrentTab("recurring"),
         isActive: currentTab === "recurring",
         href: `${url}?tabName=recurring`,
         icon: "repeat",
-        info: `recurring_event_tab_description`,
+        info: t(`recurring_event_tab_description`),
+        "data-testid": "recurring",
       });
     }
 
-    navigation.splice(1, 0, {
-      name: "availability",
-      onClick: () => setCurrentTab("availability"),
-      isActive: currentTab === "availability",
-      href: `${url}?tabName=availability`,
-      icon: "calendar",
-      info:
-        isManagedEventType || isChildrenManagedEventType
-          ? formMethods.getValues("schedule") === null
-            ? "members_default_schedule"
-            : isChildrenManagedEventType
-            ? `${
-                formMethods.getValues("scheduleName")
-                  ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                  : `default_schedule_name`
-              }`
-            : formMethods.getValues("scheduleName") ?? `default_schedule_name`
-          : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
-    });
+    tabs.includes("availability") &&
+      navigation.splice(1, 0, {
+        name: t("availability"),
+        onClick: () => setCurrentTab("availability"),
+        isActive: currentTab === "availability",
+        href: `${url}?tabName=availability`,
+        icon: "calendar",
+        info:
+          isManagedEventType || isChildrenManagedEventType
+            ? formMethods.getValues("schedule") === null
+              ? "members_default_schedule"
+              : isChildrenManagedEventType
+              ? `${
+                  formMethods.getValues("scheduleName")
+                    ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
+                    : `default_schedule_name`
+                }`
+              : formMethods.getValues("scheduleName") ?? `default_schedule_name`
+            : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
+        "data-testid": "availability",
+      });
 
     // If there is a team put this navigation item within the tabs
-    if (team) {
+    if (team && tabs.includes("team")) {
       navigation.splice(2, 0, {
-        name: "assignment",
+        name: t("assignment"),
         onClick: () => setCurrentTab("team"),
         isActive: currentTab === "team",
         href: `${url}?tabName=team`,
@@ -105,6 +108,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
+        "data-testid": "assignment",
       });
     }
 
@@ -145,40 +149,44 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
   const tabsNavigation: VerticalTabItemProps[] = [];
   tabs.includes("setup") &&
     tabsNavigation.push({
-      name: "event_setup_tab_title",
+      name: t("event_setup_tab_title"),
       onClick: () => onClick("setup"),
       isActive: currentTab === "setup",
       href: `${url}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
+      "data-testid": `event_setup_tab_title`,
     });
   tabs.includes("limits") &&
     tabsNavigation.push({
-      name: "event_limit_tab_title",
+      name: t("event_limit_tab_title"),
       onClick: () => onClick("limits"),
       isActive: currentTab === "limits",
       href: `${url}?tabName=limits`,
       icon: "clock",
-      info: `event_limit_tab_description`,
+      info: t(`event_limit_tab_description`),
+      "data-testid": "event_limit_tab_title",
     });
 
   tabs.includes("advanced") &&
     tabsNavigation.push({
-      name: "event_advanced_tab_title",
+      name: t("event_advanced_tab_title"),
       onClick: () => onClick("advanced"),
       isActive: currentTab === "advanced",
       href: `${url}?tabName=advanced`,
       icon: "sliders-vertical",
-      info: `event_advanced_tab_description`,
+      info: t(`event_advanced_tab_description`),
+      "data-testid": "event_advanced_tab_title",
     });
   tabs.includes("payments") &&
     tabsNavigation.push({
-      name: "event_payments_tab_title",
+      name: t("event_payments_tab_title"),
       onClick: () => onClick("payments"),
       isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,
       icon: "credit-card",
-      info: `event_payments_tab_description`,
+      info: t(`event_payments_tab_description`),
+      "data-testid": "event_payments_tab_title",
     });
 
   return tabsNavigation;

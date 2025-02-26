@@ -1,13 +1,18 @@
+"use client";
+
 import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HydrateClient } from "app/_trpc/HydrateClient";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 
-import { httpBatchLink, httpLink, loggerLink, splitLink } from "@calcom/trpc/client";
+import { httpBatchLink, httpLink, loggerLink, splitLink, TRPCClientError } from "@calcom/trpc/client";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
 export type Endpoint = (typeof ENDPOINTS)[number];
+
+const MAX_QUERY_RETRIES = 3;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveEndpoint = (links: any) => {
@@ -32,16 +37,45 @@ const resolveEndpoint = (links: any) => {
   };
 };
 
-export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState?: DehydratedState }> = ({
-  children,
-  dehydratedState,
-}) => {
+const isTRPCClientError = (cause: unknown): cause is TRPCClientError<AppRouter> => {
+  return cause instanceof TRPCClientError;
+};
+
+type Props = {
+  children: React.ReactNode;
+  dehydratedState: DehydratedState;
+};
+
+export const TrpcProvider = ({ children, dehydratedState }: Props) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
-        defaultOptions: { queries: { staleTime: 5000 } },
+        // these configurations are copied from "packages/trpc/react/trpc.ts"
+        defaultOptions: {
+          queries: {
+            /**
+             * 1s should be enough to just keep identical query waterfalls low
+             * @example if one page components uses a query that is also used further down the tree
+             */
+            staleTime: 1000,
+            /**
+             * Retry `useQuery()` calls depending on this function
+             */
+            retry(failureCount, error) {
+              if (isTRPCClientError(error) && error.data) {
+                const { code } = error.data;
+                if (code === "BAD_REQUEST" || code === "FORBIDDEN" || code === "UNAUTHORIZED") {
+                  // if input data is wrong or you're not authorized there's no point retrying a query
+                  return false;
+                }
+              }
+              return failureCount < MAX_QUERY_RETRIES;
+            },
+          },
+        },
       })
   );
+
   const url =
     typeof window !== "undefined"
       ? "/api/trpc"
@@ -95,7 +129,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        {dehydratedState ? <HydrateClient state={dehydratedState}>{children}</HydrateClient> : children}
+        <HydrateClient state={dehydratedState}>{children}</HydrateClient>
       </QueryClientProvider>
     </trpc.Provider>
   );

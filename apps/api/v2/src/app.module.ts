@@ -17,13 +17,15 @@ import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis"
 import { BullModule } from "@nestjs/bull";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from "@nestjs/core";
 import { seconds, ThrottlerModule } from "@nestjs/throttler";
+import { SentryModule, SentryGlobalFilter } from "@sentry/nestjs/setup";
 
 import { AppController } from "./app.controller";
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       ignoreEnvFile: true,
       isGlobal: true,
@@ -59,6 +61,10 @@ import { AppController } from "./app.controller";
   ],
   controllers: [AppController],
   providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
     {
       provide: ThrottlerStorageRedisService,
       useFactory: (redisService: RedisService) => {

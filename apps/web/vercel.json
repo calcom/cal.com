@@ -9,6 +9,10 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/calendar-cache/cron",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/tasks/cleanup",
       "schedule": "0 0 * * *"
     }
@@ -18,6 +22,12 @@
       "memory": 3008
     },
     "pages/api/trpc/appRoutingForms/[trpc].ts": {
+      "memory": 2048
+    },
+    "pages/router/embed.tsx": {
+      "memory": 2048
+    },
+    "pages/api/book/event.ts": {
       "memory": 2048
     }
   }

@@ -15,6 +15,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  Switch,
 } from "@calcom/ui";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
@@ -24,7 +25,6 @@ import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelect
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { Switch } from "../../src/components/ui/switch";
 import { useToast } from "../../src/components/ui/use-toast";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -36,11 +36,13 @@ export type CalendarRedirectUrls = {
 type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
   calendarRedirectUrls?: CalendarRedirectUrls;
+  allowDelete?: boolean;
 };
 
 export const SelectedCalendarsSettingsPlatformWrapper = ({
   classNames = "mx-5 mb-6",
   calendarRedirectUrls,
+  allowDelete,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -54,7 +56,12 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
             const destinationCalendarId = data.destinationCalendar.externalId;
 
             if (!data.connectedCalendars.length) {
-              return null;
+              return (
+                <SelectedCalendarsSettings classNames={classNames}>
+                  <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
+                  <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
+                </SelectedCalendarsSettings>
+              );
             }
 
             return (
@@ -76,12 +83,14 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           className="border-subtle mt-4 rounded-lg border"
                           actions={
                             <div className="flex w-32 justify-end">
-                              <PlatformDisconnectIntegration
-                                credentialId={connectedCalendar.credentialId}
-                                trashIcon
-                                buttonProps={{ className: "border border-default" }}
-                                slug={connectedCalendar.integration.slug}
-                              />
+                              {allowDelete && (
+                                <PlatformDisconnectIntegration
+                                  credentialId={connectedCalendar.credentialId}
+                                  trashIcon
+                                  buttonProps={{ className: "border border-default" }}
+                                  slug={connectedCalendar.integration.slug}
+                                />
+                              )}
                             </div>
                           }>
                           <div className="border-subtle border-t">
@@ -280,11 +289,11 @@ const PlatformAdditionalCalendarSelector = ({
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon="plus" color="secondary">
+        <Button StartIcon="plus" color="secondary" className="md:rounded-md">
           {t("add")}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="w-auto">
         <div>
           <div>
             <Connect.GoogleCalendar
@@ -295,7 +304,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Google" })}
               loadingLabel={t("add_calendar_label", { calendar: "Google" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -307,7 +316,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Outlook" })}
               loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -319,7 +328,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
         </div>

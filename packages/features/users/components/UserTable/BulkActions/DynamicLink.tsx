@@ -32,14 +32,20 @@ export function DynamicLink<T extends { username: string | null }>({
     <>
       {isVisible ? (
         <div className="w-full gap-1 rounded-lg text-sm font-medium leading-none md:flex">
-          <div className="max-w-[300px] items-center truncate p-2">
-            <p>{domainWithoutHttps}</p>
+          <div className="items-center truncate p-2 md:max-w-[300px]">
+            <p className="text-center md:text-left">{domainWithoutHttps}</p>
           </div>
-          <div className="ml-auto flex items-center">
-            <Button StartIcon="copy" size="sm" onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
-              {!isCopied ? t("copy") : t("copied")}
+          <div className="ml-auto flex items-center justify-center gap-1 md:justify-start">
+            <Button
+              variant="icon"
+              StartIcon={isCopied ? "check" : "copy"}
+              size="sm"
+              onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}
+              color="secondary">
+              <span className="sr-only">{!isCopied ? t("copy") : t("copied")}</span>
             </Button>
             <Button
+              color="secondary"
               EndIcon="external-link"
               size="sm"
               href={dynamicLinkOfSelectedUsers}

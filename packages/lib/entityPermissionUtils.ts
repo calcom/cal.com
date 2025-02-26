@@ -1,4 +1,3 @@
-import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export const enum ENTITY_PERMISSION_LEVEL {
@@ -11,22 +10,22 @@ export const enum ENTITY_PERMISSION_LEVEL {
   TEAM_WRITE,
 }
 
-export function canEditEntity(
+export async function canEditEntity(
   entity: Parameters<typeof getEntityPermissionLevel>[0],
   userId: Parameters<typeof getEntityPermissionLevel>[1]
 ) {
-  const permissionLevel = getEntityPermissionLevel(entity, userId);
+  const permissionLevel = await getEntityPermissionLevel(entity, userId);
   return (
     permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_WRITE ||
     permissionLevel === ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE
   );
 }
 
-export function canAccessEntity(
+export async function canAccessEntity(
   entity: Parameters<typeof getEntityPermissionLevel>[0],
   userId: Parameters<typeof getEntityPermissionLevel>[1]
 ) {
-  const permissionLevel = getEntityPermissionLevel(entity, userId);
+  const permissionLevel = await getEntityPermissionLevel(entity, userId);
   return (
     permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_WRITE ||
     permissionLevel === ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE ||
@@ -34,15 +33,24 @@ export function canAccessEntity(
   );
 }
 
-export function getEntityPermissionLevel(
+export async function getEntityPermissionLevel(
   entity: {
     userId: number | null;
-    team: { members: Membership[] } | null;
+    teamId: number | null;
   },
   userId: number
 ) {
-  if (entity.team) {
-    const roleForTeamMember = entity.team.members.find((member) => member.userId === userId)?.role;
+  if (entity.teamId) {
+    const { prisma } = await import("@calcom/prisma");
+    const membership = await prisma.membership.findFirst({
+      where: {
+        teamId: entity.teamId,
+        userId,
+        accepted: true,
+      },
+    });
+    const roleForTeamMember = membership?.role;
+
     if (roleForTeamMember) {
       //TODO: Remove type assertion
       const hasWriteAccessToTeam = (

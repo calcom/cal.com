@@ -1,20 +1,18 @@
 import { useSession } from "next-auth/react";
-import { Fragment, useMemo } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
+import type { IEventTypeFilter } from "@calcom/features/filters/types/filter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { FilterSearchField } from "@calcom/ui";
 import { AnimatedPopover, Divider, Icon } from "@calcom/ui";
 
 import { groupBy } from "../groupBy";
 import { useFilterQuery } from "../lib/useFilterQuery";
-
-export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
-export type IEventTypeFilter = IEventTypesFilters[0];
 
 type GroupedEventTypeState = Record<
   string,
@@ -33,6 +31,7 @@ export const EventTypeFilter = () => {
   const { t } = useLocale();
   const { data: user } = useSession();
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
+  const [search, setSearch] = useState("");
 
   const eventTypes = trpc.viewer.eventTypes.listWithTeam.useQuery(undefined, {
     enabled: !!user,
@@ -49,7 +48,7 @@ export const EventTypeFilter = () => {
       (item) => item?.team?.name || ""
     ); // Add the team name
     const individualEvents = data.filter((el) => !el.team);
-    // push indivdual events to the start of grouped array
+    // push individual events to the start of grouped array
     return individualEvents.length > 0 ? { user_own_event_types: individualEvents, ...grouped } : grouped;
   }, [eventTypes.data]);
 
@@ -68,6 +67,11 @@ export const EventTypeFilter = () => {
     <AnimatedPopover text={getTextForPopover()} prefix={`${t("event_type")}: `}>
       {!isEmpty ? (
         <FilterCheckboxFieldsContainer>
+          <FilterSearchField
+            placeholder={t("search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           <FilterCheckboxField
             id="all"
             icon={<Icon name="link" className="h-4 w-4" />}
@@ -82,20 +86,22 @@ export const EventTypeFilter = () => {
                 <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
                   {teamName === "user_own_event_types" ? t("individual") : teamName}
                 </div>
-                {groupedEventTypes[teamName].map((eventType) => (
-                  <FilterCheckboxField
-                    key={eventType.id}
-                    checked={query.eventTypeIds?.includes(eventType.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        pushItemToKey("eventTypeIds", eventType.id);
-                      } else if (!e.target.checked) {
-                        removeItemByKeyAndValue("eventTypeIds", eventType.id);
-                      }
-                    }}
-                    label={eventType.title}
-                  />
-                ))}
+                {groupedEventTypes[teamName]
+                  .filter((eventType) => eventType.title.toLowerCase().includes(search.toLowerCase()))
+                  .map((eventType) => (
+                    <FilterCheckboxField
+                      key={eventType.id}
+                      checked={query.eventTypeIds?.includes(eventType.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          pushItemToKey("eventTypeIds", eventType.id);
+                        } else if (!e.target.checked) {
+                          removeItemByKeyAndValue("eventTypeIds", eventType.id);
+                        }
+                      }}
+                      label={eventType.title}
+                    />
+                  ))}
               </Fragment>
             ))}
         </FilterCheckboxFieldsContainer>

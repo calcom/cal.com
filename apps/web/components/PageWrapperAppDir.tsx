@@ -1,6 +1,5 @@
 "use client";
 
-import { type DehydratedState } from "@tanstack/react-query";
 import type { SSRConfig } from "next-i18next";
 // import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import { usePathname } from "next/navigation";
@@ -17,8 +16,6 @@ export type PageWrapperProps = Readonly<{
   requiresLicense: boolean;
   nonce: string | undefined;
   themeBasis: string | null;
-  dehydratedState?: DehydratedState;
-  isThemeSupported?: boolean;
   isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;
@@ -31,6 +28,8 @@ function PageWrapper(props: PageWrapperProps) {
     pageStatus = "404";
   } else if (pathname === "/500") {
     pageStatus = "500";
+  } else if (pathname === "/403") {
+    pageStatus = "403";
   }
 
   // On client side don't let nonce creep into DOM
@@ -52,6 +51,9 @@ function PageWrapper(props: PageWrapperProps) {
         <Script
           nonce={nonce}
           id="page-status"
+          // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+          // And we don't want it to error here anyways
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
         />
         {getLayout(

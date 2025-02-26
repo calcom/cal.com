@@ -1,3 +1,5 @@
+"use client";
+
 import type { NextSeoProps } from "next-seo";
 import { NextSeo } from "next-seo";
 import { usePathname } from "next/navigation";
@@ -131,7 +133,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
       ...seoObject.openGraph,
       images: [...(nextSeoProps.openGraph?.images || []), ...seoObject.openGraph.images],
     },
-    additionalMetaTags: [...(nextSeoProps.additionalMetaTags || [])],
+    additionalMetaTags: [...(nextSeoProps.additionalMetaTags || []), ...seoObject.additionalMetaTags],
   };
 
   return <NextSeo {...seoProps} />;
