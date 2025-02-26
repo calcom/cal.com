@@ -329,7 +329,7 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
 function isAtomSupportedLocation(
   location: EventTypeOutput_2024_06_14["locations"][number]
 ): location is InputLocation_2024_06_14 {
-  const supportedIntegrations = ["cal-video", "google-meet", "msteams"];
+  const supportedIntegrations = ["cal-video", "google-meet"];
 
   return (
     location.type === "address" ||
