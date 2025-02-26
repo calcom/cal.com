@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import Stripe from "stripe";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
@@ -56,8 +55,8 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (isPrismaError(cause)) {
     return getServerErrorFromPrismaError(cause);
   }
-  if (cause instanceof Stripe.errors.StripeInvalidRequestError) {
-    return getHttpError({ statusCode: 400, cause });
+  if ((cause as any)?.type === "StripeInvalidRequestError") {
+    return getHttpError({ statusCode: 400, cause: cause as any });
   }
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
