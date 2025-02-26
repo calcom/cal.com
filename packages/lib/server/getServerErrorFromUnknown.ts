@@ -60,7 +60,6 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (parsedStripeError.success) {
     return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
   }
-
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
     return {
