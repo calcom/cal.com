@@ -13,6 +13,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOfficeEntriesList.schema";
 import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, ToggleGroup, Tooltip } from "@calcom/ui";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
@@ -38,11 +39,6 @@ interface OutOfOfficeEntry {
   } | null;
   notes: string | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
-}
-
-enum OutOfOfficeRecordType {
-  CURRENT = "current",
-  PREVIOUS = "previous",
 }
 
 export const OutOfOfficeEntriesList = () => {
