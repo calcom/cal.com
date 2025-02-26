@@ -20,7 +20,6 @@ const CreateNewOutOfOfficeEntry = ({
 
   const params = useSearchParams();
   const openModalOnStart = !!params?.get("om");
-
   useEffect(() => {
     if (openModalOnStart) {
       setOpenModal(true);
