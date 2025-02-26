@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Kalender-Konflikt-Einstellungen",
   "select_calendars_conflict_check": "Wählen Sie die Kalender aus, die auf Konflikte überprüft werden sollen",
   "group_meeting": "Gruppenbesprechung",
+  "are_you_sure_you_want_to_remove_this_app_from": "Sind Sie sicher, dass Sie diese App entfernen möchten von",
+  "disconnect_app_from": "App trennen von",
   "salesforce_ignore_guests": "Keine neuen Datensätze für Gäste erstellen, die zur Buchung hinzugefügt wurden",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Absteigend",
   "verify_email": "E-Mail verifizieren",
   "verify_email_change": "E-Mail-Änderung bestätigen",
+  "end_date_not_selected": "Sie haben kein Enddatum für Ihre Abwesenheit festgelegt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

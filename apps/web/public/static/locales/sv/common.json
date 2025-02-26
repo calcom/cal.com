@@ -2901,6 +2901,8 @@
   "calendar_conflict_settings": "Inställningar för kalenderkonflikt",
   "select_calendars_conflict_check": "Välj vilka kalendrar som ska kontrolleras för konflikter",
   "group_meeting": "Gruppmöte",
+  "are_you_sure_you_want_to_remove_this_app_from": "Är du säker på att du vill ta bort den här appen från",
+  "disconnect_app_from": "Koppla bort appen från",
   "salesforce_ignore_guests": "Skapa inte nya poster för gäster som läggs till i bokningen",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
@@ -2961,5 +2963,6 @@
   "desc": "Fallande",
   "verify_email": "Verifiera e-post",
   "verify_email_change": "Verifiera ändring av e-postadress",
+  "end_date_not_selected": "Du har inte angett ett slutdatum för din frånvaro",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
