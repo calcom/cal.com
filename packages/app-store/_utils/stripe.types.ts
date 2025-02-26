@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 // Copied from node_modules/stripe/types/Errors.d.ts because stripe lib doesn't expose these types
+// Ref: https://github.com/stripe/stripe-node/blob/master/types/Errors.d.ts#L194
 interface StripeInvalidRequestError extends Error {
   readonly type: "StripeInvalidRequestError";
   readonly rawType: "invalid_request_error";
