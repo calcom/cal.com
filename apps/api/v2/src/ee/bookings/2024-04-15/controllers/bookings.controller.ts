@@ -6,6 +6,7 @@ import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/g
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
+import { CustomThrottler } from "@/lib/throttler/custom-throttler.decorator";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -159,6 +160,7 @@ export class BookingsController_2024_04_15 {
   }
 
   @Post("/")
+  @CustomThrottler({ name: "Create-Booking", defaultLimit: 10 })
   async createBooking(
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput_2024_04_15,
