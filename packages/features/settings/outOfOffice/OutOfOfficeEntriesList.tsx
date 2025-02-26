@@ -3,7 +3,6 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { Trans } from "next-i18next";
-import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
@@ -40,16 +39,9 @@ interface OutOfOfficeEntry {
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
 }
 
-export const OutOfOfficeEntriesList = ({
-  oooEntriesAdded,
-  setOOOEntriesAdded,
-}: {
-  oooEntriesAdded: number;
-  setOOOEntriesAdded: Dispatch<SetStateAction<number>>;
-}) => {
+export const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [oooEntriesUpdated, setOOOEntriesUpdated] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
@@ -81,7 +73,7 @@ export const OutOfOfficeEntriesList = ({
     if (selectedTab === OutOfOfficeTab.MINE) {
       setSearchTerm("");
     }
-  }, [oooEntriesAdded, oooEntriesUpdated, deletedEntry, selectedTab, refetch]);
+  }, [deletedEntry, selectedTab, refetch]);
 
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
@@ -314,7 +306,7 @@ export const OutOfOfficeEntriesList = ({
           description={
             selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_description") : t("ooo_empty_description")
           }
-          buttonRaw={<CreateNewOutOfOfficeEntryButton setOOOEntriesAdded={setOOOEntriesAdded} size="sm" />}
+          buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
           customIcon={
             <div className="mt-4 h-[102px]">
               <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
@@ -357,7 +349,6 @@ export const OutOfOfficeEntriesList = ({
                 setCurrentlyEditingOutOfOfficeEntry(null);
               }}
               currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
-              setOOOEntriesUpdated={setOOOEntriesUpdated}
             />
           )}
         </div>

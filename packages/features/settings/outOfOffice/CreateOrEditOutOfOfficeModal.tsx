@@ -1,4 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -48,16 +47,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
   currentlyEditingOutOfOfficeEntry,
-  setOOOEntriesUpdated,
-  setOOOEntriesAdded,
 }: {
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
-  setOOOEntriesUpdated?: Dispatch<SetStateAction<number>> | undefined;
-  setOOOEntriesAdded?: Dispatch<SetStateAction<number>> | undefined;
 }) => {
   const { t } = useLocale();
+  const utils = trpc.useUtils();
   const me = useMeQuery();
 
   const searchParams = useCompatSearchParams();
@@ -173,12 +169,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      if (setOOOEntriesUpdated) {
-        setOOOEntriesUpdated((previousValue) => previousValue + 1);
-      }
-      if (setOOOEntriesAdded && !currentlyEditingOutOfOfficeEntry) {
-        setOOOEntriesAdded((previousValue) => previousValue + 1);
-      }
+      utils.viewer.outOfOfficeEntriesList.invalidate();
       closeModal();
     },
     onError: (error) => {
