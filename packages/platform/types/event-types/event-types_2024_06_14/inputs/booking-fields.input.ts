@@ -19,6 +19,7 @@ const inputBookingFieldTypes = [
   "checkbox",
   "radio",
   "boolean",
+  "url",
 ] as const;
 
 const inputBookingFieldSlugs = ["name", "email", "title", "notes", "guests"] as const;
@@ -414,6 +415,53 @@ export class TextFieldInput_2024_06_14 {
 
   @IsString()
   @DocsProperty({ example: "e.g., Enter text here" })
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,\
+      the text field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+}
+
+export class UrlFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "url", description: "only allowed value for type is `url`" })
+  type!: "url";
+
+  @IsString()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
+  slug!: string;
+
+  @IsString()
+  @DocsProperty({ example: "Please enter your text" })
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @DocsProperty({ example: "e.g., Enter url here" })
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
