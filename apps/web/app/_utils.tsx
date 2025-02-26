@@ -47,7 +47,8 @@ export const getTranslate = async () => {
   const headersList = await headers();
   // If "x-locale" does not exist in header,
   // ensure that config.matcher in middleware includes the page you are testing
-  const locale = headersList.get("x-locale") ?? (await getLocale(buildLegacyRequest(headersList, cookies())));
+  const locale =
+    headersList.get("x-locale") ?? (await getLocale(buildLegacyRequest(headersList, await cookies())));
   const t = await getTranslationWithCache(locale ?? "en");
   return t;
 };
@@ -62,7 +63,7 @@ const _generateMetadataWithoutImage = async (
   const h = await headers();
   const _pathname = h.get("x-pathname") ?? pathname ?? "";
   const canonical = buildCanonical({ path: _pathname, origin: origin ?? CAL_URL });
-  const locale = h.get("x-locale") ?? (await getLocale(buildLegacyRequest(h, cookies()))) ?? "en";
+  const locale = h.get("x-locale") ?? (await getLocale(buildLegacyRequest(h, await cookies()))) ?? "en";
   const t = await getTranslationWithCache(locale);
 
   const title = getTitle(t);

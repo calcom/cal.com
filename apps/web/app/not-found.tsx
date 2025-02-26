@@ -243,7 +243,7 @@ export const generateMetadata = async () => {
 
 const ServerPage = async () => {
   const t = await getTranslate();
-  const h = headers();
+  const h = await headers();
   const nonce = h.get("x-nonce") ?? undefined;
   return (
     <PageWrapper requiresLicense={false} nonce={nonce} themeBasis={null}>

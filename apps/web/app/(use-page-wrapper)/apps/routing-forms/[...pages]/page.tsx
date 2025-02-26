@@ -32,9 +32,9 @@ type GetServerSidePropsResult =
 const getData = withAppDirSsr<GetServerSidePropsResult>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
-  const { mainPage, subPages } = normalizePages(params.pages);
+  const { mainPage, subPages } = normalizePages((await params).pages);
 
   const componentProps = {
     ...props,
