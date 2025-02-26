@@ -208,18 +208,29 @@ export class SelectedCalendarRepository {
       },
       select: {
         credential: {
-          select: {
-            ...credentialForCalendarServiceSelect,
-            selectedCalendars: {
-              orderBy: {
-                externalId: "asc",
-              },
-            },
-          },
+          select: credentialForCalendarServiceSelect,
         },
       },
     });
   }
+
+  static async findFromCredentialId(credentialId: number) {
+    const credential = await prisma.credential.findUniqueOrThrow({
+      where: {
+        id: credentialId,
+      },
+      select: {
+        selectedCalendars: {
+          orderBy: {
+            externalId: "asc",
+          },
+        },
+      },
+    });
+    return credential.selectedCalendars;
+  }
+
+  static async onWatchedCalendarChanged(calendarId: string, eventId: string) {}
 
   static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
     return await prisma.selectedCalendar.findFirst({
