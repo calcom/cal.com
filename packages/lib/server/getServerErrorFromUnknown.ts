@@ -36,11 +36,6 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
-  const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
-  if (parsedStripeError.success) {
-    return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
-  }
-
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
     return new HttpError({ statusCode, message: cause.message });
@@ -61,6 +56,11 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (isPrismaError(cause)) {
     return getServerErrorFromPrismaError(cause);
   }
+  const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
+  if (parsedStripeError.success) {
+    return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
+  }
+
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
     return {
