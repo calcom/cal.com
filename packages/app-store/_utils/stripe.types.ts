@@ -46,7 +46,7 @@ interface StripeInvalidRequestError extends Error {
 const errorSchema = z.object({
   name: z.string(),
   message: z.string(),
-  stack: z.string().optional(), // stack is optional as it may not always be present
+  stack: z.string().optional(),
 });
 
 export const stripeInvalidRequestErrorSchema = errorSchema.extend({
