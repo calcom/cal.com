@@ -17,19 +17,6 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
-import {
-  hasAppsReadPermission,
-  hasAppsWritePermission,
-  hasBookingReadPermission,
-  hasBookingWritePermission,
-  hasEventTypeReadPermission,
-  hasEventTypeWritePermission,
-  hasProfileReadPermission,
-  hasProfileWritePermission,
-  hasScheduleReadPermission,
-  hasScheduleWritePermission,
-} from "../../../../../../../../packages/platform/utils/permissions";
-
 export default function EditOAuthClient() {
   const { t } = useLocale();
   const router = useRouter();
@@ -102,16 +89,16 @@ export default function EditOAuthClient() {
                   bookingRedirectUri: data?.bookingRedirectUri ?? "",
                   bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",
                   bookingRescheduleRedirectUri: data?.bookingRescheduleRedirectUri ?? "",
-                  appsRead: hasAppsReadPermission(data?.permissions),
-                  appsWrite: hasAppsWritePermission(data?.permissions),
-                  bookingRead: hasBookingReadPermission(data?.permissions),
-                  bookingWrite: hasBookingWritePermission(data?.permissions),
-                  eventTypeRead: hasEventTypeReadPermission(data?.permissions),
-                  eventTypeWrite: hasEventTypeWritePermission(data?.permissions),
-                  profileRead: hasProfileReadPermission(data?.permissions),
-                  profileWrite: hasProfileWritePermission(data?.permissions),
-                  scheduleRead: hasScheduleReadPermission(data?.permissions),
-                  scheduleWrite: hasScheduleWritePermission(data?.permissions),
+                  appsRead: data?.permissions.includes("APPS_READ"),
+                  appsWrite: data?.permissions.includes("APPS_WRITE"),
+                  bookingRead: data?.permissions.includes("BOOKING_READ"),
+                  bookingWrite: data?.permissions.includes("BOOKING_WRITE"),
+                  eventTypeRead: data?.permissions.includes("EVENT_TYPE_READ"),
+                  eventTypeWrite: data?.permissions.includes("EVENT_TYPE_WRITE"),
+                  profileRead: data?.permissions.includes("PROFILE_READ"),
+                  profileWrite: data?.permissions.includes("PROFILE_WRITE"),
+                  scheduleRead: data?.permissions.includes("SCHEDULE_READ"),
+                  scheduleWrite: data?.permissions.includes("SCHEDULE_WRITE"),
                 }}
                 onSubmit={onSubmit}
                 isPending={isUpdating}

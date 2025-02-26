@@ -159,6 +159,7 @@ const BookerComponent = ({
     bookingForm,
     bookerState,
     isInstantMeeting,
+    layout == BookerLayouts.WEEK_VIEW,
     event?.data?.bookingFields
   );
 
@@ -175,9 +176,11 @@ const BookerComponent = ({
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
-    if (selectedTimeslot && skipConfirmStep && !isInstantMeeting) return setBookerState("selecting_time");
+    const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;
+    if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
+      return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
 
   const slot = getQueryParam("slot");
 
