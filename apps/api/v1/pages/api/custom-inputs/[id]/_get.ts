@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-custom-input";
