@@ -109,7 +109,7 @@ jobs:
           load: true  # Load the image into the Docker daemon
           push: false  # Do not push the image at this stage
           platforms: linux/amd64
-          tags: solymamady/calcomImage
+          tags: solymamady/calcom
           build-args: |
             NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
             NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
@@ -168,7 +168,7 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64
-          tags: solymamady/calcomImage
+          tags: solymamady/calcom
 #          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
