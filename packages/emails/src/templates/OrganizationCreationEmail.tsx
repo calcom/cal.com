@@ -36,8 +36,7 @@ export const OrganizationCreationEmail = (
           marginTop: "32px",
           lineHeightStep: "24px",
         }}>
-        You have been added as an owner of the organization. To publish your new organization, visit{" "}
-        <a href={`${WEBAPP_URL}/upgrade`}>{WEBAPP_URL}/upgrade</a>
+        You have been added as an owner of the organization.
       </p>
       <p
         data-testid="organization-link-info"
