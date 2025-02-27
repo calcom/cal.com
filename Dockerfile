@@ -49,11 +49,11 @@ ENV NODE_ENV=production
 
 COPY package.json .yarnrc.yml i18n.json ./
 COPY turbo.json ./turbo.json
-COPY --from=builder /app/.yarn ./.yarn
-COPY --from=builder /app/yarn.lock ./yarn.lock
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/apps/web ./apps/web
+COPY --from=builder /calcom/.yarn ./.yarn
+COPY --from=builder /calcom/yarn.lock ./yarn.lock
+COPY --from=builder /calcom/node_modules ./node_modules
+COPY --from=builder /calcom/packages ./packages
+COPY --from=builder /calcom/apps/web ./apps/web
 COPY packages/prisma/schema.prisma ./packages/prisma/schema.prisma
 
 
