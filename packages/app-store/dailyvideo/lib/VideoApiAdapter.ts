@@ -231,6 +231,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       },
     });
 
+    const enableRecording = scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined;
+
     return {
       privacy: "public",
       properties: {
@@ -240,7 +242,16 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_chat: true,
         enable_pip_ui: true,
         exp: exp,
-        enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
+        enable_recording: enableRecording,
+        ...(!!enableRecording && {
+          recordings_bucket: {
+            bucket_name: process.env.RECORDINGS_BUCKET_NAME,
+            bucket_region: process.env.RECORDINGS_BUCKET_REGION,
+            assume_role_arn: process.env.RECORDINGS_ASSUME_ROLE_ARN,
+            allow_api_access: true,
+            allow_streaming_from_bucket: true,
+          },
+        }),
         enable_transcription_storage: !!hasTeamPlan,
         ...(!!hasTeamPlan && {
           permissions: {
@@ -258,6 +269,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
     const isScalePlanTrue = scalePlan === "true";
 
+    const enableRecording = isScalePlanTrue ? "cloud" : undefined;
+
     const body = {
       privacy: "public",
       properties: {
@@ -267,7 +280,16 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_chat: true,
         enable_pip_ui: true,
         exp: exp,
-        enable_recording: isScalePlanTrue ? "cloud" : undefined,
+        enable_recording: enableRecording,
+        ...(!!enableRecording && {
+          recordings_bucket: {
+            bucket_name: process.env.RECORDINGS_BUCKET_NAME,
+            bucket_region: process.env.RECORDINGS_BUCKET_REGION,
+            assume_role_arn: process.env.RECORDINGS_ASSUME_ROLE_ARN,
+            allow_api_access: true,
+            allow_streaming_from_bucket: true,
+          },
+        }),
         start_video_off: true,
         enable_transcription_storage: isScalePlanTrue,
         ...(!!isScalePlanTrue && {
