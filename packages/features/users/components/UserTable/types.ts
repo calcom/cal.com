@@ -1,9 +1,11 @@
 import type { MembershipRole } from "@calcom/prisma/enums";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 export interface UserTableUser {
   id: number;
   username: string | null;
   email: string;
+  profile: UserProfile;
   timeZone: string;
   role: MembershipRole;
   avatarUrl: string | null;
