@@ -2,7 +2,7 @@ import type { DateRange } from "@calcom/lib/date-ranges";
 import { intersect } from "@calcom/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { mergeOverlappingDateRanges } from "./date-range-utils/mergeOverlappingDateRanges";
+import { mergeOverlappingDateRanges } from "./getAggregatedAvailability/date-range-utils/mergeOverlappingDateRanges";
 
 function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
   const seen = new Set<string>();

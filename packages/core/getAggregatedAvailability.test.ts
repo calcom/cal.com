@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 
-import { getAggregatedAvailabilityNew as getAggregatedAvailability } from ".";
+import { getAggregatedAvailability } from "./getAggregatedAvailability";
 
 // Helper to check if a time range overlaps with availability
 const isAvailable = (availability: { start: Dayjs; end: Dayjs }[], range: { start: Dayjs; end: Dayjs }) => {
