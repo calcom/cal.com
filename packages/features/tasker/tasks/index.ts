@@ -22,4 +22,10 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
 };
 
+export const tasksConfig = {
+  createCRMEvent: {
+    minRetryIntervalMins: 5,
+    maxAttempts: 5,
+  },
+};
 export default tasks;

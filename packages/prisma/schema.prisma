@@ -1622,6 +1622,7 @@ model Task {
   // The maximum number of times the task can be attempted
   maxAttempts Int       @default(3)
   lastError   String?
+  lastFailedAttemptAt DateTime?
 }
 
 enum SMSLockState {
