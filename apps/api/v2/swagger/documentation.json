@@ -15850,6 +15850,125 @@
           "data"
         ]
       },
+      "BookingInputAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "address",
+            "description": "only allowed value for type is `address`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "BookingInputAttendeeAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": [
+          "type",
+          "address"
+        ]
+      },
+      "BookingInputAttendeeDefinedLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          },
+          "location": {
+            "type": "string",
+            "example": "321 Example St, City, Country"
+          }
+        },
+        "required": [
+          "type",
+          "location"
+        ]
+      },
+      "BookingInputAttendeePhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": [
+          "type",
+          "phone"
+        ]
+      },
+      "BookingInputIntegrationLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "integration",
+            "description": "only allowed value for type is `integration`"
+          },
+          "integration": {
+            "type": "string",
+            "example": "cal-video",
+            "enum": [
+              "cal-video",
+              "google-meet"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "integration"
+        ]
+      },
+      "BookingInputLinkLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "link",
+            "description": "only allowed value for type is `link`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "BookingInputPhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "phone",
+            "description": "only allowed value for type is `phone`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "ValidateBookingLocation_2024_08_13": {
+        "type": "object",
+        "properties": {}
+      },
       "Attendee": {
         "type": "object",
         "properties": {
@@ -15973,9 +16092,30 @@
             "deprecated": true
           },
           "location": {
-            "type": "string",
-            "description": "Location for this booking. Displayed in email and calendar event.",
-            "example": "https://example.com/meeting"
+            "description": "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputIntegrationLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              }
+            ]
           },
           "metadata": {
             "type": "object",
@@ -16042,9 +16182,30 @@
             "deprecated": true
           },
           "location": {
-            "type": "string",
-            "description": "Location for this booking. Displayed in email and calendar event.",
-            "example": "https://example.com/meeting"
+            "description": "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputIntegrationLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              }
+            ]
           },
           "metadata": {
             "type": "object",
@@ -16117,9 +16278,30 @@
             "deprecated": true
           },
           "location": {
-            "type": "string",
-            "description": "Location for this booking. Displayed in email and calendar event.",
-            "example": "https://example.com/meeting"
+            "description": "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputIntegrationLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              }
+            ]
           },
           "metadata": {
             "type": "object",
