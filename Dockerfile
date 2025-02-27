@@ -28,7 +28,7 @@ COPY calcom/packages ./packages
 
 # Ensure tests directory exists
 RUN mkdir -p ./tests || true
-COPY calcom/tests ./tests
+COPY tests ./tests
 
 RUN yarn config set httpTimeout 1200000
 RUN npx turbo prune --scope=@calcom/web --docker
