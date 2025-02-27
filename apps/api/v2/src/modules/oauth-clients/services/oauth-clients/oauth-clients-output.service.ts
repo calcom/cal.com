@@ -33,6 +33,7 @@ export class OAuthClientsOutputService {
       bookingCancelRedirectUri: client.bookingCancelRedirectUri ?? undefined,
       bookingRescheduleRedirectUri: client.bookingRescheduleRedirectUri ?? undefined,
       areEmailsEnabled: client.areEmailsEnabled,
+      areDefaultEventTypesEnabled: client.areDefaultEventTypesEnabled,
     };
   }
 
