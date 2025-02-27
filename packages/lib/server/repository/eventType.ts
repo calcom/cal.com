@@ -741,6 +741,7 @@ export class EventTypeRepository {
         team: {
           select: {
             parentId: true,
+            rrResetInterval: true,
           },
         },
       },
