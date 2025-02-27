@@ -36,6 +36,7 @@ type StoreInitializeType = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  occurenceCount?: number | null;
 };
 
 type SeatedEventData = {
@@ -291,6 +292,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    occurenceCount = null,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -306,6 +308,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().timezone === timezone &&
       get().rescheduledBy === rescheduledBy &&
       get().teamMemberEmail === teamMemberEmail &&
+      get().occurenceCount === occurenceCount &&
       get().crmOwnerRecordType === crmOwnerRecordType &&
       get().crmAppSlug
     )
@@ -382,9 +385,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setBookingData: (bookingData: GetBookingType | null | undefined) => {
     set({ bookingData: bookingData ?? null });
   },
-  recurringEventCount: null,
+  recurringEventCount: parseInt(getQueryParam("cal.occurenceCount") ?? "1"),
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-  occurenceCount: null,
+  occurenceCount: parseInt(getQueryParam("cal.occurenceCount") ?? "1"),
   setOccurenceCount: (occurenceCount: number | null) => set({ occurenceCount }),
   rescheduleUid: null,
   bookingData: null,
@@ -426,6 +429,7 @@ export const useInitializeBookerStore = ({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  occurenceCount = null,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -447,6 +451,7 @@ export const useInitializeBookerStore = ({
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      occurenceCount,
     });
   }, [
     initializeStore,
@@ -467,5 +472,6 @@ export const useInitializeBookerStore = ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    occurenceCount,
   ]);
 };
