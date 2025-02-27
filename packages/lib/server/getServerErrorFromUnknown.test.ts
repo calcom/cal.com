@@ -28,6 +28,7 @@ describe("getServerErrorFromUnknown", () => {
     expect(result).toBeInstanceOf(HttpError);
     expect(result.statusCode).toBe(400);
     expect(result.message).toBe(stripeError.message);
+    expect(result.cause).toEqual(stripeError);
     expect(result.name).toBe("HttpError");
   });
 });
