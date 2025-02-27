@@ -43,11 +43,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Copy environment variables
+      - name: Create .env file
         run: |
-          echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> $GITHUB_ENV
+          touch .env
+          echo "DATABASE_HOST=localhost:5432" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
+          echo "NEXT_PUBLIC_WEBAPP_URL=${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}" >> .env
+          echo "NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}" >> .env
+          echo "NEXT_PUBLIC_LICENSE_CONSENT=${{ secrets.NEXT_PUBLIC_LICENSE_CONSENT }}" >> .env
+          echo "CALCOM_TELEMETRY_DISABLED=true" >> .env
+          echo "CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}" >> .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+          cat .env >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
