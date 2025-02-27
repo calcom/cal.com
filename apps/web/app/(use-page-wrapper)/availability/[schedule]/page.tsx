@@ -25,7 +25,7 @@ const querySchema = z.object({
 const getSchedule = cache((id: number) => ScheduleRepository.findScheduleById({ id }));
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }
@@ -43,11 +43,11 @@ export const generateMetadata = async ({ params }: PageProps) => {
 };
 
 const Page = async ({ params }: PageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }
-  // const scheduleId = Number(params.schedule);
+  // const scheduleId = Number(await params.schedule);
 
   // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const userId = session?.user?.id;

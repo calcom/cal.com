@@ -29,7 +29,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
       })),
     ],
   };
-  const decodedParams = decodeParams(params);
+  const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(
     meeting,
     () => `${title} | ${profileName}`,
@@ -51,7 +51,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 const getData = withAppDirSsr<Props>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const props = await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
   return <Page {...props} />;
 };
 

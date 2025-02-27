@@ -30,7 +30,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
         image: getOrgOrTeamAvatar(team),
       },
     };
-    const decodedParams = decodeParams(params);
+    const decodedParams = decodeParams(await params);
     return {
       ...(await generateMeetingMetadata(
         meeting,
@@ -78,7 +78,9 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const props = await getData(
+    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+  );
   if ((props as TeamPageProps)?.team) {
     return <TeamPage {...(props as TeamPageProps)} />;
   }

@@ -18,7 +18,7 @@ const responseSchema = z.object({
 });
 
 async function handler() {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized - No session email found" }, { status: 401 });
   }

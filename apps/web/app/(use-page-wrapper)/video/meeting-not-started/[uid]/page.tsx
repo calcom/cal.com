@@ -18,7 +18,7 @@ const querySchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }

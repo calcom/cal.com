@@ -19,7 +19,7 @@ export const generateMetadata = async () => {
 };
 
 const InstalledAppsWrapper = async ({ params }: PageProps) => {
-  const parsedParams = querySchema.safeParse(params);
+  const parsedParams = querySchema.safeParse(await params);
 
   if (!parsedParams.success) {
     redirect("/apps/installed/calendar");
