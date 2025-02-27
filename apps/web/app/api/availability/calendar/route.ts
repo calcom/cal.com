@@ -21,7 +21,7 @@ const selectedCalendarSelectSchema = z.object({
 });
 
 async function authMiddleware() {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {
     throw new HttpError({ statusCode: 401, message: "Not authenticated" });

@@ -16,8 +16,9 @@ import EventTypeDescription from "@calcom/features/eventtypes/components/EventTy
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, Button, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 

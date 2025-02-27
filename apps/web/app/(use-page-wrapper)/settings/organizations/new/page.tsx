@@ -20,7 +20,7 @@ export const generateMetadata = async () =>
 const getData = withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
   return (
     <LayoutWrapper>
       <LicenseRequired>

@@ -10,8 +10,9 @@ import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomain
 import classNames from "@calcom/lib/classNames";
 import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import slugify from "@calcom/lib/slugify";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

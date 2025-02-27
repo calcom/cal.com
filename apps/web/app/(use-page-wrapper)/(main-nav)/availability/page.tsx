@@ -17,7 +17,7 @@ export const generateMetadata = async () => {
 };
 
 const Page = async () => {
-  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const userId = session?.user?.id;
   // const orgId = session?.user?.org?.id;
   // if (!userId || !orgId) {

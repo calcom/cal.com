@@ -84,7 +84,7 @@ export async function GET(req: NextRequest, { params }: { params: { team: string
       }
     }
 
-    const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+    const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
     if (!session) {
       return NextResponse.json({ message: "Team upgraded successfully" });

@@ -12,7 +12,7 @@ import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
 
 export default async function SettingsLayoutAppDir(props: SettingsLayoutAppDirProps) {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   const userId = session?.user?.id ?? -1;
   const orgId = session?.user?.org?.id ?? -1;

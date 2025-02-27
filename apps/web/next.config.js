@@ -177,12 +177,11 @@ const orgDomainMatcherConfig = {
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
+  serverExternalPackages: ["next-i18next"],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
-    instrumentationHook: true,
-    serverActions: true,
+    turbo: {},
   },
   i18n: {
     ...i18n,
@@ -277,6 +276,8 @@ const nextConfig = {
       // ignore module resolve errors caused by the server component bundler
       "pg-native": false,
       "superagent-proxy": false,
+      jsdom: false,
+      deasync: false,
     };
 
     /**

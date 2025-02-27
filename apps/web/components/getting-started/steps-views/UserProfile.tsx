@@ -1,11 +1,14 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { md } from "@calcom/lib/markdownIt";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
