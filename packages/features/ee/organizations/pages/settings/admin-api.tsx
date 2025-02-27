@@ -5,7 +5,7 @@ import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon, ButtonGroup } from "@calcom/ui";
 
-export const AdminAPIView = () => {
+export const UpgradeEnterpriseTip = () => {
   const { t } = useLocale();
 
   const features = [
@@ -53,4 +53,4 @@ export const AdminAPIView = () => {
   );
 };
 
-export default AdminAPIView;
+export default UpgradeEnterpriseTip;
