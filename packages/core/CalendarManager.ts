@@ -5,6 +5,8 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppError";
+import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -15,7 +17,7 @@ import type {
   NewCalendarEventType,
   SelectedCalendar,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
@@ -23,7 +25,7 @@ import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
+export const getCalendarCredentials = (credentials: Array<CredentialForCalendarService>) => {
   const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
@@ -36,6 +38,10 @@ export const getCalendarCredentials = (credentials: Array<CredentialPayload>) =>
     });
 
   return calendarCredentials;
+};
+
+export const getCalendarCredentialsWithoutDwd = (credentials: CredentialPayload[]) => {
+  return getCalendarCredentials(buildNonDwdCredentials(credentials));
 };
 
 export const getConnectedCalendars = async (
@@ -51,10 +57,12 @@ export const getConnectedCalendars = async (
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
+        const domainWideDelegationCredentialId = credential.delegatedToId ?? null;
         if (!calendar) {
           return {
             integration,
             credentialId,
+            domainWideDelegationCredentialId,
           };
         }
         const cals = await calendar.listCalendars();
@@ -67,6 +75,7 @@ export const getConnectedCalendars = async (
               primary: cal.primary || null,
               isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               credentialId,
+              domainWideDelegationCredentialId,
             };
           }),
           ["primary"]
@@ -91,6 +100,7 @@ export const getConnectedCalendars = async (
         return {
           integration: cleanIntegrationKeys(integration),
           credentialId,
+          domainWideDelegationCredentialId,
           primary,
           calendars,
         };
@@ -104,11 +114,16 @@ export const getConnectedCalendars = async (
           }
         }
 
+        if (error instanceof CalendarAppDomainWideDelegationError) {
+          errorMessage = error.message;
+        }
+
         log.error("getConnectedCalendars failed", safeStringify(error), safeStringify({ item }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
           credentialId: item.credential.id,
+          domainWideDelegationCredentialId: item.credential.delegatedToId,
           error: {
             message: errorMessage,
           },
@@ -126,7 +141,7 @@ export const getConnectedCalendars = async (
  * @returns App
  */
 const cleanIntegrationKeys = (
-  appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
+  appIntegration: Awaited<ReturnType<typeof getCalendarCredentials>>[number]["integration"] & {
     credentials?: Array<CredentialPayload>;
     credential: CredentialPayload;
   }
@@ -136,25 +151,12 @@ const cleanIntegrationKeys = (
   return rest;
 };
 
-/**
- * Get months between given dates
- * @returns ["2023-04", "2024-05"]
- */
-const getMonths = (dateFrom: string, dateTo: string): string[] => {
-  const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-  for (
-    let i = 1;
-    dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
-    dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
-    i++
-  ) {
-    months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
-  }
-  return months;
-};
-
 export const getBusyCalendarTimes = async (
-  withCredentials: CredentialPayload[],
+  /**
+   * withCredentials can possibly have a duplicate credential in case DWD is enabled.
+   * There is no way to deduplicate that at the moment because a `credential` doesn't directly know for which email it is,
+   */
+  withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
@@ -187,7 +189,7 @@ export const getBusyCalendarTimes = async (
 };
 
 export const createEvent = async (
-  credential: CredentialPayload,
+  credential: CredentialForCalendarService,
   calEvent: CalendarEvent,
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
@@ -207,10 +209,14 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
+  const externalCalendarIdWhenDwdCredentialIsChosen = credential.delegatedToId ? externalId : undefined;
+
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        .createEvent(calEvent, credential.id)
+        // Ideally we should pass externalId always, but let's start with DWD case first as in that case, CalendarService need to handle a special case for DWD to determine the selectedCalendar.
+        // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
+        .createEvent(calEvent, credential.id, externalCalendarIdWhenDwdCredentialIsChosen)
         .catch(async (error: { code: number; calError: string }) => {
           success = false;
           /**
@@ -225,7 +231,8 @@ export const createEvent = async (
           }
           log.error(
             "createEvent failed",
-            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            safeStringify(error),
+            safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
           );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949
@@ -264,11 +271,12 @@ export const createEvent = async (
     calWarnings: creationResult?.additionalInfo?.calWarnings || [],
     externalId,
     credentialId: credential.id,
+    delegatedToId: credential.delegatedToId ?? undefined,
   };
 };
 
 export const updateEvent = async (
-  credential: CredentialPayload,
+  credential: CredentialForCalendarService,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
@@ -352,7 +360,7 @@ export const deleteEvent = async ({
   event,
   externalCalendarId,
 }: {
-  credential: CredentialPayload;
+  credential: CredentialForCalendarService;
   bookingRefUid: string;
   event: CalendarEvent;
   externalCalendarId?: string | null;

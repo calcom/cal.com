@@ -80,12 +80,14 @@ export const AppPage = ({
   const searchParams = useCompatSearchParams();
 
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
+  const utils = trpc.useUtils();
 
   const mutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data?.setupPending) return;
       setIsLoading(false);
-      showToast(t("app_successfully_installed"), "success");
+      showToast(data?.message || t("app_successfully_installed"), "success");
+      await utils.viewer.appCredentialsByType.invalidate({ appType: type });
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
@@ -170,6 +172,7 @@ export const AppPage = ({
 
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
   useEffect(() => {
     if (searchParams?.get("defaultInstall") === "true") {

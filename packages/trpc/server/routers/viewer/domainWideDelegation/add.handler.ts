@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import { TRPCError } from "@trpc/server";
@@ -19,7 +19,7 @@ export default async function handler({
   input: z.infer<typeof DomainWideDelegationCreateSchema>;
   ctx: { user: { id: number; organizationId: number | null } };
 }) {
-  const { workspacePlatformSlug, domain } = input;
+  const { workspacePlatformSlug, domain, serviceAccountKey } = input;
   const { user } = ctx;
   const { organizationId } = user;
 
@@ -31,7 +31,7 @@ export default async function handler({
   }
 
   try {
-    const workspacePlatform = await WorkspacePlatformRepository.findBySlugIncludeSensitiveServiceAccountKey({
+    const workspacePlatform = await WorkspacePlatformRepository.findBySlug({
       slug: workspacePlatformSlug,
     });
 
@@ -48,15 +48,13 @@ export default async function handler({
       dwdBeingUpdatedId: null,
     });
 
-    const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, organizationId);
-
-    const createdDelegation = await domainWideDelegationRepository.create({
+    const createdDelegation = await DomainWideDelegationRepository.create({
       workspacePlatformId: workspacePlatform.id,
       domain,
       // We don't want to enable by default because enabling requires some checks to be completed and it has a separate flow.
       enabled: false,
       organizationId,
-      serviceAccountKey: workspacePlatform.defaultServiceAccountKey,
+      serviceAccountKey,
     });
 
     return ensureNoServiceAccountKey(createdDelegation);

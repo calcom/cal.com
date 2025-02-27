@@ -809,14 +809,14 @@ export const bookingSeatDataSchema = z.object({
   responses: bookingResponses,
 });
 
+// Schema for decrypted service account key
 export const serviceAccountKeySchema = z
   .object({
-    type: z.string(),
-    client_id: z.string(),
-    client_email: z.string(),
     private_key: z.string(),
+    client_email: z.string().optional(),
+    client_id: z.string(),
+    tenant_id: z.string().optional(),
   })
-  // There could be more properties available here by the Workspace platform(e.g. Google), we don't want to loose them but don't need them also at the moment
   .passthrough();
 
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;

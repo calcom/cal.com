@@ -1,8 +1,11 @@
 import { z } from "zod";
 
+import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
+
 export const DomainWideDelegationCreateSchema = z.object({
   workspacePlatformSlug: z.string(),
   domain: z.string(),
+  serviceAccountKey: serviceAccountKeySchema,
 });
 
 export const DomainWideDelegationUpdateSchema = z.object({

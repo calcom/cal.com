@@ -1,4 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -14,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndE
 type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCalendars>>;
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
-export type UserWithCalendars = Pick<User, "id"> & {
+export type UserWithCalendars = Pick<User, "id" | "email"> & {
   allSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
   userLevelSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
   destinationCalendar: DestinationCalendar | null;
@@ -23,6 +25,51 @@ export type UserWithCalendars = Pick<User, "id"> & {
 export type ConnectedDestinationCalendars = Awaited<
   ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
 >;
+
+/**
+ * Ensures that when DWD is enabled and there is already a calendar connected for the corresponding domain, we only allow the DWD calendar to be returned
+ * This is to ensure that duplicate calendar connections aren't shown in UI(apps/installed/calendars). We choose DWD connection to be shown because we don't want users to be able to work with individual calendars
+ */
+const _ensureNoConflictingNonDwdConnectedCalendar = <
+  T extends {
+    integration: { slug: string };
+    primary?: { email?: string | null | undefined } | undefined;
+    domainWideDelegationCredentialId?: string | null | undefined;
+  }
+>({
+  connectedCalendars,
+  loggedInUser,
+}: {
+  connectedCalendars: T[];
+  loggedInUser: { email: string };
+}) => {
+  return connectedCalendars.filter((connectedCalendar, index, array) => {
+    const allCalendarsWithSameAppSlug = array.filter(
+      (cal) => cal.integration.slug === connectedCalendar.integration.slug
+    );
+
+    // If no other calendar with this slug, keep it
+    if (allCalendarsWithSameAppSlug.length === 1) return true;
+
+    const dwdCalendarsWithSameAppSlug = allCalendarsWithSameAppSlug.filter(
+      (cal) => cal.domainWideDelegationCredentialId
+    );
+    if (!dwdCalendarsWithSameAppSlug.length) {
+      return true;
+    }
+
+    if (connectedCalendar.domainWideDelegationCredentialId) {
+      return true;
+    }
+
+    // DWD Credential is always of the loggedInUser
+    if (!connectedCalendar.primary?.email || connectedCalendar.primary.email !== loggedInUser.email) {
+      return true;
+    }
+
+    return false;
+  });
+};
 
 async function handleNoConnectedCalendars(user: UserWithCalendars) {
   log.debug(`No connected calendars, deleting destination calendar if it exists for user ${user.id}`);
@@ -69,6 +116,7 @@ async function handleNoDestinationCalendar({
     integration = "",
     externalId = "",
     credentialId,
+    domainWideDelegationCredentialId,
     email: primaryEmail,
   } = connectedCalendars[0].primary ?? {};
 
@@ -91,8 +139,14 @@ async function handleNoDestinationCalendar({
       userId: user.id,
       integration,
       externalId,
-      credentialId,
       primaryEmail,
+      ...(!isDwdCredential({ credentialId })
+        ? {
+            credentialId,
+          }
+        : {
+            domainWideDelegationCredentialId,
+          }),
     },
   });
 
@@ -231,9 +285,13 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
+  const { credentials: allCredentials } = await enrichUserWithDwdCredentialsWithoutOrgId({
+    user: { id: user.id, email: user.email, credentials: userCredentials },
+  });
+
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
   // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(userCredentials);
+  const calendarCredentials = getCalendarCredentials(allCredentials);
 
   // get all the connected integrations' calendars (from third party)
   const getConnectedCalendarsResult = await getConnectedCalendars(
@@ -305,8 +363,12 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     });
   }
 
-  return {
+  const noConflictingNonDwdConnectedCalendars = _ensureNoConflictingNonDwdConnectedCalendar({
     connectedCalendars,
+    loggedInUser: { email: user.email },
+  });
+  return {
+    connectedCalendars: noConflictingNonDwdConnectedCalendars,
     destinationCalendar: {
       ...(user.destinationCalendar as DestinationCalendar),
       ...destinationCalendar,

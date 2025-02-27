@@ -19,8 +19,8 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -152,7 +152,7 @@ const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType
 };
 
 const _getUser = async (where: Prisma.UserWhereInput) => {
-  return UserRepository.findForAvailabilityCheck({ where });
+  return findUsersForAvailabilityCheck({ where });
 };
 
 type GetUser = Awaited<ReturnType<typeof getUser>>;

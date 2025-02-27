@@ -6,7 +6,7 @@ import type { Mock } from "vitest";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
-import { findQualifiedHosts } from "./findQualifiedHosts";
+import { findQualifiedHostsWithDwdCredentials } from "./findQualifiedHostsWithDwdCredentials";
 import * as getRoutedUsers from "./getRoutedUsers";
 
 // Mock the filterHostsByLeadThreshold function
@@ -21,7 +21,7 @@ afterEach(() => {
   (filterHostsByLeadThreshold as Mock).mockClear();
 });
 
-describe("findQualifiedHosts", async () => {
+describe("findQualifiedHostsWithDwdCredentials", async () => {
   it("should return qualified hosts based on mock of filterHostsByLeadThreshold", async () => {
     const hosts = [
       {
@@ -88,7 +88,7 @@ describe("findQualifiedHosts", async () => {
     };
 
     // Call the function under test
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: null,
@@ -139,7 +139,7 @@ describe("findQualifiedHosts", async () => {
     };
 
     // Call the function under test
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: null,
@@ -225,7 +225,7 @@ describe("findQualifiedHosts", async () => {
     };
 
     // Call the function under test
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: null,
@@ -313,7 +313,7 @@ describe("findQualifiedHosts", async () => {
     };
 
     // Call the function under test
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [1],
       rescheduleUid: null,
@@ -390,7 +390,7 @@ describe("findQualifiedHosts", async () => {
     };
     prismaMock.booking.findFirst.mockResolvedValue({ userId: 2 });
 
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: "recheduleUid",
@@ -469,7 +469,7 @@ describe("findQualifiedHosts", async () => {
     const filterSpy = vi.spyOn(Array.prototype, "filter");
 
     // Call the function under test
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [0, 1, 2],
       rescheduleUid: null,
@@ -553,7 +553,7 @@ describe("findQualifiedHosts", async () => {
     ]);
 
     // Call the function under test
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [2, 3],
       rescheduleUid: null,
@@ -652,7 +652,7 @@ describe("findQualifiedHosts", async () => {
     (filterHostsByLeadThreshold as Mock).mockResolvedValue(rrHostsAfterFairness);
 
     // Call the function under test
-    const result = await findQualifiedHosts({
+    const result = await findQualifiedHostsWithDwdCredentials({
       eventType,
       routedTeamMemberIds: [2, 3],
       rescheduleUid: null,

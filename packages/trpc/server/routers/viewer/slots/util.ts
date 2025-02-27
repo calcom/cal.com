@@ -18,7 +18,7 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
+import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
@@ -38,6 +38,7 @@ import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -46,6 +47,12 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+type GetAvailabilityUserWithoutDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialPayload[];
+};
+type GetAvailabilityUserWithDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialForCalendarService[];
+};
 const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
   select: {
     id: true,
@@ -268,7 +275,7 @@ export function getUsersWithCredentials({
 }: {
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithDwdCredentials;
   }[];
 }) {
   return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
@@ -377,7 +384,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
-    findQualifiedHosts<GetAvailabilityUser>,
+    findQualifiedHostsWithDwdCredentials<GetAvailabilityUserWithoutDwdCredentials>,
     {
       eventType,
       rescheduleUid: input.rescheduleUid ?? null,
@@ -994,7 +1001,7 @@ const calculateHostsAndAvailabilities = async ({
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithDwdCredentials;
   }[];
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;

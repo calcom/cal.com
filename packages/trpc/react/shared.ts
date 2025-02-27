@@ -30,6 +30,7 @@ export const ENDPOINTS = [
   "googleWorkspace",
   "oAuth",
   "attributes",
+  "domainWideDelegation",
   "routingForms",
   "domainWideDelegation",
 ] as const;
