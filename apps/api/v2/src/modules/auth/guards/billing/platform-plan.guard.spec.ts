@@ -1,5 +1,5 @@
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext } from "@nestjs/common";
