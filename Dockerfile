@@ -16,7 +16,7 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     CALCOM_TELEMETRY_DISABLED=$CALCOM_TELEMETRY_DISABLED \
     DATABASE_URL=$DATABASE_URL \
     DATABASE_DIRECT_URL=$DATABASE_URL \
-    NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE} \
+    NODE_OPTIONS=--max-old-space-size=8192 \
     BUILD_STANDALONE=true
 
 COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json git-init.sh git-setup.sh i18n.json ./
@@ -35,7 +35,7 @@ RUN yarn install
 RUN yarn db-deploy
 RUN yarn --cwd packages/prisma seed-app-store
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build
-RUN yarn --cwd apps/web workspace @calcom/web run build
+#RUN yarn --cwd apps/web workspace @calcom/web run build
 
 # Cleanup
 RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
