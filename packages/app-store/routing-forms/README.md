@@ -32,3 +32,21 @@
 `yarn e2e:app-store` runs all Apps' tests. You can use `describe.only()` to run Routing Forms tests only.
 
 Make sure that the app is running already with NEXT_PUBLIC_IS_E2E=1 so that the app is installable
+
+# Features
+
+## non-required required fields in Headless Mode
+
+For specific organizations, you can allow required fields to be optional when using the headless router mode. This is controlled by the `HEADLESS_ROUTER_NO_REQ_FIELDS_ORG_IDS` environment variable. It could make sense to allow this considering that in headless router, fields are manually added by the developer to the headless router endpoint(/router). We could remove this feature, if it doesn't make sense, after we implement versioning of routing forms.
+
+### Configuration
+
+1. Set the `HEADLESS_ROUTER_NO_REQ_FIELDS_ORG_IDS` environment variable with a comma-separated list of organization IDs that should have this feature enabled:
+
+```env
+HEADLESS_ROUTER_NO_REQ_FIELDS_ORG_IDS=org1,org2,org3
+```
+
+2. When using the headless router (URL format: `https://cal.com/router?formId={FORMID}`), required fields will be optional for the specified organizations.
+
+3. The headed mode (URL format: `https://cal.com/forms/{FORMID}`) will continue to enforce required fields for all organizations.

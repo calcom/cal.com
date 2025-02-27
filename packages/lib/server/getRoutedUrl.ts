@@ -33,6 +33,8 @@ function hasEmbedPath(pathWithQuery: string) {
 }
 
 export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
+  // `getRoutedUrl` is called in headless mode only.
+  const isHeadlessMode = true;
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -124,6 +126,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       response: response,
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
+      isHeadlessMode,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
