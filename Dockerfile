@@ -18,13 +18,11 @@ ENV NEXT_PUBLIC_WEBAPP_URL="http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER" \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE} \
     BUILD_STANDALONE=true
 
-COPY calcom/package.json calcom/yarn.lock calcom/.yarnrc.yml calcom/playwright.config.ts calcom/turbo.json calcom/git-init.sh calcom/git-setup.sh calcom/i18n.json ./
-COPY calcom/.yarn ./.yarn
-COPY calcom/apps/web ./apps/web
-COPY calcom/apps/api/v2 ./apps/api/v2
-COPY calcom/packages ./packages
-
-
+COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json git-init.sh git-setup.sh i18n.json ./
+COPY .yarn ./.yarn
+COPY apps/web ./apps/web
+COPY apps/api/v2 ./apps/api/v2
+COPY packages ./packages
 
 # Ensure tests directory exists
 RUN mkdir -p ./tests || true
@@ -50,13 +48,13 @@ ENV NODE_ENV production
 
 COPY package.json .yarnrc.yml i18n.json ./
 COPY turbo.json ./turbo.json
-COPY --from=builder /calcom/.yarn ./.yarn
-COPY --from=builder /calcom/yarn.lock ./yarn.lock
-COPY --from=builder /calcom/node_modules ./node_modules
-COPY --from=builder /calcom/packages ./packages
-COPY --from=builder /calcom/apps/web ./apps/web
-COPY --from=builder /calcom/packages/prisma/schema.prisma ./prisma/schema.prisma
-COPY scripts scripts
+COPY --from=builder /app/.yarn ./.yarn
+COPY --from=builder /app/yarn.lock ./yarn.lock
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/apps/web ./apps/web
+COPY --from=builder /app/packages/prisma/schema.prisma ./prisma/schema.prisma
+
 
 # Save value used during this build stage
 ENV NEXT_PUBLIC_WEBAPP_URL="http://localhost:3000"
