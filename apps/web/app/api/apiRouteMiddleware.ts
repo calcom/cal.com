@@ -4,7 +4,7 @@ import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerErrorFromUnknown } from "@calcom/lib/server";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 export const apiRouteMiddleware =
   (handler: (req: NextRequest, { params }: { params: Params }) => Promise<NextResponse>) =>
