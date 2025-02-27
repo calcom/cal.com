@@ -4,7 +4,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { buildCalendarEvent } from "@calcom/lib/test/builder";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import getICalUID from "../getICalUID";
+import getICalUID from "./getICalUID";
 
 describe("getICalUid", () => {
   test("returns iCalUID when passing a uid", () => {
