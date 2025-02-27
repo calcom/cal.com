@@ -62,9 +62,12 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
     }
     fetchOOOEntriesForIds = userIds;
     reportingUserIds = teamMembers
-      .filter((team) => ownerOrAdminTeamIds.includes(team.id))
-      .flatMap((team) => team.members.filter((member) => member.accepted).map((member) => member.userId))
-      .filter((id) => id !== ctx.user.id);
+      .filter(({ id }) => ownerOrAdminTeamIds.includes(id))
+      .flatMap(({ members }) =>
+        members
+          .filter(({ accepted, userId }) => accepted && userId !== ctx.user.id)
+          .map(({ userId }) => userId)
+      );
   }
 
   const whereClause = {

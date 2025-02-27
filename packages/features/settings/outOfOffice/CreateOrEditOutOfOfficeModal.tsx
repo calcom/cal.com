@@ -62,7 +62,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const [searchMember, setSearchMember] = useState("");
   const debouncedSearchMember = useDebounce(searchMember, 500);
   const oooForMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearchMember },
+    { limit: 10, searchText: debouncedSearchMember, adminOrOwnedTeamsOnly: true },
     {
       enabled: oooType === OutOfOfficeTab.TEAM,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
