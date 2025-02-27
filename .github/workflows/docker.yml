@@ -78,8 +78,12 @@ jobs:
           platforms: linux/amd64
           tags: solymamady/calcom
           build-args: |
-            DATABASE_URL=postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2
-            NEXTAUTH_SECRET=1focbwfHgIDSjiOAF3rvLxTotIAMGMpMmMDpc5Mg+nk=
+            NEXT_PUBLIC_LICENSE_CONSENT=true
+            CALCOM_TELEMETRY_DISABLED=true
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            MAX_OLD_SPACE_SIZE=4096
+            NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
 
 
       - name: Push Docker image
