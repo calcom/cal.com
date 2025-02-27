@@ -5,10 +5,11 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import { TRPCError } from "@calcom/trpc/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
 import type { UserProfile } from "@calcom/types/UserProfile";
+
+import { TRPCError } from "@trpc/server";
 
 enum DirectAction {
   ACCEPT = "accept",
