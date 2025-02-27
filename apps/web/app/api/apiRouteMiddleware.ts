@@ -1,4 +1,3 @@
-import { captureException } from "@sentry/nextjs";
 import type { Params } from "app/_types";
 import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
@@ -19,6 +18,7 @@ export const apiRouteMiddleware =
         // we don't want to report Bad Request errors to Sentry / console
         if (!(serverError.statusCode >= 400 && serverError.statusCode < 500)) {
           console.error(error);
+          const captureException = (await import("@sentry/nextjs")).captureException;
           captureException(error);
         }
         return NextResponse.json(
