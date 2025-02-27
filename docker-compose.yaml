@@ -1,0 +1,48 @@
+# Use postgres/example user/password credentials
+version: '3.8'
+
+volumes:
+  database-data:
+
+networks:
+  stack:
+    name: stack
+    external: false
+
+services:
+  database:
+    container_name: database
+    image: postgres
+    restart: always
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+    env_file: .env
+    networks:
+      - stack
+
+  calcom:
+    image: calcom.docker.scarf.sh/calcom/cal.com
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL}
+        NEXT_PUBLIC_API_V2_URL: ${NEXT_PUBLIC_API_V2_URL}
+        NEXT_PUBLIC_LICENSE_CONSENT: ${NEXT_PUBLIC_LICENSE_CONSENT}
+        CALCOM_TELEMETRY_DISABLED: ${CALCOM_TELEMETRY_DISABLED}
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY}
+        DATABASE_URL: ${DATABASE_URL}
+        DATABASE_DIRECT_URL: ${DATABASE_URL}
+      network: stack
+    restart: always
+    networks:
+      - stack
+    ports:
+      - 3000:3000
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
+      - DATABASE_DIRECT_URL=${DATABASE_URL}
+    depends_on:
+      - database
