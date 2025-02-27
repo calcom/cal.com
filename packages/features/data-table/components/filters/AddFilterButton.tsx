@@ -47,8 +47,12 @@ function AddFilterButtonComponent<TData>(
     <div className="flex items-center space-x-2">
       <Popover>
         <PopoverTrigger asChild>
-          <Button ref={ref} color="secondary" data-testid="add-filter-button">
-            <Icon name="sliders-horizontal" className="mr-2 h-4 w-4" />
+          <Button
+            ref={ref}
+            color="secondary"
+            data-testid="add-filter-button"
+            StartIcon="sliders-horizontal"
+            className="h-full">
             {t("filter")}
           </Button>
         </PopoverTrigger>
@@ -58,7 +62,10 @@ function AddFilterButtonComponent<TData>(
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
               {filterableColumns.map((column) => {
-                const isVisible = table.getColumn(column.id)?.getIsVisible();
+                const showHiddenIndicator =
+                  !table.getColumn(column.id)?.getIsVisible() &&
+                  table.initialState.columnVisibility?.[column.id] !== false;
+
                 if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem
@@ -67,7 +74,7 @@ function AddFilterButtonComponent<TData>(
                     className="flex items-center justify-between px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>
-                    {!isVisible && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}
+                    {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}
                   </CommandItem>
                 );
               })}

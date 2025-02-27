@@ -15,6 +15,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  Switch,
 } from "@calcom/ui";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
@@ -24,7 +25,6 @@ import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelect
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { Switch } from "../../src/components/ui/switch";
 import { useToast } from "../../src/components/ui/use-toast";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -300,11 +300,11 @@ const PlatformAdditionalCalendarSelector = ({
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon="plus" color="secondary">
+        <Button StartIcon="plus" color="secondary" className="md:rounded-md">
           {t("add")}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="w-auto">
         <div>
           <div>
             <Connect.GoogleCalendar
@@ -315,7 +315,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Google" })}
               loadingLabel={t("add_calendar_label", { calendar: "Google" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -327,7 +327,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Outlook" })}
               loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -339,7 +339,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
         </div>

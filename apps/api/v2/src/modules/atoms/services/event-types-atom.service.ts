@@ -122,9 +122,10 @@ export class EventTypesAtomService {
   async updateEventType(eventTypeId: number, body: TUpdateEventTypeInputSchema, user: UserWithProfile) {
     await this.eventTypeService.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
-    const bookingFields = [...(body.bookingFields || [])];
+    const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
 
     if (
+      bookingFields?.length &&
       !bookingFields.find((field) => field.type === "email") &&
       !bookingFields.find((field) => field.type === "phone")
     ) {

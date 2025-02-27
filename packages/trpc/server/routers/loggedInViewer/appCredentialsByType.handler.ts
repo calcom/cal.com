@@ -30,6 +30,18 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
       ],
       type: input.appType,
     },
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+      team: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
   const dwdCredentials = await getAllDwdCredentialsForUserByAppType({

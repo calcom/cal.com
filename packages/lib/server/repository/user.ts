@@ -1,7 +1,4 @@
-import { createHash } from "crypto";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -16,7 +13,6 @@ import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
 import { buildNonDwdCredentials } from "../../domainWideDelegation/clientAndServer";
-import slugify from "../../slugify";
 import { withSelectedCalendars } from "../withSelectedCalendars";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
@@ -558,28 +554,27 @@ export class UserRepository {
     });
   }
 
-  static async create({
-    email,
-    username,
-    organizationId,
-    creationSource,
-  }: {
-    email: string;
-    username: string;
-    organizationId: number | null;
-    creationSource: CreationSource;
-  }) {
-    console.log("create user", { email, username, organizationId });
-    const password = createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
-    const hashedPassword = await hashPassword(password);
+  static async create(
+    data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
+      username: string;
+      hashedPassword?: string;
+      organizationId: number | null;
+      creationSource: CreationSource;
+      locked: boolean;
+    }
+  ) {
+    const organizationIdValue = data.organizationId;
+    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+
+    logger.info("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
-    return await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        username: slugify(username),
+        username,
         email: email,
-        password: { create: { hash: hashedPassword } },
+        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
         // Default schedule
         schedules: {
           create: {
@@ -595,19 +590,25 @@ export class UserRepository {
             },
           },
         },
-        organizationId: organizationId,
-        profiles: organizationId
+        creationSource,
+        locked,
+        ...(organizationIdValue
           ? {
-              create: {
-                username: slugify(username),
-                organizationId: organizationId,
-                uid: ProfileRepository.generateProfileUid(),
+              organizationId: organizationIdValue,
+              profiles: {
+                create: {
+                  username,
+                  organizationId: organizationIdValue,
+                  uid: ProfileRepository.generateProfileUid(),
+                },
               },
             }
-          : undefined,
-        creationSource,
+          : {}),
+        ...rest,
       },
     });
+
+    return user;
   }
   static async getUserAdminTeams(userId: number) {
     return prisma.user.findFirst({

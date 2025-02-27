@@ -280,3 +280,4 @@ export { addDwd };
 export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 export { toggleDwdEnabled } from "@calcom/trpc/server/routers/viewer/domainWideDelegation/toggleEnabled.handler";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
+export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";

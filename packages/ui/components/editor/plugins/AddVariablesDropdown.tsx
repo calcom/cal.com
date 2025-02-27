@@ -55,13 +55,11 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                   type="button"
                   className="w-full px-4 py-2"
                   onClick={() => props.addVariable(t(`${variable}_variable`))}>
-                  <div className="sm:grid sm:grid-cols-2">
-                    <div className="mr-3 text-left md:col-span-1">
+                  <div className="flex flex-col">
+                    <div className="mr-text-left">
                       {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                     </div>
-                    <div className="text-default hidden text-left sm:col-span-1 sm:flex">
-                      {t(`${variable}_info`)}
-                    </div>
+                    <div className="text-default hidden text-left sm:flex">{t(`${variable}_info`)}</div>
                   </div>
                 </button>
               </DropdownMenuItem>
