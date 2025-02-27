@@ -116,10 +116,20 @@ export const ZFilterValue = z.union([
   ZDateRangeFilterValue,
 ]);
 
-export type ColumnFilterMeta = {
-  type?: ColumnFilterType;
-  icon?: IconName;
+export type DateRangeFilterOptions = {
+  range: "past" | "custom";
 };
+
+export type ColumnFilterMeta =
+  | {
+      type: ColumnFilterType.DATE_RANGE;
+      icon?: IconName;
+      dateRangeOptions: DateRangeFilterOptions;
+    }
+  | {
+      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE>;
+      icon?: IconName;
+    };
 
 export type FilterableColumn = {
   id: string;
@@ -128,11 +138,11 @@ export type FilterableColumn = {
 } & (
   | {
       type: ColumnFilterType.SINGLE_SELECT;
-      options: Array<{ label: string; value: string | number }>;
+      options: FacetedValue[];
     }
   | {
       type: ColumnFilterType.MULTI_SELECT;
-      options: Array<{ label: string; value: string | number }>;
+      options: FacetedValue[];
     }
   | {
       type: ColumnFilterType.TEXT;
@@ -142,6 +152,7 @@ export type FilterableColumn = {
     }
   | {
       type: ColumnFilterType.DATE_RANGE;
+      dateRangeOptions?: DateRangeFilterOptions;
     }
 );
 
@@ -186,4 +197,5 @@ export const ZColumnVisibility = z.record(z.string(), z.boolean());
 export type FacetedValue = {
   label: string;
   value: string | number;
+  section?: string;
 };
