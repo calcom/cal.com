@@ -1,5 +1,8 @@
+# This is a basic workflow to help you get started with Actions
+
 name: Build and push image to DockerHub
 
+# Controls when the workflow will run
 on:
   push:
     branches:
@@ -43,21 +46,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create .env file
+      - name: Copy environment variables
         run: |
-          touch .env
-          echo "DATABASE_HOST=localhost:5432" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
-          echo "NEXT_PUBLIC_WEBAPP_URL=${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}" >> .env
-          echo "NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}" >> .env
-          echo "NEXT_PUBLIC_LICENSE_CONSENT=${{ secrets.NEXT_PUBLIC_LICENSE_CONSENT }}" >> .env
-          echo "CALCOM_TELEMETRY_DISABLED=true" >> .env
-          echo "CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}" >> .env
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+          grep -o '^[^#]*' .env.example > .env
           cat .env >> $GITHUB_ENV
+          echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
+          eval $(sed -e '/^#/d' -e 's/^/export /' -e 's/$/;/' .env) ;
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -72,9 +66,6 @@ jobs:
           driver: docker-container
           driver-opts: network=host
 
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile
 
       - name: Build Docker image
         id: docker_build
@@ -86,9 +77,10 @@ jobs:
           push: false
           platforms: linux/amd64
           tags: solymamady/calcom
-          secrets: |
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          build-args: |
+            DATABASE_URL=postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2
+            NEXTAUTH_SECRET=1focbwfHgIDSjiOAF3rvLxTotIAMGMpMmMDpc5Mg+nk=
+
 
       - name: Push Docker image
         id: docker_push
@@ -99,9 +91,13 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: solymamady/calcom
-          secrets: |
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          build-args: |
+            NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
+            NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
+            NEXT_PUBLIC_LICENSE_CONSENT=${{ env.NEXT_PUBLIC_LICENSE_CONSENT }}
+            NEXT_PUBLIC_TELEMETRY_KEY=${{ env.NEXT_PUBLIC_TELEMETRY_KEY }}
+            DATABASE_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
+            DATABASE_DIRECT_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
         if: ${{ !github.event.release.prerelease }}
 
       - name: Image digest
