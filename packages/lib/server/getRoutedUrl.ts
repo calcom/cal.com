@@ -8,9 +8,6 @@ import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-sto
 import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
-import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
-import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
@@ -32,6 +29,19 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
+// Only dynamically import the modules that might contain client components
+async function getClientModules() {
+  const { handleResponse } = await import("@calcom/app-store/routing-forms/lib/handleResponse");
+  const { findMatchingRoute } = await import("@calcom/app-store/routing-forms/lib/processRoute");
+  const { substituteVariables } = await import("@calcom/app-store/routing-forms/lib/substituteVariables");
+
+  return {
+    handleResponse,
+    findMatchingRoute,
+    substituteVariables,
+  };
+}
+
 export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
@@ -45,6 +55,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       notFound: true,
     };
   }
+
+  // Dynamically import only the problematic modules
+  const clientModules = await getClientModules();
 
   // TODO: Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
   // But they must be present in `paramsToBeForwardedAsIs` as they could be needed by Booking Page as well.
@@ -105,7 +118,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
     };
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  const matchingRoute = await clientModules.findMatchingRoute({ form: serializableForm, response });
 
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
@@ -118,7 +131,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   let formResponseId = null;
   let attributeRoutingConfig = null;
   try {
-    const result = await handleResponse({
+    const result = await clientModules.handleResponse({
       form: serializableForm,
       formFillerId: uuidv4(),
       response: response,
@@ -157,7 +170,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
-    const eventTypeUrlWithResolvedVariables = substituteVariables(
+    const eventTypeUrlWithResolvedVariables = await clientModules.substituteVariables(
       decidedAction.value,
       response,
       serializableForm.fields
