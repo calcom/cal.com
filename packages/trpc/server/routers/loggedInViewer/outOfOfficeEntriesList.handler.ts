@@ -4,7 +4,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { type TOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
+import { OutOfOfficeRecordType, type TOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
 
 type GetOptions = {
   ctx: {
@@ -14,7 +14,7 @@ type GetOptions = {
 };
 
 export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
-  const { cursor, limit, fetchTeamMembersEntries, searchTerm } = input;
+  const { cursor, limit, fetchTeamMembersEntries, searchTerm, recordType } = input;
   let fetchOOOEntriesForIds = [ctx.user.id];
 
   if (fetchTeamMembersEntries) {
@@ -64,9 +64,17 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
     userId: {
       in: fetchOOOEntriesForIds,
     },
-    end: {
-      gte: new Date().toISOString(),
-    },
+    ...(recordType === OutOfOfficeRecordType.PREVIOUS
+      ? {
+          end: {
+            lt: new Date().toISOString(),
+          },
+        }
+      : {
+          end: {
+            gte: new Date().toISOString(),
+          },
+        }),
     ...(searchTerm && {
       user: {
         OR: [
