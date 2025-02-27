@@ -658,6 +658,27 @@ const ProfileForm = ({
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
+          <div className="-mt-2 flex gap-2 overflow-auto">
+            {secondaryEmailFields.map((field, index) => (
+              <CustomEmailTextField
+                key={field.itemId}
+                formMethods={formMethods}
+                formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                emailVerified={Boolean(field.emailVerified)}
+                emailPrimary={field.emailPrimary}
+                dataTestId={`profile-form-email-${index}`}
+                handleChangePrimary={() => {
+                  const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                    ...secondaryField,
+                    emailPrimary: cIndex === index,
+                  }));
+                  updateAllSecondaryEmailFields(fields);
+                }}
+                handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                handleItemDelete={() => deleteSecondaryEmail(index)}
+              />
+            ))}
           <div className="-mt-2 flex flex-wrap items-start gap-2">
             <div
               className={
