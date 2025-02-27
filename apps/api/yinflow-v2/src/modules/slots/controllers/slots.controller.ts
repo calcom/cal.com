@@ -1,5 +1,5 @@
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/outputs/get-slots.output";
-import { Body, Controller, Delete, Post, Query, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Query, Req, Res } from "@nestjs/common";
 import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request as ExpressRequest, Response as ExpressResponse } from "express";
 
