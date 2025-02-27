@@ -15,8 +15,9 @@ describe("evaluateRaqbLogic", () => {
       queryValue: {
         id: "88bbb99b-cdef-4012-b456-71925b0e4b7f",
         type: "group",
-        children1: {
-          "b9aa9b89-0123-4456-b89a-b19264fe16af": {
+        children1: [
+          {
+            id: "b9aa9b89-0123-4456-b89a-b19264fe16af",
             type: "rule",
             properties: {
               field: "0f18439b-2e28-45eb-bd79-8ed9e0236d6e",
@@ -26,7 +27,7 @@ describe("evaluateRaqbLogic", () => {
               valueType: ["multiselect"],
             },
           },
-        },
+        ],
       },
       queryBuilderConfig: {
         ...FormFieldsBaseConfig,

@@ -1,7 +1,6 @@
+import type { ImmutableTree, JsonLogicResult, JsonTree, Config } from "@react-awesome-query-builder/core";
+import { Utils as QbUtils } from "@react-awesome-query-builder/core";
 import async from "async";
-import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder/lib";
-import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";

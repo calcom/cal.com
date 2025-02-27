@@ -1,9 +1,10 @@
 "use client";
 
+import { Utils as QbUtils } from "@react-awesome-query-builder/core";
+import type { ImmutableTree, JsonTree } from "@react-awesome-query-builder/core";
+import { Query, Builder } from "@react-awesome-query-builder/ui";
+import type { BuilderProps } from "@react-awesome-query-builder/ui";
 import { useCallback, useState } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
 
 import {
   withRaqbSettingsAndWidgets,

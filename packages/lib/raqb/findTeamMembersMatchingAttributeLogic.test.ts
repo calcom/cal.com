@@ -1,4 +1,4 @@
-import type { BaseWidget } from "react-awesome-query-builder";
+import type { BaseWidget } from "@react-awesome-query-builder/core";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";

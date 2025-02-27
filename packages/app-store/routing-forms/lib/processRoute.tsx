@@ -1,7 +1,7 @@
 "use client";
 
 import type { App_RoutingForms_Form } from "@prisma/client";
-import type { JsonTree } from "react-awesome-query-builder";
+import type { JsonTree } from "@react-awesome-query-builder/core";
 import type { z } from "zod";
 
 import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";

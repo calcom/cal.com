@@ -1,12 +1,12 @@
-import dynamic from "next/dynamic";
-import type { ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
   ButtonProps,
   ConjsProps,
   FieldProps,
   ProviderProps,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
+import dynamic from "next/dynamic";
+import type { ChangeEvent } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton, TextField, TextArea } from "@calcom/ui";

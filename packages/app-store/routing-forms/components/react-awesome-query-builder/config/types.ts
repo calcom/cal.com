@@ -1,4 +1,4 @@
-import type { Widgets as RaqbWidgets } from "react-awesome-query-builder";
+import type { Widgets as RaqbWidgets } from "@react-awesome-query-builder/core";
 
 export const enum ConfigFor {
   FormFields = "FormFields",

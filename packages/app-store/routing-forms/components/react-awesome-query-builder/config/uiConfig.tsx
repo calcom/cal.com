@@ -1,10 +1,10 @@
-import type { ChangeEvent } from "react";
 import type {
   Settings,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
   WidgetProps,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/core";
+import type { ChangeEvent } from "react";
 
 import { EmailField as EmailWidget } from "@calcom/ui";
 
