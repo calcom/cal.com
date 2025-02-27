@@ -1,12 +1,11 @@
 import { describe, expect } from "vitest";
 
-import dayjs from "@calcom/dayjs";
+import { buildCalendarEvent, buildPerson } from "@calcom/lib/test/builder";
+import { buildVideoCallData } from "@calcom/lib/test/builder";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { buildCalendarEvent, buildPerson } from "../../../lib/test/builder";
-import { buildVideoCallData } from "../../../lib/test/builder";
-import generateIcsString from "../generateIcsString";
+import generateIcsString from "./generateIcsString";
 
 const assertHasIcsString = (icsString: string | undefined) => {
   if (!icsString) throw new Error("icsString is undefined");
@@ -25,10 +24,8 @@ const testIcsStringContains = ({
   event: CalendarEvent;
   status: string;
 }) => {
-  const DTSTART = event.startTime.split(".")[0].replace(/[-:]/g, "");
-  const startTime = dayjs(event.startTime);
-  const endTime = dayjs(event.endTime);
-  const duration = endTime.diff(startTime, "minute");
+  const DTSTART = `${event.startTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
+  const DTEND = `${event.endTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
 
   expect(icsString).toEqual(expect.stringContaining(`UID:${event.iCalUID}`));
   // Sometimes the deeply equal stringMatching error appears. Don't want to add flakey tests
@@ -37,7 +34,7 @@ const testIcsStringContains = ({
   expect(icsString).toEqual(
     expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:${event.organizer.email}`)
   );
-  expect(icsString).toEqual(expect.stringContaining(`DURATION:PT${duration}M`));
+  expect(icsString).toEqual(expect.stringContaining(`DTEND:${DTEND}`));
   expect(icsString).toEqual(expect.stringContaining(`STATUS:${status}`));
   //   Getting an error expected icsString to deeply equal stringMatching
   //   for (const attendee of event.attendees) {
@@ -57,15 +54,10 @@ describe("generateIcsString", () => {
         attendees: [buildPerson()],
       });
 
-      const title = "new_event_scheduled_recurring";
-      const subtitle = "emailed_you_and_any_other_attendees";
       const status = "CONFIRMED";
 
       const icsString = generateIcsString({
         event: event,
-        title,
-        subtitle,
-        role: "organizer",
         status,
       });
 
@@ -78,15 +70,10 @@ describe("generateIcsString", () => {
         iCalSequence: 0,
         attendees: [buildPerson()],
       });
-      const title = "event_request_cancelled";
-      const subtitle = "emailed_you_and_any_other_attendees";
       const status = "CANCELLED";
 
       const icsString = generateIcsString({
         event: event,
-        title,
-        subtitle,
-        role: "organizer",
         status,
       });
 
@@ -99,15 +86,10 @@ describe("generateIcsString", () => {
         iCalSequence: 0,
         attendees: [buildPerson()],
       });
-      const title = "event_type_has_been_rescheduled";
-      const subtitle = "emailed_you_and_any_other_attendees";
       const status = "CONFIRMED";
 
       const icsString = generateIcsString({
         event: event,
-        title,
-        subtitle,
-        role: "organizer",
         status,
       });
 
@@ -120,15 +102,10 @@ describe("generateIcsString", () => {
         iCalSequence: 0,
         attendees: [buildPerson()],
       });
-      const title = "request_reschedule_title_organizer";
-      const subtitle = "request_reschedule_subtitle_organizer";
       const status = "CANCELLED";
 
       const icsString = generateIcsString({
         event: event,
-        title,
-        subtitle,
-        role: "organizer",
         status,
       });
 
@@ -148,19 +125,14 @@ describe("generateIcsString", () => {
         },
         true
       );
-      const title = "request_reschedule_title_organizer";
-      const subtitle = "request_reschedule_subtitle_organizer";
       const status = "CANCELLED";
 
       const icsString = generateIcsString({
         event: event,
-        title,
-        subtitle,
-        role: "organizer",
         status,
       });
 
-      const assertedIcsString = assertHasIcsString(icsString);
+      assertHasIcsString(icsString);
 
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${videoCallData.url}`));
     });
@@ -174,19 +146,14 @@ describe("generateIcsString", () => {
         },
         true
       );
-      const title = "request_reschedule_title_organizer";
-      const subtitle = "request_reschedule_subtitle_organizer";
       const status = "CANCELLED";
 
       const icsString = generateIcsString({
         event: event,
-        title,
-        subtitle,
-        role: "organizer",
         status,
       });
 
-      const assertedIcsString = assertHasIcsString(icsString);
+      assertHasIcsString(icsString);
 
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
     });
