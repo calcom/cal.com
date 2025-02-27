@@ -1,5 +1,8 @@
+# This is a basic workflow to help you get started with Actions
+
 name: Build and push image to DockerHub
 
+# Controls when the workflow will run
 on:
   push:
     branches:
@@ -45,9 +48,10 @@ jobs:
 
       - name: Copy environment variables
         run: |
+          grep -o '^[^#]*' .env.example > .env
+          cat .env >> $GITHUB_ENV
           echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> $GITHUB_ENV
+          eval $(sed -e '/^#/d' -e 's/^/export /' -e 's/$/;/' .env) ;
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
