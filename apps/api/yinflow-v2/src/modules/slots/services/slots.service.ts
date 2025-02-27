@@ -108,14 +108,9 @@ export class SlotsService {
     }
 
     if ("eventTypeSlug" in input) {
-      const { data: user, error } = await supabase
-        .from("users")
-        .select("id")
-        .eq("username", input.username)
-        .limit(1)
-        .single();
+      const user = await this.getEventTypeUser(input);
 
-      if (!user || error) {
+      if (!user) {
         throw new NotFoundException(`User with username ${input.username} not found`);
       }
 
@@ -131,6 +126,44 @@ export class SlotsService {
     }
 
     return input.duration ? { ...dynamicEvent, length: input.duration } : dynamicEvent;
+  }
+
+  private async getEventTypeUser(input: GetSlotsInput_2024_09_04) {
+    if ("eventTypeSlug" in input) {
+      if ("organizationSlug" in input && input.organizationSlug) {
+        const { data: organization, error } = await supabase
+          .from("Tean")
+          .select("id")
+          .eq("slug", input.organizationSlug)
+          .limit(1)
+          .single();
+
+        if (!organization || error) {
+          throw new NotFoundException(
+            `slots-input.service.ts: Organization with slug ${input.organizationSlug} not found`
+          );
+        }
+
+        const { data: organizationsUser } = await supabase
+          .from("Profile")
+          .select("id")
+          .eq("organizationId", organization.id)
+          .eq("username", input.username)
+          .limit(1)
+          .single();
+
+        return organizationsUser;
+      }
+
+      const { data: user } = await supabase
+        .from("users")
+        .select("id")
+        .eq("username", input.username)
+        .limit(1)
+        .single();
+
+      return user;
+    }
   }
 
   private adjustEndTime(endTime: string) {
