@@ -55,7 +55,8 @@ export class ModalBox extends HTMLElement {
 
   hideIframe() {
     const iframe = this.querySelector("iframe");
-    if (iframe) {
+    const disableLoader = this.getAttribute("disable-loader") !== null;
+    if (iframe && !disableLoader) {
       iframe.style.visibility = "hidden";
     }
   }
@@ -90,23 +91,26 @@ export class ModalBox extends HTMLElement {
     return element;
   }
 
+  toggleLoader(show: boolean) {
+    this.getLoaderElement().style.display = show ? "block" : "none";
+  }
+
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name !== "state") {
       return;
     }
-
     if (newValue === "loading") {
       this.open();
       this.hideIframe();
-      this.getLoaderElement().style.display = "block";
+      this.toggleLoader(true);
     } else if (newValue == "loaded" || newValue === "reopening") {
       this.open();
       this.showIframe();
-      this.getLoaderElement().style.display = "none";
+      this.toggleLoader(false);
     } else if (newValue == "closed") {
       this.explicitClose();
     } else if (newValue === "failed") {
-      this.getLoaderElement().style.display = "none";
+      this.toggleLoader(false);
       this.getErrorElement().style.display = "inline-block";
       const errorString = getErrorString(this.dataset.errorCode);
       this.getErrorElement().innerText = errorString;
@@ -152,5 +156,7 @@ export class ModalBox extends HTMLElement {
     this.open();
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = modalHtml;
+    const disableLoader = this.getAttribute("disable-loader") !== null;
+    this.toggleLoader(disableLoader ? false : true);
   }
 }
