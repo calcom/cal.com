@@ -8,8 +8,9 @@ import {
   IsOptional,
   IsArray,
   IsObject,
-  IsEmail,
   ValidateNested,
+  isEmail,
+  Validate,
 } from "class-validator";
 
 class Location {
@@ -27,7 +28,9 @@ class Response {
   @ApiProperty()
   name!: string;
 
-  @IsEmail()
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid response email",
+  })
   @ApiProperty()
   email!: string;
 

@@ -1,6 +1,7 @@
 import { BookingsController_2024_04_15 } from "@/ee/bookings/2024-04-15/controllers/bookings.controller";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -23,6 +24,7 @@ import { Module } from "@nestjs/common";
     UsersModule,
     EventTypesModule_2024_04_15,
     SchedulesModule_2024_04_15,
+    EventTypesModule_2024_06_14,
   ],
   providers: [
     TokensRepository,

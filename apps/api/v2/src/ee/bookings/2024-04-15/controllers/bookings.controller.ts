@@ -167,7 +167,8 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
-    const oAuthClientId = clientId?.toString();
+    const oAuthClientId =
+      clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
     try {
@@ -195,7 +196,7 @@ export class BookingsController_2024_04_15 {
   async cancelBooking(
     @Req() req: BookingRequest,
     @Param("bookingId") bookingId: string,
-    @Body() _: CancelBookingInput_2024_04_15,
+    @Body() body: CancelBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
@@ -252,11 +253,12 @@ export class BookingsController_2024_04_15 {
   @Post("/recurring")
   async createRecurringBooking(
     @Req() req: BookingRequest,
-    @Body() _: CreateRecurringBookingInput_2024_04_15[],
+    @Body() body: CreateRecurringBookingInput_2024_04_15[],
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
-    const oAuthClientId = clientId?.toString();
+    const oAuthClientId =
+      clientId?.toString() || (await this.getOAuthClientIdFromEventType(body[0]?.eventTypeId));
     try {
       const recurringEventId = uuidv4();
       for (const recurringEvent of req.body) {
@@ -291,11 +293,12 @@ export class BookingsController_2024_04_15 {
   @Post("/instant")
   async createInstantBooking(
     @Req() req: BookingRequest,
-    @Body() _: CreateBookingInput_2024_04_15,
+    @Body() body: CreateBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
-    const oAuthClientId = clientId?.toString();
+    const oAuthClientId =
+      clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
       const instantMeeting = await handleInstantMeeting(
@@ -339,6 +342,17 @@ export class BookingsController_2024_04_15 {
     } catch (err) {
       this.logger.error(err);
     }
+  }
+
+  private async getOAuthClientIdFromEventType(eventTypeId: number): Promise<number | undefined> {
+    if (!eventTypeId) {
+      return undefined;
+    }
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(eventTypeId);
+    if (!oAuthClientParams) {
+      return undefined;
+    }
+    return oAuthClientParams.platformClientId;
   }
 
   private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
