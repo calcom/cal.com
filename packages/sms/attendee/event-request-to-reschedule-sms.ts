@@ -10,10 +10,18 @@ export default class EventRequestToRescheduleSMS extends SMSManager {
 
   getMessage(attendee: Person) {
     const t = attendee.language.translate;
-    return `${t("request_reschedule_booking")}: ${t("request_reschedule_subtitle", {
+    const bookingUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}?changes=true`;
+
+    const requestRescheduleSubtitle = t("request_reschedule_subtitle", {
       organizer: this.calEvent.organizer.name,
-    })} \n\n${t("need_to_reschedule_or_cancel")} ${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${
-      this.calEvent.uid
-    }?changes=true`;
+    });
+
+    const needToRescheduleOrCancelText = t("need_to_reschedule_or_cancel");
+
+    const messageText = `${needToRescheduleOrCancelText}: ${requestRescheduleSubtitle} \n\n${t(
+      "need_to_reschedule_or_cancel"
+    )} ${bookingUrl}`;
+
+    return messageText;
   }
 }
