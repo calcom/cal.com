@@ -37,6 +37,7 @@ interface OutOfOfficeEntry {
   } | null;
   notes: string | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
+  canEditAndDelete: boolean;
 }
 
 export const OutOfOfficeEntriesList = () => {
@@ -189,61 +190,63 @@ export const OutOfOfficeEntriesList = () => {
         return (
           <>
             {row.original && !isPending && !isFetching ? (
-              <div className="flex flex-row items-center justify-end gap-x-2">
-                <Tooltip content={t("edit")}>
-                  <Button
-                    className="self-center rounded-lg border"
-                    type="button"
-                    color="secondary"
-                    variant="icon"
-                    data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
-                    StartIcon="pencil"
-                    onClick={() => {
-                      const offset = dayjs().utcOffset();
-                      const outOfOfficeEntryData: BookingRedirectForm = {
-                        uuid: item.uuid,
-                        dateRange: {
-                          startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
-                          endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
-                        },
-                        offset,
-                        toTeamUserId: item.toUserId,
-                        reasonId: item.reason?.id ?? 1,
-                        notes: item.notes ?? undefined,
-                        forUserId: item.user?.id || null,
-                        forUserName:
-                          item.user?.name ||
-                          (item.user?.email &&
-                            (() => {
-                              const emailName = item.user?.email.split("@")[0];
-                              return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                            })()),
-                        forUserAvatar: item.user?.avatarUrl,
-                        toUserName: item.toUser?.name || item.toUser?.username,
-                      };
-                      editOutOfOfficeEntry(outOfOfficeEntryData);
-                    }}
-                    disabled={isPending || isFetching}
-                  />
-                </Tooltip>
-                <Tooltip content={t("delete")}>
-                  <Button
-                    className="self-center rounded-lg border"
-                    type="button"
-                    color="destructive"
-                    variant="icon"
-                    disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
-                    StartIcon="trash-2"
-                    data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
-                    onClick={() => {
-                      deleteOutOfOfficeEntryMutation.mutate({
-                        outOfOfficeUid: item.uuid,
-                        userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
-                      });
-                    }}
-                  />
-                </Tooltip>
-              </div>
+              row.original.canEditAndDelete && (
+                <div className="flex flex-row items-center justify-end gap-x-2">
+                  <Tooltip content={t("edit")}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="secondary"
+                      variant="icon"
+                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
+                      StartIcon="pencil"
+                      onClick={() => {
+                        const offset = dayjs().utcOffset();
+                        const outOfOfficeEntryData: BookingRedirectForm = {
+                          uuid: item.uuid,
+                          dateRange: {
+                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
+                          },
+                          offset,
+                          toTeamUserId: item.toUserId,
+                          reasonId: item.reason?.id ?? 1,
+                          notes: item.notes ?? undefined,
+                          forUserId: item.user?.id || null,
+                          forUserName:
+                            item.user?.name ||
+                            (item.user?.email &&
+                              (() => {
+                                const emailName = item.user?.email.split("@")[0];
+                                return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                              })()),
+                          forUserAvatar: item.user?.avatarUrl,
+                          toUserName: item.toUser?.name || item.toUser?.username,
+                        };
+                        editOutOfOfficeEntry(outOfOfficeEntryData);
+                      }}
+                      disabled={isPending || isFetching}
+                    />
+                  </Tooltip>
+                  <Tooltip content={t("delete")}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="destructive"
+                      variant="icon"
+                      disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
+                      StartIcon="trash-2"
+                      data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
+                      onClick={() => {
+                        deleteOutOfOfficeEntryMutation.mutate({
+                          outOfOfficeUid: item.uuid,
+                          userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
+                        });
+                      }}
+                    />
+                  </Tooltip>
+                </div>
+              )
             ) : (
               <SkeletonText className="h-8 w-full" />
             )}

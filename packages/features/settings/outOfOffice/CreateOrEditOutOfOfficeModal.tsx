@@ -61,13 +61,16 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const [searchMember, setSearchMember] = useState("");
   const debouncedSearchMember = useDebounce(searchMember, 500);
-  const oooForMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearchMember },
-    {
-      enabled: true,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+  const oooForMembers =
+    oooType === OutOfOfficeTab.TEAM
+      ? trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
+          { limit: 10, searchText: debouncedSearchMember, adminOrOwnedTeamsOnly: true },
+          {
+            enabled: true,
+            getNextPageParam: (lastPage) => lastPage.nextCursor,
+          }
+        )
+      : undefined;
   const oooMemberListOptions: {
     value: number;
     label: string;
@@ -89,7 +92,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           avatarUrl: member.avatarUrl,
         })) || [];
   const { ref: observerRefMember } = useInViewObserver(() => {
-    if (oooForMembers.hasNextPage && !oooForMembers.isFetching) {
+    if (oooForMembers?.hasNextPage && !oooForMembers?.isFetching) {
       oooForMembers.fetchNextPage();
     }
   }, document.querySelector('[role="dialog"]'));
@@ -97,7 +100,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const [searchRedirectMember, setSearchRedirectMember] = useState("");
   const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
   const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearchRedirect },
+    { limit: 10, searchText: debouncedSearchRedirect, adminOrOwnedTeamsOnly: true },
     {
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -218,7 +221,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             />
 
             {/* In case of Team, Select Member for whom OOO is created */}
-            {oooType === "team" && (
+            {oooType === OutOfOfficeTab.TEAM && (
               <>
                 <div className="mb-4">
                   <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
@@ -270,10 +273,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <div className="text-default text-center" ref={observerRefMember}>
                           <Button
                             color="minimal"
-                            loading={oooForMembers.isFetchingNextPage}
-                            disabled={!oooForMembers.hasNextPage}
-                            onClick={() => oooForMembers.fetchNextPage()}>
-                            {oooForMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                            loading={oooForMembers?.isFetchingNextPage}
+                            disabled={!oooForMembers?.hasNextPage}
+                            onClick={() => oooForMembers?.fetchNextPage()}>
+                            {oooForMembers?.hasNextPage ? t("load_more_results") : t("no_more_results")}
                           </Button>
                         </div>
                       )}
