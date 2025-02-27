@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
-import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
+import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -12,6 +12,7 @@ import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { loadUsers } from "./loadUsers";
 import type { NewBookingEventType } from "./types";
@@ -20,6 +21,13 @@ type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
   createdAt?: Date;
+})[];
+
+export type UsersWithAllCredentials = (Omit<Awaited<ReturnType<typeof loadUsers>>[number], "credentials"> & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+  createdAt?: Date;
+  credentials: CredentialForCalendarService[];
 })[];
 
 type EventType = Pick<
@@ -60,7 +68,11 @@ export async function loadAndValidateUsers({
   contactOwnerEmail,
   rescheduleUid,
   routingFormResponse,
-}: InputProps): Promise<{ qualifiedRRUsers: Users; additionalFallbackRRUsers: Users; fixedUsers: Users }> {
+}: InputProps): Promise<{
+  qualifiedRRUsers: UsersWithAllCredentials;
+  additionalFallbackRRUsers: UsersWithAllCredentials;
+  fixedUsers: UsersWithAllCredentials;
+}> {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -68,6 +80,7 @@ export async function loadAndValidateUsers({
     routedTeamMemberIds,
     contactOwnerEmail,
   });
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     logger.warn({
@@ -109,32 +122,51 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await findQualifiedHosts({
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await findQualifiedHostsWithDwdCredentials({
     eventType,
     routedTeamMemberIds: routedTeamMemberIds || [],
     rescheduleUid,
     contactOwnerEmail,
     routingFormResponse,
   });
+  const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
+    (acc, host) => {
+      if (host.user.id) {
+        return { ...acc, [host.user.id]: host };
+      }
+      return acc;
+    },
+    {} as {
+      [key: number]: Awaited<
+        ReturnType<typeof findQualifiedHostsWithDwdCredentials>
+      >["qualifiedRRHosts"][number];
+    }
+  );
 
-  let qualifiedRRUsers: Users = [];
-  let allFallbackRRUsers: Users = [];
-  let fixedUsers: Users = [];
+  let qualifiedRRUsers: UsersWithAllCredentials = [];
+  let allFallbackRRUsers: UsersWithAllCredentials = [];
+  let fixedUsers: UsersWithAllCredentials = [];
 
   if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
     const qualifiedHostIds = new Set(qualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
-    qualifiedRRUsers = users.filter((user) => qualifiedHostIds.has(user.id));
+    qualifiedRRUsers = users
+      .filter((user) => qualifiedHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
   }
 
   if (allFallbackRRHosts?.length) {
     const fallbackHostIds = new Set(allFallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
-    allFallbackRRUsers = users.filter((user) => fallbackHostIds.has(user.id));
+    allFallbackRRUsers = users
+      .filter((user) => fallbackHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
   }
 
   if (fixedHosts?.length) {
     const fixedHostIds = new Set(fixedHosts.map((fixedHost) => fixedHost.user.id));
-    fixedUsers = users.filter((user) => fixedHostIds.has(user.id));
+    fixedUsers = users
+      .filter((user) => fixedHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
   }
 
   logger.debug(
@@ -151,6 +183,9 @@ export async function loadAndValidateUsers({
   return {
     qualifiedRRUsers,
     additionalFallbackRRUsers, // without qualified
-    fixedUsers: !qualifiedRRUsers.length && !fixedUsers.length ? users : fixedUsers,
+    fixedUsers:
+      !qualifiedRRUsers.length && !fixedUsers.length
+        ? users.map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }))
+        : fixedUsers,
   };
 }

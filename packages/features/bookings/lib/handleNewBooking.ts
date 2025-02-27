@@ -53,7 +53,6 @@ import {
   enrichHostsWithDwdCredentials,
   getFirstDwdConferencingCredentialAppLocation,
 } from "@calcom/lib/domainWideDelegation/server";
-import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -81,6 +80,7 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -117,6 +117,10 @@ import handleSeats from "./handleSeats/handleSeats";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
+
+type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
+  credentials: CredentialForCalendarService[];
+};
 
 export const createLoggerWithEventDetails = (
   eventTypeId: number,
@@ -499,24 +503,11 @@ async function handler(
   // We filter out users but ensure allHostUsers remain same.
   let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
 
-  const firstUserWithoutDwdCredentials: (typeof users)[number] | undefined = users[0];
-
-  // We use first user's org ID assuming that each and every member would be within the same organization.
-  const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
-    memberId: firstUserWithoutDwdCredentials?.id ?? null,
-    teamId: eventType.teamId,
-  });
-
-  const allHostUsers = await enrichUsersWithDwdCredentials({
-    orgId: firstUserOrgId ?? null,
-    users,
-  });
-
-  const firstUser = allHostUsers[0];
+  const firstUser = users[0];
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb({
     dynamicUserList,
-    users: allHostUsers,
+    users,
     location,
   });
 
@@ -551,10 +542,10 @@ async function handler(
   //checks what users are available
   if (isFirstSeat) {
     const eventTypeWithUsers: Omit<getEventTypeResponse, "users"> & {
-      users: IsFixedAwareUser[];
+      users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
-      users: users as IsFixedAwareUser[],
+      users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
           ...eventType.recurringEvent,
@@ -568,7 +559,7 @@ async function handler(
         eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
       const fixedUsers = isTeamEvent
-        ? eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed)
+        ? eventTypeWithUsers.users.filter((user: IsFixedAwareUserWithCredentials) => user.isFixed)
         : [];
 
       for (
@@ -594,6 +585,7 @@ async function handler(
             );
           }
         } else {
+          eventTypeWithUsers.users[0].credentials;
           await ensureAvailableUsers(
             eventTypeWithUsers,
             {
@@ -690,7 +682,10 @@ async function handler(
         // freeUsers is ensured
 
         const userIdsSet = new Set(users.map((user) => user.id));
-
+        const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+          memberId: eventTypeWithUsers.users[0].id ?? null,
+          teamId: eventType.teamId,
+        });
         const newLuckyUser = await getLuckyUser({
           // find a lucky user that is not already in the luckyUsers array
           availableUsers: freeUsers,
@@ -699,7 +694,7 @@ async function handler(
               orgId: firstUserOrgId ?? null,
               hosts: eventTypeWithUsers.hosts,
             })
-          ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)), // users part of virtual queue
+          ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
           eventType,
           routingFormResponse,
         });
@@ -1289,7 +1284,7 @@ async function handler(
         endTime: reqBody.end,
         contactOwnerFromReq,
         contactOwnerEmail,
-        allHostUsers,
+        allHostUsers: users,
         isManagedEventType,
       });
       booking = dryRunBooking;

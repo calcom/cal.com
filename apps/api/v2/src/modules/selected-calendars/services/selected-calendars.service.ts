@@ -1,6 +1,6 @@
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { OrganizationsDwdRepository } from "@/modules/organizations/dwd/organizations-dwd.repository";
-import { OrganizationsMembershipService } from "@/modules/organizations/services/organizations-membership.service";
+import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import {
   SelectedCalendarsInputDto,
   SelectedCalendarsQueryParamsInputDto,

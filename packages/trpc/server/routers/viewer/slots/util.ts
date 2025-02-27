@@ -18,13 +18,11 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
+import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -40,7 +38,7 @@ import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -51,6 +49,9 @@ import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 type GetAvailabilityUserWithoutDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialPayload[];
+};
+type GetAvailabilityUserWithDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialForCalendarService[];
 };
 const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
   select: {
@@ -274,7 +275,7 @@ export function getUsersWithCredentials({
 }: {
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUserWithoutDwdCredentials;
+    user: GetAvailabilityUserWithDwdCredentials;
   }[];
 }) {
   return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
@@ -383,7 +384,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
-    findQualifiedHosts<GetAvailabilityUserWithoutDwdCredentials>,
+    findQualifiedHostsWithDwdCredentials<GetAvailabilityUserWithoutDwdCredentials>,
     {
       eventType,
       rescheduleUid: input.rescheduleUid ?? null,
@@ -394,15 +395,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   );
 
   const allHosts = [...qualifiedRRHosts, ...fixedHosts];
-
-  const firstUser: GetAvailabilityUserWithoutDwdCredentials | undefined = allHosts[0]?.user;
-
-  const firstUserOrgId =
-    (await getOrgIdFromMemberOrTeamId({
-      // TODO: Instead of using the firstUser, there should be a better way to determine the orgId
-      memberId: firstUser?.id ?? null,
-      teamId: eventType?.team?.id,
-    })) ?? null;
 
   const twoWeeksFromNow = dayjs().add(2, "week");
 
@@ -425,7 +417,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         : endTime,
     bypassBusyCalendarTimes,
     shouldServeCache,
-    orgId: firstUserOrgId,
   });
 
   let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -450,7 +441,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
           endTime: twoWeeksFromNow,
           bypassBusyCalendarTimes,
           shouldServeCache,
-          orgId: firstUserOrgId,
         });
         if (
           !getAggregatedAvailability(
@@ -484,7 +474,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         endTime,
         bypassBusyCalendarTimes,
         shouldServeCache,
-        orgId: firstUserOrgId,
       }));
       aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
     }
@@ -1007,26 +996,21 @@ const calculateHostsAndAvailabilities = async ({
   endTime,
   bypassBusyCalendarTimes,
   shouldServeCache,
-  orgId,
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUserWithoutDwdCredentials;
+    user: GetAvailabilityUserWithDwdCredentials;
   }[];
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
-  orgId: number | null;
 }) => {
-  const usersWithCredentials = await enrichUsersWithDwdCredentials({
-    users: monitorCallbackSync(getUsersWithCredentials, {
-      hosts,
-    }),
-    orgId,
+  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentials, {
+    hosts,
   });
 
   loggerWithEventDetails.debug("Using users", {

@@ -13666,6 +13666,144 @@
         },
         "required": ["status", "data"]
       },
+      "GoogleServiceAccountKeyInput": {
+        "type": "object",
+        "properties": {
+          "private_key": {
+            "type": "string"
+          },
+          "client_email": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": ["private_key", "client_email", "client_id"]
+      },
+      "CreateDwdInput": {
+        "type": "object",
+        "properties": {
+          "workspacePlatformSlug": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
+          }
+        },
+        "required": ["workspacePlatformSlug", "domain", "serviceAccountKey"]
+      },
+      "WorkspacePlatformDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "slug"]
+      },
+      "DwdOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "workspacePlatform": {
+            "$ref": "#/components/schemas/WorkspacePlatformDto"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "enabled",
+          "domain",
+          "organizationId",
+          "workspacePlatform",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateDwdInput": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "UpdateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
       "CreateOrganizationInput": {
         "type": "object",
         "properties": {
@@ -13831,144 +13969,6 @@
             "items": {
               "$ref": "#/components/schemas/RoutingFormResponseOutput"
             }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GoogleServiceAccountKeyInput": {
-        "type": "object",
-        "properties": {
-          "private_key": {
-            "type": "string"
-          },
-          "client_email": {
-            "type": "string"
-          },
-          "client_id": {
-            "type": "string"
-          }
-        },
-        "required": ["private_key", "client_email", "client_id"]
-      },
-      "CreateDwdInput": {
-        "type": "object",
-        "properties": {
-          "workspacePlatformSlug": {
-            "type": "string"
-          },
-          "domain": {
-            "type": "string"
-          },
-          "serviceAccountKey": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
-                },
-                {
-                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
-                }
-              ]
-            }
-          }
-        },
-        "required": ["workspacePlatformSlug", "domain", "serviceAccountKey"]
-      },
-      "WorkspacePlatformDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          }
-        },
-        "required": ["name", "slug"]
-      },
-      "DwdOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "domain": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "number"
-          },
-          "workspacePlatform": {
-            "$ref": "#/components/schemas/WorkspacePlatformDto"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "enabled",
-          "domain",
-          "organizationId",
-          "workspacePlatform",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "CreateDwdOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/DwdOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateDwdInput": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          },
-          "serviceAccountKey": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
-                },
-                {
-                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "UpdateDwdOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/DwdOutput"
           }
         },
         "required": ["status", "data"]
