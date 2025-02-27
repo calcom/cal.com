@@ -278,7 +278,7 @@ function EventTypeSingleLayout({
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
-              className="primary-navigation"
+              className="primary-navigation max-w-64 w-full"
               tabs={EventTypeTabs}
               sticky
               linkShallow

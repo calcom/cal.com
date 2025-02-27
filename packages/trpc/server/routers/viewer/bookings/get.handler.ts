@@ -1,6 +1,8 @@
 import { Prisma as PrismaClientType } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { makeWhereClause } from "@calcom/features/data-table/lib/server";
+import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
@@ -168,13 +170,13 @@ export async function getBookings({
 
   const [
     eventTypeIdsFromTeamIdsFilter,
-    { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter },
+    attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwener,
     userIdsWhereUserIsOrgAdminOrOwener,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
-    getIdsFromUserIdsFilter(prisma, user.email, filters?.userIds),
+    getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
     getUserIdsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
@@ -224,7 +226,7 @@ export async function getBookings({
               },
             ]
           : []),
-        ...(filters?.userIds && filters.userIds.length > 0 && eventTypeIdsFromUserIdsFilter
+        ...(filters?.userIds && filters.userIds.length > 0
           ? [
               {
                 OR: [
@@ -233,15 +235,6 @@ export async function getBookings({
                       in: filters.userIds,
                     },
                   },
-                  ...(eventTypeIdsFromUserIdsFilter?.length
-                    ? [
-                        {
-                          eventTypeId: {
-                            in: eventTypeIdsFromUserIdsFilter,
-                          },
-                        },
-                      ]
-                    : []),
                   ...(attendeeEmailsFromUserIdsFilter?.length
                     ? [
                         {
@@ -266,20 +259,47 @@ export async function getBookings({
               },
             ]
           : []),
-        ...(filters?.attendeeEmail
+
+        ...(typeof filters?.attendeeEmail === "string"
           ? [
               {
                 attendees: { some: { email: filters.attendeeEmail.trim() } },
               },
             ]
           : []),
-        ...(filters?.attendeeName
+        ...(isTextFilterValue(filters?.attendeeEmail)
+          ? [
+              {
+                attendees: {
+                  some: makeWhereClause({
+                    columnName: "email",
+                    filterValue: filters.attendeeEmail,
+                  }),
+                },
+              },
+            ]
+          : []),
+
+        ...(typeof filters?.attendeeName === "string"
           ? [
               {
                 attendees: { some: { name: filters.attendeeName.trim() } },
               },
             ]
           : []),
+        ...(isTextFilterValue(filters?.attendeeName)
+          ? [
+              {
+                attendees: {
+                  some: makeWhereClause({
+                    columnName: "name",
+                    filterValue: filters.attendeeName,
+                  }),
+                },
+              },
+            ]
+          : []),
+
         ...(filters?.afterStartDate
           ? [
               {
@@ -462,71 +482,30 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
   return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
 }
 
-async function getIdsFromUserIdsFilter(prisma: PrismaClient, userEmail: string, userIds?: number[]) {
+async function getAttendeeEmailsFromUserIdsFilter(
+  prisma: PrismaClient,
+  userEmail: string,
+  userIds?: number[]
+) {
   if (!userIds || userIds.length === 0) {
-    return {
-      eventTypeIdsFromUserIdsFilter: undefined,
-      attendeeEmailsFromUserIdsFilter: undefined,
-    };
+    return;
   }
 
-  const [attendeeEmailsFromUserIdsFilter, eventTypeIdsFromHostsFilter, eventTypeIdsFromUsersFilter] =
-    await Promise.all([
-      prisma.user
-        .findMany({
-          where: {
-            id: {
-              in: userIds,
-            },
-          },
-          select: {
-            email: true,
-          },
-        })
-        // Include booking if current user is an attendee, regardless of user ID filter
-        .then((users) => users.map((user) => user.email).concat([userEmail])),
+  const attendeeEmailsFromUserIdsFilter = await prisma.user
+    .findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        email: true,
+      },
+    })
+    // Include booking if current user is an attendee, regardless of user ID filter
+    .then((users) => users.map((user) => user.email).concat([userEmail]));
 
-      prisma.eventType
-        .findMany({
-          where: {
-            hosts: {
-              some: {
-                userId: {
-                  in: userIds,
-                },
-                isFixed: true,
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-
-      prisma.eventType
-        .findMany({
-          where: {
-            users: {
-              some: {
-                id: {
-                  in: userIds,
-                },
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-    ]);
-
-  const eventTypeIdsFromUserIdsFilter = Array.from(
-    new Set([...eventTypeIdsFromHostsFilter, ...eventTypeIdsFromUsersFilter])
-  );
-
-  return { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter };
+  return attendeeEmailsFromUserIdsFilter;
 }
 
 async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, eventTypeIds?: number[]) {

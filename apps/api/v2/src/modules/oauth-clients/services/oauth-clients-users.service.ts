@@ -5,7 +5,7 @@ import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-us
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-import { User, CreationSource } from "@prisma/client";
+import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
@@ -18,12 +18,10 @@ export class OAuthClientUsersService {
     private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
-  async createOauthClientUser(
-    oAuthClientId: string,
-    body: CreateManagedUserInput,
-    isPlatformManaged: boolean,
-    organizationId?: number
-  ) {
+  async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
+    const oAuthClientId = oAuthClient.id;
+    const organizationId = oAuthClient.organizationId;
+
     const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
     if (existingUser) {
       throw new ConflictException(
@@ -33,7 +31,9 @@ export class OAuthClientUsersService {
 
     let user: User;
     if (!organizationId) {
-      throw new BadRequestException("You cannot create a managed user outside of an organization");
+      throw new BadRequestException(
+        "You cannot create a managed user outside of an organization - the OAuth client does not belong to any organization."
+      );
     } else {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
@@ -55,7 +55,7 @@ export class OAuthClientUsersService {
               autoAccept: true,
             },
           },
-          isPlatformManaged,
+          isPlatformManaged: true,
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
@@ -77,7 +77,9 @@ export class OAuthClientUsersService {
       user.id
     );
 
-    await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    if (oAuthClient.areDefaultEventTypesEnabled) {
+      await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    }
 
     if (body.timeZone) {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);

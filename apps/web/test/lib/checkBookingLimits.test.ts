@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { checkBookingLimits, checkBookingLimit } from "@calcom/lib/server";
+import { checkBookingLimits, checkBookingLimit } from "@calcom/lib/server/checkBookingLimits";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 type Mockdata = {
