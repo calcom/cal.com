@@ -5,12 +5,17 @@
   "description": "Shared tRPC library for Cal.com",
   "authors": "zomars",
   "version": "1.0.0",
-  "main": "index.ts",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "build": "yarn trpc:generate || true",
     "trpc:generate": "yarn tsc --project tsconfig.json"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/router.d.ts",
+      "default": "./index.ts"
+    }
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.15",

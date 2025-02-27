@@ -29,7 +29,6 @@
     "react",
     "server"
   ],
-  "exclude": ["**/node_modules/**", "types/router.d.ts"],
   "compilerOptions": {
     "isolatedModules": false,
     "noEmit": false,
@@ -38,6 +37,6 @@
     "experimentalDecorators": true,
     "declarationMap": false,
     "resolveJsonModule": true,
-    "outFile": "types/router.d.ts"
+    "outFile": "dist/router.d.ts"
   }
 }
