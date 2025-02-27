@@ -657,7 +657,7 @@ const ProfileForm = ({
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
-          <div className="-mt-2 flex gap-2">
+          <div className="-mt-2 flex gap-2 overflow-auto">
             {secondaryEmailFields.map((field, index) => (
               <CustomEmailTextField
                 key={field.itemId}
