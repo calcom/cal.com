@@ -33,7 +33,7 @@ export class SlotsController {
     };
   }
 
-  @Post("/")
+  @Get("/")
   @ApiQuery({
     name: "timeZone",
     required: false,
