@@ -3,6 +3,8 @@ import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
 import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
+import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -23,7 +25,7 @@ type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   createdAt?: Date;
 })[];
 
-export type UsersWithAllCredentials = (Omit<Awaited<ReturnType<typeof loadUsers>>[number], "credentials"> & {
+export type UsersWithDwdCredentials = (Omit<Awaited<ReturnType<typeof loadUsers>>[number], "credentials"> & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
   createdAt?: Date;
@@ -44,6 +46,7 @@ type EventType = Pick<
   | "rrSegmentQueryValue"
   | "isRRWeightsEnabled"
   | "rescheduleWithSameRoundRobinHost"
+  | "teamId"
 >;
 
 type InputProps = {
@@ -69,9 +72,9 @@ export async function loadAndValidateUsers({
   rescheduleUid,
   routingFormResponse,
 }: InputProps): Promise<{
-  qualifiedRRUsers: UsersWithAllCredentials;
-  additionalFallbackRRUsers: UsersWithAllCredentials;
-  fixedUsers: UsersWithAllCredentials;
+  qualifiedRRUsers: UsersWithDwdCredentials;
+  additionalFallbackRRUsers: UsersWithDwdCredentials;
+  fixedUsers: UsersWithDwdCredentials;
 }> {
   let users: Users = await loadUsers({
     eventType,
@@ -143,9 +146,9 @@ export async function loadAndValidateUsers({
     }
   );
 
-  let qualifiedRRUsers: UsersWithAllCredentials = [];
-  let allFallbackRRUsers: UsersWithAllCredentials = [];
-  let fixedUsers: UsersWithAllCredentials = [];
+  let qualifiedRRUsers: UsersWithDwdCredentials = [];
+  let allFallbackRRUsers: UsersWithDwdCredentials = [];
+  let fixedUsers: UsersWithDwdCredentials = [];
 
   if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
@@ -180,12 +183,26 @@ export async function loadAndValidateUsers({
     (fallbackUser) => !qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id === fallbackUser.id)
   );
 
+  if (!qualifiedRRUsers.length && !fixedUsers.length) {
+    const firstUser = users[0];
+    const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: firstUser.id ?? null,
+      teamId: eventType.teamId,
+    });
+    const usersEnrichedWithDwd = await enrichUsersWithDwdCredentials({
+      orgId: firstUserOrgId ?? null,
+      users,
+    });
+    return {
+      qualifiedRRUsers,
+      additionalFallbackRRUsers, // without qualified
+      fixedUsers: usersEnrichedWithDwd,
+    };
+  }
+
   return {
     qualifiedRRUsers,
     additionalFallbackRRUsers, // without qualified
-    fixedUsers:
-      !qualifiedRRUsers.length && !fixedUsers.length
-        ? users.map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }))
-        : fixedUsers,
+    fixedUsers,
   };
 }
