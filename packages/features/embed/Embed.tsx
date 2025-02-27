@@ -2,7 +2,7 @@ import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import type { RefObject } from "react";
+import type { RefObject, Dispatch, SetStateAction } from "react";
 import { createRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
@@ -14,6 +14,7 @@ import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings"
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
+import type { Slot } from "@calcom/features/schedules";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
@@ -233,12 +234,16 @@ const EmailEmbed = ({
   username,
   orgSlug,
   isTeamEvent,
+  selectedDuration,
+  setSelectedDuration,
   userSettingsTimezone,
 }: {
   eventType?: EventType;
   username: string;
   orgSlug?: string;
   isTeamEvent: boolean;
+  selectedDuration: number | undefined;
+  setSelectedDuration: Dispatch<SetStateAction<number | undefined>>;
   userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
@@ -274,10 +279,16 @@ const EmailEmbed = ({
       shallow
     );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
+  const schedule = useScheduleForEvent({
+    orgSlug,
+    eventId: eventType?.id,
+    isTeamEvent,
+    duration: selectedDuration,
+  });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
-  const onTimeSelect = (time: string) => {
+  const handleSlotClick = (slot: Slot) => {
+    const { time } = slot;
     if (!eventType) {
       return null;
     }
@@ -334,6 +345,15 @@ const EmailEmbed = ({
   if (!eventType) {
     return null;
   }
+  if (!selectedDuration) {
+    setSelectedDuration(eventType.length);
+  }
+
+  const multipleDurations = eventType?.metadata?.multipleDuration ?? [];
+  const durationsOptions = multipleDurations.map((duration) => ({
+    label: `${duration} ${t("minutes")}`,
+    value: duration,
+  }));
 
   return (
     <div className="flex flex-col">
@@ -375,7 +395,7 @@ const EmailEmbed = ({
                     ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
                     : undefined
                 }
-                onTimeSelect={onTimeSelect}
+                handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
                 event={event}
@@ -388,12 +408,23 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">{t("duration")}</div>
-            <TextField
-              disabled
-              label={t("duration")}
-              defaultValue={eventType?.length ?? 15}
-              addOnSuffix={<>{t("minutes")}</>}
-            />
+            {durationsOptions.length > 0 ? (
+              <Select<{ label: string; value: number }>
+                value={durationsOptions.find((option) => option.value === selectedDuration)}
+                options={durationsOptions}
+                onChange={(option) => {
+                  setSelectedDuration(option?.value);
+                  setSelectedDatesAndTimes({});
+                }}
+              />
+            ) : (
+              <TextField
+                disabled
+                label={t("duration")}
+                defaultValue={eventType?.length ?? 15}
+                addOnSuffix={<>{t("minutes")}</>}
+              />
+            )}
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -416,6 +447,7 @@ const EmailEmbedPreview = ({
   month,
   selectedDateAndTime,
   calLink,
+  selectedDuration,
   userSettingsTimezone,
 }: {
   eventType: EventType;
@@ -425,6 +457,7 @@ const EmailEmbedPreview = ({
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
   calLink: string;
+  selectedDuration: number | undefined;
   userSettingsTimezone?: string;
 }) => {
   const { t } = useLocale();
@@ -472,7 +505,7 @@ const EmailEmbedPreview = ({
               lineHeight: "17px",
               color: "#333333",
             }}>
-            {t("duration")}: <b style={{ color: "black" }}>{eventType.length} mins</b>
+            {t("duration")}: <b style={{ color: "black" }}>{selectedDuration} mins</b>
           </div>
           <div>
             <b style={{ color: "black" }}>
@@ -534,9 +567,9 @@ const EmailEmbedPreview = ({
                                         // So we add 'team/' to the url.
                                         const bookingURL = `${eventType.bookerUrl}/${
                                           eventType.teamId !== null ? "team/" : ""
-                                        }${username}/${eventType.slug}?duration=${
-                                          eventType.length
-                                        }&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
+                                        }${username}/${
+                                          eventType.slug
+                                        }?duration=${selectedDuration}&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
                                         return (
                                           <td
                                             key={time}
@@ -705,6 +738,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const refOfEmbedCodesRefs = useRef(embedCodeRefs);
   const embed = types.find((embed) => embed.type === embedType);
+  const [selectedDuration, setSelectedDuration] = useState(eventTypeData?.eventType.length);
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
@@ -895,6 +929,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               userSettingsTimezone={userSettings?.timeZone}
               orgSlug={data?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
+              selectedDuration={selectedDuration}
+              setSelectedDuration={setSelectedDuration}
             />
           ) : (
             <div className="flex flex-col">
@@ -1238,6 +1274,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
                     <div className="flex h-[55vh] flex-grow flex-col">
                       <EmailEmbedPreview
+                        selectedDuration={selectedDuration}
                         calLink={calLink}
                         eventType={eventTypeData?.eventType}
                         emailContentRef={emailContentRef}

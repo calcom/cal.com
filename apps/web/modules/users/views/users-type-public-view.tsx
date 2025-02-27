@@ -48,6 +48,4 @@ function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBa
   );
 }
 
-Type.isBookingPage = true;
-
 export default Type;
