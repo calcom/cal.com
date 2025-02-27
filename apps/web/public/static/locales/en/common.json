@@ -2966,6 +2966,8 @@
   "desc": "Desc",
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
+  "verify_email_description" : "Please enter the email address used for this booking to proceed with cancellation",
+  "email_verification_error" : "Email dosen't match the booking email",
   "end_date_not_selected": "You didn't set an end date for your OOO",
   "my_ooo": "My OOO",
   "team_ooo": "Team OOO",
