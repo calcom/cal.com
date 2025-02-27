@@ -22,6 +22,7 @@ const recurringEventInputSchema = z.object({
 const hostSchema = _HostModel.pick({
   isFixed: true,
   userId: true,
+  scheduleId: true,
 });
 
 export const childrenSchema = z.object({
