@@ -660,24 +660,25 @@ const ProfileForm = ({
           <Label>{t("email")}</Label>
           <div className="-mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {secondaryEmailFields.map((field, index) => (
-              <CustomEmailTextField
-                key={field.itemId}
-                formMethods={formMethods}
-                formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
-                emailVerified={Boolean(field.emailVerified)}
-                emailPrimary={field.emailPrimary}
-                dataTestId={`profile-form-email-${index}`}
-                handleChangePrimary={() => {
-                  const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                    ...secondaryField,
-                    emailPrimary: cIndex === index,
-                  }));
-                  updateAllSecondaryEmailFields(fields);
-                }}
-                handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                handleItemDelete={() => deleteSecondaryEmail(index)}
-              />
+              <div key={field.itemId} className={secondaryEmailFields.length === 1 ? "sm:col-span-2" : ""}>
+                <CustomEmailTextField
+                  formMethods={formMethods}
+                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                  emailVerified={Boolean(field.emailVerified)}
+                  emailPrimary={field.emailPrimary}
+                  dataTestId={`profile-form-email-${index}`}
+                  handleChangePrimary={() => {
+                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                      ...secondaryField,
+                      emailPrimary: cIndex === index,
+                    }));
+                    updateAllSecondaryEmailFields(fields);
+                  }}
+                  handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                  handleItemDelete={() => deleteSecondaryEmail(index)}
+                />
+              </div>
             ))}
             <div className="col-span-2">
               <Button
