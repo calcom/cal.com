@@ -49,4 +49,15 @@ export class BookingReferenceRepository {
       }),
     });
   }
+  static async createGoogleCalendarReferenceForBooking({
+    event,
+    bookingId,
+  }: {
+    event: calendar_v3.Schema$Event;
+    bookingId: number;
+  }) {
+    await prisma.bookingReference.create({
+      data: { type: "google_calendar", uid: event.id, bookingId, rawData: event },
+    });
+  }
 }
