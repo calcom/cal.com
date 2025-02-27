@@ -4,6 +4,7 @@ import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark
 import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
+import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -98,7 +99,8 @@ export class BookingsController_2024_04_15 {
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly billingService: BillingService,
     private readonly config: ConfigService,
-    private readonly apiKeyRepository: ApiKeysRepository
+    private readonly apiKeyRepository: ApiKeysRepository,
+    private readonly platformBookingsService: PlatformBookingsService
   ) {}
 
   @Get("/")
@@ -389,7 +391,25 @@ export class BookingsController_2024_04_15 {
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
     };
+    if (oAuthClientId) {
+      await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
+    }
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+  }
+
+  async setPlatformAttendeesEmails(requestBody: any, oAuthClientId: string): Promise<void> {
+    if (requestBody?.responses?.email) {
+      requestBody.responses.email = await this.platformBookingsService.getPlatformAttendeeEmail(
+        requestBody.responses.email,
+        oAuthClientId
+      );
+    }
+    if (requestBody?.responses?.guests) {
+      requestBody.responses.guests = await this.platformBookingsService.getPlatformAttendeesEmails(
+        requestBody.responses.guests,
+        oAuthClientId
+      );
+    }
   }
 
   private async createNextApiRecurringBookingRequest(
@@ -418,6 +438,9 @@ export class BookingsController_2024_04_15 {
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
     });
+    if (oAuthClientId) {
+      await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
+    }
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 

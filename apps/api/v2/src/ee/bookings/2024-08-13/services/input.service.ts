@@ -3,6 +3,7 @@ import {
   bookingResponsesSchema,
   seatedBookingDataSchema,
 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -75,15 +76,16 @@ export class InputBookingsService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
-    private readonly bookingSeatRepository: BookingSeatRepository
+    private readonly bookingSeatRepository: BookingSeatRepository,
+    private readonly platformBookingsService: PlatformBookingsService
   ) {}
 
   async createBookingRequest(
     request: Request,
     body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13
   ): Promise<BookingRequest> {
-    const bodyTransformed = await this.transformInputCreateBooking(body);
     const oAuthClientParams = await this.getOAuthClientParams(body.eventTypeId);
+    const bodyTransformed = await this.transformInputCreateBooking(body, oAuthClientParams?.platformClientId);
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -134,7 +136,7 @@ export class InputBookingsService_2024_08_13 {
     return undefined;
   }
 
-  async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13) {
+  async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13, platformClientId?: string) {
     const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
       inputBooking.eventTypeId
     );
@@ -151,7 +153,17 @@ export class InputBookingsService_2024_08_13 {
     );
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
-    const guests = inputBooking.guests;
+    const guests =
+      inputBooking.guests && platformClientId
+        ? await this.platformBookingsService.getPlatformAttendeesEmails(inputBooking.guests, platformClientId)
+        : inputBooking.guests;
+    const attendeeEmail =
+      inputBooking.attendee.email && platformClientId
+        ? await this.platformBookingsService.getPlatformAttendeeEmail(
+            inputBooking.attendee.email,
+            platformClientId
+          )
+        : inputBooking.attendee.email;
 
     return {
       start: startTime.toISO(),
@@ -163,20 +175,13 @@ export class InputBookingsService_2024_08_13 {
       hasHashedBookingLink: false,
       guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
-      responses: inputBooking.bookingFieldsResponses
-        ? {
-            ...inputBooking.bookingFieldsResponses,
-            name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email ?? "",
-            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
-            guests,
-          }
-        : {
-            name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email ?? "",
-            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
-            guests,
-          },
+      responses: {
+        ...(inputBooking.bookingFieldsResponses || {}),
+        name: inputBooking.attendee.name,
+        email: attendeeEmail ?? "",
+        attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+        guests,
+      },
     };
   }
 
@@ -203,9 +208,12 @@ export class InputBookingsService_2024_08_13 {
     request: Request,
     body: CreateRecurringBookingInput_2024_08_13
   ): Promise<BookingRequest> {
-    // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
-    const bodyTransformed = await this.transformInputCreateRecurringBooking(body);
     const oAuthClientParams = await this.getOAuthClientParams(body.eventTypeId);
+    // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
+    const bodyTransformed = await this.transformInputCreateRecurringBooking(
+      body,
+      oAuthClientParams?.platformClientId
+    );
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -231,7 +239,10 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
-  async transformInputCreateRecurringBooking(inputBooking: CreateRecurringBookingInput_2024_08_13) {
+  async transformInputCreateRecurringBooking(
+    inputBooking: CreateRecurringBookingInput_2024_08_13,
+    platformClientId?: string
+  ) {
     const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
       inputBooking.eventTypeId
     );
@@ -261,7 +272,17 @@ export class InputBookingsService_2024_08_13 {
       inputBooking.attendee.timeZone
     );
 
-    const guests = inputBooking.guests;
+    const guests =
+      inputBooking.guests && platformClientId
+        ? await this.platformBookingsService.getPlatformAttendeesEmails(inputBooking.guests, platformClientId)
+        : inputBooking.guests;
+    const attendeeEmail =
+      inputBooking.attendee.email && platformClientId
+        ? await this.platformBookingsService.getPlatformAttendeeEmail(
+            inputBooking.attendee.email,
+            platformClientId
+          )
+        : inputBooking.attendee.email;
 
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: eventType.length });
@@ -277,14 +298,12 @@ export class InputBookingsService_2024_08_13 {
         hasHashedBookingLink: false,
         guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
-        responses: inputBooking.bookingFieldsResponses
-          ? {
-              ...inputBooking.bookingFieldsResponses,
-              name: inputBooking.attendee.name,
-              email: inputBooking.attendee.email,
-              guests,
-            }
-          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests },
+        responses: {
+          ...(inputBooking.bookingFieldsResponses || {}),
+          name: inputBooking.attendee.name,
+          email: attendeeEmail,
+          guests,
+        },
         schedulingType: eventType.schedulingType,
       });
 
