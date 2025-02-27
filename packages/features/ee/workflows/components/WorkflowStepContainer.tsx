@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
+import type { OptionProps } from "react-select";
+import { components } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
@@ -40,6 +42,7 @@ import {
   TextArea,
   TextField,
   Tooltip,
+  UpgradeTeamsBadge,
 } from "@calcom/ui";
 
 import {
@@ -821,6 +824,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   render={({ field }) => {
                     return (
                       <Select
+                        components={{
+                          Option: ReactSelectOptionComponent,
+                        }}
                         isSearchable={false}
                         className="text-sm"
                         isDisabled={props.readOnly}
@@ -885,12 +891,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}
                         defaultValue={selectedTemplate}
                         value={selectedTemplate}
+                        isMulti={false}
                         options={templateOptions}
-                        isOptionDisabled={(option: {
-                          label: string;
-                          value: any;
-                          needsTeamsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade}
+                        isOptionDisabled={(option: (typeof templateOptions)[0]) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
@@ -1159,3 +1162,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   return <></>;
 }
+
+type templateOption = ReturnType<typeof getWorkflowTemplateOptions>[0];
+
+const ReactSelectOptionComponent = ({ children, ...props }: OptionProps<templateOption>) => {
+  return (
+    <components.Option {...props}>
+      <div className="flex items-center justify-between">
+        {children}
+        {props.isDisabled && <UpgradeTeamsBadge />}
+      </div>
+    </components.Option>
+  );
+};

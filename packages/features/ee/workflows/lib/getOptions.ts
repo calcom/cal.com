@@ -56,5 +56,5 @@ export function getWorkflowTemplateOptions(
       value: template,
       needsTeamsUpgrade: !hasPaidPlan && template == WorkflowTemplates.CUSTOM,
     };
-  }) as { label: string; value: any; needsTeamsUpgrade: boolean }[];
+  });
 }
