@@ -9,10 +9,6 @@ import UserPage from "./users-public-view";
 
 function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof UserPage>>) {
   return {
-    trpcState: {
-      mutations: [],
-      queries: [],
-    },
     themeBasis: "dark",
     safeBio: "My Bio",
     profile: {

@@ -21,8 +21,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 
 function getOrgProfileRedirectToVerifiedDomain(
@@ -103,7 +101,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const ssr = await ssrInit(context);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
 
   // Taking care of sub-teams and orgs
@@ -149,7 +146,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           parent: teamParent,
           createdAt: null,
         },
-        trpcState: ssr.dehydrate(),
       },
     } as const;
   }
@@ -215,7 +211,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       props: {
         considerUnpublished: true,
         team: { ...serializableTeam },
-        trpcState: ssr.dehydrate(),
       },
     } as const;
   }
@@ -230,7 +225,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
       themeBasis: serializableTeam.slug,
-      trpcState: ssr.dehydrate(),
+
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,

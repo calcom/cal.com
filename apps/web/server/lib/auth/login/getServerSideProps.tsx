@@ -9,13 +9,11 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
-import { ssrInit } from "@server/lib/ssr";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, query } = context;
 
   const session = await getServerSession({ req });
-  const ssr = await ssrInit(context);
 
   const verifyJwt = (jwt: string) => {
     const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
@@ -91,7 +89,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       csrfToken: await getCsrfToken(context),
-      trpcState: ssr.dehydrate(),
+
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
       isSAMLLoginEnabled,
       samlTenantID,

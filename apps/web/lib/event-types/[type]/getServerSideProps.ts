@@ -61,7 +61,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       eventType,
       type: typeParam,
-      trpcState: ssr.dehydrate(),
     },
   };
 };
