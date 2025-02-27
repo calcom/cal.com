@@ -59,7 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
-  const ssr = await ssrInit(buildLegacyCtx(h, cookies(), {}, {}));
+  const ssr = await ssrInit(buildLegacyCtx(h, await cookies(), {}, {}));
   return (
     <html
       lang={locale}

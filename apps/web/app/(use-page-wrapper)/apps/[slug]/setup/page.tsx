@@ -9,7 +9,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import SetupView, { type PageProps as ClientPageProps } from "~/apps/[slug]/setup/setup-view";
 
-export const generateMetadata = async ({ params }: ServerPageProps) => {
+export const generateMetadata = async ({ params: _params }: ServerPageProps) => {
+  const params = await _params;
   const metadata = await _generateMetadata(
     () => `${params.slug}`,
     () => ""

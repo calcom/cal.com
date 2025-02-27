@@ -20,7 +20,7 @@ const querySchema = z.object({
 
 const ServerPage = async ({ searchParams }: PageProps) => {
   const t = await getTranslate();
-  const { error } = querySchema.parse({ error: searchParams?.error || undefined });
+  const { error } = querySchema.parse({ error: (await searchParams)?.error || undefined });
   const errorMsg = t("error_during_login") + (error ? ` Error code: ${error}` : "");
   return (
     <AuthContainer>

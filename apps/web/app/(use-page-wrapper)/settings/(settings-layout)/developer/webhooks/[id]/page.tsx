@@ -12,8 +12,9 @@ export const generateMetadata = async () =>
     (t) => t("add_webhook_description", { appName: APP_NAME })
   );
 
-const Page = async ({ params }: PageProps) => {
+const Page = async ({ params: _params }: PageProps) => {
   const t = await getTranslate();
+  const params = await _params;
   const id = typeof params?.id === "string" ? params.id : undefined;
 
   const webhook = await WebhookRepository.findByWebhookId(id);
