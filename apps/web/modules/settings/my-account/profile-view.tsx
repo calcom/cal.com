@@ -658,7 +658,7 @@ const ProfileForm = ({
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
-          <div className="-mt-2 flex flex-wrap gap-2">
+          <div className="-mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {secondaryEmailFields.map((field, index) => (
               <CustomEmailTextField
                 key={field.itemId}
@@ -679,14 +679,16 @@ const ProfileForm = ({
                 handleItemDelete={() => deleteSecondaryEmail(index)}
               />
             ))}
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              className="mt-2 h-full"
-              onClick={() => handleAddSecondaryEmail()}
-              data-testid="add-secondary-email">
-              {t("add_email")}
-            </Button>
+            <div className="col-span-2">
+              <Button
+                color="secondary"
+                StartIcon="plus"
+                className="mt-2"
+                onClick={() => handleAddSecondaryEmail()}
+                data-testid="add-secondary-email">
+                {t("add_email")}
+              </Button>
+            </div>
           </div>
         </div>
         <div className="mt-6">
