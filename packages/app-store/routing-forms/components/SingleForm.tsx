@@ -12,7 +12,7 @@ import { IS_CALCOM } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
@@ -35,6 +35,8 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+
+import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
