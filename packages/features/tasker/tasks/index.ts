@@ -24,8 +24,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
 
 export const tasksConfig = {
   createCRMEvent: {
-    // Temporart changed to 1 but should be 5 mins maybe
-    minRetryIntervalMins: 1,
+    minRetryIntervalMins: 5,
     maxAttempts: 5,
   },
 };
