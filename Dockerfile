@@ -54,7 +54,8 @@ COPY --from=builder /app/yarn.lock ./yarn.lock
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/web ./apps/web
-COPY --from=builder /app/packages/prisma/schema.prisma ./prisma/schema.prisma
+COPY packages/prisma/schema.prisma ./packages/prisma/schema.prisma
+
 
 
 # Save value used during this build stage
