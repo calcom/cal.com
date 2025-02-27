@@ -1,7 +1,8 @@
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/react-query/server";
 
 import type { TDeleteInviteInputSchema } from "./deleteInvite.schema";
 

@@ -1,6 +1,7 @@
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/react-query/server";
 
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";

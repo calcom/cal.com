@@ -18,7 +18,8 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/react-query/server";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 const querySchema = z
