@@ -1,0 +1,67 @@
+import type app_Basecamp3 from "@calcom/app-store/basecamp3/trpc-router";
+import type app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
+import type { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
+import type { featureFlagRouter } from "@calcom/features/flags/server/router";
+import type { insightsRouter } from "@calcom/features/insights/server/trpc-router";
+
+import type { router } from "../../trpc";
+import type { loggedInViewerRouter } from "../loggedInViewer/_router";
+import type { publicViewerRouter } from "../publicViewer/_router";
+import type { timezonesRouter } from "../publicViewer/timezones/_router";
+import type { adminRouter } from "./admin/_router";
+import type { apiKeysRouter } from "./apiKeys/_router";
+import type { appsRouter } from "./apps/_router";
+import type { attributesRouter } from "./attributes/_router";
+import type { authRouter } from "./auth/_router";
+import type { availabilityRouter } from "./availability/_router";
+import type { bookingsRouter } from "./bookings/_router";
+import type { deploymentSetupRouter } from "./deploymentSetup/_router";
+import type { domainWideDelegationRouter } from "./domainWideDelegation/_router";
+import type { dsyncRouter } from "./dsync/_router";
+import type { eventTypesRouter } from "./eventTypes/_router";
+import type { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import type { highPerfRouter } from "./highPerf/_router";
+import type { oAuthRouter } from "./oAuth/_router";
+import type { viewerOrganizationsRouter } from "./organizations/_router";
+import type { paymentsRouter } from "./payments/_router";
+import type { routingFormsRouter } from "./routing-forms/_router";
+import type { slotsRouter } from "./slots/_router";
+import type { ssoRouter } from "./sso/_router";
+import type { viewerTeamsRouter } from "./teams/_router";
+import type { webhookRouter } from "./webhook/_router";
+import type { workflowsRouter } from "./workflows/_router";
+
+export type AppRouter = ReturnType<
+  typeof router<{
+    loggedInViewerRouter: typeof loggedInViewerRouter;
+    public: typeof publicViewerRouter;
+    auth: typeof authRouter;
+    deploymentSetup: typeof deploymentSetupRouter;
+    bookings: typeof bookingsRouter;
+    eventTypes: typeof eventTypesRouter;
+    availability: typeof availabilityRouter;
+    teams: typeof viewerTeamsRouter;
+    timezones: typeof timezonesRouter;
+    organizations: typeof viewerOrganizationsRouter;
+    domainWideDelegation: typeof domainWideDelegationRouter;
+    webhook: typeof webhookRouter;
+    apiKeys: typeof apiKeysRouter;
+    slots: typeof slotsRouter;
+    workflows: typeof workflowsRouter;
+    saml: typeof ssoRouter;
+    dsync: typeof dsyncRouter;
+    insights: typeof insightsRouter;
+    payments: typeof paymentsRouter;
+    appRoutingForms: typeof app_RoutingForms;
+    appBasecamp3: typeof app_Basecamp3;
+    features: typeof featureFlagRouter;
+    appsRouter: typeof appsRouter;
+    users: typeof userAdminRouter;
+    oAuth: typeof oAuthRouter;
+    googleWorkspace: typeof googleWorkspaceRouter;
+    admin: typeof adminRouter;
+    attributes: typeof attributesRouter;
+    highPerf: typeof highPerfRouter;
+    routingForms: typeof routingFormsRouter;
+  }>
+>;

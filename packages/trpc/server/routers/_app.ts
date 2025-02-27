@@ -2,7 +2,9 @@
  * This file contains the root router of your tRPC-backend
  */
 import { router } from "../trpc";
-import { viewerRouter } from "./viewer/_router";
+import { getViewerRouter } from "./viewer/_router";
+
+export { AppRouter } from "./viewer/_router.types";
 
 /**
  * Create your application's root router
@@ -10,8 +12,9 @@ import { viewerRouter } from "./viewer/_router";
  * @link https://trpc.io/docs/ssg
  * @link https://trpc.io/docs/router
  */
-export const appRouter = router({
-  viewer: viewerRouter,
-});
-
-export type AppRouter = typeof appRouter;
+export async function createAppRouter() {
+  const viewerRouter = await getViewerRouter();
+  return router({
+    viewer: viewerRouter,
+  });
+}
