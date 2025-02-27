@@ -48,7 +48,7 @@ WORKDIR /calcom
 
 ENV NODE_ENV production
 
-COPY calcom/package.json calcom/.yarnrc.yml calcom/i18n.json ./
+COPY package.json .yarnrc.yml i18n.json ./
 COPY turbo.json ./turbo.json
 COPY --from=builder /calcom/.yarn ./.yarn
 COPY --from=builder /calcom/yarn.lock ./yarn.lock
