@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
@@ -22,6 +22,17 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
+import type { BookingInputLocation_2024_08_13 } from "./location.input";
+import {
+  BookingInputAddressLocation_2024_08_13,
+  BookingInputAttendeeAddressLocation_2024_08_13,
+  BookingInputAttendeeDefinedLocation_2024_08_13,
+  BookingInputAttendeePhoneLocation_2024_08_13,
+  BookingInputIntegrationLocation_2024_08_13,
+  BookingInputLinkLocation_2024_08_13,
+  BookingInputPhoneLocation_2024_08_13,
+  ValidateBookingLocation_2024_08_13,
+} from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
 
 function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
@@ -98,6 +109,16 @@ class Attendee {
   language?: BookingLanguageType;
 }
 
+@ApiExtraModels(
+  BookingInputAddressLocation_2024_08_13,
+  BookingInputAttendeeAddressLocation_2024_08_13,
+  BookingInputAttendeeDefinedLocation_2024_08_13,
+  BookingInputAttendeePhoneLocation_2024_08_13,
+  BookingInputIntegrationLocation_2024_08_13,
+  BookingInputLinkLocation_2024_08_13,
+  BookingInputPhoneLocation_2024_08_13,
+  ValidateBookingLocation_2024_08_13
+)
 export class CreateBookingInput_2024_08_13 {
   @ApiProperty({
     type: String,
@@ -155,14 +176,24 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   meetingUrl?: string;
 
-  @ApiPropertyOptional({
-    type: String,
-    description: "Location for this booking. Displayed in email and calendar event.",
-    example: "https://example.com/meeting",
-    required: false,
-  })
   @IsOptional()
-  location?: string;
+  @ValidateBookingLocation_2024_08_13()
+  @ApiPropertyOptional({
+    description:
+      "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+    oneOf: [
+      { $ref: getSchemaPath(BookingInputAddressLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputAttendeeAddressLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputAttendeeDefinedLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputAttendeePhoneLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputIntegrationLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputLinkLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputPhoneLocation_2024_08_13) },
+    ],
+  })
+  @Type(() => Object)
+  // note(Lauris): string is for backwards compatability
+  location?: BookingInputLocation_2024_08_13 | string;
 
   @ApiProperty({
     type: Object,
