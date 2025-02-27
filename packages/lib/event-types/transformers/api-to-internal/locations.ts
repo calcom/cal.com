@@ -13,10 +13,12 @@ import type {
 
 const apiToInternalintegrationsMapping: Record<
   Integration_2024_06_14,
-  "integrations:daily" | "integrations:google:meet"
+  "integrations:daily" | "integrations:google:meet" | "integrations:zoom" | "integrations:office365_video"
 > = {
   "cal-video": "integrations:daily",
   "google-meet": "integrations:google:meet",
+  zoom: "integrations:zoom",
+  "office365-video": "integrations:office365_video",
 };
 
 export function transformLocationsApiToInternal(inputLocations: InputLocation_2024_06_14[] | undefined) {

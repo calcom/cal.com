@@ -7,6 +7,7 @@ import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OrganizationsConferencingService } from "@/modules/organizations/services/organizations-conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -43,7 +44,8 @@ these endpoints should not be recommended for use by third party and are exclude
 export class AtomsController {
   constructor(
     private readonly eventTypesService: EventTypesAtomService,
-    private readonly conferencingService: ConferencingAtomsService
+    private readonly conferencingService: ConferencingAtomsService,
+    private readonly organizationsConferencingService: OrganizationsConferencingService
   ) {}
 
   @Get("event-types/:eventTypeId")
@@ -150,9 +152,28 @@ export class AtomsController {
   @Get("/conferencing")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
-  async listInstalledConferencingApps(@GetUser() user: UserWithProfile): Promise<ApiResponse<ConnectedApps>> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(user);
-
+  async listInstalledConferencingApps(
+    @GetUser() user: UserWithProfile,
+    @Query("teamId") teamId?: string,
+    @Query("orgId") orgId?: string
+  ): Promise<ApiResponse<ConnectedApps>> {
+    let validatedOrgId;
+    let validatedTeamId;
+    if (teamId && orgId) {
+      ({ orgId: validatedOrgId, teamId: validatedTeamId } =
+        await this.organizationsConferencingService.verifyAccess({
+          user,
+          orgId,
+          teamId,
+          requiredRole: "TEAM_ADMIN",
+          minimumPlan: "ESSENTIALS",
+        }));
+    }
+    const conferencingApps = await this.conferencingService.getConferencingApps(
+      user,
+      validatedTeamId,
+      validatedOrgId
+    );
     return { status: SUCCESS_STATUS, data: conferencingApps };
   }
 }

@@ -10,12 +10,15 @@ export const QUERY_KEY = "use-get-event-types";
 
 type ResponseEventType = { eventTypes: Array<{ id: number; title: string }> };
 
-export const useAtomGetEventTypes = () => {
-  const pathname = `/atoms/${V2_ENDPOINTS.eventTypes}/`;
-  const { isInit, accessToken } = useAtomsContext();
+export const useAtomGetEventTypes = (teamId?: number) => {
+  const { isInit, accessToken, organizationId } = useAtomsContext();
+
+  const pathname = `/atoms/${V2_ENDPOINTS.eventTypes}/?${teamId ? `teamId=${teamId}` : ""}${
+    organizationId ? `&orgId=${organizationId}` : ""
+  }`;
 
   return useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [QUERY_KEY, teamId, organizationId],
     queryFn: () => {
       return http?.get<ApiResponse<ResponseEventType>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
