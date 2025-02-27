@@ -117,10 +117,44 @@ export async function getConnectedApps({
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
+
+  function canUpgrade({
+    updatedOn,
+    updatedAt,
+    slug,
+  }: {
+    updatedOn?: string;
+    updatedAt?: Date;
+    slug: string;
+  }) {
+    const updatedOnDate = updatedOn ? new Date(updatedOn) : null;
+    const appUpdatedAtDate = updatedAt ? new Date(updatedAt) : null;
+
+    return !!(
+      ["pipedrive-crm"].includes(slug) &&
+      appUpdatedAtDate &&
+      (!updatedOnDate || (updatedOnDate && updatedOnDate < appUpdatedAtDate))
+    );
+  }
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
       const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
+      const credIdToUpgradableMap = credentials
+        .filter((c) => c.appId === app.slug && !c.teamId)
+        .reduce<Record<number, boolean>>((acc, credential) => {
+          const { last_updated_on: updatedOn } = (credential?.key || {}) as Record<string, any>;
+          const isUpgradable = canUpgrade({
+            updatedOn,
+            updatedAt: app.updatedAt,
+            slug: app.slug,
+          });
+          if (credential.id) {
+            acc[credential.id] = isUpgradable;
+          }
+          return acc;
+        }, {});
+
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
@@ -132,6 +166,12 @@ export async function getConnectedApps({
             if (!team) {
               return null;
             }
+            const { last_updated_on: updatedOn } = (c?.key || {}) as Record<string, any>;
+            const isUpgradable = canUpgrade({
+              updatedOn: updatedOn,
+              updatedAt: app.updatedAt,
+              slug: app.slug,
+            });
             return {
               teamId: team.id,
               name: team.name,
@@ -140,6 +180,7 @@ export async function getConnectedApps({
               isAdmin:
                 team.members[0].role === MembershipRole.ADMIN ||
                 team.members[0].role === MembershipRole.OWNER,
+              isUpgradable,
             };
           })
       );
@@ -183,6 +224,7 @@ export async function getConnectedApps({
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
         isSetupAlready,
+        credIdToUpgradableMap,
         ...(app.dependencies && { dependencyData }),
       };
     })
