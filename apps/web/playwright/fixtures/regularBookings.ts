@@ -200,5 +200,16 @@ export function createBookingPageFixture(page: Page) {
     checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
     },
+    getAITranslationToggleDisabled: async () => {
+      await page.waitForSelector('[data-testid="ai_translation_toggle"]', {
+        timeout: 5000,
+        state: "attached",
+      });
+      const toggle = page.getByTestId("ai_translation_toggle");
+      return (await toggle.getAttribute("disabled")) !== null;
+    },
+    toggleAITranslation: async () => {
+      await page.getByTestId("ai_translation_toggle").click();
+    },
   };
 }
