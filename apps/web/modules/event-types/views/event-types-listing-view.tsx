@@ -71,6 +71,7 @@ type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
 
 const LIMIT = 10;
+const BOOKING_LIMIT = 50;
 
 interface InfiniteEventTypeListProps {
   group: InfiniteEventTypeGroup;
@@ -169,6 +170,13 @@ const Item = ({
   const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
   const eventTypeColor =
     parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+  const totalBookings = trpc.viewer.bookings.get.useQuery({
+    filters: {
+      eventTypeIds: [type.id],
+      status: "past",
+    },
+    limit: BOOKING_LIMIT,
+  }).data?.bookings.length;
 
   const content = () => (
     <div>
@@ -203,7 +211,7 @@ const Item = ({
         {readOnly ? (
           <div>
             {content()}
-            <EventTypeDescription eventType={type} shortenDescription />
+            <EventTypeDescription eventType={type} shortenDescription totalBookings={totalBookings} />
           </div>
         ) : (
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
@@ -229,6 +237,7 @@ const Item = ({
             <EventTypeDescription
               eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
               shortenDescription
+              totalBookings={totalBookings}
             />
           </Link>
         )}
