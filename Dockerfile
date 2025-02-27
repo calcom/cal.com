@@ -35,7 +35,7 @@ RUN yarn install
 RUN yarn db-deploy
 RUN yarn --cwd packages/prisma seed-app-store
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build
-#RUN yarn --cwd apps/web workspace @calcom/web run build
+RUN yarn --cwd apps/web workspace @calcom/web run build
 
 # Cleanup
 RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
