@@ -23,6 +23,8 @@ COPY calcom/.yarn ./.yarn
 COPY calcom/apps/web ./apps/web
 COPY calcom/apps/api/v2 ./apps/api/v2
 COPY calcom/packages ./packages
+COPY calcom/turbo.json ./turbo.json
+
 
 # Ensure tests directory exists
 RUN mkdir -p ./tests || true
