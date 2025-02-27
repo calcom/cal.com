@@ -6,6 +6,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
@@ -271,9 +272,10 @@ export const handleResponse = async (context: HandleResponseOptions) => {
         };
       }
     }
+    const t = await getTranslation("en", "common");
     return {
       error: true,
-      message: "An unexpected error occurred",
+      message: t("unexpected_error_try_again"),
       status: 500,
     };
   }
