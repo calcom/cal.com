@@ -1,10 +1,8 @@
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
-import { httpBatchLink } from "../client";
-import { httpLink } from "../client";
-import { loggerLink } from "../client";
-import { splitLink } from "../client";
+import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
+
 import type { CreateTRPCNext } from "../next";
 import { createTRPCNext } from "../next";
 // ℹ️ Type-only import:
