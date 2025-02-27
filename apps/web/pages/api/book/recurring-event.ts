@@ -5,7 +5,7 @@ import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.

@@ -28,35 +28,46 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
   const { updateFilter, removeFilter } = useDataTable();
 
   return (
-    <Command>
+    <Command data-testid={`multi-select-options-${column.id}`}>
       <CommandInput placeholder={t("search")} />
       <CommandList>
-        <CommandEmpty>{t("no_options_found")}</CommandEmpty>
-        {column.options.map((option) => {
+        <CommandEmpty>{t("no_options_available")}</CommandEmpty>
+        {column.options.map((option, index) => {
           if (!option) return null;
-          const { label: optionLabel, value: optionValue } =
-            typeof option === "string" ? { label: option, value: option } : option;
+          const {
+            label: optionLabel,
+            value: optionValue,
+            section,
+          } = typeof option === "string" ? { label: option, value: option, section: undefined } : option;
 
           return (
-            <CommandItem
-              key={optionValue}
-              onSelect={() => {
-                const newFilterValue = filterValue?.data.includes(optionValue)
-                  ? filterValue?.data.filter((value) => value !== optionValue)
-                  : [...(filterValue?.data || []), optionValue];
-                updateFilter(column.id, { type: ColumnFilterType.MULTI_SELECT, data: newFilterValue });
-              }}>
-              <div
-                className={classNames(
-                  "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                  filterValue?.data.includes(optionValue) ? "bg-primary" : "opacity-50"
-                )}>
-                {filterValue?.data.includes(optionValue) && (
-                  <Icon name="check" className="text-primary-foreground h-4 w-4" />
-                )}
-              </div>
-              {optionLabel}
-            </CommandItem>
+            <>
+              {section && index !== 0 && <hr className="border-subtle my-1" />}
+              {section && (
+                <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
+                  {section}
+                </div>
+              )}
+              <CommandItem
+                key={optionValue}
+                onSelect={() => {
+                  const newFilterValue = filterValue?.data.includes(optionValue)
+                    ? filterValue?.data.filter((value) => value !== optionValue)
+                    : [...(filterValue?.data || []), optionValue];
+                  updateFilter(column.id, { type: ColumnFilterType.MULTI_SELECT, data: newFilterValue });
+                }}>
+                <div
+                  className={classNames(
+                    "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
+                    filterValue?.data.includes(optionValue) ? "bg-primary" : "opacity-50"
+                  )}>
+                  {filterValue?.data.includes(optionValue) && (
+                    <Icon name="check" className="text-primary-foreground h-4 w-4" />
+                  )}
+                </div>
+                {optionLabel}
+              </CommandItem>
+            </>
           );
         })}
       </CommandList>

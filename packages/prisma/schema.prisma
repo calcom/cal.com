@@ -488,6 +488,11 @@ model Team {
   includeManagedEventsInLimits Boolean              @default(false)
   internalNotePresets          InternalNotePreset[]
 
+  // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
+  // it means that it is an organization managed by another organization.
+  managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
+  managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -643,7 +648,7 @@ model Booking {
   attendees                    Attendee[]
   location                     String?
   createdAt                    DateTime                       @default(now())
-  updatedAt                    DateTime?
+  updatedAt                    DateTime?                      @updatedAt
   status                       BookingStatus                  @default(ACCEPTED)
   paid                         Boolean                        @default(false)
   payment                      Payment[]
@@ -1514,6 +1519,7 @@ model PlatformOAuthClient {
   bookingCancelRedirectUri     String?
   bookingRescheduleRedirectUri String?
   areEmailsEnabled             Boolean @default(false)
+  areDefaultEventTypesEnabled  Boolean @default(true)
 
   createdAt DateTime @default(now())
 }
@@ -1624,16 +1630,35 @@ enum SMSLockState {
   REVIEW_NEEDED
 }
 
+model ManagedOrganization {
+  managedOrganizationId Int  @unique
+  managedOrganization   Team @relation("ManagedOrganization", fields: [managedOrganizationId], references: [id], onDelete: Cascade)
+
+  managerOrganizationId Int
+  managerOrganization   Team @relation("ManagerOrganization", fields: [managerOrganizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([managerOrganizationId, managedOrganizationId])
+  @@index([managerOrganizationId])
+}
+
 model PlatformBilling {
   id Int @id @unique // team id
 
-  customerId     String  @unique
+  customerId     String
   subscriptionId String?
   plan           String  @default("none")
 
   billingCycleStart Int?
   billingCycleEnd   Int?
   overdue           Boolean? @default(false)
+
+  // note(Lauris): in case of a platform managed organization's billing record this field points to the manager organization's billing record.
+  managerBillingId Int?
+  managerBilling   PlatformBilling?  @relation("PlatformManagedBilling", fields: [managerBillingId], references: [id])
+  // note(Lauris): in case of a manager organization's billing record this field points to billing records of its platform managed organizations.
+  managedBillings  PlatformBilling[] @relation("PlatformManagedBilling")
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }
