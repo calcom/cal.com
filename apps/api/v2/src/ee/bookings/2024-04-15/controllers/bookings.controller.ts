@@ -344,7 +344,7 @@ export class BookingsController_2024_04_15 {
     }
   }
 
-  private async getOAuthClientIdFromEventType(eventTypeId: number): Promise<number | undefined> {
+  private async getOAuthClientIdFromEventType(eventTypeId: number): Promise<string | undefined> {
     if (!eventTypeId) {
       return undefined;
     }
