@@ -16,24 +16,26 @@ type GetOptions = {
 export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
   const { cursor, limit, fetchTeamMembersEntries, searchTerm } = input;
   let fetchOOOEntriesForIds = [ctx.user.id];
+  let reportingUserIds = [0];
 
   if (fetchTeamMembersEntries) {
-    // Get teams where context user is admin or owner
+    // Get teams of context user
     const teams = await prisma.membership.findMany({
       where: {
         userId: ctx.user.id,
-        role: {
-          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        },
         accepted: true,
       },
       select: {
         teamId: true,
+        role: true,
       },
     });
     if (teams.length === 0) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "user_not_admin_nor_owner" });
+      throw new TRPCError({ code: "NOT_FOUND", message: "user_has_no_team_yet" });
     }
+    const ownerOrAdminTeamIds = teams
+      .filter((team) => team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN)
+      .map((team) => team.teamId);
 
     // Fetch team member userIds
     const teamMembers = await prisma.team.findMany({
@@ -43,6 +45,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
         },
       },
       select: {
+        id: true,
         members: {
           select: {
             userId: true,
@@ -58,6 +61,13 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       throw new TRPCError({ code: "NOT_FOUND", message: "no_team_members" });
     }
     fetchOOOEntriesForIds = userIds;
+    reportingUserIds = teamMembers
+      .filter(({ id }) => ownerOrAdminTeamIds.includes(id))
+      .flatMap(({ members }) =>
+        members
+          .filter(({ accepted, userId }) => accepted && userId !== ctx.user.id)
+          .map(({ userId }) => userId)
+      );
   }
 
   const whereClause = {
@@ -138,7 +148,13 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
   }
 
   return {
-    rows: outOfOfficeEntries || [],
+    rows:
+      outOfOfficeEntries.map((ooo) => {
+        return {
+          ...ooo,
+          canEditAndDelete: fetchTeamMembersEntries ? reportingUserIds.includes(ooo.user.id) : true,
+        };
+      }) || [],
     nextCursor,
     meta: {
       totalRowCount: getTotalEntries || 0,
