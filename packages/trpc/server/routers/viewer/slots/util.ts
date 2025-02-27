@@ -363,6 +363,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       routingFormResponse,
     }
   );
+  const twoWeeksFromNow = dayjs().add(2, "week");
 
   let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
     await calculateHostsAndAvailabilities({
@@ -371,7 +372,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       hosts: qualifiedHosts,
       contactOwnerEmail,
       loggerWithEventDetails,
-      startTime,
+      // adjust start time so we can check for available slots in the first two weeks
+      startTime: startTime.isBefore(twoWeeksFromNow) ? dayjs() : startTime,
       endTime,
       bypassBusyCalendarTimes,
       shouldServeCache,
@@ -380,10 +382,33 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   // TODO
   // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
   if (fallbackHosts && fallbackHosts.length > 0) {
-    const twoWeeksFromNow = dayjs().add(2, "week");
-    // there are fallback hosts, so check availability
-    const diff =
-      aggregatedAvailability.length > 0 ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day") : 1; // no aggregatedAvailability so we diff to +1
+    //
+    let diff = 0;
+    if (startTime.isBefore(twoWeeksFromNow)) {
+      //check if first two week have availability
+      diff =
+        aggregatedAvailability.length > 0 ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day") : 1; // no aggregatedAvailability so we diff to +1
+    } else {
+      // if start time is not within first two weeks, check if there are any available slots
+      if (!aggregatedAvailability.length) {
+        // if no available slots check if first two weeks are available, otherwise fallback
+        const firstTwoWeeksAvailabilities = await calculateHostsAndAvailabilities({
+          input,
+          eventType,
+          hosts: fallbackHosts,
+          contactOwnerEmail,
+          loggerWithEventDetails,
+          startTime: dayjs(),
+          endTime: twoWeeksFromNow,
+          bypassBusyCalendarTimes,
+          shouldServeCache,
+        });
+        if (!firstTwoWeeksAvailabilities.aggregatedAvailability.length) {
+          diff = 1;
+        }
+      }
+    }
+
     if (diff > 0) {
       // if the first available slot is more than 2 weeks from now, round robin as normal
       const fallbackAvailabilities = await calculateHostsAndAvailabilities({
