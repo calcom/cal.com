@@ -2,7 +2,7 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import type { PrismaClient } from "@calcom/prisma";
 
-import { TRPCError } from "@trpc/react-query/server";
+import { TRPCError } from "@trpc/server";
 
 import type { TResponseInputSchema } from "./response.schema";
 

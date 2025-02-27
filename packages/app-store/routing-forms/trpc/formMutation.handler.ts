@@ -5,7 +5,7 @@ import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermis
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { TRPCError } from "@trpc/react-query/server";
+import { TRPCError } from "@trpc/server";
 
 import { createFallbackRoute } from "../lib/createFallbackRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";

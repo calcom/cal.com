@@ -9,7 +9,7 @@ import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_rou
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-import { TRPCError } from "@trpc/react-query/server";
+import { TRPCError } from "@trpc/server";
 
 enum DirectAction {
   ACCEPT = "accept",

@@ -5,7 +5,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_FormResponse } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { TRPCError } from "@trpc/react-query/server";
+import { TRPCError } from "@trpc/server";
 
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
 import { getSerializableForm } from "../lib/getSerializableForm";

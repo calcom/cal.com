@@ -4,7 +4,7 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/react-query/server";
+import { TRPCError } from "@trpc/server";
 
 import jackson from "./jackson";
 import { tenantPrefix, samlProductID } from "./saml";

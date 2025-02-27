@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
 import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
-import { TRPCError } from "@trpc/react-query/server";
+import { TRPCError } from "@trpc/server";
 
 import type { DomainWideDelegationUpdateSchema } from "./schema";
 import {

@@ -3,7 +3,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
-import { TRPCError } from "@trpc/react-query/server";
+import { TRPCError } from "@trpc/server";
 
 import type { TRPCContext } from "../../../createContext";
 import type { TrpcSessionUser } from "../../../trpc";
