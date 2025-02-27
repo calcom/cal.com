@@ -409,6 +409,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     shouldServeCache,
   });
 
+  let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+
   // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
   if (hasFallbackRRHosts) {
     let diff = 0;
@@ -463,6 +465,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         bypassBusyCalendarTimes,
         shouldServeCache,
       }));
+      aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
     }
   }
 
@@ -470,8 +473,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.COLLECTIVE ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
-
-  const aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
   const timeSlots = monitorCallbackSync(getSlots, {
     inviteeDate: startTime,
