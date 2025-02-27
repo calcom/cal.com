@@ -2,13 +2,17 @@ import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
+import { sendBookingRequestedRejectedReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
@@ -32,8 +36,16 @@ export async function handleBookingRequested(args: {
       title: string;
       teamId?: number | null;
       metadata: Prisma.JsonValue;
+      slug: string;
+      schedulingType?: SchedulingType | null | undefined;
+      hosts?:
+        | {
+            user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null | undefined };
+          }[]
+        | undefined;
     } | null;
     eventTypeId: number | null;
+    smsReminderNumber: string | null;
     userId: number | null;
     id: number;
   };
@@ -83,6 +95,26 @@ export async function handleBookingRequested(args: {
       })
     );
     await Promise.all(promises);
+
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType);
+    const workflowEventWithMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
+    const { eventType } = booking;
+
+    await sendBookingRequestedRejectedReminders({
+      bookingStatus: BookingStatus.PENDING,
+      workflows,
+      calendarEvent: {
+        ...evt,
+        metadata: workflowEventWithMetadata,
+        eventType: {
+          slug: eventType?.slug as string,
+          hosts: eventType?.hosts,
+          schedulingType: eventType?.schedulingType,
+        },
+        bookerUrl: "",
+      },
+      smsReminderNumber: booking.smsReminderNumber || null,
+    });
   } catch (error) {
     // Silently fail
     log.error("Error in handleBookingRequested", safeStringify(error));
