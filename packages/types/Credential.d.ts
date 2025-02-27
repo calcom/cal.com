@@ -9,6 +9,8 @@ export type CredentialPayload = Prisma.CredentialGetPayload<{
   select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
 }>;
 
+export type GlobalApp = Omit<CredentialPayload, "id"> & { id: null };
+
 export type CredentialFrontendPayload = Omit<CredentialPayload, "key"> & {
   /** We should type error if keys are leaked to the frontend */
   key?: never;
