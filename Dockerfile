@@ -23,7 +23,7 @@ COPY calcom/.yarn ./.yarn
 COPY calcom/apps/web ./apps/web
 COPY calcom/apps/api/v2 ./apps/api/v2
 COPY calcom/packages ./packages
-COPY calcom/turbo.json ./turbo.json
+
 
 
 # Ensure tests directory exists
@@ -49,7 +49,7 @@ WORKDIR /calcom
 ENV NODE_ENV production
 
 COPY calcom/package.json calcom/.yarnrc.yml calcom/i18n.json ./
-COPY calcom/turbo.json ./turbo.json
+COPY turbo.json ./turbo.json
 COPY --from=builder /calcom/.yarn ./.yarn
 COPY --from=builder /calcom/yarn.lock ./yarn.lock
 COPY --from=builder /calcom/node_modules ./node_modules
