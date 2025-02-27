@@ -73,17 +73,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            docker.io/calendso/calendso
-            docker.io/calcom/cal.com
-            ghcr.io/calcom/cal.com
-          # Add flavor latest only on full releases, not on pre-releases
-          flavor: |
-            latest=${{ !github.event.release.prerelease }}
 
       - name: Copy env
         run: |
@@ -120,8 +109,7 @@ jobs:
           load: true  # Load the image into the Docker daemon
           push: false  # Do not push the image at this stage
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: solymamady/calcomImage
           build-args: |
             NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
             NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
