@@ -391,7 +391,7 @@ export default class SalesforceCRMService implements CRM {
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
         // For an account let's assume that the first email is the one we should be querying against
         const attendeeEmail = emailArray[0];
-        log.info("Searching account for email", safeStringify({ attendeeEmail }));
+        log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
         soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
       } else {
         // Handle Contact/Lead record types
@@ -454,25 +454,26 @@ export default class SalesforceCRMService implements CRM {
         !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
 
       const includeAccountRecordType = forRoundRobinSkip && recordToSearch === SalesforceRecordEnum.ACCOUNT;
-
       return records.map((record) => {
+        // Handle if Account is nested
+        const ownerEmail =
+          recordToSearch === SalesforceRecordEnum.ACCOUNT &&
+          record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
+            ? record?.Account?.Owner?.Email
+            : record?.Owner?.Email;
+
         return {
           id: includeAccountRecordType ? record?.AccountId : record?.Id || "",
           email: record?.Email || "",
           recordType: includeAccountRecordType ? SalesforceRecordEnum.ACCOUNT : record?.attributes?.type,
           ...(includeOwnerData && {
             ownerId: record?.OwnerId,
-            // Handle if Account is nested
-            ownerEmail:
-              recordToSearch === SalesforceRecordEnum.ACCOUNT &&
-              record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
-                ? record?.Account?.Owner?.Email
-                : record?.Owner?.Email,
+            ownerEmail: ownerEmail,
           }),
         };
       });
     } catch (error) {
-      log.error("Error in getContacts", safeStringify({ error }));
+      log.error("Error in getContacts", safeStringify(error));
       return [];
     }
   }
@@ -482,12 +483,15 @@ export default class SalesforceCRMService implements CRM {
     organizerEmail?: string,
     calEventResponses?: CalEventResponses | null
   ) {
+    const log = logger.getSubLogger({ prefix: [`[createContacts]`] });
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
     // See if the organizer exists in the CRM
     const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
     const createdContacts: { id: string; email: string }[] = [];
+
+    log.info("createContacts", safeStringify({ createEventOn, organizerId, contactsToCreate }));
 
     if (createEventOn === SalesforceRecordEnum.CONTACT) {
       await Promise.all(
@@ -524,6 +528,11 @@ export default class SalesforceCRMService implements CRM {
           if (createdAccountContacts.length > 0) {
             createdContacts.push(...createdAccountContacts);
           }
+        } else {
+          log.info(
+            "createEventOn=LEAD, No account found for attendee, not creating a contact",
+            safeStringify({ attendeeEmail: attendee.email })
+          );
         }
       } else {
         await this.createAttendeeRecord({
@@ -696,6 +705,7 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private getDominantAccountId(contacts: { AccountId: string }[]) {
+    const log = logger.getSubLogger({ prefix: [`[getDominantAccountId]:${contacts}`] });
     // To get the dominant AccountId we only need to iterate through half the array
     const iterateLength = Math.ceil(contacts.length / 2);
     // Store AccountId frequencies
@@ -719,6 +729,7 @@ export default class SalesforceCRMService implements CRM {
       }
     }
 
+    log.info("Dominant AccountId", safeStringify({ dominantAccountId }));
     return dominantAccountId;
   }
 
@@ -735,6 +746,8 @@ export default class SalesforceCRMService implements CRM {
     accountId?: string;
     calEventResponses?: CalEventResponses | null;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[createAttendeeRecord]:${attendee.email}`] });
+    log.info("createAttendeeRecord", safeStringify({ attendee, recordType, organizerId, accountId }));
     const conn = await this.conn;
 
     const createBody = await this.generateCreateRecordBody({
@@ -866,7 +879,8 @@ export default class SalesforceCRMService implements CRM {
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
-
+    const log = logger.getSubLogger({ prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${email}`] });
+    log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
@@ -888,13 +902,15 @@ export default class SalesforceCRMService implements CRM {
   private async getAccountBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
-
+    const log = logger.getSubLogger({ prefix: [`[getAccountBasedOnEmailDomainOfContacts]:${email}`] });
+    log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
+      log.info("Found account matching email domain", safeStringify({ emailDomain }));
       return {
         ...(accountQuery.records[0] as { Id?: string; OwnerId?: string; Owner?: { Email?: string } }),
         Email: undefined,
@@ -915,6 +931,7 @@ export default class SalesforceCRMService implements CRM {
     const dominantAccountId = this.getDominantAccountId(contacts);
 
     const contactUnderAccount = contacts.find((contact) => contact.AccountId === dominantAccountId);
+    log.info("Using dominant account's owner", safeStringify({ dominantAccountId }));
 
     return {
       Id: dominantAccountId,
@@ -1224,6 +1241,8 @@ export default class SalesforceCRMService implements CRM {
     accountId: string;
     organizerId?: string;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[createNewContactUnderAnAccount]:${attendee.email}`] });
+    log.info("createNewContactUnderAnAccount", safeStringify({ attendee, accountId, organizerId }));
     const conn = await this.conn;
 
     // First see if the contact already exists and connect it to the account

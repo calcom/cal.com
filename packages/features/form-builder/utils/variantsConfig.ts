@@ -30,7 +30,7 @@ function getTranslatedConfigVariants(configVariants: ConfigVariants, translate: 
 }
 
 /**
- * Get's the field's variantsConfig and if not available, then it will get the default variantsConfig from the fieldTypesConfigMap
+ * Gets the field's variantsConfig and if not available, then it will get the default variantsConfig from the fieldTypesConfigMap
  */
 export const getConfig = (field: Pick<Field, "variantsConfig" | "type">) => {
   const fieldVariantsConfig = field.variantsConfig;

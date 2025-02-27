@@ -17,7 +17,7 @@ export function checkForEmptyAssignment({
   isManagedEventType: boolean;
   assignAllTeamMembers: boolean;
 }): boolean {
-  // If Team-events have assignAllTeamMembers checked, return false as assignemnt is complete.
+  // If Team-events have assignAllTeamMembers checked, return false as assignment is complete.
   if (assignAllTeamMembers) {
     return false;
   }
