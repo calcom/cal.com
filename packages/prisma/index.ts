@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
+import { autoLockUsersExtension } from "./extensions/auto-lock-users";
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
@@ -58,6 +59,7 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
 const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(usageTrackingExtention())
+  .$extends(autoLockUsersExtension())
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
