@@ -7635,6 +7635,11 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
           }
         },
         "required": [
@@ -7643,7 +7648,7 @@
           "permissions"
         ]
       },
-      "DataDto": {
+      "CreateOAuthClientOutput": {
         "type": "object",
         "properties": {
           "clientId": {
@@ -7678,7 +7683,7 @@
             },
             "allOf": [
               {
-                "$ref": "#/components/schemas/DataDto"
+                "$ref": "#/components/schemas/CreateOAuthClientOutput"
               }
             ]
           }
@@ -7748,6 +7753,15 @@
             "type": "string",
             "example": "2024-03-23T08:33:21.851Z"
           },
+          "areEmailsEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
+          },
           "bookingRedirectUri": {
             "type": "string",
             "example": "https://example.com/booking-redirect"
@@ -7759,10 +7773,6 @@
           "bookingRescheduleRedirectUri": {
             "type": "string",
             "example": "https://example.com/booking-reschedule"
-          },
-          "areEmailsEnabled": {
-            "type": "boolean",
-            "example": false
           }
         },
         "required": [
@@ -7772,7 +7782,9 @@
           "permissions",
           "redirectUris",
           "organizationId",
-          "createdAt"
+          "createdAt",
+          "areEmailsEnabled",
+          "areDefaultEventTypesEnabled"
         ]
       },
       "GetOAuthClientsResponseDto": {
@@ -7844,6 +7856,10 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
           }
         }
       },
@@ -8478,6 +8494,48 @@
           "hidden"
         ]
       },
+      "UrlFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "url",
+            "description": "only allowed value for type is `url`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your text"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Enter url here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder",
+          "hidden"
+        ]
+      },
       "BusinessDaysWindow_2024_06_14": {
         "type": "object",
         "properties": {
@@ -9100,6 +9158,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldInput_2024_06_14"
                 }
               ]
             }
@@ -9522,7 +9583,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "email",
             "description": "only allowed value for type is `email`",
@@ -9578,7 +9640,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "name",
             "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
@@ -9867,7 +9930,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "address",
             "description": "only allowed value for type is `address`"
@@ -9930,7 +9994,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "boolean",
             "description": "only allowed value for type is `boolean`"
@@ -9988,7 +10053,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "checkbox",
             "description": "only allowed value for type is `checkbox`"
@@ -10058,7 +10124,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "multiemail",
             "description": "only allowed value for type is `multiemail`"
@@ -10121,7 +10188,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "multiselect",
             "description": "only allowed value for type is `multiselect`"
@@ -10173,6 +10241,70 @@
           "isDefault"
         ]
       },
+      "UrlFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean",
+              "url"
+            ],
+            "example": "url",
+            "description": "only allowed value for type is `url`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your text"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Enter url here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "hidden",
+          "isDefault"
+        ]
+      },
       "NumberFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -10191,7 +10323,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "number",
             "description": "only allowed value for type is `number`"
@@ -10254,7 +10387,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
@@ -10315,7 +10449,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "radio",
             "description": "only allowed value for type is `radio`"
@@ -10385,7 +10520,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "select",
             "description": "only allowed value for type is `select`"
@@ -10459,7 +10595,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "textarea",
             "description": "only allowed value for type is `textarea`"
@@ -10522,7 +10659,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "text",
             "description": "only allowed value for type is `text`"
@@ -10684,6 +10822,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
                 }
               ]
             }
@@ -12583,6 +12724,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldInput_2024_06_14"
                 }
               ]
             }
@@ -13006,6 +13150,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
                 }
               ]
             }
