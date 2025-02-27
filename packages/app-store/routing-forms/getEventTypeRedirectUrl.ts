@@ -1,4 +1,4 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Ensure } from "@calcom/types/utils";
 
 function getUserAndEventTypeSlug(eventTypeRedirectUrl: string) {
@@ -77,14 +77,14 @@ export function getAbsoluteEventTypeRedirectUrl({
   if (teamSlugInRedirectUrl && form.nonOrgTeamslug) {
     const isEventTypeRedirectToOldTeamSlug = teamSlugInRedirectUrl === form.nonOrgTeamslug;
     if (isEventTypeRedirectToOldTeamSlug) {
-      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
   }
 
   if (usernameInRedirectUrl && form.nonOrgUsername) {
     const isEventTypeRedirectToOldUser = usernameInRedirectUrl === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
-      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
   }
 
