@@ -187,6 +187,9 @@ describe("Organizations Event Types Endpoints", () => {
             type: "integration",
             integration: "cal-video",
           },
+          {
+            type: "organizersDefaultApp",
+          },
         ],
         schedulingType: "COLLECTIVE",
         hosts: [

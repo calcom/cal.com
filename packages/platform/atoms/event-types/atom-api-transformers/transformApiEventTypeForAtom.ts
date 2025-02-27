@@ -1,7 +1,7 @@
 import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
-  transformLocationsApiToInternal,
+  transformTeamLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
@@ -299,20 +299,20 @@ function isDefaultEvent(eventSlug: string) {
 }
 
 function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
-  const transformed = transformLocationsApiToInternal(
+  const transformed = transformTeamLocationsApiToInternal(
     locations.filter((location) => isAtomSupportedLocation(location))
   );
 
   const withPrivateHidden = transformed.map((location) => {
-    const { displayLocationPublicly, type } = location;
+    const { type } = location;
 
     switch (type) {
       case "inPerson":
-        return displayLocationPublicly ? location : { ...location, address: "" };
+        return location?.displayLocationPublicly ? location : { ...location, address: "" };
       case "link":
-        return displayLocationPublicly ? location : { ...location, link: "" };
+        return location?.displayLocationPublicly ? location : { ...location, link: "" };
       case "userPhone":
-        return displayLocationPublicly
+        return location?.displayLocationPublicly
           ? location
           : {
               ...location,
@@ -338,6 +338,7 @@ function isAtomSupportedLocation(
     location.type === "phone" ||
     location.type === "attendeePhone" ||
     location.type === "attendeeDefined" ||
+    location.type === "organizersDefaultApp" ||
     (location.type === "integration" && supportedIntegrations.includes(location.integration))
   );
 }
