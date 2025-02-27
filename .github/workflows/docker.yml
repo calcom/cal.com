@@ -66,6 +66,7 @@ jobs:
           driver: docker-container
           driver-opts: network=host
 
+
       - name: Build Docker image
         id: docker_build
         uses: docker/build-push-action@v5
@@ -77,12 +78,9 @@ jobs:
           platforms: linux/amd64
           tags: solymamady/calcom
           build-args: |
-            NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
-            NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
-            NEXT_PUBLIC_LICENSE_CONSENT=${{ env.NEXT_PUBLIC_LICENSE_CONSENT }}
-            NEXT_PUBLIC_TELEMETRY_KEY=${{ env.NEXT_PUBLIC_TELEMETRY_KEY }}
-            DATABASE_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
-            DATABASE_DIRECT_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
+            DATABASE_URL=postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2
+            NEXTAUTH_SECRET=1focbwfHgIDSjiOAF3rvLxTotIAMGMpMmMDpc5Mg+nk=
+
 
       - name: Push Docker image
         id: docker_push
