@@ -9,12 +9,14 @@ import http from "../../../lib/http";
 
 export const QUERY_KEY = "get-installed-conferencing-apps";
 
-export const useAtomsGetInstalledConferencingApps = () => {
-  const pathname = `/atoms/conferencing`;
-  const { isInit, accessToken } = useAtomsContext();
+export const useAtomsGetInstalledConferencingApps = (teamId?: number) => {
+  const { isInit, accessToken, organizationId } = useAtomsContext();
+  const pathname = `/atoms/conferencing?${teamId ? `teamId=${teamId}` : ""}${
+    organizationId ? `&orgId=${organizationId}` : ""
+  }`;
 
   return useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [QUERY_KEY, teamId, organizationId],
     queryFn: () => {
       return http?.get<ApiResponse<ConnectedApps>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {

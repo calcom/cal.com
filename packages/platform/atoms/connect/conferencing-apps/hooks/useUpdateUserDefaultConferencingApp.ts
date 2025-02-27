@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { App } from "@calcom/types/App";
 
+import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
 export const QUERY_KEY = "use-update-user-default-conferencing-app";
@@ -15,15 +16,19 @@ export const useUpdateUserDefaultConferencingApp = ({
   onSuccess,
   onError,
   onSettled,
+  teamId,
 }: UseUpdateUserDefaultConferencingAppProps) => {
+  const { organizationId } = useAtomsContext();
   return useMutation({
     onSuccess,
     onError,
     onSettled,
     mutationFn: (app: App["slug"]) => {
       if (!app) throw new Error("app is required");
-      const pathname = `/conferencing/${app}/default`;
-      return http?.post(pathname).then((res) => {
+      const pathname = `/conferencing/${app}/default/?${teamId ? `teamId=${teamId}` : ""}${
+        organizationId ? `&orgId=${organizationId}` : ""
+      }`;
+      return http?.post(pathname, { teamId }).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return;
         }

@@ -106,6 +106,7 @@ export async function getConnectedApps({
     const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? teamApp.credentials.flat() : [];
     });
+
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
     } else {

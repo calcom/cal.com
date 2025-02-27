@@ -11,22 +11,27 @@ import {
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 import type { App } from "@calcom/types/App";
 
+import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
 export type UseGetOauthAuthUrlProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
+  teamId?: number;
 };
 
-export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
+export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo, teamId }: UseGetOauthAuthUrlProps) => {
+  const { organizationId } = useAtomsContext();
   return useQuery({
-    queryKey: ["get-zoom-auth-url"],
+    queryKey: ["get-zoom-auth-url", teamId, organizationId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ url: string }>>(
-          `conferencing/${ZOOM}/oauth/auth-url${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}${
+          `conferencing/${ZOOM}/oauth/auth-url?${teamId ? `teamId=${teamId}` : ""}${
+            organizationId ? `&orgId=${organizationId}` : ""
+          }${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}${
             onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
           }`
         )
@@ -41,17 +46,24 @@ export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOaut
   });
 };
 
-export const useOffice365GetOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
+export const useOffice365GetOauthAuthUrl = ({
+  returnTo,
+  onErrorReturnTo,
+  teamId,
+}: UseGetOauthAuthUrlProps) => {
+  const { organizationId } = useAtomsContext();
   return useQuery({
-    queryKey: ["get-office365-auth-url"],
+    queryKey: ["get-office365-auth-url", teamId, organizationId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ url: string }>>(
-          `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url${
-            returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""
-          }${onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""}`
+          `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url${teamId ? `?teamId=${teamId}` : ""}${
+            organizationId ? `&orgId=${organizationId}` : ""
+          }${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}${
+            onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
+          }`
         )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
@@ -69,10 +81,11 @@ export type UseConnectGoogleMeetProps = {
   onError?: (err: ApiErrorResponse) => void;
   returnTo?: string;
   onErrorReturnTo?: string;
+  teamId?: string;
 };
 
 export const useConnectNonOauthApp = (
-  { onSuccess, onError }: UseConnectGoogleMeetProps = {
+  { onSuccess, onError, teamId, returnTo, onErrorReturnTo }: UseConnectGoogleMeetProps = {
     onSuccess: () => {
       return;
     },
@@ -81,9 +94,14 @@ export const useConnectNonOauthApp = (
     },
   }
 ) => {
+  const { organizationId } = useAtomsContext();
   return useMutation({
     mutationFn: (app: string) => {
-      const pathname = `/conferencing/${app}/connect`;
+      const pathname = `/conferencing/${app}/connect?${teamId ? `teamId=${teamId}` : ""}${
+        organizationId ? `&orgId=${organizationId}` : ""
+      }${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}${
+        onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
+      }`;
       return http?.post(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return { status: res.data };
@@ -97,9 +115,9 @@ export const useConnectNonOauthApp = (
   });
 };
 
-export const useConnect = ({ returnTo, onErrorReturnTo, ...props }: UseConnectGoogleMeetProps) => {
-  const { refetch: refetchZoomAuthUrl } = useGetZoomOauthAuthUrl({ returnTo, onErrorReturnTo });
-  const { refetch: refetchOffice365AuthUrl } = useOffice365GetOauthAuthUrl({ returnTo, onErrorReturnTo });
+export const useConnect = (props: UseConnectGoogleMeetProps) => {
+  const { refetch: refetchZoomAuthUrl } = useGetZoomOauthAuthUrl(props);
+  const { refetch: refetchOffice365AuthUrl } = useOffice365GetOauthAuthUrl(props);
   const connectNonOauthApp = useConnectNonOauthApp(props);
 
   const connect = async (app: App["slug"]) => {

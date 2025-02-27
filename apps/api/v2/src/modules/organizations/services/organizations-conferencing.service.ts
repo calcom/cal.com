@@ -257,6 +257,7 @@ export class OrganizationsConferencingService {
       throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
     }
     const credential = await this.conferencingRepository.findTeamConferencingApp(teamId, app);
+    console.log("credentiacredentialcredentiall: ", credential);
 
     if (!credential) {
       throw new BadRequestException(`${app} not connected.`);
