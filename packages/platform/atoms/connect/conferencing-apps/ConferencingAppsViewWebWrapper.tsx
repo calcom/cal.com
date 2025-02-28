@@ -1,12 +1,11 @@
 "use client";
 
-import { useReducer } from "react";
+import { useReducer, Suspense } from "react";
 
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
@@ -37,43 +36,15 @@ const SkeletonLoader = () => {
   );
 };
 
-type ModalState = {
-  isOpen: boolean;
-  credentialId: null | number;
-};
-
-export const ConferencingAppsViewWebWrapper = ({
-  title,
-  description,
-  add,
-}: ConferencingAppsViewWebWrapperProps) => {
+const InstalledConferencingApps = ({
+  disconnectIntegrationModalCtrl,
+}: {
+  disconnectIntegrationModalCtrl: ReturnType<typeof useDisconnectIntegrationModalController>;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [modal, updateModal] = useReducer(
-    (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
-    {
-      isOpen: false,
-      credentialId: null,
-    }
-  );
-
-  const handleModelClose = () => {
-    updateModal({ isOpen: false, credentialId: null });
-  };
-
-  const handleDisconnect = (credentialId: number) => {
-    updateModal({ isOpen: true, credentialId });
-  };
-
-  const installedIntegrationsQuery = trpc.viewer.integrations.useQuery({
-    variant: "conferencing",
-    onlyInstalled: true,
-  });
-
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
-
-  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
 
@@ -82,23 +53,10 @@ export const ConferencingAppsViewWebWrapper = ({
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
 
-  const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
-    deleteCredentialMutation.mutate(
-      { id: credentialId, teamId },
-      {
-        onSuccess: () => {
-          showToast(t("app_removed_successfully"), "success");
-          callback();
-          utils.viewer.integrations.invalidate();
-          utils.viewer.connectedCalendars.invalidate();
-        },
-        onError: () => {
-          showToast(t("error_removing_app"), "error");
-          callback();
-        },
-      }
-    );
-  };
+  const [result] = trpc.viewer.integrations.useSuspenseQuery({
+    variant: "conferencing",
+    onlyInstalled: true,
+  });
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
     utils.viewer.integrations.invalidate();
@@ -144,6 +102,104 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
+  if (result.items.length === 0) {
+    return (
+      <EmptyScreen
+        Icon="calendar"
+        headline={t("no_category_apps", {
+          category: t("conferencing").toLowerCase(),
+        })}
+        description={t("no_category_apps_description_conferencing")}
+        buttonRaw={
+          <Button
+            color="secondary"
+            data-testid="connect-conferencing-apps"
+            href="/apps/categories/conferencing">
+            {t("connect_conference_apps")}
+          </Button>
+        }
+      />
+    );
+  }
+
+  return (
+    <AppList
+      listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
+      handleDisconnect={disconnectIntegrationModalCtrl.disconnect}
+      data={result}
+      variant="conferencing"
+      defaultConferencingApp={defaultConferencingApp}
+      handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
+      handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
+      isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+      eventTypes={eventTypesQueryData?.eventTypes}
+      isEventTypesFetching={isEventTypesFetching}
+      handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+      handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+    />
+  );
+};
+
+type ModalState = {
+  isOpen: boolean;
+  credentialId: null | number;
+};
+
+const useDisconnectIntegrationModalController = () => {
+  const [modal, updateModal] = useReducer(
+    (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
+    {
+      isOpen: false,
+      credentialId: null,
+    }
+  );
+
+  const handleModelClose = () => {
+    updateModal({ isOpen: false, credentialId: null });
+  };
+
+  const handleDisconnect = (credentialId: number) => {
+    updateModal({ isOpen: true, credentialId });
+  };
+
+  const isModalOpen = () => modal.isOpen;
+
+  return {
+    isModalOpen,
+    credentialId: modal.credentialId,
+    close: handleModelClose,
+    disconnect: handleDisconnect,
+  };
+};
+
+export const ConferencingAppsViewWebWrapper = ({
+  title,
+  description,
+  add,
+}: ConferencingAppsViewWebWrapperProps) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+
+  const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
+    deleteCredentialMutation.mutate(
+      { id: credentialId, teamId },
+      {
+        onSuccess: () => {
+          showToast(t("app_removed_successfully"), "success");
+          callback();
+          utils.viewer.integrations.invalidate();
+          utils.viewer.connectedCalendars.invalidate();
+        },
+        onError: () => {
+          showToast(t("error_removing_app"), "error");
+          callback();
+        },
+      }
+    );
+  };
+
   const AddConferencingButton = () => {
     return (
       <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
@@ -151,6 +207,8 @@ export const ConferencingAppsViewWebWrapper = ({
       </Button>
     );
   };
+
+  const disconnectIntegrationModalCtrl = useDisconnectIntegrationModalController();
 
   return (
     <SettingsHeader
@@ -160,52 +218,14 @@ export const ConferencingAppsViewWebWrapper = ({
       borderInShellHeader={true}>
       <>
         <div className="bg-default w-full sm:mx-0 xl:mt-0">
-          <QueryCell
-            query={installedIntegrationsQuery}
-            customLoader={<SkeletonLoader />}
-            success={({ data }) => {
-              if (!data.items.length) {
-                return (
-                  <EmptyScreen
-                    Icon="calendar"
-                    headline={t("no_category_apps", {
-                      category: t("conferencing").toLowerCase(),
-                    })}
-                    description={t("no_category_apps_description_conferencing")}
-                    buttonRaw={
-                      <Button
-                        color="secondary"
-                        data-testid="connect-conferencing-apps"
-                        href="/apps/categories/conferencing">
-                        {t("connect_conference_apps")}
-                      </Button>
-                    }
-                  />
-                );
-              }
-              return (
-                <AppList
-                  listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
-                  handleDisconnect={handleDisconnect}
-                  data={data}
-                  variant="conferencing"
-                  defaultConferencingApp={defaultConferencingApp}
-                  handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
-                  handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
-                  isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
-                  eventTypes={eventTypesQueryData?.eventTypes}
-                  isEventTypesFetching={isEventTypesFetching}
-                  handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
-                  handleBulkEditDialogToggle={handleBulkEditDialogToggle}
-                />
-              );
-            }}
-          />
+          <Suspense fallback={<SkeletonLoader />}>
+            <InstalledConferencingApps disconnectIntegrationModalCtrl={disconnectIntegrationModalCtrl} />
+          </Suspense>
         </div>
         <DisconnectIntegrationModal
-          handleModelClose={handleModelClose}
-          isOpen={modal.isOpen}
-          credentialId={modal.credentialId}
+          handleModelClose={disconnectIntegrationModalCtrl.close}
+          isOpen={disconnectIntegrationModalCtrl.isModalOpen()}
+          credentialId={disconnectIntegrationModalCtrl.credentialId}
           handleRemoveApp={handleRemoveApp}
         />
       </>
