@@ -57,6 +57,74 @@ describe("isTimeSlotAvailable", () => {
     expect(result).toBe(false);
   });
 
+  describe("Different day due to timezone", () => {
+    it("should correctly lookup on appropriate date when the day in which to show the slot is before the date in the ISO string", () => {
+      const slotToCheckInIso1 = "2024-02-08T10:30:00.000Z";
+      const dateToShowSlot1 = "2024-02-07";
+      const quickAvailabilityChecks1: QuickAvailabilityCheck[] = [];
+
+      const result1 = isTimeSlotAvailable({
+        scheduleData: {
+          slots: {
+            [dateToShowSlot1]: [{ time: slotToCheckInIso1 }],
+          },
+        },
+        slotToCheckInIso: slotToCheckInIso1,
+        quickAvailabilityChecks: quickAvailabilityChecks1,
+      });
+
+      expect(result1).toBe(true);
+
+      const slotToCheckInIso2 = "2024-02-01T10:30:00.000Z";
+      const dateToShowSlot2 = "2024-01-31";
+      const quickAvailabilityChecks2: QuickAvailabilityCheck[] = [];
+      const result2 = isTimeSlotAvailable({
+        scheduleData: {
+          slots: {
+            [dateToShowSlot2]: [{ time: slotToCheckInIso2 }],
+          },
+        },
+        slotToCheckInIso: slotToCheckInIso2,
+        quickAvailabilityChecks: quickAvailabilityChecks2,
+      });
+
+      expect(result2).toBe(true);
+    });
+
+    it("should correctly lookup on appropriate date when the day in which to show the slot is after the date in the ISO string", () => {
+      const slotToCheckInIso1 = "2024-02-08T10:30:00.000Z";
+      const dateToShowSlot1 = "2024-02-09";
+      const quickAvailabilityChecks1: QuickAvailabilityCheck[] = [];
+
+      const result1 = isTimeSlotAvailable({
+        scheduleData: {
+          slots: {
+            [dateToShowSlot1]: [{ time: slotToCheckInIso1 }],
+          },
+        },
+        slotToCheckInIso: slotToCheckInIso1,
+        quickAvailabilityChecks: quickAvailabilityChecks1,
+      });
+
+      expect(result1).toBe(true);
+
+      const slotToCheckInIso2 = "2024-02-01T10:30:00.000Z";
+      const dateToShowSlot2 = "2024-01-31";
+      const quickAvailabilityChecks2: QuickAvailabilityCheck[] = [];
+      const result2 = isTimeSlotAvailable({
+        scheduleData: {
+          slots: {
+            [dateToShowSlot2]: [{ time: slotToCheckInIso2 }],
+          },
+        },
+        slotToCheckInIso: slotToCheckInIso2,
+        quickAvailabilityChecks: quickAvailabilityChecks2,
+      });
+
+      expect(result2).toBe(true);
+    });
+  });
+
   it("should return true when the slot exists in the schedule data", () => {
     const slotToCheckInIso = "2024-02-08T10:30:00.000Z";
     const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
