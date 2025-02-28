@@ -20,36 +20,31 @@ import { useDataTable, useFilterValue } from "../../hooks";
 import type {
   ColumnFilterType,
   FacetedValue,
-  FilterableColumn,
-  MultiSelectFilterValue,
-  SingleSelectFilterValue,
+  FilterableColumn as _FilterableColumn,
+  FilterValueSchema,
 } from "../../lib/types";
-import type { ZMultiSelectFilterValue, ZSingleSelectFilterValue } from "../../lib/types";
+
+type FilterableColumn = Extract<
+  _FilterableColumn,
+  { type: ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT }
+>;
 
 type FilterableSelectColumn<T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT> =
   Extract<FilterableColumn, { type: T }>;
 
-type FilterValue<T> = T extends ColumnFilterType.MULTI_SELECT
-  ? MultiSelectFilterValue
-  : T extends ColumnFilterType.SINGLE_SELECT
-  ? SingleSelectFilterValue
-  : never;
-
-type FilterSchema<T> = T extends ColumnFilterType.MULTI_SELECT
-  ? typeof ZMultiSelectFilterValue
-  : T extends ColumnFilterType.SINGLE_SELECT
-  ? typeof ZSingleSelectFilterValue
-  : never;
+type FilterValue<T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT> = ReturnType<
+  typeof useFilterValue<T, FilterValueSchema<T>>
+>;
 
 export type BaseSelectFilterOptionsProps<
   T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
 > = {
   column: FilterableSelectColumn<T>;
-  filterSchema: FilterSchema<T>;
-  isOptionSelected: (filterValue: FilterValue<T> | undefined | null, optionValue: string | number) => boolean;
+  filterValueSchema: FilterValueSchema<T>;
+  isOptionSelected: (filterValue: FilterValue<T> | undefined, optionValue: string | number) => boolean;
   onOptionSelect: (
     column: FilterableSelectColumn<T>,
-    currentFilterValue: FilterValue<T> | undefined | null,
+    currentFilterValue: FilterValue<T> | undefined,
     optionValue: string | number
   ) => void;
   testIdPrefix: string;
@@ -94,9 +89,16 @@ function getSectionedOptions(options: FacetedValue[]) {
 
 export function BaseSelectFilterOptions<
   T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
->({ column, filterSchema, isOptionSelected, onOptionSelect, testIdPrefix }: BaseSelectFilterOptionsProps<T>) {
+>({
+  column,
+  filterValueSchema,
+  isOptionSelected,
+  onOptionSelect,
+  testIdPrefix,
+}: BaseSelectFilterOptionsProps<T>) {
   const { t } = useLocale();
-  const filterValue = useFilterValue(column.id, filterSchema);
+
+  const filterValue = useFilterValue(column.id, filterValueSchema);
   const { removeFilter } = useDataTable();
 
   const options = useMemo(() => {

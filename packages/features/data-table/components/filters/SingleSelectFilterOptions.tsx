@@ -15,7 +15,7 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
   return (
     <BaseSelectFilterOptions<ColumnFilterType.SINGLE_SELECT>
       column={column}
-      filterSchema={ZSingleSelectFilterValue}
+      filterValueSchema={ZSingleSelectFilterValue}
       testIdPrefix="single-select-options"
       isOptionSelected={(filterValue, optionValue) => filterValue?.data === optionValue}
       onOptionSelect={(column, filterValue, optionValue) => {
