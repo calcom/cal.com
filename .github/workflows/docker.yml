@@ -75,7 +75,7 @@ jobs:
           load: true
           push: false
           platforms: linux/amd64
-          tags: solymamady/calcom
+          tags: solymady/calcom
           build-args: |
             NEXT_PUBLIC_LICENSE_CONSENT=true
             CALCOM_TELEMETRY_DISABLED=true
@@ -93,7 +93,7 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64
-          tags: solymamady/calcom
+          tags: solymady/calcom
           build-args: |
             NEXT_PUBLIC_LICENSE_CONSENT=true
             CALCOM_TELEMETRY_DISABLED=true
