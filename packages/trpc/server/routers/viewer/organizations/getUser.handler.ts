@@ -40,6 +40,11 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
             name: true,
           },
         },
+        profiles: {
+          select: {
+            username: true,
+          },
+        },
       },
     }),
     // Query on accepted as we don't want the user to be able to get this much info on a user that hasn't accepted the invite
@@ -77,6 +82,8 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   const foundUser = {
     ...requestedUser,
+    // Enrich with the users profile for the username or fall back to the username their account was created with.
+    username: requestedUser.profiles[0].username || requestedUser.username,
     teams: teams.map((team) => ({
       ...team.team,
       accepted: team.accepted,
