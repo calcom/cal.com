@@ -2445,6 +2445,7 @@
   "enterprise": "Podnik",
   "enterprise_description": "Prejdite na podnikové riešenie a vytvorte svoju organizáciu",
   "create_your_org": "Vytvorte svoju organizáciu",
+  "create_org": "Vytvoriť organizáciu",
   "create_your_org_description": "Prejdite na organizácie a získajte subdoménu, zjednotenú fakturáciu, prehľady, rozsiahle prispôsobenie značky a ďalšie",
   "create_your_enterprise_description": "Prejdite na podnikové riešenie a získajte prístup k synchronizácii Active Directory, automatickému poskytovaniu používateľov SCIM, hlasovým agentom Cal.ai, administrátorským API a ďalším!",
   "other_payment_app_enabled": "Pre každý typ udalosti môžete povoliť iba jednu platobnú aplikáciu",

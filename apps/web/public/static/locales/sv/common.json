@@ -2445,6 +2445,7 @@
   "enterprise": "Företag",
   "enterprise_description": "Uppgradera till Enterprise för att skapa din organisation",
   "create_your_org": "Skapa din Organisation",
+  "create_org": "Skapa Organisation",
   "create_your_org_description": "Uppgradera till Organisationer och få en subdomän, enhetlig fakturering, Insights, omfattande whitelabeling och mer",
   "create_your_enterprise_description": "Uppgradera till Enterprise och få tillgång till Active Directory Sync, SCIM Automatisk Användarprovisionering, Cal.ai Röstagenter, Admin API:er och mer!",
   "other_payment_app_enabled": "Du kan bara aktivera en betalningsapp per eventtyp",

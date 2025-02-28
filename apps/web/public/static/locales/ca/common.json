@@ -2445,6 +2445,7 @@
   "enterprise": "Enterprise",
   "enterprise_description": "Actualitzeu a Enterprise per crear la vostra organització",
   "create_your_org": "Creeu la vostra organització",
+  "create_org": "Crea organització",
   "create_your_org_description": "Actualitzeu a Organitzacions i obteniu un subdomini, facturació unificada, Insights, personalització extensa i més",
   "create_your_enterprise_description": "Actualitzeu a Enterprise i obteniu accés a sincronització amb Active Directory, aprovisionament automàtic d'usuaris SCIM, agents de veu Cal.ai, APIs d'administració i més!",
   "other_payment_app_enabled": "Només podeu activar una aplicació de pagament per tipus d'esdeveniment",

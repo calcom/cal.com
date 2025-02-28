@@ -2445,6 +2445,7 @@
   "enterprise": "Întreprindere",
   "enterprise_description": "Faceți upgrade la Enterprise pentru a crea organizația dvs.",
   "create_your_org": "Creați-vă Organizația",
+  "create_org": "Creează Organizație",
   "create_your_org_description": "Faceți upgrade la Organizații și primiți un subdomeniu, facturare unificată, Insights, whitelabeling extins și altele",
   "create_your_enterprise_description": "Faceți upgrade la Enterprise și obțineți acces la Active Directory Sync, SCIM Automatic User provisioning, Cal.ai Voice Agents, Admin APIs și altele!",
   "other_payment_app_enabled": "Puteți activa o singură aplicație de plată per tip de eveniment",
