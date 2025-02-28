@@ -12,3 +12,7 @@ export type PageProps = {
 };
 
 export type LayoutProps = { params: Params; children: React.ReactElement };
+export type TFunction = (
+  key: string,
+  options?: Record<string, string | number> // Interpolation variables
+) => string;
