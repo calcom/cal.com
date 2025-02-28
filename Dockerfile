@@ -1,6 +1,5 @@
 # Stage 1: Build
 FROM node:18 AS builder
-
 WORKDIR /calcom
 
 ARG NEXT_PUBLIC_LICENSE_CONSENT
@@ -24,6 +23,7 @@ COPY .yarn ./.yarn
 COPY apps/web ./apps/web
 COPY apps/api/v2 ./apps/api/v2
 COPY packages ./packages
+COPY scripts/start.sh /calcom/scripts/start.sh
 
 # Ensure tests directory exists
 RUN mkdir -p ./tests || true
@@ -36,13 +36,11 @@ RUN yarn db-deploy
 RUN yarn --cwd packages/prisma seed-app-store
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build
 
-
 # Cleanup
 RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
 
 # Stage 2: Prepare Final Build
 FROM node:18 AS builder-two
-
 WORKDIR /calcom
 
 ENV NODE_ENV=production
@@ -55,23 +53,24 @@ COPY --from=builder /calcom/node_modules ./node_modules
 COPY --from=builder /calcom/packages ./packages
 COPY --from=builder /calcom/apps/web ./apps/web
 COPY packages/prisma/schema.prisma ./packages/prisma/schema.prisma
+COPY --from=builder /calcom/scripts/start.sh /calcom/scripts/start.sh
 
-
+RUN chmod +x /calcom/scripts/start.sh
 
 # Save value used during this build stage
 ENV NEXT_PUBLIC_WEBAPP_URL="http://localhost:3000"
-#RUN /calcom/scripts/replace-placeholder.sh http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
-
 
 # Stage 3: Final Runtime
 FROM node:18 AS runner
-
 WORKDIR /calcom
 
 COPY --from=builder-two /calcom ./
 
 ENV NODE_ENV production
 EXPOSE 3000
+
+COPY --from=builder-two /calcom/scripts/start.sh /calcom/scripts/start.sh
+RUN chmod +x /calcom/scripts/start.sh
 
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
     CMD curl --fail http://localhost:3000 || exit 1
