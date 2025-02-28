@@ -464,9 +464,9 @@ describe("findQualifiedHostsWithDwdCredentials", async () => {
       },
     };
 
-    vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [hosts[0]]);
-
-    const filterSpy = vi.spyOn(Array.prototype, "filter");
+    const findMatchingHostsSpy = vi
+      .spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment")
+      .mockImplementation(async () => [hosts[0]]);
 
     // Call the function under test
     const result = await findQualifiedHostsWithDwdCredentials({
@@ -477,14 +477,23 @@ describe("findQualifiedHostsWithDwdCredentials", async () => {
       routingFormResponse: null,
     });
 
-    // check if we returned early after segment matching only returned one host
-    expect(filterSpy).toHaveBeenCalledTimes(2);
-
     // Verify the result
     expect(result).toEqual({
       qualifiedRRHosts: [hosts[0]],
       fixedHosts: [],
     });
+
+    // Verify that findMatchingHostsWithEventSegment was called with correct parameters
+    expect(findMatchingHostsSpy).toHaveBeenCalledWith({
+      eventType,
+      hosts: hosts.filter((host) => !host.isFixed), // Only round-robin hosts should be passed
+    });
+
+    // Verify that filterHostsByLeadThreshold was not called since we returned early
+    expect(filterHostsByLeadThreshold).not.toHaveBeenCalled();
+
+    // Verify that allFallbackRRHosts is not present in the result
+    expect(result).not.toHaveProperty("allFallbackRRHosts");
   });
 
   it("should filter for segment matching and routed team member ids", async () => {
