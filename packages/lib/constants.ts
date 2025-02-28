@@ -76,6 +76,10 @@ export const PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS =
 export const PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM =
   process.env.NEXT_PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM === "1";
 
+// Enables a feature for x% of all visitors. Takes a number between 0 and 100.
+export const PUBLIC_QUICK_AVAILABILITY_ROLLOUT =
+  parseInt(process.env.NEXT_PUBLIC_QUICK_AVAILABILITY_ROLLOUT ?? "", 10) || 0;
+
 export const CURRENT_TIMEZONE = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
 
 /** @deprecated use `WEBAPP_URL` */
