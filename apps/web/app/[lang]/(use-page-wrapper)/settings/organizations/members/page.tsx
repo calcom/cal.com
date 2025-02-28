@@ -1,4 +1,4 @@
-import SettingsLayoutAppDir from "app/(use-page-wrapper)/settings/(settings-layout)/layout";
+import SettingsLayoutAppDir from "app/[lang]/(use-page-wrapper)/settings/(settings-layout)/layout";
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 

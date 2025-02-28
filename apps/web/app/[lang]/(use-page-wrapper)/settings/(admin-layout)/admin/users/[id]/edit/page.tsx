@@ -12,19 +12,14 @@ const userIdSchema = z.object({ id: z.coerce.number() });
 
 export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(params);
+  const t = await getTranslate(params.lang as string);
   if (!input.success) {
-    return await _generateMetadata(
-       t("editing_user"),
-       t("admin_users_edit_description")
-    );
+    return await _generateMetadata(t("editing_user"), t("admin_users_edit_description"));
   }
 
   const user = await UserRepository.adminFindById(input.data.id);
 
-  return await _generateMetadata(
-     `${t("editing_user")}: ${user.username}`,
-     t("admin_users_edit_description")
-  );
+  return await _generateMetadata(`${t("editing_user")}: ${user.username}`, t("admin_users_edit_description"));
 };
 
 const Page = async ({ params }: { params: Params }) => {
