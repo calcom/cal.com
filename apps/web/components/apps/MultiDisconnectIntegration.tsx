@@ -52,7 +52,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
     },
   });
 
-  const getUserDisplayName = (user: typeof cred.user) => {
+  const getUserDisplayName = (user: (typeof credentials)[number]["user"]) => {
     if (!user) return null;
     // Check if 'name' property exists on user
     if ("name" in user) return user.name;
