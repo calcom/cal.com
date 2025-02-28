@@ -86,7 +86,7 @@ jobs:
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
 
 
-            - name: Push Docker image
+      - name: Push Docker image
         id: docker_push
         uses: docker/build-push-action@v5
         with:
