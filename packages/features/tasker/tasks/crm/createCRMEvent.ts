@@ -14,12 +14,12 @@ import { createCRMEventSchema } from "./schema";
 const log = logger.getSubLogger({ prefix: [`[[tasker] createCRMEvent`] });
 
 export async function createCRMEvent(payload: string): Promise<void> {
+  // All errors thrown from this try catch will be cause a retry
   try {
     const parsedPayload = createCRMEventSchema.safeParse(JSON.parse(payload));
 
     if (!parsedPayload.success) {
-      // TODO: I think we should not retry on malformed payload
-      throw new RetryableError(`malformed payload in createCRMEvent: ${parsedPayload.error}`);
+      throw new Error(`malformed payload in createCRMEvent: ${parsedPayload.error}`);
     }
     const { bookingUid } = parsedPayload.data;
 
@@ -51,8 +51,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
     });
 
     if (!booking) {
-      // TODO: I think we should not retry on booking not found
-      throw new RetryableError(`booking not found for uid: ${bookingUid}`);
+      throw new Error(`booking not found for uid: ${bookingUid}`);
     }
 
     if (booking.status !== BookingStatus.ACCEPTED) {
@@ -85,12 +84,12 @@ export async function createCRMEvent(payload: string): Promise<void> {
       },
     });
 
-    const errorPerApp: Record<string, Error[]> = {};
+    const errorPerApp: Record<string, unknown> = {};
     // Find enabled CRM apps for the event type
     for (const appSlug of Object.keys(eventTypeAppMetadata)) {
       // Try Catch per app to ensure all apps are tried even if any of them throws an error
+      // If we want to retry for an error from this try catch, then that error must be thrown as a RetryableError
       try {
-        console.log("appSlug", appSlug);
         const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
         const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
         if (!appData || !appDataSchema) {
@@ -154,12 +153,11 @@ export async function createCRMEvent(payload: string): Promise<void> {
         const results = await crm.createEvent(calendarEvent);
 
         if (results) {
-          console.log("Pushing results");
           bookingReferencesToCreate.push({
             type: crmCredential.type,
-            credentialId: crmCredential.id,
             uid: results.id,
             meetingId: results.id,
+            credentialId: crmCredential.id,
             bookingId: booking.id,
           });
         }
@@ -174,29 +172,30 @@ export async function createCRMEvent(payload: string): Promise<void> {
 
     // throw error if there are any errors, tag the error with the app slug
     const errorMsgs = Object.entries(errorPerApp).map(([appSlug, error]) => {
-      return `(app: ${appSlug}) ${error.message}`;
+      if (error instanceof Error) {
+        return `(app: ${appSlug}) ${error.message}`;
+      }
+      return `(app: ${appSlug}) ${error}`;
     });
 
     if (errorMsgs.length > 0) {
-      const hasAnyRetryableErrors = Object.values(errorPerApp)
-        .flat()
-        .some((error) => error instanceof RetryableError);
+      const hasAnyRetryableErrors = Object.values(errorPerApp).some(
+        (error) => error instanceof RetryableError
+      );
       if (hasAnyRetryableErrors) {
-        throw new RetryableError(errorMsgs.join("\n"));
-      } else {
+        // Intentional rethrow to trigger retry
         throw new Error(errorMsgs.join("\n"));
       }
+      log.error(
+        `[Will not retry] Error creating CRM event for booking ${bookingUid}: ${errorMsgs.join("\n")}`
+      );
     }
   } catch (error) {
     const errorMsg = `Error creating crm event: error: ${safeStringify(error)} Data: ${safeStringify({
       payload,
     })}`;
-    if (error instanceof RetryableError) {
-      log.error(`[Will retry] ${errorMsg}`);
-      // Intentional rethrow to trigger retry
-      throw error;
-    } else {
-      log.error(`[Will not retry] ${errorMsg}`);
-    }
+    log.error(`[Will retry] ${errorMsg}`);
+    // Intentional rethrow to trigger retry
+    throw error;
   }
 }

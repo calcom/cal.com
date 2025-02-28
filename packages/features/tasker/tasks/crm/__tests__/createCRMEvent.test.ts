@@ -426,4 +426,54 @@ describe("createCRMEvent", () => {
       ],
     });
   });
+
+  it("should skip a credential from creatingEvent if bookingReference already exists(Helpful in case of retry)", async () => {
+    const mockBooking: Booking = {
+      id: 1,
+      uid: "booking-123",
+      status: BookingStatus.ACCEPTED,
+      title: "Test Booking",
+      startTime: new Date(),
+      endTime: new Date(),
+      user: {
+        id: 1,
+        email: "test@example.com",
+        name: "Test User",
+      },
+      eventType: {
+        metadata: {
+          apps: {
+            salesforce: {
+              enabled: true,
+              credentialId: 1,
+              appCategories: ["crm"],
+            },
+          },
+        },
+      },
+    };
+
+    const mockSalesforceCredential: CRMCredential = {
+      id: 1,
+      type: "salesforce_crm",
+      key: { key1: "value1" },
+      userId: 1,
+    };
+
+    prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
+    prismaMock.credential.findUnique.mockResolvedValueOnce(mockSalesforceCredential);
+    prismaMock.bookingReference.findMany.mockResolvedValueOnce([
+      { id: 1, type: "salesforce_crm", uid: "sf-event-123", credentialId: 1, bookingId: 1 },
+    ]);
+
+    const payload = JSON.stringify({
+      bookingUid: "booking-123",
+    });
+
+    await createCRMEvent(payload);
+
+    expect(prismaMock.bookingReference.createMany).toHaveBeenCalledWith({
+      data: [],
+    });
+  });
 });
