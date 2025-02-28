@@ -14272,7 +14272,7 @@
           "type": {
             "type": "string",
             "example": "address",
-            "description": "only allowed value for type is `address`"
+            "description": "only allowed value for type is `address` - it refers to address defined by the organizer."
           }
         },
         "required": ["type"]
@@ -14344,7 +14344,7 @@
           "type": {
             "type": "string",
             "example": "link",
-            "description": "only allowed value for type is `link`"
+            "description": "only allowed value for type is `link` - it refers to link defined by the organizer."
           }
         },
         "required": ["type"]
@@ -14355,7 +14355,7 @@
           "type": {
             "type": "string",
             "example": "phone",
-            "description": "only allowed value for type is `phone`"
+            "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
           }
         },
         "required": ["type"]
@@ -14481,7 +14481,7 @@
             "deprecated": true
           },
           "location": {
-            "description": "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
@@ -14564,7 +14564,7 @@
             "deprecated": true
           },
           "location": {
-            "description": "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
@@ -14652,7 +14652,7 @@
             "deprecated": true
           },
           "location": {
-            "description": "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"

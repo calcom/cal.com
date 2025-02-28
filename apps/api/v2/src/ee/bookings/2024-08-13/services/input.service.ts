@@ -14,6 +14,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { CreationSource } from "@prisma/client";
+import { isURL, isPhoneNumber } from "class-validator";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
@@ -225,6 +226,20 @@ export class InputBookingsService_2024_08_13 {
       // note(Lauris): this is for backwards compatibility because before switching to booking location objects
       // we only received a string. If someone is complaining that their location is not displaying as a URL
       // or whatever check that they are not providing a string for bookign location but one of the input objects.
+      if (isURL(location, { require_protocol: false }) || location.startsWith("www.")) {
+        return {
+          value: "link",
+          optionValue: location,
+        };
+      }
+
+      if (isPhoneNumber(location)) {
+        return {
+          value: "phone",
+          optionValue: location,
+        };
+      }
+
       return {
         value: "somewhereElse",
         optionValue: location,

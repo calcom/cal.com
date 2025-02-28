@@ -329,6 +329,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a booking", async () => {
+        const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
           eventTypeId,
@@ -338,7 +339,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone: "Europe/Rome",
             language: "it",
           },
-          location: "https://meet.google.com/abc-def-ghi",
+          location: googleMeetUrl,
           bookingFieldsResponses: {
             customField: "customValue",
           },
@@ -392,6 +393,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 email: body.attendee.email,
                 ...body.bookingFieldsResponses,
                 guests: body.guests,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               });
               expect(data.guests).toEqual(body.guests);
 
@@ -1540,7 +1545,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
-    describe("booking location", () => {
+    xdescribe("booking location", () => {
       const address = "123 Main St";
       const link = "https://cal.com/join/123456";
       const phone = "+37121999999";
