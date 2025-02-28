@@ -83,7 +83,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
   const foundUser = {
     ...requestedUser,
     // Enrich with the users profile for the username or fall back to the username their account was created with.
-    username: requestedUser.profiles[0].username || requestedUser.username,
+    username: requestedUser.profiles[0]?.username || requestedUser.username,
     teams: teams.map((team) => ({
       ...team.team,
       accepted: team.accepted,
