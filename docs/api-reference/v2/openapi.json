@@ -7476,7 +7476,7 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet"]
+            "enum": ["cal-video", "google-meet", "office365-video", "zoom"]
           }
         },
         "required": ["type", "integration"]

@@ -7980,7 +7980,9 @@
             "example": "cal-video",
             "enum": [
               "cal-video",
-              "google-meet"
+              "google-meet",
+              "office365-video",
+              "zoom"
             ]
           }
         },
