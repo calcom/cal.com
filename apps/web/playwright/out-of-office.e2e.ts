@@ -283,10 +283,8 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-    await page.locator('[data-testid="date-range-options-ny"]').click();
+    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
-
     const reasonListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
     );
@@ -326,8 +324,7 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-    await page.locator('[data-testid="date-range-options-ny"]').click();
+    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const reasonListRespPromise = page.waitForResponse(
@@ -366,8 +363,7 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
+    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -412,8 +408,7 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
+    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -435,8 +430,7 @@ test.describe("Out of office", () => {
     await member1User?.apiLogin();
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
+    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
     await addOOOButton.click();
     await reasonListRespPromise;
@@ -465,8 +459,7 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
+    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -488,8 +481,7 @@ test.describe("Out of office", () => {
       await member1User?.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
-      await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-      await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
+      await selectCustomDateRangeFilter(page);
       await entriesListRespPromise;
       await addOOOButton.click();
       await reasonListRespPromise;
@@ -522,8 +514,7 @@ test.describe("Out of office", () => {
       );
       await page.goto("/settings/my-account/out-of-office?type=team");
       await page.waitForLoadState("domcontentloaded");
-      await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-      await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
+      await selectCustomDateRangeFilter(page);
       await entriesListRespPromise;
 
       const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -609,11 +600,11 @@ async function selectDateAndCreateOOO(
   redirectToUserId?: number,
   expectedStatusCode = 200,
   forTeamMember = false,
-  month: "previous-month" | "next-month" = "next-month",
+  month: "previous" | "next" = "next",
   editMode = false
 ) {
   const t = await localize("en");
-  await page.locator(`button[name="${month}"]`).click();
+  await page.locator(`button[name="${month}-month"]`).click();
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
   editMode
@@ -630,4 +621,17 @@ async function selectDateAndCreateOOO(
     await page.getByTestId(`team_username_select_${redirectToUserId}`).click();
   }
   await saveAndWaitForResponse(page, expectedStatusCode);
+}
+
+//selects custom date range filter with
+//start date = 1st of previous 2 months
+//end date = 1st of next 2 months
+//example: if current date is 28Feb2025, start date = 1Dec2024, end date = 1Apr2025
+async function selectCustomDateRangeFilter(page: Page) {
+  await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+  await page.locator(`[data-testid="date-range-options-c"]`).click();
+  await page.locator(`button[name="previous-month"]`).click({ clickCount: 2, delay: 100 });
+  await page.locator(`button[name="day"]:text-is("1")`).nth(0).click();
+  await page.locator(`button[name="next-month"]`).click({ clickCount: 4, delay: 100 });
+  await page.locator(`button[name="day"]:text-is("1")`).nth(0).click();
 }
