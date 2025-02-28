@@ -117,7 +117,7 @@ export const ZFilterValue = z.union([
 ]);
 
 export type DateRangeFilterOptions = {
-  range: "past" | "custom";
+  range: "past" | "custom" | "future";
 };
 
 export type ColumnFilterMeta =

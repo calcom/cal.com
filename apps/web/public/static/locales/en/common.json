@@ -2980,5 +2980,8 @@
   "previous_ooo_empty_title": "No previous OOO found",
   "previous": "Previous",
   "user_has_no_team_yet": "You don't have a team yet",
+  "next_number_of_days": "Next {{count}} days",
+  "date_to_month": "Date to month",
+  "date_to_year": "Date to year",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

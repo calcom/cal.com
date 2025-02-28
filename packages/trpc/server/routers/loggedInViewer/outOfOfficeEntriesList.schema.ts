@@ -5,6 +5,8 @@ export const ZOutOfOfficeEntriesListSchema = z.object({
   cursor: z.number().nullish(),
   fetchTeamMembersEntries: z.boolean().optional().default(false),
   searchTerm: z.string().optional(),
+  endDateFilterStartRange: z.string().optional(),
+  endDateFilterEndRange: z.string().optional(),
 });
 
 export type TOutOfOfficeEntriesListSchema = z.infer<typeof ZOutOfOfficeEntriesListSchema>;

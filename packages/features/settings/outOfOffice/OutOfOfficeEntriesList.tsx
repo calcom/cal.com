@@ -1,13 +1,22 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { getCoreRowModel, getFilteredRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { Trans } from "next-i18next";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
+import type { FilterableColumn } from "@calcom/features/data-table";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableProvider,
+  ColumnFilterType,
+  DateRangeFilter,
+  useFilterValue,
+  ZDateRangeFilterValue,
+} from "@calcom/features/data-table";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -40,7 +49,21 @@ interface OutOfOfficeEntry {
   canEditAndDelete: boolean;
 }
 
-export const OutOfOfficeEntriesList = () => {
+const endDateColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "end",
+  title: "end",
+  type: ColumnFilterType.DATE_RANGE,
+};
+
+export default function OutOfOfficeEntriesList() {
+  return (
+    <DataTableProvider>
+      <OutOfOfficeEntriesListContent />
+    </DataTableProvider>
+  );
+}
+
+function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,12 +79,16 @@ export const OutOfOfficeEntriesList = () => {
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
-  const { data, isPending, fetchNextPage, isFetching, refetch } =
+  const endDateRange = useFilterValue("end", ZDateRangeFilterValue)?.data;
+
+  const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
     trpc.viewer.outOfOfficeEntriesList.useInfiniteQuery(
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
-        searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
+        searchTerm,
+        endDateFilterStartRange: endDateRange?.startDate ?? undefined,
+        endDateFilterEndRange: endDateRange?.endDate ?? undefined,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -71,9 +98,6 @@ export const OutOfOfficeEntriesList = () => {
 
   useEffect(() => {
     refetch();
-    if (selectedTab === OutOfOfficeTab.MINE) {
-      setSearchTerm("");
-    }
   }, [deletedEntry, selectedTab, refetch]);
 
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
@@ -82,7 +106,6 @@ export const OutOfOfficeEntriesList = () => {
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
     [data, selectedTab, isPending, isFetching, searchTerm]
   ) as OutOfOfficeEntry[];
-  const totalFetched = flatData.length;
 
   const memoColumns = useMemo(() => {
     const columns: ColumnDef<OutOfOfficeEntry>[] = [];
@@ -257,35 +280,14 @@ export const OutOfOfficeEntriesList = () => {
     return columns;
   }, [selectedTab, isPending, isFetching]);
 
-  const fetchMoreOnBottomReached = useCallback(
-    (containerRefElement?: HTMLDivElement | null) => {
-      if (containerRefElement) {
-        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        if (scrollHeight - scrollTop - clientHeight < 100 && !isFetching && totalFetched < totalDBRowCount) {
-          fetchNextPage();
-        }
-        if (isFetching) {
-          containerRefElement.classList.add("cursor-wait");
-        } else {
-          containerRefElement.classList.remove("cursor-wait");
-        }
-      }
-    },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
-  );
-
   const table = useReactTable({
     data: flatData,
     columns: memoColumns,
     enableRowSelection: false,
-    debugTable: true,
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   });
-
-  useEffect(() => {
-    fetchMoreOnBottomReached(tableContainerRef.current);
-  }, [fetchMoreOnBottomReached]);
 
   const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
@@ -300,62 +302,60 @@ export const OutOfOfficeEntriesList = () => {
 
   return (
     <>
-      {data === null ||
-      (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && searchTerm === "") ||
-      (data === undefined && !isPending) ? (
-        <EmptyScreen
-          className="mt-6"
-          headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
-          description={
-            selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_description") : t("ooo_empty_description")
-          }
-          buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
-          customIcon={
-            <div className="mt-4 h-[102px]">
-              <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
-                <div className="relative">
-                  <div className="dark:bg-darkgray-50 absolute -left-3 -top-3 -z-20 h-[70px] w-[70px] -rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-40 dark:opacity-80">
-                    <div className="w-12" />
-                  </div>
-                  <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
-                    <div className="w-12" />
-                  </div>
-                  <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                    <Icon name="clock" size={28} />
-                    <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
-                    <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+      <DataTableWrapper
+        testId="ooo-list-data-table"
+        hideHeader={selectedTab === OutOfOfficeTab.MINE}
+        table={table}
+        isPending={isPending}
+        hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
+        totalDBRowCount={totalDBRowCount}
+        tableContainerRef={tableContainerRef}
+        ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
+        ToolbarRight={<DateRangeFilter column={endDateColumn} options={{ range: "future" }} />}
+        EmptyView={
+          <EmptyScreen
+            className="mt-6"
+            headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+            description={
+              selectedTab === OutOfOfficeTab.TEAM
+                ? t("ooo_team_empty_description")
+                : t("ooo_empty_description")
+            }
+            buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
+            customIcon={
+              <div className="mt-4 h-[102px]">
+                <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
+                  <div className="relative">
+                    <div className="dark:bg-darkgray-50 absolute -left-3 -top-3 -z-20 h-[70px] w-[70px] -rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-40 dark:opacity-80">
+                      <div className="w-12" />
+                    </div>
+                    <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
+                      <div className="w-12" />
+                    </div>
+                    <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
+                      <Icon name="clock" size={28} />
+                      <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
+                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          }
+            }
+          />
+        }
+      />
+      {openModal && (
+        <CreateOrEditOutOfOfficeEntryModal
+          openModal={openModal}
+          closeModal={() => {
+            setOpenModal(false);
+            setCurrentlyEditingOutOfOfficeEntry(null);
+          }}
+          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
         />
-      ) : (
-        <div>
-          <DataTable
-            hideHeader={selectedTab === OutOfOfficeTab.MINE}
-            table={table}
-            tableContainerRef={tableContainerRef}
-            isPending={isPending}
-            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-            {selectedTab === OutOfOfficeTab.TEAM && (
-              <DataTableToolbar.Root>
-                <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
-              </DataTableToolbar.Root>
-            )}
-          </DataTable>
-          {openModal && (
-            <CreateOrEditOutOfOfficeEntryModal
-              openModal={openModal}
-              closeModal={() => {
-                setOpenModal(false);
-                setCurrentlyEditingOutOfOfficeEntry(null);
-              }}
-              currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
-            />
-          )}
-        </div>
       )}
     </>
   );
-};
+}
