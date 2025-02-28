@@ -17,13 +17,19 @@ export const inputLocations = [
 
 export class BookingInputAddressLocation_2024_08_13 {
   @IsIn(inputLocations)
-  @DocsProperty({ example: "address", description: "only allowed value for type is `address`" })
+  @DocsProperty({
+    example: "address",
+    description: "only allowed value for type is `address` - it refers to address defined by the organizer.",
+  })
   type!: "address";
 }
 
 export class BookingInputLinkLocation_2024_08_13 {
   @IsIn(inputLocations)
-  @DocsProperty({ example: "link", description: "only allowed value for type is `link`" })
+  @DocsProperty({
+    example: "link",
+    description: "only allowed value for type is `link` - it refers to link defined by the organizer.",
+  })
   type!: "link";
 }
 
@@ -42,7 +48,10 @@ export class BookingInputIntegrationLocation_2024_08_13 {
 
 export class BookingInputPhoneLocation_2024_08_13 {
   @IsIn(inputLocations)
-  @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
+  @DocsProperty({
+    example: "phone",
+    description: "only allowed value for type is `phone` - it refers to phone defined by the organizer.",
+  })
   type!: "phone";
 }
 

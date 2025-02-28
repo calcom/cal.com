@@ -180,7 +180,7 @@ export class CreateBookingInput_2024_08_13 {
   @ValidateBookingLocation_2024_08_13()
   @ApiPropertyOptional({
     description:
-      "One of the event type locations.If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+      "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
     oneOf: [
       { $ref: getSchemaPath(BookingInputAddressLocation_2024_08_13) },
       { $ref: getSchemaPath(BookingInputAttendeeAddressLocation_2024_08_13) },
