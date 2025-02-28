@@ -493,7 +493,7 @@ async function handler(
 
   let routingFormResponse = null;
 
-  if (routedTeamMemberIds) {
+  if (routedTeamMemberIds && routingFormResponseId) {
     routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
         id: routingFormResponseId,
