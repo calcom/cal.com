@@ -111,7 +111,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     email: input.email,
     name: input.name,
     timeZone: input.timeZone,
-    username: input.username,
   };
 
   if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
