@@ -1,25 +1,21 @@
-import type { NextApiRequest } from "next";
+import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
+import type { NextRequest } from "next/server";
 import { ImageResponse } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
-const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
+const calFont = fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer());
+
+const interFont = fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer());
+
+const interFontMedium = fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) =>
   res.arrayBuffer()
 );
 
-const interFont = fetch(new URL("../../../../public/fonts/Inter-Regular.ttf", import.meta.url)).then((res) =>
-  res.arrayBuffer()
-);
-
-const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf", import.meta.url)).then(
-  (res) => res.arrayBuffer()
-);
-
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
 
 const meetingSchema = z.object({
   imageType: z.literal("meeting"),
@@ -43,7 +39,7 @@ const genericSchema = z.object({
   description: z.string(),
 });
 
-export default async function handler(req: NextApiRequest) {
+async function handler(req: NextRequest) {
   const { searchParams } = new URL(`${req.url}`);
   const imageType = searchParams.get("type");
 
@@ -118,3 +114,7 @@ export default async function handler(req: NextApiRequest) {
       return new Response("What you're looking for is not here..", { status: 404 });
   }
 }
+
+const getHandler = apiRouteMiddleware(handler);
+
+export { getHandler as GET };
