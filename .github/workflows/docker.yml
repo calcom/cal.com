@@ -86,7 +86,7 @@ jobs:
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
 
 
-      - name: Push Docker image
+            - name: Push Docker image
         id: docker_push
         uses: docker/build-push-action@v5
         with:
@@ -96,13 +96,13 @@ jobs:
           platforms: linux/amd64
           tags: solymamady/calcom
           build-args: |
-            NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
-            NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
-            NEXT_PUBLIC_LICENSE_CONSENT=${{ env.NEXT_PUBLIC_LICENSE_CONSENT }}
-            NEXT_PUBLIC_TELEMETRY_KEY=${{ env.NEXT_PUBLIC_TELEMETRY_KEY }}
-            DATABASE_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
-            DATABASE_DIRECT_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
-        if: ${{ !github.event.release.prerelease }}
+            NEXT_PUBLIC_LICENSE_CONSENT=true
+            CALCOM_TELEMETRY_DISABLED=true
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            MAX_OLD_SPACE_SIZE=8192
+            NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

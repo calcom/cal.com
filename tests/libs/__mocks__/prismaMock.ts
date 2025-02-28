@@ -1,5 +1,6 @@
 import { beforeEach, vi } from "vitest";
-import { DeepMockProxy, mockDeep, mockReset } from "vitest-mock-extended";
+import type { DeepMockProxy } from "vitest-mock-extended";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 
 import type { PrismaClient } from "@calcom/prisma";
 
