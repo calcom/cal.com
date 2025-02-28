@@ -1,4 +1,4 @@
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import LegacyPage from "@calcom/features/ee/organizations/pages/settings/other-team-profile-view";

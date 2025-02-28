@@ -1,5 +1,5 @@
 import { ShellMainAppDir } from "app/[lang]/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 // import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";

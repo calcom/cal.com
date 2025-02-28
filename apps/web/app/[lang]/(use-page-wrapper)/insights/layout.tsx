@@ -1,4 +1,4 @@
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { getTranslate } from "app/_utils";
 
 import Shell from "@calcom/features/shell/Shell";
