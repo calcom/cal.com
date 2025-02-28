@@ -13,15 +13,19 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
   const { updateFilter } = useDataTable();
 
   return (
-    <BaseSelectFilterOptions
+    <BaseSelectFilterOptions<ColumnFilterType.MULTI_SELECT>
       column={column}
       filterSchema={ZMultiSelectFilterValue}
       testIdPrefix="multi-select-options"
-      isOptionSelected={(filterValue, optionValue) => filterValue?.data.includes(optionValue)}
+      isOptionSelected={(filterValue, optionValue) => {
+        if (!filterValue?.data) return false;
+        return filterValue.data.includes(optionValue);
+      }}
       onOptionSelect={(column, filterValue, optionValue) => {
-        const newFilterValue = filterValue?.data.includes(optionValue)
-          ? filterValue?.data.filter((value) => value !== optionValue)
-          : [...(filterValue?.data || []), optionValue];
+        const currentData = filterValue?.data ?? [];
+        const newFilterValue = currentData.includes(optionValue)
+          ? currentData.filter((value) => value !== optionValue)
+          : [...currentData, optionValue];
         updateFilter(column.id, { type: ColumnFilterType.MULTI_SELECT, data: newFilterValue });
       }}
     />

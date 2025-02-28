@@ -26,20 +26,31 @@ import type {
 } from "../../lib/types";
 import type { ZMultiSelectFilterValue, ZSingleSelectFilterValue } from "../../lib/types";
 
-type FilterableSelectColumn = Extract<
-  FilterableColumn,
-  { type: ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT }
->;
-type SelectFilterValue = MultiSelectFilterValue | SingleSelectFilterValue;
+type FilterableSelectColumn<T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT> =
+  Extract<FilterableColumn, { type: T }>;
 
-export type BaseSelectFilterOptionsProps = {
-  column: FilterableSelectColumn;
-  filterSchema: typeof ZMultiSelectFilterValue | typeof ZSingleSelectFilterValue;
-  isOptionSelected: (filterValue: SelectFilterValue | null, optionValue: string) => boolean;
+type FilterValue<T> = T extends ColumnFilterType.MULTI_SELECT
+  ? MultiSelectFilterValue
+  : T extends ColumnFilterType.SINGLE_SELECT
+  ? SingleSelectFilterValue
+  : never;
+
+type FilterSchema<T> = T extends ColumnFilterType.MULTI_SELECT
+  ? typeof ZMultiSelectFilterValue
+  : T extends ColumnFilterType.SINGLE_SELECT
+  ? typeof ZSingleSelectFilterValue
+  : never;
+
+export type BaseSelectFilterOptionsProps<
+  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
+> = {
+  column: FilterableSelectColumn<T>;
+  filterSchema: FilterSchema<T>;
+  isOptionSelected: (filterValue: FilterValue<T> | undefined | null, optionValue: string | number) => boolean;
   onOptionSelect: (
-    column: FilterableSelectColumn,
-    currentFilterValue: SelectFilterValue | null,
-    optionValue: string
+    column: FilterableSelectColumn<T>,
+    currentFilterValue: FilterValue<T> | undefined | null,
+    optionValue: string | number
   ) => void;
   testIdPrefix: string;
 };
@@ -48,7 +59,7 @@ type SectionedOptions = {
   [section: string]: FacetedValue[];
 };
 
-function getSectionedOptions(options: FilterableSelectColumn["options"]) {
+function getSectionedOptions(options: FacetedValue[]) {
   // First map and normalize the options
   const normalizedOptions = options
     .map((option) => {
@@ -81,13 +92,9 @@ function getSectionedOptions(options: FilterableSelectColumn["options"]) {
   return sectionedOptions;
 }
 
-export function BaseSelectFilterOptions({
-  column,
-  filterSchema,
-  isOptionSelected,
-  onOptionSelect,
-  testIdPrefix,
-}: BaseSelectFilterOptionsProps) {
+export function BaseSelectFilterOptions<
+  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
+>({ column, filterSchema, isOptionSelected, onOptionSelect, testIdPrefix }: BaseSelectFilterOptionsProps<T>) {
   const { t } = useLocale();
   const filterValue = useFilterValue(column.id, filterSchema);
   const { removeFilter } = useDataTable();

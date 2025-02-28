@@ -13,7 +13,7 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
   const { updateFilter } = useDataTable();
 
   return (
-    <BaseSelectFilterOptions
+    <BaseSelectFilterOptions<ColumnFilterType.SINGLE_SELECT>
       column={column}
       filterSchema={ZSingleSelectFilterValue}
       testIdPrefix="single-select-options"
