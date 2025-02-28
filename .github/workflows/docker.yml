@@ -105,6 +105,7 @@ jobs:
             NEXT_PUBLIC_LICENSE_CONSENT=true
             CALCOM_TELEMETRY_DISABLED=true
             DATABASE_URL=${{ secrets.DATABASE_URL }}
+
             MAX_OLD_SPACE_SIZE=8192
             NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
