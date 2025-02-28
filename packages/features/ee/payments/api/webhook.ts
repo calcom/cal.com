@@ -73,9 +73,14 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       eventType,
     },
   });
+
+  const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
+  const allCredentials = await getAllCredentials(user, {
+    ...eventType,
+    metadata,
+  });
+
   if (!requiresConfirmation) {
-    const allCredentials = await getAllCredentials(user, eventType);
-    const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
     const eventManager = new EventManager({ ...user, credentials: allCredentials }, metadata?.apps);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
@@ -103,7 +108,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!requiresConfirmation) {
     await handleConfirmation({
-      user,
+      user: { ...user, credentials: allCredentials },
       evt,
       prisma,
       bookingId: booking.id,
