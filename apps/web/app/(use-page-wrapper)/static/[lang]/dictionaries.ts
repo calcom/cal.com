@@ -53,7 +53,7 @@ const dictionaries = {
 
 type LocaleType = keyof typeof dictionaries;
 
-export async function getSeverTranslation(locale: string) {
+export async function getServerTranslation(locale: string) {
   const dict = await dictionaries[locale as LocaleType]();
 
   return {

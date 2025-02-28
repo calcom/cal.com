@@ -4,11 +4,11 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { Button } from "@calcom/ui";
 
-import { getSeverTranslation } from "../dictionaries";
+import { getServerTranslation } from "../dictionaries";
 import { generateMetadataStatic } from "../metadata";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const { t } = await getSeverTranslation(params.lang as string);
+  const { t } = await getServerTranslation(params.lang as string);
   return await generateMetadataStatic(
     "/maintenance",
     t("under_maintenance"),
@@ -17,7 +17,7 @@ export const generateMetadata = async ({ params }: PageProps) => {
 };
 
 const ServerPage = async ({ params }: PageProps) => {
-  const { t } = await getSeverTranslation(params.lang as string);
+  const { t } = await getServerTranslation(params.lang as string);
 
   return (
     <div className="bg-subtle flex h-screen">
