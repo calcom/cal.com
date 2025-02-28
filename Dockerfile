@@ -60,7 +60,7 @@ COPY packages/prisma/schema.prisma ./packages/prisma/schema.prisma
 
 # Save value used during this build stage
 ENV NEXT_PUBLIC_WEBAPP_URL="http://localhost:3000"
-RUN /calcom/scripts/replace-placeholder.sh http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
+#RUN /calcom/scripts/replace-placeholder.sh http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
 
 
 # Stage 3: Final Runtime
