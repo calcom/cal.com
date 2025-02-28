@@ -18,7 +18,10 @@ export class InternalTasker implements Tasker {
     console.info(`Processing ${tasks.length} tasks`, tasks);
 
     const tasksPromises = tasks.map(async (task) => {
-      console.info(`Processing task ${task.id}`, task);
+      console.info(
+        `Processing task ${task.id}, attempt:${task.attempts} lastFailedAttempt:${task.lastFailedAttemptAt}`,
+        task
+      );
       const taskHandlerGetter = tasksMap[task.type as keyof typeof tasksMap];
       if (!taskHandlerGetter) throw new Error(`Task handler not found for type ${task.type}`);
       const taskConfig = tasksConfig[task.type as keyof typeof tasksConfig];

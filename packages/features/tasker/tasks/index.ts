@@ -1,3 +1,5 @@
+import { IS_PRODUCTION } from "@calcom/lib/constants";
+
 import type { TaskHandler, TaskTypes } from "../tasker";
 
 /**
@@ -24,8 +26,8 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
 
 export const tasksConfig = {
   createCRMEvent: {
-    minRetryIntervalMins: 5,
-    maxAttempts: 5,
+    minRetryIntervalMins: IS_PRODUCTION ? 10 : 1,
+    maxAttempts: 10,
   },
 };
 export default tasks;
