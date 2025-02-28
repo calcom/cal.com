@@ -102,7 +102,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   requestHeaders.set("x-locale", locale);
 
-  const res = NextResponse.next({
+  const localeUrl = new URL(req.url);
+  localeUrl.pathname = `/${locale}${url.pathname}`;
+  const res = NextResponse.rewrite(localeUrl, {
     request: {
       headers: requestHeaders,
     },
