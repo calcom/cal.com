@@ -65,8 +65,24 @@ export class AtomsController {
   @Get("/event-types")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
-  async getAtomEventTypes(@GetUser("id") userId: number): Promise<ApiResponse<unknown>> {
-    const eventType = await this.eventTypesService.getUserEventTypes(userId);
+  async getAtomEventTypes(
+    @GetUser() user: UserWithProfile,
+    @Query("teamId") teamId?: string,
+    @Query("orgId") orgId?: string
+  ): Promise<ApiResponse<unknown>> {
+    let validatedOrgId;
+    let validatedTeamId;
+    if (teamId && orgId) {
+      ({ orgId: validatedOrgId, teamId: validatedTeamId } =
+        await this.organizationsConferencingService.verifyAccess({
+          user,
+          orgId,
+          teamId,
+          requiredRole: "TEAM_ADMIN",
+          minimumPlan: "ESSENTIALS",
+        }));
+    }
+    const eventType = await this.eventTypesService.getUserEventTypes(user.id, validatedTeamId);
     return {
       status: SUCCESS_STATUS,
       data: eventType,

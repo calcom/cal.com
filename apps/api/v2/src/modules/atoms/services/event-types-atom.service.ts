@@ -81,8 +81,8 @@ export class EventTypesAtomService {
     return eventType;
   }
 
-  async getUserEventTypes(userId: number) {
-    return getBulkEventTypes(userId);
+  async getUserEventTypes(userId: number, teamId?: number) {
+    return getBulkEventTypes(userId, teamId);
   }
 
   async updateTeamEventType(

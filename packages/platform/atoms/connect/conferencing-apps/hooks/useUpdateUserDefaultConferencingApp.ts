@@ -11,6 +11,7 @@ export type UseUpdateUserDefaultConferencingAppProps = {
   onSuccess?: () => void;
   onError?: (err: Error) => void;
   onSettled?: () => void;
+  teamId?: number;
 };
 export const useUpdateUserDefaultConferencingApp = ({
   onSuccess,

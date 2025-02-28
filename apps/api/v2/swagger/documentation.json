@@ -8079,8 +8079,8 @@
             "enum": [
               "cal-video",
               "google-meet",
-              "zoom",
-              "office365-video"
+              "office365-video",
+              "zoom"
             ]
           }
         },

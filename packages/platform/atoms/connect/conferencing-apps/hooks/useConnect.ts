@@ -81,7 +81,7 @@ export type UseConnectGoogleMeetProps = {
   onError?: (err: ApiErrorResponse) => void;
   returnTo?: string;
   onErrorReturnTo?: string;
-  teamId?: string;
+  teamId?: number;
 };
 
 export const useConnectNonOauthApp = (
