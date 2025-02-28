@@ -1540,7 +1540,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
-    describe.only("booking location", () => {
+    describe("booking location", () => {
       const address = "123 Main St";
       const link = "https://cal.com/join/123456";
       const phone = "+37121999999";
