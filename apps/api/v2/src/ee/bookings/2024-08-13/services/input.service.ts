@@ -21,7 +21,7 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { EventTypeMetaDataSchema, InternalLocationSchema } from "@calcom/platform-libraries";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -313,22 +313,41 @@ export class InputBookingsService_2024_08_13 {
       // note(Lauris): for backwards compatibility because we had string locations before so let them pass.
       return true;
     }
-    const allowedLocationTypes = this.getAllowedEventTypeLocationsTypes(dbEventType);
+
+    const eventTypeLocations = this.outputEventTypesService.transformLocations(dbEventType.locations);
+    const allowedLocationTypes = eventTypeLocations.map((location) => location.type);
+
     const isAllowed = allowedLocationTypes.includes(inputBookingLocation.type);
     if (!isAllowed) {
       throw new BadRequestException(
         `Booking location with type ${inputBookingLocation.type} not valid for event type with id=${
           dbEventType.id
-        }. The event type has following location types
-        : ${allowedLocationTypes.join(", ")}, and only these types are allowed for booking location.`
+        }. The event type has following location types: ${allowedLocationTypes.join(
+          ", "
+        )}, and only these types are allowed for booking location.`
       );
     }
-    return true;
-  }
 
-  private getAllowedEventTypeLocationsTypes(dbEventType: EventType) {
-    const locationsParsed = this.outputEventTypesService.transformLocations(dbEventType.locations);
-    return locationsParsed.map((location) => location.type);
+    if (inputBookingLocation.type === "integration" && "integration" in inputBookingLocation) {
+      const allowedIntegrations = eventTypeLocations
+        .filter((location) => location.type === "integration")
+        .map((location) => (location as any).integration);
+
+      const isAllowedIntegration = allowedIntegrations.includes(inputBookingLocation.integration);
+      if (!isAllowedIntegration) {
+        throw new BadRequestException(
+          `Booking location with integration ${
+            inputBookingLocation.integration
+          } not valid for event type with id=${
+            dbEventType.id
+          }. The event type has following integrations: ${allowedIntegrations.join(
+            ", "
+          )}, and only these integrations are allowed for booking location.`
+        );
+      }
+    }
+
+    return true;
   }
 
   async transformInputCreateRecurringBooking(

@@ -1,4 +1,3 @@
-import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsString, IsIn, IsPhoneNumber } from "class-validator";
@@ -100,7 +99,9 @@ export type BookingInputLocation_2024_08_13 =
   | BookingInputAttendeeDefinedLocation_2024_08_13;
 
 @ValidatorConstraint({ async: true })
-class InputLocationValidator_2024_08_13 implements ValidatorConstraintInterface {
+class BookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInterface {
+  private validationMessage = "";
+
   private classTypeMap: { [key: string]: new () => BookingInputLocation_2024_08_13 } = {
     address: BookingInputAddressLocation_2024_08_13,
     link: BookingInputLinkLocation_2024_08_13,
@@ -121,28 +122,32 @@ class InputLocationValidator_2024_08_13 implements ValidatorConstraintInterface 
 
     const { type } = location;
     if (!type) {
-      throw new BadRequestException(`Booking 'location' must have a 'type' property.`);
+      this.validationMessage = `BookingInputLocationValidator_2024_08_13 - Booking 'location' must have a 'type' property.`;
+      return false;
     }
 
     const ClassType = this.classTypeMap[type];
     if (!ClassType) {
-      throw new BadRequestException(
-        `Unsupported booking location type '${type}'. Valid types are address, link, integration, and phone.`
-      );
+      this.validationMessage = `BookingInputLocationValidator_2024_08_13 - Unsupported booking location type '${type}'. Valid types are address, link, integration, phone, attendeePhone, attendeeAddress, and attendeeDefined.`;
+      return false;
     }
 
     const instance = plainToInstance(ClassType, location);
     const errors = await validate(instance);
     if (errors.length > 0) {
       const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
-      throw new BadRequestException(`Validation failed for ${type} location: ${message}`);
+      this.validationMessage = `BookingInputLocationValidator_2024_08_13 - Validation failed for ${type} location: ${message}`;
+      return false;
     }
 
     return true;
   }
 
   defaultMessage() {
-    return `Validation failed for one or more location entries.`;
+    return (
+      this.validationMessage ||
+      `BookingInputLocationValidator_2024_08_13 - Validation failed for one or more location entries.`
+    );
   }
 }
 
@@ -154,7 +159,7 @@ export function ValidateBookingLocation_2024_08_13(validationOptions?: Validatio
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
-      validator: new InputLocationValidator_2024_08_13(),
+      validator: new BookingInputLocationValidator_2024_08_13(),
     });
   };
 }

@@ -98,6 +98,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       organization = await teamRepositoryFixture.create({
         name: `user-bookings-organization-${randomString()}`,
+        isOrganization: true,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -1545,7 +1546,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
-    xdescribe("booking location", () => {
+    describe("booking location", () => {
       const address = "123 Main St";
       const link = "https://cal.com/join/123456";
       const phone = "+37121999999";
@@ -1770,7 +1771,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         }
       });
 
-      it("can book with attendeeAddress location", async () => {
+      xit("can book with attendeeAddress location", async () => {
         const attendeePhone = "+37120993151";
 
         const bookingBody: CreateBookingInput_2024_08_13 = {
@@ -1843,8 +1844,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("can't book with not location that is not in event type", async () => {
-        const attendeeDefinedLocation = "namek 100";
-
         const bookingBody: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
           eventTypeId: eventTypeWithAllLocationsId,
@@ -1867,9 +1866,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .expect(400);
       });
 
-      it("can't book with invalid location type that is not in event type", async () => {
-        const attendeeDefinedLocation = "namek 100";
-
+      it("can't book with invalid location type", async () => {
         const bookingBody = {
           start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
           eventTypeId: eventTypeWithAllLocationsId,
