@@ -2445,6 +2445,7 @@
   "enterprise": "Unternehmen",
   "enterprise_description": "Upgraden Sie um Ihre Organisation zu erstellen",
   "create_your_org": "Erstellen Sie Ihre Organisation",
+  "create_org": "Organisation erstellen",
   "create_your_org_description": "Upgraden und erhalten Sie eine Subdomain, einheitliche Abrechnungen, Insights, umfangreiches Whitelabeling und mehr",
   "create_your_enterprise_description": "Rüsten Sie auf die Enterprise-Version auf, um Zugriff auf Active Directy Sync, SCIM automatische Benutzerbereitstellung, Cal.ai Voice Agents, Admin APIs und mehr zu erhalten!",
   "other_payment_app_enabled": "Sie können nur eine Zahlungs-App pro Ereignistyp aktivieren",

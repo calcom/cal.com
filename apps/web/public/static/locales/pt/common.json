@@ -2445,6 +2445,7 @@
   "enterprise": "Empresa",
   "enterprise_description": "Atualize para Enterprise para criar a sua Organização",
   "create_your_org": "Crie a sua Organização",
+  "create_org": "Criar Organização",
   "create_your_org_description": "Atualize para Organizations e receba um subdomínio, faturação unificada, Insights, personalização abrangente da imagem corporativa e muito mais",
   "create_your_enterprise_description": "Atualize para Enterprise e tenha acesso à sincronização com Active Directory, aprovisionamento automático de utilizadores com SCIM, agentes de voz Cal.ai, API de Administração e muito mais!",
   "other_payment_app_enabled": "Só pode ativar uma aplicação de pagamento por tipo de evento",
