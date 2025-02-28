@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 
 export type FuturePresetOptionValue = "nt" | "nw" | "nm" | "ny";
+export const FUTURE_PRESET_VALUES: FuturePresetOptionValue[] = ["nt", "nw", "nm", "ny"];
 export type PresetOptionValue = "c" | "w" | "m" | "y" | "t" | "tdy" | FuturePresetOptionValue;
 
 export type PresetOption = {

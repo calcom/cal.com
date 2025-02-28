@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
+  FUTURE_PRESET_VALUES,
   getDefaultFutureEndDate,
   getDefaultFutureStartDate,
-  type FuturePresetOptionValue,
 } from "@calcom/features/data-table/lib/dateRange";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -243,7 +243,7 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
           <Command className={classNames("w-40", isCustomPreset && "rounded-b-none")}>
             <CommandList>
               {PRESET_OPTIONS.filter(
-                (option) => includeFuture || !(option.value as FuturePresetOptionValue)
+                (option) => includeFuture || !(FUTURE_PRESET_VALUES as string[]).includes(option.value)
               ).map((option) => (
                 <CommandItem
                   key={option.value}
