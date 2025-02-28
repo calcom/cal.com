@@ -283,6 +283,8 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+    await page.locator('[data-testid="date-range-options-ny"]').click();
     await entriesListRespPromise;
 
     const reasonListRespPromise = page.waitForResponse(
@@ -324,6 +326,8 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+    await page.locator('[data-testid="date-range-options-ny"]').click();
     await entriesListRespPromise;
 
     const reasonListRespPromise = page.waitForResponse(
