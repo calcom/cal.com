@@ -1,3 +1,4 @@
+import { ShellMainAppDir } from "app/[lang]/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 // import { cookies, headers } from "next/headers";
@@ -7,8 +8,6 @@ import { notFound } from "next/navigation";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 // import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import AvailabilityPage, { AvailabilityCTA } from "~/availability/availability-view";
-
-import { ShellMainAppDir } from "../ShellMainAppDir";
 
 export const generateMetadata = async ({ params }: PageProps) => {
   const t = await getTranslate(params.lang as string);

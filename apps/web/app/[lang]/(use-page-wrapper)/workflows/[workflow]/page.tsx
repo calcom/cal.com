@@ -1,5 +1,5 @@
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -31,6 +31,7 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
   if (!workflow) {
     notFound();
   }
+  const t = await getTranslate(params.lang as string);
   return await _generateMetadata(
      (workflow && workflow.name ? workflow.name : t("untitled")),
     ""

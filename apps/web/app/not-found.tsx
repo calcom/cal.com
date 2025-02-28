@@ -1,3 +1,4 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { headers } from "next/headers";
@@ -220,10 +221,11 @@ function NotFound({ t, headers }: { t: any; headers: ReadonlyHeaders }) {
   );
 }
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({ params }: PageProps) => {
   const headersList = headers();
   const pathname = headersList.get("x-pathname") ?? "";
   const isInsights = pathname?.startsWith("/insights");
+  const t = await getTranslate(params.lang as string);
 
   const metadata = await _generateMetadata(
     isInsights ? t("feature_currently_disabled") ?? "Feature is currently disabled" : t("404_page_not_found"),
@@ -238,7 +240,7 @@ export const generateMetadata = async () => {
   };
 };
 
-const ServerPage = async () => {
+const ServerPage = async ({ params }: PageProps) => {
   const t = await getTranslate(params.lang as string);
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;

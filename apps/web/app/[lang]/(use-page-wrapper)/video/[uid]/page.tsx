@@ -1,5 +1,5 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as ServerPageProps } from "app/_types";
+import type { PageProps, PageProps as ServerPageProps } from "app/_types";
 import { getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 

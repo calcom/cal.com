@@ -12,6 +12,7 @@ const orgIdSchema = z.object({ id: z.coerce.number() });
 
 export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = orgIdSchema.safeParse(params);
+  const t = await getTranslate(params.lang as string);
   if (!input.success) {
     return await _generateMetadata(
        t("editing_org"),

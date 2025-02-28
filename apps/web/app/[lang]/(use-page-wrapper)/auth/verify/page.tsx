@@ -24,8 +24,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const { hasPaymentFailed } = data;
 
   return await _generateMetadata(
-    () =>
-      hasPaymentFailed ? "Your payment failed" : sessionId ? "Payment successful!" : `Verify your email`,
+    hasPaymentFailed ? "Your payment failed" : sessionId ? "Payment successful!" : `Verify your email`,
     ""
   );
 };

@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as ServerPageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -25,11 +25,8 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
   const booking = await BookingRepository.findBookingByUid({
     bookingUid: parsed.data.uid,
   });
-
-  return await _generateMetadata(
-     t("this_meeting_has_not_started_yet"),
-    () => booking?.title ?? ""
-  );
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("this_meeting_has_not_started_yet"), booking?.title ?? "");
 };
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);

@@ -1,10 +1,11 @@
+import { PageProps } from "@app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 
 import { type IconName, IconSprites } from "@calcom/ui";
 
-import { lucideIconList } from "../../../../packages/ui/components/icon/icon-list.mjs";
+import { lucideIconList } from "../../../../../packages/ui/components/icon/icon-list.mjs";
 import { IconGrid } from "./IconGrid";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
@@ -15,13 +16,12 @@ const calFont = localFont({
   display: "swap",
   weight: "600",
 });
-export const generateMetadata = async ({params}: PageProps) => {
-  return await _generateMetadata(
-     t("icon_showcase"),
-    ""
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+
+  return await _generateMetadata(t("icon_showcase"), "");
 };
-export default async function IconsPage() {
+export default async function IconsPage({ params }: PageProps) {
   const icons = Array.from(lucideIconList).sort() as IconName[];
   const t = await getTranslate(params.lang as string);
 
