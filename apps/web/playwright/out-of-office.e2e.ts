@@ -366,6 +366,8 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -410,6 +412,8 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -431,6 +435,8 @@ test.describe("Out of office", () => {
     await member1User?.apiLogin();
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
     await entriesListRespPromise;
     await addOOOButton.click();
     await reasonListRespPromise;
@@ -459,6 +465,8 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+    await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -480,6 +488,8 @@ test.describe("Out of office", () => {
       await member1User?.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+      await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
       await entriesListRespPromise;
       await addOOOButton.click();
       await reasonListRespPromise;
@@ -512,6 +522,8 @@ test.describe("Out of office", () => {
       );
       await page.goto("/settings/my-account/out-of-office?type=team");
       await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+      await page.locator('[data-testid="date-range-options-ny"]').click(); //set date filter to 'Date to Year'
       await entriesListRespPromise;
 
       const addOOOButton = page.getByTestId("add_entry_ooo");
