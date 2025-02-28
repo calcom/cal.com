@@ -19,7 +19,7 @@ export class InternalTasker implements Tasker {
 
     const tasksPromises = tasks.map(async (task) => {
       console.info(
-        `Processing task ${task.id}, attempt:${task.attempts} lastFailedAttempt:${task.lastFailedAttemptAt}`,
+        `Processing task ${task.id}, attempt:${task.attempts} maxAttempts:${task.maxAttempts} lastFailedAttempt:${task.lastFailedAttemptAt}`,
         task
       );
       const taskHandlerGetter = tasksMap[task.type as keyof typeof tasksMap];
