@@ -3876,7 +3876,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.110"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.121"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4388,6 +4388,15 @@ __metadata:
 "@calcom/element-call@workspace:packages/app-store/element-call":
   version: 0.0.0-use.local
   resolution: "@calcom/element-call@workspace:packages/app-store/element-call"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/elevenlabs@workspace:packages/app-store/elevenlabs":
+  version: 0.0.0-use.local
+  resolution: "@calcom/elevenlabs@workspace:packages/app-store/elevenlabs"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -4970,14 +4979,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.110":
-  version: 0.0.110
-  resolution: "@calcom/platform-libraries@npm:0.0.110"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.121":
+  version: 0.0.121
+  resolution: "@calcom/platform-libraries@npm:0.0.121"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 35ec690ae6c426a88b056ae32b51fd83e624189904bc722743a3b19ced3936f7052bcaa688a6bb37982986687307bdb794a7df8181c9ba994425ffd8c3837607
+  checksum: 1f4fa106b146960c5bcef0fa6edaeba7485ea558a4582f7c7cea36ba45d73b024074ee0b471a1a9fbb9a8baa71056e3c256b5519140c435bd5c9d08740bd0b5b
   languageName: node
   linkType: hard
 
