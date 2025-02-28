@@ -38,6 +38,11 @@ export const DatePicker = ({
     shallow
   );
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+
+  const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter((date) =>
+    dayjs(date).isSame(browsingDate, "month")
+  );
+
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const onMonthChange = (date: Dayjs) => {
@@ -57,7 +62,7 @@ export const DatePicker = ({
 
     // Not meeting the criteria to move to next month
     // Has to be currentMonth and it must have all days unbookable
-    if (currentMonth != browsingMonth || nonEmptyScheduleDays.length) {
+    if (currentMonth != browsingMonth || nonEmptyScheduleDaysInBrowsingMonth.length) {
       return;
     }
 
@@ -81,7 +86,7 @@ export const DatePicker = ({
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
       onMonthChange={onMonthChange}
-      includedDates={nonEmptyScheduleDays}
+      includedDates={nonEmptyScheduleDaysInBrowsingMonth}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
