@@ -1,6 +1,6 @@
+import { headers } from "next/headers";
 import "server-only";
 
-import { headers } from "next/headers";
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
