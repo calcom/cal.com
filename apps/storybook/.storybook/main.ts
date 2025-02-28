@@ -9,8 +9,6 @@ const config: StorybookConfig = {
     "../../../packages/ui/components/**/*.docs.mdx",
     "../../../packages/features/**/*.stories.@(js|jsx|ts|tsx)",
     "../../../packages/features/**/*.docs.mdx",
-    "../../../packages/atoms/**/*.stories.@(js|jsx|ts|tsx)",
-    "../../../packages/atoms/**/*.docs.mdx",
   ],
 
   addons: [
