@@ -5,6 +5,8 @@ import { type Table } from "@tanstack/react-table";
 import { Fragment } from "react";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
+import { ColumnFilterType } from "../../lib/types";
+import { DateRangeFilter } from "./DateRangeFilter";
 import { FilterPopover } from "./FilterPopover";
 
 // Add the new ActiveFilters component
@@ -21,7 +23,19 @@ export function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
       {activeFilters.map((filter) => {
         const column = filterableColumns.find((col) => col.id === filter.f);
         if (!column) return null;
-        return <FilterPopover key={column.id} column={column} />;
+
+        if (column.type === ColumnFilterType.DATE_RANGE) {
+          return (
+            <DateRangeFilter
+              key={column.id}
+              column={column}
+              options={column.dateRangeOptions}
+              showClearButton
+            />
+          );
+        } else {
+          return <FilterPopover key={column.id} column={column} />;
+        }
       })}
     </>
   );

@@ -7,7 +7,10 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { prepareRootMetadata } from "@lib/metadata";
+
+import { ssrInit } from "@server/lib/ssr";
 
 import "../styles/globals.css";
 import { SpeculationRules } from "./SpeculationRules";
@@ -56,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
+  const ssr = await ssrInit(buildLegacyCtx(h, cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -119,7 +123,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/insights",
           ]}
         />
-        <Providers>{children}</Providers>
+        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
       </body>
     </html>
   );
