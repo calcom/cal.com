@@ -1,4 +1,4 @@
-import { PageProps } from "@app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import PlatformPlansView from "~/settings/platform/plans/platform-plans-view";
