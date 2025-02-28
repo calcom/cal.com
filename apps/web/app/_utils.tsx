@@ -59,7 +59,10 @@ const dictionaries = {
 };
 
 type LocaleType = keyof typeof dictionaries;
-
+const translationCache = new Map<
+  string,
+  (key: string, interpolation?: Record<string, string | number>) => string
+>();
 export async function getServerTranslation(locale: string) {
   const dict = await dictionaries[locale as LocaleType]();
 
@@ -78,7 +81,12 @@ export async function getServerTranslation(locale: string) {
 }
 
 export const getTranslate = async (lang: string) => {
+  if (translationCache.has(lang)) {
+    return translationCache.get(lang);
+  }
+
   const { t } = await getServerTranslation(lang);
+  translationCache.set(lang, t);
   return t;
 };
 
