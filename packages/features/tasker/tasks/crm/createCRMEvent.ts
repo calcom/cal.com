@@ -18,7 +18,8 @@ export async function createCRMEvent(payload: string): Promise<void> {
     const parsedPayload = createCRMEventSchema.safeParse(JSON.parse(payload));
 
     if (!parsedPayload.success) {
-      throw new Error(`malformed payload in createCRMEvent: ${parsedPayload.error}`);
+      // TODO: I think we should not retry on malformed payload
+      throw new RetryableError(`malformed payload in createCRMEvent: ${parsedPayload.error}`);
     }
     const { bookingUid } = parsedPayload.data;
 
@@ -50,7 +51,8 @@ export async function createCRMEvent(payload: string): Promise<void> {
     });
 
     if (!booking) {
-      throw new Error(`booking not found for uid: ${bookingUid}`);
+      // TODO: I think we should not retry on booking not found
+      throw new RetryableError(`booking not found for uid: ${bookingUid}`);
     }
 
     if (booking.status !== BookingStatus.ACCEPTED) {
@@ -83,100 +85,118 @@ export async function createCRMEvent(payload: string): Promise<void> {
       },
     });
 
-    const errors: Error[] = [];
+    const errorPerApp: Record<string, Error[]> = {};
     // Find enabled CRM apps for the event type
     for (const appSlug of Object.keys(eventTypeAppMetadata)) {
-      const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
-      const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
+      // Try Catch per app to ensure all apps are tried even if any of them throws an error
+      try {
+        console.log("appSlug", appSlug);
+        const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
+        const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
+        if (!appData || !appDataSchema) {
+          throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
+        }
 
-      if (!appData || !appDataSchema) {
-        throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
-      }
+        const appParse = appDataSchema.safeParse(appData);
 
-      const appParse = appDataSchema.safeParse(appData);
+        if (!appParse.success) {
+          // TODO: Should we push it to errorsPerApp?
+          log.error(`Error parsing event type app data for bookingUid ${bookingUid}`, appParse?.error);
+          continue;
+        }
 
-      if (!appParse.success) {
-        log.error(`Error parsing event type app data for bookingUid ${bookingUid}`, appParse?.error);
-        continue;
-      }
+        const app = appParse.data;
+        const hasCrmCategory =
+          app.appCategories && app.appCategories.some((category: string) => category === "crm");
 
-      const app = appParse.data;
-      const hasCrmCategory =
-        app.appCategories && app.appCategories.some((category: string) => category === "crm");
+        if (!app.enabled || !app.credentialId || !hasCrmCategory) {
+          log.info(`Skipping CRM app ${appSlug}`, {
+            enabled: app.enabled,
+            credentialId: app.credentialId,
+            hasCrmCategory,
+          });
+          continue;
+        }
 
-      if (!app.enabled || !app.credentialId || !hasCrmCategory) {
-        log.info(`Skipping CRM app ${appSlug}`, {
-          enabled: app.enabled,
-          credentialId: app.credentialId,
-          hasCrmCategory,
-        });
-        continue;
-      }
-
-      const crmCredential = await prisma.credential.findUnique({
-        where: {
-          id: app.credentialId,
-        },
-        include: {
-          user: {
-            select: {
-              email: true,
+        const crmCredential = await prisma.credential.findUnique({
+          where: {
+            id: app.credentialId,
+          },
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
             },
           },
-        },
-      });
-
-      if (!crmCredential) {
-        errors.push(new RetryableError(`Credential not found for credentialId: ${app.credentialId}`));
-        continue;
-      }
-
-      const existingBookingReferenceForTheCredential = existingBookingReferences.find(
-        (reference) => reference.credentialId === crmCredential.id
-      );
-
-      if (existingBookingReferenceForTheCredential) {
-        log.info(`Skipping CRM app ${appSlug} as booking reference already exists`, {
-          credentialId: crmCredential.id,
-          bookingReferenceId: existingBookingReferenceForTheCredential.id,
         });
-        continue;
-      }
 
-      const CrmManager = (await import("@calcom/core/crmManager/crmManager")).default;
-
-      const crm = new CrmManager(crmCredential, app);
-
-      const results = await crm.createEvent(calendarEvent).catch((error) => {
-        if (error instanceof RetryableError) {
-          log.error(`[Will retry] Error creating crm event for credentialId ${app.credentialId}`, error);
-          // Intentional rethrow to trigger retry
-          throw error;
-        } else {
-          log.error(`[Will not retry] Error creating crm event for credentialId ${app.credentialId}`, error);
+        if (!crmCredential) {
+          throw new Error(`Credential not found for credentialId: ${app.credentialId}`);
         }
-      });
 
-      if (results) {
-        bookingReferencesToCreate.push({
-          type: crmCredential.type,
-          credentialId: crmCredential.id,
-          uid: results.id,
-          meetingId: results.id,
-          bookingId: booking.id,
-        });
+        const existingBookingReferenceForTheCredential = existingBookingReferences.find(
+          (reference) => reference.credentialId === crmCredential.id
+        );
+
+        if (existingBookingReferenceForTheCredential) {
+          log.info(`Skipping CRM app ${appSlug} as booking reference already exists`, {
+            credentialId: crmCredential.id,
+            bookingReferenceId: existingBookingReferenceForTheCredential.id,
+          });
+          continue;
+        }
+
+        const CrmManager = (await import("@calcom/core/crmManager/crmManager")).default;
+
+        const crm = new CrmManager(crmCredential, app);
+
+        const results = await crm.createEvent(calendarEvent);
+
+        if (results) {
+          console.log("Pushing results");
+          bookingReferencesToCreate.push({
+            type: crmCredential.type,
+            credentialId: crmCredential.id,
+            uid: results.id,
+            meetingId: results.id,
+            bookingId: booking.id,
+          });
+        }
+      } catch (error) {
+        errorPerApp[appSlug] = error;
       }
-    }
-
-    if (errors.length > 0) {
-      throw new RetryableError(errors.map((error) => error.message).join("\n"));
     }
 
     await prisma.bookingReference.createMany({
       data: bookingReferencesToCreate,
     });
+
+    // throw error if there are any errors, tag the error with the app slug
+    const errorMsgs = Object.entries(errorPerApp).map(([appSlug, error]) => {
+      return `(app: ${appSlug}) ${error.message}`;
+    });
+
+    if (errorMsgs.length > 0) {
+      const hasAnyRetryableErrors = Object.values(errorPerApp)
+        .flat()
+        .some((error) => error instanceof RetryableError);
+      if (hasAnyRetryableErrors) {
+        throw new RetryableError(errorMsgs.join("\n"));
+      } else {
+        throw new Error(errorMsgs.join("\n"));
+      }
+    }
   } catch (error) {
-    log.error(`Error in createCRMEvent for payload: ${payload}:`, safeStringify(error));
-    throw error;
+    const errorMsg = `Error creating crm event: error: ${safeStringify(error)} Data: ${safeStringify({
+      payload,
+    })}`;
+    if (error instanceof RetryableError) {
+      log.error(`[Will retry] ${errorMsg}`);
+      // Intentional rethrow to trigger retry
+      throw error;
+    } else {
+      log.error(`[Will not retry] ${errorMsg}`);
+    }
   }
 }
