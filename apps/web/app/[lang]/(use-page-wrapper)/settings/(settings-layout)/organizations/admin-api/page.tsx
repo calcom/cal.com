@@ -1,4 +1,4 @@
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { getTranslate, _generateMetadata } from "app/_utils";
 
 import { AdminAPIView } from "@calcom/features/ee/organizations/pages/settings/admin-api";

@@ -1,4 +1,4 @@
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 
 import WebhooksView from "@calcom/features/webhooks/pages/webhooks-view";

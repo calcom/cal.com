@@ -1,4 +1,4 @@
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import TeamSettingsView from "@calcom/features/ee/teams/pages/team-settings-view";

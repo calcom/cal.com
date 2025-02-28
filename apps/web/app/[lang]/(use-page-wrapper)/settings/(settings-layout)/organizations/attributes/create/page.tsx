@@ -1,4 +1,4 @@
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import OrgAttributesCreatePage from "@calcom/ee/organizations/pages/settings/attributes/attributes-create-view";
