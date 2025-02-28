@@ -1,3 +1,4 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
@@ -6,14 +7,13 @@ import { Button } from "@calcom/ui";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("calendars"),
-    (t) => t("calendars_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("calendars"), t("calendars_description"));
+};
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   const AddCalendarButton = () => {
     return (

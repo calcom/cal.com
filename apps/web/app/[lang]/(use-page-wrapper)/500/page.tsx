@@ -1,3 +1,4 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -5,14 +6,13 @@ import { Button } from "@calcom/ui";
 
 import CopyButton from "./copy-button";
 
-export const generateMetadata = () =>
-  _generateMetadata(
-    (t) => `${t("something_unexpected_occurred")} | ${APP_NAME}`,
-    () => ""
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(`${t("something_unexpected_occurred")} | ${APP_NAME}`, "");
+};
 
-async function Error500({ searchParams }: { searchParams: { error?: string } }) {
-  const t = await getTranslate();
+async function Error500({ searchParams, params }: PageProps) {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <div className="bg-subtle flex h-screen">
@@ -28,7 +28,7 @@ async function Error500({ searchParams }: { searchParams: { error?: string } }) 
             <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
               {searchParams.error}
               <br />
-              <CopyButton error={searchParams.error} />
+              <CopyButton error={searchParams.error as string} />
             </pre>
           </div>
         )}

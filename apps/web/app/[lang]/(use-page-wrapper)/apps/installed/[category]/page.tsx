@@ -1,5 +1,5 @@
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -11,11 +11,9 @@ const querySchema = z.object({
   category: z.nativeEnum(AppCategories),
 });
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("installed_apps"),
-    (t) => t("manage_your_connected_apps")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("installed_apps"), t("manage_your_connected_apps"));
 };
 
 const InstalledAppsWrapper = async ({ params }: PageProps) => {

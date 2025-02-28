@@ -1,16 +1,16 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { Button } from "@calcom/ui";
 
-export const generateMetadata = () =>
-  _generateMetadata(
-    (t) => `${t("access_denied")} | ${APP_NAME}`,
-    () => ""
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(`${t("access_denied")} | ${APP_NAME}`, "");
+};
 
-async function Error403() {
-  const t = await getTranslate();
+async function Error403({ params }: PageProps) {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <div className="bg-subtle flex h-screen">

@@ -14,16 +14,16 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = orgIdSchema.safeParse(params);
   if (!input.success) {
     return await _generateMetadata(
-      (t) => t("editing_org"),
-      (t) => t("admin_orgs_edit_description")
+       t("editing_org"),
+       t("admin_orgs_edit_description")
     );
   }
 
   const org = await OrganizationRepository.adminFindById({ id: input.data.id });
 
   return await _generateMetadata(
-    (t) => `${t("editing_org")}: ${org.name}`,
-    (t) => t("admin_orgs_edit_description")
+     `${t("editing_org")}: ${org.name}`,
+     t("admin_orgs_edit_description")
   );
 };
 
@@ -34,7 +34,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const org = await OrganizationRepository.adminFindById({ id: input.data.id });
-    const t = await getTranslate();
+    const t = await getTranslate(params.lang as string);
     return (
       <SettingsHeader
         title={`${t("editing_org")}: ${org.name}`}

@@ -6,14 +6,13 @@ import CreateNewOutOfOfficeEntryButton from "@calcom/features/settings/outOfOffi
 import { OutOfOfficeEntriesList } from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
 import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("out_of_office"),
-    (t) => t("out_of_office_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("out_of_office"), t("out_of_office_description"));
+};
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <SettingsHeader

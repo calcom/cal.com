@@ -7,19 +7,17 @@ import { Button, Icon } from "@calcom/ui";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("error"),
-    () => ""
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("error"), "");
 };
 
 const querySchema = z.object({
   error: z.string().optional(),
 });
 
-const ServerPage = async ({ searchParams }: PageProps) => {
-  const t = await getTranslate();
+const ServerPage = async ({ params, searchParams }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
   const { error } = querySchema.parse({ error: searchParams?.error || undefined });
   const errorMsg = t("error_during_login") + (error ? ` Error code: ${error}` : "");
   return (

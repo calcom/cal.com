@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
+import { generateMeetingMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -19,6 +19,7 @@ const getData = withAppDirSsr<OrgTypePageProps>(getServerSideProps);
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
+  const t = await getTranslate(params.lang as string);
 
   const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;
@@ -39,8 +40,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const decodedParams = decodeParams(params);
   const metadata = await generateMeetingMetadata(
     meeting,
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
+    `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    `${rescheduleUid ? t("reschedule") : ""} ${title}`,
     isBrandingHidden,
     getOrgFullOrigin(eventData?.entity.orgSlug ?? null),
     `/${decodedParams.user}/${decodedParams.type}`

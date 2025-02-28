@@ -1,10 +1,9 @@
-import { _generateMetadata } from "app/_utils";
+import { PageProps } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("app_store"),
-    (t) => t("app_store_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("app_store"), t("app_store_description"));
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

@@ -1,3 +1,4 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 // import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -9,14 +10,13 @@ import AvailabilityPage, { AvailabilityCTA } from "~/availability/availability-v
 
 import { ShellMainAppDir } from "../ShellMainAppDir";
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("availability"),
-    (t) => t("configure_availability")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+
+  return await _generateMetadata(t("availability"), t("configure_availability"));
 };
 
-const Page = async () => {
+const Page = async ({ params }: PageProps) => {
   // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   // const userId = session?.user?.id;
   // const orgId = session?.user?.org?.id;
@@ -29,7 +29,7 @@ const Page = async () => {
     //   orgId,
     //   userId,
     // });
-    const t = await getTranslate();
+    const t = await getTranslate(params.lang as string);
     return (
       <ShellMainAppDir
         heading={t("availability")}

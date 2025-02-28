@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getServerSideProps } from "@lib/apps/getServerSideProps";
@@ -8,11 +8,9 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import AppsPage from "~/apps/apps-view";
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("app_store"),
-    (t) => t("app_store_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("app_store"), t("app_store_description"));
 };
 
 const getData = withAppDirSsr(getServerSideProps);

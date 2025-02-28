@@ -1,16 +1,16 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import PrivacyView from "@calcom/features/ee/organizations/pages/settings/privacy";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("privacy"),
-    (t) => t("privacy_organization_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("privacy"), t("privacy_organization_description"));
+};
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <SettingsHeader title={t("privacy")} description={t("privacy_organization_description")}>

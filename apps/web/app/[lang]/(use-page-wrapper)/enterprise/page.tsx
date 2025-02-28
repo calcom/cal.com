@@ -1,11 +1,15 @@
-import { _generateMetadata } from "app/_utils";
+import { PageProps } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import EnterprisePage from "@components/EnterprisePage";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("create_your_org"),
-    (t) => t("create_your_org_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("create_your_org"), t("create_your_org_description"));
+};
 
-export default EnterprisePage;
+const ServerPageWrapper = async () => {
+  return <EnterprisePage />;
+};
+
+export default ServerPageWrapper;

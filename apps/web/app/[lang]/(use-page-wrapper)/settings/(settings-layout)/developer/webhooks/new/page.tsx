@@ -5,13 +5,12 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { NewWebhookView } from "@calcom/features/webhooks/pages/webhook-new-view";
 import { APP_NAME } from "@calcom/lib/constants";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { PageProps } from "app/_types";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("webhooks"),
-    (t) => t("add_webhook_description", { appName: APP_NAME })
-  );
-
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("webhooks"), t("add_webhook_description", { appName: APP_NAME }));
+};
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
@@ -23,8 +22,8 @@ const SkeletonLoader = () => {
   );
 };
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <SettingsHeader

@@ -32,8 +32,8 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
     notFound();
   }
   return await _generateMetadata(
-    (t) => (workflow && workflow.name ? workflow.name : t("untitled")),
-    () => ""
+     (workflow && workflow.name ? workflow.name : t("untitled")),
+    ""
   );
 };
 

@@ -11,18 +11,18 @@ const querySchema = z.object({
   status: z.enum(validStatuses),
 });
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("bookings"),
-    (t) => t("bookings_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+
+  return await _generateMetadata(t("bookings"), t("bookings_description"));
+};
 
 const Page = async ({ params }: PageProps) => {
   const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }
-  const t = await getTranslate();
+  const t = await getTranslate(params.lang as string);
 
   return (
     <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>

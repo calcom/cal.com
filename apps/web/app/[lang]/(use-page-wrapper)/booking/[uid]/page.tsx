@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -19,12 +19,10 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     buildLegacyCtx(headers(), cookies(), params, searchParams)
   );
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
-
+  const t = await getTranslate(params.lang as string);
   return await _generateMetadata(
-    (t) =>
-      t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
-    (t) =>
-      t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
+    t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
+    t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
     false,
     getOrgFullOrigin(orgSlug)
   );

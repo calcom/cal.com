@@ -10,13 +10,12 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import TeamsView, { TeamsCTA } from "~/teams/teams-view";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("teams"),
-    (t) => t("create_manage_teams_collaborative")
-  );
+export const generateMetadata = async ({ params }: ServerPageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("teams"), t("create_manage_teams_collaborative"));
+};
 
-const ServerPage = async ({ searchParams }: ServerPageProps) => {
+const ServerPage = async ({ searchParams, params }: ServerPageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;
@@ -25,7 +24,7 @@ const ServerPage = async ({ searchParams }: ServerPageProps) => {
     redirect(callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login");
   }
 
-  const t = await getTranslate();
+  const t = await getTranslate(params.lang as string);
 
   return (
     <ShellMainAppDir

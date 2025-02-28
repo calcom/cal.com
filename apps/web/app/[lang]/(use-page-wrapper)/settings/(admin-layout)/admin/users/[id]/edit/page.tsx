@@ -14,16 +14,16 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(params);
   if (!input.success) {
     return await _generateMetadata(
-      (t) => t("editing_user"),
-      (t) => t("admin_users_edit_description")
+       t("editing_user"),
+       t("admin_users_edit_description")
     );
   }
 
   const user = await UserRepository.adminFindById(input.data.id);
 
   return await _generateMetadata(
-    (t) => `${t("editing_user")}: ${user.username}`,
-    (t) => t("admin_users_edit_description")
+     `${t("editing_user")}: ${user.username}`,
+     t("admin_users_edit_description")
   );
 };
 
@@ -36,7 +36,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const user = await UserRepository.adminFindById(input.data.id);
-    const t = await getTranslate();
+    const t = await getTranslate(params.lang as string);
 
     return (
       <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>

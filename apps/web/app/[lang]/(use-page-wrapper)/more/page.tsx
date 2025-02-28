@@ -1,12 +1,11 @@
-import { _generateMetadata } from "app/_utils";
+import { PageProps } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import Page from "~/more/more-page-view";
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("more"),
-    () => ""
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("more"), "");
 };
 
 const ServerPageWrapper = async () => {

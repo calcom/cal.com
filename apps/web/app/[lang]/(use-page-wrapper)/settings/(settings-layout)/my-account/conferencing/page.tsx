@@ -1,16 +1,16 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import { ConferencingAppsViewWebWrapper } from "@calcom/atoms/monorepo";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("conferencing"),
-    (t) => t("conferencing_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("conferencing"), t("conferencing_description"));
+};
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <ConferencingAppsViewWebWrapper

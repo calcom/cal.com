@@ -1,12 +1,15 @@
-import { _generateMetadata } from "app/_utils";
+import { PageProps } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import Troubleshoot from "~/availability/troubleshoot/troubleshoot-view";
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("troubleshoot"),
-    (t) => t("troubleshoot_availability")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("troubleshoot"), t("troubleshoot_availability"));
 };
 
-export default Troubleshoot;
+const ServerPageWrapper = async () => {
+  return <Troubleshoot />;
+};
+
+export default ServerPageWrapper;

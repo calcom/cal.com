@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import PaymentPage from "@calcom/features/ee/payments/components/PaymentPage";
@@ -12,9 +12,10 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
   const eventName = props.booking.title;
+  const t = await getTranslate(params.lang as string);
   return await _generateMetadata(
-    (t) => `${t("payment")} | ${eventName} | ${APP_NAME}`,
-    () => ""
+     `${t("payment")} | ${eventName} | ${APP_NAME}`,
+    ""
   );
 };
 

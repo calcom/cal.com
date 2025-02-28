@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -18,9 +18,10 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
   const profileName = eventData?.profile?.name ?? "";
   const title = eventData?.title ?? "";
+  const t = await getTranslate(params.lang as string);
   return await _generateMetadata(
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
+     `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+     `${rescheduleUid ? t("reschedule") : ""} ${title}`,
     isBrandingHidden
   );
 };

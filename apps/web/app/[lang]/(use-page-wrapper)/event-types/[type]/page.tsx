@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 
@@ -23,10 +23,11 @@ const querySchema = z.object({
 
 export const generateMetadata = async ({ params }: _PageProps) => {
   const parsed = querySchema.safeParse(params);
+  const t = await getTranslate(params.lang as string);
   if (!parsed.success) {
     return await _generateMetadata(
-      (t) => `${t("event_type")}`,
-      () => ""
+       `${t("event_type")}`,
+      ""
     );
   }
 
@@ -35,8 +36,8 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   });
 
   return await _generateMetadata(
-    (t) => (data?.title ? `${data.title} | ${t("event_type")}` : `${t("event_type")}`),
-    () => ""
+     (data?.title ? `${data.title} | ${t("event_type")}` : `${t("event_type")}`),
+    ""
   );
 };
 

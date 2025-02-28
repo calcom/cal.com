@@ -1,14 +1,14 @@
-import { _generateMetadata } from "app/_utils";
+import { PageProps } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import CreateNewTeamView, { LayoutWrapper } from "~/settings/teams/new/create-new-team-view";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("create_new_team"),
-    (t) => t("create_new_team_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("create_new_team"), t("create_new_team_description"));
+};
 
-const ServerPage = async () => {
+const ServerPage = async ({ params }: PageProps) => {
   return (
     <LayoutWrapper>
       <CreateNewTeamView />

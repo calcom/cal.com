@@ -2,10 +2,10 @@ import { _generateMetadata } from "app/_utils";
 
 import PlatformPlansView from "~/settings/platform/plans/platform-plans-view";
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({params}: PageProps) => {
   return await _generateMetadata(
-    (t) => `${t("platform")} ${t("plans")}`,
-    () => ""
+     `${t("platform")} ${t("plans")}`,
+    ""
   );
 };
 

@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
+import { generateMeetingMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -20,6 +20,7 @@ const getData = withAppDirSsr<OrgPageProps>(getServerSideProps);
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
+  const t = await getTranslate(params.lang as string);
 
   if ((props as TeamPageProps)?.team) {
     const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = props as TeamPageProps;
@@ -31,11 +32,12 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       },
     };
     const decodedParams = decodeParams(params);
+
     return {
       ...(await generateMeetingMetadata(
         meeting,
-        (t) => team.name ?? t("nameless_team"),
-        (t) => team.name ?? t("nameless_team"),
+        team.name ?? t("nameless_team"),
+        team.name ?? t("nameless_team"),
         false,
         getOrgFullOrigin(currentOrgDomain ?? null),
         `/${decodedParams.user}`
@@ -64,8 +66,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     return {
       ...(await generateMeetingMetadata(
         meeting,
-        () => profile.name,
-        () => markdownStrippedBio,
+        profile.name,
+        markdownStrippedBio,
         false,
         getOrgFullOrigin(entity.orgSlug ?? null)
       )),

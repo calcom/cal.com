@@ -1,5 +1,5 @@
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
@@ -35,10 +35,10 @@ export const generateMetadata = async ({ params }: PageProps) => {
   if (!schedule) {
     notFound();
   }
-
+  const t = await getTranslate(params.lang as string);
   return await _generateMetadata(
-    (t) => (schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")),
-    () => ""
+    schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability"),
+    ""
   );
 };
 

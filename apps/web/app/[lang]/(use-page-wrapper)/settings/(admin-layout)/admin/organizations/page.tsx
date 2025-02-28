@@ -1,3 +1,4 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
@@ -5,14 +6,14 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import AdminOrgTable from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("organizations"),
-    (t) => t("orgs_page_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
-const Page = async () => {
-  const t = await getTranslate();
+  return await _generateMetadata(t("organizations"), t("orgs_page_description"));
+};
+
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
   return (
     <SettingsHeader title={t("organizations")} description={t("orgs_page_description")}>
       <LicenseRequired>

@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
+import { generateMeetingMetadata, getTranslate } from "app/_utils";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -27,8 +27,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   };
   const metadata = await generateMeetingMetadata(
     meeting,
-    () => profile.name,
-    () => markdownStrippedBio,
+    profile.name,
+    markdownStrippedBio,
     false,
     getOrgFullOrigin(entity.orgSlug ?? null),
     `/${decodeParams(params).user}`

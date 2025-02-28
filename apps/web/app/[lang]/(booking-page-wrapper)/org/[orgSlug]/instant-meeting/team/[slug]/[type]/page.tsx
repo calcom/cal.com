@@ -32,8 +32,8 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const decodedParams = decodeParams(params);
   const metadata = await generateMeetingMetadata(
     meeting,
-    () => `${title} | ${profileName}`,
-    () => `${title}`,
+    `${title} | ${profileName}`,
+    `${title}`,
     isBrandingHidden,
     getOrgFullOrigin(eventData?.entity.orgSlug ?? null),
     `/instant-meeting/team/${decodedParams.slug}/${decodedParams.type}`

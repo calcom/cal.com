@@ -1,3 +1,4 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
@@ -6,14 +7,13 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import ProfileView from "~/settings/my-account/profile-view";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("profile"),
-    (t) => t("profile_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("profile"), t("profile_description"));
+};
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <SettingsHeader

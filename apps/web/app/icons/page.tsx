@@ -15,15 +15,15 @@ const calFont = localFont({
   display: "swap",
   weight: "600",
 });
-export const generateMetadata = async () => {
+export const generateMetadata = async ({params}: PageProps) => {
   return await _generateMetadata(
-    (t) => t("icon_showcase"),
-    () => ""
+     t("icon_showcase"),
+    ""
   );
 };
 export default async function IconsPage() {
   const icons = Array.from(lucideIconList).sort() as IconName[];
-  const t = await getTranslate();
+  const t = await getTranslate(params.lang as string);
 
   return (
     <div className={`${interFont.variable} ${calFont.variable}`}>

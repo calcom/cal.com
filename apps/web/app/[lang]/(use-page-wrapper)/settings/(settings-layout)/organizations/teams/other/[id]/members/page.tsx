@@ -1,3 +1,4 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import LegacyPage, {
@@ -5,14 +6,13 @@ import LegacyPage, {
 } from "@calcom/features/ee/organizations/pages/settings/other-team-members-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("team_members"),
-    (t) => t("members_team_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("team_members"), t("members_team_description"));
+};
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <SettingsHeader

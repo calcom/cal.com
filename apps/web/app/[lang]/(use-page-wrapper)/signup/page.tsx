@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -9,11 +9,10 @@ import { getServerSideProps } from "@lib/signup/getServerSideProps";
 import type { SignupProps } from "~/signup-view";
 import Signup from "~/signup-view";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("sign_up"),
-    (t) => t("sign_up")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(t("sign_up"), t("sign_up"));
+};
 
 const getData = withAppDirSsr<SignupProps>(getServerSideProps);
 

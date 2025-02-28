@@ -27,7 +27,7 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
   });
 
   return await _generateMetadata(
-    (t) => t("this_meeting_has_not_started_yet"),
+     t("this_meeting_has_not_started_yet"),
     () => booking?.title ?? ""
   );
 };

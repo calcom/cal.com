@@ -12,7 +12,7 @@ import SetupView, { type PageProps as ClientPageProps } from "~/apps/[slug]/setu
 export const generateMetadata = async ({ params }: ServerPageProps) => {
   const metadata = await _generateMetadata(
     () => `${params.slug}`,
-    () => ""
+    ""
   );
   return {
     ...metadata,

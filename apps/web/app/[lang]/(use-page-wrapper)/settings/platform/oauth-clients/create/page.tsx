@@ -2,10 +2,10 @@ import { _generateMetadata } from "app/_utils";
 
 import CreateNewView from "~/settings/platform/oauth-clients/create-new-view";
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({params}: PageProps) => {
   return await _generateMetadata(
-    (t) => t("oAuth_client_creation_form"),
-    () => ""
+     t("oAuth_client_creation_form"),
+    ""
   );
 };
 

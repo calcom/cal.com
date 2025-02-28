@@ -2,10 +2,10 @@ import { _generateMetadata } from "app/_utils";
 
 import PlatformView from "~/settings/platform/platform-view";
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({params}: PageProps) => {
   return await _generateMetadata(
-    (t) => t("platform"),
-    (t) => t("platform_description")
+     t("platform"),
+     t("platform_description")
   );
 };
 

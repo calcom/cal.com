@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import type { PageProps, PageProps as ServerPageProps } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.config";
@@ -18,12 +18,13 @@ const normalizePages = (pages: string[] | string | undefined) => {
   };
 };
 
-export const generateMetadata = async ({ params }: { params: { pages: string[] } }) => {
+export const generateMetadata = async ({ params }: PageProps) => {
   const { mainPage } = normalizePages(params.pages);
+  const t = await getTranslate(params.lang as string);
   return await _generateMetadata(
     // TODO: Need to show the actual form name instead of "Form"
-    (t) => (mainPage === "routing-link" ? `Form | Cal.com Forms` : `${t("routing_forms")} | Cal.com Forms`),
-    () => ""
+    mainPage === "routing-link" ? `Form | Cal.com Forms` : `${t("routing_forms")} | Cal.com Forms`,
+    ""
   );
 };
 

@@ -1,17 +1,18 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import LegacyPage from "~/settings/admin/oauth-view";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("oAuth"),
-    (t) => t("admin_oAuth_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
-const Page = async () => {
-  const t = await getTranslate();
+  return await _generateMetadata(t("oAuth"), t("admin_oAuth_description"));
+};
+
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
   return (
     <SettingsHeader title={t("oAuth")} description={t("admin_oAuth_description")}>
       <LegacyPage />

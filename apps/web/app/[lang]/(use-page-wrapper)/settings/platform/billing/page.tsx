@@ -2,10 +2,10 @@ import { _generateMetadata } from "app/_utils";
 
 import PlatformBillingUpgrade from "~/settings/platform/billing/billing-view";
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({params}: PageProps) => {
   return await _generateMetadata(
-    (t) => t("platform_billing"),
-    (t) => t("manage_billing_description")
+     t("platform_billing"),
+     t("manage_billing_description")
   );
 };
 

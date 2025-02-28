@@ -1,16 +1,16 @@
+import { PageProps } from "app/_types";
 import { getTranslate, _generateMetadata } from "app/_utils";
 
 import { AdminAPIView } from "@calcom/features/ee/organizations/pages/settings/admin-api";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => `${t("admin")} ${t("api_reference")}`,
-    (t) => t("leverage_our_api")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(`${t("admin")} ${t("api_reference")}`, t("leverage_our_api"));
+};
 
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
   return (
     <SettingsHeader

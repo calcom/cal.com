@@ -226,11 +226,8 @@ export const generateMetadata = async () => {
   const isInsights = pathname?.startsWith("/insights");
 
   const metadata = await _generateMetadata(
-    (t) =>
-      isInsights
-        ? t("feature_currently_disabled") ?? "Feature is currently disabled"
-        : t("404_page_not_found"),
-    (t) => t("404_page_not_found")
+    isInsights ? t("feature_currently_disabled") ?? "Feature is currently disabled" : t("404_page_not_found"),
+    t("404_page_not_found")
   );
   return {
     ...metadata,
@@ -242,7 +239,7 @@ export const generateMetadata = async () => {
 };
 
 const ServerPage = async () => {
-  const t = await getTranslate();
+  const t = await getTranslate(params.lang as string);
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
   return (

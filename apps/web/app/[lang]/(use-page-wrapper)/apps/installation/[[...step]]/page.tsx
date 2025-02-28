@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getServerSideProps } from "@lib/apps/installation/[[...step]]/getServerSideProps";
@@ -13,10 +13,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
 
   const { appMetadata } = await getData(legacyCtx);
-  return await _generateMetadata(
-    (t) => `${t("install")} ${appMetadata?.name ?? ""}`,
-    () => ""
-  );
+  const t = await getTranslate(params.lang as string);
+  return await _generateMetadata(`${t("install")} ${appMetadata?.name ?? ""}`, "");
 };
 
 const getData = withAppDirSsr<OnboardingPageProps>(getServerSideProps);

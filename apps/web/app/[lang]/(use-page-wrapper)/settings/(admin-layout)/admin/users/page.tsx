@@ -1,17 +1,18 @@
+import { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import UsersListingView from "@calcom/features/ee/users/pages/users-listing-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Button } from "@calcom/ui";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("users"),
-    (t) => t("admin_users_description")
-  );
+export const generateMetadata = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
 
-const Page = async () => {
-  const t = await getTranslate();
+  return await _generateMetadata(t("users"), t("admin_users_description"));
+};
+
+const Page = async ({ params }: PageProps) => {
+  const t = await getTranslate(params.lang as string);
   return (
     <SettingsHeader
       title={t("users")}

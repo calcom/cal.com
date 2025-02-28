@@ -11,8 +11,8 @@ import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 import type { PageProps as ClientPageProps } from "~/videos/views/videos-single-view";
 import VideosSingleView from "~/videos/views/videos-single-view";
 
-export const generateMetadata = async () => {
-  const t = await getTranslate();
+export const generateMetadata = async ({params}: PageProps) => {
+  const t = await getTranslate(params.lang as string);
   return {
     title: `${APP_NAME} Video`,
     description: t("quick_video_meeting"),
