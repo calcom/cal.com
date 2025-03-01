@@ -47,7 +47,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
-  if (!url.pathname.startsWith("/api")) {
+  if (!url.pathname.startsWith("/api") && (await safeGet<boolean>("isInMaintenanceMode"))) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
     //       by the application the user is automatically redirected to /auth/login.
@@ -55,12 +55,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     //     - For this reason our matchers are sufficient for an app-wide maintenance page.
     //
     // Check whether the maintenance page should be shown
-    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
     // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isInMaintenanceMode) {
-      req.nextUrl.pathname = `/maintenance`;
-      return NextResponse.rewrite(req.nextUrl);
-    }
+    req.nextUrl.pathname = `/maintenance`;
+    return NextResponse.rewrite(req.nextUrl);
   }
 
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
@@ -68,17 +65,27 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     return responseWithHeaders({ url, res: routingFormRewriteResponse, req });
   }
 
-  if (url.pathname.startsWith("/api/trpc/")) {
-    requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
-  }
+  if (url.pathname.startsWith("/api/")) {
+    if (url.pathname.startsWith("/api/auth/signup") && (await safeGet<boolean>("isSignupDisabled"))) {
+      // If is in maintenance mode, point the url pathname to the maintenance page
 
-  if (url.pathname.startsWith("/api/auth/signup")) {
-    const isSignupDisabled = await safeGet<boolean>("isSignupDisabled");
-    // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isSignupDisabled) {
       // TODO: Consider using responseWithHeaders here
       return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
     }
+
+    if (url.pathname.startsWith("/api/trpc/")) {
+      requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
+    }
+
+    return responseWithHeaders({
+      url,
+      res: NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      }),
+      req,
+    });
   }
 
   if (url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login")) {
@@ -197,8 +204,6 @@ export const config = {
     "/routing-forms/:path*",
     "/team/:path*",
     "/org/:path*",
-    "/:user/:type/",
-    "/:user/",
   ],
 };
 
