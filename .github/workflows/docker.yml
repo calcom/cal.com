@@ -27,16 +27,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "npm"
+          cache: "yarn"
 
-      - name: Ensure latest npm version
-        run: |
-          corepack enable
-          npm install -g npm@latest
-
-
-      - name: Install dependencies
-        run: npm install
+      - name: Enable corepack for Yarn
+        run: corepack enable
 
       - name: Install dependencies
         run: yarn install --immutable
