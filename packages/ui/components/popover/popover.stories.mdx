@@ -38,7 +38,7 @@ The `Popover` component can be used to display a rich content in a portal.
       <AnimatedPopover text="Go">
         <FilterCheckboxFieldsContainer>
           {["First", "Second", "Third"]?.map((eventType) => (
-            <div key={eventType.value} className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+            <div key={eventType.value} className="hover:bg-muted flex cursor-pointer items-center px-4 py-2">
               <CheckboxField
                 checked={false}
                 onChange={(e) => {
@@ -57,7 +57,7 @@ The `Popover` component can be used to display a rich content in a portal.
       <AnimatedPopover text="Go" Trigger={<button>click here</button>}>
         <FilterCheckboxFieldsContainer>
           {["First", "Second", "Third"]?.map((eventType) => (
-            <div key={eventType.value} className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+            <div key={eventType.value} className="hover:bg-muted flex cursor-pointer items-center px-4 py-2">
               <CheckboxField
                 checked={false}
                 onChange={(e) => {
@@ -76,7 +76,7 @@ The `Popover` component can be used to display a rich content in a portal.
       <AnimatedPopover text="Go here" count={1}>
         <FilterCheckboxFieldsContainer>
           {["First", "Second", "Third"]?.map((eventType) => (
-            <div key={eventType.value} className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+            <div key={eventType.value} className="hover:bg-muted flex cursor-pointer items-center px-4 py-2">
               <CheckboxField
                 checked={false}
                 onChange={(e) => {
@@ -118,7 +118,7 @@ The `Popover` component can be used to display a rich content in a portal.
                 {["First", "Second", "Third"]?.map((eventType) => (
                   <div
                     key={eventType.value}
-                    className="items-center hover:bg-muted flex cursor-pointer px-4 py-2">
+                    className="hover:bg-muted flex cursor-pointer items-center px-4 py-2">
                     <CheckboxField
                       checked={false}
                       onChange={(e) => {

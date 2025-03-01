@@ -4,11 +4,11 @@ title: Pre-fill fields/questions
 
 You can pre-fill all the fields/questions on the booking form by using their corresponding **identifiers** that you can see under Advanced -> Booking Questions.
 
-e.g. for the following field(shown in screenshot), the field would show up as *Agree with your rules* and its identifier is *agreed*. So, we would use
+e.g. for the following field(shown in screenshot), the field would show up as _Agree with your rules_ and its identifier is _agreed_. So, we would use
 
 [![](https://downloads.intercomcdn.com/i/o/1198198797/bfc5b45f2c0ac0a6704f1a40/i1600x899-lK5qA-PWor5w_nda2mw.png?expires=1736325000&signature=000158c0966e05bb5d50ed593b6a94d04c908568625cc3d18d9a68541f449da6&req=dSEuHsh3lYZWXvMW1HO4zR%2BTJg3Fl6l4ywMHZCHu9egE5fWqiRo4u%2BWPHXxD%0AfGr0JKz%2B%2BGcs7dmJJh4%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198797/bfc5b45f2c0ac0a6704f1a40/i1600x899-lK5qA-PWor5w_nda2mw.png?expires=1736325000&signature=000158c0966e05bb5d50ed593b6a94d04c908568625cc3d18d9a68541f449da6&req=dSEuHsh3lYZWXvMW1HO4zR%2BTJg3Fl6l4ywMHZCHu9egE5fWqiRo4u%2BWPHXxD%0AfGr0JKz%2B%2BGcs7dmJJh4%3D%0A)
 
-*agreed* as query param name to prefill the field.
+_agreed_ as query param name to prefill the field.
 
 This can include the user’s name and email, notes, guests, event location, Reason for reschedule. You can prefill any field added by you as well.
 
@@ -17,7 +17,7 @@ You can add anywhere in the booking flow before the booking form page or in the 
 Pre-filling booking fields can save a lot of time and speed up processes with filling out these forms, and assist with a smooth integration with your existing website or app.
 
 An example URL with a few prefill fields is given below:
-```https://cal.com/johndoe/book?type=12345&duration=30&email=johndoe%40example.com&notes=Test+Notes```
+`https://cal.com/johndoe/book?type=12345&duration=30&email=johndoe%40example.com&notes=Test+Notes`
 You can integrate the prefill-fields with your booking page URL in a similar way.
 
 ## Pre-filling all fields
@@ -35,11 +35,12 @@ Here is the query used to prefill that form above.
 ```
 name=John Doe&email=johndoe@example.com&notes=Test Notes&Text=TEXT&number=123&select=Option 1&Multiselect=Option 1&Multiselect=Option 2&guests=b&phone=+91&agreed=true
 ```
+
 ## Fields with multiple values
 
 For questions that accept multiple values, you can pass them multiple times using same identifier. So, e.g. Multiselect has been passed twice and thus it prefills both the values.
 
-Similarly, you can pass *guests* twice to add one more guest.
+Similarly, you can pass _guests_ twice to add one more guest.
 
 ## Prefilling location
 
@@ -50,6 +51,7 @@ Different type of locations are selected using different values of location. loc
 ```
 ...other-params...&location={"value":"attendeeInPerson","optionValue":"Delhi"}
 ```
+
 [![](https://downloads.intercomcdn.com/i/o/1198198795/149eb8a19c7c9b87e9207cda/i1600x899-Ty_oorQmXnjJ_cm5ysq.png?expires=1736325000&signature=b5595771bfc49d36da0b4e67f8440a2c5c874c674c799c6d9023b1593c5fc465&req=dSEuHsh3lYZWXPMW1HO4zXIZpSF682jQ431%2F0%2B57t2z4o8aUSXcM9w0n8f8e%0Aa5feONJm%2FqwDk3Nxf5g%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198795/149eb8a19c7c9b87e9207cda/i1600x899-Ty_oorQmXnjJ_cm5ysq.png?expires=1736325000&signature=b5595771bfc49d36da0b4e67f8440a2c5c874c674c799c6d9023b1593c5fc465&req=dSEuHsh3lYZWXPMW1HO4zXIZpSF682jQ431%2F0%2B57t2z4o8aUSXcM9w0n8f8e%0Aa5feONJm%2FqwDk3Nxf5g%3D%0A)
 
 ## Pre-selecting Organizer Address in Location
@@ -59,13 +61,14 @@ Different type of locations are selected using different values of location. loc
 ```
 
 [![](https://downloads.intercomcdn.com/i/o/1198198794/4983c503a9ce5201e0c1bba8/i1600x899-AlmOt5E4diMC_nkjeb4.png?expires=1736325000&signature=4d46fb2749e119580fab04853978f7338ae1b49f7b47c27bcc0e1496745ad183&req=dSEuHsh3lYZWXfMW1HO4zfhh%2BpZqpU47epa9VDhCuWvhAe0fXXhWclcsJTld%0AHrJR7dP6os%2FtnThVdsI%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198794/4983c503a9ce5201e0c1bba8/i1600x899-AlmOt5E4diMC_nkjeb4.png?expires=1736325000&signature=4d46fb2749e119580fab04853978f7338ae1b49f7b47c27bcc0e1496745ad183&req=dSEuHsh3lYZWXfMW1HO4zfhh%2BpZqpU47epa9VDhCuWvhAe0fXXhWclcsJTld%0AHrJR7dP6os%2FtnThVdsI%3D%0A)
+
 ## Pre-filling Attendee Phone
 
 ```
 ...other-params...&location={"value":"phone","optionValue":"%2B919999999999"}
 ```
 
-*Note: %2B is encoded form of +*
+_Note: %2B is encoded form of +_
 
 [![](https://downloads.intercomcdn.com/i/o/1198198790/02943b0276723d5effc1ed0b/i1600x899-wVkiblWj8CDH_iwhwrd.png?expires=1736325000&signature=1244214d7c9fcfd16b6edc4b71a4267c3a0bf9c4ad5c91a93ee447cd65c1b3f9&req=dSEuHsh3lYZWWfMW1HO4zQf94cG%2FKVtkygk%2BlF1g7HiXVwSfutAPEbSq%2B3Jv%0A3p3Pf5Mj3PVQ%2F3avvp8%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198790/02943b0276723d5effc1ed0b/i1600x899-wVkiblWj8CDH_iwhwrd.png?expires=1736325000&signature=1244214d7c9fcfd16b6edc4b71a4267c3a0bf9c4ad5c91a93ee447cd65c1b3f9&req=dSEuHsh3lYZWWfMW1HO4zQf94cG%2FKVtkygk%2BlF1g7HiXVwSfutAPEbSq%2B3Jv%0A3p3Pf5Mj3PVQ%2F3avvp8%3D%0A)
 
@@ -76,6 +79,7 @@ Different type of locations are selected using different values of location. loc
 ```
 
 [![](https://downloads.intercomcdn.com/i/o/1198198791/0db8619aabbf65a0fa3709fd/i1600x899-sGCDXGlvVYT4_uwhpa8.png?expires=1736325000&signature=c48817776ddbbe02a9df71b8a9e3f44fcd90c48584ead67834eb2e820f3a1bdc&req=dSEuHsh3lYZWWPMW1HO4zZBGiRHaqpAigQ%2BNxkzSzI7cRhRRKup7Hujf8NW7%0ATAW65srvCSLYe46eo%2BU%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198791/0db8619aabbf65a0fa3709fd/i1600x899-sGCDXGlvVYT4_uwhpa8.png?expires=1736325000&signature=c48817776ddbbe02a9df71b8a9e3f44fcd90c48584ead67834eb2e820f3a1bdc&req=dSEuHsh3lYZWWPMW1HO4zZBGiRHaqpAigQ%2BNxkzSzI7cRhRRKup7Hujf8NW7%0ATAW65srvCSLYe46eo%2BU%3D%0A)
+
 ## Pre-selecting a video meeting
 
 Specify location param like this
@@ -85,17 +89,17 @@ Specify location param like this
 ```
 
 | **App Name** | **`{VIDEO\_APP\_IDENTIFIER}`** |
-| --- | --- |
-| Zoom | zoom |
-| Cal Video | daily |
-| Office365 | office365\_video |
-| Facetime | facetime\_video |
-| Campfire | campfire\_video |
-| Around Video | around\_video |
-| Ping | ping\_video |
-| Riverside | riverside\_video |
-| Signal | signal\_video |
-| Sirius | sirius\_video |
-| Telegram | telegram\_video |
-| Whatsapp | whatsapp\_video |
-| Whereby | whereby\_video |
+| ------------ | ------------------------------ |
+| Zoom         | zoom                           |
+| Cal Video    | daily                          |
+| Office365    | office365_video                |
+| Facetime     | facetime_video                 |
+| Campfire     | campfire_video                 |
+| Around Video | around_video                   |
+| Ping         | ping_video                     |
+| Riverside    | riverside_video                |
+| Signal       | signal_video                   |
+| Sirius       | sirius_video                   |
+| Telegram     | telegram_video                 |
+| Whatsapp     | whatsapp_video                 |
+| Whereby      | whereby_video                  |

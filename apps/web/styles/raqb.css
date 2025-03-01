@@ -132,7 +132,6 @@
     flex-direction: column;
   }
 
-
   .cal-query-builder .rule--field,
   .cal-query-builder .rule--operator,
   .cal-query-builder .rule--value {

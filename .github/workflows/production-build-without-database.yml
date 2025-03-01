@@ -36,7 +36,6 @@ env:
   NEXT_PUBLIC_API_V2_ROOT_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_ROOT_URL }}
   NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED: ${{ vars.CI_NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED }}
 
-
 jobs:
   build:
     name: Build Web App

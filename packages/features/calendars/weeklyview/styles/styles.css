@@ -12,9 +12,8 @@
 
 @media (min-width: 640px) {
   .scheduler-grid-row-template {
-    grid-template-rows: var(--gridDefaultSize) repeat(
-        attr(data-gridstoperperday number),
-        var(--gridDefaultSize)
-      ) auto;
+    grid-template-rows:
+      var(--gridDefaultSize) repeat(attr(data-gridstoperperday number), var(--gridDefaultSize))
+      auto;
   }
 }

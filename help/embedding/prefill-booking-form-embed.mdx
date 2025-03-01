@@ -22,10 +22,9 @@ Booking form inside an embed can be prefilled as well.
     location: JSON.stringify({
       value: "attendeeInPerson",
       // It can be any string that defines an address where the meeting would occur
-      optionValue: "New York"
-    })
-  }}
-></Cal>
+      optionValue: "New York",
+    }),
+  }}></Cal>
 ```
 
 ```js
@@ -43,9 +42,9 @@ Cal("inline", {
     location: JSON.stringify({
       value: "attendeeInPerson",
       // It can be any string that defines an address where the meeting would occur
-      optionValue: "New York"
-    })
-  }
+      optionValue: "New York",
+    }),
+  },
 });
 ```
 
@@ -63,10 +62,9 @@ Cal("inline", {
     location: JSON.stringify({
       value: "phone",
       // Any valid phonenumber in here
-      optionValue: "+919999999999"
-    })
-  }}
-></Cal>
+      optionValue: "+919999999999",
+    }),
+  }}></Cal>
 ```
 
 ```js
@@ -79,14 +77,14 @@ Cal("inline", {
     location: JSON.stringify({
       value: "phone",
       // Any valid phonenumber in here
-      optionValue: "+919999999999"
-    })
-  }
+      optionValue: "+919999999999",
+    }),
+  },
 });
 ```
 
-
 ## Floating button popup
+
 ```js
 // Prefill Name, Email, Attendee Phone and passing metadata - Vanilla JS
 // You can use 'floatingButton' instruction to do the prefill
@@ -103,10 +101,10 @@ Cal("floatingButton", {
     location: JSON.stringify({
       value: "phone",
       // Any valid phonenumber in here
-      optionValue: "+919999999999"
-    })
-  }
+      optionValue: "+919999999999",
+    }),
+  },
 });
 ```
 
-Other location types and other fields can be prefilled in the similar way. You can find the correct value to give from [here](https://cal.com/docs/core-features/bookings/prefill-fields#fields-with-multiple-values) 
+Other location types and other fields can be prefilled in the similar way. You can find the correct value to give from [here](https://cal.com/docs/core-features/bookings/prefill-fields#fields-with-multiple-values)

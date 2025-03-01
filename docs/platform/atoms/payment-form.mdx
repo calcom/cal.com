@@ -37,13 +37,13 @@ Below is a list of props that can be passed to the Payment form.
 
 <p></p>
 
-| Name                  | Required | Description                                                              |
-| :-------------------- | :------- | :----------------------------------------------------------------------- |
-| paymentUid            | Yes      | The uid of the payment                                                   |
-| onPaymentSuccess      | No       | Callback function to be executed upon successful payment processing      |
-| onPaymentCancellation | No       | Callback function to be executed upon payment processing failure         |
-| onEventTypePaymentInfoSuccess    | No       | Callback function to be executed when payment information is successfully processed. |
-| onEventTypePaymentInfoFailure    | No       | Callback function to be executed upon payment information processing failure. |
+| Name                          | Required | Description                                                                          |
+| :---------------------------- | :------- | :----------------------------------------------------------------------------------- |
+| paymentUid                    | Yes      | The uid of the payment                                                               |
+| onPaymentSuccess              | No       | Callback function to be executed upon successful payment processing                  |
+| onPaymentCancellation         | No       | Callback function to be executed upon payment processing failure                     |
+| onEventTypePaymentInfoSuccess | No       | Callback function to be executed when payment information is successfully processed. |
+| onEventTypePaymentInfoFailure | No       | Callback function to be executed upon payment information processing failure.        |
 
 ## Combining payment form with event types atom
 
@@ -56,6 +56,7 @@ The Payment form atom works best when combined with the event types atom to prov
     Below code snippet can be used to setup the event types atom
 
     ```js
+
 import { EventTypeSettings } from "@calcom/atoms";
 
 export default function EventType(id: number) {
@@ -89,16 +90,17 @@ export default function Booker( props : BookerProps ) {
             // assuming you have set up a separate page for payment with the same path
             // if using nextjs, better to use next/router
             window.location.href = `/payment/${data.data.paymentUid}`;
-          }           
+          }
          }}
       />
     </>
   )
 }
 ```
+
     </Step>
     <Step title="Setup a page for payments">
-         We recommend setting up a separate page for the payment form for the sake of a smooth and streamlined flow, but you can also do it in the same page. 
+         We recommend setting up a separate page for the payment form for the sake of a smooth and streamlined flow, but you can also do it in the same page.
          From the previous step, you get redirected to the payment page when the booking is created. You can now access the payment uid present in the query parameters and render the payment form atom.
 
          Below code snippet can be used to obtain the payment uid and pass it to payment form atom.
@@ -117,8 +119,10 @@ export default function StripePaymentForm() {
     </>
   );
 }
-```         
+```
+
     </Step>
+
 </Steps>
 
 Below video shows a demonstration of how we combined the event types atom and payment form in one of our of our example app to create a seamless payment experience.
@@ -136,4 +140,7 @@ Below video shows a demonstration of how we combined the event types atom and pa
 
 <p></p>
 
-<Info>Link to the example app can be found [here](https://github.com/calcom/cal.com/tree/main/packages/platform/examples/base)</Info>
+<Info>
+  Link to the example app can be found
+  [here](https://github.com/calcom/cal.com/tree/main/packages/platform/examples/base)
+</Info>

@@ -631,7 +631,7 @@ paths:
                   type: string
                 role:
                   type: string
-                  
+
     parameters:
       - schema:
           type: string
