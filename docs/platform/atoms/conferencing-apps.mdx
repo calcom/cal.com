@@ -4,12 +4,12 @@ title: "Conferencing Apps"
 
 The Conferencing Apps Atom allows users to seamlessly install applications such as Zoom, Google Meet, and Microsoft Teams, enabling them to set these as default or optional locations for their events.
 
-Below code snippet can be used to render Conferencing Apps Atom 
+Below code snippet can be used to render Conferencing Apps Atom
 
 ```js
+import { usePathname } from "next/navigation";
 
 import { ConferencingAppsSettings } from "@calcom/atoms";
-import { usePathname } from "next/navigation";
 
 export default function ConferencingApps() {
   const pathname = usePathname();
@@ -17,9 +17,9 @@ export default function ConferencingApps() {
 
   return (
     <>
-        <ConferencingAppsSettings returnTo={callbackUri} onErrorReturnTo={callbackUri} />
+      <ConferencingAppsSettings returnTo={callbackUri} onErrorReturnTo={callbackUri} />
     </>
-  )
+  );
 }
 ```
 
@@ -27,12 +27,11 @@ Below is a list of props that can be passed to the Conferencing Apps Atom
 
 <p></p>
 
-| Name                | Required | Description                                                                 |
-| :------------------ | :------- | :-------------------------------------------------------------------------- |
-| returnTo            | No       | The URL of the page to redirect to after a successful installation.    |
-| onErrorReturnTo     | No       | The URL of the page to redirect to in case an error occurs.            |
-| disableToasts       | No       | boolean value to disable toast notifications in the atom.              |
-
+| Name            | Required | Description                                                         |
+| :-------------- | :------- | :------------------------------------------------------------------ |
+| returnTo        | No       | The URL of the page to redirect to after a successful installation. |
+| onErrorReturnTo | No       | The URL of the page to redirect to in case an error occurs.         |
+| disableToasts   | No       | boolean value to disable toast notifications in the atom.           |
 
 ## Google Meet
 
@@ -70,7 +69,7 @@ For a demonstration of installing Zoom, setting it as the default conferencing a
 
 <p></p>
 
-## MS Teams Video 
+## MS Teams Video
 
 For a demonstration of installing MS Teams Video, setting it as the default conferencing app for all event types, and removing the app, please watch the video below.
 
@@ -88,6 +87,6 @@ For a demonstration of installing MS Teams Video, setting it as the default conf
 <p></p>
 
 <Info>
-  Connecting with MS Teams requires a work/school Microsoft account.
-  If you continue with a personal account you will receive an error
+  Connecting with MS Teams requires a work/school Microsoft account. If you continue with a personal account
+  you will receive an error
 </Info>

@@ -1,20 +1,27 @@
 ## 0.0.51
+
 Released to support PR https://github.com/calcom/cal.com/pull/17224 which enabled attendee specified location during booking.
 
 ## 0.0.41
+
 Released to support handle cancel booking passing oauth client id to webhooks.
 
 ## 0.0.38
+
 #### Feature: Added Support for AdvancedTab Event-Type Attributes in API
-- **Booker Layouts**: 
+
+- **Booker Layouts**:
+
   - Added `transformBookerLayoutsApiToInternal` translator to enable the `bookerLayouts` attribute in the event-type API.
   - Added `transformBookerLayoutsInternalToApi` translator to improve clarity and readability of `bookerLayouts` response data.
 
 - **Event-Type Colors**:
+
   - Added `transformEventColorsApiToInternal` translator to enable the `color` attribute in the event-type API.
   - Added `transformEventTypeColorsInternalToApi` translator to enhance the readability of the `color` attribute in the response.
 
 - **Confirmation Policy**:
+
   - Added `transformConfirmationPolicyApiToInternal` translator to enable the `confirmationPolicy` attribute in the event-type API.
   - Added `transformRequiresConfirmationInternalToApi` translator to improve the readability of `requiresConfirmation` data in the response.
 
@@ -23,6 +30,7 @@ Released to support handle cancel booking passing oauth client id to webhooks.
   - Added `transformSeatsInternalToApi` translator to enhance readability and clarity of the `seats` data.
 
 ## 0.0.37
+
 Released to support PR https://github.com/calcom/cal.com/pull/16200
 
 ## 0.0.36

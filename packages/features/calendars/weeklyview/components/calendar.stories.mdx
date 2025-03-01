@@ -3,8 +3,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 import {
 
-  Title,
-  CustomArgsTable,
+Title,
+CustomArgsTable,
 } from "@calcom/storybook/components";
 
 import { events, blockingDates } from "../_storybookData";
@@ -25,7 +25,11 @@ The Args Table below shows you a breakdown of what props can be passed into the 
 
 There will be a few examples of how to use the Calendar component to show different usecases.
 
-export const Template = (args) => <TooltipProvider><Calendar {...args} /></TooltipProvider>;
+export const Template = (args) => (
+  <TooltipProvider>
+    <Calendar {...args} />
+  </TooltipProvider>
+);
 
 <Canvas>
   <Story
@@ -71,14 +75,14 @@ export const Template = (args) => <TooltipProvider><Calendar {...args} /></Toolt
     }}>
     {({ ...args }) => (
       <TooltipProvider>
-      <Calendar
-        {...args}
-        events={events}
-        onEventClick={(e) => alert(e.title)}
-        onEmptyCellClick={(date) => alert(date.toString())}
-        sortEvents
-      />
-       </TooltipProvider>
+        <Calendar
+          {...args}
+          events={events}
+          onEventClick={(e) => alert(e.title)}
+          onEmptyCellClick={(date) => alert(date.toString())}
+          sortEvents
+        />
+      </TooltipProvider>
     )}
   </Story>
 </Canvas>
