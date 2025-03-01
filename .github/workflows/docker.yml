@@ -29,8 +29,17 @@ jobs:
           node-version: 18
           cache: "npm"
 
+      - name: Ensure latest npm version
+        run: |
+          corepack enable
+          npm install -g npm@latest
+
+
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
+
+      - name: Install dependencies
+        run: yarn install --immutable
 
       - name: Run Prettier (Code Formatting)
         run: npx prettier --check "**/*.{ts,tsx,js,json,md,yml,yaml}"
