@@ -2445,6 +2445,7 @@
   "enterprise": "Preduzeće",
   "enterprise_description": "Nadogradite na Enterprise da biste kreirali svoju organizaciju",
   "create_your_org": "Kreirajte svoju organizaciju",
+  "create_org": "Kreiraj organizaciju",
   "create_your_org_description": "Nadogradite na organizacije i dobijte poddomen, jedinstveno naplaćivanje, Insights, opsežno prilagođavanje i još mnogo toga",
   "create_your_enterprise_description": "Nadogradite na Enterprise i dobijte pristup Active Directory Sync, SCIM automatskom provisioningu korisnika, Cal.ai glasovnim agentima, Admin API-jevima i još mnogo toga!",
   "other_payment_app_enabled": "Možete omogućiti samo jednu aplikaciju za plaćanje po tipu događaja",

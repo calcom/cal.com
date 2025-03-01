@@ -2445,6 +2445,7 @@
   "enterprise": "المؤسسة",
   "enterprise_description": "قم بالترقية إلى Enterprise لإنشاء مؤسستك",
   "create_your_org": "أنشئ مؤسستك",
+  "create_org": "إنشاء مؤسسة",
   "create_your_org_description": "قم بالترقية إلى المنظمات واحصل على نطاق فرعي، وفوترة موحدة، ورؤى، وتخصيص واسع النطاق والمزيد",
   "create_your_enterprise_description": "قم بالترقية إلى Enterprise واحصل على الوصول إلى مزامنة Active Directory، وتوفير المستخدم التلقائي SCIM، ووكلاء الصوت Cal.ai، وواجهات برمجة التطبيقات الإدارية والمزيد!",
   "other_payment_app_enabled": "يمكنك تمكين تطبيق دفع واحد فقط لكل نوع من أنواع الأحداث",

@@ -2445,6 +2445,7 @@
   "enterprise": "Virksomhed",
   "enterprise_description": "Opgrader til Enterprise for at oprette din organisation",
   "create_your_org": "Opret din Organisation",
+  "create_org": "Opret Organisation",
   "create_your_org_description": "Opgrader til Organisationer og få et subdomæne, samlet fakturering, Insights, omfattende whitelabeling og mere",
   "create_your_enterprise_description": "Opgrader til Enterprise og få adgang til Active Directory Sync, SCIM Automatisk Brugerprovisionering, Cal.ai Voice Agents, Admin API'er og mere!",
   "other_payment_app_enabled": "Du kan kun aktivere én betalingsapp pr. begivenhedstype",
