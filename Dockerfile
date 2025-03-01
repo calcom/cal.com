@@ -17,7 +17,7 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     NEXT_PUBLIC_LICENSE_CONSENT=$NEXT_PUBLIC_LICENSE_CONSENT \
     CALCOM_TELEMETRY_DISABLED=$CALCOM_TELEMETRY_DISABLED \
     DATABASE_URL=$DATABASE_URL \
-    DATABASE_DIRECT_URL=$DATABASE_DIRECT_URL \
+    DATABASE_DIRECT_URL=$DATABASE_URL \
     NODE_OPTIONS=--max-old-space-size=8192 \
     BUILD_STANDALONE=true
 
@@ -64,10 +64,9 @@ COPY --from=builder /calcom/apps/web ./apps/web
 COPY packages/prisma/schema.prisma ./packages/prisma/schema.prisma
 COPY --from=builder /calcom/scripts/start.sh /calcom/scripts/start.sh
 
-# Ensure script is executable
 RUN chmod +x /calcom/scripts/start.sh
 
-# Define default web app URL
+# Save value used during this build stage
 ENV NEXT_PUBLIC_WEBAPP_URL="http://localhost:3000"
 
 # Stage 3: Final Runtime
@@ -84,13 +83,10 @@ ENV NODE_ENV=production \
 
 EXPOSE 3000
 
-# Ensure start script exists and is executable
 COPY --from=builder-two /calcom/scripts/start.sh /calcom/scripts/start.sh
 RUN chmod +x /calcom/scripts/start.sh
 
-# Healthcheck for container
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
     CMD curl --fail http://localhost:3000 || exit 1
 
-# Run application startup script
 CMD ["/calcom/scripts/start.sh"]
