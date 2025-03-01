@@ -27,5 +27,5 @@ export function useLocale() {
 
   const tFunction: TFunction = t || ((key) => key);
 
-  return { t: tFunction, isLocaleReady: !t };
+  return { t: tFunction, isLocaleReady: !t, language: session.data?.user.locale ?? "en" };
 }
