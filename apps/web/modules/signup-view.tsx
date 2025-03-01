@@ -23,7 +23,6 @@ import {
   APP_NAME,
   URL_PROTOCOL_REGEX,
   IS_CALCOM,
-  IS_EUROPE,
   WEBAPP_URL,
   CLOUDFLARE_SITE_ID,
   WEBSITE_PRIVACY_POLICY_URL,
@@ -37,6 +36,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, PasswordField, TextField, Form, Alert, CheckboxField, Icon, showToast } from "@calcom/ui";
