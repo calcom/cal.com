@@ -116,7 +116,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
                       <div className="col-span-2 mb-6">
-                        {date.locale(i18n.language).format("dddd, DD MMMM YYYY")}
+                        {date.locale(language).format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
                         <span className="text-subtle">({timezone})</span>

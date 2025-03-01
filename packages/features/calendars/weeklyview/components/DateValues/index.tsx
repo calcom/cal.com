@@ -12,7 +12,7 @@ type Props = {
 export function DateValues({ days, containerNavRef }: Props) {
   const { language } = useLocale();
   const formatDate = (date: dayjs.Dayjs): string => {
-    return new Intl.DateTimeFormat(i18n.language, { weekday: "short" }).format(date.toDate());
+    return new Intl.DateTimeFormat(language, { weekday: "short" }).format(date.toDate());
   };
   return (
     <div

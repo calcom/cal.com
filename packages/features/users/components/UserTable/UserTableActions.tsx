@@ -142,7 +142,7 @@ export function TableActions({
                       onClick={() => {
                         resendInvitationMutation.mutate({
                           teamId: orgId,
-                          language: i18n.language,
+                          language: language,
                           email: user.email,
                           isOrg: true,
                         });

@@ -189,7 +189,7 @@ const EventTypeScheduleDetails = memo(
       <div>
         <div className={classNames("border-subtle space-y-4 border-x p-6", customClassNames?.tableContainer)}>
           <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
-            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
+            {weekdayNames(language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
               return (
                 <li

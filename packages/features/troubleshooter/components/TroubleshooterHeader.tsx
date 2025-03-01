@@ -29,7 +29,7 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
   const isSameYear = () => {
     return selectedDate.format("YYYY") === endDate.format("YYYY");
   };
-  const formattedMonth = new Intl.DateTimeFormat(i18n.language, { month: "short" });
+  const formattedMonth = new Intl.DateTimeFormat(language, { month: "short" });
   const FormattedSelectedDateRange = () => {
     return (
       <h3 className="min-w-[150px] text-base font-semibold leading-4">

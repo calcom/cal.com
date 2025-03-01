@@ -369,7 +369,7 @@ const EmailEmbed = ({
                 setSelectedDate(date.format("YYYY-MM-DD"));
               }}
               includedDates={nonEmptyScheduleDays}
-              locale={i18n.language}
+              locale={language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
               weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}

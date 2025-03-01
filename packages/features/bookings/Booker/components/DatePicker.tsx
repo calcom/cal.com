@@ -82,7 +82,7 @@ export const DatePicker = ({
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
-      locale={i18n.language}
+      locale={language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}

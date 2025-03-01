@@ -67,8 +67,8 @@ export const PaymentFormComponent = (
   } as StripePaymentElementOptions;
 
   useEffect(() => {
-    elements?.update({ locale: i18n.language as StripeElementLocale });
-  }, [elements, i18n.language]);
+    elements?.update({ locale: language as StripeElementLocale });
+  }, [elements, language]);
 
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={props.onSubmit}>

@@ -521,7 +521,7 @@ function MemberListContent(props: Props) {
                                     resendInvitationMutation.mutate({
                                       teamId: props.team?.id,
                                       email: user.email,
-                                      language: i18n.language,
+                                      language: language,
                                     });
                                   }}
                                   StartIcon="send">

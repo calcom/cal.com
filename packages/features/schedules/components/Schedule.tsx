@@ -216,7 +216,7 @@ export const ScheduleComponent = <
   return (
     <div className={classNames("flex flex-col gap-4 p-2 sm:p-4", className?.schedule)}>
       {/* First iterate for each day */}
-      {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
+      {weekdayNames(language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
         const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
@@ -600,7 +600,7 @@ const CopyTimes = ({
               />
             </label>
           </li>
-          {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
+          {weekdayNames(language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
             return (
               <li key={weekday}>

@@ -44,7 +44,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
         recurringCount: recurringEventCount,
         selectedTimeFormat: timeFormat,
       },
-      i18n.language
+      language
     );
     return (
       <div data-testid="recurring-dates">

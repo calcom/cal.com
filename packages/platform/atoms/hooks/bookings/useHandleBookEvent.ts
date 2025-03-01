@@ -95,7 +95,7 @@ export const useHandleBookEvent = ({
         event: event.data,
         date: timeslot,
         timeZone: timezone,
-        language: i18n.language,
+        language: language,
         rescheduleUid: rescheduleUid || undefined,
         rescheduledBy: rescheduledBy || undefined,
         bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,

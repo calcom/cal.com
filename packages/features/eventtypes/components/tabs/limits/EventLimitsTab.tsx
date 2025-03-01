@@ -780,8 +780,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
             addOnSuffix={<>{t("minutes")}</>}
             hint={t("offset_start_description", {
-              originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
-              adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+              originalTime: offsetOriginalTime.toLocaleTimeString(language, { timeStyle: "short" }),
+              adjustedTime: offsetAdjustedTime.toLocaleTimeString(language, { timeStyle: "short" }),
             })}
           />
         </div>

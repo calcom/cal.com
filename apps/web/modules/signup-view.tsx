@@ -229,7 +229,7 @@ export default function Signup({
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
-        language: i18n.language,
+        language: language,
         token,
       }),
       headers: {

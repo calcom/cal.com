@@ -67,7 +67,7 @@ export function InviteMemberModal(props: Props) {
       onSubmit={(values) => {
         inviteMemberMutation.mutate({
           teamId: orgId,
-          language: i18n.language,
+          language: language,
           role: values.role,
           usernameOrEmail: values.emailOrUsername,
           isPlatform: platformUser?.organization.isPlatform,

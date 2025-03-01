@@ -321,7 +321,7 @@ const DatePicker = ({
     }
   };
   const month = browsingDate
-    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(
+    ? new Intl.DateTimeFormat(language, { month: "long" }).format(
         new Date(browsingDate.year(), browsingDate.month())
       )
     : null;

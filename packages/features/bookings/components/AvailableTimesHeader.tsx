@@ -50,7 +50,7 @@ export const AvailableTimesHeader = ({
             isToday && !customClassNames?.availableTimeSlotsTitle && "!text-default",
             customClassNames?.availableTimeSlotsTitle
           )}>
-          {nameOfDay(i18n.language, Number(date.format("d")), "short")}
+          {nameOfDay(language, Number(date.format("d")), "short")}
         </span>
         <span
           className={classNames(
