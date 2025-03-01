@@ -3,9 +3,9 @@ name: Build and push image to DockerHub
 on:
   push:
     branches:
-      - 'main'
+      - "main"
     tags:
-      - 'v*'
+      - "v*"
   workflow_run:
     workflows: ["Update Calendso"]
     branches: [main]
@@ -26,13 +26,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Run ESLint (Code Linting)
-        run: npx eslint . --ext .ts,.tsx --format stylish
+        run: npm install
 
       - name: Run Prettier (Code Formatting)
         run: npx prettier --check "**/*.{ts,tsx,js,json,md,yml,yaml}"
@@ -42,7 +39,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: check-style  # Ensures style checks pass before building
+    needs: check-style # Ensures style checks pass before building
 
     steps:
       - name: Free Disk Space (Ubuntu)

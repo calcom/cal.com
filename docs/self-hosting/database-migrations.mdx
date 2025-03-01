@@ -3,14 +3,18 @@ title: "Database migrations"
 icon: "upload"
 ---
 
-As described in the [upgrade guide](/self-hosting/upgrading), you should use the 
+As described in the [upgrade guide](/self-hosting/upgrading), you should use the
+
 ```
 yarn workspace @calcom/prisma db-migrate
 ```
-or 
+
+or
+
 ```
 yarn workspace @calcom/prisma db-deploy
-``` 
+```
+
 command to update the database.
 
 We use database migrations in order to handle changes to the database schema in a more secure and stable way. This is actually very common. The thing is that when just changing the schema in `schema.prisma` without creating migrations, the update to the newer database schema can damage or delete all data in production mode, since the system sometimes doesn't know how to transform the data from A to B. Using migrations, each step is reproducible, transparent and can be undone in a simple way.
@@ -28,7 +32,8 @@ yarn workspace @calcom/prisma db-migrate
 Now, you must create a short name for your migration to describe what changed (for example, "user_add_email_verified"). Then just add and commit it with the corresponding code that uses your new database schema.
 
 <Warning>
-Always keep an eye on what migrations Prisma is generating.** Prisma often happily will drop entire columns of data because it can't figure out what to do.
+  Always keep an eye on what migrations Prisma is generating.** Prisma often happily will drop entire columns
+  of data because it can't figure out what to do.
 </Warning>
 
 ### Error: The database schema is not empty

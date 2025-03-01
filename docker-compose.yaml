@@ -1,5 +1,5 @@
 # Use postgres/example user/password credentials
-version: '3.8'
+version: "3.8"
 
 volumes:
   database-data:
