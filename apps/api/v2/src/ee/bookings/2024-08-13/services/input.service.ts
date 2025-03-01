@@ -331,7 +331,7 @@ export class InputBookingsService_2024_08_13 {
     if (inputBookingLocation.type === "integration" && "integration" in inputBookingLocation) {
       const allowedIntegrations = eventTypeLocations
         .filter((location) => location.type === "integration")
-        .map((location) => (location as any).integration);
+        .map((location) => location.integration);
 
       const isAllowedIntegration = allowedIntegrations.includes(inputBookingLocation.integration);
       if (!isAllowedIntegration) {
