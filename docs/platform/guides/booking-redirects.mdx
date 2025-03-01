@@ -4,6 +4,7 @@ description: Find out how to manage the booking flow.
 ---
 
 When creating an OAuth client you can specify:
+
 1. booking URL to manage where people land after booking after one of your users.
 2. reschedule URL to your page for rescheduling a booking.
 3. cancel URL to your page for cancelling a booking.
@@ -22,7 +23,7 @@ Page in the booking URL will take URL parameter provided by us and then hook to 
 2. In your app, create `my-app.com/bookings/[bookingUid]` page where bookingUid will become path parameter.
 3. When a booking occurs, booker will be re-directed to the redirectURI with booking UID as the bookingUid parameter aka my-app.com/bookings/[bookingUid].
 4. In the my-app.com/bookings/[bookingUid] route create a page that imports `useBooking` hook, then extract bookingUid from URL parameter, and uses the hook to display booking information. Because
-`useBooking` hook can return individual booking or an array of recurring bookings, you need to handle single booking and array of bookings cases separately:
+   `useBooking` hook can return individual booking or an array of recurring bookings, you need to handle single booking and array of bookings cases separately:
 
 ```js
 import { useBooking } from "@calcom/atoms";
@@ -72,18 +73,18 @@ An example implementation can be found [here](https://github.com/calcom/cal.com/
 1. Pass `my-app.com/bookings/cancel` as the cancelURI.
 2. In your app, create `my-app.com/bookings/cancel/[bookingUid]` page where bookingUid will become path parameter.
 3. In the page of my-app.com/cancel/[bookingUid] import useCancelBooking from atoms and get access to the cancel mutation
-import { useCancelBooking } from "@calcom/atoms";
+   import { useCancelBooking } from "@calcom/atoms";
 
 ```js
 const { mutate: cancelBooking } = useCancelBooking({
-    onSuccess: () => {
-      refetch();
-    },
+  onSuccess: () => {
+    refetch();
+  },
 });
 ```
 
 4. Create a cancel button that invokes mutation returned by the “useCancelBooking”. You have to pass id of the booking which you can get by fetching booking using "useBooking" hook by uid from the query params. Provide a suitable “cancellationReason”.
-Because `useBooking` hook can return individual booking or an array of recurring bookings, you need to handle single booking and array of bookings cases separately:
+   Because `useBooking` hook can return individual booking or an array of recurring bookings, you need to handle single booking and array of bookings cases separately:
 
 ```js
 import { useBooking, useCancelBooking } from "@calcom/atoms";

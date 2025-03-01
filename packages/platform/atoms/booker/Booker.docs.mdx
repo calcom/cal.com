@@ -1,7 +1,9 @@
 import { Meta, Canvas, ArgsTable } from "@storybook/blocks";
+
 import { Title } from "@calcom/storybook/components";
-import { BookerWebWrapper as Booker } from "./BookerWebWrapper";
+
 import * as BookerStories from "./Booker.stories";
+import { BookerWebWrapper as Booker } from "./BookerWebWrapper";
 
 <Meta of={BookerStories} />
 
@@ -9,4 +11,4 @@ import * as BookerStories from "./Booker.stories";
 
 <ArgsTable of={Booker} />
 
-<Canvas of={BookerStories.Default}/>
+<Canvas of={BookerStories.Default} />
