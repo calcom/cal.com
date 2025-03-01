@@ -5,13 +5,14 @@ import {
 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
-import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
+import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
@@ -73,7 +74,7 @@ export class InputBookingsService_2024_08_13 {
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly config: ConfigService,
-    private readonly apiKeyRepository: ApiKeyRepository,
+    private readonly apiKeyRepository: ApiKeysRepository,
     private readonly bookingSeatRepository: BookingSeatRepository
   ) {}
 
@@ -97,10 +98,14 @@ export class InputBookingsService_2024_08_13 {
 
     if (oAuthClientParams) {
       Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+      newRequest.body = {
+        ...bodyTransformed,
+        noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
+        creationSource: CreationSource.API_V2,
+      };
     } else {
       Object.assign(newRequest, { userId, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: false };
+      newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
     }
 
     return newRequest as unknown as BookingRequest;
@@ -146,6 +151,8 @@ export class InputBookingsService_2024_08_13 {
     );
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
+    const guests = inputBooking.guests;
+
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -154,15 +161,22 @@ export class InputBookingsService_2024_08_13 {
       language: inputBooking.attendee.language || "en",
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
-      guests: inputBooking.guests,
+      guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: inputBooking.bookingFieldsResponses
         ? {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
           }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        : {
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
+          },
     };
   }
 
@@ -211,6 +225,7 @@ export class InputBookingsService_2024_08_13 {
 
     newRequest.body = bodyTransformed.map((event) => ({
       ...event,
+      creationSource: CreationSource.API_V2,
     }));
 
     return newRequest as unknown as BookingRequest;
@@ -246,6 +261,8 @@ export class InputBookingsService_2024_08_13 {
       inputBooking.attendee.timeZone
     );
 
+    const guests = inputBooking.guests;
+
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: eventType.length });
 
@@ -258,15 +275,16 @@ export class InputBookingsService_2024_08_13 {
         language: inputBooking.attendee.language || "en",
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
-        guests: inputBooking.guests,
+        guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: inputBooking.bookingFieldsResponses
           ? {
               ...inputBooking.bookingFieldsResponses,
               name: inputBooking.attendee.name,
               email: inputBooking.attendee.email,
+              guests,
             }
-          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests },
         schedulingType: eventType.schedulingType,
       });
 
@@ -305,10 +323,14 @@ export class InputBookingsService_2024_08_13 {
     const location = await this.getRescheduleBookingLocation(bookingUid);
     if (oAuthClientParams) {
       Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+      newRequest.body = {
+        ...bodyTransformed,
+        noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
+        creationSource: CreationSource.API_V2,
+      };
     } else {
       Object.assign(newRequest, { userId, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: false };
+      newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
     }
 
     return newRequest as unknown as BookingRequest;
@@ -441,11 +463,18 @@ export class InputBookingsService_2024_08_13 {
       teamIds: queryParams.teamsIds || (queryParams.teamId ? [queryParams.teamId] : undefined),
       eventTypeIds:
         queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
+      afterUpdatedDate: queryParams.afterUpdatedAt,
+      beforeUpdatedDate: queryParams.beforeUpdatedAt,
     };
   }
 
   transformGetBookingsSort(queryParams: GetBookingsInput_2024_08_13) {
-    if (!queryParams.sortStart && !queryParams.sortEnd && !queryParams.sortCreated) {
+    if (
+      !queryParams.sortStart &&
+      !queryParams.sortEnd &&
+      !queryParams.sortCreated &&
+      !queryParams.sortUpdatedAt
+    ) {
       return undefined;
     }
 
@@ -453,6 +482,7 @@ export class InputBookingsService_2024_08_13 {
       sortStart: queryParams.sortStart,
       sortEnd: queryParams.sortEnd,
       sortCreated: queryParams.sortCreated,
+      sortUpdated: queryParams.sortUpdatedAt,
     };
   }
 

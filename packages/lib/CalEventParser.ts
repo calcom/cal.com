@@ -7,17 +7,13 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import { WEBAPP_URL } from "./constants";
 import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 import isSmsCalEmail from "./isSmsCalEmail";
-import { markdownToSafeHTML } from "./markdownToSafeHTML";
 
 const translator = short();
 
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
 export const getWhat = (calEvent: Pick<CalendarEvent, "title">, t: TFunction) => {
-  return `
-${t("what")}:
-${calEvent.title}
-  `;
+  return `${t("what")}:\n${calEvent.title}`;
 };
 
 export const getWhen = (
@@ -29,14 +25,8 @@ export const getWhen = (
   const attendeeTimezone = calEvent.attendees?.[0]?.timeZone ?? defaultTimezone;
 
   return calEvent.seatsPerTimeSlot
-    ? `
-${t("organizer_timezone")}:
-${organizerTimezone}
-  `
-    : `
-${t("invitee_timezone")}:
-${attendeeTimezone}
-  `;
+    ? `${t("organizer_timezone")}:\n${organizerTimezone}`
+    : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
 };
 
 export const getWho = (
@@ -51,44 +41,32 @@ export const getWho = (
     attendeesFromCalEvent = [];
   }
   const attendees = attendeesFromCalEvent
-    .map((attendee) => {
-      return `
-${attendee?.name || t("guest")}
-${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
+    .map(
+      (attendee) =>
+        `${attendee?.name || t("guest")}\n${
+          !isSmsCalEmail(attendee.email) ? attendee.email : attendee.phoneNumber
+        }`
+    )
+    .join("\n");
 
-`;
-    })
-
-    .join("");
-
-  const organizer = `
-${calEvent.organizer.name} - ${t("organizer")}
-${calEvent.organizer.email}
-  `;
+  const organizer = `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
 
   const teamMembers = calEvent.team?.members
-    ? calEvent.team.members.map((member) => {
-        return `
-${member.name} - ${t("team_member")}
-${member.email}
-    `;
-      })
+    ? calEvent.team.members
+        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .join("\n")
     : [];
 
-  return `
-${t("who")}:
-${organizer + attendees + teamMembers.join("")}
-  `;
+  return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
+    teamMembers.length ? `\n${teamMembers}` : ""
+  }`;
 };
 
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `
-${t("additional_notes")}:
-${calEvent.additionalNotes}
-  `;
+  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
 };
 
 export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValueMapFromResponses>[0]) => {
@@ -133,10 +111,10 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
   if (!calEvent.description) {
     return "";
   }
-  return `\n${t("description")}
-    ${markdownToSafeHTML(calEvent.description)}
-    `;
+  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
+  return `${t("description")}\n${plainText}`;
 };
+
 export const getLocation = (
   calEvent: Parameters<typeof getVideoCallUrlFromCalEvent>[0] & Parameters<typeof getProviderName>[0]
 ) => {
@@ -338,39 +316,33 @@ export const getRichDescription = (
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
-  return `
-${getCancellationReason(calEvent, t)}
-${getWhat(calEvent, t)}
-${getWhen(calEvent, t)}
-${getWho(calEvent, t)}
-${t("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent, t)}
-${getAdditionalNotes(calEvent, t)}
-${getUserFieldsResponses(calEvent)}
-${includeAppStatus ? getAppsStatus(calEvent, t) : ""}
-${
-  // TODO: Only the original attendee can make changes to the event
-  // Guests cannot
-  calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t)
-}
-${
-  calEvent.paymentInfo
-    ? `
-${t("pay_now")}:
-${calEvent.paymentInfo.link}
-`
-    : ""
-}
-  `.trim();
+  // Join all parts with single newlines and remove extra whitespace
+  const parts = [
+    getCancellationReason(calEvent, t),
+    getWhat(calEvent, t),
+    getWhen(calEvent, t),
+    getWho(calEvent, t),
+    `${t("where")}:\n${getLocation(calEvent)}`,
+    getDescription(calEvent, t),
+    getAdditionalNotes(calEvent, t),
+    getUserFieldsResponses(calEvent),
+    includeAppStatus ? getAppsStatus(calEvent, t) : "",
+    // TODO: Only the original attendee can make changes to the event
+    // Guests cannot
+    calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t),
+    calEvent.paymentInfo ? `${t("pay_now")}:\n${calEvent.paymentInfo.link}` : "",
+  ]
+    .filter(Boolean) // Remove empty strings
+    .join("\n\n") // Double newline between major sections
+    .replace(/\n{3,}/g, "\n\n") // Ensure no more than double newlines
+    .trim();
+
+  return parts;
 };
 
 export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellationReason">, t: TFunction) => {
   if (!calEvent.cancellationReason) return "";
-  return `
-${t("cancellation_reason")}:
-${calEvent.cancellationReason}
- `;
+  return `${t("cancellation_reason")}:\n${calEvent.cancellationReason}`;
 };
 
 export const isDailyVideoCall = (calEvent: Pick<CalendarEvent, "videoCallData">): boolean => {

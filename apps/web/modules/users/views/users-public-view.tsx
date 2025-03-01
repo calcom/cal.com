@@ -3,7 +3,7 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import {
   sdkActionManager,
@@ -21,7 +21,7 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
-  const { users, profile, eventTypes, markdownStrippedBio, entity, isOrgSEOIndexable } = props;
+  const { users, profile, eventTypes, entity } = props;
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -60,89 +60,91 @@ export function UserPage(props: PageProps) {
   const isOrg = !!user?.profile?.organization;
 
   return (
-    <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
-      <main
-        className={classNames(
-          shouldAlignCentrally ? "mx-auto" : "",
-          isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
-          "max-w-3xl px-4 py-24"
-        )}>
-        <div className="mb-8 text-center">
-          <UserAvatar
-            size="xl"
-            user={{
-              avatarUrl: user.avatarUrl,
-              profile: user.profile,
-              name: profile.name,
-              username: profile.username,
-            }}
-          />
-          <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
-            {profile.name}
-            {!isOrg && user.verified && (
-              <Icon
-                name="badge-check"
-                className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
-              />
+    <>
+      <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
+        <main
+          className={classNames(
+            shouldAlignCentrally ? "mx-auto" : "",
+            isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
+            "max-w-3xl px-4 py-24"
+          )}>
+          <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-4">
+            <UserAvatar
+              size="lg"
+              user={{
+                avatarUrl: user.avatarUrl,
+                profile: user.profile,
+                name: profile.name,
+                username: profile.username,
+              }}
+            />
+            <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
+              {profile.name}
+              {!isOrg && user.verified && (
+                <Icon
+                  name="badge-check"
+                  className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
+                />
+              )}
+              {isOrg && (
+                <Icon
+                  name="badge-check"
+                  className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
+                />
+              )}
+            </h1>
+            {!isBioEmpty && (
+              <>
+                <div
+                  className="text-default break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                />
+              </>
             )}
-            {isOrg && (
-              <Icon
-                name="badge-check"
-                className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
-              />
-            )}
-          </h1>
-          {!isBioEmpty && (
-            <>
-              <div
-                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: props.safeBio }}
-              />
-            </>
-          )}
-        </div>
+          </div>
 
-        <div
-          className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
-          data-testid="event-types">
-          {eventTypes.map((type) => (
-            <Link
-              key={type.id}
-              style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-              prefetch={false}
-              href={{
-                pathname: `/${user.profile.username}/${type.slug}`,
-                query,
-              }}
-              passHref
-              onClick={async () => {
-                sdkActionManager?.fire("eventTypeSelected", {
-                  eventType: type,
-                });
-              }}
-              className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
-              data-testid="event-type-link">
-              <Icon
-                name="arrow-right"
-                className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
-              />
-              {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-              <div className="block w-full p-5">
-                <div className="flex flex-wrap items-center">
-                  <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>
+          <div
+            className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
+            data-testid="event-types">
+            {eventTypes.map((type) => (
+              <Link
+                key={type.id}
+                style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
+                prefetch={false}
+                href={{
+                  pathname: `/${user.profile.username}/${type.slug}`,
+                  query,
+                }}
+                passHref
+                onClick={async () => {
+                  sdkActionManager?.fire("eventTypeSelected", {
+                    eventType: type,
+                  });
+                }}
+                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
+                data-testid="event-type-link">
+                <Icon
+                  name="arrow-right"
+                  className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
+                />
+                {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
+                <div className="block w-full p-5">
+                  <div className="flex flex-wrap items-center">
+                    <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>
+                  </div>
+                  <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                 </div>
-                <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
 
-        {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
-      </main>
-      <Toaster position="bottom-right" />
-    </div>
+          {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
+        </main>
+        <Toaster position="bottom-right" />
+      </div>
+    </>
   );
 }
-UserPage.isBookingPage = true;
+
 export default UserPage;

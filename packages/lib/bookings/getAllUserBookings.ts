@@ -1,3 +1,4 @@
+import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -8,6 +9,7 @@ type SortOptions = {
   sortStart?: "asc" | "desc";
   sortEnd?: "asc" | "desc";
   sortCreated?: "asc" | "desc";
+  sortUpdated?: "asc" | "desc";
 };
 type GetOptions = {
   ctx: {
@@ -22,8 +24,8 @@ type GetOptions = {
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
-    attendeeEmail?: string;
-    attendeeName?: string;
+    attendeeEmail?: string | TextFilterValue;
+    attendeeName?: string | TextFilterValue;
   };
   sort?: SortOptions;
 };
@@ -126,6 +128,9 @@ function getOrderBy(
   }
   if (sort?.sortCreated) {
     return { createdAt: sort.sortCreated };
+  }
+  if (sort?.sortUpdated) {
+    return { updatedAt: sort.sortUpdated };
   }
 
   return { startTime: "asc" };

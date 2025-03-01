@@ -20,12 +20,12 @@ type Props = {
   eventData: Omit<
     Pick<
       NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
+      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "subsetOfUsers" | "hidden"
     >,
-    "profile" | "users"
+    "profile" | "subsetOfUsers"
   > & {
     profile: {
-      image: string | null;
+      image: string | undefined;
       name: string | null;
       username: string | null;
     };
@@ -99,7 +99,7 @@ async function processSeatedEvent({
 }
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
 
@@ -158,12 +158,15 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         multipleDuration: [15, 30, 45, 60, 90],
       },
       profile: {
-        image: eventData.profile.image ?? null,
+        image: eventData.profile.image,
         name: eventData.profile.name ?? null,
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
       hidden: eventData.hidden,
     },
     user: usernames.join("+"),
@@ -192,7 +195,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 }
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
@@ -254,12 +257,15 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       length: eventData.length,
       metadata: eventData.metadata,
       profile: {
-        image: eventData.profile.image ?? null,
+        image: eventData.profile.image,
         name: eventData.profile.name ?? null,
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
       hidden: eventData.hidden,
     },
     user: username,

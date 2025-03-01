@@ -10,11 +10,12 @@ import {
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,7 +28,6 @@ import {
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -260,7 +260,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
   // allows unsetting a schedule through { schedule: null, ... }
-  else if (null === schedule) {
+  else if (null === schedule || schedule === 0) {
     data.schedule = {
       disconnect: true,
     };

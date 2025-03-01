@@ -5,10 +5,12 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 
 const querySchema = z.object({
   username: z
@@ -48,6 +50,7 @@ async function handler(req: NextApiRequest) {
       emailVerified: new Date(),
       locale: "en", // TODO: We should revisit this
       identityProvider: IdentityProvider.CAL,
+      creationSource: CreationSource.WEBAPP,
     },
   });
 

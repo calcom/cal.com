@@ -1,5 +1,4 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { HydrateClient } from "app/_trpc/HydrateClient";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -9,10 +8,9 @@ import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -21,12 +19,14 @@ import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import PlainChat from "@lib/plain/plainChat";
+import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
+
+import { getThemeProviderProps } from "./getThemeProviderProps";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -49,7 +49,6 @@ export type AppProps = Omit<
 > & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
-    isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
     getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
@@ -116,21 +115,11 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
   );
 };
 
-const enum ThemeSupport {
-  // e.g. Login Page
-  None = "none",
-  // Entire App except Booking Pages
-  App = "appConfigured",
-  // Booking Pages(including Routing Forms)
-  Booking = "bookingConfigured",
-}
-
 type CalcomThemeProps = Readonly<{
   isBookingPage: boolean;
-  themeBasis: string | null;
   nonce: string | undefined;
   children: React.ReactNode;
-  isThemeSupported?: boolean;
+  isThemeSupported: boolean;
 }>;
 
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
@@ -140,8 +129,14 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const searchParams = useSearchParams();
   const embedNamespace = searchParams ? getEmbedNamespace(searchParams) : null;
   const isEmbedMode = typeof embedNamespace === "string";
-
-  const { key, ...themeProviderProps } = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+  const pathname = usePathname();
+  const { key, ...themeProviderProps } = getThemeProviderProps({
+    props,
+    isEmbedMode,
+    embedNamespace,
+    pathname,
+    searchParams,
+  });
 
   return (
     <ThemeProvider key={key} {...themeProviderProps}>
@@ -161,91 +156,6 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   );
 };
 
-/**
- * The most important job for this fn is to generate correct storageKey for theme persistenc.
- * `storageKey` is important because that key is listened for changes(using [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event) and any pages opened will change it's theme based on that(as part of next-themes implementation).
- * Choosing the right storageKey avoids theme flickering caused by another page using different theme
- * So, we handle all the cases here namely,
- * - Both Booking Pages, /free/30min and /pro/30min but configured with different themes but being operated together.
- * - Embeds using different namespace. They can be completely themed different on the same page.
- * - Embeds using the same namespace but showing different cal.com links with different themes
- * - Embeds using the same namespace and showing same cal.com links with different themes(Different theme is possible for same cal.com link in case of embed because of theme config available in embed)
- * - App has different theme then Booking Pages.
- *
- * All the above cases have one thing in common, which is the origin and thus localStorage is shared and thus `storageKey` is critical to avoid theme flickering.
- *
- * Some things to note:
- * - There is a side effect of so many factors in `storageKey` that many localStorage keys will be created if a user goes through all these scenarios(e.g like booking a lot of different users)
- * - Some might recommend disabling localStorage persistence but that doesn't give good UX as then we would default to light theme always for a few seconds before switching to dark theme(if that's the user's preference).
- * - We can't disable [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event handling as well because changing theme in one tab won't change the theme without refresh in other tabs. That's again a bad UX
- * - Theme flickering becomes infinitely ongoing in case of embeds because of the browser's delay in processing `storage` event within iframes. Consider two embeds simulatenously opened with pages A and B. Note the timeline and keep in mind that it happened
- *  because 'setItem(A)' and 'Receives storageEvent(A)' allowed executing setItem(B) in b/w because of the delay.
- *    - t1 -> setItem(A) & Fires storageEvent(A) - On Page A) - Current State(A)
- *    - t2 -> setItem(B) & Fires storageEvent(B) - On Page B) - Current State(B)
- *    - t3 -> Receives storageEvent(A) & thus setItem(A) & thus fires storageEvent(A) (On Page B) - Current State(A)
- *    - t4 -> Receives storageEvent(B) & thus setItem(B) & thus fires storageEvent(B) (On Page A) - Current State(B)
- *    - ... and so on ...
- */
-function getThemeProviderProps({
-  props,
-  isEmbedMode,
-  embedNamespace,
-}: {
-  props: Omit<CalcomThemeProps, "children">;
-  isEmbedMode: boolean;
-  embedNamespace: string | null;
-}) {
-  const themeSupport = props.isBookingPage
-    ? ThemeSupport.Booking
-    : // if isThemeSupported is explicitly false, we don't use theme there
-    props.isThemeSupported === false
-    ? ThemeSupport.None
-    : ThemeSupport.App;
-
-  const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
-  const themeBasis = props.themeBasis;
-
-  if (!process.env.NEXT_PUBLIC_IS_E2E && (isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
-    console.warn(
-      "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
-    );
-  }
-
-  const appearanceIdSuffix = themeBasis ? `:${themeBasis}` : "";
-  const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
-  let embedExplicitlySetThemeSuffix = "";
-
-  if (typeof window !== "undefined") {
-    const embedTheme = window.getEmbedTheme();
-    if (embedTheme) {
-      embedExplicitlySetThemeSuffix = `:${embedTheme}`;
-    }
-  }
-
-  const storageKey = isEmbedMode
-    ? // Same Namespace, Same Organizer but different themes would still work seamless and not cause theme flicker
-      // Even though it's recommended to use different namespaces when you want to theme differently on the same page but if the embeds are on different pages, the problem can still arise
-      `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
-    : themeSupport === ThemeSupport.App
-    ? "app-theme"
-    : isBookingPageThemeSupportRequired
-    ? `booking-theme${appearanceIdSuffix}`
-    : undefined;
-
-  return {
-    storageKey,
-    forcedTheme,
-    themeSupport,
-    nonce: props.nonce,
-    enableColorScheme: false,
-    enableSystem: themeSupport !== ThemeSupport.None,
-    // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
-    // This is how login to dashboard soft navigation changes theme from light to dark
-    key: storageKey,
-    attribute: "class",
-  };
-}
-
 function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   const flags = useFlags();
   return <FeatureProvider value={flags}>{children}</FeatureProvider>;
@@ -264,43 +174,34 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
+  const isThemeSupported = useIsThemeSupported();
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <PlainChat />
       <CustomI18nextProvider i18n={props.i18n}>
         <TooltipProvider>
           {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
           <CalcomThemeProvider
-            themeBasis={props.themeBasis}
             nonce={props.nonce}
-            isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
+            isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>
-                {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                <CacheProvider>{props.children}</CacheProvider>
-              </OrgBrandProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>
       </CustomI18nextProvider>
     </EventCollectionProvider>
   );
-  const Hydrated = props.dehydratedState ? (
-    <HydrateClient state={props.dehydratedState}>{RemainingProviders}</HydrateClient>
-  ) : (
-    RemainingProviders
-  );
 
-  if (isBookingPage) {
-    return Hydrated;
+  if (props.isBookingPage || isBookingPage) {
+    return RemainingProviders;
   }
 
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
+        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
       </DynamicHelpscoutProvider>
     </>
   );

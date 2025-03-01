@@ -6,7 +6,7 @@ import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/g
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
-import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
+import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -29,10 +29,12 @@ import {
   Query,
   NotFoundException,
   UseGuards,
+  BadRequestException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { User } from "@prisma/client";
+import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
@@ -97,7 +99,7 @@ export class BookingsController_2024_04_15 {
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly billingService: BillingService,
     private readonly config: ConfigService,
-    private readonly apiKeyRepository: ApiKeyRepository
+    private readonly apiKeyRepository: ApiKeysRepository
   ) {}
 
   @Get("/")
@@ -188,18 +190,24 @@ export class BookingsController_2024_04_15 {
     throw new InternalServerErrorException("Could not create booking.");
   }
 
-  @Post("/:bookingId/cancel")
+  @Post("/:bookingUid/cancel")
   async cancelBooking(
     @Req() req: BookingRequest,
-    @Param("bookingId") bookingId: string,
+    @Param("bookingUid") bookingUid: string,
     @Body() _: CancelBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
-    if (bookingId) {
+    const isUidNumber = !isNaN(Number(bookingUid));
+
+    if (isUidNumber) {
+      throw new BadRequestException("Please provide booking uid instead of booking id.");
+    }
+
+    if (bookingUid) {
       try {
-        req.body.id = parseInt(bookingId);
+        req.body.uid = bookingUid;
         const res = await handleCancelBooking(
           await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
         );
@@ -383,7 +391,11 @@ export class BookingsController_2024_04_15 {
       ...oAuthParams,
     });
     Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
-    clone.body = { ...clone.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    clone.body = {
+      ...clone.body,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
+    };
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
@@ -411,6 +423,7 @@ export class BookingsController_2024_04_15 {
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
     });
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }

@@ -19,6 +19,7 @@ const inputBookingFieldTypes = [
   "checkbox",
   "radio",
   "boolean",
+  "url",
 ] as const;
 
 const inputBookingFieldSlugs = ["name", "email", "title", "notes", "guests"] as const;
@@ -27,7 +28,8 @@ export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({
     example: "name",
-    description: "only allowed value for type is `name`",
+    description:
+      "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
   })
   type!: "name";
 
@@ -53,6 +55,52 @@ export class NameDefaultFieldInput_2024_06_14 {
   disableOnPrefill?: boolean;
 }
 
+export class SplitNameDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({
+    example: "splitName",
+    description:
+      "only allowed value for type is `splitName`. Used to have 2 booking fields - 1 for first name and 1 for last name.",
+  })
+  type!: "splitName";
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  firstNameLabel?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  firstNamePlaceholder?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  lastNameLabel?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  lastNamePlaceholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({ description: "First name field is required but last name field is not by default." })
+  lastNameRequired?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&firstName=bob&lastName=jones`,\
+      the first name and last name fields will be prefilled with this value and disabled. In case of Booker atom need to pass firstName and lastName to defaultFormValues prop or pass name prop but as a string containing name and surname.",
+  })
+  disableOnPrefill?: boolean;
+}
+
 export class EmailDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({
@@ -65,6 +113,11 @@ export class EmailDefaultFieldInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   label?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty()
+  required = true;
 
   @IsString()
   @IsOptional()
@@ -374,6 +427,52 @@ export class TextFieldInput_2024_06_14 {
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,\
       the text field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+}
+
+export class UrlFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "url", description: "only allowed value for type is `url`" })
+  type!: "url";
+
+  @IsString()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
+  slug!: string;
+
+  @IsString()
+  @DocsProperty({ example: "Please enter your text" })
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @DocsProperty({ example: "e.g., Enter url here" })
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
 
@@ -750,6 +849,7 @@ export class BooleanFieldInput_2024_06_14 {
 
 type InputDefaultField_2024_06_14 =
   | NameDefaultFieldInput_2024_06_14
+  | SplitNameDefaultFieldInput_2024_06_14
   | EmailDefaultFieldInput_2024_06_14
   | TitleDefaultFieldInput_2024_06_14
   | NotesDefaultFieldInput_2024_06_14
@@ -768,12 +868,14 @@ export type InputBookingField_2024_06_14 =
   | MultiEmailFieldInput_2024_06_14
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
-  | BooleanFieldInput_2024_06_14;
+  | BooleanFieldInput_2024_06_14
+  | UrlFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
   private classMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {
     name: NameDefaultFieldInput_2024_06_14,
+    splitName: SplitNameDefaultFieldInput_2024_06_14,
     email: EmailDefaultFieldInput_2024_06_14,
     title: TitleDefaultFieldInput_2024_06_14,
     notes: NotesDefaultFieldInput_2024_06_14,
@@ -790,6 +892,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     checkbox: CheckboxGroupFieldInput_2024_06_14,
     radio: RadioGroupFieldInput_2024_06_14,
     boolean: BooleanFieldInput_2024_06_14,
+    url: UrlFieldInput_2024_06_14,
   };
 
   async validate(bookingFields: { type: string; slug: string }[]) {
@@ -813,7 +916,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
         );
       }
 
-      const fieldNeedsSlug = type !== "name" && type !== "email";
+      const fieldNeedsSlug = type !== "name" && type !== "splitName" && type !== "email";
       if (fieldNeedsSlug && !slug) {
         throw new BadRequestException(
           `Each booking field except ones with type equal to name and email must have a 'slug' property.`

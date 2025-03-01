@@ -15,6 +15,8 @@ type DatePickerWithRangeProps = {
   disabled?: boolean;
   minDate?: Date | null;
   maxDate?: Date;
+  withoutPopover?: boolean;
+  "data-testid"?: string;
 };
 
 export function DatePickerWithRange({
@@ -24,6 +26,8 @@ export function DatePickerWithRange({
   maxDate,
   onDatesChange,
   disabled,
+  withoutPopover,
+  "data-testid": testId,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
     if (dates?.endDate) {
@@ -35,6 +39,26 @@ export function DatePickerWithRange({
     }
   }
   const fromDate = minDate ?? new Date();
+
+  const calendar = (
+    <Calendar
+      initialFocus
+      //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
+      fromDate={minDate === null ? undefined : fromDate}
+      toDate={maxDate}
+      mode="range"
+      defaultMonth={dates?.startDate}
+      selected={{ from: dates?.startDate, to: dates?.endDate }}
+      onDayClick={(day) => handleDayClick(day)}
+      numberOfMonths={1}
+      disabled={disabled}
+      data-testid={testId}
+    />
+  );
+
+  if (withoutPopover) {
+    return calendar;
+  }
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -61,19 +85,10 @@ export function DatePickerWithRange({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
-          sideOffset={4}>
-          <Calendar
-            initialFocus
-            //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
-            fromDate={minDate === null ? undefined : fromDate}
-            toDate={maxDate}
-            mode="range"
-            defaultMonth={dates?.startDate}
-            selected={{ from: dates?.startDate, to: dates?.endDate }}
-            onDayClick={(day) => handleDayClick(day)}
-            numberOfMonths={1}
-            disabled={disabled}
-          />
+          sideOffset={4}
+          side="bottom"
+          avoidCollisions={false}>
+          {calendar}
         </Popover.Content>
       </Popover.Root>
     </div>

@@ -11,6 +11,7 @@ import type {
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -24,6 +25,7 @@ import {
   systemAfterFieldRescheduleReason,
   type CustomField,
   type SystemField,
+  systemBeforeFieldNameSplit,
 } from "../internal-to-api";
 
 type InputBookingField =
@@ -84,6 +86,10 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemBeforeFieldPhone,
       required: field.required,
+      hidden: field.hidden,
+      label: field.label,
+      placeholder: field.placeholder,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -107,12 +113,40 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     };
   }
 
+  if (fieldIsCustomSystemNameSplit(field)) {
+    const systemNameSplit = { ...systemBeforeFieldNameSplit };
+
+    const firstNameField = systemNameSplit.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+      (field) => field.name === "firstName"
+    );
+    const lastNameField = systemNameSplit.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+      (field) => field.name === "lastName"
+    );
+
+    if (firstNameField) {
+      firstNameField.label = field.firstNameLabel || "";
+      firstNameField.placeholder = field.firstNamePlaceholder || "";
+    }
+
+    if (lastNameField) {
+      lastNameField.label = field.lastNameLabel || "";
+      lastNameField.placeholder = field.lastNamePlaceholder || "";
+      lastNameField.required = !!field.lastNameRequired;
+    }
+
+    return {
+      ...systemNameSplit,
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
   if (fieldIsCustomSystemEmail(field)) {
     return {
       ...systemBeforeFieldEmail,
       label: field.label,
       placeholder: field.placeholder,
       disableOnPrefill: !!field.disableOnPrefill,
+      required: field.required,
     };
   }
 
@@ -181,6 +215,28 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     };
   }
 
+  if (field.type === "url") {
+    return {
+      name: field.slug,
+      type: field.type,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      labelAsSafeHtml: `<p>${field.label}</p>\n`,
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: !!field.required,
+      disableOnPrefill: !!field.disableOnPrefill,
+      hidden: !!field.hidden,
+    };
+  }
+
   return {
     name: field.slug,
     type: field.type,
@@ -203,6 +259,12 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
 
 function fieldIsCustomSystemName(field: InputBookingField): field is NameDefaultFieldInput_2024_06_14 {
   return "type" in field && field.type === "name";
+}
+
+function fieldIsCustomSystemNameSplit(
+  field: InputBookingField
+): field is SplitNameDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "splitName";
 }
 
 function fieldIsCustomSystemEmail(field: InputBookingField): field is EmailDefaultFieldInput_2024_06_14 {

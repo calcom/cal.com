@@ -13,7 +13,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
@@ -157,6 +157,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const bookingReference = await getBookingReference(room);
       const booking = await getBooking(bookingReference.bookingId as number);
+
+      if (!booking.eventType?.canSendCalVideoTranscriptionEmails) {
+        return res.status(200).json({
+          message: `Transcription emails are disabled for this event type ${booking.eventTypeId}`,
+        });
+      }
 
       const transcripts = await getAllTranscriptsAccessLinkFromMeetingId(meeting_id);
 

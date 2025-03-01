@@ -7,4 +7,7 @@ export const ZListMembersInputSchema = z.object({
   cursor: z.number().nullish(),
 });
 
+export const ZLegacyListMembersInputSchema = ZListMembersInputSchema.extend({});
+
 export type TListMembersInputSchema = z.infer<typeof ZListMembersInputSchema>;
+export type TLegacyListMembersInputSchema = z.infer<typeof ZLegacyListMembersInputSchema>;

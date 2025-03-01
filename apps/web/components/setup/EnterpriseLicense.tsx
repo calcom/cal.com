@@ -93,7 +93,7 @@ const EnterpriseLicense = (
           <Button
             className="w-full justify-center text-lg"
             EndIcon="external-link"
-            href="https://console.cal.com"
+            href="https://go.cal.com/get-license"
             target="_blank">
             {t("purchase_license")}
           </Button>
@@ -115,7 +115,6 @@ const EnterpriseLicense = (
                 placeholder="xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx"
                 labelSrOnly={true}
                 value={value}
-                addOnFilled={false}
                 addOnClassname={classNames(
                   "hover:border-default",
                   errors.licenseKey === undefined && isDirty && "group-hover:border-emphasis"

@@ -11,17 +11,14 @@ import dynamic from "next/dynamic";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
-import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import PlainChat from "@lib/plain/plainChat";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -191,7 +188,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
  * - There is a side effect of so many factors in `storageKey` that many localStorage keys will be created if a user goes through all these scenarios(e.g like booking a lot of different users)
  * - Some might recommend disabling localStorage persistence but that doesn't give good UX as then we would default to light theme always for a few seconds before switching to dark theme(if that's the user's preference).
  * - We can't disable [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event handling as well because changing theme in one tab won't change the theme without refresh in other tabs. That's again a bad UX
- * - Theme flickering becomes infinitely ongoing in case of embeds because of the browser's delay in processing `storage` event within iframes. Consider two embeds simulatenously opened with pages A and B. Note the timeline and keep in mind that it happened
+ * - Theme flickering becomes infinitely ongoing in case of embeds because of the browser's delay in processing `storage` event within iframes. Consider two embeds simultaneously opened with pages A and B. Note the timeline and keep in mind that it happened
  *  because 'setItem(A)' and 'Receives storageEvent(A)' allowed executing setItem(B) in b/w because of the delay.
  *    - t1 -> setItem(A) & Fires storageEvent(A) - On Page A) - Current State(A)
  *    - t2 -> setItem(B) & Fires storageEvent(B) - On Page B) - Current State(B)
@@ -296,7 +293,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <PlainChat />
       <CustomI18nextProvider {...propsWithoutNonce}>
         <TooltipProvider>
           <CalcomThemeProvider
@@ -306,12 +302,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>
-                {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                <CacheProvider>
-                  <MetaProvider>{props.children}</MetaProvider>
-                </CacheProvider>
-              </OrgBrandProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>

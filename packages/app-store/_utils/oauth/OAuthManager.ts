@@ -421,7 +421,7 @@ export class OAuthManager {
       ) {
         throw new Error("Credential syncing is enabled but the required env variables are not set");
       }
-      myLog.debug(
+      myLog.info(
         "Refreshing OAuth token from credential sync endpoint",
         safeStringify({
           appSlug: this.appSlug,
@@ -449,7 +449,7 @@ export class OAuthManager {
         );
       }
     } else {
-      myLog.debug(
+      myLog.info(
         "Refreshing OAuth token",
         safeStringify({
           appSlug: this.appSlug,
@@ -467,7 +467,7 @@ export class OAuthManager {
     }
 
     const clonedResponse = response.clone();
-    myLog.debug(
+    myLog.info(
       "Response from refreshOAuthToken",
       safeStringify({
         text: await clonedResponse.text(),
@@ -487,7 +487,10 @@ export class OAuthManager {
     }
     const parsedToken = OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(json);
     if (!parsedToken.success) {
-      myLog.error("Token parsing error:", safeStringify(parsedToken.error.issues));
+      myLog.error(
+        "Token parsing error:",
+        safeStringify({ issues: parsedToken.error.issues, oauth2response: json, tokenStatus })
+      );
       throw new Error("Invalid token response");
     }
     return parsedToken.data;

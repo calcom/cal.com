@@ -4,3 +4,4 @@ export * from "./useColumnSizingVars";
 export * from "./useFilterValue";
 export * from "./useColumnFilters";
 export * from "./useDataTable";
+export * from "./useFilterableColumns";

@@ -2,35 +2,68 @@ import { z } from "zod";
 
 import type {
   OutputBookingField_2024_06_14,
-  DefaultFieldOutput_2024_06_14,
-  CustomFieldOutput_2024_06_14,
+  SplitNameDefaultFieldOutput_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  EmailDefaultFieldOutput_2024_06_14,
+  PhoneDefaultFieldOutput_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
+  RescheduleReasonDefaultFieldOutput_2024_06_14,
+  TitleDefaultFieldOutput_2024_06_14,
+  NotesDefaultFieldOutput_2024_06_14,
+  GuestsDefaultFieldOutput_2024_06_14,
+  OutputUnknownBookingField_2024_06_14,
+  AddressFieldOutput_2024_06_14,
+  BooleanFieldOutput_2024_06_14,
+  CheckboxGroupFieldOutput_2024_06_14,
+  MultiEmailFieldOutput_2024_06_14,
+  MultiSelectFieldOutput_2024_06_14,
+  NumberFieldOutput_2024_06_14,
+  PhoneFieldOutput_2024_06_14,
+  RadioGroupFieldOutput_2024_06_14,
+  SelectFieldOutput_2024_06_14,
+  TextAreaFieldOutput_2024_06_14,
+  TextFieldOutput_2024_06_14,
+  UrlFieldOutput_2024_06_14,
 } from "@calcom/platform-types";
-import type { OutputUnknownBookingField_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/outputs/booking-fields.output";
 
 export function transformBookingFieldsInternalToApi(
   databaseBookingFields: (SystemField | CustomField)[]
 ): OutputBookingField_2024_06_14[] {
-  const defaultFields: SystemField[] = databaseBookingFields.filter(
-    (field): field is SystemField => field.editable === "system" || field.editable === "system-but-optional"
-  );
-
-  const customFields: CustomField[] = databaseBookingFields.filter(
-    (field): field is CustomField => field.editable === "user"
-  );
-
-  const responseDefaultFields: (DefaultFieldOutput_2024_06_14 | OutputUnknownBookingField_2024_06_14)[] =
-    defaultFields.map((field) => {
+  return databaseBookingFields.map((field) => {
+    if (field.editable === "system" || field.editable === "system-but-optional") {
       switch (field.name) {
-        case "name":
+        case "name": {
+          if (field.variant === "firstAndLastName") {
+            const firstNameField = field.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+              (f) => f.name === "firstName"
+            );
+            const lastNameField = field.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+              (f) => f.name === "lastName"
+            );
+
+            return {
+              isDefault: true,
+              type: "splitName",
+              slug: "splitName",
+              firstNameLabel: firstNameField?.label,
+              firstNamePlaceholder: firstNameField?.placeholder,
+              lastNameLabel: lastNameField?.label,
+              lastNamePlaceholder: lastNameField?.placeholder,
+              lastNameRequired: !!lastNameField?.required,
+              disableOnPrefill: !!field.disableOnPrefill,
+            } satisfies SplitNameDefaultFieldOutput_2024_06_14;
+          }
+
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
             required: !!field.required,
-            label: field.label,
-            placeholder: field.placeholder,
+            label: field.variantsConfig?.variants?.fullName?.fields[0]?.label,
+            placeholder: field.variantsConfig?.variants?.fullName?.fields[0]?.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          };
+          } satisfies NameDefaultFieldOutput_2024_06_14;
+        }
         case "email":
           return {
             isDefault: true,
@@ -40,93 +73,90 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          };
+          } satisfies EmailDefaultFieldOutput_2024_06_14;
         case "location":
           return {
             isDefault: true,
-            type: field.type,
-            slug: field.name,
+            type: "radioInput",
+            slug: "location",
             required: !!field.required,
             hidden: !!field.hidden,
-            label: field.label,
-            placeholder: field.placeholder,
-            disableOnPrefill: !!field.disableOnPrefill,
-          };
+          } satisfies LocationDefaultFieldOutput_2024_06_14;
         case "rescheduleReason":
           return {
             isDefault: true,
-            type: field.type,
-            slug: field.name,
+            type: "textarea",
+            slug: "rescheduleReason",
             required: !!field.required,
-            hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          };
+            hidden: !!field.hidden,
+          } satisfies RescheduleReasonDefaultFieldOutput_2024_06_14;
         case "title":
           return {
             isDefault: true,
-            type: field.type,
-            slug: field.name,
+            type: "text",
+            slug: "title",
             required: !!field.required,
-            hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          };
+            hidden: !!field.hidden,
+          } satisfies TitleDefaultFieldOutput_2024_06_14;
         case "notes":
           return {
             isDefault: true,
-            type: field.type,
-            slug: field.name,
+            type: "textarea",
+            slug: "notes",
             required: !!field.required,
-            hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          };
+            hidden: !!field.hidden,
+          } satisfies NotesDefaultFieldOutput_2024_06_14;
         case "guests":
           return {
             isDefault: true,
-            type: field.type,
-            slug: field.name,
+            type: "multiemail",
+            slug: "guests",
             required: !!field.required,
-            hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          };
+            hidden: !!field.hidden,
+          } satisfies GuestsDefaultFieldOutput_2024_06_14;
         case "attendeePhoneNumber":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
             required: !!field.required,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies PhoneDefaultFieldOutput_2024_06_14;
         default:
           return {
             type: "unknown",
             slug: "unknown",
             bookingField: JSON.stringify(field),
-          };
+          } satisfies OutputUnknownBookingField_2024_06_14;
       }
-    });
-
-  const responseCustomFields: (CustomFieldOutput_2024_06_14 | OutputUnknownBookingField_2024_06_14)[] =
-    customFields.map((field) => {
+    } else {
       switch (field.type) {
         case "phone":
           return {
             isDefault: false,
             type: field.type,
             slug: field.name,
-            label: field.label,
+            label: field.label || "",
             required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies PhoneFieldOutput_2024_06_14;
         case "address":
           return {
             isDefault: false,
@@ -137,18 +167,18 @@ export function transformBookingFieldsInternalToApi(
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies AddressFieldOutput_2024_06_14;
         case "text":
           return {
             isDefault: false,
             type: field.type,
             slug: field.name,
-            label: field.label,
+            label: field.label || "",
             required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies TextFieldOutput_2024_06_14;
         case "number":
           return {
             isDefault: false,
@@ -159,29 +189,29 @@ export function transformBookingFieldsInternalToApi(
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies NumberFieldOutput_2024_06_14;
         case "textarea":
           return {
             isDefault: false,
             type: field.type,
             slug: field.name,
-            label: field.label,
+            label: field.label || "",
             required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies TextAreaFieldOutput_2024_06_14;
         case "multiemail":
           return {
             isDefault: false,
             type: field.type,
             slug: field.name,
-            label: field.label,
+            label: field.label || "",
             required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies MultiEmailFieldOutput_2024_06_14;
         case "boolean":
           return {
             isDefault: false,
@@ -191,7 +221,7 @@ export function transformBookingFieldsInternalToApi(
             required: !!field.required,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies BooleanFieldOutput_2024_06_14;
         case "select":
           return {
             isDefault: false,
@@ -200,10 +230,10 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: !!field.required,
             placeholder: field.placeholder,
-            options: field.options ? field.options.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
+            options: field.options ? field.options.map((option) => option.value) : [],
             hidden: !!field.hidden,
-          };
+          } satisfies SelectFieldOutput_2024_06_14;
         case "multiselect":
           return {
             isDefault: false,
@@ -211,10 +241,10 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             label: field.label,
             required: !!field.required,
-            options: field.options ? field.options?.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
+            options: field.options ? field.options.map((option) => option.value) : [],
             hidden: !!field.hidden,
-          };
+          } satisfies MultiSelectFieldOutput_2024_06_14;
         case "checkbox":
           return {
             isDefault: false,
@@ -222,10 +252,10 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             label: field.label,
             required: !!field.required,
-            options: field.options ? field.options?.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
+            options: field.options ? field.options.map((option) => option.value) : [],
             hidden: !!field.hidden,
-          };
+          } satisfies CheckboxGroupFieldOutput_2024_06_14;
         case "radio":
           return {
             isDefault: false,
@@ -233,20 +263,30 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             label: field.label,
             required: !!field.required,
-            options: field.options ? field.options?.map((option) => option.value) : [],
+            options: field.options ? field.options.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          };
+          } satisfies RadioGroupFieldOutput_2024_06_14;
+        case "url":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label || "",
+            required: !!field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies UrlFieldOutput_2024_06_14;
         default:
           return {
             type: "unknown",
             slug: "unknown",
             bookingField: JSON.stringify(field),
-          };
+          } satisfies OutputUnknownBookingField_2024_06_14;
       }
-    });
-
-  return [...responseDefaultFields, ...responseCustomFields];
+    }
+  });
 }
 
 const CustomFieldTypeEnum = z.enum([
@@ -262,6 +302,7 @@ const CustomFieldTypeEnum = z.enum([
   "checkbox",
   "radio",
   "radioInput",
+  "url",
 ]);
 
 const CustomFieldsSchema = z.object({
@@ -344,8 +385,8 @@ const SystemFieldSchema = z.object({
 const NameSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("name"),
   type: z.literal("name"),
-  required: z.literal(true),
-  variant: z.literal("fullName").optional(),
+  required: z.boolean(),
+  variant: z.enum(["fullName", "firstAndLastName"]).optional(),
   variantsConfig: z
     .object({
       variants: z.object({
@@ -355,11 +396,24 @@ const NameSystemFieldSchema = SystemFieldSchema.extend({
               name: z.literal("fullName"),
               type: z.literal("text"),
               label: z.string().optional(),
-              required: z.literal(true),
+              required: z.boolean(),
               placeholder: z.string().optional(),
             })
           ),
         }),
+        firstAndLastName: z
+          .object({
+            fields: z.array(
+              z.object({
+                name: z.enum(["firstName", "lastName"]),
+                type: z.literal("text"),
+                label: z.string().optional(),
+                required: z.boolean(),
+                placeholder: z.string().optional(),
+              })
+            ),
+          })
+          .optional(),
       }),
     })
     .optional(),
@@ -467,8 +521,31 @@ export const systemBeforeFieldName: NameSystemField = {
           },
         ],
       },
+      firstAndLastName: {
+        fields: [
+          {
+            name: "firstName",
+            type: "text",
+            required: true,
+            label: "",
+            placeholder: "",
+          },
+          {
+            name: "lastName",
+            type: "text",
+            required: false,
+            label: "",
+            placeholder: "",
+          },
+        ],
+      },
     },
   },
+};
+
+export const systemBeforeFieldNameSplit: NameSystemField = {
+  ...systemBeforeFieldName,
+  variant: "firstAndLastName",
 };
 
 export const systemBeforeFieldEmail: EmailSystemField = {

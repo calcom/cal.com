@@ -4,7 +4,7 @@ import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bo
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
+import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BillingModule } from "@/modules/billing/billing.module";
 import { BookingSeatModule } from "@/modules/booking-seat/booking-seat.module";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
@@ -29,8 +29,9 @@ import { Module } from "@nestjs/common";
     BookingsRepository_2024_08_13,
     EventTypesRepository_2024_06_14,
     BookingSeatRepository,
-    ApiKeyRepository,
+    ApiKeysRepository,
   ],
   controllers: [BookingsController_2024_08_13],
+  exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
 })
 export class BookingsModule_2024_08_13 {}
