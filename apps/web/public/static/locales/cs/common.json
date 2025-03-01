@@ -2445,6 +2445,7 @@
   "enterprise": "Podnik",
   "enterprise_description": "Upgradujte na Enterprise a vytvořte svou organizaci",
   "create_your_org": "Vytvořte svou organizaci",
+  "create_org": "Vytvořit organizaci",
   "create_your_org_description": "Upgradujte na Organizace a získejte subdoménu, sjednocené fakturace, Insights, rozsáhlé whitelabeling a další",
   "create_your_enterprise_description": "Upgradujte na Enterprise a získejte přístup k synchronizaci Active Directory, automatickému poskytování uživatelů SCIM, hlasovým agentům Cal.ai, administrátorským API a dalším funkcím!",
   "other_payment_app_enabled": "Pro každý typ události můžete povolit pouze jednu platební aplikaci",

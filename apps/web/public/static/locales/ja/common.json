@@ -2445,6 +2445,7 @@
   "enterprise": "エンタープライズ",
   "enterprise_description": "エンタープライズにアップグレードして組織を作成する",
   "create_your_org": "組織を作成する",
+  "create_org": "組織を作成",
   "create_your_org_description": "組織にアップグレードして、サブドメイン、統一請求、インサイト、広範なホワイトラベリングなどを受け取る",
   "create_your_enterprise_description": "エンタープライズにアップグレードして、Active Directory Sync、SCIM自動ユーザー提供、Cal.aiボイスエージェント、管理APIなどにアクセスする",
   "other_payment_app_enabled": "イベントタイプごとに有効にできる支払いアプリは1つだけです",
