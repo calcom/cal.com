@@ -862,5 +862,5 @@ async function selectCustomDateRangeFilter(page: Page) {
   await page.locator(`button[name="day"]:text-is("1")`).nth(0).click();
   await page.locator(`button[name="next-month"]`).click({ clickCount: 4, delay: 100 });
   await page.locator(`button[name="day"]:text-is("1")`).nth(0).click();
-  await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+  await page.locator('[data-testid="filter-popover-trigger-end"]').click(); //close popover
 }
