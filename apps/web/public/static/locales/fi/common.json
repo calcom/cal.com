@@ -2445,6 +2445,7 @@
   "enterprise": "Enterprise",
   "enterprise_description": "Päivitä Enterprise-versioon luodaksesi organisaatiosi",
   "create_your_org": "Luo organisaatiosi",
+  "create_org": "Luo organisaatio",
   "create_your_org_description": "Päivitä organisaatioihin ja saat alidomainin, keskitetyn laskutuksen, analyysit, laajan white label -muokkauksen ja paljon muuta",
   "create_your_enterprise_description": "Päivitä Enterprise-versioon ja saa käyttöösi Active Directory -synkronointi, SCIM-automaattinen käyttäjien provisiointi, Cal.ai-ääniagentit, ylläpitäjän API:t ja paljon muuta!",
   "other_payment_app_enabled": "Voit ottaa käyttöön vain yhden maksusovelluksen tapahtumatyyppiä kohden",
