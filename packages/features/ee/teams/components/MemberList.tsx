@@ -160,7 +160,7 @@ export default function MemberList(props: Props) {
 
 function MemberListContent(props: Props) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { data: session } = useSession();
 
   const utils = trpc.useUtils();

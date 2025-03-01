@@ -94,7 +94,7 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
 
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t: _t, isLocaleReady, i18n } = useLocale();
+  const { t: _t, isLocaleReady, language } = useLocale();
   const t = props.t || _t;
   const name = props.name || "";
   const {

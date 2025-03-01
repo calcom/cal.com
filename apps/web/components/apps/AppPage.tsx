@@ -75,7 +75,7 @@ export const AppPage = ({
   concurrentMeetings,
   paid,
 }: AppPageProps) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const router = useRouter();
   const searchParams = useCompatSearchParams();
 

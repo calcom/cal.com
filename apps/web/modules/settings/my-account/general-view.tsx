@@ -101,7 +101,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
   const utils = trpc.useContext();
   const {
     t,
-    i18n: { language },
+    language,
   } = useLocale();
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);

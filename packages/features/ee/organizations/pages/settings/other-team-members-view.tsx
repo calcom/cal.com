@@ -91,7 +91,7 @@ export const TeamMembersCTA = () => {
 };
 
 const MembersView = () => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const router = useRouter();
   const params = useParamsWithFallback();
   const teamId = Number(params.id);

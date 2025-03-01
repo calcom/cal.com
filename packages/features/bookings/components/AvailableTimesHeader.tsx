@@ -27,7 +27,7 @@ export const AvailableTimesHeader = ({
   availableMonth,
   customClassNames,
 }: AvailableTimesHeaderProps) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const [layout] = useBookerStore((state) => [state.layout], shallow);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;

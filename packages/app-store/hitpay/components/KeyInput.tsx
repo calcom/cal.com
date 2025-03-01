@@ -50,7 +50,7 @@ export const KeyField = forwardRef<HTMLInputElement, InputFieldProps & { default
       [isPasswordVisible, setIsPasswordVisible]
     );
 
-    const { t: _t, isLocaleReady, i18n } = useLocale();
+    const { t: _t, isLocaleReady, language } = useLocale();
     const t = props.t || _t;
     const name = props.name || "";
     const {

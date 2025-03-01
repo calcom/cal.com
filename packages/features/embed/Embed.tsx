@@ -244,7 +244,7 @@ const EmailEmbed = ({
   setSelectedDuration: Dispatch<SetStateAction<number | undefined>>;
   userSettingsTimezone?: string;
 }) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
   const timezone = chooseTimezone({
     timezoneFromBookerStore,

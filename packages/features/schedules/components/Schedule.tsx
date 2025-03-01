@@ -211,7 +211,7 @@ export const ScheduleComponent = <
     labelAndSwitchContainer?: string;
   };
 }) => {
-  const { i18n } = useLocale();
+  const { language } = useLocale();
 
   return (
     <div className={classNames("flex flex-col gap-4 p-2 sm:p-4", className?.schedule)}>

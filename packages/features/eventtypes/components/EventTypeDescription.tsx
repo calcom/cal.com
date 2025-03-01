@@ -33,7 +33,7 @@ export const EventTypeDescription = ({
   shortenDescription,
   isPublic,
 }: EventTypeDescriptionProps) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),

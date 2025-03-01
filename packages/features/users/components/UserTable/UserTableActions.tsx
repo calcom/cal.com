@@ -35,7 +35,7 @@ export function TableActions({
     canResendInvitation: boolean;
   };
 }) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { data: session } = useSession();
   const resendInvitationMutation = trpc.viewer.teams.resendInvitation.useMutation({
     onSuccess: () => {

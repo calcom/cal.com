@@ -82,7 +82,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const utils = trpc.useUtils();
 
   const { step, form, reload, setReload, teamId } = props;

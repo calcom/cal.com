@@ -178,7 +178,7 @@ const EventTypeScheduleDetails = memo(
     customClassNames,
   }: EventTypeScheduleDetailsProps) => {
     const timeFormat = user?.timeFormat;
-    const { t, i18n } = useLocale();
+    const { t, language } = useLocale();
 
     const weekStart = weekStartNum(user?.weekStart);
 

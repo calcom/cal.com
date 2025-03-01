@@ -51,7 +51,7 @@ const HitpayPaymentComponent = dynamic(
 );
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const [timezone, setTimezone] = useState<string | null>(null);

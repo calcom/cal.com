@@ -7,7 +7,7 @@ import { Button, ButtonGroup } from "@calcom/ui";
 import { useTroubleshooterStore } from "../store";
 
 export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: number; isMobile: boolean }) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const selectedDateString = useTroubleshooterStore((state) => state.selectedDate);
   const setSelectedDate = useTroubleshooterStore((state) => state.setSelectedDate);
   const addToSelectedDate = useTroubleshooterStore((state) => state.addToSelectedDate);

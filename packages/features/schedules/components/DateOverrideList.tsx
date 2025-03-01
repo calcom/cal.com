@@ -35,7 +35,7 @@ const DateOverrideList = ({
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
 }) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
 
   const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),

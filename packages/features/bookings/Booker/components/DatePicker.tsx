@@ -31,7 +31,7 @@ export const DatePicker = ({
   };
   scrollToTimeSlots?: () => void;
 }) => {
-  const { i18n } = useLocale();
+  const { language } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],

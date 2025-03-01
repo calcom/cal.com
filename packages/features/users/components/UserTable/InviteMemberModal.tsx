@@ -18,7 +18,7 @@ export function InviteMemberModal(props: Props) {
   const { data: session } = useSession();
   const { data: platformUser } = usePlatformMe();
   const utils = trpc.useUtils();
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       props.dispatch({ type: "CLOSE_MODAL" });

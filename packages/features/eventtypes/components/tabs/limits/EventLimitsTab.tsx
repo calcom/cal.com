@@ -363,7 +363,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
 });
 
 export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabProps) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({

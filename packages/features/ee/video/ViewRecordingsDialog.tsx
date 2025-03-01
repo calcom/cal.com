@@ -155,7 +155,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
 };
 
 export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
 
   const { hasTeamPlan, isPending: isTeamPlanStatusLoading } = useHasTeamPlan();

@@ -176,7 +176,7 @@ export default function Signup({
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),

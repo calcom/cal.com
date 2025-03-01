@@ -50,7 +50,7 @@ function WorkflowPage({
   verifiedNumbers: verifiedNumbersProp,
   verifiedEmails: verifiedEmailsProp,
 }: PageProps) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const session = useSession();
 
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);

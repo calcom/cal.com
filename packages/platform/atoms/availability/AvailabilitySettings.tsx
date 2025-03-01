@@ -284,7 +284,7 @@ export function AvailabilitySettings({
   allowDelete = true,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
 
   const form = useForm<AvailabilityFormValues>({
     defaultValues: {

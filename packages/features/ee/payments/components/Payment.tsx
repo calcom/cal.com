@@ -56,7 +56,7 @@ export const PaymentFormComponent = (
     state: States;
   }
 ) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { paymentOption, elements, state, onPaymentElementChange } = props;
   const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);

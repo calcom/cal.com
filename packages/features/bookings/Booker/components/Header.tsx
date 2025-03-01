@@ -30,7 +30,7 @@ export function Header({
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
 }) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
