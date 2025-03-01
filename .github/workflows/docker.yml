@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Run Prettier (Auto-Fix)
+        run: npx prettier --write "**/*.{ts,tsx,js,json,md,yml,yaml}"
+
       - name: Run Prettier (Code Formatting)
         run: npx prettier --check "**/*.{ts,tsx,js,json,md,yml,yaml}"
 
