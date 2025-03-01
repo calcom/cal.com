@@ -152,7 +152,7 @@ const DateOverrideForm = ({
             setBrowsingDate(newMonth);
           }}
           browsingDate={browsingDate}
-          locale={isLocaleReady ? i18n.language : "en"}
+          locale={isLocaleReady ? language : "en"}
         />
       </div>
       <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">

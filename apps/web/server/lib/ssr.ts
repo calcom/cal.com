@@ -1,11 +1,9 @@
 import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { map } from "@calcom/features/flags/server/procedures/map";
-import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { createServerSideHelpers } from "@calcom/trpc/react/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
@@ -54,26 +52,15 @@ const routerSlice = router({
  * Automatically prefetches i18n based on the passed in `context`-object to prevent i18n-flickering.
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
-export async function ssrInit(context: GetServerSidePropsContext, options?: { noI18nPreload: boolean }) {
+export async function ssrInit(context: GetServerSidePropsContext) {
   const ctx = await createContext(context);
   const locale = await getLocale(context.req);
-  const i18n = await serverSideTranslations(locale, ["common", "vital"]);
 
   const ssr = createServerSideHelpers({
     router: routerSlice,
     transformer: superjson,
-    ctx: { ...ctx, locale, i18n },
+    ctx: { ...ctx, locale },
   });
-
-  // i18n translations are already retrieved from serverSideTranslations call, there is no need to run a i18n.fetch
-  // we can set query data directly to the queryClient
-  const queryKey = [
-    ["viewer", "public", "i18n"],
-    { input: { locale, CalComVersion: CALCOM_VERSION }, type: "query" },
-  ];
-  if (!options?.noI18nPreload) {
-    ssr.queryClient.setQueryData(queryKey, { i18n });
-  }
 
   await Promise.allSettled([
     // So feature flags are available on first render

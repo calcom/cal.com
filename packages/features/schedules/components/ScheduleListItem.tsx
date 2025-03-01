@@ -37,7 +37,7 @@ export function ScheduleListItem({
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
 }) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
 
   const { data, isPending } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule.id });
 
@@ -62,12 +62,12 @@ export function ScheduleListItem({
                 .filter((availability) => !!availability.days.length)
                 .map((availability) =>
                   availabilityAsString(availability, {
-                    locale: i18n.language,
+                    locale: language,
                     hour12: displayOptions?.hour12,
                   })
                 )
                 // sort the availability strings as per user's weekstart (settings)
-                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
+                .sort(sortAvailabilityStrings(language, displayOptions?.weekStart))
                 .map((availabilityString, index) => (
                   <Fragment key={index}>
                     {availabilityString}

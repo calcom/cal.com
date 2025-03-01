@@ -50,7 +50,7 @@ function WorkflowPage({
   verifiedNumbers: verifiedNumbersProp,
   verifiedEmails: verifiedEmailsProp,
 }: PageProps) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const session = useSession();
 
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
@@ -179,13 +179,13 @@ function WorkflowPage({
         };
         if (step.reminderBody) {
           updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
-            locale: i18n.language,
+            locale: language,
             t,
           });
         }
         if (step.emailSubject) {
           updatedStep.emailSubject = getTranslatedText(step.emailSubject || "", {
-            locale: i18n.language,
+            locale: language,
             t,
           });
         }
@@ -248,13 +248,13 @@ function WorkflowPage({
 
               if (step.reminderBody) {
                 step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
-                  locale: i18n.language,
+                  locale: language,
                   t,
                 });
               }
               if (step.emailSubject) {
                 step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
-                  locale: i18n.language,
+                  locale: language,
                   t,
                 });
               }

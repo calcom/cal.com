@@ -27,7 +27,7 @@ export const AvailableTimesHeader = ({
   availableMonth,
   customClassNames,
 }: AvailableTimesHeaderProps) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const [layout] = useBookerStore((state) => [state.layout], shallow);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
@@ -50,7 +50,7 @@ export const AvailableTimesHeader = ({
             isToday && !customClassNames?.availableTimeSlotsTitle && "!text-default",
             customClassNames?.availableTimeSlotsTitle
           )}>
-          {nameOfDay(i18n.language, Number(date.format("d")), "short")}
+          {nameOfDay(language, Number(date.format("d")), "short")}
         </span>
         <span
           className={classNames(

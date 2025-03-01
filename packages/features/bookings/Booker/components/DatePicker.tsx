@@ -31,7 +31,7 @@ export const DatePicker = ({
   };
   scrollToTimeSlots?: () => void;
 }) => {
-  const { i18n } = useLocale();
+  const { language } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
@@ -82,7 +82,7 @@ export const DatePicker = ({
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
-      locale={i18n.language}
+      locale={language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}

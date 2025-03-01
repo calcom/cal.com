@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import { describe, expect, it, vi } from "vitest";
 
 import * as event from "./event";

@@ -111,7 +111,7 @@ function BookingListItem(booking: BookingItemProps) {
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const {
     t,
-    i18n: { language },
+    language,
   } = useLocale();
   const utils = trpc.useUtils();
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -773,7 +773,7 @@ const RecurringBookingsTooltip = ({
 }: RecurringBookingsTooltipProps) => {
   const {
     t,
-    i18n: { language },
+    language,
   } = useLocale();
   const now = new Date();
   const recurringCount = recurringDates.filter((recurringDate) => {

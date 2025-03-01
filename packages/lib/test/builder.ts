@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CreationSource } from "@calcom/prisma/enums";

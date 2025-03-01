@@ -480,7 +480,7 @@ export const MemberInvitationModalWithoutMembers = ({
   onSettingsOpen: () => void;
 }) => {
   const searchParams = useCompatSearchParams();
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const utils = trpc.useUtils();
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
@@ -510,7 +510,7 @@ export const MemberInvitationModalWithoutMembers = ({
         inviteMemberMutation.mutate(
           {
             teamId,
-            language: i18n.language,
+            language: language,
             role: values.role,
             usernameOrEmail: values.emailOrUsername,
             creationSource: CreationSource.WEBAPP,

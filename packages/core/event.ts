@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";

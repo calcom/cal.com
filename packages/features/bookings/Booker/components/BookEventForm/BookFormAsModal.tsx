@@ -56,7 +56,7 @@ export const BookEventFormWrapperComponent = ({
             date={selectedTimeslot}
             timeFormat={timeFormat}
             timeZone={timezone}
-            language={i18n.language}
+            language={language}
           />
         </Badge>
         {(selectedDuration || eventLength) && (

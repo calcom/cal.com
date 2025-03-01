@@ -48,7 +48,7 @@ export const useHandleBookEvent = ({
   const { timezone } = useBookerTime();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const username = useBookerStore((state) => state.username);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -95,7 +95,7 @@ export const useHandleBookEvent = ({
         event: event.data,
         date: timeslot,
         timeZone: timezone,
-        language: i18n.language,
+        language: language,
         rescheduleUid: rescheduleUid || undefined,
         rescheduledBy: rescheduledBy || undefined,
         bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,

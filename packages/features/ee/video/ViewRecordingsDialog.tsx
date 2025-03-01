@@ -155,7 +155,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
 };
 
 export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
 
   const { hasTeamPlan, isPending: isTeamPlanStatusLoading } = useHasTeamPlan();
@@ -169,7 +169,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   ).format("D")}, ${dayjs(booking?.startTime).format("MMM")} ${getTimeSpan({
     startTime: booking?.startTime,
     endTime: booking?.endTime,
-    locale: i18n.language,
+    locale: language,
     hour12: timeFormat === 12,
   })} `;
 

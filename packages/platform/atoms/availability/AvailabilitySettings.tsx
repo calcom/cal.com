@@ -284,7 +284,7 @@ export function AvailabilitySettings({
   allowDelete = true,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
 
   const form = useForm<AvailabilityFormValues>({
     defaultValues: {
@@ -325,12 +325,12 @@ export function AvailabilitySettings({
             .filter((availability) => !!availability.days.length)
             .map((availability) =>
               availabilityAsString(availability, {
-                locale: i18n.language,
+                locale: language,
                 hour12: timeFormat === 12,
               })
             )
             // sort the availability strings as per user's weekstart (settings)
-            .sort(sortAvailabilityStrings(i18n.language, weekStart))
+            .sort(sortAvailabilityStrings(language, weekStart))
             .map((availabilityString, index) => (
               <span key={index} className={cn(customClassNames?.subtitlesClassName)}>
                 {availabilityString}

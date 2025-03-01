@@ -244,7 +244,7 @@ const EmailEmbed = ({
   setSelectedDuration: Dispatch<SetStateAction<number | undefined>>;
   userSettingsTimezone?: string;
 }) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
   const timezone = chooseTimezone({
     timezoneFromBookerStore,
@@ -369,7 +369,7 @@ const EmailEmbed = ({
                 setSelectedDate(date.format("YYYY-MM-DD"));
               }}
               includedDates={nonEmptyScheduleDays}
-              locale={i18n.language}
+              locale={language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
               weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}

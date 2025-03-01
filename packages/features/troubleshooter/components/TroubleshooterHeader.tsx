@@ -7,7 +7,7 @@ import { Button, ButtonGroup } from "@calcom/ui";
 import { useTroubleshooterStore } from "../store";
 
 export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: number; isMobile: boolean }) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const selectedDateString = useTroubleshooterStore((state) => state.selectedDate);
   const setSelectedDate = useTroubleshooterStore((state) => state.setSelectedDate);
   const addToSelectedDate = useTroubleshooterStore((state) => state.addToSelectedDate);
@@ -29,7 +29,7 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
   const isSameYear = () => {
     return selectedDate.format("YYYY") === endDate.format("YYYY");
   };
-  const formattedMonth = new Intl.DateTimeFormat(i18n.language, { month: "short" });
+  const formattedMonth = new Intl.DateTimeFormat(language, { month: "short" });
   const FormattedSelectedDateRange = () => {
     return (
       <h3 className="min-w-[150px] text-base font-semibold leading-4">

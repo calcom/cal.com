@@ -35,7 +35,7 @@ const DateOverrideList = ({
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
 }) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
 
   const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),
@@ -47,9 +47,9 @@ const DateOverrideList = ({
   }
 
   const timeSpan = ({ start, end }: TimeRange) => {
-    return `${new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
+    return `${new Intl.DateTimeFormat(language, { hour: "numeric", minute: "numeric", hour12 }).format(
       new Date(start.toISOString().slice(0, -1))
-    )} - ${new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
+    )} - ${new Intl.DateTimeFormat(language, { hour: "numeric", minute: "numeric", hour12 }).format(
       new Date(end.toISOString().slice(0, -1))
     )}`;
   };
@@ -60,7 +60,7 @@ const DateOverrideList = ({
         <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
-              {new Intl.DateTimeFormat(i18n.language, {
+              {new Intl.DateTimeFormat(language, {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
@@ -117,7 +117,7 @@ const DateOverrideList = ({
                 className="text-default"
                 data-testid="delete-button"
                 title={t("date_overrides_delete_on_date", {
-                  date: new Intl.DateTimeFormat(i18n.language, {
+                  date: new Intl.DateTimeFormat(language, {
                     weekday: "long",
                     month: "long",
                     day: "numeric",

@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import { useEffect, useRef } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";

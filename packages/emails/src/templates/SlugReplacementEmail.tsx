@@ -1,6 +1,6 @@
 "use client";
 
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import { Trans } from "next-i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";

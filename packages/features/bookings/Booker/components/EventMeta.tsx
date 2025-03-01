@@ -182,7 +182,7 @@ export const EventMeta = ({
                     duration={null}
                     timeFormat={timeFormat}
                     timeZone={timezone}
-                    language={i18n.language}
+                    language={language}
                   />
                 </span>
               </EventMetaBlock>
@@ -194,7 +194,7 @@ export const EventMeta = ({
                   duration={selectedDuration || event.length}
                   timeFormat={timeFormat}
                   timeZone={timezone}
-                  language={i18n.language}
+                  language={language}
                 />
               </EventMetaBlock>
             )}

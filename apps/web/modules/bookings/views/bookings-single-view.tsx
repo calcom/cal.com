@@ -1156,7 +1156,7 @@ function RecurringBookings({
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const {
     t,
-    i18n: { language },
+    language,
   } = useLocale();
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))

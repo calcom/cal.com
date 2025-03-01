@@ -1,6 +1,6 @@
 import type { DateArray, ParticipationRole, EventStatus, ParticipationStatus } from "ics";
 import { createEvent } from "ics";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import { RRule } from "rrule";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";

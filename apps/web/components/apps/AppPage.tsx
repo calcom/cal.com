@@ -75,7 +75,7 @@ export const AppPage = ({
   concurrentMeetings,
   paid,
 }: AppPageProps) => {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const router = useRouter();
   const searchParams = useCompatSearchParams();
 
@@ -310,7 +310,7 @@ export const AppPage = ({
               {paid && (
                 <>
                   <Badge className="mr-1">
-                    {Intl.NumberFormat(i18n.language, {
+                    {Intl.NumberFormat(language, {
                       style: "currency",
                       currency: "USD",
                       useGrouping: false,
@@ -363,7 +363,7 @@ export const AppPage = ({
                 t("free_to_use_apps")
               ) : (
                 <>
-                  {Intl.NumberFormat(i18n.language, {
+                  {Intl.NumberFormat(language, {
                     style: "currency",
                     currency: "USD",
                     useGrouping: false,

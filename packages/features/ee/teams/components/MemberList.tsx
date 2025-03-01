@@ -160,7 +160,7 @@ export default function MemberList(props: Props) {
 
 function MemberListContent(props: Props) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const { data: session } = useSession();
 
   const utils = trpc.useUtils();
@@ -521,7 +521,7 @@ function MemberListContent(props: Props) {
                                     resendInvitationMutation.mutate({
                                       teamId: props.team?.id,
                                       email: user.email,
-                                      language: i18n.language,
+                                      language: language,
                                     });
                                   }}
                                   StartIcon="send">

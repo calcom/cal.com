@@ -30,7 +30,7 @@ export function Header({
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
 }) {
-  const { t, i18n } = useLocale();
+  const { t, language } = useLocale();
   const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
@@ -87,7 +87,7 @@ export function Header({
   const isSameYear = () => {
     return selectedDate.format("YYYY") === endDate.format("YYYY");
   };
-  const formattedMonth = new Intl.DateTimeFormat(i18n.language ?? "en", { month: "short" });
+  const formattedMonth = new Intl.DateTimeFormat(language ?? "en", { month: "short" });
   const FormattedSelectedDateRange = () => {
     return (
       <h3 className="min-w-[150px] text-base font-semibold leading-4">
