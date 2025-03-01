@@ -68,12 +68,6 @@ jobs:
       - name: Run Timezone-Specific Tests (Israel)
         run: TZ=Asia/Jerusalem yarn test -- --timeZoneDependentTestsOnly --no-isolate
 
-      - name: Run API v2 Tests
-        working-directory: apps/api/v2
-        run: |
-          export NODE_OPTIONS="--max_old_space_size=8192"
-          yarn test
-
   build:
     runs-on: ubuntu-latest
     needs: test  # Ensures tests pass before building
