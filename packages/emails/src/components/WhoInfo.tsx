@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import type { CalendarEvent } from "@calcom/types/Calendar";

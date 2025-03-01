@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,

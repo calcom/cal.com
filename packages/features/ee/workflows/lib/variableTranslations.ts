@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import { DYNAMIC_TEXT_VARIABLES, FORMATTED_DYNAMIC_TEXT_VARIABLES } from "./constants";
 

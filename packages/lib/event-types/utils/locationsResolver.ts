@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { isValidPhoneNumber } from "libphonenumber-js";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { z } from "zod";
 

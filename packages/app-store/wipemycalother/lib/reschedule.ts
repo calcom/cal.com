@@ -1,5 +1,5 @@
 import type { Booking, BookingReference, User } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";

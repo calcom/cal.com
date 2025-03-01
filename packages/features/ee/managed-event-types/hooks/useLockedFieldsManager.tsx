@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { get } from "lodash";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";

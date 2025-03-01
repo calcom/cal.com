@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";

@@ -1,6 +1,6 @@
 import type { App } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { DefaultEvent } from "@calcom/lib/defaultEvents";

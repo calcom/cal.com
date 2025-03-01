@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";

@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";

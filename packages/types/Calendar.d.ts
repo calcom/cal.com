@@ -7,7 +7,7 @@ import type {
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { Time } from "ical.js";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";

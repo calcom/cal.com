@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useMemo, useState } from "react";

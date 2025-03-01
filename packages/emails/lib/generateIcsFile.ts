@@ -1,5 +1,5 @@
 import type { EventStatus } from "ics";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "@calcom/web/app/_types";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
