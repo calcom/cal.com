@@ -41,7 +41,7 @@ RUN yarn install
 # ✅ Run Prisma migration before continuing
 ENV DATABASE_URL="postgresql://postgres:postgres@postgres:5432/calendso"
 RUN yarn db-deploy
-RUN yarn --cwd packages/prisma seed-app-store
+RUN yarn --cwd packages/prisma seed-app-store || true
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build
 
 # Cleanup
