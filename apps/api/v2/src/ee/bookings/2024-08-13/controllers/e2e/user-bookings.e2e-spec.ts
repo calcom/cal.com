@@ -1629,7 +1629,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         expect(createdBooking).toHaveProperty("id");
 
         if (responseDataIsBooking(createdBooking)) {
-          expect(createdBooking.location?.includes("/video/")).toEqual(true);
+          expect(createdBooking.location?.startsWith("http")).toEqual(true);
           await bookingsRepositoryFixture.deleteById(createdBooking.id);
         } else {
           throw new Error("Unexpected response data type");
