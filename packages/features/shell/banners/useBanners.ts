@@ -6,7 +6,8 @@ import { trpc } from "@calcom/trpc/react";
 
 import { type AllBannerProps } from "./LayoutBanner";
 
-const _useBanners = () => {
+const useBannersData = () => {
+  // ✅ Renamed function to follow React Hook naming convention
   const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
@@ -39,7 +40,7 @@ const useBannersHeight = (banners: AllBannerProps | null) => {
 };
 
 const useBanners = () => {
-  const banners = _useBanners();
+  const banners = useBannersData(); // ✅ Updated reference to the renamed function
   const bannersHeight = useBannersHeight(banners);
   return { banners, bannersHeight };
 };
