@@ -654,6 +654,37 @@ test.describe("Out of office", () => {
       });
     });
   });
+
+  test.describe("Date range filters", () => {
+    test("Default date range filter set to `Next 7 Days`", async ({ page, users }) => {
+      const user = await users.create({ name: `userOne=${Date.now()}` });
+      await user.apiLogin();
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await expect(
+        page.locator('[data-testid="filter-popover-trigger-end"] span', { hasText: "Next 7 Days" }).nth(0)
+      ).toBeVisible();
+    });
+
+    test("Can choose date range presets", async ({ page, users }) => {
+      const user = await users.create({ name: `userOne=${Date.now()}` });
+      await user.apiLogin();
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+
+      await expect(page.locator('[data-testid="date-range-options-nw"]')).toBeVisible(); //Next 7 Days
+      await expect(page.locator('[data-testid="date-range-options-nt"]')).toBeVisible(); //Next 30 Days
+      await expect(page.locator('[data-testid="date-range-options-nm"]')).toBeVisible(); //Date to Month
+      await expect(page.locator('[data-testid="date-range-options-ny"]')).toBeVisible(); //Date to Year
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible(); //Last 7 Days
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible(); //Last 30 Days
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeVisible(); //Month to Date
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeVisible(); //Year to Date
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible(); //Custom
+    });
+  });
 });
 
 async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
