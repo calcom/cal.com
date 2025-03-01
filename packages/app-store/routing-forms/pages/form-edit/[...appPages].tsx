@@ -176,6 +176,13 @@ function Field({
     setOptions(updatedOptions);
   };
 
+  const formatIdentifier = (label: string) => {
+    if (!label) {
+      return "";
+    }
+    return label.toLowerCase().replace(/\s+/g, "_");
+  };
+
   const optionsPlaceholders = ["< 10", "10 - 100", "100 - 500", "> 500"];
 
   return (
@@ -220,9 +227,18 @@ function Field({
               //This change has the same effects that already existed in relation to this field,
               // but written in a different way.
               // The identifier field will have the same value as the label field until it is changed
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
+              value={
+                identifier ||
+                routerField?.identifier ||
+                formatIdentifier(label) ||
+                formatIdentifier(routerField?.label) ||
+                ""
+              }
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
+                const formattedIdentifier = formatIdentifier(e.target.value);
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, formattedIdentifier, {
+                  shouldDirty: true,
+                });
               }}
             />
           </div>
