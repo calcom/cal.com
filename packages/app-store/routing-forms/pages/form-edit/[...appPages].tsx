@@ -206,7 +206,8 @@ function Field({
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+                const formattedValue = e.target.value.toLowerCase().replace(/\s+/g, "_");
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, formattedValue, { shouldDirty: true });
               }}
             />
           </div>
