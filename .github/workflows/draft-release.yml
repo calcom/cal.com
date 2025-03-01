@@ -7,7 +7,7 @@ on:
       next_version:
         required: true
         type: string
-        description: 'Version name'
+        description: "Version name"
 
 permissions:
   contents: write
@@ -17,12 +17,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: 'main'
+          ref: "main"
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
       - name: Configure git

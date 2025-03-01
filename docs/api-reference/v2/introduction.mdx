@@ -1,6 +1,6 @@
 ---
-title: 'Introduction to API v2'
-description: 'Introduction to Cal.com API v2 endpoints'
+title: "Introduction to API v2"
+description: "Introduction to Cal.com API v2 endpoints"
 ---
 
 ## Authentication
@@ -36,6 +36,7 @@ in your request header.
 All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
 
 ### 2. OAuth client credentials
+
 You need to use OAuth credentials when:
 
 1. Managing managed users [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user)
@@ -53,6 +54,7 @@ OAuth credentials can be accessed in the platform dashboard https://app.cal.com/
 After you create a managed user you will receive its access and refresh tokens. The response also includes managed user's id, so we recommend you to add new properties to your users table calAccessToken, calRefreshToken and calManagedUserId to store this information.
 
 You need to use access token when managing managed user's:
+
 1. Schedules [API reference](https://cal.com/docs/api-reference/v2/schedules/create-a-schedule)
 2. Event types [API reference](https://cal.com/docs/api-reference/v2/event-types/create-an-event-type)
 3. Bookings - some endpoints like creating a booking is public, but some like getting all managed user's bookings require managed user's access token [API reference](https://cal.com/docs/api-reference/v2/bookings/get-all-bookings)
@@ -64,6 +66,7 @@ Validity period: access tokens are valid for 60 minutes and refresh tokens for 1
 Recovering tokens: if you ever lose managed user's access or refresh tokens, you can force refresh them using the OAuth client credentials and store them in your database [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens).
 
 ## Navigating endpoints
+
 Platform customers have the following endpoints available:
 
 1. Endpoints prefixed with "Platform".

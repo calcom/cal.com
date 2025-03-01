@@ -1,5 +1,6 @@
-name: Integration
- # Change to the branch you want to trigger on push
+name:
+  Integration
+  # Change to the branch you want to trigger on push
 
 permissions:
   contents: read

@@ -9,48 +9,48 @@
   --cal-spacing-0: 0px;
   --cal-spacing-px: 1px;
   --cal-spacing-0_5: 0.125rem; /* 2px */
-  --cal-spacing-1: 0.25rem;   /* 4px */
+  --cal-spacing-1: 0.25rem; /* 4px */
   --cal-spacing-1_5: 0.375rem; /* 6px */
-  --cal-spacing-2: 0.5rem;    /* 8px */
+  --cal-spacing-2: 0.5rem; /* 8px */
   --cal-spacing-2_5: 0.625rem; /* 10px */
-  --cal-spacing-3: 0.75rem;   /* 12px */
+  --cal-spacing-3: 0.75rem; /* 12px */
   --cal-spacing-3_5: 0.875rem; /* 14px */
-  --cal-spacing-4: 1rem;      /* 16px */
-  --cal-spacing-5: 1.25rem;   /* 20px */
-  --cal-spacing-6: 1.5rem;    /* 24px */
-  --cal-spacing-7: 1.75rem;   /* 28px */
-  --cal-spacing-8: 2rem;      /* 32px */
-  --cal-spacing-9: 2.25rem;   /* 36px */
-  --cal-spacing-10: 2.5rem;   /* 40px */
-  --cal-spacing-11: 2.75rem;  /* 44px */
-  --cal-spacing-12: 3rem;     /* 48px */
-  --cal-spacing-14: 3.5rem;   /* 56px */
-  --cal-spacing-16: 4rem;     /* 64px */
-  --cal-spacing-20: 5rem;     /* 80px */
-  --cal-spacing-24: 6rem;     /* 96px */
-  --cal-spacing-28: 7rem;     /* 112px */
-  --cal-spacing-32: 8rem;     /* 128px */
-  --cal-spacing-36: 9rem;     /* 144px */
-  --cal-spacing-40: 10rem;    /* 160px */
-  --cal-spacing-44: 11rem;    /* 176px */
-  --cal-spacing-48: 12rem;    /* 192px */
-  --cal-spacing-52: 13rem;    /* 208px */
-  --cal-spacing-56: 14rem;    /* 224px */
-  --cal-spacing-60: 15rem;    /* 240px */
-  --cal-spacing-64: 16rem;    /* 256px */
-  --cal-spacing-72: 18rem;    /* 288px */
-  --cal-spacing-80: 20rem;    /* 320px */
-  --cal-spacing-96: 24rem;    /* 384px */
+  --cal-spacing-4: 1rem; /* 16px */
+  --cal-spacing-5: 1.25rem; /* 20px */
+  --cal-spacing-6: 1.5rem; /* 24px */
+  --cal-spacing-7: 1.75rem; /* 28px */
+  --cal-spacing-8: 2rem; /* 32px */
+  --cal-spacing-9: 2.25rem; /* 36px */
+  --cal-spacing-10: 2.5rem; /* 40px */
+  --cal-spacing-11: 2.75rem; /* 44px */
+  --cal-spacing-12: 3rem; /* 48px */
+  --cal-spacing-14: 3.5rem; /* 56px */
+  --cal-spacing-16: 4rem; /* 64px */
+  --cal-spacing-20: 5rem; /* 80px */
+  --cal-spacing-24: 6rem; /* 96px */
+  --cal-spacing-28: 7rem; /* 112px */
+  --cal-spacing-32: 8rem; /* 128px */
+  --cal-spacing-36: 9rem; /* 144px */
+  --cal-spacing-40: 10rem; /* 160px */
+  --cal-spacing-44: 11rem; /* 176px */
+  --cal-spacing-48: 12rem; /* 192px */
+  --cal-spacing-52: 13rem; /* 208px */
+  --cal-spacing-56: 14rem; /* 224px */
+  --cal-spacing-60: 15rem; /* 240px */
+  --cal-spacing-64: 16rem; /* 256px */
+  --cal-spacing-72: 18rem; /* 288px */
+  --cal-spacing-80: 20rem; /* 320px */
+  --cal-spacing-96: 24rem; /* 384px */
 
   /* Border Radius */
   --cal-radius-none: 0px;
-  --cal-radius-sm: 0.125rem;  /* 2px */
-  --cal-radius: 0.25rem;      /* 4px */
-  --cal-radius-md: 0.375rem;  /* 6px */
-  --cal-radius-lg: 0.5rem;    /* 8px */
-  --cal-radius-xl: 0.75rem;   /* 12px */
-  --cal-radius-2xl: 1rem;     /* 16px */
-  --cal-radius-3xl: 1.5rem;   /* 24px */
+  --cal-radius-sm: 0.125rem; /* 2px */
+  --cal-radius: 0.25rem; /* 4px */
+  --cal-radius-md: 0.375rem; /* 6px */
+  --cal-radius-lg: 0.5rem; /* 8px */
+  --cal-radius-xl: 0.75rem; /* 12px */
+  --cal-radius-2xl: 1rem; /* 16px */
+  --cal-radius-3xl: 1.5rem; /* 24px */
   --cal-radius-full: 9999px;
 
   /* Background Standard */
@@ -69,7 +69,7 @@
   --cal-bg-brand: hsla(214, 30%, 16%, 1); /* gray-50 */
   --cal-bg-brand-emphasis: hsla(220, 6%, 25%, 1); /* stone-100 */
   --cal-bg-brand-muted: hsla(220, 14%, 94%, 1); /* stone-100 */
-  
+
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(212, 88%, 97%, 1); /* blue-100 */
   --cal-bg-semantic-info-emphasis: hsla(236, 80%, 25%, 1); /* blue-500 */
@@ -135,8 +135,8 @@
   --cal-text-visualization-7: hsla(0, 84%, 25%, 1); /* red-800 */
 
   /* Border/Semantic Subtle */
-  --cal-border-semantic-attention-subtle: hsla(32, 98%, 83%, 1); 
-  --cal-border-semantic-error-subtle: hsla(0, 96%, 89%, 1); 
+  --cal-border-semantic-attention-subtle: hsla(32, 98%, 83%, 1);
+  --cal-border-semantic-error-subtle: hsla(0, 96%, 89%, 1);
 
   /* Legacy Content/Text Components - Consider deprecating */
   --cal-text-info: hsla(225, 57%, 33%, 1); /* #253985 - interactive text/icons */
@@ -209,11 +209,9 @@
   /* Border Semantic */
   --cal-border-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
 
-
   /* Border/Semantic Subtle */
-  --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1); 
-  --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1); 
-
+  --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1);
+  --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1);
 
   /* Legacy Border - Consider deprecating */
   --cal-border-error: hsla(0, 63%, 24%, 1); /* Keeping existing error border */
@@ -251,7 +249,7 @@
 
 @layer base {
   * {
-    @apply border-default
+    @apply border-default;
   }
 }
 
@@ -275,7 +273,7 @@ body  {
     https://docs.todesktop.com/
 */
 
-html.todesktop-platform-win32 .todesktop\:\!bg-transparent{
+html.todesktop-platform-win32 .todesktop\:\!bg-transparent {
   background: inherit !important;
 }
 
@@ -308,7 +306,8 @@ html.todesktop header a {
   -webkit-app-region: no-drag;
 }
 
-html.todesktop-platform-darwin body, html.todesktop-platform-darwin aside {
+html.todesktop-platform-darwin body,
+html.todesktop-platform-darwin aside {
   background: transparent !important;
 }
 
@@ -634,7 +633,7 @@ select:focus {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
-.intercom-lightweight-app  {
+.intercom-lightweight-app {
   @apply z-40 !important;
 }
 

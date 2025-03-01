@@ -14,47 +14,51 @@ Cal.com works with a very large range of operating systems, as it only requires 
 To run Cal.com, you need to install a few things. **Node.js, yarn, Git and PostgreSQL**. We use **Prisma** for database maintenance, and is one of the dependencies. We won’t publish installation guides for these as they have their own resources available on the internet. If you're on Linux/BSD, all of these things should be readily available on your package manager. Your best bet is searching for something like **Debian 12 PostgreSQL**, which will give you a guide to installing and configuring PostgreSQL on Debian Linux 12.
 
 <Info>
-To ensure optimal performance and compatibility, we highly recommend using Node.js version 18 for your development environment. This version provides the best balance of stability, features, and security for this project. Please make sure to update your Node.js installation if necessary.
+  To ensure optimal performance and compatibility, we highly recommend using Node.js version 18 for your
+  development environment. This version provides the best balance of stability, features, and security for
+  this project. Please make sure to update your Node.js installation if necessary.
 </Info>
 
 ## Production Build
 
 1. First, you git clone the repository with the following command, so you have a copy of the code.
-    ```
-    git clone https://github.com/calcom/cal.com.git
-    ```
+   ```
+   git clone https://github.com/calcom/cal.com.git
+   ```
 
 <Note>
-If you are on windows, you would need to use the following command when cloning, with **admin privileges**:
-```
-git clone -c core.symlinks=true https://github.com/calcom/cal.com.git
-```
+  If you are on windows, you would need to use the following command when cloning, with **admin privileges**:
+  ``` git clone -c core.symlinks=true https://github.com/calcom/cal.com.git ```
 </Note>
 
 2. Then, go into the directory you just cloned with
-    ```
-    cd cal.com
-    ```
-    and run
-    ```
-    yarn
-    ```
-    to install all of the dependencies. Essentially, dependencies are just things that Cal.com needs to install to be able to work.
+
+   ```
+   cd cal.com
+   ```
+
+   and run
+
+   ```
+   yarn
+   ```
+
+   to install all of the dependencies. Essentially, dependencies are just things that Cal.com needs to install to be able to work.
 
 3. Then, you just need to set up a couple of things. For that, we use a `.env` file. We just need to copy and paste the `.env.example` file and rename the copy to `.env`. Here you'll have a template with comments showing you the settings you need/might want to set.
 
 <Info>
-For preview deployments on **Vercel**, please leave the following environment variables empty:
- - **NEXTAUTH_URL**
- - **NEXT_PUBLIC_WEBSITE_URL**
- - **NEXT_PUBLIC_WEBAPP_URL**
+  For preview deployments on **Vercel**, please leave the following environment variables empty: -
+  **NEXTAUTH_URL** - **NEXT_PUBLIC_WEBSITE_URL** - **NEXT_PUBLIC_WEBAPP_URL**
 </Info>
 
 4. Next, use the command
-    ```
-    openssl rand -base64 32
-    ```
-    (or another secret generator tool if you prefer) to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+
+   ```
+   openssl rand -base64 32
+   ```
+
+   (or another secret generator tool if you prefer) to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
 
 5. You'll also want to fill out the `.env.appStore` file similar to the `.env` file as this includes keys to enable apps.
 
@@ -75,17 +79,14 @@ There are a few features which require cron job setup. When self-hosting, you wo
 For instance, if you are hosting on Vercel, you would need to set up cron jobs by following [this document](https://vercel.com/guides/how-to-setup-cron-jobs-on-vercel).
 
 At cal.com, the cron jobs are found in the following directory:
+
 ```
 /apps/web/pages/api/cron
 ```
 
-
 ## App store seeder
 
-<Info>
-We recommend using the admin UI/wizard instead of the seeder to enable app store apps
-</Info>
-
+<Info>We recommend using the admin UI/wizard instead of the seeder to enable app store apps</Info>
 
 ## API
 
@@ -126,5 +127,5 @@ Cal.com effectively is just a Next.js application, so any possible solution you 
 That's it. Your new self hosted Cal.com instance should now be up and running.
 
 <Card href="/self-hosting/deployments" title="Deployments" icon="rocket">
-    For more details on specific deployment instructions for AWS, Azure, etc.
+  For more details on specific deployment instructions for AWS, Azure, etc.
 </Card>

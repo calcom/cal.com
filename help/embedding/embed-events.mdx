@@ -21,18 +21,17 @@ You can listen to an action that occurs in embedded cal link as follows. You can
 ```
 
 ## Following are the list of supported actions.
-| Action | Description | Properties |
-|--------|-------------|------------|
-| eventTypeSelected | When user chooses an event-type from the listing. | eventType:object // Event Type that has been selected |
-| bookingSuccessful | When the booking is successfully done. It might not be confirmed. | confirmed: boolean; //Whether confirmation from organizer is pending or not<br/>eventType: "Object for Event Type that has been booked"<br/>date: string; // Date of Event<br/>duration: number; //Duration of booked Event<br/>organizer: object //Organizer details like name, timezone, email |
-| linkReady | Tells that the link is ready to be shown now. | None |
-| linkFailed | Fired if link fails to load | code: number; // Error Code<br/>msg: string; //Human Readable msg<br/>data: object // More details to debug the error |
-| __iframeReady | It is fired when the embedded iframe is ready to communicate with parent snippet. This is mostly for internal use by Embed Snippet | None |
-| __windowLoadComplete | Tells that window load for iframe is complete | None |
-| __dimensionChanged | Tells that dimensions of the content inside the iframe changed. | iframeWidth:number, iframeHeight:number |
 
-<Note>
-  Actions that start with `__` are internal.
-</Note>
+| Action                 | Description                                                                                                                        | Properties                                                                                                                                                                                                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| eventTypeSelected      | When user chooses an event-type from the listing.                                                                                  | eventType:object // Event Type that has been selected                                                                                                                                                                                                                                            |
+| bookingSuccessful      | When the booking is successfully done. It might not be confirmed.                                                                  | confirmed: boolean; //Whether confirmation from organizer is pending or not<br/>eventType: "Object for Event Type that has been booked"<br/>date: string; // Date of Event<br/>duration: number; //Duration of booked Event<br/>organizer: object //Organizer details like name, timezone, email |
+| linkReady              | Tells that the link is ready to be shown now.                                                                                      | None                                                                                                                                                                                                                                                                                             |
+| linkFailed             | Fired if link fails to load                                                                                                        | code: number; // Error Code<br/>msg: string; //Human Readable msg<br/>data: object // More details to debug the error                                                                                                                                                                            |
+| \_\_iframeReady        | It is fired when the embedded iframe is ready to communicate with parent snippet. This is mostly for internal use by Embed Snippet | None                                                                                                                                                                                                                                                                                             |
+| \_\_windowLoadComplete | Tells that window load for iframe is complete                                                                                      | None                                                                                                                                                                                                                                                                                             |
+| \_\_dimensionChanged   | Tells that dimensions of the content inside the iframe changed.                                                                    | iframeWidth:number, iframeHeight:number                                                                                                                                                                                                                                                          |
+
+<Note>Actions that start with `__` are internal.</Note>
 
 To get more details on how Embed actually works, you can refer to this [Embed Flowchart](https://www.figma.com/file/zZ5oaUpg12Fuu5mGZrPlP5/Embed-Flowchart).
