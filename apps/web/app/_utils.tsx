@@ -1,6 +1,5 @@
 import type { TFunction } from "app/_types";
 import { headers } from "next/headers";
-import "server-only";
 
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
