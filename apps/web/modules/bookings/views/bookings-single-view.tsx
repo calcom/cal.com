@@ -139,7 +139,6 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  const cancelledBy = bookingInfo.cancelledBy || "Guest User";
 
   const attendees = bookingInfo?.attendees;
 
@@ -527,10 +526,10 @@ export default function Success(props: PageProps) {
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
-                        {isCancelled && (
+                        {isCancelled && bookingInfo?.cancelledBy && (
                           <>
-                            <div className="font-medium">{isCancelled && t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">{cancelledBy}</div>
+                            <div className="font-medium">{t("cancelled_by")}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">{bookingInfo?.cancelledBy}</div>
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
