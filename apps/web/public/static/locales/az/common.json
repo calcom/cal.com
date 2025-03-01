@@ -2445,6 +2445,7 @@
   "enterprise": "Müəssisə",
   "enterprise_description": "Təşkilatınızı yaratmaq üçün Enterprise-ə yüksəldin",
   "create_your_org": "Təşkilatınızı Yaradın",
+  "create_org": "Təşkilat Yarat",
   "create_your_org_description": "Təşkilatlara yüksəlin və subdomen, birləşdirilmiş ödəniş, Göstəricilər, geniş ağ etiketləmə və daha çoxunu əldə edin",
   "create_your_enterprise_description": "Enterprise-ə yüksəlin və Active Directory Sync, SCIM Avtomatik İstifadəçi təminatı, Cal.ai Səs Agentləri, Admin API-ləri və daha çoxuna giriş əldə edin!",
   "other_payment_app_enabled": "Hər tədbir növü üçün yalnız bir ödəniş tətbiqini aktivləşdirə bilərsiniz",
