@@ -2445,6 +2445,7 @@
   "enterprise": "엔터프라이즈",
   "enterprise_description": "Enterprise로 업그레이드하여 조직을 만드세요",
   "create_your_org": "조직 만들기",
+  "create_org": "조직 만들기",
   "create_your_org_description": "Organizations로 업그레이드하고 서브도메인, 통합 결제, 인사이트, 광범위한 화이트라벨링 등을 받으세요",
   "create_your_enterprise_description": "Enterprise로 업그레이드하고 Active Directory Sync, SCIM 자동 사용자 프로비저닝, Cal.ai 음성 에이전트, 관리자 API 등을 이용하세요!",
   "other_payment_app_enabled": "이벤트 유형당 하나의 결제 앱만 활성화할 수 있습니다",
