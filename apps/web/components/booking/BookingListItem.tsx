@@ -259,7 +259,7 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: "map-pin" as const,
     },
-    ...(booking.seatsReferences.length
+    ...(booking.eventType?.disableGuests
       ? []
       : [
           {
