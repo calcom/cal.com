@@ -7,6 +7,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
+import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -72,9 +73,15 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       eventType,
     },
   });
+
+  const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
+  const allCredentials = await getAllCredentials(user, {
+    ...eventType,
+    metadata,
+  });
+
   if (!requiresConfirmation) {
-    const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
-    const eventManager = new EventManager(user, metadata?.apps);
+    const eventManager = new EventManager({ ...user, credentials: allCredentials }, metadata?.apps);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
@@ -101,7 +108,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!requiresConfirmation) {
     await handleConfirmation({
-      user,
+      user: { ...user, credentials: allCredentials },
       evt,
       prisma,
       bookingId: booking.id,
