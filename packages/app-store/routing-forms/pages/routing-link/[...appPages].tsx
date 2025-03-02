@@ -183,7 +183,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                         loading={responseMutation.isPending}
                         type="submit"
                         color="primary">
-                        {t("submit")}
+                        {t("continue")}
                       </Button>
                     </div>
                   </form>
