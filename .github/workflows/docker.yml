@@ -70,6 +70,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    needs: test  # Ensures tests pass before building
 
     steps:
       - name: Free Disk Space (Ubuntu)
