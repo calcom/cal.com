@@ -14,12 +14,12 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
 
 export async function getBusyTimes(params: {
-  credentials: CredentialPayload[];
+  credentials: CredentialForCalendarService[];
   userId: number;
   userEmail: string;
   username: string;

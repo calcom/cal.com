@@ -1,8 +1,11 @@
-import { findMatchingHostsWithEventSegment, getNormalizedHosts } from "@calcom/lib/bookings/getRoutedUsers";
+import {
+  findMatchingHostsWithEventSegment,
+  getNormalizedHostsWithDwdCredentials,
+} from "@calcom/lib/bookings/getRoutedUsers";
 import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
@@ -43,7 +46,7 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
   return host.isFixed;
 };
 
-export const findQualifiedHosts = async <
+export const findQualifiedHostsWithDwdCredentials = async <
   T extends {
     email: string;
     id: number;
@@ -76,14 +79,14 @@ export const findQualifiedHosts = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
-    user: T;
+    user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
   fixedHosts: {
     isFixed: boolean;
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
-    user: T;
+    user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
   // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
   allFallbackRRHosts?: {
@@ -91,10 +94,14 @@ export const findQualifiedHosts = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
-    user: T;
+    user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
 }> => {
-  const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } = getNormalizedHosts({ eventType });
+  const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } = await getNormalizedHostsWithDwdCredentials(
+    {
+      eventType,
+    }
+  );
   // not a team event type, or some other reason - segment matching isn't necessary.
   if (!normalizedHosts) {
     const fixedHosts = fallbackUsers.filter(isFixedHost);

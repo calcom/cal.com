@@ -49,7 +49,7 @@ const hasDateRangeForBooking = (
 };
 
 export async function ensureAvailableUsers(
-  eventType: getEventTypeResponse & {
+  eventType: Omit<getEventTypeResponse, "users"> & {
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
