@@ -2445,6 +2445,7 @@
   "enterprise": "Enterprise",
   "enterprise_description": "Αναβαθμίστε σε Enterprise για να δημιουργήσετε τον οργανισμό σας",
   "create_your_org": "Δημιουργήστε τον Οργανισμό σας",
+  "create_org": "Δημιουργία Οργανισμού",
   "create_your_org_description": "Αναβαθμίστε σε Οργανισμούς και λάβετε υποτομέα, ενοποιημένη τιμολόγηση, Αναλύσεις, εκτεταμένο white-labeling και άλλα",
   "create_your_enterprise_description": "Αναβαθμίστε σε Enterprise και αποκτήστε πρόσβαση σε Συγχρονισμό Active Directory, Αυτόματη παροχή χρηστών SCIM, Φωνητικούς πράκτορες Cal.ai, APIs διαχειριστή και άλλα!",
   "other_payment_app_enabled": "Μπορείτε να ενεργοποιήσετε μόνο μία εφαρμογή πληρωμών ανά τύπο εκδήλωσης",
