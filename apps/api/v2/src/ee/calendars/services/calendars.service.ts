@@ -39,6 +39,16 @@ export class CalendarsService {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
+  private buildNonDwdCredentials<TCredential>(credentials: TCredential[]) {
+    return credentials
+      .map((credential) => ({
+        ...credential,
+        delegatedTo: null,
+        delegatedToId: null,
+      }))
+      .filter((credential) => !!credential);
+  }
+
   async getCalendars(userId: number) {
     const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
     if (!userWithCalendars) {
@@ -73,7 +83,7 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        credentials,
+        this.buildNonDwdCredentials(credentials),
         dateFrom,
         dateTo,
         composedSelectedCalendars
