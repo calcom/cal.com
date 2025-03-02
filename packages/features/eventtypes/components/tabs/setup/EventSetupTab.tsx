@@ -90,9 +90,7 @@ export const EventSetupTab = (
   const descriptionLockedProps = shouldLockDisableProps("description");
   const urlLockedProps = shouldLockDisableProps("slug");
   const titleLockedProps = shouldLockDisableProps("title");
-    function replaceEmptyPTags(htmlString) {
-    return htmlString.replace(/<p class=['"]editor-paragraph['"]>\s*<\/p>/g, "<br>");
-  }
+   
 
   return (
     <div>
@@ -132,9 +130,9 @@ export const EventSetupTab = (
                   {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
                 </Label>
                 <Editor
-                  getText={() => md.render(formMethods.getValues("description").replace(/\n/g, "<br>") || "")}
+                  getText={() => md.render(formMethods.getValues("description") || "")}
                   setText={(value: string) =>
-                    formMethods.setValue("description", turndown(replaceEmptyPTags(value)), { shouldDirty: true })
+                    formMethods.setValue("description", turndown(value), { shouldDirty: true })
                   }
                   excludedToolbarItems={["blockType"]}
                   placeholder={t("quick_video_meeting")}
