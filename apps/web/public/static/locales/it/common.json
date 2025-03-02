@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Si è verificato un errore imprevisto. Per favore, riprova più tardi",
   "select_oAuth_client": "Seleziona client OAuth",
   "on_every_instance": "Su ogni istanza",
+  "domain_wide_delegation_feature_not_enabled": "La funzione di delega a livello di dominio non è attivata per la tua organizzazione",
   "internal_booking_note": "Nota interna",
   "internal_note_cancellation_reason": "Motivo condiviso con il cliente (opzionale)",
   "internal_booking_note_description": "Questa nota sarà visibile solo ai membri del tuo team",

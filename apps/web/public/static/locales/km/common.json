@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "មានកំហុសដែលមិនបានរំពឹងទុកកើតឡើង។ សូមព្យាយាមម្តងទៀតនៅពេលក្រោយ",
   "select_oAuth_client": "ជ្រើសរើស OAuth Client",
   "on_every_instance": "នៅលើគ្រប់ករណី",
+  "domain_wide_delegation_feature_not_enabled": "មុខងារប្រគល់សិទ្ធិទូទាំងដែនមិនត្រូវបានបើកសម្រាប់ស្ថាប័នរបស់អ្នកទេ",
   "internal_booking_note": "កំណត់ចំណាំផ្ទៃក្នុង",
   "internal_note_cancellation_reason": "មូលហេតុដែលត្រូវចែករំលែកជាមួយអតិថិជន (ជាជម្រើស)",
   "internal_booking_note_description": "កំណត់ចំណាំនេះនឹងអាចមើលឃើញសម្រាប់តែសមាជិកក្រុមរបស់អ្នកប៉ុណ្ណោះ",

@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "S'ha produït un error inesperat. Si us plau, torna-ho a provar més tard",
   "select_oAuth_client": "Selecciona el client OAuth",
   "on_every_instance": "A cada instància",
+  "domain_wide_delegation_feature_not_enabled": "La funció de delegació per a tot el domini no està activada per a la vostra organització",
   "internal_booking_note": "Nota interna",
   "internal_note_cancellation_reason": "Motiu compartit amb el client (opcional)",
   "internal_booking_note_description": "Aquesta nota només serà visible per als membres del teu equip",
