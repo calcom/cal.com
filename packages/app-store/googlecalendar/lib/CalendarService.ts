@@ -22,6 +22,7 @@ import {
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import type {
@@ -372,6 +373,11 @@ export default class GoogleCalendarService implements Calendar {
           sendUpdates: "none",
         });
         event = eventResponse.data;
+        // We create a bookingReference with the event data to compare using bi-directional sync.
+        await BookingReferenceRepository.createGoogleCalendarReferenceForBooking({
+          event,
+          bookingId: formattedCalEvent.bookingId,
+        });
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
@@ -596,12 +602,30 @@ export default class GoogleCalendarService implements Calendar {
     return result;
   }
 
+  private async getCalIdsWithTimeZone(selectedCalendarIds: string[]) {
+    const calendar = await this.authedCalendar();
+    const cals = await this.getAllCalendars(calendar, ["id", "timeZone"]);
+    if (!cals.length) return [];
+
+    if (selectedCalendarIds.length !== 0) {
+      return selectedCalendarIds.map((selectedCalendarId) => {
+        const calWithTz = cals.find((cal) => cal.id === selectedCalendarId);
+        return {
+          id: selectedCalendarId,
+          timeZone: calWithTz?.timeZone || "",
+        };
+      });
+    }
+
+    // we ever reach that code, we already check before if selectedCalendarIds is empty
+    return [];
+  }
+
   async getAvailabilityWithTimeZones(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
-    const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
       .map((e) => e.externalId);
@@ -610,40 +634,19 @@ export default class GoogleCalendarService implements Calendar {
       return [];
     }
 
-    const getCalIdsWithTimeZone = async () => {
-      const cals = await this.getAllCalendars(calendar, ["id", "timeZone"]);
-      if (!cals.length) return [];
-
-      if (selectedCalendarIds.length !== 0) {
-        return selectedCalendarIds.map((selectedCalendarId) => {
-          const calWithTz = cals.find((cal) => cal.id === selectedCalendarId);
-          return {
-            id: selectedCalendarId,
-            timeZone: calWithTz?.timeZone || "",
-          };
-        });
-      }
-
-      // we ever reach that code, we already check before if selectedCalendarIds is empty
-      return [];
-    };
-
     try {
-      const calIdsWithTimeZone = await getCalIdsWithTimeZone();
-      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
-
-      const originalStartDate = dayjs(dateFrom);
-      const originalEndDate = dayjs(dateTo);
-      const diff = originalEndDate.diff(originalStartDate, "days");
       const freeBusyData = await this.getCacheOrFetchAvailability({
         timeMin: dateFrom,
         timeMax: dateTo,
-        items: calIds,
+        items: selectedCalendarIds.map((id) => ({ id })),
       });
+
       if (!freeBusyData) throw new Error("No response from google calendar");
 
+      // FIXME: This will trigger a request to google api even if we have cached data
+      // Find a way to get the timeZone from the cached data
+      const calIdsWithTimeZone = await this.getCalIdsWithTimeZone(selectedCalendarIds);
       const timeZoneMap = new Map(calIdsWithTimeZone.map((cal) => [cal.id, cal.timeZone]));
-
       const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
         return {
           start: freeBusy.start,
@@ -771,7 +774,21 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
-
+  async onWatchedCalendarChanged(calendarId: string, eventId: string) {
+    await Promise.all([
+      this.fetchSelectedCalendarsAvailabilityAndSetCache(),
+      this.updateBookingFromGoogleEventId(calendarId, eventId),
+    ]);
+  }
+  private async fetchSelectedCalendarsAvailabilityAndSetCache() {
+    const selectedCalendars = await SelectedCalendarRepository.findFromCredentialId(this.credential.id);
+    await this.fetchAvailabilityAndSetCache(selectedCalendars);
+  }
+  private async updateBookingFromGoogleEventId(calendarId: string, eventId: string) {
+    const calendar = await this.authedCalendar();
+    const event = await calendar.events.get({ calendarId, eventId });
+    console.log("event", JSON.stringify(event, null, 2));
+  }
   /**
    * It doesn't check if the subscription has expired or not.
    * It just creates a new subscription.

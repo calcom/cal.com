@@ -286,6 +286,9 @@ export interface Calendar {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
   }): Promise<unknown>;
+
+  onWatchedCalendarChange?(calendarId: string, eventId: string): Promise<unknown>;
+
   unwatchCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
