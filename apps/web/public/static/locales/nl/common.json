@@ -2445,6 +2445,7 @@
   "enterprise": "Onderneming",
   "enterprise_description": "Upgrade naar Enterprise om je Organisatie te creëren",
   "create_your_org": "Creëer je Organisatie",
+  "create_org": "Organisatie aanmaken",
   "create_your_org_description": "Upgrade naar Organisaties en ontvang een subdomein, uniforme facturering, inzichten, uitgebreide whitelabeling en meer",
   "create_your_enterprise_description": "Upgrade naar Enterprise en krijg toegang tot Active Directory Sync, SCIM Automatische Gebruikersprovisioning, Cal.ai Voice Agents, Admin API's en meer!",
   "other_payment_app_enabled": "Je kunt slechts één betalingsapp per evenementtype inschakelen",
