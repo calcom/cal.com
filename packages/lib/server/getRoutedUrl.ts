@@ -31,9 +31,11 @@ function hasEmbedPath(pathWithQuery: string) {
 
 // Only dynamically import the modules that might contain client components
 async function getClientModules() {
-  const { handleResponse } = await import("@calcom/app-store/routing-forms/lib/handleResponse");
-  const { findMatchingRoute } = await import("@calcom/app-store/routing-forms/lib/processRoute");
-  const { substituteVariables } = await import("@calcom/app-store/routing-forms/lib/substituteVariables");
+  const [{ handleResponse }, { findMatchingRoute }, { substituteVariables }] = await Promise.all([
+    import("@calcom/app-store/routing-forms/lib/handleResponse"),
+    import("@calcom/app-store/routing-forms/lib/processRoute"),
+    import("@calcom/app-store/routing-forms/lib/substituteVariables"),
+  ]);
 
   return {
     handleResponse,
