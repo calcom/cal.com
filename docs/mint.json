@@ -207,8 +207,7 @@
           "pages": [
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
-            "platform/guides/booking-redirects",
-            "platform/guides/teams-setup"
+            "platform/guides/booking-redirects"
           ]
         },
         "platform/faq"

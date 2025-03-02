@@ -3,7 +3,7 @@ import { vi } from "vitest";
 
 import { prisma } from "@calcom/prisma";
 
-import { outOfOfficeCreateOrUpdate } from "../outOfOfficeCreateOrUpdate.handler";
+import { outOfOfficeCreateOrUpdate } from "../outOfOffice.handler";
 
 const prismaMock = {
   outOfOfficeEntry: {

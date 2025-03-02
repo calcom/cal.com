@@ -1,6 +1,5 @@
 import appConfig from "@/config/app";
-import { AuthMethods } from "@/lib/enums/auth-methods";
-import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
+import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { JwtService } from "@/modules/jwt/jwt.service";
@@ -10,7 +9,6 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { ExecutionContext, HttpException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -18,7 +16,6 @@ import { ConfigModule } from "@nestjs/config";
 import { JwtService as NestJwtService } from "@nestjs/jwt";
 import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
-import { createRequest } from "node-mocks-http";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -30,7 +27,6 @@ import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
-import { ApiAuthGuardRequest } from "./api-auth.strategy";
 import { ApiAuthStrategy } from "./api-auth.strategy";
 
 describe("ApiAuthStrategy", () => {
@@ -39,9 +35,7 @@ describe("ApiAuthStrategy", () => {
   let tokensRepositoryFixture: TokensRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let organization: Team;
-  let organizationTwo: Team;
   let oAuthClient: PlatformOAuthClient;
-  let oAuthClientTwo: PlatformOAuthClient;
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let oAuthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let profilesRepositoryFixture: ProfileRepositoryFixture;
@@ -71,8 +65,7 @@ describe("ApiAuthStrategy", () => {
         ConfigService,
         OAuthFlowService,
         UsersRepository,
-        UsersService,
-        ApiKeysRepository,
+        ApiKeyRepository,
         DeploymentsService,
         OAuthClientRepository,
         PrismaReadService,
@@ -91,11 +84,7 @@ describe("ApiAuthStrategy", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(module);
     oAuthClientRepositoryFixture = new OAuthClientRepositoryFixture(module);
     profilesRepositoryFixture = new ProfileRepositoryFixture(module);
-    organization = await teamRepositoryFixture.create({ name: `api-auth-organization-1-${randomString()}` });
-    organizationTwo = await teamRepositoryFixture.create({
-      name: `api-auth-organization-2-${randomString()}`,
-    });
-
+    organization = await teamRepositoryFixture.create({ name: `api-auth-organization-${randomString()}` });
     validApiKeyUser = await userRepositoryFixture.create({
       email: validApiKeyEmail,
     });
@@ -114,13 +103,6 @@ describe("ApiAuthStrategy", () => {
       organization: { connect: { id: organization.id } },
     });
 
-    await profilesRepositoryFixture.create({
-      uid: "asd-asd",
-      username: validOAuthEmail,
-      user: { connect: { id: validOAuthUser.id } },
-      organization: { connect: { id: organizationTwo.id } },
-    });
-
     const data = {
       logo: "logo-url",
       name: "name",
@@ -128,7 +110,6 @@ describe("ApiAuthStrategy", () => {
       permissions: 32,
     };
     oAuthClient = await oAuthClientRepositoryFixture.create(organization.id, data, "secret");
-    oAuthClientTwo = await oAuthClientRepositoryFixture.create(organizationTwo.id, data, "secret");
   });
 
   describe("authenticate with strategy", () => {
@@ -138,68 +119,25 @@ describe("ApiAuthStrategy", () => {
         oAuthClient.id
       );
 
-      const mockRequest = createRequest() as ApiAuthGuardRequest;
-      mockRequest.authMethod = AuthMethods.ACCESS_TOKEN;
-      mockRequest.organizationId = null;
-      const user = await strategy.accessTokenStrategy(accessToken, mockRequest);
+      const user = await strategy.accessTokenStrategy(accessToken);
       expect(user).toBeDefined();
       expect(user?.id).toEqual(validAccessTokenUser.id);
     });
 
-    it("should return user associated with valid api key and correctly set organizationId for org1", async () => {
+    it("should return user associated with valid api key", async () => {
       const now = new Date();
       now.setDate(now.getDate() + 1);
-      const { keyString } = await apiKeysRepositoryFixture.createApiKey(
-        validApiKeyUser.id,
-        now,
-        organization.id
-      );
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(validApiKeyUser.id, now);
 
-      const mockRequest = createRequest() as ApiAuthGuardRequest;
-      mockRequest.authMethod = AuthMethods.API_KEY;
-      mockRequest.organizationId = null;
-      const user = await strategy.apiKeyStrategy(keyString, mockRequest);
+      const user = await strategy.apiKeyStrategy(keyString);
       expect(user).toBeDefined();
       expect(user?.id).toEqual(validApiKeyUser.id);
-      expect(mockRequest.organizationId).toEqual(organization.id);
-    });
-
-    it("should return user associated with valid api key and correctly set organizationId for org2", async () => {
-      const now = new Date();
-      now.setDate(now.getDate() + 1);
-      const { keyString } = await apiKeysRepositoryFixture.createApiKey(
-        validApiKeyUser.id,
-        now,
-        organizationTwo.id
-      );
-
-      const mockRequest = createRequest() as ApiAuthGuardRequest;
-      mockRequest.authMethod = AuthMethods.API_KEY;
-      mockRequest.organizationId = null;
-      const user = await strategy.apiKeyStrategy(keyString, mockRequest);
-      expect(user).toBeDefined();
-      expect(user?.id).toEqual(validApiKeyUser.id);
-      expect(mockRequest.organizationId).toEqual(organizationTwo.id);
     });
 
     it("should return user associated with valid OAuth client", async () => {
-      const mockRequest = createRequest() as ApiAuthGuardRequest;
-      mockRequest.authMethod = AuthMethods.OAUTH_CLIENT;
-      mockRequest.organizationId = null;
-      const user = await strategy.oAuthClientStrategy(oAuthClient.id, oAuthClient.secret, mockRequest);
+      const user = await strategy.oAuthClientStrategy(oAuthClient.id, oAuthClient.secret);
       expect(user).toBeDefined();
       expect(user.id).toEqual(validOAuthUser.id);
-      expect(mockRequest.organizationId).toEqual(organization.id);
-    });
-
-    it("should return user associated with valid OAuth client for org2", async () => {
-      const mockRequest = createRequest() as ApiAuthGuardRequest;
-      mockRequest.authMethod = AuthMethods.OAUTH_CLIENT;
-      mockRequest.organizationId = null;
-      const user = await strategy.oAuthClientStrategy(oAuthClientTwo.id, oAuthClientTwo.secret, mockRequest);
-      expect(user).toBeDefined();
-      expect(user.id).toEqual(validOAuthUser.id);
-      expect(mockRequest.organizationId).toEqual(organizationTwo.id);
     });
 
     it("should throw 401 if api key is invalid", async () => {

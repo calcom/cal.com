@@ -70,6 +70,7 @@ export const useScheduleForEvent = ({
   selectedDate,
   orgSlug,
   teamMemberEmail,
+  fromRedirectOfNonOrgLink,
   isTeamEvent,
 }: {
   prefetchNextMonth?: boolean;
@@ -118,6 +119,5 @@ export const useScheduleForEvent = ({
     isError: schedule?.isError,
     isSuccess: schedule?.isSuccess,
     isLoading: schedule?.isLoading,
-    invalidate: schedule?.invalidate,
   };
 };

@@ -29,18 +29,6 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
       ],
       type: input.appType,
     },
-    include: {
-      user: {
-        select: {
-          name: true,
-        },
-      },
-      team: {
-        select: {
-          name: true,
-        },
-      },
-    },
   });
 
   // For app pages need to return which teams the user can install the app on

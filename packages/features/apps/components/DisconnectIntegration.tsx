@@ -9,7 +9,6 @@ import { DisconnectIntegrationComponent, showToast } from "@calcom/ui";
 
 export default function DisconnectIntegration(props: {
   credentialId: number;
-  teamId?: number | null;
   label?: string;
   trashIcon?: boolean;
   isGlobal?: boolean;
@@ -17,7 +16,7 @@ export default function DisconnectIntegration(props: {
   buttonProps?: ButtonProps;
 }) {
   const { t } = useLocale();
-  const { onSuccess, credentialId, teamId } = props;
+  const { onSuccess, credentialId } = props;
   const [modalOpen, setModalOpen] = useState(false);
   const utils = trpc.useUtils();
 
@@ -39,7 +38,7 @@ export default function DisconnectIntegration(props: {
 
   return (
     <DisconnectIntegrationComponent
-      onDeletionConfirmation={() => mutation.mutate({ id: credentialId, ...(teamId ? { teamId } : {}) })}
+      onDeletionConfirmation={() => mutation.mutate({ id: credentialId })}
       isModalOpen={modalOpen}
       onModalOpen={() => setModalOpen((prevValue) => !prevValue)}
       {...props}

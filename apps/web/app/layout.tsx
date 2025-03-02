@@ -7,10 +7,7 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { prepareRootMetadata } from "@lib/metadata";
-
-import { ssrInit } from "@server/lib/ssr";
 
 import "../styles/globals.css";
 import { SpeculationRules } from "./SpeculationRules";
@@ -59,7 +56,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
-  const ssr = await ssrInit(buildLegacyCtx(h, cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -78,6 +74,46 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
+        <script
+          nonce={nonce}
+          id="headScript"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.calNewLocale = "${locale}";
+              (function applyTheme() {
+                try {
+                  const appTheme = localStorage.getItem('app-theme');
+                  if (!appTheme) return;
+
+                  let bookingTheme, username;
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('booking-theme:')) {
+                      bookingTheme = localStorage.getItem(key);
+                      username = key.split("booking-theme:")[1];
+                      break;
+                    }
+                  }
+
+                  const onReady = () => {
+                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
+
+                    if (document.body) {
+                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
+                    } else {
+                      requestAnimationFrame(onReady);
+                    }
+                  };
+
+                  requestAnimationFrame(onReady);
+                } catch (e) {
+                  console.error('Error applying theme:', e);
+                }
+              })();
+            `,
+          }}
+        />
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
@@ -123,7 +159,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/insights",
           ]}
         />
-        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

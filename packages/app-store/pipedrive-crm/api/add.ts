@@ -5,11 +5,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { HttpError } from "@calcom/lib/http-error";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
-  const appKeys = await getAppKeysFromSlug(appConfig.slug);
+  const appKeys = await getAppKeysFromSlug(metadata.slug);
   let client_id = "";
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
   if (!client_id) return res.status(400).json({ message: "pipedrive client id missing." });
@@ -22,9 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const userId = user.id;
   await createDefaultInstallation({
-    appType: `${appConfig.slug}_other_calendar`,
+    appType: `${metadata.slug}_other_calendar`,
     user,
-    slug: appConfig.slug,
+    slug: metadata.slug,
     key: {},
     teamId: Number(teamId),
   });

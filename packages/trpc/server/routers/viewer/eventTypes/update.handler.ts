@@ -10,7 +10,7 @@ import {
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";

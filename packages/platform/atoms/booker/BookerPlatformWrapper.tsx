@@ -82,7 +82,6 @@ export type BookerPlatformWrapperAtomProps = Omit<
   bannerUrl?: string;
   onDryRunSuccess?: () => void;
   hostsLimit?: number;
-  preventEventTypeRedirect?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -110,7 +109,6 @@ export const BookerPlatformWrapper = (
     teamMemberEmail,
     crmAppSlug,
     crmOwnerRecordType,
-    preventEventTypeRedirect,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -359,7 +357,7 @@ export const BookerPlatformWrapper = (
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
 
-      if (!preventEventTypeRedirect && !!event.data?.successRedirectUrl) {
+      if (!!event.data?.successRedirectUrl) {
         window.location.href = event.data.successRedirectUrl;
       }
     },

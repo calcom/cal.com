@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";

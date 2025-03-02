@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";

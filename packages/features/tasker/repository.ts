@@ -104,20 +104,7 @@ export class Task {
     });
   }
 
-  static async retry({
-    taskId,
-    lastError,
-    minRetryIntervalMins,
-  }: {
-    taskId: string;
-    lastError?: string;
-    minRetryIntervalMins?: number | null;
-  }) {
-    const failedAttemptTime = new Date();
-    const updatedScheduledAt = minRetryIntervalMins
-      ? new Date(failedAttemptTime.getTime() + 1000 * 60 * minRetryIntervalMins)
-      : undefined;
-
+  static async retry(taskId: string, lastError?: string) {
     return db.task.update({
       where: {
         id: taskId,
@@ -125,10 +112,6 @@ export class Task {
       data: {
         attempts: { increment: 1 },
         lastError,
-        lastFailedAttemptAt: failedAttemptTime,
-        ...(updatedScheduledAt && {
-          scheduledAt: updatedScheduledAt,
-        }),
       },
     });
   }

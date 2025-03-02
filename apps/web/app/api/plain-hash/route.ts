@@ -1,11 +1,10 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
 import { createHmac } from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import prisma from "@calcom/prisma";
+import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -16,7 +15,6 @@ const responseSchema = z.object({
   appId: z.string(),
   fullName: z.string(),
   chatAvatarUrl: z.string(),
-  userTier: z.enum(["free", "teams", "enterprise"]),
 });
 
 async function handler() {
@@ -28,34 +26,6 @@ async function handler() {
   const secret = process.env.PLAIN_CHAT_HMAC_SECRET_KEY;
   if (!secret) {
     return NextResponse.json({ error: "Missing Plain Chat secret" }, { status: 500 });
-  }
-
-  // Get user's team membership info
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      teams: {
-        select: {
-          team: {
-            select: {
-              isOrganization: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  // Check if user is part of a team and determine tier
-  let userTier = "free";
-
-  if (user?.teams.length) {
-    const teamMemberships = user.teams;
-
-    const isEnterprise = teamMemberships.some((membership) => membership.team.isOrganization === true);
-    const isTeams = user?.teams.length > 0;
-
-    userTier = isEnterprise ? "enterprise" : isTeams ? "teams" : "free";
   }
 
   const hmac = createHmac("sha256", secret);
@@ -73,7 +43,6 @@ async function handler() {
     appId: process.env.NEXT_PUBLIC_PLAIN_CHAT_ID,
     fullName: session.user.name || "User",
     chatAvatarUrl: session.user.avatarUrl || "",
-    userTier,
   });
 
   return NextResponse.json(response);

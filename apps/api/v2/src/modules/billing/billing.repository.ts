@@ -38,7 +38,7 @@ export class BillingRepository {
 
   async updateBillingOverdue(subId: string, cusId: string, overdue: boolean) {
     try {
-      return this.dbWrite.prisma.platformBilling.updateMany({
+      return this.dbWrite.prisma.platformBilling.update({
         where: {
           subscriptionId: subId,
           customerId: cusId,

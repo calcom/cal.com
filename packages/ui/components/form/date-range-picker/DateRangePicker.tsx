@@ -16,7 +16,6 @@ type DatePickerWithRangeProps = {
   minDate?: Date | null;
   maxDate?: Date;
   withoutPopover?: boolean;
-  "data-testid"?: string;
 };
 
 export function DatePickerWithRange({
@@ -27,7 +26,6 @@ export function DatePickerWithRange({
   onDatesChange,
   disabled,
   withoutPopover,
-  "data-testid": testId,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
     if (dates?.endDate) {
@@ -52,7 +50,6 @@ export function DatePickerWithRange({
       onDayClick={(day) => handleDayClick(day)}
       numberOfMonths={1}
       disabled={disabled}
-      data-testid={testId}
     />
   );
 
@@ -85,9 +82,7 @@ export function DatePickerWithRange({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
-          sideOffset={4}
-          side="bottom"
-          avoidCollisions={false}>
+          sideOffset={4}>
           {calendar}
         </Popover.Content>
       </Popover.Root>

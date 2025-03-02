@@ -64,7 +64,7 @@ export const useBookingForm = ({
   };
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
-  const { values: initialValues, key } = useInitialFormValues({
+  const { initialValues, key } = useInitialFormValues({
     eventType: event,
     rescheduleUid,
     isRescheduling,

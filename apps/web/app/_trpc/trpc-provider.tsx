@@ -1,7 +1,6 @@
 "use client";
 
-import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HydrateClient } from "app/_trpc/HydrateClient";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
@@ -43,10 +42,9 @@ const isTRPCClientError = (cause: unknown): cause is TRPCClientError<AppRouter> 
 
 type Props = {
   children: React.ReactNode;
-  dehydratedState: DehydratedState;
 };
 
-export const TrpcProvider = ({ children, dehydratedState }: Props) => {
+export const TrpcProvider = ({ children }: Props) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -128,9 +126,7 @@ export const TrpcProvider = ({ children, dehydratedState }: Props) => {
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <HydrateClient state={dehydratedState}>{children}</HydrateClient>
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </trpc.Provider>
   );
 };

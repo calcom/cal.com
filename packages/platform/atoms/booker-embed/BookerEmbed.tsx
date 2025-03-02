@@ -25,7 +25,6 @@ export const BookerEmbed = (
         hostsLimit?: BookerPlatformWrapperAtomPropsForTeam["hostsLimit"];
         metadata?: BookerPlatformWrapperAtomPropsForTeam["metadata"];
         handleCreateBooking?: BookerPlatformWrapperAtomPropsForTeam["handleCreateBooking"];
-        preventEventTypeRedirect?: BookerPlatformWrapperAtomPropsForTeam["preventEventTypeRedirect"];
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {
         organizationId?: undefined;

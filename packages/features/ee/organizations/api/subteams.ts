@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({

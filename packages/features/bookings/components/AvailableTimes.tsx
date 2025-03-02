@@ -30,33 +30,17 @@ type TOnTimeSelect = (
   bookingUid?: string
 ) => void;
 
-type TOnTentativeTimeSelect = ({
-  time,
-  attendees,
-  seatsPerTimeSlot,
-  bookingUid,
-}: {
-  time: string;
-  attendees: number;
-  seatsPerTimeSlot?: number | null;
-  bookingUid?: string;
-}) => void;
-
 export type AvailableTimesProps = {
   slots: IGetAvailableSlots["slots"][string];
   showTimeFormatToggle?: boolean;
   className?: string;
-  // It is called when a slot is selected, but it is not a confirmation and a confirm button will be shown besides it.
-  onTentativeTimeSelect?: TOnTentativeTimeSelect;
-  unavailableTimeSlots?: string[];
 } & Omit<SlotItemProps, "slot">;
 
 type SlotItemProps = {
   slot: Slot;
   seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
-  onTimeSelect?: TOnTimeSelect;
-  onTentativeTimeSelect?: TOnTentativeTimeSelect;
+  onTimeSelect: TOnTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
@@ -68,7 +52,6 @@ type SlotItemProps = {
   skipConfirmStep?: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
-  unavailableTimeSlots?: string[];
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
 };
 
@@ -87,8 +70,6 @@ const SlotItem = ({
   shouldRenderCaptcha,
   watchedCfToken,
   handleSlotClick,
-  onTentativeTimeSelect,
-  unavailableTimeSlots = [],
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -127,20 +108,6 @@ const SlotItem = ({
     offset,
   });
 
-  const onButtonClick = () => {
-    if (handleSlotClick) {
-      handleSlotClick(slot, isOverlapping);
-    }
-    if (onTentativeTimeSelect) {
-      onTentativeTimeSelect({
-        time: slot.time,
-        attendees: slot.attendees || 0,
-        seatsPerTimeSlot,
-      });
-    }
-  };
-
-  const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
   return (
     <AnimatePresence>
       <div className="flex gap-2">
@@ -153,13 +120,12 @@ const SlotItem = ({
             loadingStates?.creatingRecurringBooking ||
             isVerificationCodeSending ||
             loadingStates?.creatingInstantBooking ||
-            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken) ||
-            isTimeslotUnavailable
+            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken)
           }
           data-testid="time"
           data-disabled={bookingFull}
           data-time={slot.time}
-          onClick={onButtonClick}
+          onClick={() => handleSlotClick && handleSlotClick(slot, isOverlapping)}
           className={classNames(
             `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
@@ -201,12 +167,10 @@ const SlotItem = ({
                   StartIcon={layout === "column_view" ? "chevron-right" : undefined}
                   type="button"
                   onClick={() =>
-                    onTimeSelect &&
                     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
                   }
                   data-testid="skip-confirm-book-button"
                   disabled={
-                    isTimeslotUnavailable ||
                     (!!shouldRenderCaptcha && !watchedCfToken) ||
                     loadingStates?.creatingBooking ||
                     loadingStates?.creatingRecurringBooking ||
@@ -220,12 +184,13 @@ const SlotItem = ({
                     isVerificationCodeSending ||
                     loadingStates?.creatingInstantBooking
                   }>
-                  {(() => {
-                    if (layout === "column_view") return "";
-                    if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
-                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_email_button");
-                    return isPaidEvent ? t("pay_and_book") : t("confirm");
-                  })()}
+                  {layout == "column_view"
+                    ? ""
+                    : renderConfirmNotVerifyEmailButtonCond
+                    ? isPaidEvent
+                      ? t("pay_and_book")
+                      : t("confirm")
+                    : t("verify_email_email_button")}
                 </Button>
               </m.div>
             </HoverCard.Trigger>

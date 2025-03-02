@@ -11,8 +11,7 @@ module.exports = {
      * These styles will only be added in storybook, and will NOT
      * end up in the final css bundle of apps using the components.
      */
-    [require.resolve("postcss-pseudo-companion-classes")]: {
-      prefix: "sb-pseudo--",
+    "postcss-pseudo-companion-classes": {
       prefix: "sb-pseudo--",
       // We have to keep a restrictTo list here, because otherwise
       // this library will have issues processing tailwind's \: prefixed classes

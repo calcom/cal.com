@@ -58,5 +58,5 @@ export const projectMutationHandler = async ({ ctx, input }: ProjectMutationHand
     data: { key: { ...credentialKey, projectId: Number(projectId), scheduleId } },
   });
 
-  return { message: "Updated project successfully" };
+  return { messsage: "Updated project successfully" };
 };

@@ -47,7 +47,7 @@ type GetTeamOrOrgArg<TeamSelect extends Prisma.TeamSelect> = {
 const log = logger.getSubLogger({ prefix: ["repository", "team"] });
 
 /**
- * Gets the team or organization with the given slug or id reliably along with parsed metadata.
+ * Get's the team or organization with the given slug or id reliably along with parsed metadata.
  */
 async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   lookupBy,

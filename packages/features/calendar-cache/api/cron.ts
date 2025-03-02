@@ -1,8 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 

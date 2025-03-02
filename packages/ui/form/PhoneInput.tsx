@@ -83,12 +83,15 @@ function BasePhoneInputWeb({
   value,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
+  const defaultCountry = useDefaultCountry();
+
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
+      country={defaultCountry}
       inputProps={{
         name: name,
         required: rest.required,

@@ -98,13 +98,14 @@ export const handleResponse = async ({
 
     const settings = RoutingFormSettings.parse(form.settings);
     let userWithEmails: string[] = [];
-    if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
-      const whereClause: Prisma.MembershipWhereInput = { teamId: form.teamId };
-      if (!settings?.sendToAll) {
-        whereClause.userId = { in: settings.sendUpdatesTo };
-      }
+    if (form.teamId && settings?.sendUpdatesTo?.length) {
       const userEmails = await prisma.membership.findMany({
-        where: whereClause,
+        where: {
+          teamId: form.teamId,
+          userId: {
+            in: settings.sendUpdatesTo,
+          },
+        },
         select: {
           user: {
             select: {

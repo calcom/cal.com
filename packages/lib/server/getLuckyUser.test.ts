@@ -686,13 +686,13 @@ describe("maximize availability and weights", () => {
         userId: 1,
         createdAt: dayjs().startOf("month").add(10, "day").toDate(),
       }),
-      // happened during OOO
+      // happend during OOO
       buildBooking({
         id: 2,
         userId: 2,
         createdAt: dayjs().startOf("month").add(5, "hour").toDate(),
       }),
-      // happened during OOO
+      // happend during OOO
       buildBooking({
         id: 3,
         userId: 2,

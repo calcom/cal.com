@@ -3,7 +3,8 @@ import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { ApiAuthStrategy } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { NextAuthStrategy } from "@/modules/auth/strategies/next-auth/next-auth.strategy";
+import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -14,27 +15,14 @@ import { Membership, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { ApiAuthMockStrategy } from "test/mocks/api-auth-mock.strategy";
+import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
+import { withNextAuth } from "test/utils/withNextAuth";
 
-import {
-  APPS_READ,
-  APPS_WRITE,
-  BOOKING_READ,
-  BOOKING_WRITE,
-  EVENT_TYPE_READ,
-  EVENT_TYPE_WRITE,
-  PROFILE_READ,
-  PROFILE_WRITE,
-  SCHEDULE_READ,
-  SCHEDULE_WRITE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
-import type { CreateOAuthClientInput, UpdateOAuthClientInput } from "@calcom/platform-types";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { CreateOAuthClientInput } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("OAuth Clients Endpoints", () => {
@@ -84,15 +72,15 @@ describe("OAuth Clients Endpoints", () => {
     const userEmail = `oauth-clients-user-${randomString()}@api.com`;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
+      const moduleRef = await withNextAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
           imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
         })
       ).compile();
-      const strategy = moduleRef.get(ApiAuthStrategy);
-      expect(strategy).toBeInstanceOf(ApiAuthMockStrategy);
+      const strategy = moduleRef.get(NextAuthStrategy);
+      expect(strategy).toBeInstanceOf(NextAuthMockStrategy);
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);
@@ -135,7 +123,6 @@ describe("OAuth Clients Endpoints", () => {
     let membershipFixtures: MembershipRepositoryFixture;
     let teamFixtures: TeamRepositoryFixture;
     let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
-    let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
 
     let user: User;
     let org: Team;
@@ -143,20 +130,19 @@ describe("OAuth Clients Endpoints", () => {
     const userEmail = `oauth-clients-user-${randomString()}@api.com`;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
+      const moduleRef = await withNextAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
           imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
         })
       ).compile();
-      const strategy = moduleRef.get(ApiAuthStrategy);
-      expect(strategy).toBeInstanceOf(ApiAuthMockStrategy);
+      const strategy = moduleRef.get(NextAuthStrategy);
+      expect(strategy).toBeInstanceOf(NextAuthMockStrategy);
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);
       platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
-      oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
 
       user = await usersFixtures.create({
         email: userEmail,
@@ -232,17 +218,17 @@ describe("OAuth Clients Endpoints", () => {
         membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
       });
 
-      it(`/POST`, async () => {
+      it(`/POST`, () => {
         const body: CreateOAuthClientInput = {
           name: oAuthClientName,
           redirectUris: ["http://test-oauth-client.com"],
-          permissions: ["BOOKING_READ", "PROFILE_WRITE"],
+          permissions: 32,
         };
         return request(app.getHttpServer())
           .post("/api/v2/oauth-clients")
           .send(body)
           .expect(201)
-          .then(async (response) => {
+          .then((response) => {
             const responseBody: ApiSuccessResponse<{ clientId: string; clientSecret: string }> =
               response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
@@ -253,9 +239,6 @@ describe("OAuth Clients Endpoints", () => {
               clientId: responseBody.data.clientId,
               clientSecret: responseBody.data.clientSecret,
             };
-            const dbOAuthClient = await oAuthClientsRepositoryFixture.get(client.clientId);
-            expect(dbOAuthClient).toBeDefined();
-            expect(dbOAuthClient?.permissions).toEqual(BOOKING_READ + PROFILE_WRITE);
           });
       });
       it(`/GET`, () => {
@@ -308,18 +291,7 @@ describe("OAuth Clients Endpoints", () => {
       let membership: Membership;
       let client: { clientId: string; clientSecret: string };
       const oAuthClientName = `oauth-clients-owner-${randomString()}`;
-      const oAuthClientPermissions: CreateOAuthClientInput["permissions"] = [
-        "EVENT_TYPE_READ",
-        "EVENT_TYPE_WRITE",
-        "BOOKING_READ",
-        "BOOKING_WRITE",
-        "SCHEDULE_READ",
-        "SCHEDULE_WRITE",
-        "APPS_READ",
-        "APPS_WRITE",
-        "PROFILE_READ",
-        "PROFILE_WRITE",
-      ];
+      const oAuthClientPermissions = 32;
 
       beforeAll(async () => {
         membership = await membershipFixtures.addUserToOrg(user, org, "OWNER", true);
@@ -329,13 +301,13 @@ describe("OAuth Clients Endpoints", () => {
         const body: CreateOAuthClientInput = {
           name: oAuthClientName,
           redirectUris: ["http://test-oauth-client.com"],
-          permissions: ["*"],
+          permissions: 32,
         };
         return request(app.getHttpServer())
           .post("/api/v2/oauth-clients")
           .send(body)
           .expect(201)
-          .then(async (response) => {
+          .then((response) => {
             const responseBody: ApiSuccessResponse<{ clientId: string; clientSecret: string }> =
               response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
@@ -346,20 +318,6 @@ describe("OAuth Clients Endpoints", () => {
               clientId: responseBody.data.clientId,
               clientSecret: responseBody.data.clientSecret,
             };
-            const dbOAuthClient = await oAuthClientsRepositoryFixture.get(client.clientId);
-            expect(dbOAuthClient).toBeDefined();
-            expect(dbOAuthClient?.permissions).toEqual(
-              EVENT_TYPE_READ +
-                EVENT_TYPE_WRITE +
-                BOOKING_READ +
-                BOOKING_WRITE +
-                SCHEDULE_READ +
-                SCHEDULE_WRITE +
-                APPS_READ +
-                APPS_WRITE +
-                PROFILE_READ +
-                PROFILE_WRITE
-            );
           });
       });
 

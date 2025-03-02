@@ -6,11 +6,10 @@ import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
 
-import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useCreateOAuthClient";
+import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
@@ -36,26 +35,27 @@ export default function CreateOAuthClient() {
   });
 
   const onSubmit = (data: FormValues) => {
-    const userPermissions: Array<keyof typeof PERMISSION_MAP> = [];
+    let userPermissions = 0;
     const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
 
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
       const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
       const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
-
-      if (data[`${entityKey}Read`]) userPermissions.push(`${entity}_READ`);
-      if (data[`${entityKey}Write`]) userPermissions.push(`${entity}_WRITE`);
+      const read = PERMISSIONS_GROUPED_MAP[entity].read;
+      const write = PERMISSIONS_GROUPED_MAP[entity].write;
+      if (data[`${entityKey}Read`]) userPermissions |= read;
+      if (data[`${entityKey}Write`]) userPermissions |= write;
     });
 
     save({
       name: data.name,
       permissions: userPermissions,
+      // logo: data.logo,
       redirectUris: userRedirectUris,
       bookingRedirectUri: data.bookingRedirectUri,
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
-      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
     });
   };
 

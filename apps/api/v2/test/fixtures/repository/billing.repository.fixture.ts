@@ -11,14 +11,14 @@ export class PlatformBillingRepositoryFixture {
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
-  async create(orgId: number, plan?: string) {
+  async create(orgId: number) {
     const randomString = Date.now().toString(36);
     return this.prismaWriteClient.platformBilling.create({
       data: {
         id: orgId,
         customerId: `cus_123_${randomString}`,
         subscriptionId: `sub_123_${randomString}`,
-        plan: plan || "STARTER",
+        plan: "STARTER",
       },
     });
   }
@@ -27,19 +27,6 @@ export class PlatformBillingRepositoryFixture {
     return this.prismaWriteClient.platformBilling.findFirst({
       where: {
         id: orgId,
-      },
-      include: {
-        managerBilling: true,
-        managedBillings: true,
-      },
-    });
-  }
-
-  async getByCustomerSubscriptionIds(customerId: string, subscriptionId: string) {
-    return this.prismaWriteClient.platformBilling.findMany({
-      where: {
-        customerId,
-        subscriptionId,
       },
     });
   }

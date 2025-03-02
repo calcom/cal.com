@@ -31,40 +31,29 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
     <Command data-testid={`single-select-options-${column.id}`}>
       <CommandInput placeholder={t("search")} />
       <CommandList>
-        <CommandEmpty>{t("no_options_available")}</CommandEmpty>
-        {column.options.map((option, index) => {
+        <CommandEmpty>{t("no_options_found")}</CommandEmpty>
+        {column.options.map((option) => {
           if (!option) return null;
-          const {
-            label: optionLabel,
-            value: optionValue,
-            section,
-          } = typeof option === "string" ? { label: option, value: option, section: undefined } : option;
+          const { label: optionLabel, value: optionValue } =
+            typeof option === "string" ? { label: option, value: option } : option;
 
           return (
-            <>
-              {section && index !== 0 && <hr className="border-subtle my-1" />}
-              {section && (
-                <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
-                  {section}
-                </div>
-              )}
-              <CommandItem
-                key={optionValue}
-                onSelect={() => {
-                  updateFilter(column.id, { type: ColumnFilterType.SINGLE_SELECT, data: optionValue });
-                }}>
-                <div
-                  className={classNames(
-                    "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                    filterValue?.data === optionValue ? "bg-primary" : "opacity-50"
-                  )}>
-                  {filterValue?.data === optionValue && (
-                    <Icon name="check" className="text-primary-foreground h-4 w-4" />
-                  )}
-                </div>
-                {optionLabel}
-              </CommandItem>
-            </>
+            <CommandItem
+              key={optionValue}
+              onSelect={() => {
+                updateFilter(column.id, { type: ColumnFilterType.SINGLE_SELECT, data: optionValue });
+              }}>
+              <div
+                className={classNames(
+                  "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
+                  filterValue?.data === optionValue ? "bg-primary" : "opacity-50"
+                )}>
+                {filterValue?.data === optionValue && (
+                  <Icon name="check" className="text-primary-foreground h-4 w-4" />
+                )}
+              </div>
+              {optionLabel}
+            </CommandItem>
           );
         })}
       </CommandList>

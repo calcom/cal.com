@@ -246,7 +246,7 @@ const ServerPage = async () => {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
   return (
-    <PageWrapper requiresLicense={false} nonce={nonce}>
+    <PageWrapper requiresLicense={false} nonce={nonce} themeBasis={null}>
       <NotFound t={t} headers={h} />
     </PageWrapper>
   );

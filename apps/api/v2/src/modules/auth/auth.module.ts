@@ -1,4 +1,4 @@
-import { ApiKeysModule } from "@/modules/api-keys/api-keys.module";
+import { ApiKeyModule } from "@/modules/api-key/api-key.module";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { ApiAuthStrategy } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
@@ -17,7 +17,7 @@ import { PassportModule } from "@nestjs/passport";
   imports: [
     PassportModule,
     RedisModule,
-    ApiKeysModule,
+    ApiKeyModule,
     UsersModule,
     MembershipsModule,
     TokensModule,

@@ -91,7 +91,5 @@ export const useSlots = (
     slotReservationId,
     handleReserveSlot,
     handleRemoveSlot,
-    // TODO: implement slot no longer available feature
-    allSelectedTimeslots: [],
   };
 };

@@ -13,7 +13,7 @@ export type TDependencyData = {
 }[];
 
 /**
- * Get App metadata either using dirName or slug
+ * Get App metdata either using dirName or slug
  */
 export async function getAppWithMetadata(app: { dirName: string } | { slug: string }) {
   let appMetadata: App | null;

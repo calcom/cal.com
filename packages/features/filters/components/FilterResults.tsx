@@ -1,3 +1,8 @@
+import type { RouterOutputs } from "@calcom/trpc/react";
+
+export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
+export type IEventTypeFilter = IEventTypesFilters[0];
+
 export function FilterResults({
   queryRes,
   SkeletonLoader,

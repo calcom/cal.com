@@ -1,12 +1,12 @@
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
+import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
+import { User, CreationSource } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
@@ -16,13 +16,16 @@ export class OAuthClientUsersService {
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly schedulesService: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly organizationsTeamsService: OrganizationsTeamsService
   ) {}
 
-  async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
-    const oAuthClientId = oAuthClient.id;
-    const organizationId = oAuthClient.organizationId;
-
+  async createOauthClientUser(
+    oAuthClientId: string,
+    body: CreateManagedUserInput,
+    isPlatformManaged: boolean,
+    organizationId?: number
+  ) {
     const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
     if (existingUser) {
       throw new ConflictException(
@@ -32,9 +35,7 @@ export class OAuthClientUsersService {
 
     let user: User;
     if (!organizationId) {
-      throw new BadRequestException(
-        "You cannot create a managed user outside of an organization - the OAuth client does not belong to any organization."
-      );
+      throw new BadRequestException("You cannot create a managed user outside of an organization");
     } else {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
@@ -56,7 +57,7 @@ export class OAuthClientUsersService {
               autoAccept: true,
             },
           },
-          isPlatformManaged: true,
+          isPlatformManaged,
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
@@ -78,9 +79,7 @@ export class OAuthClientUsersService {
       user.id
     );
 
-    if (oAuthClient.areDefaultEventTypesEnabled) {
-      await this.eventTypesService.createUserDefaultEventTypes(user.id);
-    }
+    await this.eventTypesService.createUserDefaultEventTypes(user.id);
 
     if (body.timeZone) {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);

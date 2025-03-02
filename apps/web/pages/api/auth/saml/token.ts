@@ -1,8 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 async function postHandler(req: NextApiRequest) {
   const { oauthController } = await jackson();

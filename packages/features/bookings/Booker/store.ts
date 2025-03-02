@@ -102,8 +102,6 @@ export type BookerStore = {
    */
   selectedTimeslot: string | null;
   setSelectedTimeslot: (timeslot: string | null) => void;
-  tentativeSelectedTimeslots: string[];
-  setTentativeSelectedTimeslots: (slots: string[]) => void;
   /**
    * Number of recurring events to create.
    */
@@ -390,10 +388,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   bookingData: null,
   bookingUid: null,
   selectedTimeslot: getQueryParam("slot") || null,
-  tentativeSelectedTimeslots: [],
-  setTentativeSelectedTimeslots: (tentativeSelectedTimeslots: string[]) => {
-    set({ tentativeSelectedTimeslots });
-  },
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
     updateQueryParam("slot", selectedTimeslot ?? "", false);

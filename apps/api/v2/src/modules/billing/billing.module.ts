@@ -3,7 +3,6 @@ import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingController } from "@/modules/billing/controllers/billing.controller";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { BillingService } from "@/modules/billing/services/billing.service";
-import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -27,14 +26,8 @@ import { Module } from "@nestjs/common";
     }),
     UsersModule,
   ],
-  providers: [
-    BillingConfigService,
-    BillingService,
-    BillingRepository,
-    BillingProcessor,
-    ManagedOrganizationsBillingService,
-  ],
-  exports: [BillingService, BillingRepository, ManagedOrganizationsBillingService],
+  providers: [BillingConfigService, BillingService, BillingRepository, BillingProcessor],
+  exports: [BillingService, BillingRepository],
   controllers: [BillingController],
 })
 export class BillingModule {}

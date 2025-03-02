@@ -9,7 +9,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService";
 
-import appConfig from "../config.json";
+import { metadata } from "../metadata.generated";
 
 type ContactSearchResult = {
   status: string;
@@ -42,7 +42,7 @@ export default class PipedriveCrmService implements CRM {
     this.revertApiKey = process.env.REVERT_API_KEY || "";
     this.revertApiUrl = process.env.REVERT_API_URL || "https://api.revert.dev/";
     this.tenantId = String(credential.teamId ? credential.teamId : credential.userId); // Question: Is this a reasonable assumption to be made? Get confirmation on the exact field to be used here.
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${metadata.slug}`] });
   }
 
   async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
@@ -184,7 +184,7 @@ export default class PipedriveCrmService implements CRM {
       return Promise.resolve({
         uid: meetingEvent.result.id,
         id: meetingEvent.result.id,
-        type: appConfig.slug,
+        type: metadata.slug,
         password: "",
         url: "",
         additionalInfo: { contacts, meetingEvent },
@@ -205,7 +205,7 @@ export default class PipedriveCrmService implements CRM {
       return Promise.resolve({
         uid: meetingEvent.result.id,
         id: meetingEvent.result.id,
-        type: appConfig.slug,
+        type: metadata.slug,
         password: "",
         url: "",
         additionalInfo: { meetingEvent },

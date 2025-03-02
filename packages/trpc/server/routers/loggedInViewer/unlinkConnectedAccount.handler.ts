@@ -23,7 +23,7 @@ const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
       providerAccountId: user.identityProviderId || "",
     });
   } catch {
-    // Fail silently if we don't have a record in the account table
+    // Fail silenty if we don't have an record in the account table
   }
   // Fall back to the default identity provider
   const _user = await prisma.user.update({

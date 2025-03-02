@@ -62,10 +62,7 @@ function AddFilterButtonComponent<TData>(
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
               {filterableColumns.map((column) => {
-                const showHiddenIndicator =
-                  !table.getColumn(column.id)?.getIsVisible() &&
-                  table.initialState.columnVisibility?.[column.id] !== false;
-
+                const isVisible = table.getColumn(column.id)?.getIsVisible();
                 if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem
@@ -74,7 +71,7 @@ function AddFilterButtonComponent<TData>(
                     className="flex items-center justify-between px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>
-                    {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}
+                    {!isVisible && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}
                   </CommandItem>
                 );
               })}

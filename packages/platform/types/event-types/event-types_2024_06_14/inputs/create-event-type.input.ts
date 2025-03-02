@@ -40,7 +40,6 @@ import {
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
-  UrlFieldInput_2024_06_14,
 } from "./booking-fields.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
@@ -99,7 +98,6 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   CheckboxGroupFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
-  UrlFieldInput_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
@@ -193,7 +191,6 @@ export class CreateEventTypeInput_2024_06_14 {
       { $ref: getSchemaPath(CheckboxGroupFieldInput_2024_06_14) },
       { $ref: getSchemaPath(RadioGroupFieldInput_2024_06_14) },
       { $ref: getSchemaPath(BooleanFieldInput_2024_06_14) },
-      { $ref: getSchemaPath(UrlFieldInput_2024_06_14) },
     ],
     type: "array",
   })

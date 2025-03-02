@@ -13,12 +13,7 @@ import { entries } from "@calcom/prisma/zod-utils";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import {
-  bookTimeSlot,
-  confirmReschedule,
-  createUserWithLimits,
-  expectSlotNotAllowedToBook,
-} from "./lib/testUtils";
+import { bookTimeSlot, confirmReschedule, createUserWithLimits } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -136,7 +131,9 @@ test.describe("Booking limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await expectSlotNotAllowedToBook(page);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
+
+        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
       });
 
       await test.step("but can reschedule", async () => {
@@ -269,8 +266,9 @@ test.describe("Booking limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
 
-        await expectSlotNotAllowedToBook(page);
+        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 5000 });
       });
 
       await test.step(`month after booking`, async () => {
@@ -359,7 +357,9 @@ test.describe("Duration limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await expectSlotNotAllowedToBook(page);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
+
+        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
       });
 
       await test.step(`month after booking`, async () => {
@@ -452,7 +452,9 @@ test.describe("Duration limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await expectSlotNotAllowedToBook(page);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
+
+        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
       });
 
       await test.step(`month after booking`, async () => {

@@ -164,12 +164,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         select: {
           id: true,
           username: true,
-          profiles: {
-            select: {
-              organizationId: true,
-              username: true,
-            },
-          },
           email: true,
           avatarUrl: true,
           timeZone: true,
@@ -236,7 +230,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
       return {
         id: user.id,
-        username: user.profiles[0]?.username || user.username,
+        username: user.username,
         email: user.email,
         timeZone: user.timeZone,
         role: membership.role,

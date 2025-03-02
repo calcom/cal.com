@@ -1,6 +1,5 @@
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
-import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import type { UserPermissionRole } from "@calcom/prisma/enums";
@@ -32,9 +31,11 @@ const filterWebhooks = (webhook: Webhook) => {
 export class WebhookRepository {
   static async getAllWebhooksByUserId({
     userId,
+    organizationId,
     userRole,
   }: {
     userId: number;
+    organizationId?: number | null;
     userRole?: UserPermissionRole;
   }) {
     const user = await prisma.user.findUnique({
@@ -66,7 +67,6 @@ export class WebhookRepository {
                   },
                 },
                 webhooks: true,
-                logoUrl: true,
               },
             },
           },
@@ -81,15 +81,15 @@ export class WebhookRepository {
     let userWebhooks = user.webhooks;
     userWebhooks = userWebhooks.filter(filterWebhooks);
     let webhookGroups: WebhookGroup[] = [];
+    const bookerUrl = await getBookerBaseUrl(organizationId ?? null);
 
+    const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
     webhookGroups.push({
       teamId: null,
       profile: {
         slug: user.username,
         name: user.name,
-        image: getUserAvatarUrl({
-          avatarUrl: user.avatarUrl,
-        }),
+        image,
       },
       webhooks: userWebhooks,
       metadata: {
@@ -115,7 +115,7 @@ export class WebhookRepository {
               ? `/team`
               : `${membership.team.slug}`
             : null,
-          image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
+          image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
         },
         metadata: {
           readOnly:
@@ -141,7 +141,7 @@ export class WebhookRepository {
         profile: {
           slug: "Platform",
           name: "Platform",
-          image: getPlaceholderAvatar(null, "Platform"),
+          image,
         },
         webhooks: platformWebhooks,
         metadata: {

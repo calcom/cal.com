@@ -2,8 +2,7 @@ import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { GOOGLE_CALENDAR_SCOPES, SCOPE_USERINFO_PROFILE, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";

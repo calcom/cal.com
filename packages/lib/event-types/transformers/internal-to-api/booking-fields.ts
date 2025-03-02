@@ -23,7 +23,6 @@ import type {
   SelectFieldOutput_2024_06_14,
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
-  UrlFieldOutput_2024_06_14,
 } from "@calcom/platform-types";
 
 export function transformBookingFieldsInternalToApi(
@@ -267,17 +266,6 @@ export function transformBookingFieldsInternalToApi(
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           } satisfies RadioGroupFieldOutput_2024_06_14;
-        case "url":
-          return {
-            isDefault: false,
-            type: field.type,
-            slug: field.name,
-            label: field.label || "",
-            required: !!field.required,
-            placeholder: field.placeholder,
-            disableOnPrefill: !!field.disableOnPrefill,
-            hidden: !!field.hidden,
-          } satisfies UrlFieldOutput_2024_06_14;
         default:
           return {
             type: "unknown",
@@ -302,7 +290,6 @@ const CustomFieldTypeEnum = z.enum([
   "checkbox",
   "radio",
   "radioInput",
-  "url",
 ]);
 
 const CustomFieldsSchema = z.object({

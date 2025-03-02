@@ -732,7 +732,7 @@
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options": {
       "post": {
-        "operationId": "OrganizationsAttributesOptionsController_createOrganizationAttributeOption",
+        "operationId": "OrganizationsOptionsAttributesController_createOrganizationAttributeOption",
         "summary": "Create an attribute option",
         "parameters": [
           {
@@ -777,7 +777,7 @@
         "tags": ["Orgs / Attributes / Options"]
       },
       "get": {
-        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptions",
+        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptions",
         "summary": "Get all attribute options",
         "parameters": [
           {
@@ -814,7 +814,7 @@
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}": {
       "delete": {
-        "operationId": "OrganizationsAttributesOptionsController_deleteOrganizationAttributeOption",
+        "operationId": "OrganizationsOptionsAttributesController_deleteOrganizationAttributeOption",
         "summary": "Delete an attribute option",
         "parameters": [
           {
@@ -857,7 +857,7 @@
         "tags": ["Orgs / Attributes / Options"]
       },
       "patch": {
-        "operationId": "OrganizationsAttributesOptionsController_updateOrganizationAttributeOption",
+        "operationId": "OrganizationsOptionsAttributesController_updateOrganizationAttributeOption",
         "summary": "Update an attribute option",
         "parameters": [
           {
@@ -912,7 +912,7 @@
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}": {
       "post": {
-        "operationId": "OrganizationsAttributesOptionsController_assignOrganizationAttributeOptionToUser",
+        "operationId": "OrganizationsOptionsAttributesController_assignOrganizationAttributeOptionToUser",
         "summary": "Assign an attribute to a user",
         "parameters": [
           {
@@ -957,7 +957,7 @@
         "tags": ["Orgs / Attributes / Options"]
       },
       "get": {
-        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptionsForUser",
+        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptionsForUser",
         "summary": "Get all attribute options for a user",
         "parameters": [
           {
@@ -994,7 +994,7 @@
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}/{attributeOptionId}": {
       "delete": {
-        "operationId": "OrganizationsAttributesOptionsController_unassignOrganizationAttributeOptionFromUser",
+        "operationId": "OrganizationsOptionsAttributesController_unassignOrganizationAttributeOptionFromUser",
         "summary": "Unassign an attribute from a user",
         "parameters": [
           {
@@ -1543,173 +1543,6 @@
           }
         },
         "tags": ["Orgs / Memberships"]
-      }
-    },
-    "/v2/organizations/{orgId}/organizations": {
-      "post": {
-        "operationId": "OrganizationsOrganizationsController_createOrganization",
-        "summary": "Create an organization within an organization",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrganizationInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateManagedOrganizationOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
-      },
-      "get": {
-        "operationId": "OrganizationsOrganizationsController_getOrganizations",
-        "summary": "Get all organizations within an organization",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationsOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
-      }
-    },
-    "/v2/organizations/{orgId}/organizations/{managedOrganizationId}": {
-      "get": {
-        "operationId": "OrganizationsOrganizationsController_getOrganization",
-        "summary": "Get an organization within an organization",
-        "parameters": [
-          {
-            "name": "managedOrganizationId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
-      },
-      "patch": {
-        "operationId": "OrganizationsOrganizationsController_updateOrganization",
-        "summary": "Update an organization within an organization",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "managedOrganizationId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOrganizationInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
-      },
-      "delete": {
-        "operationId": "OrganizationsOrganizationsController_deleteOrganization",
-        "summary": "Delete an organization within an organization",
-        "parameters": [
-          {
-            "name": "managedOrganizationId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
       }
     },
     "/v2/organizations/{orgId}/schedules": {
@@ -2589,13 +2422,13 @@
         "tags": ["Orgs / Teams / Memberships"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses": {
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routing}-formId/responses": {
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",
         "summary": "Get routing form responses",
         "parameters": [
           {
-            "name": "routingFormId",
+            "name": "routing-formId",
             "required": true,
             "in": "path",
             "schema": {
@@ -3235,47 +3068,6 @@
           }
         },
         "tags": ["Orgs / Webhooks"]
-      }
-    },
-    "/v2/api-keys/refresh": {
-      "post": {
-        "operationId": "ApiKeysController_refresh",
-        "summary": "Refresh API Key",
-        "description": "Generate a new API key and delete the current one. Provide API key to refresh as a Bearer token in the Authorization header (e.g. \"Authorization: Bearer <apiKey>\").",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "Bearer <apiKey>",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshApiKeyInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RefreshApiKeyOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Api Keys"]
       }
     },
     "/v2/bookings": {
@@ -4994,192 +4786,6 @@
           }
         },
         "tags": ["Me"]
-      }
-    },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/managed-users": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
       }
     },
     "/v2/schedules": {
@@ -7151,24 +6757,7 @@
             }
           },
           "permissions": {
-            "type": "array",
-            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]. Use [\"*\"] to grant all permissions.",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EVENT_TYPE_READ",
-                "EVENT_TYPE_WRITE",
-                "BOOKING_READ",
-                "BOOKING_WRITE",
-                "SCHEDULE_READ",
-                "SCHEDULE_WRITE",
-                "APPS_READ",
-                "APPS_WRITE",
-                "PROFILE_READ",
-                "PROFILE_WRITE",
-                "*"
-              ]
-            }
+            "type": "number"
           },
           "bookingRedirectUri": {
             "type": "string"
@@ -7181,16 +6770,11 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
-          },
-          "areDefaultEventTypesEnabled": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
           }
         },
         "required": ["name", "redirectUris", "permissions"]
       },
-      "CreateOAuthClientOutput": {
+      "DataDto": {
         "type": "object",
         "properties": {
           "clientId": {
@@ -7219,7 +6803,7 @@
             },
             "allOf": [
               {
-                "$ref": "#/components/schemas/CreateOAuthClientOutput"
+                "$ref": "#/components/schemas/DataDto"
               }
             ]
           }
@@ -7242,27 +6826,12 @@
             "example": "secretValue"
           },
           "permissions": {
-            "type": "array",
-            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EVENT_TYPE_READ",
-                "EVENT_TYPE_WRITE",
-                "BOOKING_READ",
-                "BOOKING_WRITE",
-                "SCHEDULE_READ",
-                "SCHEDULE_WRITE",
-                "APPS_READ",
-                "APPS_WRITE",
-                "PROFILE_READ",
-                "PROFILE_WRITE"
-              ]
-            },
-            "example": ["BOOKING_READ", "BOOKING_WRITE"]
+            "type": "number",
+            "example": 3
           },
           "logo": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -7280,40 +6849,9 @@
             "format": "date-time",
             "type": "string",
             "example": "2024-03-23T08:33:21.851Z"
-          },
-          "areEmailsEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "areDefaultEventTypesEnabled": {
-            "type": "boolean",
-            "example": true,
-            "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
-          },
-          "bookingRedirectUri": {
-            "type": "string",
-            "example": "https://example.com/booking-redirect"
-          },
-          "bookingCancelRedirectUri": {
-            "type": "string",
-            "example": "https://example.com/booking-cancel"
-          },
-          "bookingRescheduleRedirectUri": {
-            "type": "string",
-            "example": "https://example.com/booking-reschedule"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "secret",
-          "permissions",
-          "redirectUris",
-          "organizationId",
-          "createdAt",
-          "areEmailsEnabled",
-          "areDefaultEventTypesEnabled"
-        ]
+        "required": ["id", "name", "secret", "permissions", "redirectUris", "organizationId", "createdAt"]
       },
       "GetOAuthClientsResponseDto": {
         "type": "object",
@@ -7372,10 +6910,6 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
-          },
-          "areDefaultEventTypesEnabled": {
-            "type": "boolean",
-            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
           }
         }
       },
@@ -7388,46 +6922,6 @@
           }
         },
         "required": ["refreshToken"]
-      },
-      "RefreshApiKeyInput": {
-        "type": "object",
-        "properties": {
-          "apiKeyDaysValid": {
-            "type": "number",
-            "minimum": 1,
-            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
-            "example": 60,
-            "default": 30
-          },
-          "apiKeyNeverExpires": {
-            "type": "boolean",
-            "description": "If true, organization api key never expires.",
-            "example": true
-          }
-        }
-      },
-      "ApiKeyOutput": {
-        "type": "object",
-        "properties": {
-          "apiKey": {
-            "type": "string"
-          }
-        },
-        "required": ["apiKey"]
-      },
-      "RefreshApiKeyOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ApiKeyOutput"
-          }
-        },
-        "required": ["status", "data"]
       },
       "InputAddressLocation_2024_06_14": {
         "type": "object",
@@ -7892,41 +7386,6 @@
           }
         },
         "required": ["type", "slug", "label", "required", "hidden"]
-      },
-      "UrlFieldInput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "url",
-            "description": "only allowed value for type is `url`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please enter your text"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "e.g., Enter url here"
-          },
-          "disableOnPrefill": {
-            "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
-          },
-          "hidden": {
-            "type": "boolean",
-            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
-          }
-        },
-        "required": ["type", "slug", "label", "required", "placeholder", "hidden"]
       },
       "BusinessDaysWindow_2024_06_14": {
         "type": "object",
@@ -8479,9 +7938,6 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/UrlFieldInput_2024_06_14"
                 }
               ]
             }
@@ -8845,8 +8301,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "email",
             "description": "only allowed value for type is `email`",
@@ -8897,8 +8352,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "name",
             "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
@@ -9136,8 +8590,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "address",
             "description": "only allowed value for type is `address`"
@@ -9193,8 +8646,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "boolean",
             "description": "only allowed value for type is `boolean`"
@@ -9245,8 +8697,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "checkbox",
             "description": "only allowed value for type is `checkbox`"
@@ -9305,8 +8756,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "multiemail",
             "description": "only allowed value for type is `multiemail`"
@@ -9362,8 +8812,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "multiselect",
             "description": "only allowed value for type is `multiselect`"
@@ -9404,63 +8853,6 @@
         },
         "required": ["type", "slug", "label", "required", "options", "hidden", "isDefault"]
       },
-      "UrlFieldOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
-            "example": "url",
-            "description": "only allowed value for type is `url`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please enter your text"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "e.g., Enter url here"
-          },
-          "disableOnPrefill": {
-            "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
-          },
-          "hidden": {
-            "type": "boolean",
-            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
-          },
-          "isDefault": {
-            "type": "object",
-            "default": false,
-            "description": "This property is always false because it's not default field but custom field",
-            "example": false
-          }
-        },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
-      },
       "NumberFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -9479,8 +8871,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "number",
             "description": "only allowed value for type is `number`"
@@ -9536,8 +8927,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
@@ -9591,8 +8981,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "radio",
             "description": "only allowed value for type is `radio`"
@@ -9651,8 +9040,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "select",
             "description": "only allowed value for type is `select`"
@@ -9715,8 +9103,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "textarea",
             "description": "only allowed value for type is `textarea`"
@@ -9772,8 +9159,7 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean",
-              "url"
+              "boolean"
             ],
             "example": "text",
             "description": "only allowed value for type is `text`"
@@ -9924,9 +9310,6 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
                 }
               ]
             }
@@ -11601,9 +10984,6 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/UrlFieldInput_2024_06_14"
                 }
               ]
             }
@@ -11968,9 +11348,6 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
                 }
               ]
             }
@@ -13568,127 +12945,6 @@
           }
         },
         "required": ["status", "data"]
-      },
-      "CreateOrganizationInput": {
-        "type": "object",
-        "properties": {
-          "apiKeyDaysValid": {
-            "type": "number",
-            "minimum": 1,
-            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
-            "example": 60,
-            "default": 30
-          },
-          "apiKeyNeverExpires": {
-            "type": "boolean",
-            "description": "If true, organization api key never expires.",
-            "example": true
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the organization",
-            "example": "CalTeam"
-          },
-          "metadata": {
-            "type": "object"
-          }
-        },
-        "required": ["name"]
-      },
-      "ManagedOrganizationWithApiKeyOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "metadata": {
-            "type": "object"
-          },
-          "apiKey": {
-            "type": "string"
-          }
-        },
-        "required": ["id", "name", "apiKey"]
-      },
-      "CreateManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ManagedOrganizationWithApiKeyOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "ManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "metadata": {
-            "type": "object"
-          }
-        },
-        "required": ["id", "name"]
-      },
-      "GetManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ManagedOrganizationOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetManagedOrganizationsOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagedOrganizationOutput"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateOrganizationInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the organization",
-            "example": "CalTeam"
-          },
-          "metadata": {
-            "type": "string"
-          }
-        }
       },
       "RoutingFormResponseOutput": {
         "type": "object",

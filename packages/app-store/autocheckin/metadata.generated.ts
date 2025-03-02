@@ -1,0 +1,18 @@
+/* This file is auto-generated for autocheckin. Do not modify directly. */
+export const metadata = {
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  name: "Autocheckin",
+  slug: "autocheckin",
+  type: "autocheckin_automation",
+  logo: "icon.svg",
+  url: "https://autocheckin.app",
+  variant: "automation",
+  categories: ["automation"],
+  publisher: "Patrick Goeler von Ravensburg",
+  email: "patrickvongoeler@gmail.com",
+  description:
+    "You simply paste a Cal.com link of someone, select a frequency and we will take care of the scheduling for you.\r\r",
+  isTemplate: false,
+  __createdUsingCli: true,
+  __template: "link-as-an-app",
+} as const;

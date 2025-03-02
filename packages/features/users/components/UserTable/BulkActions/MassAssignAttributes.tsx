@@ -315,7 +315,6 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
 
       setSelectedAttribute(undefined);
       setSelectedAttributeOptions([]);
-      utils.viewer.organizations.listMembers.invalidate();
       showToast(success.message, "success");
     },
     onError: (error) => {
