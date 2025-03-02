@@ -3,10 +3,7 @@ import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
-import {
-  getAggregatedAvailability,
-  getAggregatedAvailabilityNew,
-} from "@calcom/core/getAggregatedAvailability";
+import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
@@ -484,12 +481,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  // timeZone isn't directly set on eventType now(So, it is legacy)
-  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
-  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
-  const eventTimeZone =
-    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
-
   const timeSlots = monitorCallbackSync(getSlots, {
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -497,50 +488,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
-
-  const aggregatedAvailabilityNew = getAggregatedAvailabilityNew(
-    allUsersAvailability,
-    eventType.schedulingType
-  );
-
-  const timeSlotsNew = monitorCallbackSync(getSlots, {
-    inviteeDate: startTime,
-    eventLength: input.duration || eventType.length,
-    offsetStart: eventType.offsetStart,
-    dateRanges: aggregatedAvailabilityNew,
-    minimumBookingNotice: eventType.minimumBookingNotice,
-    frequency: eventType.slotInterval || input.duration || eventType.length,
-    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
-  });
-
-  const ts = groupTimeSlotsByDay(timeSlots),
-    tsNew = groupTimeSlotsByDay(timeSlotsNew);
-
-  const differences = Object.keys({ ...ts, ...tsNew }).reduce(
-    (acc: Record<string, { onlyInTimeSlots: string[]; onlyInTimeSlotsNew: string[] }>, day) => {
-      const t1 = ts[day] || [],
-        t2 = tsNew[day] || [];
-      const missingInNew = t1.filter((t) => !t2.includes(t));
-      const missingInOld = t2.filter((t) => !t1.includes(t));
-
-      if (missingInNew.length || missingInOld.length) {
-        acc[day] = { onlyInTimeSlots: missingInNew, onlyInTimeSlotsNew: missingInOld };
-      }
-
-      return acc;
-    },
-    {}
-  );
-
-  if (Object.keys(differences).length) {
-    loggerWithEventDetails.info({
-      routedTeamMemberIds,
-      differences,
-    });
-  }
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
@@ -677,6 +626,12 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
   loggerWithEventDetails.debug({ availableDates });
+
+  // timeZone isn't directly set on eventType now(So, it is legacy)
+  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
+  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
+  const eventTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
 
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
