@@ -10,7 +10,7 @@ Below are hooks you can use to interact with the Cal.com API:
 
 ### 1. `useBookings`
 
-The useBookings hook returns an array of all the booking data, allowing you to filter bookings by status, such as "upcoming," "recurring," "past," "cancelled," or "unconfirmed." It also supports pagination through the take and skip parameters. Additionally, various properties can be passed to useBookings, which can be referenced in the [following](https://github.com/calcom/cal.com/blob/307b2946a2cb6dcdb32dbee6c4f448e8a01c4285/packages/platform/types/bookings/2024-08-13/inputs/get-bookings.input.ts#L32) documentation for detailed information.
+The useBookings hook returns an array of all the booking data, allowing you to filter bookings by status, such as ***upcoming,*** ***recurring***, ***past,*** ***cancelled,*** or ***unconfirmed.*** It also supports pagination through the take and skip parameters. Additionally, various properties can be passed to useBookings, which can be referenced in the [following](https://github.com/calcom/cal.com/blob/307b2946a2cb6dcdb32dbee6c4f448e8a01c4285/packages/platform/types/bookings/2024-08-13/inputs/get-bookings.input.ts#L32) documentation for detailed information.
 
 Below code snippet shows how to use the useBookings hook to fetch bookings for a specific user.
 
@@ -44,18 +44,264 @@ export default function Bookings() {
 
 ### 2. `useBooking`
 
+The useBooking hook returns detailed information about a single booking. Simply provide the booking's unique identifier ***(bookingUid)*** as a parameter to fetch its associated data. 
+
+Below code snippet shows how to use the useBooking hook to fetch a specific booking for a user.
+
+```js
+import { useBooking } from "@calcom/atoms";
+
+export default function Booking() {
+  const { isLoading: isLoadingBooking, data: booking } = useBooking("nChHoxEm1GXVPzi7TNAuWc");
+
+  return (
+    <>
+      {isLoadingBooking && <p>Loading...</p>}
+      {!isLoadingBooking && !booking && <p>No booking found</p>}
+      {!isLoading &&
+        !!booking &&
+        return (
+          <div>Title: {booking.title}</div>
+        )
+        }
+    </>
+  );
+}
+```
+
 ### 3. `useCancelBooking`
+
+The useCancelBooking hook allows you to cancel a booking. This hook returns a mutation function that handles the cancellation process. To cancel a booking, you'll need to provide at least the booking's unique identifier ***(uid).*** While the uid is the only mandatory parameter, you can enhance the cancellation process by including optional parameters such as ***id*** for the booking ID, ***cancellationReason*** to specify why the booking is being canceled, and ***allRemainingBookings*** to specify whether to cancel all future recurring bookings.
+
+Below code snippet shows how to use the useCancelBooking hook to cancel a booking for a user.
+
+```js
+import { useCancelBooking } from "@calcom/atoms";
+
+export default function CancelBooking() {
+    const { mutate: cancelBooking } = useCancelBooking({
+    onSuccess: () => {
+      console.log("Booking canceled successfully!")
+    },
+  });
+
+  return (
+    <>
+      <button onClick={() => {
+          cancelBooking({
+            id: 123,
+            uid: "6L6ADNpVHwLX25V8wXKsBr",
+            cancellationReason: "User request",
+            allRemainingBookings: true,
+          })
+        }}>
+        Cancel booking
+      </button>
+    </>
+  );
+}
+```
 
 ### 4. `useEventTypes`
 
+The useEventTypes returns all event types associated with a user. Simply provide a username to fetch all their available event types. This hook is useful when you need to display or manage a user's entire collection of event configurations.
+
+Below code snippet shows how to use the useEventTypes hook to fetch the event types of a specific user.
+
+```js
+import { useEventTypes } from "@calcom/atoms";
+
+export default function EventTypes({ username }: { username: string }) {
+  const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(username);
+
+  return (
+    <>
+      {isLoadingEvents && <p>Loading...</p>}
+      {!isLoadingEvents && !eventTypes && <p>No event types found</p>}
+      {!isLoadingEvents &&
+        eventTypes &&
+        (Boolean(eventTypes?.length)) &&
+        eventTypes?.map((event) => {
+            return (
+                <div key={event.id}><h1>Event: {event.slug}</h1></div>
+            );
+       })}
+    </>
+  );
+}
+```
+
 ### 5. `useTeamEventTypes`
+
+The useTeamEventTypes returns all event types associated with a team. Simply provide the team id to fetch all their available event types. This hook is useful when you need to display or manage a team's entire collection of event configurations.
+
+Below code snippet shows how to use the useTeamEventTypes hook to fetch the event types of a team.
+
+```js
+import { useTeamEventTypes } from "@calcom/atoms";
+
+export default function TeamEventTypes({ id }: { id: number }) {
+  const { isLoading: isLoadingTeamEvents, data: teamEventTypes, refetch: refetchTeamEvents } = useTeamEventTypes(id);
+
+  return (
+    <>
+      {isLoadingTeamEvents && <p>Loading...</p>}
+      {!isLoadingTeamEvents && !teamEventTypes && <p>No team events found</p>}
+      {!isLoadingTeamEvents &&
+        teamEventTypes &&
+        (Boolean(teamEventTypes?.length)) &&
+        teamEventTypes?.map((event) => {
+            return (
+                <div key={event.id}><h1>Team event: {event.slug}</h1></div>
+            );
+       })}
+    </>
+  );
+}
+```
 
 ### 6. `useEventTypeById` 
 
+The useEventTypeById returns data for a specific event type, provided you pass in the correct event type id. This hook is useful when you need to display or manage a specific event type.
+
+Below code snippet shows how to use the useEventTypeById hook to fetch a specific event type.
+
+```js
+import { useEventTypeById } from "@calcom/atoms";
+
+export default function EventType({ id }: { id: number }) {
+  const { isLoading: isLoadingEventType, data: eventType } = useEventTypeById(id);
+
+  return (
+    <>
+      {isLoadingEventType && <p>Loading...</p>}
+      {!isLoadingEventType && !eventType && <p>No event type found</p>}
+      {!isLoadingEventType &&
+        !!eventType &&
+        return (
+          <div>Title: {eventType.slug}</div>
+        )
+        }
+    </>
+  );
+}
+```
+
 ### 7. `useConnectedCalendars`
+
+The useConnectedCalendars returns an object containing all connected calendars of a user, and the destination calendar. It is useful in managing multiple calendar integrations. Each connected calendar entry contains essential properties such as the credentialId, externalId and integration which should be an object, which can be used in the hooks to add and remove selected calendars.
+
+Below code snippet shows how to use the useConnectedCalendars hook to fetch calendars for a user.
+
+```js
+import { useConnectedCalendars } from "@calcom/atoms";
+
+export default function ConnectedCalendars() {
+  const { isLoading: isLoadingConnectedCalendars, data: userCalendars } = useConnectedCalendars({});
+
+  return (
+    <>
+      {isLoadingConnectedCalendars && <p>Loading...</p>}
+      {!isLoadingConnectedCalendars && !userCalendars && <p>No connected calendars</p>}
+      {!isLoadingConnectedCalendars &&
+        userCalendars &&
+        (Boolean(userCalendars?connectedCalendars?.length)) &&
+        userCalendars?connectedCalendars?.map((calendar) => {
+            return (
+                <div key={calendar.credentialId}><h1>Calendar type: {calendar.integration.name}</h1></div>
+            );
+       })}
+    </>
+  );
+}
+```
 
 ### 8. `useDeleteCalendarCredentials`
 
+The useDeleteCalendarCredentials hook allows you to delete a users calendar credentials. This hook returns a mutation function which handles the deletion process. The mutation function accepts an object with the following properties: ***id*** which is the credential id, and ***calendar*** is the name of the calendar which can be either google, office365 or apple.
+
+Below code snippet shows how to use the useDeleteCalendarCredentials hook to manage deletion of calendar credentials.
+
+```js
+import { useDeleteCalendarCredentials } from "@calcom/atoms";
+
+export default function DeleteUserCalendar() {
+  const { mutate: deleteCalendarCredentials } = useDeleteCalendarCredentials({
+    onSuccess: () => {
+      console.log("Calendar credentials deleted successfully!");
+    },
+    onError: () => {
+      console.log("Error deleting calendar credentials");
+    },
+  });
+
+  return (
+    <>
+      <button onClick={async () => {
+          await deleteCalendarCredentials({
+            calendar: "google",
+            id: 123,
+          })
+        }}>
+        Delete calendar
+      </button>
+    </>
+  );
+}
+```
+
 ### 9. `useTeams`
 
+The useTeams returns all teams info. This hook is useful when you need to display or manage a user's entire collection of teams.
+
+Below code snippet shows how to use the useTeams hook to fetch team details.
+
+```js
+import { useTeams } from "@calcom/atoms";
+
+export default function UserTeams() {
+  const { data: teams, isLoading: isLoadingTeams } = useTeams();
+
+  return (
+    <>
+      {isLoadingTeams && <p>Loading...</p>}
+      {!isLoadingTeams && !teams && <p>No teams found</p>}
+      {!isLoadingTeams &&
+        teams &&
+        (Boolean(teams?.length)) &&
+        teams?.map((team) => {
+            return (
+                <div key={team.id}><h1>Team name: {team.name}</h1></div>
+            );
+       })}
+    </>
+  );
+}
+```
+
 ### 10. `useMe`
+
+The useMe returns the current managed user's info. This hook is useful when you need to display a managed user's details.
+
+Below code snippet shows how to use the useMe hook to fetch user details.
+
+```js
+import { useMe } from "@calcom/atoms";
+
+export default function UserDetails() {
+  const { data: userData, isLoading: isLoadingUser } = useMe();
+
+  return (
+    <>
+      {isLoadingUser && <p>Loading...</p>}
+      {!isLoadingUser && !userData && <p>No user found</p>}
+      {!isLoadingUser &&
+        !!userData &&
+        return (
+          <div>Username: {userData.username}</div>
+        )
+      }
+    </>
+  );
+}
+```
