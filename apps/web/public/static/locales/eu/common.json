@@ -2445,6 +2445,7 @@
   "enterprise": "Enterprise",
   "enterprise_description": "Igo Enterprise mailara zure erakundea sortzeko",
   "create_your_org": "Sortu zure erakundea",
+  "create_org": "Sortu erakundea",
   "create_your_org_description": "Erakundeetara igo eta jaso azpidomeinua, fakturazio bateratua, Insights, marka-pertsonalizazio zabala eta gehiago",
   "create_your_enterprise_description": "Enterprise-ra igo eta eskuratu Active Directory Sync, SCIM erabiltzaile hornidura automatikoa, Cal.ai ahots-agenteak, Admin APIak eta gehiago!",
   "other_payment_app_enabled": "Ordainketa aplikazio bakarra gaitu dezakezu gertaera mota bakoitzeko",

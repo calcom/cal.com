@@ -2445,6 +2445,7 @@
   "enterprise": "Przedsiębiorstwo",
   "enterprise_description": "Ulepsz do wersji Enterprise, aby utworzyć swoją Organizację",
   "create_your_org": "Utwórz swoją Organizację",
+  "create_org": "Utwórz Organizację",
   "create_your_org_description": "Ulepsz do wersji Organizations i otrzymaj subdomenę, zintegrowane rozliczenia, Insights, rozbudowane możliwości whitelabelingu i więcej",
   "create_your_enterprise_description": "Ulepsz do wersji Enterprise i uzyskaj dostęp do synchronizacji Active Directory, automatycznego provisioningu użytkowników SCIM, agentów głosowych Cal.ai, API administracyjnych i więcej!",
   "other_payment_app_enabled": "Możesz włączyć tylko jedną aplikację płatniczą na typ wydarzenia",

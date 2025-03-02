@@ -53,7 +53,7 @@ export class InputLinkLocation_2024_06_14 {
   public!: boolean;
 }
 
-export const supportedIntegrations = ["cal-video", "google-meet"] as const;
+export const supportedIntegrations = ["cal-video", "google-meet", "office365-video", "zoom"] as const;
 export type Integration_2024_06_14 = (typeof supportedIntegrations)[number];
 
 export class InputIntegrationLocation_2024_06_14 {
