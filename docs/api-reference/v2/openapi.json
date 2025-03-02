@@ -1037,10 +1037,10 @@
         "tags": ["Orgs / Attributes / Options"]
       }
     },
-    "/v2/organizations/{orgId}/dwd": {
+    "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
         "operationId": "OrganizationsDwdController_createDwd",
-        "summary": "Create a dwd",
+        "summary": "Save delegation credentials for your organization.",
         "parameters": [
           {
             "name": "orgId",
@@ -1073,13 +1073,13 @@
             }
           }
         },
-        "tags": ["Orgs / dwd"]
+        "tags": ["Orgs / Delegation Credentials"]
       }
     },
-    "/v2/organizations/{orgId}/dwd/{dwdId}": {
+    "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
       "patch": {
         "operationId": "OrganizationsDwdController_updateDwd",
-        "summary": "Update a dwd",
+        "summary": "Update delegation credentials of your organization.",
         "parameters": [
           {
             "name": "orgId",
@@ -1090,7 +1090,7 @@
             }
           },
           {
-            "name": "dwdId",
+            "name": "credentialId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1120,7 +1120,7 @@
             }
           }
         },
-        "tags": ["Orgs / dwd"]
+        "tags": ["Orgs / Delegation Credentials"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
@@ -7570,7 +7570,7 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet"]
+            "enum": ["cal-video", "google-meet", "office365-video", "zoom"]
           }
         },
         "required": ["type", "integration"]

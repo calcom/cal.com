@@ -32,11 +32,11 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateDwdInput } from "./inputs/create-dwd.input";
 
 @Controller({
-  path: "/v2/organizations/:orgId/dwd",
+  path: "/v2/organizations/:orgId/delegation-credentials",
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Orgs / dwd")
+@DocsTags("Orgs / Delegation Credentials")
 export class OrganizationsDwdController {
   constructor(private readonly dwdService: OrganizationsDwdService) {}
 
@@ -44,7 +44,7 @@ export class OrganizationsDwdController {
   @HttpCode(HttpStatus.CREATED)
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
-  @ApiOperation({ summary: "Create a dwd" })
+  @ApiOperation({ summary: "Save delegation credentials for your organization." })
   async createDwd(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() dwdServiceAccountUser: User,
@@ -57,17 +57,17 @@ export class OrganizationsDwdController {
     };
   }
 
-  @Patch("/:dwdId")
+  @Patch("/:credentialId")
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
-  @ApiOperation({ summary: "Update a dwd" })
+  @ApiOperation({ summary: "Update delegation credentials of your organization." })
   async updateDwd(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() dwdServiceAccountUser: User,
     @Body() body: UpdateDwdInput,
-    @Param("dwdId") dwdId: string
+    @Param("credentialId") credentialId: string
   ): Promise<UpdateDwdOutput> {
-    const dwd = await this.dwdService.updateDwd(orgId, dwdId, dwdServiceAccountUser, body);
+    const dwd = await this.dwdService.updateDwd(orgId, credentialId, dwdServiceAccountUser, body);
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(DwdOutput, dwd, { strategy: "excludeAll" }),
