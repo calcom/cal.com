@@ -149,7 +149,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({ name: "create_your_org", href: "/settings/organizations/new" });
+      tab.children?.push({ name: "create_org", href: "/settings/organizations/new" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });

@@ -2445,6 +2445,7 @@
   "enterprise": "企业",
   "enterprise_description": "升级到企业版以创建您的组织",
   "create_your_org": "创建您的组织",
+  "create_org": "创建组织",
   "create_your_org_description": "升级到企业版获得子域名、统一计费、分析见解、全面的白标功能等等",
   "create_your_enterprise_description": "升级到企业版，获取Active Directory同步、SCIM自动用户配置、Cal.ai语音代理、管理员API等功能！",
   "other_payment_app_enabled": "每种事件类型只能启用一个支付应用程序",

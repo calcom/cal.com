@@ -2445,6 +2445,7 @@
   "enterprise": "Enterprise",
   "enterprise_description": "Upgrade to Enterprise to create your Organization",
   "create_your_org": "Create your Organization",
+  "create_org": "Create Organization",
   "create_your_org_description": "Upgrade to Organizations and receive a subdomain, unified billing, Insights, extensive whitelabeling and more",
   "create_your_enterprise_description": "Upgrade to Enterprise and get access to Active Directory Sync, SCIM Automatic User provisioning, Cal.ai Voice Agents, Admin APIs and more!",
   "other_payment_app_enabled": "You can only enable one payment app per event type",
