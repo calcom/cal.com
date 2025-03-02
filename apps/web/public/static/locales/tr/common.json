@@ -2445,6 +2445,7 @@
   "enterprise": "Kurumsal",
   "enterprise_description": "Organizasyonunuzu oluşturmak için Enterprise'a yükseltin",
   "create_your_org": "Organizasyonunuzu Oluşturun",
+  "create_org": "Kuruluş Oluştur",
   "create_your_org_description": "Organizasyonlara yükseltin ve bir alt alan adı, birleşik faturalama, Insights, kapsamlı beyaz etiketleme ve daha fazlasını alın",
   "create_your_enterprise_description": "Enterprise'a yükseltin ve Active Directory Sync, SCIM Otomatik Kullanıcı sağlama, Cal.ai Ses Ajanları, Yönetici API'leri ve daha fazlasına erişim kazanın!",
   "other_payment_app_enabled": "Her etkinlik türü için yalnızca bir ödeme uygulamasını etkinleştirebilirsiniz",

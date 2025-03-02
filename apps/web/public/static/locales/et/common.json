@@ -2445,6 +2445,7 @@
   "enterprise": "Ettevõte",
   "enterprise_description": "Oma organisatsiooni loomiseks minge üle ettevõttele",
   "create_your_org": "Loo oma organisatsioon",
+  "create_org": "Loo organisatsioon",
   "create_your_org_description": "Minge üle organisatsioonidele ja saate alamdomeeni, ühtse arvelduse, ülevaate, ulatusliku valge sildistamise ja palju muud",
   "create_your_enterprise_description": "Minge üle ettevõtte versioonile ja hankige juurdepääs Active Directory sünkroonimisele, SCIM-i automaatsele kasutajate ettevalmistamisele, Cal.ai häälagentidele, administraatori API-dele ja muule!",
   "other_payment_app_enabled": "Saate lubada ainult ühe makserakenduse sündmuse tüübi kohta",
