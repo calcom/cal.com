@@ -3,6 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -25,6 +26,8 @@ import {
   Input,
 } from "@calcom/ui";
 
+import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
   offset: number;
@@ -32,6 +35,10 @@ export type BookingRedirectForm = {
   reasonId: number;
   notes?: string;
   uuid?: string | null;
+  forUserId: number | null;
+  forUserName?: string;
+  forUserAvatar?: string;
+  toUserName?: string;
 };
 
 type Option = { value: number; label: string };
@@ -47,42 +54,78 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const me = useMeQuery();
 
-  const [searchText, setSearchText] = useState("");
-  const debouncedSearch = useDebounce(searchText, 500);
+  const searchParams = useCompatSearchParams();
+  const oooType = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
-  const members = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearch },
+  const [searchMember, setSearchMember] = useState("");
+  const debouncedSearchMember = useDebounce(searchMember, 500);
+  const oooForMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
+    { limit: 10, searchText: debouncedSearchMember },
     {
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
+  const oooMemberListOptions: {
+    value: number;
+    label: string;
+    avatarUrl: string | null;
+  }[] = !!currentlyEditingOutOfOfficeEntry
+    ? [
+        {
+          value: currentlyEditingOutOfOfficeEntry.forUserId || -1,
+          label: currentlyEditingOutOfOfficeEntry.forUserName || "",
+          avatarUrl: currentlyEditingOutOfOfficeEntry.forUserAvatar || "",
+        },
+      ]
+    : oooForMembers?.data?.pages
+        .flatMap((page) => page.members)
+        ?.filter((member) => me?.data?.id !== member.id)
+        .map((member) => ({
+          value: member.id,
+          label: member.name || member.username || "",
+          avatarUrl: member.avatarUrl,
+        })) || [];
+  const { ref: observerRefMember } = useInViewObserver(() => {
+    if (oooForMembers.hasNextPage && !oooForMembers.isFetching) {
+      oooForMembers.fetchNextPage();
+    }
+  }, document.querySelector('[role="dialog"]'));
 
-  const me = useMeQuery();
-
-  const memberListOptions: {
+  const [searchRedirectMember, setSearchRedirectMember] = useState("");
+  const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
+  const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
+    { limit: 10, searchText: debouncedSearchRedirect },
+    {
+      enabled: true,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+  const redirectToMemberListOptions: {
     value: number;
     label: string;
     avatarUrl: string | null;
   }[] =
-    members?.data?.pages
+    redirectMembers?.data?.pages
       .flatMap((page) => page.members)
-      ?.filter((member) => me?.data?.id !== member.id)
+      ?.filter((member) =>
+        oooType === OutOfOfficeTab.MINE ? me?.data?.id !== member.id : oooType === OutOfOfficeTab.TEAM
+      )
       .map((member) => ({
         value: member.id,
         label: member.name || member.username || "",
         avatarUrl: member.avatarUrl,
       })) || [];
-
-  const { ref: observerRef } = useInViewObserver(() => {
-    if (members.hasNextPage && !members.isFetching) {
-      members.fetchNextPage();
+  const { ref: observerRefRedirect } = useInViewObserver(() => {
+    if (redirectMembers.hasNextPage && !redirectMembers.isFetching) {
+      redirectMembers.fetchNextPage();
     }
   }, document.querySelector('[role="dialog"]'));
 
-  const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
-
+  const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
+    trpc.viewer.outOfOfficeReasonList.useQuery();
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
     value: reason.id,
@@ -99,6 +142,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     register,
     watch,
     formState: { isSubmitting },
+    getValues,
   } = useForm<BookingRedirectForm>({
     defaultValues: currentlyEditingOutOfOfficeEntry
       ? currentlyEditingOutOfOfficeEntry
@@ -110,10 +154,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
           reasonId: 1,
+          forUserId: null,
         },
   });
 
   const watchedTeamUserId = watch("toTeamUserId");
+  const watchForUserId = watch("forUserId");
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
@@ -140,20 +186,103 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         }
       }}>
       <DialogContent
+        enableOverflow
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
         <form
           id="create-or-edit-ooo-form"
           onSubmit={handleSubmit((data) => {
-            createOrEditOutOfOfficeEntry.mutate(data);
+            if (!data.dateRange.endDate) {
+              showToast(t("end_date_not_selected"), "error");
+            } else {
+              createOrEditOutOfOfficeEntry.mutate(data);
+            }
           })}>
           <div className="h-full px-1">
             <DialogHeader
               title={
-                currentlyEditingOutOfOfficeEntry ? t("edit_an_out_of_office") : t("create_an_out_of_office")
+                currentlyEditingOutOfOfficeEntry
+                  ? t("edit_an_out_of_office")
+                  : oooType === "team"
+                  ? t("create_ooo_dialog_team_title")
+                  : t("create_an_out_of_office")
+              }
+              subtitle={
+                oooType === "team"
+                  ? currentlyEditingOutOfOfficeEntry
+                    ? t("edit_ooo_dialog_team_subtitle")
+                    : t("create_ooo_dialog_team_subtitle")
+                  : undefined
               }
             />
+
+            {/* In case of Team, Select Member for whom OOO is created */}
+            {oooType === "team" && (
+              <>
+                <div className="mb-4">
+                  <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
+                  <div className="mt-2">
+                    <Input
+                      type="text"
+                      placeholder={t("search")}
+                      onChange={(e) => setSearchMember(e.target.value)}
+                      value={searchMember}
+                      disabled={!!currentlyEditingOutOfOfficeEntry}
+                    />
+                    <div
+                      className={`scroll-bar bg-default mt-2 flex ${
+                        !!currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
+                      } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}>
+                      {oooMemberListOptions.map((member) => (
+                        <label
+                          key={member.value}
+                          aria-disabled={!!currentlyEditingOutOfOfficeEntry}
+                          data-testid={`ooofor_username_select_${member.value}`}
+                          tabIndex={watchForUserId === member.value ? -1 : 0}
+                          role="radio"
+                          aria-checked={watchForUserId === member.value}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setValue("forUserId", member.value, { shouldDirty: true });
+                            }
+                          }}
+                          className={classNames(
+                            "cursor-not-allowed items-center justify-between gap-0.5 rounded-sm py-2 outline-none",
+                            watchForUserId === member.value && "bg-subtle",
+                            !currentlyEditingOutOfOfficeEntry &&
+                              "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer focus:ring-2"
+                          )}>
+                          <div className="flex flex-1 items-center space-x-3">
+                            <input
+                              type="radio"
+                              disabled={!!currentlyEditingOutOfOfficeEntry}
+                              className="hidden"
+                              checked={watchForUserId === member.value}
+                              onChange={() => setValue("forUserId", member.value, { shouldDirty: true })}
+                            />
+                            <span className="text-emphasis w-full px-2 text-sm">{member.label}</span>
+                          </div>
+                        </label>
+                      ))}
+                      {!currentlyEditingOutOfOfficeEntry && (
+                        <div className="text-default text-center" ref={observerRefMember}>
+                          <Button
+                            color="minimal"
+                            loading={oooForMembers.isFetchingNextPage}
+                            disabled={!oooForMembers.hasNextPage}
+                            onClick={() => oooForMembers.fetchNextPage()}>
+                            {oooForMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
@@ -242,45 +371,47 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                     <Input
                       type="text"
                       placeholder={t("search")}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      value={searchText}
+                      onChange={(e) => setSearchRedirectMember(e.target.value)}
+                      value={searchRedirectMember}
                     />
-                    <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
-                      {memberListOptions.map((member) => (
-                        <label
-                          key={member.value}
-                          data-testid={`team_username_select_${member.value}`}
-                          tabIndex={watchedTeamUserId === member.value ? -1 : 0}
-                          role="radio"
-                          aria-checked={watchedTeamUserId === member.value}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setValue("toTeamUserId", member.value, { shouldDirty: true });
-                            }
-                          }}
-                          className={classNames(
-                            "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring-2",
-                            watchedTeamUserId === member.value && "bg-subtle"
-                          )}>
-                          <div className="flex flex-1 items-center space-x-3">
-                            <input
-                              type="radio"
-                              className="hidden"
-                              checked={watchedTeamUserId === member.value}
-                              onChange={() => setValue("toTeamUserId", member.value, { shouldDirty: true })}
-                            />
-                            <span className="text-emphasis w-full px-2 text-sm">{member.label}</span>
-                          </div>
-                        </label>
-                      ))}
-                      <div className="text-default text-center" ref={observerRef}>
+                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
+                      {redirectToMemberListOptions
+                        .filter((member) => member.value !== getValues("forUserId"))
+                        .map((member) => (
+                          <label
+                            key={member.value}
+                            data-testid={`team_username_select_${member.value}`}
+                            tabIndex={watchedTeamUserId === member.value ? -1 : 0}
+                            role="radio"
+                            aria-checked={watchedTeamUserId === member.value}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setValue("toTeamUserId", member.value, { shouldDirty: true });
+                              }
+                            }}
+                            className={classNames(
+                              "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring-2",
+                              watchedTeamUserId === member.value && "bg-subtle"
+                            )}>
+                            <div className="flex flex-1 items-center space-x-3">
+                              <input
+                                type="radio"
+                                className="hidden"
+                                checked={watchedTeamUserId === member.value}
+                                onChange={() => setValue("toTeamUserId", member.value, { shouldDirty: true })}
+                              />
+                              <span className="text-emphasis w-full px-2 text-sm">{member.label}</span>
+                            </div>
+                          </label>
+                        ))}
+                      <div className="text-default text-center" ref={observerRefRedirect}>
                         <Button
                           color="minimal"
-                          loading={members.isFetchingNextPage}
-                          disabled={!members.hasNextPage}
-                          onClick={() => members.fetchNextPage()}>
-                          {members.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                          loading={redirectMembers.isFetchingNextPage}
+                          disabled={!redirectMembers.hasNextPage}
+                          onClick={() => redirectMembers.fetchNextPage()}>
+                          {redirectMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
                         </Button>
                       </div>
                     </div>
@@ -304,7 +435,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 form="create-or-edit-ooo-form"
                 color="primary"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReasonListPending}
                 data-testid="create-or-edit-entry-ooo-redirect">
                 {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
               </Button>
