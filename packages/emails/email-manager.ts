@@ -355,7 +355,13 @@ export const sendCancelledSeatEmailsAndSMS = async (
     emailsToSend.push(sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)));
   if (!eventTypeDisableHostEmail(eventTypeMetadata))
     emailsToSend.push(
-      sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent: formattedCalEvent }))
+      sendEmail(
+        () =>
+          new OrganizerAttendeeCancelledSeatEmail({
+            calEvent: formattedCalEvent,
+            attendee: cancelledAttendee,
+          })
+      )
     );
 
   await Promise.all(emailsToSend);
