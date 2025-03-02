@@ -3,7 +3,8 @@ import z from "zod";
 
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { deleteSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 const querySchema = z.object({
   apiKey: z.string(),

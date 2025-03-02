@@ -2,21 +2,21 @@ import { useRouter } from "next/navigation";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
+import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import { Button, Icon, showToast } from "@calcom/ui";
-
-import { hasPermission } from "../../../../../../packages/platform/utils/permissions";
 
 type OAuthClientCardProps = {
   name: string;
   logo?: Avatar;
   redirectUris: string[];
-  bookingRedirectUri: string | null;
-  bookingCancelRedirectUri: string | null;
-  bookingRescheduleRedirectUri: string | null;
-  areEmailsEnabled: boolean;
-  permissions: number;
+  bookingRedirectUri: string | null | undefined;
+  bookingCancelRedirectUri: string | null | undefined;
+  bookingRescheduleRedirectUri: string | null | undefined;
+  areEmailsEnabled: boolean | undefined;
+  areDefaultEventTypesEnabled: boolean;
+  permissions: Array<keyof typeof PERMISSION_MAP>;
   lastItem: boolean;
   id: string;
   secret: string;
@@ -39,30 +39,41 @@ export const OAuthClientCard = ({
   onDelete,
   isLoading,
   areEmailsEnabled,
+  areDefaultEventTypesEnabled,
   organizationId,
 }: OAuthClientCardProps) => {
   const router = useRouter();
 
-  const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
-    let permissionsMessage = "";
-    const hasReadPermission = hasPermission(permissions, value.read);
-    const hasWritePermission = hasPermission(permissions, value.write);
+  const groupedPermissions = permissions.reduce<Record<string, { read: boolean; write: boolean }>>(
+    (acc, permission) => {
+      const [resource] = permission.split("_READ") as [string] | [string, string];
+      const isRead = permission.endsWith("_READ");
+      const isWrite = permission.endsWith("_WRITE");
+      const key = resource.replace("_WRITE", "");
 
-    if (hasReadPermission || hasWritePermission) {
-      permissionsMessage = hasReadPermission ? "read" : "write";
-    }
+      if (!acc[key]) acc[key] = { read: false, write: false };
+      if (isRead) acc[key].read = true;
+      if (isWrite) acc[key].write = true;
 
-    if (hasReadPermission && hasWritePermission) {
-      permissionsMessage = "read/write";
-    }
+      return acc;
+    },
+    {}
+  );
+
+  const clientPermissions = Object.entries(groupedPermissions).map(([resource, { read, write }], index) => {
+    const permissionTypes = [];
+    if (read) permissionTypes.push("read");
+    if (write) permissionTypes.push("write");
+
+    const permissionsMessage = permissionTypes.join("/");
+    const groupedPermission = PERMISSIONS_GROUPED_MAP[resource as keyof typeof PERMISSIONS_GROUPED_MAP];
+    const isLastItem = index === Object.keys(groupedPermissions).length - 1;
 
     return (
-      !!permissionsMessage && (
-        <div key={value.read} className="relative text-sm">
-          &nbsp;{permissionsMessage} {`${value.label}s`.toLocaleLowerCase()}
-          {Object.values(PERMISSIONS_GROUPED_MAP).length === index + 1 ? " " : ", "}
-        </div>
-      )
+      <div key={resource} className="relative text-sm">
+        &nbsp;{permissionsMessage} {groupedPermission?.label.toLowerCase()}
+        {!isLastItem && ", "}
+      </div>
     );
   });
 
@@ -155,6 +166,10 @@ export const OAuthClientCard = ({
         )}
         <div className="flex gap-1 text-sm">
           <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
+        </div>
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Default event types enabled:</span>{" "}
+          {areDefaultEventTypesEnabled ? "Yes" : "No"}
         </div>
       </div>
       <div className="flex items-start gap-4">

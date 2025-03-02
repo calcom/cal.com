@@ -153,7 +153,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({ name: "create_your_org", href: "/settings/organizations/new" });
+      tab.children?.push({ name: "create_org", href: "/settings/organizations/new" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
@@ -507,7 +507,7 @@ const SettingsSidebarContainer = ({
                         isExternalLink={child.isExternalLink}
                         href={child.href || "/"}
                         textClassNames="text-emphasis font-medium text-sm"
-                        className={`me-5 h-7 !px-2 ${
+                        className={`me-5 h-7 w-auto !px-2 ${
                           tab.children && index === tab.children?.length - 1 && "!mb-3"
                         }`}
                         disableChevron
