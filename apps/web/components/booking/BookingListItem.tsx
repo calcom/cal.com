@@ -259,14 +259,18 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: "map-pin" as const,
     },
-    {
-      id: "add_members",
-      label: t("additional_guests"),
-      onClick: () => {
-        setIsOpenAddGuestsDialog(true);
-      },
-      icon: "user-plus" as const,
-    },
+    ...(booking.seatsReferences.length
+      ? []
+      : [
+          {
+            id: "add_members",
+            label: t("additional_guests"),
+            onClick: () => {
+              setIsOpenAddGuestsDialog(true);
+            },
+            icon: "user-plus" as const,
+          },
+        ]),
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
