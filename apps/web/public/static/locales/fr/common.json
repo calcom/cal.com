@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard",
   "select_oAuth_client": "Sélectionner le client OAuth",
   "on_every_instance": "Sur chaque instance",
+  "domain_wide_delegation_feature_not_enabled": "La fonctionnalité de délégation à l'échelle du domaine n'est pas activée pour votre organisation",
   "internal_booking_note": "Note interne",
   "internal_note_cancellation_reason": "Raison partagée avec le client (facultatif)",
   "internal_booking_note_description": "Cette note sera visible uniquement par les membres de votre équipe",

@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Gözlənilməz bir xəta baş verdi. Zəhmət olmasa bir az sonra yenidən cəhd edin",
   "select_oAuth_client": "OAuth müştərisini seçin",
   "on_every_instance": "Hər nümunədə",
+  "domain_wide_delegation_feature_not_enabled": "Domen səviyyəsində səlahiyyət funksiyası təşkilatınız üçün aktivləşdirilməyib",
   "internal_booking_note": "Daxili Qeyd",
   "internal_note_cancellation_reason": "Müştəri ilə paylaşılan səbəb (istəyə bağlı)",
   "internal_booking_note_description": "Bu qeyd yalnız komanda üzvləriniz tərəfindən görünəcək",

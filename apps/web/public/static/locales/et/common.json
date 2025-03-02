@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Ilmnes ootamatu viga. Palun proovi hiljem uuesti",
   "select_oAuth_client": "Vali OAuth klient",
   "on_every_instance": "Igal korral",
+  "domain_wide_delegation_feature_not_enabled": "Domeeniülese delegeerimise funktsioon ei ole teie organisatsiooni jaoks lubatud",
   "internal_booking_note": "Sisemine märkus",
   "internal_note_cancellation_reason": "Kliendiga jagatav põhjus (valikuline)",
   "internal_booking_note_description": "See märkus on nähtav ainult teie meeskonna liikmetele",

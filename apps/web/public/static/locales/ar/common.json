@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى لاحقًا",
   "select_oAuth_client": "اختر عميل OAuth",
   "on_every_instance": "في كل مثيل",
+  "domain_wide_delegation_feature_not_enabled": "ميزة التفويض على مستوى النطاق غير مفعّلة لمؤسستك",
   "internal_booking_note": "ملاحظة داخلية",
   "internal_note_cancellation_reason": "السبب المشارك مع العميل (اختياري)",
   "internal_booking_note_description": "هذه الملاحظة ستكون مرئية فقط لأعضاء فريقك",

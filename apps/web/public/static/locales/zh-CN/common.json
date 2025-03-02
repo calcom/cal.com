@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "发生意外错误。请稍后再试。",
   "select_oAuth_client": "选择 OAuth 客户端",
   "on_every_instance": "在每个实例上",
+  "domain_wide_delegation_feature_not_enabled": "您的组织尚未启用域级委托功能",
   "internal_booking_note": "内部备注",
   "internal_note_cancellation_reason": "与客户共享的原因（可选）",
   "internal_booking_note_description": "此备注仅对团队成员可见",

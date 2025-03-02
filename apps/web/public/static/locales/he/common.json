@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "אירעה שגיאה בלתי צפויה. אנא נסה שוב מאוחר יותר",
   "select_oAuth_client": "בחר לקוח OAuth",
   "on_every_instance": "בכל מופע",
+  "domain_wide_delegation_feature_not_enabled": "תכונת ההרשאה ברמת הדומיין אינה מופעלת עבור הארגון שלך",
   "internal_booking_note": "הערה פנימית",
   "internal_note_cancellation_reason": "סיבה שתשותף עם הלקוח (אופציונלי)",
   "internal_booking_note_description": "הערה זו תהיה גלויה רק לחברי הצוות שלך",
