@@ -191,6 +191,10 @@ export const useBookingSuccessRedirect = () => {
         url.searchParams.append(key, value);
       });
 
+      if (booking.uid && booking.uid !== undefined && booking.uid !== null) {
+        url.searchParams.append("uid", booking.uid.toString());
+      }
+
       navigateInTopWindow(url.toString());
       return;
     }
