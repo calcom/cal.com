@@ -23,10 +23,11 @@ import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import EditablePlugin from "./plugins/EditablePlugin";
 import PlainTextPlugin from "./plugins/PlainTextPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
+import CustomEnterKeyPlugin from "./plugins/customEnterKeyPlugin";
 import "./stylesEditor.css";
 
 /*
- Detault toolbar items:
+ Default toolbar items:
   - blockType
   - bold
   - italic
@@ -111,6 +112,7 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            <CustomEnterKeyPlugin />
             {props?.variables ? <AddVariablesPlugin variables={props.variables} /> : null}
             <HistoryPlugin />
             <MarkdownShortcutPlugin
