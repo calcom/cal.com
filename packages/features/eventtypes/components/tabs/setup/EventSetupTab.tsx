@@ -91,7 +91,6 @@ export const EventSetupTab = (
   const urlLockedProps = shouldLockDisableProps("slug");
   const titleLockedProps = shouldLockDisableProps("title");
    
-
   return (
     <div>
       <div className={classNames("space-y-4", customClassNames?.wrapper)}>
