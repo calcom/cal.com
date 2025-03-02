@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde",
   "select_oAuth_client": "Selecionar cliente OAuth",
   "on_every_instance": "Em cada instância",
+  "domain_wide_delegation_feature_not_enabled": "O recurso de delegação em todo o domínio não está ativado para sua organização",
   "internal_booking_note": "Nota interna",
   "internal_note_cancellation_reason": "Motivo compartilhado com o cliente (opcional)",
   "internal_booking_note_description": "Esta nota será visível apenas para os membros da sua equipe",
