@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "예기치 않은 오류가 발생했습니다. 나중에 다시 시도해 주세요",
   "select_oAuth_client": "OAuth 클라이언트 선택",
   "on_every_instance": "모든 인스턴스에서",
+  "domain_wide_delegation_feature_not_enabled": "도메인 전체 위임 기능이 귀하의 조직에 대해 활성화되어 있지 않습니다",
   "internal_booking_note": "내부 메모",
   "internal_note_cancellation_reason": "고객과 공유할 사유 (선택사항)",
   "internal_booking_note_description": "이 메모는 팀원들에게만 표시됩니다",
