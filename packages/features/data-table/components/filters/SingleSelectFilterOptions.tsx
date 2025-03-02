@@ -31,7 +31,7 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
     <Command data-testid={`single-select-options-${column.id}`}>
       <CommandInput placeholder={t("search")} />
       <CommandList>
-        <CommandEmpty>{t("no_options_found")}</CommandEmpty>
+        <CommandEmpty>{t("no_options_available")}</CommandEmpty>
         {column.options.map((option, index) => {
           if (!option) return null;
           const {
