@@ -38,8 +38,8 @@ RUN yarn config set httpTimeout 1200000
 RUN npx turbo prune --scope=@calcom/web --docker
 RUN yarn install
 
-# ✅ Run Prisma migration before continuing
-ENV DATABASE_URL="postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2"
+
+ENV DATABASE_URL="postgresql://unicorn_user:magical_password@database:5432/calendso"
 RUN yarn db-deploy
 RUN yarn --cwd packages/prisma seed-app-store || true
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build
@@ -53,8 +53,8 @@ WORKDIR /calcom
 
 # Preserve runtime environment variables
 ENV NODE_ENV=production \
-    DATABASE_URL="postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2" \
-    DATABASE_DIRECT_URL="postgresql://db_lgs2_user:O6y8H3jXpzWOYxwTXYSzMwlHE3kxgwFO@dpg-cuu8gjvnoe9s73d3j790-a.oregon-postgres.render.com/db_lgs2"
+    DATABASE_URL="postgresql://unicorn_user:magical_password@database:5432/calendso" \
+    DATABASE_DIRECT_URL="postgresql://unicorn_user:magical_password@database:5432/calendso"
 
 # Copy necessary files from builder
 COPY package.json .yarnrc.yml i18n.json ./
@@ -81,8 +81,8 @@ COPY --from=builder-two /calcom ./
 
 # ✅ Persist database connection variables for Prisma
 ENV NODE_ENV=production \
-    DATABASE_URL="postgresql://postgres:postgres@postgres:5432/calendso" \
-    DATABASE_DIRECT_URL="postgresql://postgres:postgres@postgres:5432/calendso"
+    DATABASE_URL="postgresql://unicorn_user:magical_password@database:5432/calendso" \
+    DATABASE_DIRECT_URL="postgresql://unicorn_user:magical_password@database:5432/calendso"
 
 EXPOSE 3000
 
