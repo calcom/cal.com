@@ -343,7 +343,12 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         </div>
 
         <SectionBottomActions align="end">
-          <Button loading={isUpdateBtnLoading} disabled={isDisabled} color="primary" type="submit">
+          <Button
+            loading={isUpdateBtnLoading}
+            disabled={isDisabled}
+            color="primary"
+            type="submit"
+            data-testid="general-submit-button">
             <>{t("update")}</>
           </Button>
         </SectionBottomActions>
