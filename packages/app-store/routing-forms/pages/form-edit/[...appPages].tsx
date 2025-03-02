@@ -178,6 +178,13 @@ function Field({
 
   const optionsPlaceholders = ["< 10", "10 - 100", "100 - 500", "> 500"];
 
+  const generateIdentifier = (label: string) => {
+    return label
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  };
+
   return (
     <div
       data-testid="field"
@@ -220,7 +227,9 @@ function Field({
               //This change has the same effects that already existed in relation to this field,
               // but written in a different way.
               // The identifier field will have the same value as the label field until it is changed
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
+              value={
+                identifier || routerField?.identifier || generateIdentifier(label) || routerField?.label || ""
+              }
               onChange={(e) => {
                 hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
               }}
