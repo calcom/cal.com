@@ -4,13 +4,12 @@ import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/pi
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
-
 // only for Google Calendar for now
 export const getCalendarsEventsWithTimezones = async (
-  withCredentials: CredentialPayload[],
+  withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
@@ -46,7 +45,7 @@ export const getCalendarsEventsWithTimezones = async (
 };
 
 const getCalendarsEvents = async (
-  withCredentials: CredentialPayload[],
+  withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],

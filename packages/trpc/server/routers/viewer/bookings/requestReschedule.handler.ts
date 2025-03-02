@@ -12,6 +12,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getDwdOrRegularCredential } from "@calcom/lib/domainWideDelegation/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -239,12 +240,24 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
       if (bookingRef.type.endsWith("_calendar")) {
         const calendar = await getCalendar(
-          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+          getDwdOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              dwdId: bookingRef?.domainWideDelegationCredentialId,
+            },
+          })
         );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(
-          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          getDwdOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              dwdId: bookingRef?.domainWideDelegationCredentialId,
+            },
+          }),
           bookingRef.uid
         );
       }
