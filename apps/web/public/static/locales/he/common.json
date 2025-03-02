@@ -2445,6 +2445,7 @@
   "enterprise": "ארגון",
   "enterprise_description": "יש לשדרג לרישיון תאגידי כדי ליצור את הארגון שלך",
   "create_your_org": "יצירת הארגון שלך",
+  "create_org": "יצירת ארגון",
   "create_your_org_description": "אפשר לשדרג לרישיון תאגידי ולקבל תת־תחום, חיוב מאוחד, תובנות, שינוי מיתוג נרחב ועוד",
   "create_your_enterprise_description": "שדרג ל-Enterprise וקבל גישה לסנכרון Active Directory, הקצאת משתמשים אוטומטית באמצעות SCIM, סוכני קול של Cal.ai, APIs למנהלים ועוד!",
   "other_payment_app_enabled": "אפשר להפעיל רק יישומון תשלום אחד לכל סוג אירוע",

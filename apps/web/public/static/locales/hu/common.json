@@ -2445,6 +2445,7 @@
   "enterprise": "Vállalat",
   "enterprise_description": "Szervezete létrehozásához frissítsen Vállalati-ra",
   "create_your_org": "Hozd létre a szervezetedet",
+  "create_org": "Szervezet létrehozása",
   "create_your_org_description": "Frissítsen Vállalati-ra, és kapjon aldomaint, egységes számlázást, Elemzés szolgáltatást, kiterjedt fehér címkézést és sok mást",
   "create_your_enterprise_description": "Frissítsen Enterprise-ra, és szerezzen hozzáférést az Active Directory Sync-hez, az SCIM automatikus felhasználói kiépítéshez, a Cal.ai Voice Agents-hez, az Admin API-khoz és még sok máshoz!",
   "other_payment_app_enabled": "Eseménytípusonként csak egy fizetési alkalmazást engedélyezhet",

@@ -2445,6 +2445,7 @@
   "enterprise": "Impresa",
   "enterprise_description": "Passa a Enterprise per creare la tua organizzazione",
   "create_your_org": "Crea la tua organizzazione",
+  "create_org": "Crea organizzazione",
   "create_your_org_description": "Passa a Organizations per avere sottodominio, fatturazione unificata, approfondimenti, personalizzazione completa e altro ancora",
   "create_your_enterprise_description": "Passa a Enterprise per poter utilizzare la sincronizzazione per Active Directory, la configurazione automatica SCIM degli utenti, gli operatori vocali Cal.ai, l'API di amministrazione e altro ancora!",
   "other_payment_app_enabled": "Puoi attivare solo un'app di pagamento per ciascun tipo di evento",
