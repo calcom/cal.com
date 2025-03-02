@@ -70,6 +70,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           externalCalendarId: true,
           credentialId: true,
           thirdPartyRecurringEventId: true,
+          domainWideDelegationCredentialId: true,
         },
       },
       payment: true,

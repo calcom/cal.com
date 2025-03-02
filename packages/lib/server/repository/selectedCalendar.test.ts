@@ -289,4 +289,154 @@ describe("SelectedCalendarRepository", () => {
       });
     });
   });
+
+  describe("Domain Wide Delegation", () => {
+    it("should create a selected calendar with domainWideDelegationCredentialId", async () => {
+      const data = {
+        userId: 1,
+        integration: "google_calendar",
+        externalId: "test@gmail.com",
+        domainWideDelegationCredentialId: "dwd-123",
+      };
+
+      const result = await SelectedCalendarRepository.create(data);
+
+      expect(result).toEqual(expect.objectContaining(data));
+    });
+
+    describe("upsert", () => {
+      describe("updation", () => {
+        it("should update existing record with domainWideDelegationCredentialId if credentialId is -1", async () => {
+          const initialData = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 1,
+            eventTypeId: null,
+          };
+
+          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+          const data = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: -1,
+            domainWideDelegationCredentialId: "dwd-123",
+          };
+
+          const result = await SelectedCalendarRepository.upsert(data);
+          expect(result.id).not.toBe(null);
+          expect(result.id).toBe(existingCalendar.id);
+          expect(result.credentialId).toBe(null);
+          expect(result.domainWideDelegationCredentialId).toBe(data.domainWideDelegationCredentialId);
+        });
+
+        it("should update existing record with credentialId if credentialId is valid(>0) even if domainWideDelegationCredentialId is set", async () => {
+          const initialData = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 1,
+            eventTypeId: null,
+          };
+
+          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+          const data = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 2,
+            domainWideDelegationCredentialId: "dwd-123",
+          };
+
+          const result = await SelectedCalendarRepository.upsert(data);
+          expect(result.id).not.toBe(null);
+          expect(result.id).toBe(existingCalendar.id);
+          expect(result.credentialId).toBe(data.credentialId);
+          expect(result.domainWideDelegationCredentialId).toBeNull();
+        });
+      });
+
+      describe("creation", () => {
+        it("should create a new record with domainWideDelegationCredentialId if credentialId is -1", async () => {
+          const initialData = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 1,
+            eventTypeId: null,
+          };
+
+          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+          const data = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "anotheremail@gmail.com",
+            credentialId: -1,
+            domainWideDelegationCredentialId: "dwd-123",
+          };
+
+          // It will create a new record because of unique constraint violation
+          const result = await SelectedCalendarRepository.upsert(data);
+          expect(result.id).not.toBe(null);
+          expect(result.id).not.toBe(existingCalendar.id);
+          expect(result.credentialId).toBe(null);
+          expect(result.domainWideDelegationCredentialId).toBe(data.domainWideDelegationCredentialId);
+        });
+      });
+
+      it("shouldnt update existing domainWideDelegationCredentialId if upsert data doesn't have it", async () => {
+        const initialData = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          eventTypeId: null,
+          domainWideDelegationCredentialId: "dwd-123",
+          credentialId: 1,
+        };
+
+        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+        const data = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          credentialId: 1,
+        };
+
+        const result = await SelectedCalendarRepository.upsert(data);
+        expect(result.id).toBe(existingCalendar.id);
+        expect(result.credentialId).toBe(existingCalendar.credentialId);
+        expect(result.domainWideDelegationCredentialId).toBe(null);
+      });
+
+      it("shouldnt update domainWideDelegationCredentialId if it is undefined", async () => {
+        const initialData = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          eventTypeId: null,
+          domainWideDelegationCredentialId: "dwd-123",
+        };
+
+        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+        const data = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+        };
+
+        const result = await SelectedCalendarRepository.upsert(data);
+        expect(result.id).toBe(existingCalendar.id);
+        expect(result.credentialId).toBe(existingCalendar.credentialId);
+        expect(result.domainWideDelegationCredentialId).toBe(
+          existingCalendar.domainWideDelegationCredentialId
+        );
+      });
+    });
+  });
 });
