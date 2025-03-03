@@ -47,7 +47,11 @@ export const OptionComponent = <
         <span className="mr-auto" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {props.label || <>&nbsp;</>}
         </span>
-        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? <UpgradeTeamsBadge /> : <></>}
+        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
+          <UpgradeTeamsBadge checkForTrial={true} />
+        ) : (
+          <></>
+        )}
         {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>

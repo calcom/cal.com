@@ -2965,6 +2965,8 @@
   "interval": "Interval",
   "rr_reset_interval_description": "Determines how often the round robin booking count resets to ensure balanced distribution.",
   "daily": "Daily",
+  "trial_mode": "Trial mode",
+  "limited_access_trial_mode": "Limited access during trial. Feature available after trial ends.",
   "end_date_not_selected": "You didn't set an end date for your OOO",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
