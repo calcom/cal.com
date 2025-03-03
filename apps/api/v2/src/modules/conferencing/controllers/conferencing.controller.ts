@@ -160,7 +160,7 @@ export class ConferencingController {
     @GetUser() user: UserWithProfile,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
-    await this.conferencingService.setDefaultConferencingApp(user.id, app);
+    await this.conferencingService.setDefaultConferencingApp(user, app);
     return { status: SUCCESS_STATUS };
   }
 

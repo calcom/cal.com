@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Váratlan hiba történt. Kérjük, próbálja újra később",
   "select_oAuth_client": "OAuth kliens kiválasztása",
   "on_every_instance": "Minden példányon",
+  "domain_wide_delegation_feature_not_enabled": "A tartományra kiterjedő delegálás funkció nincs engedélyezve a szervezete számára",
   "internal_booking_note": "Belső megjegyzés",
   "internal_note_cancellation_reason": "Az ügyféllel megosztott indok (opcionális)",
   "internal_booking_note_description": "Ez a megjegyzés csak a csapattagok számára lesz látható",

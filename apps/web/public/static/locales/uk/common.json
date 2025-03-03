@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Сталася неочікувана помилка. Будь ласка, спробуйте пізніше",
   "select_oAuth_client": "Оберіть OAuth-клієнта",
   "on_every_instance": "На кожному екземплярі",
+  "domain_wide_delegation_feature_not_enabled": "Функція делегування на рівні домену не увімкнена для вашої організації",
   "internal_booking_note": "Внутрішня примітка",
   "internal_note_cancellation_reason": "Причина, яка буде повідомлена клієнту (необов'язково)",
   "internal_booking_note_description": "Ця примітка буде видима лише для учасників вашої команди",

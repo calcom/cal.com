@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Παρουσιάστηκε ένα απρόσμενο σφάλμα. Παρακαλώ δοκιμάστε ξανά αργότερα",
   "select_oAuth_client": "Επιλέξτε OAuth Client",
   "on_every_instance": "Σε κάθε περίπτωση",
+  "domain_wide_delegation_feature_not_enabled": "Η λειτουργία εξουσιοδότησης σε επίπεδο τομέα δεν είναι ενεργοποιημένη για τον οργανισμό σας",
   "internal_booking_note": "Εσωτερική σημείωση",
   "internal_note_cancellation_reason": "Λόγος που θα κοινοποιηθεί στον πελάτη (προαιρετικό)",
   "internal_booking_note_description": "Αυτή η σημείωση θα είναι ορατή μόνο στα μέλη της ομάδας σας",

@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "A apărut o eroare neașteptată. Te rugăm să încerci din nou mai târziu",
   "select_oAuth_client": "Selectează clientul OAuth",
   "on_every_instance": "La fiecare instanță",
+  "domain_wide_delegation_feature_not_enabled": "Funcția de delegare la nivel de domeniu nu este activată pentru organizația ta",
   "internal_booking_note": "Notă internă",
   "internal_note_cancellation_reason": "Motivul comunicat clientului (opțional)",
   "internal_booking_note_description": "Această notă va fi vizibilă doar membrilor echipei tale",

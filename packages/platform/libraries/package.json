@@ -17,7 +17,6 @@
     "postpublish": "node scripts/postpublish.js"
   },
   "dependencies": {
-    "@calcom/core": "*",
     "@calcom/features": "*",
     "@calcom/lib": "*"
   },
