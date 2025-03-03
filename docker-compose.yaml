@@ -21,7 +21,7 @@ services:
       - stack
 
   calcom:
-    image: solymady/calcom:latest
+    image: calcom.docker.scarf.sh/calcom/cal.com:latest
     build:
       context: .
       dockerfile: Dockerfile
