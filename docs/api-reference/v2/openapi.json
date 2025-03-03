@@ -1037,6 +1037,92 @@
         "tags": ["Orgs / Attributes / Options"]
       }
     },
+    "/v2/organizations/{orgId}/delegation-credentials": {
+      "post": {
+        "operationId": "OrganizationsDwdController_createDwd",
+        "summary": "Save delegation credentials for your organization.",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDwdInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateDwdOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Delegation Credentials"]
+      }
+    },
+    "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
+      "patch": {
+        "operationId": "OrganizationsDwdController_updateDwd",
+        "summary": "Update delegation credentials of your organization.",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "credentialId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDwdInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateDwdOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Delegation Credentials"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
@@ -5487,7 +5573,7 @@
         "tags": ["Selected Calendars"]
       },
       "delete": {
-        "operationId": "SelectedCalendarsController_removeSelectedCalendar",
+        "operationId": "SelectedCalendarsController_deleteSelectedCalendar",
         "summary": "Delete a selected calendar",
         "parameters": [
           {
@@ -5509,6 +5595,14 @@
           {
             "name": "credentialId",
             "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "domainWideDelegationCredentialId",
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -7476,7 +7570,7 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet"]
+            "enum": ["cal-video", "google-meet", "office365-video", "zoom"]
           }
         },
         "required": ["type", "integration"]
@@ -10456,6 +10550,9 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string"
           }
         },
         "required": ["integration", "externalId", "credentialId"]
@@ -13569,6 +13666,144 @@
         },
         "required": ["status", "data"]
       },
+      "GoogleServiceAccountKeyInput": {
+        "type": "object",
+        "properties": {
+          "private_key": {
+            "type": "string"
+          },
+          "client_email": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": ["private_key", "client_email", "client_id"]
+      },
+      "CreateDwdInput": {
+        "type": "object",
+        "properties": {
+          "workspacePlatformSlug": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
+          }
+        },
+        "required": ["workspacePlatformSlug", "domain", "serviceAccountKey"]
+      },
+      "WorkspacePlatformDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "slug"]
+      },
+      "DwdOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "workspacePlatform": {
+            "$ref": "#/components/schemas/WorkspacePlatformDto"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "enabled",
+          "domain",
+          "organizationId",
+          "workspacePlatform",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateDwdInput": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "UpdateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
       "CreateOrganizationInput": {
         "type": "object",
         "properties": {
@@ -14073,6 +14308,10 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": ["externalId", "primary", "readOnly", "isSelected", "credentialId"]
@@ -14104,6 +14343,10 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": ["externalId", "readOnly", "isSelected", "credentialId"]
@@ -14116,6 +14359,10 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
+            "nullable": true
           },
           "primary": {
             "$ref": "#/components/schemas/Primary"
@@ -14155,6 +14402,10 @@
           },
           "credentialId": {
             "type": "number",
+            "nullable": true
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
             "nullable": true
           },
           "name": {
@@ -16233,6 +16484,9 @@
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
             "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string"
           }
         },
         "required": ["integration", "externalId"]

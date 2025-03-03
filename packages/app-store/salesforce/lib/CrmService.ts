@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -26,6 +27,12 @@ import {
   RoutingReasons,
 } from "./enums";
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
+
+class SFObjectToUpdateNotFoundError extends RetryableError {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
 type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
@@ -204,7 +211,7 @@ export default class SalesforceCRMService implements CRM {
 
     if (!firstContact?.id) {
       log.error("No contacts found for event", { contacts });
-      throw new Error("No contacts found for event");
+      throw new SFObjectToUpdateNotFoundError("No contacts found for event");
     }
 
     const eventWhoIds = contacts.reduce((contactIds, contact) => {
