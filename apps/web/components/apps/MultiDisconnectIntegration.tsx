@@ -52,6 +52,15 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
     },
   });
 
+  const getUserDisplayName = (user: (typeof credentials)[number]["user"]) => {
+    if (!user) return null;
+    // Check if 'name' property exists on user
+    if ("name" in user) return user.name;
+    // Otherwise use email if available
+    if ("email" in user) return user.email;
+    return null;
+  };
+
   return (
     <>
       <Dropdown>
@@ -73,12 +82,12 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                   setCredentialToDelete({
                     id: cred.id,
                     teamId: cred.teamId,
-                    name: cred.team?.name || cred.user?.name || null,
+                    name: cred.team?.name || getUserDisplayName(cred.user) || null,
                   });
                   setConfirmationDialogOpen(true);
                 }}>
                 <div className="flex flex-col text-left">
-                  <span>{cred.team?.name || cred.user?.name || t("unnamed")}</span>
+                  <span>{cred.team?.name || getUserDisplayName(cred.user) || t("unnamed")}</span>
                 </div>
               </DropdownItem>
             </DropdownMenuItem>

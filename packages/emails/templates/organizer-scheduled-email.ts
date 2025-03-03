@@ -19,12 +19,14 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   newSeat?: boolean;
   teamMember?: Person;
   reassigned?: Reassigned;
+  attendee?: Person;
 
   constructor(input: {
     calEvent: CalendarEvent;
     newSeat?: boolean;
     teamMember?: Person;
     reassigned?: Reassigned;
+    attendee?: Person;
   }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
@@ -33,6 +35,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     this.newSeat = input.newSeat;
     this.teamMember = input.teamMember;
     this.reassigned = input.reassigned;
+    this.attendee = input.attendee;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -51,7 +54,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       subject: `${this.newSeat ? `${this.t("new_attendee")}: ` : ""}${this.calEvent.title}`,
       html: await this.getHtml(
         clonedCalEvent,
-        this.calEvent.organizer,
+        this.attendee || this.calEvent.organizer,
         this.teamMember,
         this.newSeat,
         this.reassigned

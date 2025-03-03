@@ -1091,6 +1091,96 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/delegation-credentials": {
+      "post": {
+        "operationId": "OrganizationsDwdController_createDwd",
+        "summary": "Save delegation credentials for your organization.",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDwdInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateDwdOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Delegation Credentials"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
+      "patch": {
+        "operationId": "OrganizationsDwdController_updateDwd",
+        "summary": "Update delegation credentials of your organization.",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "credentialId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDwdInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateDwdOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Delegation Credentials"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
@@ -5819,7 +5909,7 @@
         ]
       },
       "delete": {
-        "operationId": "SelectedCalendarsController_removeSelectedCalendar",
+        "operationId": "SelectedCalendarsController_deleteSelectedCalendar",
         "summary": "Delete a selected calendar",
         "parameters": [
           {
@@ -5841,6 +5931,14 @@
           {
             "name": "credentialId",
             "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "domainWideDelegationCredentialId",
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -7980,7 +8078,9 @@
             "example": "cal-video",
             "enum": [
               "cal-video",
-              "google-meet"
+              "google-meet",
+              "office365-video",
+              "zoom"
             ]
           }
         },
@@ -8494,6 +8594,48 @@
           "hidden"
         ]
       },
+      "UrlFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "url",
+            "description": "only allowed value for type is `url`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your text"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Enter url here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder",
+          "hidden"
+        ]
+      },
       "BusinessDaysWindow_2024_06_14": {
         "type": "object",
         "properties": {
@@ -8953,6 +9095,19 @@
           "slug"
         ]
       },
+      "InputOrganizersDefaultApp_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only allowed value for type is `organizersDefaultApp`"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "BookerLayouts_2024_06_14": {
         "type": "object",
         "properties": {
@@ -9048,35 +9203,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -9132,6 +9258,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldInput_2024_06_14"
                 }
               ]
             }
@@ -9278,6 +9407,35 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                }
+              ]
+            }
           }
         },
         "required": [
@@ -9298,7 +9456,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "address",
             "description": "only allowed value for type is `address`"
@@ -9329,7 +9488,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "link",
             "description": "only allowed value for type is `link`"
@@ -9361,6 +9521,7 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
@@ -9430,7 +9591,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
@@ -9449,7 +9611,7 @@
           "public"
         ]
       },
-      "OutputConferencingLocation_2024_06_14": {
+      "OutputOrganizersDefaultAppLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -9462,11 +9624,12 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
-            "example": "conferencing",
-            "description": "only allowed value for type is `conferencing`"
+            "example": "organizersDefaultApp",
+            "description": "only allowed value for type is `organizersDefaultApp`"
           }
         },
         "required": [
@@ -9486,6 +9649,7 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
@@ -9519,7 +9683,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "email",
             "description": "only allowed value for type is `email`",
@@ -9575,7 +9740,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "name",
             "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
@@ -9864,7 +10030,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "address",
             "description": "only allowed value for type is `address`"
@@ -9927,7 +10094,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "boolean",
             "description": "only allowed value for type is `boolean`"
@@ -9985,7 +10153,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "checkbox",
             "description": "only allowed value for type is `checkbox`"
@@ -10055,7 +10224,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "multiemail",
             "description": "only allowed value for type is `multiemail`"
@@ -10118,7 +10288,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "multiselect",
             "description": "only allowed value for type is `multiselect`"
@@ -10170,6 +10341,70 @@
           "isDefault"
         ]
       },
+      "UrlFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean",
+              "url"
+            ],
+            "example": "url",
+            "description": "only allowed value for type is `url`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your text"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Enter url here"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "hidden",
+          "isDefault"
+        ]
+      },
       "NumberFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -10188,7 +10423,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "number",
             "description": "only allowed value for type is `number`"
@@ -10251,7 +10487,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
@@ -10312,7 +10549,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "radio",
             "description": "only allowed value for type is `radio`"
@@ -10382,7 +10620,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "select",
             "description": "only allowed value for type is `select`"
@@ -10456,7 +10695,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "textarea",
             "description": "only allowed value for type is `textarea`"
@@ -10519,7 +10759,8 @@
               "multiemail",
               "checkbox",
               "radio",
-              "boolean"
+              "boolean",
+              "url"
             ],
             "example": "text",
             "description": "only allowed value for type is `text`"
@@ -10616,7 +10857,7 @@
                   "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
@@ -10681,6 +10922,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
                 }
               ]
             }
@@ -10939,35 +11183,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -11169,6 +11384,35 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                }
+              ]
+            }
           }
         }
       },
@@ -11249,6 +11493,9 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string"
           }
         },
         "required": [
@@ -12525,35 +12772,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -12609,6 +12827,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldInput_2024_06_14"
                 }
               ]
             }
@@ -12768,6 +12989,38 @@
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
+                }
+              ]
+            }
           }
         },
         "required": [
@@ -12935,7 +13188,7 @@
                   "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
@@ -13000,6 +13253,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
                 }
               ]
             }
@@ -13360,35 +13616,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -13600,6 +13827,38 @@
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
+                }
+              ]
+            }
           }
         }
       },
@@ -14887,6 +15146,167 @@
           "data"
         ]
       },
+      "GoogleServiceAccountKeyInput": {
+        "type": "object",
+        "properties": {
+          "private_key": {
+            "type": "string"
+          },
+          "client_email": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "private_key",
+          "client_email",
+          "client_id"
+        ]
+      },
+      "CreateDwdInput": {
+        "type": "object",
+        "properties": {
+          "workspacePlatformSlug": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "workspacePlatformSlug",
+          "domain",
+          "serviceAccountKey"
+        ]
+      },
+      "WorkspacePlatformDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "DwdOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "workspacePlatform": {
+            "$ref": "#/components/schemas/WorkspacePlatformDto"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "enabled",
+          "domain",
+          "organizationId",
+          "workspacePlatform",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateDwdInput": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "UpdateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateOrganizationInput": {
         "type": "object",
         "properties": {
@@ -15488,6 +15908,10 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
@@ -15525,6 +15949,10 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
@@ -15542,6 +15970,10 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
+            "nullable": true
           },
           "primary": {
             "$ref": "#/components/schemas/Primary"
@@ -15584,6 +16016,10 @@
           },
           "credentialId": {
             "type": "number",
+            "nullable": true
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string",
             "nullable": true
           },
           "name": {
@@ -17941,6 +18377,9 @@
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
             "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string"
           }
         },
         "required": [
