@@ -25,10 +25,7 @@
     "../types/tanstack-table.d.ts",
     "../types/next.d.ts",
     "../types/window.d.ts",
-    "client",
-    "next",
-    "react",
-    "server"
+    "react"
   ],
   "exclude": ["**/node_modules/**", "types/router.d.ts"],
   "compilerOptions": {
