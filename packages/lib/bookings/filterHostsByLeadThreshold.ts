@@ -1,5 +1,5 @@
 import logger from "@calcom/lib/logger";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { RRResetInterval, SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { RoutingFormResponse } from "../server/getLuckyUser";
@@ -96,6 +96,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     isRRWeightsEnabled: boolean;
     team: {
       parentId?: number | null;
+      rrResetInterval: RRResetInterval | null;
     } | null;
   };
   routingFormResponse: RoutingFormResponse | null;

@@ -8,6 +8,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { findQualifiedHosts } from "./findQualifiedHosts";
 import * as getRoutedUsers from "./getRoutedUsers";
+import { RRResetInterval } from ".prisma/client";
 
 // Mock the filterHostsByLeadThreshold function
 vi.mock("./filterHostsByLeadThreshold", () => {
@@ -84,6 +85,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -135,6 +137,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -221,6 +224,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -309,6 +313,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -386,6 +391,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
     prismaMock.booking.findFirst.mockResolvedValue({ userId: 2 });
@@ -461,6 +467,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -544,6 +551,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -637,6 +645,7 @@ describe("findQualifiedHosts", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
