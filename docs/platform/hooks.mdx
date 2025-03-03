@@ -71,7 +71,7 @@ export default function Booking() {
 
 ### 3. `useCancelBooking`
 
-The useCancelBooking hook allows you to cancel a booking. This hook returns a mutation function that handles the cancellation process. To cancel a booking, you'll need to provide at least the booking's unique identifier ***(uid).*** While the uid is the only mandatory parameter, you can enhance the cancellation process by including optional parameters such as ***id*** for the booking ID, ***cancellationReason*** to specify why the booking is being canceled, and ***allRemainingBookings*** to specify whether to cancel all future recurring bookings.
+The useCancelBooking hook allows you to cancel a booking. This hook returns a mutation function that handles the cancellation process. To cancel a booking, you'll need to provide at least the booking's unique identifier ***(uid).*** While the uid is the only mandatory parameter, you can enhance the cancellation process by including optional parameters such as ***cancellationReason*** to specify why the booking is being canceled, and ***allRemainingBookings*** to specify whether to cancel all future recurring bookings.
 
 Below code snippet shows how to use the useCancelBooking hook to cancel a booking for a user.
 
@@ -89,7 +89,6 @@ export default function CancelBooking() {
     <>
       <button onClick={() => {
           cancelBooking({
-            id: 123,
             uid: "6L6ADNpVHwLX25V8wXKsBr",
             cancellationReason: "User request",
             allRemainingBookings: true,
