@@ -8,7 +8,7 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type {
   LocationFormValues,
   EventTypeSetupProps,

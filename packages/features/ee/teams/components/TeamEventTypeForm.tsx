@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { classNames } from "@calcom/lib";
 import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
