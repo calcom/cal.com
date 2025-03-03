@@ -40,6 +40,10 @@ jobs:
       - name: Run Prettier (Code Formatting)
         run: npx prettier --check "**/*.{ts,tsx,js,json,md,yml,yaml}"
 
+      - name: Run ESLint
+        run: npx eslint "src/**/*.{js,ts,tsx}" || true
+
+
   test:
     name: Unit Testing
     timeout-minutes: 20
@@ -63,7 +67,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Run Unit Tests
-        run: yarn test -- --no-isolate
+        run: yarn vitest --ui
 
       - name: Run Timezone-Specific Tests (Israel)
         run: TZ=Asia/Jerusalem yarn test -- --timeZoneDependentTestsOnly --no-isolate
