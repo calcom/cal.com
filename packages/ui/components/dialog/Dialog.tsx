@@ -8,9 +8,9 @@ import React, { useMemo, useState } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog as PlatformDialogPrimitives } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import type { ButtonProps } from "../button";
 import { Button } from "../button";
