@@ -236,6 +236,11 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   createdAt!: string;
 
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  updatedAt!: string | null;
+
   @ApiPropertyOptional({
     type: Object,
     example: { key: "value" },
@@ -244,6 +249,12 @@ class BaseBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   metadata?: Record<string, string>;
+
+  @ApiPropertyOptional({ type: Number, example: 4 })
+  @IsInt()
+  @IsOptional()
+  @Expose()
+  rating?: number;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {

@@ -3,35 +3,12 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeam
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { CredentialPayload } from "@calcom/types/Credential";
+
+import { enrichHostsWithDwdCredentials } from "../domainWideDelegation/server";
+import getOrgIdFromMemberOrTeamId from "../getOrgIdFromMemberOrTeamId";
 
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
-
-export const getRoutedHostsWithContactOwnerAndFixedHosts = <
-  T extends { user: { id: number; email: string }; isFixed?: boolean }
->({
-  routedTeamMemberIds,
-  hosts,
-  contactOwnerEmail,
-}: {
-  routedTeamMemberIds: number[] | null;
-  hosts: T[];
-  contactOwnerEmail: string | null;
-}) => {
-  // We don't want to enter a scenario where we have no team members to be booked
-  // So, let's just fallback to regular flow if no routedTeamMemberIds are provided
-  if (!routedTeamMemberIds || !routedTeamMemberIds.length) {
-    return hosts;
-  }
-
-  log.debug(
-    "filtering hosts as per routedTeamMemberIds",
-    safeStringify({ routedTeamMemberIds, contactOwnerEmail })
-  );
-  return hosts.filter(
-    (host) =>
-      routedTeamMemberIds.includes(host.user.id) || host.isFixed || host.user.email === contactOwnerEmail
-  );
-};
 
 export const getRoutedUsersWithContactOwnerAndFixedUsers = <
   T extends { id: number; isFixed?: boolean; email: string }
@@ -99,7 +76,7 @@ type BaseHost<User extends BaseUser> = {
   user: User;
 };
 
-type EventType = {
+export type EventType = {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: AttributesQueryValue | null | undefined;
@@ -119,7 +96,6 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
     return {
       hosts: eventType.hosts.map((host) => ({
         isFixed: host.isFixed,
-        email: host.user.email,
         user: host.user,
         priority: host.priority,
         weight: host.weight,
@@ -141,15 +117,75 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
     };
   }
 }
+type BaseUserWithCredentialPayload = BaseUser & { credentials: CredentialPayload[] };
+export async function getNormalizedHostsWithDwdCredentials<
+  User extends BaseUserWithCredentialPayload,
+  Host extends BaseHost<User>
+>({
+  eventType,
+}: {
+  eventType: {
+    schedulingType: SchedulingType | null;
+    hosts?: Host[];
+    users: User[];
+    teamId?: number;
+  };
+}) {
+  if (eventType.hosts?.length && eventType.schedulingType) {
+    const hostsWithoutDwd = eventType.hosts.map((host) => ({
+      isFixed: host.isFixed,
+      user: host.user,
+      priority: host.priority,
+      weight: host.weight,
+      createdAt: host.createdAt,
+    }));
+    const firstHost = hostsWithoutDwd[0];
+    const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: firstHost?.user?.id ?? null,
+      teamId: eventType.teamId,
+    });
+    const hostsEnrichedWithDwd = await enrichHostsWithDwdCredentials({
+      orgId: firstUserOrgId ?? null,
+      hosts: hostsWithoutDwd ?? null,
+    });
+    return {
+      hosts: hostsEnrichedWithDwd,
+      fallbackHosts: null,
+    };
+  } else {
+    const hostsWithoutDwd = eventType.users.map((user) => {
+      return {
+        isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+        email: user.email,
+        user: user,
+        createdAt: null,
+      };
+    });
+    const firstHost = hostsWithoutDwd[0];
+    const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: firstHost?.user?.id ?? null,
+      teamId: eventType.teamId,
+    });
+    const hostsEnrichedWithDwd = await enrichHostsWithDwdCredentials({
+      orgId: firstUserOrgId ?? null,
+      hosts: hostsWithoutDwd ?? null,
+    });
+    return {
+      hosts: null,
+      fallbackHosts: hostsEnrichedWithDwd,
+    };
+  }
+}
 
+// We don't allow fixed hosts when segment matching is enabled
+// If this ever changes, we need to update this function and return fixed hosts
 export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
   eventType,
-  normalizedHosts,
+  hosts,
 }: {
   eventType: EventType;
-  normalizedHosts: {
+  hosts: {
     isFixed: boolean;
-    email: string;
     user: User;
     priority?: number | null;
     weight?: number | null;
@@ -160,20 +196,9 @@ export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
     ...eventType,
     rrSegmentQueryValue: eventType.rrSegmentQueryValue ?? null,
   });
-
-  const fixedHosts = normalizedHosts.filter((host) => host.isFixed);
-  const unsegmentedRoundRobinHosts = normalizedHosts.filter((host) => !host.isFixed);
-
-  const segmentedRoundRobinHosts = unsegmentedRoundRobinHosts.filter((host) => {
+  const segmentedRoundRobinHosts = hosts.filter((host) => {
     if (!matchingRRTeamMembers) return true;
     return matchingRRTeamMembers.includes(host.user.id);
   });
-
-  // In case we don't have any matching team members, we return all the RR hosts, as we always want the team event to be bookable.
-  // TODO: We should notify about it to the organizer somehow.
-  const roundRobinHosts = segmentedRoundRobinHosts.length
-    ? segmentedRoundRobinHosts
-    : unsegmentedRoundRobinHosts;
-
-  return [...fixedHosts, ...roundRobinHosts];
+  return segmentedRoundRobinHosts;
 }

@@ -11,7 +11,7 @@ import Script from "next/script";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
@@ -44,7 +44,7 @@ import { Button, PasswordField, TextField, Form, Alert, CheckboxField, Icon, sho
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 const signupSchema = apiSignupSchema.extend({
-  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+  apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
   cfToken: z.string().optional(),
 });
 
@@ -126,7 +126,6 @@ function UsernameField({
         {...props}
         {...register("username")}
         data-testid="signup-usernamefield"
-        addOnFilled={false}
       />
       {(!formState.isSubmitting || !formState.isSubmitted) && (
         <div className="text-gray text-default flex items-center text-sm">

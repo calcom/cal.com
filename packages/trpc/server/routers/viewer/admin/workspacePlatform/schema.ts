@@ -6,7 +6,7 @@ export const workspacePlatformCreateSchema = z.object({
   slug: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
-  defaultServiceAccountKey: serviceAccountKeySchema,
+  defaultServiceAccountKey: serviceAccountKeySchema.optional(),
   enabled: z.boolean().optional().default(true),
 });
 

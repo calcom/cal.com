@@ -38,6 +38,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuPortal,
   Icon,
   MeetingTimeInTimezones,
   showToast,
@@ -145,6 +146,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
+  const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -237,7 +239,7 @@ function BookingListItem(booking: BookingItemProps) {
             },
           },
         ]),
-    ...(isBookingReroutable(parsedBooking)
+    ...(isBookingFromRoutingForm
       ? [
           {
             id: "reroute",
@@ -257,14 +259,18 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: "map-pin" as const,
     },
-    {
-      id: "add_members",
-      label: t("additional_guests"),
-      onClick: () => {
-        setIsOpenAddGuestsDialog(true);
-      },
-      icon: "user-plus" as const,
-    },
+    ...(booking.eventType?.disableGuests
+      ? []
+      : [
+          {
+            id: "add_members",
+            label: t("additional_guests"),
+            onClick: () => {
+              setIsOpenAddGuestsDialog(true);
+            },
+            icon: "user-plus" as const,
+          },
+        ]),
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -444,6 +450,7 @@ function BookingListItem(booking: BookingItemProps) {
           setIsOpenDialog={setIsOpenReassignDialog}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
+          bookingFromRoutingForm={isBookingFromRoutingForm}
         />
       )}
       <EditLocationDialog
@@ -691,7 +698,7 @@ function BookingListItem(booking: BookingItemProps) {
         />
       </div>
 
-      {isBookingReroutable(parsedBooking) && (
+      {isBookingFromRoutingForm && (
         <RerouteDialog
           isOpenDialog={rerouteDialogIsOpen}
           setIsOpenDialog={setRerouteDialogIsOpen}
@@ -742,7 +749,7 @@ const BookingItemBadges = ({
         </Badge>
       ) : null}
       {recurringDates !== undefined && (
-        <div className="text-muted mt-2 text-sm">
+        <div className="text-muted -mt-1 text-sm">
           <RecurringBookingsTooltip
             userTimeFormat={userTimeFormat}
             userTimeZone={userTimeZone}
@@ -907,71 +914,73 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
-            <s>
+            <>
               {name || email} <Icon name="eye-off" className="inline h-4" />
-            </s>
+            </>
           ) : (
             <>{name || email}</>
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        {!isSmsCalEmail(email) && (
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          {!isSmsCalEmail(email) && (
+            <DropdownMenuItem className="focus:outline-none">
+              <DropdownItem
+                StartIcon="mail"
+                href={`mailto:${email}`}
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  e.stopPropagation();
+                }}>
+                <a href={`mailto:${email}`}>{t("email")}</a>
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem className="focus:outline-none">
             <DropdownItem
-              StartIcon="mail"
-              href={`mailto:${email}`}
+              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
               onClick={(e) => {
+                e.preventDefault();
+                const isEmailCopied = isSmsCalEmail(email);
+                copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
                 setOpenDropdown(false);
-                e.stopPropagation();
+                showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
               }}>
-              <a href={`mailto:${email}`}>{t("email")}</a>
+              {!isCopied ? t("copy") : t("copied")}
             </DropdownItem>
           </DropdownMenuItem>
-        )}
 
-        <DropdownMenuItem className="focus:outline-none">
-          <DropdownItem
-            StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-            onClick={(e) => {
-              e.preventDefault();
-              const isEmailCopied = isSmsCalEmail(email);
-              copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
-              setOpenDropdown(false);
-              showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
-            }}>
-            {!isCopied ? t("copy") : t("copied")}
-          </DropdownItem>
-        </DropdownMenuItem>
-
-        {isBookingInPast && (
-          <DropdownMenuItem className="focus:outline-none">
-            {noShow ? (
-              <DropdownItem
-                data-testid="unmark-no-show"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                }}
-                StartIcon="eye">
-                {t("unmark_as_no_show")}
-              </DropdownItem>
-            ) : (
-              <DropdownItem
-                data-testid="mark-no-show"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                }}
-                StartIcon="eye-off">
-                {t("mark_as_no_show")}
-              </DropdownItem>
-            )}
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
+          {isBookingInPast && (
+            <DropdownMenuItem className="focus:outline-none">
+              {noShow ? (
+                <DropdownItem
+                  data-testid="unmark-no-show"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenDropdown(false);
+                    toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
+                  }}
+                  StartIcon="eye">
+                  {t("unmark_as_no_show")}
+                </DropdownItem>
+              ) : (
+                <DropdownItem
+                  data-testid="mark-no-show"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenDropdown(false);
+                    toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
+                  }}
+                  StartIcon="eye-off">
+                  {t("mark_as_no_show")}
+                </DropdownItem>
+              )}
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };

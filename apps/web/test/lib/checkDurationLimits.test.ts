@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { checkDurationLimit, checkDurationLimits } from "@calcom/lib/server";
+import { checkDurationLimit, checkDurationLimits } from "@calcom/lib/server/checkDurationLimits";
 
 type MockData = {
   id: number;

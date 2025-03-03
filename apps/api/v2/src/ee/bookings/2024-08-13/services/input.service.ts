@@ -5,7 +5,7 @@ import {
 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
-import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
+import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -74,7 +74,7 @@ export class InputBookingsService_2024_08_13 {
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly config: ConfigService,
-    private readonly apiKeyRepository: ApiKeyRepository,
+    private readonly apiKeyRepository: ApiKeysRepository,
     private readonly bookingSeatRepository: BookingSeatRepository
   ) {}
 
@@ -463,11 +463,18 @@ export class InputBookingsService_2024_08_13 {
       teamIds: queryParams.teamsIds || (queryParams.teamId ? [queryParams.teamId] : undefined),
       eventTypeIds:
         queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
+      afterUpdatedDate: queryParams.afterUpdatedAt,
+      beforeUpdatedDate: queryParams.beforeUpdatedAt,
     };
   }
 
   transformGetBookingsSort(queryParams: GetBookingsInput_2024_08_13) {
-    if (!queryParams.sortStart && !queryParams.sortEnd && !queryParams.sortCreated) {
+    if (
+      !queryParams.sortStart &&
+      !queryParams.sortEnd &&
+      !queryParams.sortCreated &&
+      !queryParams.sortUpdatedAt
+    ) {
       return undefined;
     }
 
@@ -475,6 +482,7 @@ export class InputBookingsService_2024_08_13 {
       sortStart: queryParams.sortStart,
       sortEnd: queryParams.sortEnd,
       sortCreated: queryParams.sortCreated,
+      sortUpdated: queryParams.sortUpdatedAt,
     };
   }
 
