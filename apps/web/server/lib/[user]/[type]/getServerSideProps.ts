@@ -1,4 +1,3 @@
-import type { DehydratedState } from "@tanstack/react-query";
 import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
@@ -40,7 +39,6 @@ type Props = {
   bookingUid: string | null;
   user: string;
   slug: string;
-  trpcState: DehydratedState;
   isBrandingHidden: boolean;
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
@@ -171,7 +169,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     },
     user: usernames.join("+"),
     slug,
-    trpcState: ssr.dehydrate(),
     isBrandingHidden: false,
     isSEOIndexable: true,
     themeBasis: null,
@@ -270,7 +267,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     },
     user: username,
     slug,
-    trpcState: ssr.dehydrate(),
     isBrandingHidden: user?.hideBranding,
     isSEOIndexable: allowSEOIndexing,
     themeBasis: username,

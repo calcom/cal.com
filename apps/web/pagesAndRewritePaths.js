@@ -26,7 +26,6 @@ let pages = (exports.pages = glob
         "_trpc",
         "layout",
         "layoutHOC",
-        "WithAppDirSsg",
         "global-error",
         "WithAppDirSsr",
         "WithEmbedSSR",

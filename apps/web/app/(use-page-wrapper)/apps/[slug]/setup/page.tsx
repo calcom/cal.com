@@ -28,7 +28,7 @@ const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
 
-  const { dehydratedState, ...props } = await getData(context);
+  const props = await getData(context);
   return <SetupView {...props} />;
 };
 

@@ -218,7 +218,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
-      trpcState: ssr.dehydrate(),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,
