@@ -3,7 +3,6 @@ import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   DateRangePicker,
@@ -19,6 +18,7 @@ import {
   CommandSeparator,
   buttonClasses,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {

@@ -31,12 +31,23 @@ export const useAddSelectedCalendar = (
       };
     }>,
     unknown,
-    { credentialId: number; integration: string; externalId: string }
+    {
+      credentialId: number;
+      integration: string;
+      externalId: string;
+      domainWideDelegationCredentialId: string | null;
+    }
   >({
     mutationFn: (data) => {
-      return http.post(`/selected-calendars`, data).then((res) => {
-        return res.data;
-      });
+      const { domainWideDelegationCredentialId, ...rest } = data;
+      return http
+        .post(`/selected-calendars`, {
+          ...rest,
+          ...(domainWideDelegationCredentialId ? { domainWideDelegationCredentialId } : {}),
+        })
+        .then((res) => {
+          return res.data;
+        });
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {

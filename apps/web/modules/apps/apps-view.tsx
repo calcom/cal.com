@@ -3,7 +3,6 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
@@ -16,6 +15,7 @@ import {
   RecentAppsSlider,
 } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { type getServerSideProps } from "@lib/apps/getServerSideProps";
 

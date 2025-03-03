@@ -3,8 +3,8 @@
 import { cva } from "class-variance-authority";
 import React, { forwardRef, useId, useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";

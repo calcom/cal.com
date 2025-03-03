@@ -1,4 +1,3 @@
-import { classNames } from "@calcom/lib";
 import type { IconName } from "@calcom/ui";
 import {
   Button,
@@ -15,6 +14,7 @@ import {
   Badge,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export interface FilterOption {
   value: string | number;
