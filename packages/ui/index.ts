@@ -54,6 +54,7 @@ export {
   Switch,
   NumberInput,
   InputError,
+  inputStyles,
 } from "./components/form";
 
 export { Slider as RangeSlider } from "./components/form/slider";
