@@ -101,13 +101,6 @@ export const ZDateRangeFilterValue = z.object({
   }),
 }) satisfies z.ZodType<DateRangeFilterValue>;
 
-export type FilterValue =
-  | SingleSelectFilterValue
-  | MultiSelectFilterValue
-  | TextFilterValue
-  | NumberFilterValue
-  | DateRangeFilterValue;
-
 export const ZFilterValue = z.union([
   ZSingleSelectFilterValue,
   ZMultiSelectFilterValue,
@@ -116,10 +109,20 @@ export const ZFilterValue = z.union([
   ZDateRangeFilterValue,
 ]);
 
-export type ColumnFilterMeta = {
-  type?: ColumnFilterType;
-  icon?: IconName;
+export type DateRangeFilterOptions = {
+  range: "past" | "custom";
 };
+
+export type ColumnFilterMeta =
+  | {
+      type: ColumnFilterType.DATE_RANGE;
+      icon?: IconName;
+      dateRangeOptions: DateRangeFilterOptions;
+    }
+  | {
+      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE>;
+      icon?: IconName;
+    };
 
 export type FilterableColumn = {
   id: string;
@@ -128,11 +131,11 @@ export type FilterableColumn = {
 } & (
   | {
       type: ColumnFilterType.SINGLE_SELECT;
-      options: Array<{ label: string; value: string | number }>;
+      options: FacetedValue[];
     }
   | {
       type: ColumnFilterType.MULTI_SELECT;
-      options: Array<{ label: string; value: string | number }>;
+      options: FacetedValue[];
     }
   | {
       type: ColumnFilterType.TEXT;
@@ -142,6 +145,7 @@ export type FilterableColumn = {
     }
   | {
       type: ColumnFilterType.DATE_RANGE;
+      dateRangeOptions?: DateRangeFilterOptions;
     }
 );
 
@@ -155,19 +159,34 @@ export const ZColumnFilter = z.object({
   value: ZFilterValue,
 }) satisfies z.ZodType<ColumnFilter>;
 
-export type TypedColumnFilter<T extends ColumnFilterType> = {
-  id: string;
-  value: T extends ColumnFilterType.TEXT
-    ? TextFilterValue
-    : T extends ColumnFilterType.NUMBER
-    ? NumberFilterValue
-    : T extends ColumnFilterType.SINGLE_SELECT
+export type FilterValueSchema<T extends ColumnFilterType> = T extends ColumnFilterType.SINGLE_SELECT
+  ? typeof ZSingleSelectFilterValue
+  : T extends ColumnFilterType.MULTI_SELECT
+  ? typeof ZMultiSelectFilterValue
+  : T extends ColumnFilterType.TEXT
+  ? typeof ZTextFilterValue
+  : T extends ColumnFilterType.NUMBER
+  ? typeof ZNumberFilterValue
+  : T extends ColumnFilterType.DATE_RANGE
+  ? typeof ZDateRangeFilterValue
+  : never;
+
+export type FilterValue<T extends ColumnFilterType = ColumnFilterType> =
+  T extends ColumnFilterType.SINGLE_SELECT
     ? SingleSelectFilterValue
     : T extends ColumnFilterType.MULTI_SELECT
     ? MultiSelectFilterValue
+    : T extends ColumnFilterType.TEXT
+    ? TextFilterValue
+    : T extends ColumnFilterType.NUMBER
+    ? NumberFilterValue
     : T extends ColumnFilterType.DATE_RANGE
     ? DateRangeFilterValue
     : never;
+
+export type TypedColumnFilter<T extends ColumnFilterType> = {
+  id: string;
+  value: FilterValue<T>;
 };
 
 export type Sorting = {
@@ -186,4 +205,5 @@ export const ZColumnVisibility = z.record(z.string(), z.boolean());
 export type FacetedValue = {
   label: string;
   value: string | number;
+  section?: string;
 };

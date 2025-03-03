@@ -4,8 +4,8 @@ import superjson from "superjson";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
-import { createServerSideHelpers } from "@calcom/trpc/react/server";
-import { createAppRouter } from "@calcom/trpc/server/routers/_app";
+
+import { createServerSideHelpers } from "@trpc/react-query/server";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { i18n } = require("@calcom/config/next-i18next.config");

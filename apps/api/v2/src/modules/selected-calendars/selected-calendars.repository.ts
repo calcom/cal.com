@@ -85,13 +85,19 @@ export class SelectedCalendarsRepository {
     });
   }
 
-  async removeUserSelectedCalendar(userId: number, integration: string, externalId: string) {
+  async removeUserSelectedCalendar(
+    userId: number,
+    integration: string,
+    externalId: string,
+    domainWideDelegationCredentialId?: string
+  ) {
     // Using deleteMany because userId_externalId_integration_eventTypeId is a unique constraint but with eventTypeId being nullable, causing it to be not used as a unique constraint
     const records = await this.dbWrite.prisma.selectedCalendar.findMany({
       where: {
         userId,
         externalId,
         integration,
+        domainWideDelegationCredentialId,
         ...ensureUserLevelWhere,
       },
     });

@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
-import Stripe from "stripe";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
+import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 
 import { TRPCError } from "@trpc/server";
@@ -56,8 +56,9 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (isPrismaError(cause)) {
     return getServerErrorFromPrismaError(cause);
   }
-  if (cause instanceof Stripe.errors.StripeInvalidRequestError) {
-    return getHttpError({ statusCode: 400, cause });
+  const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
+  if (parsedStripeError.success) {
+    return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
   }
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
