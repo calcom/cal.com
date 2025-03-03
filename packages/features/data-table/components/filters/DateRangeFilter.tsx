@@ -8,7 +8,6 @@ import {
   getDefaultFutureEndDate,
   getDefaultFutureStartDate,
 } from "@calcom/features/data-table/lib/dateRange";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   DateRangePicker,
@@ -24,6 +23,7 @@ import {
   CommandSeparator,
   buttonClasses,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {

@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Er is een onverwachte fout opgetreden. Probeer het later opnieuw",
   "select_oAuth_client": "Selecteer OAuth-client",
   "on_every_instance": "Op elke instantie",
+  "domain_wide_delegation_feature_not_enabled": "De functie voor domeinbrede delegatie is niet ingeschakeld voor jouw organisatie",
   "internal_booking_note": "Interne notitie",
   "internal_note_cancellation_reason": "Reden gedeeld met klant (optioneel)",
   "internal_booking_note_description": "Deze notitie is alleen zichtbaar voor leden van je team",

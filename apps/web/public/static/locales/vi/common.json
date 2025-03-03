@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau",
   "select_oAuth_client": "Chọn OAuth Client",
   "on_every_instance": "Trên mỗi phiên bản",
+  "domain_wide_delegation_feature_not_enabled": "Tính năng ủy quyền toàn miền chưa được kích hoạt cho tổ chức của bạn",
   "internal_booking_note": "Ghi chú nội bộ",
   "internal_note_cancellation_reason": "Lý do chia sẻ với khách hàng (tùy chọn)",
   "internal_booking_note_description": "Ghi chú này chỉ hiển thị cho các thành viên trong nhóm của bạn",

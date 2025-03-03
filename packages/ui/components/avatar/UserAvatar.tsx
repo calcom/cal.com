@@ -1,9 +1,9 @@
-import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { Avatar } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type Organization = {
   id: number;

@@ -3,8 +3,8 @@ import * as React from "react";
 import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
 import ReactSelect from "react-select";
 
-import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import cx from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
 import { inputStyles } from "../inputs/TextField";

@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później",
   "select_oAuth_client": "Wybierz klienta OAuth",
   "on_every_instance": "W każdej instancji",
+  "domain_wide_delegation_feature_not_enabled": "Funkcja delegacji na poziomie domeny nie jest włączona dla Twojej organizacji",
   "internal_booking_note": "Notatka wewnętrzna",
   "internal_note_cancellation_reason": "Powód udostępniony klientowi (opcjonalnie)",
   "internal_booking_note_description": "Ta notatka będzie widoczna tylko dla członków twojego zespołu",
