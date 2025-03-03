@@ -79,13 +79,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     where: {
       userId,
       hidden: false,
+      teamId: team ? team.id : undefined,
     },
   });
 
-  if (!eventTypes) return res.status(200).json(defaultCanvasData);
+  if (eventTypes && eventTypes?.length === 0) return res.status(200).json(defaultCanvasData);
   if (!user && !team) return res.status(200).json(defaultCanvasData);
 
-  const list: ListItem[] = eventTypes.map((eventType) => {
+  // Limit to 10 Events types
+  const list: ListItem[] = eventTypes.slice(0, 10).map((eventType) => {
     let slug;
     if (team && team.slug) {
       slug = `team/${team.slug}`;
