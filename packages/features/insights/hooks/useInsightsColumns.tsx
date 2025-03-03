@@ -1,14 +1,14 @@
 import { createColumnHelper } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { dataTableFilter, ColumnFilterType } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import { Badge } from "@calcom/ui";
+import { Badge, Icon } from "@calcom/ui";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -66,6 +66,32 @@ export const useInsightsColumns = ({
         filterFn: (row, id, filterValue) => {
           const cellValue = row.original.bookingUserId;
           return dataTableFilter(cellValue, filterValue);
+        },
+      }),
+      columnHelper.accessor("bookingUid", {
+        id: "bookingUid",
+        header: t("routing_form_insights_booking_uid"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          const bookingUid = info.getValue();
+          if (!bookingUid) return null;
+          return <CopyButton label={bookingUid} value={bookingUid} />;
+        },
+      }),
+      columnHelper.accessor("bookingUid", {
+        id: "bookingLink",
+        header: t("routing_form_insights_booking_link"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          const bookingUid = info.getValue();
+          if (!bookingUid) return null;
+          const displayedUrl = `${location.host}/booking/${bookingUid}`;
+          const bookingUrl = `https://${displayedUrl}`;
+          return <CopyButton label={displayedUrl} value={bookingUrl} />;
         },
       }),
       columnHelper.accessor("bookingAttendees", {
@@ -225,3 +251,33 @@ export const useInsightsColumns = ({
     ];
   }, [isHeadersSuccess, headers]);
 };
+
+function CopyButton({ label, value }: { label: string; value: string }) {
+  const [showCheck, setShowCheck] = useState(false);
+  const { t } = useLocale();
+  return (
+    <button
+      className="flex items-center gap-1 overflow-hidden"
+      title={value}
+      onClick={() => {
+        // navigator.clipboard.writeText(value);
+        setShowCheck(true);
+        setTimeout(() => {
+          setShowCheck(false);
+        }, 2000);
+      }}>
+      {!showCheck && (
+        <>
+          <Icon name="clipboard" className="shrink-0" size={14} />
+          <span className="truncate">{label}</span>
+        </>
+      )}
+      {showCheck && (
+        <>
+          <Icon name="check" className="shrink-0" size={14} />
+          <span className="truncate">{t("copied")}</span>
+        </>
+      )}
+    </button>
+  );
+}

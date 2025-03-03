@@ -2855,6 +2855,8 @@
   "routing_form_insights_booking_status_header": "Booking",
   "routing_form_insights_response_no_booking": "No Booking",
   "routing_form_insights_booked_by": "Booked by",
+  "routing_form_insights_booking_uid": "ID",
+  "routing_form_insights_booking_link": "Link",
   "routing_form_insights_created_at": "Created at",
   "routing_form_insights_booking_status": "Booking Status",
   "routing_form_insights_booking_at": "Booking At",
