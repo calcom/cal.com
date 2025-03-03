@@ -486,6 +486,7 @@ export class EventTypeRepository {
       periodEndDate: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
+      disableConflictingBookings: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       canSendCalVideoTranscriptionEmails: true,

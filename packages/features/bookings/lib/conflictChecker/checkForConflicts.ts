@@ -12,12 +12,18 @@ export function checkForConflicts({
   time,
   eventLength,
   currentSeats,
+  disableConflictingBookings = false,
 }: {
   busy: BufferedBusyTimes;
   time: Dayjs;
   eventLength: number;
   currentSeats?: CurrentSeats;
+  disableConflictingBookings?: boolean;
 }) {
+  // check if user has disabled conflicting bookings
+  if (disableConflictingBookings) {
+    return false;
+  }
   // Early return
   if (!Array.isArray(busy) || busy.length < 1) {
     return false; // guaranteed no conflicts when there is no busy times.

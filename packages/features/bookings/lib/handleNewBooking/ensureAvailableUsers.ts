@@ -145,6 +145,7 @@ export async function ensureAvailableUsers(
         busy: bufferedBusyTimes,
         time: startDateTimeUtc,
         eventLength: duration,
+        disableConflictingBookings: eventType.disableConflictingBookings,
       });
       if (!foundConflict) {
         availableUsers.push(user);
