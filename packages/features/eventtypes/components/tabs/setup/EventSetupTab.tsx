@@ -3,7 +3,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
 import Locations from "@calcom/features/eventtypes/components/Locations";

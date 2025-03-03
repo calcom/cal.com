@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
