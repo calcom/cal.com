@@ -3,14 +3,6 @@ import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
-import {
-  getAggregatedAvailability,
-  getAggregatedAvailabilityNew,
-} from "@calcom/core/getAggregatedAvailability";
-import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
-import { getUsersAvailability } from "@calcom/core/getUserAvailability";
-import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWrapper";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -18,11 +10,15 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
+import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
+import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
+import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
+import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -30,6 +26,7 @@ import {
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/lib/sentryWrapper";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
@@ -38,6 +35,7 @@ import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -46,6 +44,12 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+type GetAvailabilityUserWithoutDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialPayload[];
+};
+type GetAvailabilityUserWithDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialForCalendarService[];
+};
 const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
   select: {
     id: true,
@@ -268,7 +272,7 @@ export function getUsersWithCredentials({
 }: {
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithDwdCredentials;
   }[];
 }) {
   return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
@@ -377,7 +381,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
-    findQualifiedHosts<GetAvailabilityUser>,
+    findQualifiedHostsWithDwdCredentials<GetAvailabilityUserWithoutDwdCredentials>,
     {
       eventType,
       rescheduleUid: input.rescheduleUid ?? null,
@@ -477,12 +481,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  // timeZone isn't directly set on eventType now(So, it is legacy)
-  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
-  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
-  const eventTimeZone =
-    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
-
   const timeSlots = monitorCallbackSync(getSlots, {
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -490,50 +488,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
-
-  const aggregatedAvailabilityNew = getAggregatedAvailabilityNew(
-    allUsersAvailability,
-    eventType.schedulingType
-  );
-
-  const timeSlotsNew = monitorCallbackSync(getSlots, {
-    inviteeDate: startTime,
-    eventLength: input.duration || eventType.length,
-    offsetStart: eventType.offsetStart,
-    dateRanges: aggregatedAvailabilityNew,
-    minimumBookingNotice: eventType.minimumBookingNotice,
-    frequency: eventType.slotInterval || input.duration || eventType.length,
-    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
-  });
-
-  const ts = groupTimeSlotsByDay(timeSlots),
-    tsNew = groupTimeSlotsByDay(timeSlotsNew);
-
-  const differences = Object.keys({ ...ts, ...tsNew }).reduce(
-    (acc: Record<string, { onlyInTimeSlots: string[]; onlyInTimeSlotsNew: string[] }>, day) => {
-      const t1 = ts[day] || [],
-        t2 = tsNew[day] || [];
-      const missingInNew = t1.filter((t) => !t2.includes(t));
-      const missingInOld = t2.filter((t) => !t1.includes(t));
-
-      if (missingInNew.length || missingInOld.length) {
-        acc[day] = { onlyInTimeSlots: missingInNew, onlyInTimeSlotsNew: missingInOld };
-      }
-
-      return acc;
-    },
-    {}
-  );
-
-  if (Object.keys(differences).length) {
-    loggerWithEventDetails.info({
-      routedTeamMemberIds,
-      differences,
-    });
-  }
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
@@ -670,6 +626,12 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
   loggerWithEventDetails.debug({ availableDates });
+
+  // timeZone isn't directly set on eventType now(So, it is legacy)
+  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
+  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
+  const eventTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
 
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
@@ -994,7 +956,7 @@ const calculateHostsAndAvailabilities = async ({
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithDwdCredentials;
   }[];
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
