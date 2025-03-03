@@ -2992,7 +2992,6 @@
   "delete_booking_description": "Are you sure you want to delete this booking?",
   "unable_to_delete_booking": "Unable to delete booking",
   "booking_delete_successfully": "Booking deleted successfully",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
   "end_date_not_selected": "You didn't set an end date for your OOO",
   "my_ooo": "My OOO",
   "team_ooo": "Team OOO",
