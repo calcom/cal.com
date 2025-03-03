@@ -1,4 +1,4 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";

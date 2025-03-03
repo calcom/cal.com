@@ -16,7 +16,7 @@ import { describe, afterEach, test, vi, beforeEach, beforeAll } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
+import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -37,7 +37,7 @@ vi.mock("@calcom/app-store/dailyvideo/lib", () => {
   };
 });
 
-vi.mock("@calcom/core/videoClient", () => {
+vi.mock("@calcom/lib/videoClient", () => {
   return {
     getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
   };
