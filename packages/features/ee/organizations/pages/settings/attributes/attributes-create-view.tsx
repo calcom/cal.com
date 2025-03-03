@@ -7,7 +7,7 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, useMeta, showToast } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
 
 import { AttributeForm } from "./AttributesForm";
 
@@ -51,7 +51,6 @@ function CreateAttributesPage() {
 }
 
 function CreateAttributeHeader(props: { isPending: boolean }) {
-  const { meta } = useMeta();
   const { t } = useLocale();
   const formContext = useFormContext<FormValues>();
 
@@ -69,7 +68,7 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
           <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
-            <h1 className="text-emphasis">{meta.title || t("attribute")}</h1>
+            <h1 className="text-emphasis">{t("attribute")}</h1>
             {watchedTitle && (
               <>
                 <span className="text-subtle">/</span> <span className="text-emphasis">{watchedTitle}</span>
