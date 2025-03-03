@@ -12,9 +12,9 @@
 /packages/app-store/larkcalendar/**/* @calcom/Foundation
 /packages/app-store/office365calendar/**/* @calcom/Foundation
 /packages/app-store/zohocalendar/**/* @calcom/Foundation
-/packages/core/getAggregatedAvailability.ts @calcom/Foundation
-/packages/core/getUserAvailability.ts @calcom/Foundation
 /packages/features/bookings/lib/**/* @calcom/Foundation
+/packages/lib/getAggregatedAvailability.ts @calcom/Foundation
+/packages/lib/getUserAvailability.ts @calcom/Foundation
 /packages/lib/server/getLuckyUser.ts @calcom/Foundation
 /packages/lib/slots.ts @calcom/Foundation
 /packages/platform/**/* @calcom/Platform
