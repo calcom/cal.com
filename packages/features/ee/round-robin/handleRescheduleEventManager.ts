@@ -2,7 +2,7 @@ import type { DestinationCalendar } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locationConstants";
 import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";

@@ -7,6 +7,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
+import { DailyLocationType } from "./locationConstants";
 
 export type DefaultEventLocationType = {
   default: true;
@@ -56,10 +57,6 @@ export type EventLocationTypeFromApp = Ensure<
 >;
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
-
-export const DailyLocationType = "integrations:daily";
-
-export const MeetLocationType = "integrations:google:meet";
 
 /**
  * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking

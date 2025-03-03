@@ -8,7 +8,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { buildNonDwdCredential } from "@calcom/lib/domainWideDelegation/server";
-import { DailyLocationType } from "@calcom/lib/location";
+import { DailyLocationType } from "@calcom/lib/locationConstants";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";

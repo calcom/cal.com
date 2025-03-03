@@ -1,4 +1,4 @@
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/locationConstants";
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
