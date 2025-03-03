@@ -53,7 +53,6 @@ import {
   ColorPicker,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import cx from "@calcom/ui/classNames";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -241,7 +240,7 @@ const destinationCalendarComponents = {
           {!useEventTypeDestinationCalendarEmail &&
             verifiedSecondaryEmails.length > 0 &&
             !isTeamEventType && (
-              <div className={cx("flex w-full flex-col", showConnectedCalendarSettings && "pl-11")}>
+              <div className={classNames("flex w-full flex-col", showConnectedCalendarSettings && "pl-11")}>
                 <SelectField
                   placeholder={
                     selectedSecondaryEmailId === -1 && (
