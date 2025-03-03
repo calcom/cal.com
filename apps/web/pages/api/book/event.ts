@@ -43,9 +43,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   });
 
   // Ensuring the booking URL exists and append UTM parameters
-  const bookingUrl = booking?.url ? `${booking.url}?${utmParams.toString()}` : booking?.url;
+  if (booking && booking.url) {
+    booking.url = `${booking.url}?${utmParams.toString()}`;
+  }
 
-  return bookingUrl;
+  return booking; // Returning the booking object with the modified URL
 }
 
 export default defaultResponder(handler, "/api/book/event");
