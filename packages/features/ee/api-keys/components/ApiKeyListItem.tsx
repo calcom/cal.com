@@ -1,5 +1,4 @@
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -13,6 +12,7 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 

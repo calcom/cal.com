@@ -19,6 +19,7 @@ import {
   useFilterValue,
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
+  ZTextFilterValue,
 } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -32,7 +33,7 @@ import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-import { useProperHeightForMobile } from "~/bookings/hooks/useProperHeightForMobile";
+import { useStretchedHeightToBottom } from "~/bookings/hooks/useStretchedHeightToBottom";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = (typeof validStatuses)[number];
@@ -108,12 +109,14 @@ function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  useProperHeightForMobile(tableContainerRef);
+  useStretchedHeightToBottom(tableContainerRef);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
+  const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
+  const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -123,6 +126,8 @@ function BookingsContent({ status }: BookingsProps) {
         eventTypeIds,
         teamIds,
         userIds,
+        attendeeName,
+        attendeeEmail,
         afterStartDate: dateRange?.startDate ?? undefined,
         beforeEndDate: dateRange?.endDate ?? undefined,
       },
@@ -164,7 +169,7 @@ function BookingsContent({ status }: BookingsProps) {
       }),
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
-        header: t("people"),
+        header: t("member"),
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
@@ -172,6 +177,32 @@ function BookingsContent({ status }: BookingsProps) {
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeName",
+        header: t("attendee_name"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        filterFn: () => true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeEmail",
+        header: t("attendee_email_variable"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        filterFn: () => true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
           },
         },
       }),
@@ -314,6 +345,8 @@ function BookingsContent({ status }: BookingsProps) {
         eventTypeId: false,
         teamId: false,
         userId: false,
+        attendeeName: false,
+        attendeeEmail: false,
         dateRange: false,
       },
     },

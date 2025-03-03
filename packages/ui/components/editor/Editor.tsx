@@ -14,7 +14,7 @@ import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import type { Dispatch, SetStateAction } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";

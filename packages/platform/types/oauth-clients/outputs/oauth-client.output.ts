@@ -44,6 +44,18 @@ export class PlatformOAuthClientDto {
   @IsDate()
   createdAt!: Date;
 
+  @IsBoolean()
+  @ApiProperty({ example: true })
+  areEmailsEnabled!: boolean;
+
+  @IsBoolean()
+  @ApiProperty({
+    example: true,
+    description:
+      "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.",
+  })
+  areDefaultEventTypesEnabled!: boolean;
+
   @ApiPropertyOptional({ example: "https://example.com/booking-redirect" })
   @IsOptional()
   @IsUrl()
@@ -58,9 +70,4 @@ export class PlatformOAuthClientDto {
   @IsOptional()
   @IsUrl()
   bookingRescheduleRedirectUri?: string;
-
-  @ApiPropertyOptional({ example: false })
-  @IsOptional()
-  @IsBoolean()
-  areEmailsEnabled?: boolean;
 }

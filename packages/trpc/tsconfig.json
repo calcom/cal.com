@@ -15,7 +15,8 @@
     "@calcom/platform-types": ["../platform/types/index.ts"],
     "@calcom/platform-utils": ["../platform/utils/index.ts"],
     "@calcom/prisma": ["../prisma"],
-    "@calcom/prisma/*": ["../prisma/*"]
+    "@calcom/prisma/*": ["../prisma/*"],
+    "@calcom/repository/*": ["../lib/server/repository/*"]
   },
   "include": [
     "../types/@wojtekmaj__react-daterange-picker.d.ts",

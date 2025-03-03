@@ -1,11 +1,11 @@
 import { useRouter } from "next/navigation";
 import React from "react";
 
-import { classNames } from "@calcom/lib";
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import { Button, Icon, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type OAuthClientCardProps = {
   name: string;
@@ -15,6 +15,7 @@ type OAuthClientCardProps = {
   bookingCancelRedirectUri: string | null | undefined;
   bookingRescheduleRedirectUri: string | null | undefined;
   areEmailsEnabled: boolean | undefined;
+  areDefaultEventTypesEnabled: boolean;
   permissions: Array<keyof typeof PERMISSION_MAP>;
   lastItem: boolean;
   id: string;
@@ -38,6 +39,7 @@ export const OAuthClientCard = ({
   onDelete,
   isLoading,
   areEmailsEnabled,
+  areDefaultEventTypesEnabled,
   organizationId,
 }: OAuthClientCardProps) => {
   const router = useRouter();
@@ -164,6 +166,10 @@ export const OAuthClientCard = ({
         )}
         <div className="flex gap-1 text-sm">
           <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
+        </div>
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Default event types enabled:</span>{" "}
+          {areDefaultEventTypesEnabled ? "Yes" : "No"}
         </div>
       </div>
       <div className="flex items-start gap-4">
