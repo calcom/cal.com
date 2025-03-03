@@ -60,7 +60,7 @@ const dictionaries = {
 
 type LocaleType = keyof typeof dictionaries;
 const translationCache = new Map<string, TFunction>();
-export async function getServerTranslation(locale: string) {
+async function _getServerTranslation(locale: string) {
   const dict = await dictionaries[locale as LocaleType]();
 
   return {
@@ -83,7 +83,7 @@ export const getTranslate = async (lang: string): Promise<TFunction> => {
     return cachedTFunction;
   }
 
-  const { t } = await getServerTranslation(lang);
+  const { t } = await _getServerTranslation(lang);
   translationCache.set(lang, t);
   return t;
 };
