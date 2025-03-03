@@ -3526,7 +3526,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.116"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.123"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3602,7 +3602,6 @@ __metadata:
   resolution: "@calcom/api@workspace:apps/api/v1"
   dependencies:
     "@calcom/app-store": "*"
-    "@calcom/core": "*"
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
     "@calcom/features": "*"
@@ -3804,7 +3803,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/caldavcalendar@workspace:packages/app-store/caldavcalendar"
   dependencies:
-    "@calcom/core": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
     "@calcom/types": "*"
@@ -3885,21 +3883,6 @@ __metadata:
     tailwind-scrollbar: ^2.0.1
     tailwindcss: ^3.3.3
     typescript: ^4.9.4
-  languageName: unknown
-  linkType: soft
-
-"@calcom/core@*, @calcom/core@workspace:packages/core":
-  version: 0.0.0-use.local
-  resolution: "@calcom/core@workspace:packages/core"
-  dependencies:
-    "@calcom/app-store": "*"
-    "@calcom/dayjs": "*"
-    "@calcom/lib": "*"
-    "@calcom/tsconfig": "*"
-    "@calcom/types": "*"
-    ical.js: ^1.4.0
-    ics: ^2.37.0
-    uuid: ^8.3.2
   languageName: unknown
   linkType: soft
 
@@ -4116,7 +4099,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/exchange2013calendar@workspace:packages/app-store/exchange2013calendar"
   dependencies:
-    "@calcom/core": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
     "@calcom/types": "*"
@@ -4130,7 +4112,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/exchange2016calendar@workspace:packages/app-store/exchange2016calendar"
   dependencies:
-    "@calcom/core": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
     "@calcom/types": "*"
@@ -4323,7 +4304,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar"
   dependencies:
-    "@calcom/core": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
     "@calcom/types": "*"
@@ -4585,21 +4565,19 @@ __metadata:
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
   dependencies:
-    "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
   checksum: 61b6be1b9d0be8a54ca8b1dff4b1e4db122b3c30d9203467f5347232eaf600ca3892da45a2de8abfe75327086406c33c1f6f75cd12a7147744437bc85a0ee755
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.116":
-  version: 0.0.116
-  resolution: "@calcom/platform-libraries@npm:0.0.116"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.123":
+  version: 0.0.123
+  resolution: "@calcom/platform-libraries@npm:0.0.123"
   dependencies:
-    "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 2d3159fa6e8428f16cab7ace42078d54a97145c668b476ce546c75ea62866a13cad5bd414e6a72c6f90740089d8ea82115e1225352ff41da1683f70a9211139b
+  checksum: ef755b7fa3a650ccc802d28e982d0f25e344d11613444771ef26923fdb25d7a9cea85c4f00f01d2c36f8c54f3de2cd0d729c883810345621f55fb8ec316c40fc
   languageName: node
   linkType: hard
 
@@ -4607,7 +4585,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
-    "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@types/node": ^20.3.1
@@ -5098,7 +5075,6 @@ __metadata:
     "@calcom/app-store": "*"
     "@calcom/app-store-cli": "*"
     "@calcom/config": "*"
-    "@calcom/core": "*"
     "@calcom/dayjs": "*"
     "@calcom/embed-core": "workspace:*"
     "@calcom/embed-react": "workspace:*"

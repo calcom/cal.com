@@ -19,7 +19,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-vi.mock("@calcom/core/EventManager");
+vi.mock("@calcom/lib/EventManager");
 
 const testDestinationCalendar = {
   integration: "test-calendar",
@@ -59,7 +59,7 @@ describe("roundRobinReassignment test", () => {
 
   test("reassign new round robin organizer", async ({ emails }) => {
     const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
-    const EventManager = (await import("@calcom/core/EventManager")).default;
+    const EventManager = (await import("@calcom/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
@@ -190,7 +190,7 @@ describe("roundRobinReassignment test", () => {
   // TODO: add fixed hosts test
   test("Reassign round robin host with fixed host as organizer", async () => {
     const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
-    const EventManager = (await import("@calcom/core/EventManager")).default;
+    const EventManager = (await import("@calcom/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
 

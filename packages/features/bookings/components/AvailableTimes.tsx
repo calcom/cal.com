@@ -4,7 +4,6 @@ import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
-import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
@@ -12,6 +11,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
+import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";

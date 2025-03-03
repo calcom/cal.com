@@ -1,8 +1,8 @@
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 
-import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import { classNames } from "@calcom/lib";
+import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
