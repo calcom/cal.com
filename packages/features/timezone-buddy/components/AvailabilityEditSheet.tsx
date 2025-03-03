@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -14,6 +15,7 @@ import {
   Button,
   Form,
   Label,
+  Select,
   Sheet,
   SheetBody,
   SheetClose,
@@ -105,7 +107,7 @@ const DateOverride = ({
 export function AvailabilityEditSheet(props: Props) {
   // This sheet will not be rendered without a selected user
   const userId = props.selectedUser?.id as number;
-  const { data, isPending } = trpc.viewer.availability.schedule.getScheduleByUserId.useQuery({
+  const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
     userId: userId,
   });
 
@@ -120,7 +122,7 @@ export function AvailabilityEditSheet(props: Props) {
   return <AvailabilityEditSheetForm {...props} data={data} isPending={isPending} />;
 }
 
-type Data = RouterOutputs["viewer"]["availability"]["schedule"]["getScheduleByUserId"];
+type Data = RouterOutputs["viewer"]["availability"]["schedule"]["getAllSchedulesByUserId"];
 export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending: boolean }) {
   // This sheet will not be rendered without a selected user
   const userId = props.selectedUser?.id as number;
@@ -137,6 +139,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async () => {
       await utils.viewer.availability.listTeam.invalidate();
+      await utils.viewer.availability.schedule.getAllSchedulesByUserId.invalidate({ userId });
       showToast(t("success"), "success");
     },
     onError: (err) => {
@@ -147,19 +150,25 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
     },
   });
 
+  const defaultSchedule = data.find((schedule) => schedule.isDefault) ?? data[0];
+  const [selectedSchedule, setSelectedSchedule] = useState(defaultSchedule.id);
+  const [workingHours, setWorkingHours] = useState(defaultSchedule.workingHours);
+
   const form = useForm<AvailabilityFormValues>({
     defaultValues: {
-      ...data,
-      timeZone: data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-      schedule: data.availability || [],
+      ...defaultSchedule,
+      timeZone: defaultSchedule.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      schedule: defaultSchedule.availability || [],
     },
   });
 
   const watchTimezone = form.watch("timeZone");
+  const userAvailabilityOptions = data.map((schedule) => ({ label: schedule.name, value: schedule.id }));
+  const userHasDefaultSchedule = data.some((schedule) => schedule.hasDefaultSchedule);
 
   const handleSubmit = ({ dateOverrides, ...values }: AvailabilityFormValues) => {
     updateMutation.mutate({
-      scheduleId: data.id,
+      scheduleId: selectedSchedule,
       dateOverrides: dateOverrides.flatMap((override) => override.ranges),
       ...values,
     });
@@ -183,7 +192,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
               })}
             </SheetTitle>
           </SheetHeader>
-          {!data.hasDefaultSchedule && !isPending && hasEditPermission && (
+          {!userHasDefaultSchedule && !isPending && hasEditPermission && (
             <div className="my-2">
               <Alert severity="warning" title={t("view_only_edit_availability_not_onboarded")} />
             </div>
@@ -197,11 +206,37 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
           <SheetBody className="mt-4 flex flex-col space-y-4">
             <div>
               <Label className="text-emphasis">
+                <>{t("select_availability_to_edit")}</>
+              </Label>
+              <Select
+                value={userAvailabilityOptions.find((option) => option.value === selectedSchedule)}
+                options={userAvailabilityOptions}
+                isDisabled={!userHasDefaultSchedule}
+                onChange={(selected) => {
+                  if (selected) {
+                    const changedSchedule = data.find((schedule) => schedule.id === selected.value);
+                    // should always be present, but added if just for type errors
+                    if (changedSchedule) {
+                      setSelectedSchedule(changedSchedule.id);
+                      form.reset({
+                        ...changedSchedule,
+                        timeZone:
+                          changedSchedule.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        schedule: changedSchedule.availability || [],
+                      });
+                      setWorkingHours(changedSchedule.workingHours);
+                    }
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <Label className="text-emphasis">
                 <>{t("timezone")}</>
               </Label>
               <TimezoneSelect
                 id="timezone"
-                isDisabled={!hasEditPermission || !data.hasDefaultSchedule}
+                isDisabled={!hasEditPermission || !userHasDefaultSchedule}
                 value={watchTimezone ?? "Europe/London"}
                 data-testid="timezone-select"
                 onChange={(event) => {
@@ -217,14 +252,14 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                   control={form.control}
                   name="schedule"
                   weekStart={0}
-                  disabled={!hasEditPermission || !data.hasDefaultSchedule}
+                  disabled={!hasEditPermission || !userHasDefaultSchedule}
                 />
               </div>
             </div>
             <div className="mt-4">
-              {data.workingHours && (
+              {workingHours && (
                 <DateOverride
-                  workingHours={data.workingHours}
+                  workingHours={workingHours}
                   disabled={!hasEditPermission || !data.hasDefaultSchedule}
                   handleSubmit={handleSubmit}
                 />
@@ -238,7 +273,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
               </Button>
             </SheetClose>
             <Button
-              disabled={!hasEditPermission || !data.hasDefaultSchedule}
+              disabled={!hasEditPermission || !userHasDefaultSchedule}
               className="w-full justify-center"
               type="submit"
               loading={updateMutation.isPending}
