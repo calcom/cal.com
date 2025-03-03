@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "予期せぬエラーが発生しました。後でもう一度お試しください",
   "select_oAuth_client": "OAuthクライアントを選択",
   "on_every_instance": "すべてのインスタンスで",
+  "domain_wide_delegation_feature_not_enabled": "ドメイン全体の委任機能が組織で有効になっていません",
   "internal_booking_note": "内部メモ",
   "internal_note_cancellation_reason": "顧客と共有する理由（任意）",
   "internal_booking_note_description": "このメモはチームメンバーのみが閲覧できます",

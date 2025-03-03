@@ -1,13 +1,13 @@
 import type { Booking, BookingReference, User } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
-import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
-import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
+import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
+import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { deleteMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";

@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "發生意外錯誤。請稍後再試。",
   "select_oAuth_client": "選擇 OAuth 用戶端",
   "on_every_instance": "在每個執行個體上",
+  "domain_wide_delegation_feature_not_enabled": "您的組織尚未啟用網域範圍委派功能",
   "internal_booking_note": "內部備註",
   "internal_note_cancellation_reason": "與客戶分享的原因（選填）",
   "internal_booking_note_description": "此備註僅團隊成員可見",
