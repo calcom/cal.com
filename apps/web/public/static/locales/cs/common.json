@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Došlo k neočekávané chybě. Zkuste to prosím později",
   "select_oAuth_client": "Vybrat OAuth klienta",
   "on_every_instance": "Na každé instanci",
+  "domain_wide_delegation_feature_not_enabled": "Funkce delegování na úrovni domény není pro vaši organizaci povolena",
   "internal_booking_note": "Interní poznámka",
   "internal_note_cancellation_reason": "Důvod sdílený se zákazníkem (volitelné)",
   "internal_booking_note_description": "Tato poznámka bude viditelná pouze pro členy vašeho týmu",

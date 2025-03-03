@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже",
   "select_oAuth_client": "Выберите OAuth-клиент",
   "on_every_instance": "На каждом экземпляре",
+  "domain_wide_delegation_feature_not_enabled": "Функция делегирования на уровне домена не включена для вашей организации",
   "internal_booking_note": "Внутренняя заметка",
   "internal_note_cancellation_reason": "Причина, которая будет показана клиенту (необязательно)",
   "internal_booking_note_description": "Эта заметка будет видна только участникам вашей команды",

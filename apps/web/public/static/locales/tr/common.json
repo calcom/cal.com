@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin",
   "select_oAuth_client": "OAuth istemcisi seçin",
   "on_every_instance": "Her örnekte",
+  "domain_wide_delegation_feature_not_enabled": "Alan adı genelinde yetkilendirme özelliği organizasyonunuz için etkinleştirilmemiş",
   "internal_booking_note": "İç Not",
   "internal_note_cancellation_reason": "Müşteri ile paylaşılacak neden (isteğe bağlı)",
   "internal_booking_note_description": "Bu not yalnızca ekip üyeleriniz tarafından görülebilecektir",

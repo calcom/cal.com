@@ -1,9 +1,9 @@
 import { beforeEach, vi } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type * as CalendarManager from "@calcom/core/CalendarManager";
+import type * as CalendarManager from "@calcom/lib/CalendarManager";
 
-vi.mock("@calcom/core/CalendarManager", () => CalendarManagerMock);
+vi.mock("@calcom/lib/CalendarManager", () => CalendarManagerMock);
 
 beforeEach(() => {
   mockReset(CalendarManagerMock);

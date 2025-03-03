@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Ett oväntat fel inträffade. Vänligen försök igen senare",
   "select_oAuth_client": "Välj OAuth-klient",
   "on_every_instance": "På varje instans",
+  "domain_wide_delegation_feature_not_enabled": "Funktionen för domänomfattande delegering är inte aktiverad för din organisation",
   "internal_booking_note": "Intern anteckning",
   "internal_note_cancellation_reason": "Orsak som delas med kunden (valfritt)",
   "internal_booking_note_description": "Denna anteckning kommer endast att vara synlig för medlemmar i ditt team",

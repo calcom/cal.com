@@ -3,14 +3,13 @@ import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
-import { useAtomsContext, useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import {
   SelectedCalendarsSettingsWebWrapper,
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapperSkeleton,
 } from "@calcom/atoms/monorepo";
-import type { EventNameObjectType } from "@calcom/core/event";
-import { getEventName } from "@calcom/core/event";
+import { useAtomsContext } from "@calcom/atoms/monorepo";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -34,6 +33,8 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, APP_NAME } from "@calcom/lib/constants";
+import type { EventNameObjectType } from "@calcom/lib/event";
+import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
