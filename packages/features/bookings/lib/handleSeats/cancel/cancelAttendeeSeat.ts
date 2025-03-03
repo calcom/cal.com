@@ -1,7 +1,6 @@
 import type { NextApiRequest } from "next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -12,6 +11,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { updateMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";

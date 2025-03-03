@@ -1,6 +1,6 @@
-import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAvailability";
 
 import { getTimeZone } from "./date-fns";
 import type { DateRange } from "./date-ranges";

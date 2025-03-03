@@ -126,7 +126,7 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
-export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
 export {
   transformWorkingHoursForAtom,
@@ -226,7 +226,7 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { IcsFeedCalendarService };
-export { validateCustomEventName } from "@calcom/core/event";
+export { validateCustomEventName } from "@calcom/lib/event";
 export { getEnabledAppsFromCredentials };
 export type { App };
 export type { CredentialDataWithTeamName };

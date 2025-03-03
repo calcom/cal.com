@@ -1,5 +1,5 @@
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
+import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";

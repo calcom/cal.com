@@ -9,9 +9,9 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import CRMScheduler from "@calcom/core/crmManager/tasker/crmScheduler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
+import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,

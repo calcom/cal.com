@@ -1,7 +1,7 @@
-import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import { parseRecurringEvent } from "@calcom/lib";
+import EventManager from "@calcom/lib/EventManager";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
