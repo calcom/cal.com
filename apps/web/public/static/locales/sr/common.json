@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Došlo je do neočekivane greške. Molimo pokušajte ponovo kasnije",
   "select_oAuth_client": "Izaberite OAuth klijenta",
   "on_every_instance": "Na svakoj instanci",
+  "domain_wide_delegation_feature_not_enabled": "Funkcija delegiranja na nivou domena nije omogućena za vašu organizaciju",
   "internal_booking_note": "Interna beleška",
   "internal_note_cancellation_reason": "Razlog koji se deli sa klijentom (opciono)",
   "internal_booking_note_description": "Ova beleška će biti vidljiva samo članovima vašeg tima",
