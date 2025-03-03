@@ -3,7 +3,6 @@ import type { NextApiRequest } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -15,6 +14,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -70,6 +70,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           externalCalendarId: true,
           credentialId: true,
           thirdPartyRecurringEventId: true,
+          domainWideDelegationCredentialId: true,
         },
       },
       payment: true,
@@ -140,7 +141,8 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
 
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
-export type CustomRequest = NextApiRequest & {
+export type AppRouterRequest = { appDirRequestBody: unknown };
+export type CustomRequest = (NextApiRequest | AppRouterRequest) & {
   userId?: number;
   bookingToDelete?: BookingToDelete;
   platformClientId?: string;
@@ -159,6 +161,7 @@ export type HandleCancelBookingResponse = {
 };
 
 async function handler(req: CustomRequest) {
+  const body = (req as AppRouterRequest).appDirRequestBody ?? (req as NextApiRequest).body;
   const {
     id,
     uid,
@@ -168,7 +171,7 @@ async function handler(req: CustomRequest) {
     cancelledBy,
     cancelSubsequentBookings,
     internalNote,
-  } = bookingCancelInput.parse(req.body);
+  } = bookingCancelInput.parse(body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
     bookingToDelete,
@@ -184,7 +187,7 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (!cancellationReason && req.bookingToDelete.userId == userId) {
+  if (!platformClientId && !cancellationReason && req.bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
@@ -568,7 +571,7 @@ async function handler(req: CustomRequest) {
     await handleInternalNote({
       internalNote,
       booking: bookingToDelete,
-      userId,
+      userId: userId || -1,
       teamId: teamId,
     });
   }
@@ -586,7 +589,7 @@ async function handler(req: CustomRequest) {
   } catch (error) {
     console.error("Error deleting event", error);
   }
-  req.statusCode = 200;
+  (req as NextApiRequest).statusCode = 200;
   return {
     success: true,
     message: "Booking successfully cancelled.",

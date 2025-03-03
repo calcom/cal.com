@@ -6,13 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
 
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import Loader from "@components/Loader";
 

@@ -1,3 +1,5 @@
+import { IS_PRODUCTION } from "@calcom/lib/constants";
+
 import type { TaskHandler, TaskTypes } from "../tasker";
 
 /**
@@ -23,4 +25,10 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
 };
 
+export const tasksConfig = {
+  createCRMEvent: {
+    minRetryIntervalMins: IS_PRODUCTION ? 10 : 1,
+    maxAttempts: 10,
+  },
+};
 export default tasks;

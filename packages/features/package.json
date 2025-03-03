@@ -16,6 +16,7 @@
     "@tanstack/react-virtual": "^3.10.9",
     "@vercel/functions": "^1.4.0",
     "akismet-api": "^6.0.0",
+    "class-variance-authority": "^0.7.1",
     "framer-motion": "^10.12.8",
     "lexical": "^0.9.0",
     "react-select": "^5.7.0",

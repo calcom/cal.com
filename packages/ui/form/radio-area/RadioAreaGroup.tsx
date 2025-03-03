@@ -2,7 +2,7 @@ import { useId } from "@radix-ui/react-id";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import type { ReactNode } from "react";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 type RadioAreaProps = RadioGroupPrimitive.RadioGroupItemProps & {
   children: ReactNode;
@@ -16,7 +16,7 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
   return (
     <div
       className={classNames(
-        "border-subtle [&:has(input:checked)]:border-emphasis relative flex items-start rounded-md border ",
+        "border-subtle [&:has(input:checked)]:border-emphasis relative flex items-start rounded-[10px] border ",
         className
       )}>
       <RadioGroupPrimitive.Item

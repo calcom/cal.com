@@ -6,28 +6,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
 import { useFilterValue, useDataTable } from "../../hooks";
-import type { FilterableColumn, TextFilterOperator } from "../../lib/types";
+import type { FilterableColumn } from "../../lib/types";
 import { ZTextFilterValue, ColumnFilterType } from "../../lib/types";
-
-export type TextFilterOperatorOption = {
-  label: string;
-  value: TextFilterOperator;
-  requiresOperand: boolean;
-};
-
-const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
-  const { t } = useLocale();
-  return [
-    { value: "equals", label: t("filter_operator_is"), requiresOperand: true },
-    { value: "notEquals", label: t("filter_operator_is_not"), requiresOperand: true },
-    { value: "contains", label: t("filter_operator_contains"), requiresOperand: true },
-    { value: "notContains", label: t("filter_operator_does_not_contain"), requiresOperand: true },
-    { value: "startsWith", label: t("filter_operator_starts_with"), requiresOperand: true },
-    { value: "endsWith", label: t("filter_operator_ends_with"), requiresOperand: true },
-    { value: "isEmpty", label: t("filter_operator_is_empty"), requiresOperand: false },
-    { value: "isNotEmpty", label: t("filter_operator_not_empty"), requiresOperand: false },
-  ];
-};
+import { useTextFilterOperatorOptions } from "./utils";
 
 export type TextFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.TEXT }>;
@@ -84,7 +65,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
             )}
           />
 
-          <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
+          <div className="bg-subtle -mx-3 my-2 h-px" role="separator" />
 
           <div className="flex items-center justify-between">
             <Button

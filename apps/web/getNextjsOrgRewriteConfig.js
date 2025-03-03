@@ -9,7 +9,7 @@ const orgSlugCaptureGroupName = "orgSlug";
  */
 const getLeftMostSubdomain = (url) => {
   if (!url.startsWith("http:") && !url.startsWith("https:")) {
-    // Make it a valid URL. Mabe we can simply return null and opt-out from orgs support till the use a URL scheme.
+    // Make it a valid URL. Maybe we can simply return null and opt-out from orgs support till the use a URL scheme.
     url = `https://${url}`;
   }
   const _url = new URL(url);

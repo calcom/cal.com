@@ -441,6 +441,17 @@ export class EventTypeRepository {
     });
   }
 
+  static async findTitleById({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        title: true,
+      },
+    });
+  }
+
   static async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
@@ -477,6 +488,7 @@ export class EventTypeRepository {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
+      canSendCalVideoTranscriptionEmails: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
@@ -792,6 +804,7 @@ export class EventTypeRepository {
         metadata: true,
         assignRRMembersUsingSegment: true,
         rrSegmentQueryValue: true,
+        isRRWeightsEnabled: true,
         maxLeadThreshold: true,
         useEventLevelSelectedCalendars: true,
         team: {
@@ -839,6 +852,8 @@ export class EventTypeRepository {
           select: {
             isFixed: true,
             createdAt: true,
+            weight: true,
+            priority: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },
