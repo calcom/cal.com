@@ -10,8 +10,6 @@ import { DefaultConferencingAppsOutputDto } from "@/modules/conferencing/outputs
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
-import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
-import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -20,11 +18,10 @@ import {
   ForbiddenException,
   InternalServerErrorException,
   Logger,
-  ParseIntPipe,
 } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO } from "@calcom/platform-constants";
+import { GOOGLE_MEET } from "@calcom/platform-constants";
 import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
 import { handleDeleteCredential, teamMetadataSchema } from "@calcom/platform-libraries";
 
@@ -38,8 +35,6 @@ export class OrganizationsConferencingService {
     private usersRepository: UsersRepository,
     private readonly googleMeetService: GoogleMeetService,
     private readonly conferencingService: ConferencingService,
-    private readonly zoomVideoService: ZoomVideoService,
-    private readonly office365VideoService: Office365VideoService,
     private readonly platformPlanGuard: PlatformPlanGuard,
     private readonly isAdminAPIEnabledGuard: IsAdminAPIEnabledGuard,
     private readonly isOrgGuard: IsOrgGuard,
@@ -152,22 +147,14 @@ export class OrganizationsConferencingService {
     app,
     user,
   }: {
-    orgId: string;
-    teamId: string;
+    orgId: number;
+    teamId: number;
     app: string;
     user: UserWithProfile;
   }): Promise<any> {
-    const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
-      user,
-      orgId,
-      teamId,
-      requiredRole: "TEAM_ADMIN",
-      minimumPlan: "ESSENTIALS",
-    });
-
     switch (app) {
       case GOOGLE_MEET:
-        return this.googleMeetService.connectGoogleMeetToTeam(validatedTeamId ?? validatedOrgId);
+        return this.googleMeetService.connectGoogleMeetToTeam(teamId);
       default:
         throw new BadRequestException("Invalid conferencing app. Available apps: GOOGLE_MEET.");
     }
@@ -215,20 +202,11 @@ export class OrganizationsConferencingService {
     orgId,
     user,
   }: {
-    teamId: string;
-    orgId: string;
+    teamId: number;
+    orgId: number;
     user: UserWithProfile;
   }) {
-    const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
-      user,
-      orgId,
-      teamId,
-      requiredRole: "TEAM_ADMIN",
-      minimumPlan: "ESSENTIALS",
-    });
-    console.log("validatedTeamId: ", validatedTeamId);
-
-    return this.conferencingRepository.findTeamConferencingApps(validatedTeamId);
+    return this.conferencingRepository.findTeamConferencingApps(teamId);
   }
 
   async getDefaultConferencingApp({
@@ -236,19 +214,11 @@ export class OrganizationsConferencingService {
     orgId,
     user,
   }: {
-    teamId: string;
-    orgId: string;
+    teamId: number;
+    orgId: number;
     user: UserWithProfile;
   }): Promise<DefaultConferencingAppsOutputDto | undefined> {
-    const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
-      user,
-      orgId,
-      teamId,
-      requiredRole: "TEAM_ADMIN",
-      minimumPlan: "ESSENTIALS",
-    });
-
-    const team = await this.teamsRepository.getById(validatedTeamId);
+    const team = await this.teamsRepository.getById(teamId);
     return teamMetadataSchema.parse(team?.metadata)?.defaultConferencingApp;
   }
 
@@ -271,22 +241,15 @@ export class OrganizationsConferencingService {
     user,
     app,
   }: {
-    teamId: string;
-    orgId: string;
+    teamId: number;
+    orgId: number;
     user: UserWithProfile;
     app: string;
   }) {
-    const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
-      user,
-      orgId,
-      teamId,
-      requiredRole: "TEAM_ADMIN",
-      minimumPlan: "ESSENTIALS",
-    });
-    const credential = await this.checkAppIsValidAndConnected(validatedTeamId, app);
+    const credential = await this.checkAppIsValidAndConnected(teamId, app);
     return handleDeleteCredential({
       userId: user.id,
-      teamId: validatedTeamId,
+      teamId,
       userMetadata: user?.metadata,
       credentialId: credential.id,
     });
@@ -298,23 +261,16 @@ export class OrganizationsConferencingService {
     user,
     app,
   }: {
-    teamId: string;
-    orgId: string;
+    teamId: number;
+    orgId: number;
     user: UserWithProfile;
     app: string;
   }) {
-    const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
-      user,
-      orgId,
-      teamId,
-      requiredRole: "TEAM_ADMIN",
-      minimumPlan: "ESSENTIALS",
-    });
     // cal-video is global, so we can skip this check
     if (app !== CAL_VIDEO) {
-      await this.checkAppIsValidAndConnected(validatedTeamId, app);
+      await this.checkAppIsValidAndConnected(teamId, app);
     }
-    const team = await this.teamsRepository.setDefaultConferencingApp(validatedTeamId, app);
+    const team = await this.teamsRepository.setDefaultConferencingApp(teamId, app);
     const metadata = team.metadata as { defaultConferencingApp?: { appSlug?: string } };
     if (metadata?.defaultConferencingApp?.appSlug !== app) {
       throw new InternalServerErrorException(`Could not set ${app} as default conferencing app`);

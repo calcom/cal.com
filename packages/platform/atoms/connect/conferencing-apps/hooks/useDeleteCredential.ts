@@ -3,7 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { App } from "@calcom/types/App";
 
-import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
 export const QUERY_KEY = "use-delete-credential";
@@ -12,9 +11,15 @@ export type UseDeleteEventTypeProps = {
   onError?: (err: Error) => void;
   onSettled?: () => void;
   teamId?: number;
+  orgId?: number;
 };
-export const useDeleteCredential = ({ onSuccess, onError, onSettled, teamId }: UseDeleteEventTypeProps) => {
-  const { organizationId } = useAtomsContext();
+export const useDeleteCredential = ({
+  onSuccess,
+  onError,
+  onSettled,
+  teamId,
+  orgId,
+}: UseDeleteEventTypeProps) => {
   return useMutation({
     onSuccess,
     onError,
@@ -22,9 +27,11 @@ export const useDeleteCredential = ({ onSuccess, onError, onSettled, teamId }: U
     mutationFn: (app: App["slug"]) => {
       if (!app) throw new Error("app is required");
 
-      const pathname = `/conferencing/${app}/disconnect?${teamId ? `teamId=${teamId}` : ""}${
-        organizationId ? `&orgId=${organizationId}` : ""
-      }`;
+      let pathname = `/conferencing/${app}/disconnect`;
+
+      if (teamId && orgId) {
+        pathname = `/organizations/${orgId}/teams/${teamId}/conferencing/${app}/disconnect`;
+      }
       return http?.delete(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return;

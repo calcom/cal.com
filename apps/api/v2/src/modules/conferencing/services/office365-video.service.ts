@@ -109,7 +109,9 @@ export class Office365VideoService {
 
     const credentialIdsToDelete = existingCredentialOffice365Video.map((item) => item.id);
     if (credentialIdsToDelete.length > 0) {
-      await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
+      teamId
+        ? await this.appsRepository.deleteTeamAppCredentials(credentialIdsToDelete, teamId)
+        : await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
     }
 
     teamId

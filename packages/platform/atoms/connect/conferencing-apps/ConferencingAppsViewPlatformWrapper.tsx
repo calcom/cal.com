@@ -48,6 +48,7 @@ type ConferencingAppsViewPlatformWrapperProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
+  orgId?: number;
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
@@ -74,6 +75,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   returnTo,
   onErrorReturnTo,
   teamId,
+  orgId,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -105,7 +107,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   };
 
   const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId);
-  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId);
+  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId, orgId);
   const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(teamId);
 
   const deleteCredentialMutation = useDeleteCredential({
@@ -124,10 +126,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
       handleModelClose();
     },
     teamId,
+    orgId,
   });
 
   const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({
     teamId,
+    orgId,
   });
 
   const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({});
@@ -183,6 +187,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     returnTo,
     onErrorReturnTo,
     teamId,
+    orgId,
   });
 
   const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {

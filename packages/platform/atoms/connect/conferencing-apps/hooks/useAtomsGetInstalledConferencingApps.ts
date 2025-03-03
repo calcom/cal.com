@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
+import type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ConnectedApps } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import { useAtomsContext } from "../../../hooks/useAtomsContext";
@@ -11,9 +11,13 @@ export const QUERY_KEY = "get-installed-conferencing-apps";
 
 export const useAtomsGetInstalledConferencingApps = (teamId?: number) => {
   const { isInit, accessToken, organizationId } = useAtomsContext();
-  const pathname = `/atoms/conferencing?${teamId ? `teamId=${teamId}` : ""}${
-    organizationId ? `&orgId=${organizationId}` : ""
-  }`;
+
+  // Determine which endpoint to use based on whether teamId and organizationId are provided
+  let pathname = "/atoms/conferencing";
+
+  if (teamId && organizationId) {
+    pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/conferencing`;
+  }
 
   return useQuery({
     queryKey: [QUERY_KEY, teamId, organizationId],

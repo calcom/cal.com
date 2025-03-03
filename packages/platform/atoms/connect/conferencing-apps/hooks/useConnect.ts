@@ -11,37 +11,46 @@ import {
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 import type { App } from "@calcom/types/App";
 
-import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
 export type UseGetOauthAuthUrlProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
+  orgId?: number;
 };
 
-export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo, teamId }: UseGetOauthAuthUrlProps) => {
-  const { organizationId } = useAtomsContext();
+export const useGetZoomOauthAuthUrl = ({
+  returnTo,
+  onErrorReturnTo,
+  teamId,
+  orgId,
+}: UseGetOauthAuthUrlProps) => {
+  let pathname = `conferencing/${ZOOM}/oauth/auth-url`;
+
+  if (teamId && orgId) {
+    pathname = `organizations/${orgId}/teams/${teamId}/conferencing/${ZOOM}/oauth/auth-url`;
+  }
+
+  // Add query parameters
+  const queryParams = new URLSearchParams();
+  if (returnTo) queryParams.append("returnTo", returnTo);
+  if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
+
+  const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
+
   return useQuery({
-    queryKey: ["get-zoom-auth-url", teamId, organizationId],
+    queryKey: ["get-zoom-auth-url", teamId, orgId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
-      return http
-        ?.get<ApiResponse<{ url: string }>>(
-          `conferencing/${ZOOM}/oauth/auth-url?${teamId ? `teamId=${teamId}` : ""}${
-            organizationId ? `&orgId=${organizationId}` : ""
-          }${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}${
-            onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
-          }`
-        )
-        .then(({ data: responseBody }) => {
-          if (responseBody.status === SUCCESS_STATUS) {
-            return responseBody.data.url;
-          }
-          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
-          return "";
-        });
+      return http?.get<ApiResponse<{ url: string }>>(fullPath).then(({ data: responseBody }) => {
+        if (responseBody.status === SUCCESS_STATUS) {
+          return responseBody.data.url;
+        }
+        if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
+        return "";
+      });
     },
   });
 };
@@ -50,28 +59,33 @@ export const useOffice365GetOauthAuthUrl = ({
   returnTo,
   onErrorReturnTo,
   teamId,
+  orgId,
 }: UseGetOauthAuthUrlProps) => {
-  const { organizationId } = useAtomsContext();
+  let pathname = `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+
+  if (teamId && orgId) {
+    pathname = `organizations/${orgId}/teams/${teamId}/conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+  }
+
+  // Add query parameters
+  const queryParams = new URLSearchParams();
+  if (returnTo) queryParams.append("returnTo", returnTo);
+  if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
+
+  const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
+
   return useQuery({
-    queryKey: ["get-office365-auth-url", teamId, organizationId],
+    queryKey: ["get-office365-auth-url", teamId, orgId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
-      return http
-        ?.get<ApiResponse<{ url: string }>>(
-          `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url${teamId ? `?teamId=${teamId}` : ""}${
-            organizationId ? `&orgId=${organizationId}` : ""
-          }${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}${
-            onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
-          }`
-        )
-        .then(({ data: responseBody }) => {
-          if (responseBody.status === SUCCESS_STATUS) {
-            return responseBody.data.url;
-          }
-          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
-          return "";
-        });
+      return http?.get<ApiResponse<{ url: string }>>(fullPath).then(({ data: responseBody }) => {
+        if (responseBody.status === SUCCESS_STATUS) {
+          return responseBody.data.url;
+        }
+        if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
+        return "";
+      });
     },
   });
 };
@@ -82,10 +96,11 @@ export type UseConnectGoogleMeetProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
+  orgId?: number;
 };
 
 export const useConnectNonOauthApp = (
-  { onSuccess, onError, teamId, returnTo, onErrorReturnTo }: UseConnectGoogleMeetProps = {
+  { onSuccess, onError, teamId, orgId, returnTo, onErrorReturnTo }: UseConnectGoogleMeetProps = {
     onSuccess: () => {
       return;
     },
@@ -94,15 +109,21 @@ export const useConnectNonOauthApp = (
     },
   }
 ) => {
-  const { organizationId } = useAtomsContext();
   return useMutation({
     mutationFn: (app: string) => {
-      const pathname = `/conferencing/${app}/connect?${teamId ? `teamId=${teamId}` : ""}${
-        organizationId ? `&orgId=${organizationId}` : ""
-      }${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}${
-        onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
-      }`;
-      return http?.post(pathname).then((res) => {
+      let pathname = `/conferencing/${app}/connect`;
+
+      if (teamId && orgId) {
+        pathname = `/organizations/${orgId}/teams/${teamId}/conferencing/${app}/connect`;
+      }
+
+      // Add query parameters
+      const queryParams = new URLSearchParams();
+      if (returnTo) queryParams.append("returnTo", returnTo);
+      if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
+
+      const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
+      return http?.post(fullPath).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return { status: res.data };
         } else {

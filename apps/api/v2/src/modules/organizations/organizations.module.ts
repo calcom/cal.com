@@ -13,6 +13,8 @@ import { OrganizationAttributesService } from "@/modules/organizations/attribute
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/attributes/options/organization-attribute-options.repository";
 import { OrganizationsAttributesOptionsController } from "@/modules/organizations/attributes/options/organizations-attributes-options.controller";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
+import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/organizations-conferencing.controller";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsEventTypesController } from "@/modules/organizations/event-types/organizations-event-types.controller";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
@@ -28,7 +30,6 @@ import { OrganizationsOrganizationsModule } from "@/modules/organizations/organi
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
-import { OrganizationsConferencingService } from "@/modules/organizations/services/organizations-conferencing.service";
 import { OrganizationsTeamsController } from "@/modules/organizations/teams/index/organizations-teams.controller";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
@@ -139,6 +140,7 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
+    OrganizationsConferencingController,
   ],
 })
 export class OrganizationsModule {}

@@ -7,7 +7,7 @@ import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OrganizationsConferencingService } from "@/modules/organizations/services/organizations-conferencing.service";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -165,31 +165,42 @@ export class AtomsController {
     };
   }
 
+  @Get("/organizations/:organizationId/teams/:teamId/conferencing")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  async listTeamInstalledConferencingApps(
+    @GetUser() user: UserWithProfile,
+    @Param("organizationId", ParseIntPipe) organizationId: number,
+    @Param("teamId", ParseIntPipe) teamId: number
+  ): Promise<ApiResponse<ConnectedApps>> {
+    // Verify user has access to this organization and team
+    await this.organizationsConferencingService.verifyAccess({
+      user,
+      orgId: organizationId.toString(),
+      teamId: teamId.toString(),
+      requiredRole: "TEAM_ADMIN",
+      minimumPlan: "ESSENTIALS",
+    });
+
+    // Get conferencing apps for the team
+    const conferencingApps = await this.conferencingService.getConferencingApps(user, teamId, organizationId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: conferencingApps,
+    };
+  }
+
   @Get("/conferencing")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
-  async listInstalledConferencingApps(
-    @GetUser() user: UserWithProfile,
-    @Query("teamId") teamId?: string,
-    @Query("orgId") orgId?: string
+  async listUserInstalledConferencingApps(
+    @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<ConnectedApps>> {
-    let validatedOrgId;
-    let validatedTeamId;
-    if (teamId && orgId) {
-      ({ orgId: validatedOrgId, teamId: validatedTeamId } =
-        await this.organizationsConferencingService.verifyAccess({
-          user,
-          orgId,
-          teamId,
-          requiredRole: "TEAM_ADMIN",
-          minimumPlan: "ESSENTIALS",
-        }));
-    }
-    const conferencingApps = await this.conferencingService.getConferencingApps(
-      user,
-      validatedTeamId,
-      validatedOrgId
-    );
-    return { status: SUCCESS_STATUS, data: conferencingApps };
+    const conferencingApps = await this.conferencingService.getConferencingApps(user, undefined, undefined);
+    return {
+      status: SUCCESS_STATUS,
+      data: conferencingApps,
+    };
   }
 }

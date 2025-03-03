@@ -109,4 +109,20 @@ export class ConferencingService {
     }
     return true;
   }
+
+  async generateOAuthUrl(app: string, state: OAuthCallbackState) {
+    switch (app) {
+      case ZOOM:
+        return await this.zoomVideoService.generateZoomAuthUrl(JSON.stringify(state));
+
+      case OFFICE_365_VIDEO:
+        return await this.office365VideoService.generateOffice365AuthUrl(JSON.stringify(state));
+
+      default:
+        throw new BadRequestException(
+          "Invalid conferencing app, available apps are: ",
+          [ZOOM, OFFICE_365_VIDEO].join(", ")
+        );
+    }
+  }
 }
