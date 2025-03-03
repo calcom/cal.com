@@ -22,17 +22,28 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
 
-  # Test Runner Service (Playwright for E2E Tests)
+
+  # Mock External API - WireMock
+  wiremock:
+    image: wiremock/wiremock
+    container_name: wiremock
+    ports:
+      - "8081:8080"
+    networks:
+      - integration-stack
+    volumes:
+      - ./mocks:/home/wiremock
+    command: --verbose
+
   test-runner:
     image: mcr.microsoft.com/playwright:v1.50.1-jammy
     container_name: test-runner
     depends_on:
       - test-database
+      - wiremock
     volumes:
-      - .:/tests  # Mount the entire project
+      - ./tests:/tests  # Ensure tests folder is mounted properly
     working_dir: /tests  # Ensure correct working directory
+    command: [ "sh", "-c", "ls -la /tests && npm install && npx playwright install-deps && npm test" ]
     networks:
       - integration-stack
-    environment:
-      - NODE_ENV=integration  # Set environment variable for tests
-    command: [ "sh", "-c", "yarn install && yarn db-seed && yarn test-e2e" ]
