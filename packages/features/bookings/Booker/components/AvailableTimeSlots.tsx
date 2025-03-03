@@ -7,9 +7,9 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import type { Slot } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { classNames } from "@calcom/lib";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";

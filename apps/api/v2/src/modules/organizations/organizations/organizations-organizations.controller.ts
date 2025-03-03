@@ -46,7 +46,11 @@ export class OrganizationsOrganizationsController {
   @Post()
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
-  @ApiOperation({ summary: "Create an organization within an organization" })
+  @ApiOperation({
+    summary: "Create an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   async createOrganization(
     @Param("orgId", ParseIntPipe) managerOrganizationId: number,
     @GetUser() authUser: ApiAuthGuardUser,
@@ -67,7 +71,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Get("/:managedOrganizationId")
-  @ApiOperation({ summary: "Get an organization within an organization" })
+  @ApiOperation({
+    summary: "Get an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   @UseGuards(IsManagedOrgInManagerOrg)
   async getOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number
@@ -82,7 +90,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Get("/")
-  @ApiOperation({ summary: "Get all organizations within an organization" })
+  @ApiOperation({
+    summary: "Get all organizations within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   async getOrganizations(
     @Param("orgId", ParseIntPipe) managerOrganizationId: number
   ): Promise<GetManagedOrganizationsOutput> {
@@ -98,7 +110,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Patch("/:managedOrganizationId")
-  @ApiOperation({ summary: "Update an organization within an organization" })
+  @ApiOperation({
+    summary: "Update an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   @UseGuards(IsManagedOrgInManagerOrg)
   @HttpCode(HttpStatus.OK)
   async updateOrganization(
@@ -119,7 +135,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Delete("/:managedOrganizationId")
-  @ApiOperation({ summary: "Delete an organization within an organization" })
+  @ApiOperation({
+    summary: "Delete an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   @UseGuards(IsManagedOrgInManagerOrg)
   async deleteOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number

@@ -10,7 +10,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -21,6 +20,7 @@ import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/pr
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Icon, Skeleton, VerticalTabItem } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
