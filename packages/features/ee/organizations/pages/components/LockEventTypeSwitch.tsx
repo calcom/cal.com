@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
@@ -17,6 +16,7 @@ import {
   Button,
   RadioGroup as RadioArea,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",

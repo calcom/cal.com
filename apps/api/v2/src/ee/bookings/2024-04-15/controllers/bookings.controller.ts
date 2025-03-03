@@ -4,7 +4,6 @@ import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark
 import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -100,8 +99,7 @@ export class BookingsController_2024_04_15 {
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly billingService: BillingService,
     private readonly config: ConfigService,
-    private readonly apiKeyRepository: ApiKeysRepository,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly apiKeyRepository: ApiKeysRepository
   ) {}
 
   @Get("/")
@@ -168,8 +166,7 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
-    const oAuthClientId =
-      clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
+    const oAuthClientId = clientId?.toString();
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
     try {
@@ -197,7 +194,7 @@ export class BookingsController_2024_04_15 {
   async cancelBooking(
     @Req() req: BookingRequest,
     @Param("bookingUid") bookingUid: string,
-    @Body() body: CancelBookingInput_2024_04_15,
+    @Body() _: CancelBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
@@ -260,12 +257,11 @@ export class BookingsController_2024_04_15 {
   @Post("/recurring")
   async createRecurringBooking(
     @Req() req: BookingRequest,
-    @Body() body: CreateRecurringBookingInput_2024_04_15[],
+    @Body() _: CreateRecurringBookingInput_2024_04_15[],
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
-    const oAuthClientId =
-      clientId?.toString() || (await this.getOAuthClientIdFromEventType(body[0]?.eventTypeId));
+    const oAuthClientId = clientId?.toString();
     try {
       const recurringEventId = uuidv4();
       for (const recurringEvent of req.body) {
@@ -300,12 +296,11 @@ export class BookingsController_2024_04_15 {
   @Post("/instant")
   async createInstantBooking(
     @Req() req: BookingRequest,
-    @Body() body: CreateBookingInput_2024_04_15,
+    @Body() _: CreateBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
-    const oAuthClientId =
-      clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
+    const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
       const instantMeeting = await handleInstantMeeting(
@@ -349,17 +344,6 @@ export class BookingsController_2024_04_15 {
     } catch (err) {
       this.logger.error(err);
     }
-  }
-
-  private async getOAuthClientIdFromEventType(eventTypeId: number): Promise<string | undefined> {
-    if (!eventTypeId) {
-      return undefined;
-    }
-    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(eventTypeId);
-    if (!oAuthClientParams) {
-      return undefined;
-    }
-    return oAuthClientParams.platformClientId;
   }
 
   private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
@@ -412,25 +396,7 @@ export class BookingsController_2024_04_15 {
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
     };
-    if (oAuthClientId) {
-      await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
-    }
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
-  }
-
-  async setPlatformAttendeesEmails(requestBody: any, oAuthClientId: string): Promise<void> {
-    if (requestBody?.responses?.email) {
-      requestBody.responses.email = await this.platformBookingsService.getPlatformAttendeeEmail(
-        requestBody.responses.email,
-        oAuthClientId
-      );
-    }
-    if (requestBody?.responses?.guests) {
-      requestBody.responses.guests = await this.platformBookingsService.getPlatformAttendeesEmails(
-        requestBody.responses.guests,
-        oAuthClientId
-      );
-    }
   }
 
   private async createNextApiRecurringBookingRequest(
@@ -459,9 +425,6 @@ export class BookingsController_2024_04_15 {
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
     });
-    if (oAuthClientId) {
-      await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
-    }
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 

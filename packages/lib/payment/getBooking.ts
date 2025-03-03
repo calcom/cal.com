@@ -9,6 +9,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { enrichUserWithDwdCredentialsWithoutOrgId } from "../domainWideDelegation/server";
 import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 async function getEventType(id: number) {
@@ -102,9 +103,12 @@ export async function getBooking(bookingId: number) {
 
   const eventType = { ...eventTypeRaw, metadata: EventTypeMetaDataSchema.parse(eventTypeRaw?.metadata) };
 
-  const { user } = booking;
+  const { user: userWithoutDwdCredentials } = booking;
 
-  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
+  if (!userWithoutDwdCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
+  const user = await enrichUserWithDwdCredentialsWithoutOrgId({
+    user: userWithoutDwdCredentials,
+  });
 
   const t = await getTranslation(user.locale ?? "en", "common");
   const attendeesListPromises = booking.attendees.map(async (attendee) => {

@@ -5,7 +5,7 @@ import { IsEnum, IsNumber, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-export class CreateManagedUserData {
+class CreateManagedUserData {
   @ApiProperty({
     type: ManagedUserOutput,
   })

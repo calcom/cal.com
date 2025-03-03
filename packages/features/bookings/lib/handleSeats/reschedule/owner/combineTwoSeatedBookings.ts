@@ -2,8 +2,8 @@
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
-import type EventManager from "@calcom/core/EventManager";
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
+import type EventManager from "@calcom/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";

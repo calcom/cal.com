@@ -1,23 +1,21 @@
 import type z from "zod";
 
-import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
+
+import { TRPCError } from "@trpc/server";
 
 import type { DomainWideDelegationDeleteSchema } from "./schema";
 
 export default async function handler({
-  ctx,
   input,
 }: {
   input: z.infer<typeof DomainWideDelegationDeleteSchema>;
-  ctx: { user: { id: number; organizationId: number | null } };
 }) {
   const { id } = input;
 
-  const domainWideDelegationRepository = await DomainWideDelegation.init(
-    ctx.user.id,
-    ctx.user.organizationId
-  );
-  await domainWideDelegationRepository.deleteById({ id });
+  // We might want to consider allowing this in the future. Right now, toggling off DWD achieves similar but non-destructive effect
+  throw new TRPCError({ code: "BAD_REQUEST", message: "Not allowed" });
+  await DomainWideDelegationRepository.deleteById({ id });
 
   return { id };
 }
