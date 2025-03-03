@@ -1,0 +1,35 @@
+name: Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create .env File
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+
+      - name: Start Services (Database & WireMock)
+        run: docker compose --env-file .env -f docker-compose.integration.yml up -d test-database wiremock
+
+      - name: Wait for Database & WireMock to be Ready
+        run: sleep 10  # Ensures services are fully initialized
+
+      - name: Run Integration Tests
+        run: docker compose --env-file .env -f docker-compose.integration.yml up --abort-on-container-exit test-runner
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.integration.yml down --remove-orphans
