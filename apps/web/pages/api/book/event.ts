@@ -30,8 +30,22 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     ...req.body,
     creationSource: CreationSource.WEBAPP,
   };
+
   const booking = await handleNewBooking(req);
-  return booking;
+
+  // Appending UTM parameters to the booking URL
+  const utmParams = new URLSearchParams({
+    utm_source: req.body.utm_source || "default_source", // Default value if not provided
+    utm_medium: req.body.utm_medium || "default_medium",
+    utm_campaign: req.body.utm_campaign || "default_campaign",
+    utm_content: req.body.utm_content || "default_content",
+    utm_term: req.body.utm_term || "default_term",
+  });
+
+  // Ensuring the booking URL exists and append UTM parameters
+  const bookingUrl = booking?.url ? `${booking.url}?${utmParams.toString()}` : booking?.url;
+
+  return bookingUrl;
 }
 
 export default defaultResponder(handler, "/api/book/event");
