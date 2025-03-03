@@ -10,6 +10,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
+
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
@@ -46,6 +47,7 @@ import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
+import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail"
 
 const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
@@ -641,6 +643,7 @@ export const getOptions = ({
           const gCalService = new GoogleCalendarService({
             ...gcalCredential,
             user: null,
+            delegatedTo: null,
           });
 
           if (
@@ -894,7 +897,7 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: usernameSlug(user.name),
+                username: getOrgUsernameFromEmail(user.name,getDomainFromEmail(user.email)),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,

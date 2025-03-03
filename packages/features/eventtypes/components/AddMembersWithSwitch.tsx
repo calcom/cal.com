@@ -3,11 +3,8 @@ import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import type { Options } from "react-select";
 
-import {
-  useIsPlatform,
-  AddMembersWithSwitchWebWrapper,
-  AddMembersWithSwitchPlatformWrapper,
-} from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { AddMembersWithSwitchWebWrapper, AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/monorepo";
 import { Segment } from "@calcom/features/Segment";
 import type {
   FormValues,
@@ -274,16 +271,15 @@ export function AddMembersWithSwitch({
     case AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED:
       return (
         <>
-          <AssignAllTeamMembers
-            assignAllTeamMembers={assignAllTeamMembers}
-            setAssignAllTeamMembers={setAssignAllTeamMembers}
-            onActive={() => {
-              onActive();
-            }}
-            onInactive={onAssignAllTeamMembersInactive}
-            customClassNames={customClassNames?.assingAllTeamMembers}
-          />
-
+          {!isFixed && (
+            <AssignAllTeamMembers
+              assignAllTeamMembers={assignAllTeamMembers}
+              setAssignAllTeamMembers={setAssignAllTeamMembers}
+              onActive={onActive}
+              onInactive={onAssignAllTeamMembersInactive}
+              customClassNames={customClassNames?.assingAllTeamMembers}
+            />
+          )}
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
               <MembersSegmentWithToggle

@@ -30,8 +30,10 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
+import type { CalendarEvent, IntegrationCalendar } from "@calcom/types/Calendar";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
@@ -40,6 +42,17 @@ import type { getMockRequestDataForBooking } from "./getMockRequestDataForBookin
 vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   default: {},
 }));
+
+vi.mock("@calcom/lib/crypto", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    symmetricEncrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
+    symmetricDecrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
+  };
+});
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
@@ -104,6 +117,17 @@ type InputHost = {
   isFixed?: boolean;
   scheduleId?: number | null;
 };
+
+type InputSelectedSlot = {
+  eventTypeId: number;
+  userId: number;
+  slotUtcStartDate: Date;
+  slotUtcEndDate: Date;
+  uid: string;
+  releaseAt: Date;
+  isSeat?: boolean;
+};
+
 /**
  * Data to be mocked
  */
@@ -124,6 +148,7 @@ export type ScenarioData = {
   webhooks?: InputWebhook[];
   workflows?: InputWorkflow[];
   payment?: InputPayment[];
+  selectedSlots?: InputSelectedSlot[];
 };
 
 type InputCredential = typeof TestData.credentials.google & {
@@ -836,6 +861,16 @@ async function addAppsToDb(apps: any[]) {
   const allApps = await prismock.app.findMany();
   log.silly("TestData: Apps as in DB", JSON.stringify({ apps: allApps }));
 }
+
+async function addSelectedSlotsToDb(selectedSlots: InputSelectedSlot[]) {
+  log.silly("TestData: Creating Selected Slots", JSON.stringify(selectedSlots));
+  await prismock.selectedSlots.createMany({
+    data: selectedSlots,
+  });
+  const allSelectedSlots = await prismock.selectedSlots.findMany();
+  log.silly("TestData: Selected Slots as in DB", JSON.stringify({ selectedSlots: allSelectedSlots }));
+}
+
 export async function createBookingScenario(data: ScenarioData) {
   log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   await addUsers(data.users);
@@ -859,6 +894,10 @@ export async function createBookingScenario(data: ScenarioData) {
   const workflows = await addWorkflows(data.workflows || []);
   await addPaymentToDb(data.payment || []);
 
+  if (data.selectedSlots) {
+    await addSelectedSlotsToDb(data.selectedSlots);
+  }
+
   return {
     eventTypes,
     workflows,
@@ -880,7 +919,8 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]> }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
@@ -907,7 +947,12 @@ export async function createOrganization(orgData: {
     });
   }
   assertNonNullableSlug(org);
-  return org;
+  const team = await prismock.team.findUnique({ where: { id: org.id }, include: { children: true } });
+  if (!team) {
+    throw new Error(`Team with id ${org.id} not found`);
+  }
+  assertNonNullableSlug(team);
+  return team;
 }
 
 export async function createCredentials(
@@ -1093,6 +1138,10 @@ export const TestData = {
       integration: "google_calendar",
       externalId: "john@example.com",
     },
+    office365: {
+      integration: "office365_calendar",
+      externalId: "john@example.com",
+    },
   },
   credentials: {
     google: getGoogleCalendarCredential(),
@@ -1169,6 +1218,76 @@ export const TestData = {
       availability: [],
       timeZone: Timezones["+5:30"],
     },
+    IstNotAvailableForFullMonth: (monthYear: string) => {
+      const [year, month] = monthYear.split("-").map(Number); // Expecting format 'YYYY-MM'
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T18:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ];
+      // Generate unavailable dates for the entire month
+      const currentDate = new Date(startOfMonth);
+      while (currentDate <= endOfMonth) {
+        const dateString = currentDate.toISOString().split("T")[0];
+        availability.push({
+          days: [],
+          startTime: new Date(`${dateString}T00:00:00.000Z`),
+          endTime: new Date(`${dateString}T00:00:00.000Z`),
+          date: dateString,
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return {
+        name: "Unavailable for the entire month, then available from 18:00AM to 22:00 IST",
+        availability,
+        timeZone: Timezones["+5:30"],
+      };
+    },
+    IstWorkHoursWithFirstTwoWeeksUnavailable: (dateString: string) => {
+      const date = new Date(dateString);
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T18:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ];
+
+      // Generate dateoverride for each day in thes first two weeks
+      for (let i = 0; i < 15; i++) {
+        const dateString = date.toISOString().split("T")[0];
+        availability.push({
+          days: [],
+          startTime: new Date(`${dateString}T00:00:00.000Z`),
+          endTime: new Date(`${dateString}T00:00:00.000Z`),
+          date: dateString,
+        });
+        date.setDate(date.getDate() + 1);
+      }
+
+      return {
+        name: "Unavailable for the first two weeks, then available from 18:00 to 22:00 IST",
+        availability,
+        timeZone: Timezones["+5:30"],
+      };
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
@@ -1222,6 +1341,16 @@ export const TestData = {
         client_id: "client_id",
         client_secret: "client_secret",
         redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
+    "office365-calendar": {
+      ...appStoreMetadata.office365calendar,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        client_id: "client_id",
+        client_secret: "client_secret",
       },
     },
     "google-meet": {
@@ -1454,6 +1583,52 @@ export const enum BookingLocations {
   GoogleMeet = "integrations:google:meet",
 }
 
+export type CalendarServiceMethodMockCallBase = {
+  calendarServiceConstructorArgs: {
+    credential: CredentialForCalendarService;
+  };
+};
+
+type CreateEventMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    calEvent: CalendarEvent;
+    credentialId: number;
+    externalCalendarId?: string;
+  };
+};
+
+type UpdateEventMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    uid: string;
+    event: CalendarEvent;
+    externalCalendarId?: string;
+  };
+};
+
+type DeleteEventMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    uid: string;
+    event: CalendarEvent;
+    externalCalendarId?: string;
+  };
+};
+
+type GetAvailabilityMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    dateFrom: string;
+    dateTo: string;
+    selectedCalendars: IntegrationCalendar[];
+    shouldServeCache?: boolean;
+  };
+};
+
+export type CalendarServiceMethodMock = {
+  createEventCalls: CreateEventMethodMockCall[];
+  updateEventCalls: UpdateEventMethodMockCall[];
+  deleteEventCalls: DeleteEventMethodMockCall[];
+  getAvailabilityCalls: GetAvailabilityMethodMockCall[];
+};
+
 /**
  * @param metadataLookupKey
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
@@ -1465,18 +1640,34 @@ export function mockCalendar(
       id?: string;
       uid?: string;
       iCalUID?: string;
+      appSpecificData?: {
+        googleCalendar?: {
+          hangoutLink?: string;
+        };
+        office365Calendar?: {
+          url?: string;
+        };
+      };
     };
     update?: {
       id?: string;
       uid: string;
       iCalUID?: string;
+      appSpecificData?: {
+        googleCalendar?: {
+          hangoutLink?: string;
+        };
+        office365Calendar?: {
+          url?: string;
+        };
+      };
     };
     busySlots?: { start: `${string}Z`; end: `${string}Z` }[];
     creationCrash?: boolean;
     updationCrash?: boolean;
     getAvailabilityCrash?: boolean;
   }
-) {
+): CalendarServiceMethodMock {
   const appStoreLookupKey = metadataLookupKey;
   const normalizedCalendarData = calendarData || {
     create: {
@@ -1487,12 +1678,11 @@ export function mockCalendar(
     },
   };
   log.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createEventCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateEventCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const deleteEventCalls: any[] = [];
+
+  const createEventCalls: CreateEventMethodMockCall[] = [];
+  const updateEventCalls: UpdateEventMethodMockCall[] = [];
+  const deleteEventCalls: DeleteEventMethodMockCall[] = [];
+  const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
 
   const appMock = appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default];
@@ -1503,20 +1693,37 @@ export function mockCalendar(
       lib: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        CalendarService: function MockCalendarService() {
+        CalendarService: function MockCalendarService(credential: CredentialForCalendarService) {
           return {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
               if (calendarData?.creationCrash) {
                 throw new Error("MockCalendarService.createEvent fake error");
               }
-              const [calEvent, credentialId] = rest;
-              log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
-              createEventCalls.push(rest);
+              const [calEvent, credentialId, externalCalendarId] = rest;
+              log.debug(
+                "mockCalendar.createEvent",
+                JSON.stringify({ calEvent, credentialId, externalCalendarId })
+              );
+              createEventCalls.push({
+                args: {
+                  calEvent,
+                  credentialId,
+                  externalCalendarId,
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
+              const isGoogleMeetLocation = calEvent?.location === BookingLocations.GoogleMeet;
               return Promise.resolve({
                 type: app.type,
                 additionalInfo: {},
                 uid: "PROBABLY_UNUSED_UID",
+                hangoutLink:
+                  (isGoogleMeetLocation
+                    ? normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink
+                    : null) || "https://UNUSED_URL",
                 // A Calendar is always expected to return an id.
                 id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
                 iCalUID: normalizedCalendarData.create?.iCalUID,
@@ -1533,21 +1740,32 @@ export function mockCalendar(
               const [uid, event, externalCalendarId] = rest;
               log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
               // eslint-disable-next-line prefer-rest-params
-              updateEventCalls.push(rest);
+              updateEventCalls.push({
+                args: {
+                  uid,
+                  event,
+                  externalCalendarId,
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
               const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
               return Promise.resolve({
                 type: app.type,
                 additionalInfo: {},
                 uid: "PROBABLY_UNUSED_UID",
                 iCalUID: normalizedCalendarData.update?.iCalUID,
-
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
                 // Password and URL seems useless for CalendarService, plan to remove them if that's the case
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",
                 location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
-                hangoutLink: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                hangoutLink:
+                  (isGoogleMeetLocation
+                    ? normalizedCalendarData.update?.appSpecificData?.googleCalendar?.hangoutLink
+                    : null) || "https://UNUSED_URL",
                 conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
               });
             },
@@ -1555,12 +1773,33 @@ export function mockCalendar(
             deleteEvent: async (...rest: any[]) => {
               log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
               // eslint-disable-next-line prefer-rest-params
-              deleteEventCalls.push(rest);
+              deleteEventCalls.push({
+                args: {
+                  uid: rest[0],
+                  event: rest[1],
+                  externalCalendarId: rest[2],
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
             },
-            getAvailability: async (): Promise<EventBusyDate[]> => {
+            getAvailability: async (...rest: any[]): Promise<EventBusyDate[]> => {
               if (calendarData?.getAvailabilityCrash) {
                 throw new Error("MockCalendarService.getAvailability fake error");
               }
+              const [dateFrom, dateTo, selectedCalendars, shouldServeCache] = rest;
+              getAvailabilityCalls.push({
+                args: {
+                  dateFrom,
+                  dateTo,
+                  selectedCalendars,
+                  shouldServeCache,
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
               return new Promise((resolve) => {
                 resolve(calendarData?.busySlots || []);
               });
@@ -1573,6 +1812,7 @@ export function mockCalendar(
     createEventCalls,
     deleteEventCalls,
     updateEventCalls,
+    getAvailabilityCalls,
   };
 }
 
@@ -2067,4 +2307,124 @@ export const getDefaultBookingFields = ({
     },
     ...bookingFields,
   ] as Fields;
+};
+
+export const createDwdCredential = async (orgId: number, type: "google" | "office365" = "google") => {
+  if (type === "google") {
+    const encryptedServiceAccountKey = {
+      type: "service_account",
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      client_id: "CLIENT_ID",
+      token_uri: "https://oauth2.googleapis.com/token",
+      project_id: "PROJECT_ID",
+      encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
+      client_email: "CLIENT_EMAIL",
+      private_key_id: "PRIVATE_KEY_ID",
+      universe_domain: "googleapis.com",
+      client_x509_cert_url: "CLIENT_X509_CERT_URL",
+      auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+    };
+
+    const workspace = await prismock.workspacePlatform.create({
+      data: {
+        name: "Test Workspace",
+        slug: "google",
+        description: "Test Workspace",
+        defaultServiceAccountKey: encryptedServiceAccountKey,
+        enabled: true,
+      },
+    });
+
+    const decryptedServiceAccountKey = {
+      type: "service_account",
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      client_id: "CLIENT_ID",
+      token_uri: "https://oauth2.googleapis.com/token",
+      project_id: "PROJECT_ID",
+      private_key: "PRIVATE_KEY",
+      client_email: "CLIENT_EMAIL",
+      private_key_id: "PRIVATE_KEY_ID",
+      universe_domain: "googleapis.com",
+      client_x509_cert_url: "CLIENT_X509_CERT_URL",
+      auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+    };
+
+    const dwd = await prismock.domainWideDelegation.create({
+      data: {
+        workspacePlatform: {
+          connect: {
+            id: workspace.id,
+          },
+        },
+        domain: "example.com",
+        enabled: true,
+        organization: {
+          connect: {
+            id: orgId,
+          },
+        },
+        // @ts-expect-error - TODO: fix this
+        serviceAccountKey: workspace.defaultServiceAccountKey,
+      },
+    });
+
+    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+  } else if (type === "office365") {
+    const encryptedServiceAccountKey = {
+      client_id: "CLIENT_ID",
+      encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
+      tenant_id: "TENANT_ID",
+    };
+
+    const workspace = await prismock.workspacePlatform.create({
+      data: {
+        name: "Test Workspace",
+        slug: "office365",
+        description: "Test Workspace",
+        defaultServiceAccountKey: encryptedServiceAccountKey,
+        enabled: true,
+      },
+    });
+
+    const decryptedServiceAccountKey = {
+      client_id: "CLIENT_ID",
+      private_key: "PRIVATE_KEY",
+      tenant_id: "TENANT_ID",
+    };
+
+    const dwd = await prismock.domainWideDelegation.create({
+      data: {
+        workspacePlatform: {
+          connect: {
+            id: workspace.id,
+          },
+        },
+        domain: "example.com",
+        enabled: true,
+        organization: {
+          connect: {
+            id: orgId,
+          },
+        },
+        // @ts-expect-error - TODO: fix this
+        serviceAccountKey: workspace.defaultServiceAccountKey,
+      },
+    });
+
+    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+  }
+  throw new Error(`Unsupported type: ${type}`);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const buildDwdCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
+  return {
+    id: -1,
+    key: {
+      access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+    },
+    delegatedTo: {
+      serviceAccountKey,
+    },
+  };
 };

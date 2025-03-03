@@ -3,24 +3,22 @@
 import type { FormEvent } from "react";
 import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Input, Skeleton, Icon, Label } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 import type { InputFieldProps } from "@calcom/ui/components/form/inputs/types";
 
 type AddonProps = {
   children: React.ReactNode;
-  isFilled?: boolean;
   className?: string;
   error?: boolean;
   onClickAddon?: () => void;
 };
 
-const Addon = ({ isFilled, children, className, error }: AddonProps) => (
+const Addon = ({ children, className, error }: AddonProps) => (
   <div
     className={classNames(
       "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3 transition disabled:hover:cursor-not-allowed",
-      isFilled && "bg-subtle",
       className
     )}>
     <div
@@ -63,7 +61,6 @@ export const KeyField = forwardRef<HTMLInputElement, InputFieldProps & { default
       placeholder = isLocaleReady && i18n.exists(`${name}_placeholder`) ? t(`${name}_placeholder`) : "",
       className,
       addOnLeading,
-      addOnFilled = true,
       addOnClassname,
       inputIsFullWidth,
       labelSrOnly,
@@ -128,9 +125,7 @@ export const KeyField = forwardRef<HTMLInputElement, InputFieldProps & { default
           dir="ltr"
           className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2">
           {addOnLeading && (
-            <Addon
-              isFilled={addOnFilled}
-              className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
+            <Addon className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}

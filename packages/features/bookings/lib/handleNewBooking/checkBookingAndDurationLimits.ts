@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { checkBookingLimits, checkDurationLimits } from "@calcom/lib/server";
+import { checkBookingLimits } from "@calcom/lib/server/checkBookingLimits";
+import { checkDurationLimits } from "@calcom/lib/server/checkDurationLimits";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { NewBookingEventType } from "./types";

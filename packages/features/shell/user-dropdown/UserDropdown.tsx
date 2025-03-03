@@ -2,7 +2,6 @@ import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -17,6 +16,7 @@ import {
   DropdownMenuTrigger,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
@@ -35,6 +35,7 @@ declare global {
 interface UserDropdownProps {
   small?: boolean;
 }
+
 export function UserDropdown({ small }: UserDropdownProps) {
   const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
@@ -80,7 +81,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
           <span
             className={classNames(
               small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
-              "relative flex-shrink-0 rounded-full "
+              "relative flex-shrink-0 rounded-full"
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
@@ -98,7 +99,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
           {!small && (
             <span className="flex flex-grow items-center gap-2">
               <span className="w-24 flex-shrink-0 text-sm leading-none">
-                <span className="text-emphasis block truncate font-medium">
+                <span className="text-emphasis block truncate py-0.5 font-medium leading-normal">
                   {user.name || "Nameless User"}
                 </span>
               </span>

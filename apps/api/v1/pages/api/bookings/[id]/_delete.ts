@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 import { bookingCancelSchema } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";

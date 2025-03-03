@@ -26,9 +26,8 @@
     "jimp": "^0.16.1",
     "next-collect": "^0.2.1",
     "next-i18next": "^13.2.2",
-    "react-hot-toast": "^2.3.0",
     "rrule": "^2.7.1",
-    "tailwind-merge": "^1.13.2",
+    "sonner": "^1.7.4",
     "tsdav": "2.0.3",
     "tslog": "^4.9.2",
     "uuid": "^8.3.2"

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
@@ -9,6 +10,7 @@ import { DisconnectIntegrationComponent, showToast } from "@calcom/ui";
 
 export default function DisconnectIntegration(props: {
   credentialId: number;
+  teamId?: number | null;
   label?: string;
   trashIcon?: boolean;
   isGlobal?: boolean;
@@ -16,7 +18,7 @@ export default function DisconnectIntegration(props: {
   buttonProps?: ButtonProps;
 }) {
   const { t } = useLocale();
-  const { onSuccess, credentialId } = props;
+  const { onSuccess, credentialId, teamId } = props;
   const [modalOpen, setModalOpen] = useState(false);
   const utils = trpc.useUtils();
 
@@ -36,11 +38,14 @@ export default function DisconnectIntegration(props: {
     },
   });
 
+  // Such a credential is added in-memory and removed when Domain-wide delegation is disabled.
+  const disableDisconnect = isDwdCredential({ credentialId });
   return (
     <DisconnectIntegrationComponent
-      onDeletionConfirmation={() => mutation.mutate({ id: credentialId })}
+      onDeletionConfirmation={() => mutation.mutate({ id: credentialId, ...(teamId ? { teamId } : {}) })}
       isModalOpen={modalOpen}
       onModalOpen={() => setModalOpen((prevValue) => !prevValue)}
+      disabled={disableDisconnect}
       {...props}
     />
   );
