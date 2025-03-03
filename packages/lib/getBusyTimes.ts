@@ -2,8 +2,8 @@ import type { Booking, EventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 
-import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
+import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import { subtract } from "@calcom/lib/date-ranges";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";

@@ -2,7 +2,6 @@
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
-import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS,
@@ -22,6 +21,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
+import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";

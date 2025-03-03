@@ -2,9 +2,9 @@ import type { z } from "zod";
 
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import EventManager from "@calcom/core/EventManager";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import EventManager from "@calcom/lib/EventManager";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

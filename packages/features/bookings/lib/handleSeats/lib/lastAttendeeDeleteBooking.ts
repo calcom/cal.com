@@ -2,9 +2,9 @@ import type { Attendee } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { deleteMeeting } from "@calcom/core/videoClient";
 import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { getDwdOrFindRegularCredential } from "@calcom/lib/domainWideDelegation/server";
+import { deleteMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";

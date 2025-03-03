@@ -1,4 +1,4 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
 import logger from "@calcom/lib/logger";
