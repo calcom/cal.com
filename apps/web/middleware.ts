@@ -109,7 +109,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     const returnTo = req.cookies.get("return-to");
 
     if (returnTo?.value) {
-      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      const returnToUrl = new URL(returnTo.value, req.url);
+      returnToUrl.pathname = `/${locale}${returnToUrl.pathname}`;
+      const response = NextResponse.redirect(returnToUrl, { headers: requestHeaders });
       response.cookies.delete("return-to");
       return response;
     }
