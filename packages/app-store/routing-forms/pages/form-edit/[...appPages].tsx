@@ -180,7 +180,7 @@ function Field({
     if (!label) {
       return "";
     }
-    return label.toLowerCase().replace(/\s+/g, "_");
+    return label.toLowerCase().replace(/[^a-z0-9]+/g, "_");
   };
 
   const optionsPlaceholders = ["< 10", "10 - 100", "100 - 500", "> 500"];
