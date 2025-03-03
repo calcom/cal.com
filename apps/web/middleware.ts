@@ -40,9 +40,9 @@ export function checkPostMethod(req: NextRequest) {
 }
 
 export function checkStaticFiles(pathname: string) {
-  // Check if the path is for a static asset
   const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
-  if (hasFileExtension) {
+  // Skip Next.js internal paths (_next) and static assets
+  if (pathname.startsWith("/_next") || hasFileExtension) {
     return NextResponse.next();
   }
 }
