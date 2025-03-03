@@ -30,8 +30,6 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
-import { classNames } from "@calcom/lib";
-import cx from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, APP_NAME } from "@calcom/lib/constants";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
@@ -54,6 +52,7 @@ import {
   TextField,
   ColorPicker,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -241,7 +240,7 @@ const destinationCalendarComponents = {
           {!useEventTypeDestinationCalendarEmail &&
             verifiedSecondaryEmails.length > 0 &&
             !isTeamEventType && (
-              <div className={cx("flex w-full flex-col", showConnectedCalendarSettings && "pl-11")}>
+              <div className={classNames("flex w-full flex-col", showConnectedCalendarSettings && "pl-11")}>
                 <SelectField
                   placeholder={
                     selectedSecondaryEmailId === -1 && (
