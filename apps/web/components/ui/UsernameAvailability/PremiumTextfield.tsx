@@ -12,12 +12,13 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Input, Label } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
