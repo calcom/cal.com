@@ -46,6 +46,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
+  const locale = await getLocale(req);
 
   if (!url.pathname.startsWith("/api") && (await safeGet<boolean>("isInMaintenanceMode"))) {
     //
@@ -56,11 +57,11 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     //
     // Check whether the maintenance page should be shown
     // If is in maintenance mode, point the url pathname to the maintenance page
-    req.nextUrl.pathname = `/maintenance`;
+    req.nextUrl.pathname = `/${locale}/maintenance`;
     return NextResponse.rewrite(req.nextUrl);
   }
 
-  const routingFormRewriteResponse = routingForms.handleRewrite(url);
+  const routingFormRewriteResponse = routingForms.handleRewrite(url, locale);
   if (routingFormRewriteResponse) {
     return responseWithHeaders({ url, res: routingFormRewriteResponse, req });
   }
@@ -105,8 +106,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   requestHeaders.set("x-pathname", url.pathname);
 
-  const locale = await getLocale(req);
-
   requestHeaders.set("x-locale", locale);
 
   const localeUrl = new URL(req.url);
@@ -125,10 +124,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 };
 
 const routingForms = {
-  handleRewrite: (url: URL) => {
+  handleRewrite: (url: URL, locale: string) => {
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, `/${locale}/apps/routing-forms/`);
       return NextResponse.rewrite(url);
     }
   },
