@@ -1,7 +1,5 @@
 import type { AppCategories } from "@prisma/client";
 
-// If you import this file on any app it should produce circular dependency
-// import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";

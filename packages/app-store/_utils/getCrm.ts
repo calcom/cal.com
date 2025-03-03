@@ -15,7 +15,7 @@ export const getCrm = async (credential: CredentialPayload, appOptions: any) => 
 
   const crmName = crmType.split("_")[0];
 
-  const crmAppImportFn = appStore[crmName as keyof typeof appStore];
+  const crmAppImportFn = async () => await import(appStore[crmName as keyof typeof appStore]);
 
   if (!crmAppImportFn) {
     log.warn(`crm of type ${crmType} is not implemented`);

@@ -56,7 +56,7 @@ const handlePayment = async ({
     console.warn(`key: ${key} is not a valid key in appStore`);
     return null;
   }
-  const paymentApp = await appStore[key]?.();
+  const paymentApp = await import(appStore[key]);
   if (!isPaymentApp(paymentApp)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;
