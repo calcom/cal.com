@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/monorepo";
@@ -367,29 +367,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       });
     },
   });
-
-  const handleBeforeUnload = useCallback(
-    (event: BeforeUnloadEvent) => {
-      const isBookingInProgress = createBookingMutation.isPending || createRecurringBookingMutation.isPending;
-      if (!isBookingInProgress) return;
-
-      // Note: Modern browsers show their own message regardless of what we set here
-      const message = "/o";
-      event.returnValue = message; // Standard for most browsers
-      return message; // For some older browsers
-    },
-    [createBookingMutation.isPending, createRecurringBookingMutation.isPending]
-  );
-
-  useEffect(() => {
-    if (createBookingMutation.isPending || createRecurringBookingMutation.isPending) {
-      window.addEventListener("beforeunload", handleBeforeUnload);
-
-      return () => {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-      };
-    }
-  }, [createBookingMutation.isPending, createRecurringBookingMutation.isPending, handleBeforeUnload]);
 
   const handleBookEvent = useHandleBookEvent({
     event,

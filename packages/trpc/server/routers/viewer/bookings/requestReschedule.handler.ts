@@ -2,9 +2,6 @@ import type { BookingReference, EventType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
-import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
-import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -12,14 +9,18 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
+import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
+import { getDwdOrRegularCredential } from "@calcom/lib/domainWideDelegation/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { deleteMeeting } from "@calcom/lib/videoClient";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -239,12 +240,24 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
       if (bookingRef.type.endsWith("_calendar")) {
         const calendar = await getCalendar(
-          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+          getDwdOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              dwdId: bookingRef?.domainWideDelegationCredentialId,
+            },
+          })
         );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(
-          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          getDwdOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              dwdId: bookingRef?.domainWideDelegationCredentialId,
+            },
+          }),
           bookingRef.uid
         );
       }
