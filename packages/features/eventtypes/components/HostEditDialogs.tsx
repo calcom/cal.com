@@ -10,7 +10,6 @@ import type {
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Dialog,
@@ -22,6 +21,7 @@ import {
   Select,
   TextField,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 

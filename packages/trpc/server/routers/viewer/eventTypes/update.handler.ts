@@ -38,6 +38,7 @@ type User = {
   };
   userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
   organizationId: number | null;
+  email: SessionUser["email"];
   locale: string;
 };
 

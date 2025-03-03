@@ -3,10 +3,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, showToast, Switch } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type ICalendarSwitchProps = {
   title: string;
@@ -17,6 +17,7 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
+  domainWideDelegationCredentialId: string | null;
   eventTypeId: number | null;
   disabled?: boolean;
 };
@@ -28,7 +29,17 @@ type EventCalendarSwitchProps = ICalendarSwitchProps & {
 };
 
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, credentialId, eventTypeId, disabled } = props;
+  const {
+    title,
+    externalId,
+    type,
+    isChecked,
+    name,
+    credentialId,
+    domainWideDelegationCredentialId,
+    eventTypeId,
+    disabled,
+  } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -37,6 +48,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
+        ...(domainWideDelegationCredentialId && { domainWideDelegationCredentialId }),
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
         ...(eventTypeId ? { eventTypeId: String(eventTypeId) } : {}),
