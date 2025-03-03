@@ -80,7 +80,7 @@ test.describe("Change Booking Page Theme Test", () => {
     //Go to the profile page and check if the theme is dark
     await page.goto(`/${pro.username}`);
     await page.reload();
-    await expect(page.getByTestId("start-icon")).toBeVisible(); // Fix the race condition
+    await page.waitForLoadState("domcontentloaded"); // Fix the race condition
     const htmlClass = await page.getAttribute("html", "class");
     expect(htmlClass).toContain("dark");
   });

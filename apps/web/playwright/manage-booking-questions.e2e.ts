@@ -70,7 +70,7 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
-        await expect(page.getByTestId("vertical-tab-event_advanced_tab_title")).toHaveAttribute(
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
           "aria-current",
           "page"
         );
@@ -117,7 +117,7 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
-        await expect(page.getByTestId("vertical-tab-event_advanced_tab_title")).toHaveAttribute(
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
           "aria-current",
           "page"
         );
@@ -754,7 +754,7 @@ test.describe("Text area min and max characters text", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await createNewEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
-    await expect(page.getByTestId("vertical-tab-event_advanced_tab_title")).toHaveAttribute(
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
       "aria-current",
       "page"
     );

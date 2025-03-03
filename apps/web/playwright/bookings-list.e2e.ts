@@ -350,7 +350,6 @@ test.describe("Bookings", () => {
       .click();
 
     await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
-    await page.reload();
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee
