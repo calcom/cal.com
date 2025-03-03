@@ -39,6 +39,16 @@ export class CalendarsService {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
+  private buildNonDwdCredentials<TCredential>(credentials: TCredential[]) {
+    return credentials
+      .map((credential) => ({
+        ...credential,
+        delegatedTo: null,
+        delegatedToId: null,
+      }))
+      .filter((credential) => !!credential);
+  }
+
   async getCalendars(userId: number) {
     const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
     if (!userWithCalendars) {
@@ -73,11 +83,12 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        credentials,
+        this.buildNonDwdCredentials(credentials),
         dateFrom,
         dateTo,
         composedSelectedCalendars
       );
+      // @ts-expect-error Element implicitly has any type
       const calendarBusyTimesConverted = calendarBusyTimes.map((busyTime) => {
         const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
         const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);

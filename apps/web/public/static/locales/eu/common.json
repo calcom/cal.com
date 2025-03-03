@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Ustekabeko errore bat gertatu da. Mesedez, saiatu berriro geroago",
   "select_oAuth_client": "Hautatu OAuth bezeroa",
   "on_every_instance": "Instantzia bakoitzean",
+  "domain_wide_delegation_feature_not_enabled": "Domeinuaren eskuordetzea ez dago gaituta zure erakundearentzat",
   "internal_booking_note": "Barne-oharra",
   "internal_note_cancellation_reason": "Bezeroari jakinarazitako arrazoia (aukerakoa)",
   "internal_booking_note_description": "Ohar hau zure taldeko kideek soilik ikusiko dute",

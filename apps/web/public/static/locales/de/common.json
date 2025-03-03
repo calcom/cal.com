@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut",
   "select_oAuth_client": "OAuth-Client auswählen",
   "on_every_instance": "Bei jeder Instanz",
+  "domain_wide_delegation_feature_not_enabled": "Die Funktion für organisationsweite Berechtigung ist für Ihre Organisation nicht aktiviert",
   "internal_booking_note": "Interner Vermerk",
   "internal_note_cancellation_reason": "Grund, der dem Kunden mitgeteilt wird (optional)",
   "internal_booking_note_description": "Dieser Vermerk ist nur für Mitglieder deines Teams sichtbar",

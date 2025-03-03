@@ -196,10 +196,10 @@ export class ConferencingController {
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Set your default conferencing application" })
   async default(
-    @GetUser("id") userId: number,
+    @GetUser() user: UserWithProfile,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
-    await this.conferencingService.setDefaultConferencingApp(userId, app);
+    await this.conferencingService.setDefaultConferencingApp(user, app);
     return { status: SUCCESS_STATUS };
   }
 

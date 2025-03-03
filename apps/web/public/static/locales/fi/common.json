@@ -2953,6 +2953,7 @@
   "k_bar_ai_error": "Tapahtui odottamaton virhe. Yritä myöhemmin uudelleen",
   "select_oAuth_client": "Valitse OAuth-asiakassovellus",
   "on_every_instance": "Jokaisessa instanssissa",
+  "domain_wide_delegation_feature_not_enabled": "Toimialueen laajuisen valtuutuksen ominaisuus ei ole käytössä organisaatiossasi",
   "internal_booking_note": "Sisäinen muistiinpano",
   "internal_note_cancellation_reason": "Asiakkaalle jaettava syy (valinnainen)",
   "internal_booking_note_description": "Tämä muistiinpano näkyy vain tiimisi jäsenille",
