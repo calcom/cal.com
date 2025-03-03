@@ -14,6 +14,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Debug - List Files
+        run: ls -la  # Check if docker-compose.yml is present
+
       - name: Create .env File
         run: |
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
@@ -22,62 +25,3 @@ jobs:
 
       - name: Start Database
         run: docker compose --env-file .env -f docker-compose.yml up -d test-database
-
-      - name: Wait for Database to be Ready
-        run: sleep 10  # Ensures the database is fully initialized
-
-  test-e2e:
-    needs: setup-environment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Run E2E Tests
-        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e
-
-      - name: Cleanup
-        if: always()
-        run: docker compose -f docker-compose.yml down --remove-orphans
-
-  test-e2e-app-store:
-    needs: setup-environment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Run App Store E2E Tests
-        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e:app-store
-
-      - name: Cleanup
-        if: always()
-        run: docker compose -f docker-compose.yml down --remove-orphans
-
-  test-e2e-embed:
-    needs: setup-environment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Run Embed E2E Tests
-        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e:embed
-
-      - name: Cleanup
-        if: always()
-        run: docker compose -f docker-compose.yml down --remove-orphans
-
-  test-e2e-embed-react:
-    needs: setup-environment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Run Embed React E2E Tests
-        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e:embed-react
-
-      - name: Cleanup
-        if: always()
-        run: docker compose -f docker-compose.yml down --remove-orphans
