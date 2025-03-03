@@ -39,9 +39,20 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
+export function checkStaticFiles(pathname: string) {
+  // Check if the path is for a static asset
+  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
+  if (hasFileExtension) {
+    return NextResponse.next();
+  }
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
+
+  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
+  if (isStaticFile) return isStaticFile;
 
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
@@ -202,6 +213,8 @@ export const config = {
     "/routing-forms/:path*",
     "/team/:path*",
     "/org/:path*",
+    "/:user/:type/",
+    "/:user/",
   ],
 };
 
