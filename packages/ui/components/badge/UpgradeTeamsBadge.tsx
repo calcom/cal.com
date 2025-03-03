@@ -1,22 +1,29 @@
 import Link from "next/link";
 
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
+import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Tooltip } from "../tooltip";
 import { Badge } from "./Badge";
 
-export const UpgradeTeamsBadge = function UpgradeTeamsBadge() {
+export const UpgradeTeamsBadge = function UpgradeTeamsBadge({ checkForTrial }: { checkForTrial?: boolean }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
+  const { isTrial } = useHasActiveTeamPlan();
 
-  if (hasPaidPlan) return null;
+  if (hasPaidPlan) {
+    if (!checkForTrial && !isTrial) return null;
+  }
 
   return (
-    <Tooltip content={t("upgrade_to_enable_feature")}>
-      <Link href="/teams">
-        <Badge variant="gray">{t("upgrade")}</Badge>
-      </Link>
+    <Tooltip content={isTrial ? t("limited_access_trial_mode") : t("upgrade_to_enable_feature")}>
+      {isTrial ? (
+        <Badge variant="gray">{t("trial_mode")}</Badge>
+      ) : (
+        <Link href="/teams">
+          <Badge variant="gray">{t("upgrade")}</Badge>
+        </Link>
+      )}
     </Tooltip>
   );
 };

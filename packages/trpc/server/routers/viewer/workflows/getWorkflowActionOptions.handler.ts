@@ -20,9 +20,9 @@ export const getWorkflowActionOptionsHandler = async ({ ctx }: GetWorkflowAction
   const isCurrentUsernamePremium =
     user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
-  let isTeamsPlan = false;
+  let teamsPlan = { isActive: false, isTrial: false };
   if (!isCurrentUsernamePremium) {
-    isTeamsPlan = await hasActiveTeamPlanHandler({ ctx });
+    teamsPlan = await hasActiveTeamPlanHandler({ ctx });
   }
 
   const hasOrgsPlan = !!user.profile?.organizationId;
@@ -30,7 +30,7 @@ export const getWorkflowActionOptionsHandler = async ({ ctx }: GetWorkflowAction
   const t = await getTranslation(ctx.user.locale, "common");
   return getWorkflowActionOptions(
     t,
-    IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan,
+    IS_SELF_HOSTED || isCurrentUsernamePremium || teamsPlan.isActive,
     IS_SELF_HOSTED || hasOrgsPlan
   );
 };

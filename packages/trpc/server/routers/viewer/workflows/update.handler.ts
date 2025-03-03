@@ -80,14 +80,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isCurrentUsernamePremium = hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
-  let isTeamsPlan = false;
+  let teamsPlan = { isActive: false, isTrial: false };
   if (!isCurrentUsernamePremium) {
-    isTeamsPlan = await hasActiveTeamPlanHandler({
-      ctx,
-    });
+    teamsPlan = await hasActiveTeamPlanHandler({ ctx });
   }
-  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
-
+  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || teamsPlan.isActiv;
   let newActiveOn: number[] = [];
 
   let removedActiveOnIds: number[] = [];
