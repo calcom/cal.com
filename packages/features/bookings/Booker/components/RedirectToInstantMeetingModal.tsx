@@ -73,7 +73,7 @@ export const RedirectToInstantMeetingModal = ({
   useEffect(() => {
     if (!!instantVideoMeetingUrl) {
       window.removeEventListener("beforeunload", handleBeforeUnload);
-      router.push(instantVideoMeetingUrl);
+      window.open(instantVideoMeetingUrl, "_blank", "noopener,noreferrer");
     }
   }, [instantVideoMeetingUrl]);
 
