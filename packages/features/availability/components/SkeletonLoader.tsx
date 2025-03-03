@@ -1,5 +1,5 @@
-import classNames from "@calcom/lib/classNames";
 import { Button, SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 function SkeletonLoader() {
   return (
