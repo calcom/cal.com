@@ -17,13 +17,9 @@ export const UpgradeTeamsBadge = function UpgradeTeamsBadge({ checkForTrial }: {
 
   return (
     <Tooltip content={isTrial ? t("limited_access_trial_mode") : t("upgrade_to_enable_feature")}>
-      {isTrial ? (
-        <Badge variant="gray">{t("trial_mode")}</Badge>
-      ) : (
-        <Link href="/teams">
-          <Badge variant="gray">{t("upgrade")}</Badge>
-        </Link>
-      )}
+      <Link href={isTrial ? "" : "/teams"}>
+        <Badge variant="gray">{isTrial ? t("trial_mode") : t("upgrade")}</Badge>
+      </Link>
     </Tooltip>
   );
 };
