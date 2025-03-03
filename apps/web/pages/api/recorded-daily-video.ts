@@ -10,10 +10,10 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import {
+  getAllTranscriptsAccessLinkFromMeetingId,
   getDownloadLinkOfCalVideoByRecordingId,
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/lib/videoClient";
-import { getAllTranscriptsAccessLinkFromMeetingId } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
