@@ -5,7 +5,7 @@ import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
-import { TimezoneSelectComponent as TimezoneSelect } from "./TimezoneSelect";
+import { TimezoneSelect } from "./TimezoneSelect";
 
 const cityTimezonesMock = [
   { city: "Dawson City", timezone: "America/Dawson" },
