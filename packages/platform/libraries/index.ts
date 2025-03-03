@@ -171,6 +171,7 @@ export {
   // note(Lauris): Api to internal
   transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
+  transformTeamLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
