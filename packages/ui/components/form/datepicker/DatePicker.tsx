@@ -1,10 +1,10 @@
-import "react-calendar/dist/Calendar.css";
-import "react-date-picker/dist/DatePicker.css";
-import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
+import * as Popover from "@radix-ui/react-popover";
+import { format } from "date-fns";
 
-import classNames from "@calcom/lib/classNames";
+import { classNames as cn } from "@calcom/lib";
+import { Button } from "@calcom/ui";
 
-import { Icon } from "../../icon";
+import { Calendar } from "../date-range-picker/Calendar";
 
 type Props = {
   date: Date;
@@ -15,19 +15,44 @@ type Props = {
 };
 
 const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
-  return (
-    <PrimitiveDatePicker
-      className={classNames(
-        "focus:ring-primary-500 focus:border-primary-500 border-default rounded-md border p-1 pl-2 shadow-sm sm:text-sm",
-        className
-      )}
-      calendarClassName="rounded-md"
-      clearIcon={null}
-      calendarIcon={<Icon name="calendar" className="text-subtle h-5 w-5 rounded-md" />}
-      value={date}
+  function handleDayClick(newDate: Date) {
+    onDatesChange?.(newDate ?? new Date());
+  }
+  const fromDate = minDate ?? new Date();
+  const calender = (
+    <Calendar
+      initialFocus
+      fromDate={minDate === null ? undefined : fromDate}
+      // toDate={maxDate}
+      mode="single"
+      defaultMonth={date}
+      selected={date}
+      onDayClick={(day) => handleDayClick(day)}
+      numberOfMonths={1}
       disabled={disabled}
-      onChange={onDatesChange}
     />
+  );
+
+  return (
+    <div className={cn("grid gap-2", className)}>
+      <Popover.Root>
+        <Popover.Trigger asChild>
+          <Button
+            data-testid="pick-date"
+            color="secondary"
+            EndIcon="calendar"
+            className={cn("justify-between text-left font-normal", !date && "text-subtle")}>
+            {date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>}
+          </Button>
+        </Popover.Trigger>
+        <Popover.Content
+          className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
+          align="start"
+          sideOffset={4}>
+          {calender}
+        </Popover.Content>
+      </Popover.Root>
+    </div>
   );
 };
 

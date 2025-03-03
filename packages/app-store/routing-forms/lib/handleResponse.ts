@@ -15,7 +15,7 @@ import isRouter from "../lib/isRouter";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
 
-type Form = SerializableForm<
+export type Form = SerializableForm<
   App_RoutingForms_Form & {
     user: {
       id: number;
@@ -98,14 +98,13 @@ export const handleResponse = async ({
 
     const settings = RoutingFormSettings.parse(form.settings);
     let userWithEmails: string[] = [];
-    if (form.teamId && settings?.sendUpdatesTo?.length) {
+    if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
+      const whereClause: Prisma.MembershipWhereInput = { teamId: form.teamId };
+      if (!settings?.sendToAll) {
+        whereClause.userId = { in: settings.sendUpdatesTo };
+      }
       const userEmails = await prisma.membership.findMany({
-        where: {
-          teamId: form.teamId,
-          userId: {
-            in: settings.sendUpdatesTo,
-          },
-        },
+        where: whereClause,
         select: {
           user: {
             select: {

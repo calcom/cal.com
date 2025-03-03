@@ -626,7 +626,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}
@@ -779,7 +779,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}
@@ -917,7 +917,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubjectFormRef?.(e);
                         refEmailSubject.current = e;
                       }}
-                      rows={1}
+                      rows={2}
                       disabled={props.readOnly || !hasActiveTeamPlan}
                       className="my-0 focus:ring-transparent"
                       required
