@@ -1,4 +1,4 @@
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 import { useOverlayCalendar } from "../hooks/useOverlayCalendar";
