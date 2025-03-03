@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import type {
   BulkUpdatParams,
   EventTypes,
@@ -33,7 +34,6 @@ import {
   SelectSkeletonLoader,
   Skeleton,
   Switch,
-  TimezoneSelect as WebTimezoneSelect,
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";

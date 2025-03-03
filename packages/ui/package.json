@@ -53,7 +53,6 @@
     "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
     "./components/icon/Spinner": "./components/icon/Spinner.tsx",
     "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
-    "./components/form/timezone-select/TimezoneSelect": "./components/form/timezone-select/index.ts",
     "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./__mocks__/ui": "./__mocks__/ui.tsx"
   },
