@@ -24,6 +24,7 @@ import {
   RescheduleReasonDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
   SplitNameDefaultFieldInput_2024_06_14,
+  UrlFieldInput_2024_06_14,
 } from "../inputs";
 
 export class NameDefaultFieldOutput_2024_06_14 extends NameDefaultFieldInput_2024_06_14 {
@@ -451,6 +452,23 @@ export class TextFieldOutput_2024_06_14 extends TextFieldInput_2024_06_14 {
   hidden!: boolean;
 }
 
+export class UrlFieldOutput_2024_06_14 extends UrlFieldInput_2024_06_14 {
+  @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
+  isDefault = false;
+
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden!: boolean;
+}
+
 export class NumberFieldOutput_2024_06_14 extends NumberFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
@@ -620,7 +638,8 @@ export type CustomFieldOutput_2024_06_14 =
   | MultiEmailFieldOutput_2024_06_14
   | CheckboxGroupFieldOutput_2024_06_14
   | RadioGroupFieldOutput_2024_06_14
-  | BooleanFieldOutput_2024_06_14;
+  | BooleanFieldOutput_2024_06_14
+  | UrlFieldOutput_2024_06_14;
 
 export type KnownBookingField_2024_06_14 = DefaultFieldOutput_2024_06_14 | CustomFieldOutput_2024_06_14;
 
@@ -657,6 +676,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     checkbox: CheckboxGroupFieldOutput_2024_06_14,
     radio: RadioGroupFieldOutput_2024_06_14,
     boolean: BooleanFieldOutput_2024_06_14,
+    url: UrlFieldOutput_2024_06_14,
   };
 
   async validate(bookingFields: OutputBookingField_2024_06_14[]) {

@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
 import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -24,6 +23,7 @@ import {
   TimezoneSelect,
   SettingsToggle,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 

@@ -5,7 +5,7 @@ import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState, useMemo } from "react";
+import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -15,7 +15,7 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { classNames, parseEventTypeColor } from "@calcom/lib";
+import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -56,6 +56,7 @@ import {
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -903,24 +904,6 @@ const InfiniteScrollMain = ({
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
-  const tabs = useMemo(() => {
-    return (
-      eventTypeGroups?.map((item, index) => {
-        let href = item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam";
-        // If it's the first tab and no teamId is in the URL, set href to just /event-types
-        if (index === 0 && searchParams && !searchParams.has("teamId") && !searchParams.has("noTeam")) {
-          href = "/event-types";
-        }
-        return {
-          name: item.profile.name ?? "",
-          href,
-          avatar: item.profile.image,
-          "data-testid": item.profile.name ?? "",
-        };
-      }) ?? []
-    );
-  }, [eventTypeGroups, searchParams]);
-
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
@@ -928,6 +911,14 @@ const InfiniteScrollMain = ({
   if (!eventTypeGroups || !profiles || status === "pending") {
     return <InfiniteSkeletonLoader />;
   }
+
+  const tabs = eventTypeGroups.map((item) => ({
+    name: item.profile.name ?? "",
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
+    avatar: item.profile.image,
+    "data-testid": item.profile.name ?? "",
+    matchFullPath: true,
+  }));
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];

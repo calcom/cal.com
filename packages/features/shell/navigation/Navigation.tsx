@@ -8,7 +8,7 @@ import {
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -48,8 +48,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "teams",
     href: "/teams",
     icon: "users",
-    onlyDesktop: true,
     badge: <TeamInviteBadge />,
+    moreOnMobile: true,
   },
   {
     name: "apps",

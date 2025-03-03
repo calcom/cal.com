@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../../button";
 import { Steps } from "../../form/step";
