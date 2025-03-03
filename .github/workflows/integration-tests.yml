@@ -8,9 +8,8 @@ on:
   pull_request:
 
 jobs:
-  integration-tests:
+  setup-environment:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -21,15 +20,64 @@ jobs:
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
 
-      - name: Start Services (Database & WireMock)
-        run: docker compose --env-file .env -f docker-compose.integration.yml up -d test-database wiremock
+      - name: Start Database
+        run: docker compose --env-file .env -f docker-compose.yml up -d test-database
 
-      - name: Wait for Database & WireMock to be Ready
-        run: sleep 10  # Ensures services are fully initialized
+      - name: Wait for Database to be Ready
+        run: sleep 10  # Ensures the database is fully initialized
 
-      - name: Run Integration Tests
-        run: docker compose --env-file .env -f docker-compose.integration.yml up --abort-on-container-exit test-runner
+  test-e2e:
+    needs: setup-environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run E2E Tests
+        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e
 
       - name: Cleanup
         if: always()
-        run: docker compose -f docker-compose.integration.yml down --remove-orphans
+        run: docker compose -f docker-compose.yml down --remove-orphans
+
+  test-e2e-app-store:
+    needs: setup-environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run App Store E2E Tests
+        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e:app-store
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.yml down --remove-orphans
+
+  test-e2e-embed:
+    needs: setup-environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Embed E2E Tests
+        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e:embed
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.yml down --remove-orphans
+
+  test-e2e-embed-react:
+    needs: setup-environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Embed React E2E Tests
+        run: docker compose --env-file .env -f docker-compose.yml run --rm test-runner yarn test-e2e:embed-react
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.yml down --remove-orphans
