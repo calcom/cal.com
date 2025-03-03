@@ -3,11 +3,6 @@ import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
-import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
-import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
-import { getUsersAvailability } from "@calcom/core/getUserAvailability";
-import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWrapper";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -20,6 +15,10 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
+import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
+import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
+import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -27,6 +26,7 @@ import {
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/lib/sentryWrapper";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";

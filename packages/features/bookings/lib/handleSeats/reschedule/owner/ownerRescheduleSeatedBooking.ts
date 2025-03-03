@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import type EventManager from "@calcom/core/EventManager";
+import type EventManager from "@calcom/lib/EventManager";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
 import type {

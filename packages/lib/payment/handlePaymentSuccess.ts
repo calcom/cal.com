@@ -1,11 +1,11 @@
 import type { Prisma } from "@prisma/client";
 
-import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import EventManager from "@calcom/lib/EventManager";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
 import prisma from "@calcom/prisma";
