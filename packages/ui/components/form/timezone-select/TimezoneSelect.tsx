@@ -4,11 +4,11 @@ import { useMemo, useState } from "react";
 import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
-import { classNames } from "@calcom/lib";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 
 import { inputStyles } from "../inputs/TextField";
 import { getReactSelectProps } from "../select";

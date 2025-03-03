@@ -3526,7 +3526,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.123"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.124"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4391,7 +4391,6 @@ __metadata:
     next-i18next: ^13.2.2
     rrule: ^2.7.1
     sonner: ^1.7.4
-    tailwind-merge: ^1.13.2
     tsdav: 2.0.3
     tslog: ^4.9.2
     typescript: ^4.9.4
@@ -4571,13 +4570,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.123":
-  version: 0.0.123
-  resolution: "@calcom/platform-libraries@npm:0.0.123"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.124":
+  version: 0.0.124
+  resolution: "@calcom/platform-libraries@npm:0.0.124"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: ef755b7fa3a650ccc802d28e982d0f25e344d11613444771ef26923fdb25d7a9cea85c4f00f01d2c36f8c54f3de2cd0d729c883810345621f55fb8ec316c40fc
+  checksum: e18a22d3c4004e8a33eb01d9412916dd98cff96bccb56c3a082e37e8801c9900d08471a716758d4b15cd5f1c2bfcbe83afa6f2452743a8d57f4ac7978622ec59
   languageName: node
   linkType: hard
 
@@ -5024,6 +5023,7 @@ __metadata:
     react-hook-form: ^7.43.3
     react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
+    tailwind-merge: ^1.13.2
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
