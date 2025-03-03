@@ -881,7 +881,6 @@ export function getEmailTemplateText(
     const ratingTemplate = emailRatingTemplate({
       isEditingMode: true,
       locale,
-      locale,
       action,
       timeFormat,
     });
