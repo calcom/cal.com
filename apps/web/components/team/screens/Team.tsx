@@ -61,7 +61,7 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   return (
     <section
       data-testid="team-members-container"
-      className="lg:min-w-lg mx-auto flex min-w-full max-w-5xl flex-wrap justify-center gap-x-6 gap-y-6">
+      className="lg:min-w-lg mx-auto flex min-w-full max-w-2xl flex-col flex-wrap justify-center gap-x-5 gap-y-6 sm:flex-row">
       {members.map((member) => {
         return member.username !== null && <Member key={member.id} member={member} teamName={teamName} />;
       })}
