@@ -1,24 +1,24 @@
-import { createHash } from "crypto";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { availabilityUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
-import slugify from "../../slugify";
+import { buildNonDwdCredentials } from "../../domainWideDelegation/clientAndServer";
+import { withSelectedCalendars } from "../withSelectedCalendars";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
 
+export type { UserWithLegacySelectedCalendars } from "../withSelectedCalendars";
+export { withSelectedCalendars };
 export type UserAdminTeams = number[];
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
@@ -72,33 +72,10 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   movedToProfileId: true,
   metadata: true,
   isPlatformManaged: true,
+  lastActiveAt: true,
+  identityProvider: true,
+  teams: true,
 });
-
-export type UserWithLegacySelectedCalendars<TCalendar, TUser> = TUser & {
-  selectedCalendars: TCalendar[];
-};
-
-type UserWithSelectedCalendars<TCalendar, TUser> = Omit<TUser, "selectedCalendars"> & {
-  allSelectedCalendars: TCalendar[];
-  userLevelSelectedCalendars: TCalendar[];
-};
-
-export function withSelectedCalendars<
-  TCalendar extends {
-    eventTypeId: number | null;
-  },
-  TUser extends {
-    selectedCalendars: TCalendar[];
-  }
->(user: UserWithLegacySelectedCalendars<TCalendar, TUser>): UserWithSelectedCalendars<TCalendar, TUser> {
-  // We are renaming selectedCalendars to allSelectedCalendars to make it clear that it contains all the calendars including eventType calendars
-  const { selectedCalendars, ...restUser } = user;
-  return {
-    ...restUser,
-    allSelectedCalendars: selectedCalendars,
-    userLevelSelectedCalendars: selectedCalendars.filter((calendar) => !calendar.eventTypeId),
-  };
-}
 
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
@@ -577,25 +554,27 @@ export class UserRepository {
     });
   }
 
-  static async create({
-    email,
-    username,
-    organizationId,
-  }: {
-    email: string;
-    username: string;
-    organizationId: number | null;
-  }) {
-    const password = createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
-    const hashedPassword = await hashPassword(password);
+  static async create(
+    data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
+      username: string;
+      hashedPassword?: string;
+      organizationId: number | null;
+      creationSource: CreationSource;
+      locked: boolean;
+    }
+  ) {
+    const organizationIdValue = data.organizationId;
+    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+
+    logger.info("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
-    return await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        username: slugify(username),
+        username,
         email: email,
-        password: { create: { hash: hashedPassword } },
+        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
         // Default schedule
         schedules: {
           create: {
@@ -611,18 +590,25 @@ export class UserRepository {
             },
           },
         },
-        organizationId: organizationId,
-        profiles: organizationId
+        creationSource,
+        locked,
+        ...(organizationIdValue
           ? {
-              create: {
-                username: slugify(username),
-                organizationId: organizationId,
-                uid: ProfileRepository.generateProfileUid(),
+              organizationId: organizationIdValue,
+              profiles: {
+                create: {
+                  username,
+                  organizationId: organizationIdValue,
+                  uid: ProfileRepository.generateProfileUid(),
+                },
               },
             }
-          : undefined,
+          : {}),
+        ...rest,
       },
     });
+
+    return user;
   }
   static async getUserAdminTeams(userId: number) {
     return prisma.user.findFirst({
@@ -797,40 +783,11 @@ export class UserRepository {
       return null;
     }
 
-    return withSelectedCalendars(user);
-  }
-
-  static async getAvatarUrl(id: number) {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: { avatarUrl: true },
-    });
-
-    if (!user?.avatarUrl) {
-      return null;
-    }
-
-    return user.avatarUrl;
-  }
-
-  static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {
-    const user = await prisma.user.findFirst({
-      where,
-      select: {
-        ...availabilityUserSelect,
-        selectedCalendars: true,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-      },
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    const userWithSelectedCalendars = withSelectedCalendars(user);
-    return userWithSelectedCalendars;
+    const { credentials, ...userWithSelectedCalendars } = withSelectedCalendars(user);
+    return {
+      ...userWithSelectedCalendars,
+      credentials: buildNonDwdCredentials(credentials),
+    };
   }
 
   static async findUnlockedUserForSession({ userId }: { userId: number }) {

@@ -1,9 +1,9 @@
 import type { NextApiRequest } from "next";
 
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { defaultResponder } from "@calcom/lib/server";
-import { bookingCancelSchema } from "@calcom/prisma/zod-utils";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
+import { bookingCancelSchema } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -70,6 +70,7 @@ async function handler(req: NextApiRequest) {
       ...req.query,
       allRemainingBookings: req.query.allRemainingBookings === "true",
     });
+
   // Normalizing for universal handler
   req.body = { id, allRemainingBookings, cancellationReason };
   return await handleCancelBooking(req);

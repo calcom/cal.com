@@ -29,6 +29,8 @@ type BookEventFormProps = {
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
+  isTimeslotUnavailable: boolean;
+  shouldRenderCaptcha?: boolean;
 };
 
 export const BookEventForm = ({
@@ -45,6 +47,8 @@ export const BookEventForm = ({
   extraOptions,
   isVerificationCodeSending,
   isPlatform = false,
+  isTimeslotUnavailable,
+  shouldRenderCaptcha,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -88,6 +92,8 @@ export const BookEventForm = ({
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
+  const watchedCfToken = bookingForm.watch("cfToken");
+
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -109,7 +115,7 @@ export const BookEventForm = ({
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
         />
-        {(errors.hasFormErrors || errors.hasDataErrors) && (
+        {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}
@@ -119,7 +125,23 @@ export const BookEventForm = ({
               message={getError(errors.formErrors, errors.dataErrors, t, responseVercelIdHeader)}
             />
           </div>
-        )}
+        ) : isTimeslotUnavailable ? (
+          <div data-testid="slot-not-allowed-to-book">
+            <Alert
+              severity="info"
+              title={t("unavailable_timeslot_title")}
+              message={
+                <Trans i18nKey="timeslot_unavailable_book_a_new_time">
+                  The selected time slot is no longer available.{" "}
+                  <button type="button" className="underline" onClick={onCancel}>
+                    Please select a new time
+                  </button>
+                </Trans>
+              }
+            />
+          </div>
+        ) : null}
+
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
             <Trans
@@ -143,6 +165,7 @@ export const BookEventForm = ({
             />
           </div>
         )}
+
         {isPlatformBookerEmbed && (
           <div className="text-subtle my-3 w-full text-xs">
             {t("proceeding_agreement")}{" "}
@@ -176,9 +199,11 @@ export const BookEventForm = ({
                   {t("back")}
                 </Button>
               )}
+
               <Button
                 type="submit"
                 color="primary"
+                disabled={(!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||

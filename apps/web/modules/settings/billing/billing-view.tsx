@@ -14,6 +14,16 @@ interface CtaRowProps {
   className?: string;
 }
 
+declare global {
+  interface Window {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
+      open: () => void;
+    };
+  }
+}
+
 export const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
   return (
     <>

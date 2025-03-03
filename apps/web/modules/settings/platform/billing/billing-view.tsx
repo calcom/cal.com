@@ -13,6 +13,16 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 
 import { CtaRow } from "~/settings/billing/billing-view";
 
+declare global {
+  interface Window {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
+      open: () => void;
+    };
+  }
+}
+
 export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
@@ -46,7 +56,7 @@ export default function PlatformBillingUpgrade() {
   if (!isPlatformUser)
     return (
       <div>
-        <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+        <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
           <NoPlatformPlan />
         </Shell>
       </div>
@@ -57,8 +67,8 @@ export default function PlatformBillingUpgrade() {
       <Shell
         heading={t("platform_billing")}
         title={t("platform_billing")}
-        hideHeadingOnMobile
         withoutMain={false}
+        withoutSeo={true}
         subtitle={t("manage_billing_description")}
         isPlatformUser={true}>
         <>

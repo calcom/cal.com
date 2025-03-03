@@ -11,8 +11,6 @@ import {
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
-test.describe.configure({ mode: "parallel" });
-
 test.afterEach(({ users }) => users.deleteAll());
 
 test("dynamic booking", async ({ page, users }) => {
@@ -58,6 +56,7 @@ test("dynamic booking", async ({ page, users }) => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
@@ -141,6 +140,35 @@ test.describe("Organization:", () => {
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
+      }
+    );
+  });
+
+  test("dynamic booking for usernames with special characters", async ({ page, users, orgs }) => {
+    const org = await orgs.create({
+      name: "TestOrg",
+    });
+
+    const user1 = await users.create({
+      organizationId: org.id,
+      name: "User 1",
+      roleInOrganization: MembershipRole.MEMBER,
+    });
+
+    const user2 = await users.create({
+      username: "ßenny-Joo", // ß is a special character
+      organizationId: org.id,
+      name: "User 2",
+      roleInOrganization: MembershipRole.MEMBER,
+    });
+    await doOnOrgDomain(
+      {
+        orgSlug: org.slug,
+        page,
+      },
+      async () => {
+        const response = await page.goto(`/${user1.username}+${user2.username}`);
+        expect(response?.status()).not.toBe(500);
       }
     );
   });

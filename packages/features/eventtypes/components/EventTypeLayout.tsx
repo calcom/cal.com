@@ -146,7 +146,7 @@ function EventTypeSingleLayout({
           <ButtonGroup combined containerProps={{ className: "border-default hidden lg:flex" }}>
             {!isManagedEventType && (
               <>
-                {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
+                {/* We have to warp this in tooltip as it has a href which disables the tooltip on buttons */}
                 {!isPlatform && (
                   <Tooltip content={t("preview")} side="bottom" sideOffset={4}>
                     <Button
@@ -297,7 +297,7 @@ function EventTypeSingleLayout({
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
-              className="primary-navigation"
+              className="primary-navigation w-64"
               tabs={EventTypeTabs}
               sticky
               linkShallow

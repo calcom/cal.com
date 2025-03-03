@@ -1,7 +1,5 @@
 import type { Prisma } from "@prisma/client";
 
-import type { EventManagerUser } from "@calcom/core/EventManager";
-import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import {
@@ -15,6 +13,8 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import type { EventManagerUser } from "@calcom/lib/EventManager";
+import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -28,6 +28,7 @@ import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@ca
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
+import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -66,6 +67,7 @@ export async function handleConfirmation(args: {
     eventTypeId: number | null;
     smsReminderNumber: string | null;
     userId: number | null;
+    location: string | null;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
@@ -155,6 +157,8 @@ export async function handleConfirmation(args: {
     cancellationReason?: string | null;
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
+    title: string;
+    responses: Prisma.JsonValue;
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
@@ -232,7 +236,9 @@ export async function handleConfirmation(args: {
           description: true,
           cancellationReason: true,
           attendees: true,
+          responses: true,
           location: true,
+          title: true,
           uid: true,
           startTime: true,
           metadata: true,
@@ -292,6 +298,8 @@ export async function handleConfirmation(args: {
         },
         uid: true,
         startTime: true,
+        responses: true,
+        title: true,
         metadata: true,
         cancellationReason: true,
         endTime: true,
@@ -393,8 +401,18 @@ export async function handleConfirmation(args: {
 
     const scheduleTriggerPromises: Promise<unknown>[] = [];
 
+    const updatedBookingsWithCalEventResponses = updatedBookings.map((booking) => {
+      return {
+        ...booking,
+        ...getCalEventResponses({
+          bookingFields: booking.eventType?.bookingFields ?? null,
+          booking,
+        }),
+      };
+    });
+
     subscribersMeetingStarted.forEach((subscriber) => {
-      updatedBookings.forEach((booking) => {
+      updatedBookingsWithCalEventResponses.forEach((booking) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
@@ -406,7 +424,7 @@ export async function handleConfirmation(args: {
       });
     });
     subscribersMeetingEnded.forEach((subscriber) => {
-      updatedBookings.forEach((booking) => {
+      updatedBookingsWithCalEventResponses.forEach((booking) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
@@ -424,6 +442,7 @@ export async function handleConfirmation(args: {
       booking: {
         startTime: booking.startTime,
         id: booking.id,
+        location: booking.location,
       },
       triggerForUser,
       organizerUser: { id: booking.userId },

@@ -1,15 +1,17 @@
+import type { Prisma } from "@prisma/client";
+
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TListMembersInputSchema } from "./legacyListMembers.schema";
+import type { TLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 
 type ListMembersOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: TListMembersInputSchema;
+  input: TLegacyListMembersInputSchema;
 };
 
 export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
@@ -57,6 +59,11 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     };
   }
 
+  const searchTextClauses: Prisma.UserWhereInput[] = [
+    { name: { contains: input.searchText, mode: "insensitive" } },
+    { username: { contains: input.searchText, mode: "insensitive" } },
+  ];
+
   // Fetch unique users through memberships
   const memberships = await prisma.membership.findMany({
     where: {
@@ -64,10 +71,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
       teamId: { in: teamsToQuery },
       user: input.searchText?.trim()?.length
         ? {
-            OR: [
-              { name: { contains: input.searchText, mode: "insensitive" } },
-              { username: { contains: input.searchText, mode: "insensitive" } },
-            ],
+            OR: searchTextClauses,
           }
         : undefined,
     },
@@ -80,6 +84,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
           name: true,
           username: true,
           avatarUrl: true,
+          email: true,
         },
       },
     },

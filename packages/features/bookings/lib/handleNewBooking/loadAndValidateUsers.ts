@@ -2,15 +2,19 @@ import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
-import { filterHostsByLeadThreshold } from "@calcom/lib/bookings/filterHostsByLeadThreshold";
+import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
+import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { loadUsers } from "./loadUsers";
 import type { NewBookingEventType } from "./types";
@@ -19,6 +23,13 @@ type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
   createdAt?: Date;
+})[];
+
+export type UsersWithDwdCredentials = (Omit<Awaited<ReturnType<typeof loadUsers>>[number], "credentials"> & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+  createdAt?: Date;
+  credentials: CredentialForCalendarService[];
 })[];
 
 type EventType = Pick<
@@ -33,6 +44,9 @@ type EventType = Pick<
   | "assignAllTeamMembers"
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
+  | "isRRWeightsEnabled"
+  | "rescheduleWithSameRoundRobinHost"
+  | "teamId"
 >;
 
 type InputProps = {
@@ -43,7 +57,8 @@ type InputProps = {
   logger: Logger<unknown>;
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
-  isSameHostReschedule: boolean;
+  rescheduleUid: string | null;
+  routingFormResponse: RoutingFormResponse | null;
 };
 
 export async function loadAndValidateUsers({
@@ -54,8 +69,13 @@ export async function loadAndValidateUsers({
   logger,
   routedTeamMemberIds,
   contactOwnerEmail,
-  isSameHostReschedule,
-}: InputProps): Promise<Users> {
+  rescheduleUid,
+  routingFormResponse,
+}: InputProps): Promise<{
+  qualifiedRRUsers: UsersWithDwdCredentials;
+  additionalFallbackRRUsers: UsersWithDwdCredentials;
+  fixedUsers: UsersWithDwdCredentials;
+}> {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -63,6 +83,7 @@ export async function loadAndValidateUsers({
     routedTeamMemberIds,
     contactOwnerEmail,
   });
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     logger.warn({
@@ -104,21 +125,51 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-
-  const qualifiedHosts = await filterHostsByLeadThreshold({
-    eventTypeId: eventType.id,
-    hosts: eventType.hosts.map((host) => ({
-      isFixed: host.isFixed,
-      createdAt: host.createdAt,
-      email: host.user.email,
-      user: host.user,
-    })),
-    maxLeadThreshold: isSameHostReschedule ? null : eventType.maxLeadThreshold,
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await findQualifiedHostsWithDwdCredentials({
+    eventType,
+    routedTeamMemberIds: routedTeamMemberIds || [],
+    rescheduleUid,
+    contactOwnerEmail,
+    routingFormResponse,
   });
-  if (qualifiedHosts.length) {
+  const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
+    (acc, host) => {
+      if (host.user.id) {
+        return { ...acc, [host.user.id]: host };
+      }
+      return acc;
+    },
+    {} as {
+      [key: number]: Awaited<
+        ReturnType<typeof findQualifiedHostsWithDwdCredentials>
+      >["qualifiedRRHosts"][number];
+    }
+  );
+
+  let qualifiedRRUsers: UsersWithDwdCredentials = [];
+  let allFallbackRRUsers: UsersWithDwdCredentials = [];
+  let fixedUsers: UsersWithDwdCredentials = [];
+
+  if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
-    const qualifiedHostIds = new Set(qualifiedHosts.map((qualifiedHost) => qualifiedHost.user.id));
-    users = users.filter((user) => qualifiedHostIds.has(user.id));
+    const qualifiedHostIds = new Set(qualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
+    qualifiedRRUsers = users
+      .filter((user) => qualifiedHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
+  }
+
+  if (allFallbackRRHosts?.length) {
+    const fallbackHostIds = new Set(allFallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
+    allFallbackRRUsers = users
+      .filter((user) => fallbackHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
+  }
+
+  if (fixedHosts?.length) {
+    const fixedHostIds = new Set(fixedHosts.map((fixedHost) => fixedHost.user.id));
+    fixedUsers = users
+      .filter((user) => fixedHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
   }
 
   logger.debug(
@@ -128,5 +179,30 @@ export async function loadAndValidateUsers({
     })
   );
 
-  return users;
+  const additionalFallbackRRUsers = allFallbackRRUsers.filter(
+    (fallbackUser) => !qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id === fallbackUser.id)
+  );
+
+  if (!qualifiedRRUsers.length && !fixedUsers.length) {
+    const firstUser = users[0];
+    const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: firstUser.id ?? null,
+      teamId: eventType.teamId,
+    });
+    const usersEnrichedWithDwd = await enrichUsersWithDwdCredentials({
+      orgId: firstUserOrgId ?? null,
+      users,
+    });
+    return {
+      qualifiedRRUsers,
+      additionalFallbackRRUsers, // without qualified
+      fixedUsers: usersEnrichedWithDwd,
+    };
+  }
+
+  return {
+    qualifiedRRUsers,
+    additionalFallbackRRUsers, // without qualified
+    fixedUsers,
+  };
 }

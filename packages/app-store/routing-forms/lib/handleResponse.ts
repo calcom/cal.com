@@ -15,7 +15,7 @@ import isRouter from "../lib/isRouter";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
 
-type Form = SerializableForm<
+export type Form = SerializableForm<
   App_RoutingForms_Form & {
     user: {
       id: number;
@@ -35,11 +35,13 @@ export const handleResponse = async ({
   // Unused but probably should be used
   // formFillerId,
   chosenRouteId,
+  isPreview,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
   form: Form;
   formFillerId: string;
   chosenRouteId: string | null;
+  isPreview: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -96,14 +98,13 @@ export const handleResponse = async ({
 
     const settings = RoutingFormSettings.parse(form.settings);
     let userWithEmails: string[] = [];
-    if (form.teamId && settings?.sendUpdatesTo?.length) {
+    if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
+      const whereClause: Prisma.MembershipWhereInput = { teamId: form.teamId };
+      if (!settings?.sendToAll) {
+        whereClause.userId = { in: settings.sendUpdatesTo };
+      }
       const userEmails = await prisma.membership.findMany({
-        where: {
-          teamId: form.teamId,
-          userId: {
-            in: settings.sendUpdatesTo,
-          },
-        },
+        where: whereClause,
         select: {
           user: {
             select: {
@@ -162,25 +163,39 @@ export const handleResponse = async ({
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
 
-    const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-      data: {
-        // TODO: Why do we not save formFillerId available in the input?
-        // formFillerId,
-        formId: form.id,
-        response: response,
-        chosenRouteId,
-      },
-    });
+    let dbFormResponse;
+    if (!isPreview) {
+      dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          // TODO: Why do we not save formFillerId available in the input?
+          // formFillerId,
+          formId: form.id,
+          response: response,
+          chosenRouteId,
+        },
+      });
 
-    await onFormSubmission(
-      { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as FormResponse,
-      dbFormResponse.id,
-      chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
-    );
+      await onFormSubmission(
+        { ...serializableFormWithFields, userWithEmails },
+        dbFormResponse.response as FormResponse,
+        dbFormResponse.id,
+        chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
+      );
+    } else {
+      moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
+      // Create a mock response for dry run
+      dbFormResponse = {
+        id: 0,
+        formId: form.id,
+        response,
+        chosenRouteId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
 
     return {
-      isPreview: false,
+      isPreview: !!isPreview,
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
       attributeRoutingConfig: chosenRoute

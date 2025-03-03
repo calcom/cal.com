@@ -1,9 +1,11 @@
+"use client";
+
 import type { NextSeoProps } from "next-seo";
 import { NextSeo } from "next-seo";
 import { usePathname } from "next/navigation";
 
-import type { AppImageProps } from "@calcom/lib/OgImages";
-import { constructAppImage, constructGenericImage } from "@calcom/lib/OgImages";
+import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
+import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { buildCanonical, getSeoImage, seoConfig } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
@@ -16,6 +18,7 @@ export type HeadSeoProps = {
   canonical?: string;
   nextSeoProps?: NextSeoProps;
   app?: AppImageProps;
+  meeting?: MeetingImageProps;
   isBrandingHidden?: boolean;
   origin?: string;
 };
@@ -82,6 +85,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     canonical = defaultUrl,
     nextSeoProps = {},
     app,
+    meeting,
     isBrandingHidden,
   } = props;
 
@@ -95,6 +99,17 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     canonical,
     siteName,
   });
+
+  if (meeting) {
+    const pageImage = getSeoImage("ogImage") + constructMeetingImage(meeting);
+    seoObject = buildSeoMeta({
+      title: pageTitle,
+      description: truncatedDescription,
+      image: pageImage,
+      canonical,
+      siteName,
+    });
+  }
 
   if (app) {
     const pageImage =

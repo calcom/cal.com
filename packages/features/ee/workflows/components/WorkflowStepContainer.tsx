@@ -8,6 +8,7 @@ import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -90,6 +91,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { enabled: !!teamId }
   );
 
+  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
+
   const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
@@ -129,7 +132,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action);
+  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
 
   if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
     if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
@@ -370,7 +373,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       needsTeamsUpgrade: false,
     };
 
-    const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
+    const selectedTemplate = {
+      label: t(`${step.template.toLowerCase()}`),
+      value: step.template,
+      needsTeamsUpgrade: false,
+    };
 
     const canRequirePhoneNumber = (workflowStep: string) => {
       return (
@@ -619,7 +626,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}
@@ -772,7 +779,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}
@@ -879,6 +886,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedTemplate}
                         value={selectedTemplate}
                         options={templateOptions}
+                        isOptionDisabled={(option: {
+                          label: string;
+                          value: any;
+                          needsTeamsUpgrade: boolean;
+                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
@@ -905,8 +917,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubjectFormRef?.(e);
                         refEmailSubject.current = e;
                       }}
-                      rows={1}
-                      disabled={props.readOnly}
+                      rows={2}
+                      disabled={props.readOnly || !hasActiveTeamPlan}
                       className="my-0 focus:ring-transparent"
                       required
                       {...restEmailSubjectForm}
@@ -939,7 +951,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   updateTemplate={updateTemplate}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
-                  editable={!props.readOnly && !isWhatsappAction(step.action)}
+                  editable={!props.readOnly && !isWhatsappAction(step.action) && hasActiveTeamPlan}
                   excludedToolbarItems={
                     !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                   }

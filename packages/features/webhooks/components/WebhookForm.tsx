@@ -121,20 +121,20 @@ const WebhookForm = (props: {
     },
   });
 
+  const showTimeSection = formMethods
+    .watch("eventTriggers")
+    ?.find(
+      (trigger) =>
+        trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+    );
+
   const [useCustomTemplate, setUseCustomTemplate] = useState(
     props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
   );
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
-
-  const [showTimeSection, setShowTimeSection] = useState(
-    !!triggerOptions.find(
-      (trigger) =>
-        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    )
-  );
 
   useEffect(() => {
     if (changeSecret) {
@@ -146,7 +146,7 @@ const WebhookForm = (props: {
     <Form
       form={formMethods}
       handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-      <div className="border-subtle border-x p-6">
+      <div className="border-subtle rounded-t-lg border p-6">
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -199,6 +199,7 @@ const WebhookForm = (props: {
                   <>{t("event_triggers")}</>
                 </Label>
                 <Select
+                  grow
                   options={translatedTriggerOptions}
                   isMulti
                   value={selectValue}
@@ -219,8 +220,6 @@ const WebhookForm = (props: {
                       formMethods.setValue("time", undefined, { shouldDirty: true });
                       formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
                     }
-
-                    setShowTimeSection(noShowWebhookTriggerExists);
                   }}
                 />
               </div>
@@ -355,7 +354,7 @@ const WebhookForm = (props: {
         </Button>
       </SectionBottomActions>
 
-      <div className="mt-6 rounded-md">
+      <div className="mb-4 mt-6 rounded-md">
         <WebhookTestDisclosure />
       </div>
     </Form>

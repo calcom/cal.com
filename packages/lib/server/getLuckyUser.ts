@@ -2,8 +2,8 @@ import type { Prisma, User } from "@prisma/client";
 
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
-import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
+import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
@@ -15,7 +15,7 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { mergeOverlappingRanges } from "../date-ranges";
 
@@ -26,7 +26,7 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
 };
 
 type PartialUser = Pick<User, "id" | "email">;
-type RoutingFormResponse = {
+export type RoutingFormResponse = {
   response: Prisma.JsonValue;
   chosenRouteId: string | null;
   form: {
@@ -69,7 +69,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     user: {
       id: number;
       email: string;
-      credentials: CredentialPayload[];
+      credentials: CredentialForCalendarService[];
       userLevelSelectedCalendars: SelectedCalendar[];
     };
     createdAt: Date;
@@ -381,7 +381,7 @@ async function getCurrentMonthCalendarBusyTimes(
   usersWithCredentials: {
     id: number;
     email: string;
-    credentials: CredentialPayload[];
+    credentials: CredentialForCalendarService[];
     userLevelSelectedCalendars: SelectedCalendar[];
   }[]
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
@@ -868,53 +868,61 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
   const organizationId = eventType.team?.parentId;
   log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
   if (routingFormResponse && organizationId) {
-    const attributeWithEnabledWeights = await prisma.attribute.findFirst({
-      where: {
-        teamId: organizationId,
-        isWeightsEnabled: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        type: true,
-        options: {
-          select: {
-            id: true,
-            value: true,
-            slug: true,
-            assignedUsers: {
-              select: {
-                member: {
-                  select: {
-                    userId: true,
+    const routingForm = routingFormResponse?.form;
+    const routes = zodRoutes.parse(routingForm.routes);
+    const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
+
+    if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
+      const attributeIdForWeights = chosenRoute.attributeIdForWeights;
+
+      const attributeWithEnabledWeights = await prisma.attribute.findUnique({
+        where: {
+          id: attributeIdForWeights,
+          teamId: organizationId,
+          isWeightsEnabled: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          type: true,
+          options: {
+            select: {
+              id: true,
+              value: true,
+              slug: true,
+              assignedUsers: {
+                select: {
+                  member: {
+                    select: {
+                      userId: true,
+                    },
                   },
+                  weight: true,
                 },
-                weight: true,
               },
             },
           },
         },
-      },
-    });
+      });
 
-    if (attributeWithEnabledWeights) {
-      // Virtual queues are defined by the attribute that has weights and is used with 'Value of field ...'
-      const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
-        allRRHosts,
-        routingFormResponse,
-        attributeWithEnabledWeights
-      );
-
-      log.debug(`attributeWithEnabledWeights ${safeStringify(attributeWithEnabledWeights)}`);
-
-      if (queueAndAtributeWeightData?.averageWeightsHosts && queueAndAtributeWeightData?.virtualQueuesData) {
-        attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
-        virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
+      if (attributeWithEnabledWeights) {
+        // Virtual queues are defined by the attribute that is used for weights
+        const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
+          allRRHosts,
+          routingFormResponse,
+          attributeWithEnabledWeights
+        );
+        if (
+          queueAndAtributeWeightData?.averageWeightsHosts &&
+          queueAndAtributeWeightData?.virtualQueuesData
+        ) {
+          attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
+          virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
+        }
       }
     }
   }
-
   return { attributeWeights, virtualQueuesData };
 }
 
