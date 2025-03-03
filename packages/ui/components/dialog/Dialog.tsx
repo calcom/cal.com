@@ -7,9 +7,9 @@ import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
 import React, { useMemo, useState } from "react";
 
 import { Dialog as PlatformDialogPrimitives, useIsPlatform } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import type { ButtonProps } from "../button";
 import { Button } from "../button";

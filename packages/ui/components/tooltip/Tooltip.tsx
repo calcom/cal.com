@@ -4,7 +4,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import React from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 export function Tooltip({
   children,

@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from "react";
 import React from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 export function VariantsTable({
   children,

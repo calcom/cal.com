@@ -5024,6 +5024,7 @@ __metadata:
     react-hook-form: ^7.43.3
     react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
+    tailwind-merge: ^1.13.2
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft

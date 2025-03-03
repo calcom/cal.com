@@ -6,7 +6,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
-import { classNames } from "@calcom/lib";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,6 +40,7 @@ import {
   TextField,
   Tooltip,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import {
   getWhatsappTemplateForAction,
