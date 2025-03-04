@@ -2266,25 +2266,25 @@ checksums:
     what_is_this_meeting_about: 7fac76d8f69ca161feceaa9a422e9a24
     add_to_team: 81ea05d21e72679f58a5bc77f6077ba1
     remove_users_from_org: 5b8a337674562e28e6edc4b85567b677
-    domain_wide_delegation: 585bedb64d9b46881b38c85766ac6b2e
-    domain_wide_delegation_description: 839297009a1f943d7b49d850f2cd177a
+    delegation_credential: 3601bd1c36f9f02df3b1954963ca002b
+    delegation_credential_description: b85db426c1f4f52000bfb72342d2bc73
     add_client_id_in_google_workspace_with_below_scope: 94669fb5e7ecacd28218616f590ddeff
-    domain_wide_delegation_enabled: ca6cf4fc5a4cdef3c4b8ce6795b9b35c
-    domain_wide_delegation_disabled: 8457f24ad2ef9651912d89cae2fa013f
-    add_domain_wide_delegation: 070b74b176b08492972a7992813891b5
-    edit_domain_wide_delegation: fd8980cb4136ad21d4401c9d3bb4d677
+    delegation_credential_enabled: abb5f197c388f906633b25b09469dad1
+    delegation_credential_disabled: d10aa736c0eec0379c97a5e7ee5d6567
+    add_delegation_credential: a1e7d72a53cd3e142f3ef306a6792a2b
+    edit_delegation_credential: aa0eff43fed49a806ad9082f9ad38100
     domain: 402d46965eacc3af4c5df92e53e95712
     no_workspace_platforms: f637f950957385a367ca8b63fc2c41ae
     workspace_platform: 0d180593a50391ca731af007e0c8f183
     workspace_platforms: 76e8e1363e7323935aacf04b9aa17937
-    workspace_platforms_description: ed09d48463106faca99f7d23059ec6f1
+    workspace_platforms_description: 19da6ee8883d4d08fb956c2fe6baf529
     edit_workspace_platform: d515b824b12a6d7a09f2689ac11e10b2
     edit_service_account: ad68fc4724a0b1a68f0cae12171fb80a
     add_workspace_platform: 3dd2c47f0489fe61ded56f2eac5de831
     slug: 94c5eeb1add40a57c824bda29d21f6c2
     service_account_key: bfd30e331b4097c6233b259cb8521c65
     edit_service_account_key: 92f55029830638cd0d4608d7447db2d0
-    domain_wide_delegation_restricts_adding_more_than_one_installation: b290d795c759313f997784bf12f8c945
+    delegation_credential_restricts_adding_more_than_one_installation: bbfa8e54c61184debce7dc251bcc2f1d
     app_successfully_installed_and_is_using_delegated_credentials: 4850f673c143624bebebb8c798cd63d3
     remove_users_from_org_confirm: 0eaa017c65c82f4bebdd5bb3e130ed08
     remove_users_from_team: dabc98f7ca9cbf9092adaac4e897fdca
@@ -2950,7 +2950,7 @@ checksums:
     k_bar_ai_error: b44318e13d8763402a079d54fce7ce26
     select_oAuth_client: 0ebdcf296c0f68eca626cdb153204607
     on_every_instance: db0e9e92055a38572fffa40f44440035
-    domain_wide_delegation_feature_not_enabled: feee047b6be876169d313f88afc3a346
+    delegation_credential_feature_not_enabled: 5be4e22d2cc0d84fba7586e3047debad
     internal_booking_note: 74561f367c27064cb1b54710fc6c3679
     internal_note_cancellation_reason: e70f8e60bfae11a6f6281ab518b8a579
     internal_booking_note_description: dff77f447985998404a20df4a47ba547
