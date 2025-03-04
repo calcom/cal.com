@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Ha nem szeretné a(z) {{toEmail}} címet használni a(z) {{appName}} e-mail-címeként, vagy már van {{appName}} fiókja, kérjen újabb meghívót erre az e-mail-címre.",
   "you_have_been_invited": "Meghívtak a(z) {{teamName}} csapatba",
   "user_invited_you": "{{user}} meghívott, hogy csatlakozzon a(z) {{entity}} {{team}} csapatához a {{appName}} alkalmazásban",
-  "user_invited_you_to_subteam": "{{user}} meghívott, hogy csatlakozzon a(z) {{parentTeamName}} szervezet {{team}} csapatához a következő napon: {{appName}}",
   "hidden_team_member_title": "Ebben a csapatban elrejtve vagy",
   "hidden_team_member_message": "A helyedért nem fizetnek, vagy frissíts PRO-ra, vagy tudasd a csapat tulajdonosával, hogy kifizethetik-e a helyedet.",
   "hidden_team_owner_message": "A csapatok használatához PRO fiókra van szüksége, a frissítésig rejtve marad.",

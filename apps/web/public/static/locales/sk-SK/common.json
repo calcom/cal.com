@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Ak nechcete používať {{toEmail}} ako váš {{appName}} email alebo už máte {{appName}} účet, požiadajte o novú pozvánku na iný email.",
   "you_have_been_invited": "Boli ste pozvaní do tímu {{teamName}}",
   "user_invited_you": "{{user}} vás pozval/a do {{entity}} {{team}} na {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} vás pozval/a do tímu {{team}} organizácie {{parentTeamName}} na {{appName}}",
   "hidden_team_member_title": "V tomto tíme ste skrytý/á",
   "hidden_team_member_message": "Vaše miesto nie je zaplatené. Buď si aktivujte PRO verziu, alebo informujte vlastníka tímu, že môže zaplatiť za vaše miesto.",
   "hidden_team_owner_message": "Pre používanie tímov potrebujete pro účet. Budete skrytý/á, kým neupgradujete.",

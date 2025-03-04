@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Si prefieres no usar {{toEmail}} como tu correo electrónico de {{appName}} o ya tienes una cuenta de {{appName}}, por favor solicita otra invitación a ese correo.",
   "you_have_been_invited": "Has sido invitado a unirte al equipo {{teamName}}",
   "user_invited_you": "{{user}} te invitó a unirte al {{entity}} {{team}} en {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} te invitó a unirte al equipo {{team}} de la organización {{parentTeamName}} en {{appName}}",
   "hidden_team_member_title": "Estás oculto en este equipo",
   "hidden_team_member_message": "Tu asiento no está pagado, actualiza a PRO o informa al propietario del equipo para que pague tu asiento.",
   "hidden_team_owner_message": "Necesitas una cuenta pro para usar equipos, estás oculto hasta que actualices.",

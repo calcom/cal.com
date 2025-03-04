@@ -183,7 +183,6 @@
   "request_another_invitation_email": "ប្រសិនបើអ្នកមិនចង់ប្រើ {{toEmail}} ជា {{appName}} របស់អ្នក អ៊ីម៉ែលឬ គណនី {{appName}} មានរួចហើយ, សូមស្នើសុំការអញ្ជើញមួយផ្សេងទៀតទៅកាន់អ៊ីមែលនោះ។",
   "you_have_been_invited": "អ្នកត្រូវបានអញ្ជើញឱ្យចូលរួមក្រុម {{teamName}}",
   "user_invited_you": "{{user}} បានអញ្ជើញអ្នកឱ្យចូលរួម {{entity}} {{team}} នៅលើ {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} បានអញ្ជើញអ្នកចូលរួមក្រុម {{team}} នៃអង្គភាព {{parentTeamName}} នៅលើ {{appName}}",
   "hidden_team_member_title": "អ្នកត្រូវបានលាក់នៅក្នុងក្រុមនេះ។",
   "hidden_team_member_message": "កៅអីរបស់អ្នកមិនត្រូវបានបង់ទេ ទាំង Upgrade ទៅ PRO ឬអនុញ្ញាតឱ្យម្ចាស់ក្រុមដឹងថាពួកគេអាចបង់ប្រាក់សម្រាប់កៅអីរបស់អ្នក។",
   "hidden_team_owner_message": "អ្នក​ត្រូវ​ការ​គណនី​គាំទ្រ​ដើម្បី​ប្រើ​ក្រុម អ្នក​ត្រូវ​បាន​លាក់​រហូត​ដល់​អ្នក Upgrade",

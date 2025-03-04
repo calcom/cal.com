@@ -183,7 +183,6 @@
   "request_another_invitation_email": "{{toEmail}} ez baduzu erabili nahi zure {{appName}} posta elektroniko gisa edo dagoeneko {{appName}} kontu bat baduzu, eskatu beste gonbidapen bat posta elektroniko horretara.",
   "you_have_been_invited": "{{teamName}} taldera batzeko gonbidatua izan zara",
   "user_invited_you": "{{user}}-(e)k {{appName}}-(e)ko {{team}} {{entity}}-(e)ra gonbidatu zaitu",
-  "user_invited_you_to_subteam": "{{user}}-(e)k {{appName}}-(e)ko {{parentTeamName}} erakundeko {{team}} taldera gonbidatu zaitu",
   "hidden_team_member_title": "Ezkutuan zaude talde honetan",
   "hidden_team_member_message": "Zure eserlekua ez dago ordainduta. PRO bertsiora igo edo jakinarazi taldearen jabeari zure eserlekua ordain dezakeela.",
   "hidden_team_owner_message": "Pro kontu bat behar duzu taldeak erabiltzeko, ezkutuan geratuko zara bitartean.",

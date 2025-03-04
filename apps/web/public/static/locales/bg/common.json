@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Ако предпочитате да не използвате {{toEmail}} като ваш {{appName}} имейл или вече имате {{appName}} акаунт, моля, поискайте нова покана на този имейл.",
   "you_have_been_invited": "Поканени сте да се присъедините към екипа {{teamName}}",
   "user_invited_you": "{{user}} ви покани да се присъедините към {{entity}} {{team}} в {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} ви покани да се присъедините към екипа {{team}} на организацията {{parentTeamName}} в {{appName}}",
   "hidden_team_member_title": "Вие сте скрити в този екип",
   "hidden_team_member_message": "Вашето място не е платено. Или преминете към PRO, или уведомете собственика на екипа, че може да плати за вашето място.",
   "hidden_team_owner_message": "Нуждаете се от про акаунт, за да използвате екипи. Ще останете скрити, докато не направите ъпгрейд.",

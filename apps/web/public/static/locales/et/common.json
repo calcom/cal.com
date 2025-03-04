@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Kui te eelistate mitte kasutada {{toEmail}} oma {{appName}} e-posti aadressina või teil on juba {{appName}} konto, taotlege sellele e-posti aadressile uus kutse.",
   "you_have_been_invited": "Teid on kutsutud liituma meeskonnaga {{teamName}}",
   "user_invited_you": "{{user}} kutsus teid liituma meeskonnaga {{entity}} {{team}} rakenduses {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} kutsus teid liituma organisatsiooni {{parentTeamName}} meeskonnaga {{team}} rakenduses {{appName}}",
   "hidden_team_member_title": "Sa oled selles meeskonnas varjatud",
   "hidden_team_member_message": "Teie koha eest ei maksta, minge üle PRO paketile või andke meeskonna omanikule teada, et nad võivad teie koha eest maksta.",
   "hidden_team_owner_message": "Meeskondade kasutamiseks vajate PRO paketiga kontot, olete varjatud kuni vahetate paketti.",

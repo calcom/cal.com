@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Jos et halua käyttää osoitetta {{toEmail}} {{appName}}-sähköpostiosoitteenasi tai sinulla on jo {{appName}}-tili, pyydä uusi kutsu toiseen sähköpostiosoitteeseen.",
   "you_have_been_invited": "Sinut on kutsuttu liittymään tiimiin {{teamName}}",
   "user_invited_you": "{{user}} kutsui sinut liittymään {{entity}} {{team}} palvelussa {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} kutsui sinut liittymään tiimiin {{team}} organisaatiossa {{parentTeamName}} palvelussa {{appName}}",
   "hidden_team_member_title": "Olet piilotettu tässä tiimissä",
   "hidden_team_member_message": "Paikkaasi ei ole maksettu. Päivitä PRO-versioon tai ilmoita tiimin omistajalle, että he voivat maksaa paikkasi.",
   "hidden_team_owner_message": "Tarvitset pro-tilin käyttääksesi tiimejä. Olet piilotettu, kunnes päivität tilisi.",

@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Якщо ви не хочете використовувати {{toEmail}} в {{appName}} або вже маєте обліковий запис {{appName}}, надішліть запит на запрошення на потрібну електронну адресу.",
   "you_have_been_invited": "Вас запрошено приєднатися до команди «{{teamName}}»",
   "user_invited_you": "{{user}} запрошує вас приєднатись: {{entity}} «{{team}}» в {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} запросив вас приєднатися до команди {{team}} організації {{parentTeamName}} {{appName}}",
   "hidden_team_member_title": "У цій команді вас приховано",
   "hidden_team_member_message": "Ваше місце не оплачено. Перейдіть на версію Pro або попросіть власника команди оплатити ваше місце.",
   "hidden_team_owner_message": "Щоб користуватися функціями команди, потрібен обліковий запис версії Pro. До переходу на цю версію вас буде приховано.",

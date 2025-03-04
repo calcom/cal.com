@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Əgər {{toEmail}} ünvanını {{appName}} e-poçtunuz kimi istifadə etmək istəmirsinizsə və ya artıq {{appName}} hesabınız varsa, həmin e-poçta başqa bir dəvət tələb edin.",
   "you_have_been_invited": "{{teamName}} komandasına qoşulmağa dəvət edildiniz",
   "user_invited_you": "{{user}} sizi {{appName}} üzərində {{entity}} {{team}} komandasına qoşulmağa dəvət etdi",
-  "user_invited_you_to_subteam": "{{user}} sizi {{appName}} üzərində {{parentTeamName}} təşkilatının {{team}} komandasına qoşulmağa dəvət etdi",
   "hidden_team_member_title": "Bu komandada gizlisiniz",
   "hidden_team_member_message": "Oturacağınız ödənilməyib, ya PRO-ya yüksəldin, ya da komanda sahibinə oturacağınız üçün ödəniş edə biləcəyini bildirin.",
   "hidden_team_owner_message": "Komandalardan istifadə etmək üçün pro hesabına ehtiyacınız var, yüksəldənə qədər gizlisiniz.",

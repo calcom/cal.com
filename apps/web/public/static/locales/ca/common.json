@@ -183,7 +183,6 @@
   "request_another_invitation_email": "Si prefereixes no utilitzar {{toEmail}} com el teu correu de {{appName}} o ja tens un compte de {{appName}}, si us plau, demana una altra invitació per a aquest correu.",
   "you_have_been_invited": "Has estat convidat a unir-te a l'equip {{teamName}}",
   "user_invited_you": "{{user}} t'ha convidat a unir-te a {{entity}} {{team}} a {{appName}}",
-  "user_invited_you_to_subteam": "{{user}} t'ha convidat a unir-te a l'equip {{team}} de l'organització {{parentTeamName}} a {{appName}}",
   "hidden_team_member_title": "Estàs ocult en aquest equip",
   "hidden_team_member_message": "El teu seient no està pagat, actualitza a PRO o informa al propietari de l'equip que pot pagar pel teu seient.",
   "hidden_team_owner_message": "Necessites un compte pro per utilitzar els equips, estaràs ocult fins que facis l'actualització.",
