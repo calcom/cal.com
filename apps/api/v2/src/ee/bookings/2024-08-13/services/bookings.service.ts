@@ -1,7 +1,6 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
@@ -68,8 +67,7 @@ export class BookingsService_2024_08_13 {
     private readonly prismaReadService: PrismaReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
-    private readonly usersRepository: UsersRepository,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -370,7 +368,7 @@ export class BookingsService_2024_08_13 {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
     const platformClientParams = bookingBefore?.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
+      ? await this.inputService.getOAuthClientParams(bookingBefore.eventTypeId)
       : undefined;
 
     await handleMarkNoShow({
@@ -434,7 +432,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
@@ -473,7 +471,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
@@ -500,7 +498,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
@@ -528,7 +526,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;

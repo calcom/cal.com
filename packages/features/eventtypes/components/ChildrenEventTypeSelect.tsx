@@ -2,12 +2,12 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type ChildrenEventType = {
   value: string;

@@ -1,4 +1,5 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAllDwdCredentialsForUserByAppSlug } from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -18,14 +19,21 @@ export const queryForDependenciesHandler = async ({ ctx, input }: QueryForDepend
 
   await Promise.all(
     input.map(async (dependency) => {
-      const appInstalled = await prisma.credential.findFirst({
+      const appId = dependency;
+      const dbCredential = await prisma.credential.findFirst({
         where: {
-          appId: dependency,
+          appId,
           userId: ctx.user.id,
         },
       });
 
-      const app = await getAppFromSlug(dependency);
+      const dwdCredentials = await getAllDwdCredentialsForUserByAppSlug({
+        user: ctx.user,
+        appSlug: appId,
+      });
+      const appInstalled = !!dbCredential || !!dwdCredentials.length;
+
+      const app = getAppFromSlug(dependency);
 
       dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
     })

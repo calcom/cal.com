@@ -4,7 +4,7 @@ import * as React from "react";
 import { DayPicker } from "react-day-picker";
 
 import dayjs from "@calcom/dayjs";
-import { classNames as cn } from "@calcom/lib";
+import cn from "@calcom/ui/classNames";
 
 import { buttonClasses } from "../../button/Button";
 import { Icon } from "../../icon";
