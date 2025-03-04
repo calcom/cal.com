@@ -14,7 +14,14 @@ type GetOptions = {
 };
 
 export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
-  const { cursor, limit, fetchTeamMembersEntries, searchTerm } = input;
+  const {
+    cursor,
+    limit,
+    fetchTeamMembersEntries,
+    searchTerm,
+    endDateFilterStartRange,
+    endDateFilterEndRange,
+  } = input;
   let fetchOOOEntriesForIds = [ctx.user.id];
 
   if (fetchTeamMembersEntries) {
@@ -29,6 +36,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       },
       select: {
         teamId: true,
+        role: true,
       },
     });
     if (teams.length === 0) {
@@ -65,7 +73,8 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       in: fetchOOOEntriesForIds,
     },
     end: {
-      gte: new Date().toISOString(),
+      gte: endDateFilterStartRange,
+      lte: endDateFilterEndRange,
     },
     ...(searchTerm && {
       user: {
