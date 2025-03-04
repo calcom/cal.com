@@ -597,6 +597,7 @@ async function selectDateAndCreateOOO(
   editMode = false
 ) {
   const t = await localize("en");
+  await page.locator(`button[name="${month}"]`).scrollIntoViewIfNeeded();
   await page.locator(`button[name="${month}"]`).click();
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
