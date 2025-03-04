@@ -107,6 +107,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
         select: {
           username: true,
           name: true,
+          email: true,
         },
       },
       reason: {
