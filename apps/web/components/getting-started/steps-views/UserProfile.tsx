@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -31,34 +30,42 @@ const UserProfile = () => {
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
 
+  // Create a separate mutation for avatar updates
+  const avatarMutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: async () => {
+      showToast(t("your_user_profile_updated_successfully"), "success");
+      await utils.viewer.me.refetch();
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
+  // Original mutation remains for onboarding completion
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async (_data, context) => {
-      if (context.avatarUrl) {
-        showToast(t("your_user_profile_updated_successfully"), "success");
-        await utils.viewer.me.refetch();
-      } else
-        try {
-          if (eventTypes?.length === 0) {
-            await Promise.all(
-              DEFAULT_EVENT_TYPES.map(async (event) => {
-                return createEventType.mutate(event);
-              })
-            );
-          }
-        } catch (error) {
-          console.error(error);
+    onSuccess: async () => {
+      try {
+        if (eventTypes?.length === 0) {
+          await Promise.all(
+            DEFAULT_EVENT_TYPES.map(async (event) => {
+              return createEventType.mutate(event);
+            })
+          );
         }
+      } catch (error) {
+        console.error(error);
+      }
 
       await utils.viewer.me.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
-
       redirectUrl ? router.push(redirectUrl) : router.push("/");
     },
     onError: () => {
       showToast(t("problem_saving_user_profile"), "error");
     },
   });
+
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
 
@@ -70,11 +77,9 @@ const UserProfile = () => {
     });
   });
 
-  async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const enteredAvatar = avatarRef.current?.value;
-    mutation.mutate({
-      avatarUrl: enteredAvatar,
+  async function updateProfileHandler(newAvatar: string) {
+    avatarMutation.mutate({
+      avatarUrl: newAvatar,
     });
   }
 
@@ -126,7 +131,7 @@ const UserProfile = () => {
               nativeInputValueSetter?.call(avatarRef.current, newAvatar);
               const ev2 = new Event("input", { bubbles: true });
               avatarRef.current?.dispatchEvent(ev2);
-              updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
+              updateProfileHandler(newAvatar);
               setImageSrc(newAvatar);
             }}
             imageSrc={imageSrc}
