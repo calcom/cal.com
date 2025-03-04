@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -12,7 +12,7 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { cookies, TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -117,7 +117,7 @@ async function handleBookingAction(
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
     const legacyReq = request ? buildLegacyRequest(headers(), cookies()) : ({} as any);
-    const res = {} as any; // Response is still mocked as it's not used in this context
+    const res = {} as any;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
     const caller = createCaller({

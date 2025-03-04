@@ -9,8 +9,7 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
 
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest } from "next/server";
 import { createMocks } from "node-mocks-http";
 import { describe, afterEach, test, vi, beforeEach, beforeAll } from "vitest";
 
@@ -22,8 +21,6 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { POST as handler } from "@calcom/web/app/api/recorded-daily-video/route";
 
-type CustomNextApiRequest = NextApiRequest & Request;
-type CustomNextApiResponse = NextApiResponse & Response;
 beforeAll(() => {
   // Setup env vars
   vi.stubEnv("SENDGRID_API_KEY", "FAKE_SENDGRID_API_KEY");
@@ -111,6 +108,30 @@ const TRANSCRIPTION_ACCESS_LINK = {
     },
   ],
 };
+
+// We may need to make this more globally available. Will move if we need it elsewhere
+function createNextRequest(mockReq: ReturnType<typeof createMocks>["req"]): NextRequest {
+  // Create a Request object that NextRequest can wrap
+  const request = new Request("https://example.com/api/recorded-daily-video", {
+    method: mockReq.method,
+    headers: new Headers(mockReq.headers as Record<string, string>),
+    body: mockReq.body ? JSON.stringify(mockReq.body) : undefined,
+  });
+
+  // Create a NextRequest from the Request
+  const nextRequest = new NextRequest(request, {
+    ip: mockReq.socket?.remoteAddress || "127.0.0.1",
+    geo: { city: "", country: "", region: "" },
+  });
+
+  // Add any additional properties needed
+  Object.defineProperty(nextRequest, "prisma", {
+    value: mockReq.prisma,
+    writable: true,
+  });
+
+  return nextRequest;
+}
 
 describe("Handler: /api/recorded-daily-video", () => {
   beforeEach(() => {
@@ -212,13 +233,14 @@ describe("Handler: /api/recorded-daily-video", () => {
         download_link: recordingDownloadLink,
       });
 
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks({
         method: "POST",
         body: BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD,
         prisma,
       });
 
-      await handler(req, res);
+      const nextReq = createNextRequest(req);
+      await handler(nextReq);
 
       await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
         triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
