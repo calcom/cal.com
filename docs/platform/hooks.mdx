@@ -186,7 +186,88 @@ export default function EventType({ id }: { id: number }) {
 }
 ```
 
-### 7. `useConnectedCalendars`
+### 7. `useCreateEventType`
+
+The useCreateEventType hook allows you to create a new event type. This hook returns a mutation function that handles the event type creation process. The mutation function accepts an object with the following properties: ***lengthInMinutes*** which is the length of the event in minutes, ***title*** which is the title of the event, ***slug*** which is the slug of the event, and ***description*** which is the description of the event.
+
+Below code snippet shows how to use the useCreateEventType hook to setup an event type.
+
+```js
+import { useCreateEventType } from "@calcom/atoms";
+
+export default function CreateEventType() {
+  const { mutate: createEventType, isPending } = useCreateEventType({
+    onSuccess: () => {
+      console.log("Event type created successfully!");
+    },
+    onError: () => {
+      console.log("Error creating event type");
+    },
+  });
+
+  return (
+    <>
+      <button 
+        disabled={isPending}
+        onClick={() => {
+          createEventType({
+            lengthInMinutes: 15,
+            title: "Coffee chat",
+            slug: "coffee-chat",
+            description: "Quick chat about coffee and life in general!",
+          })
+        }}>
+        Create event type
+      </button>
+    </>
+  );
+} 
+```
+
+### 8. `useCreateTeamEventType`
+
+The useCreateTeamEventType hook allows you to create a new team event type. This hook returns a mutation function that handles the event type creation process. The mutation function accepts an object with the following properties: ***lengthInMinutes*** which is the length of the event in minutes, ***title*** which is the title of the event, ***slug*** which is the slug of the event, ***description*** which is the description of the event, schedulingType which can be either ***COLLECTIVE***, ***ROUND_ROBIN*** or ***MANAGED***, ***hosts*** which is an array of hosts for the event and the ***teamId*** which is the id of the team.
+
+Below code snippet shows how to use the useCreateTeamEventType hook to setup a team event type.
+
+```js
+import { useCreateTeamEventType } from "@calcom/atoms";
+
+export default function CreateTeamEventType() {
+  const { mutate: createTeamEventType, isPending } = useCreateTeamEventType({
+    onSuccess: () => {
+      console.log("Event type created successfully!");
+    },
+    onError: () => {
+      console.log("Error creating event type");
+    },
+  });
+
+  return (
+    <>
+      <button 
+        disabled={isPending}
+        onClick={() => {
+          createTeamEventType({
+            lengthInMinutes: 30,
+            title: "Daily standup",
+            slug: "daily-standup",
+            description: "Daily standup for the team",
+            schedulingType: "COLLECTIVE",
+            hosts: [{"userId": 1456}, {"userId": 2357}],
+            teamId: 1234,
+          })
+        }}>
+        Create team event type
+      </button>
+    </>
+  );
+} 
+```
+
+<Note>In order to create a team event type, you need to be a team admin or owner.</Note>
+
+### 9. `useConnectedCalendars`
 
 The useConnectedCalendars returns an object containing all connected calendars of a user, and the destination calendar. It is useful in managing multiple calendar integrations. Each connected calendar entry contains essential properties such as the credentialId, externalId and integration which should be an object, which can be used in the hooks to add and remove selected calendars.
 
@@ -215,7 +296,77 @@ export default function ConnectedCalendars() {
 }
 ```
 
-### 8. `useDeleteCalendarCredentials`
+### 10. `useAddSelectedCalendar`
+
+The useAddSelectedCalendar lets you add a calendar to check for conflicts to prevent double bookings. This hook returns a mutation function that handles the addition process. The mutation function accepts an object with the following properties: ***credentialId*** which is the credential id of the calendar to add, ***integration*** which is the name of the integration, and ***externalId*** which is the external id of the calendar. In order to obtain those credentials, you can use the ***useConnectedCalendars*** hook.
+
+Below code snippet shows how to use the useAddSelectedCalendar hook to add a specific calendar to check for conflicts.
+
+```js
+import { useAddSelectedCalendar } from "@calcom/atoms";
+
+export default function AddSelectedCalendar() {
+  const { mutate: addSelectedCalendar } = useAddSelectedCalendar({
+    onSuccess: () => {
+      console.log("Selected calendar added successfully!");
+    },
+    onError: () => {
+      console.log("Error adding selected calendar");
+    },
+  });
+
+  return (
+    <>
+      <button onClick={() => {
+          addSelectedCalendar({
+            credentialId: 123,
+            integration: "google_calendar",
+            externalId: "613f23c27149a2796f2c155bfe79203a135@group.calendar.google.com",
+          })
+        }}>
+        Add selected calendar
+      </button>
+    </>
+  );
+} 
+```
+
+### 11. `useRemoveSelectedCalendar`
+
+The useRemoveSelectedCalendar lets you remove a calendar to check for conflicts to prevent double bookings. This hook returns a mutation function that handles the addition process. The mutation function accepts an object with the following properties: ***credentialId*** which is the credential id of the calendar to add, ***integration*** which is the name of the integration, and ***externalId*** which is the external id of the calendar. In order to obtain those credentials, you can use the ***useConnectedCalendars*** hook.
+
+Below code snippet shows how to use the useRemoveSelectedCalendar hook to remove a specific calendar to check for conflicts.
+
+```js
+import { useRemoveSelectedCalendar } from "@calcom/atoms";
+
+export default function RemoveSelectedCalendar() {
+  const { mutate: removeSelectedCalendar } = useRemoveSelectedCalendar({
+    onSuccess: () => {
+      console.log("Selected calendar removed successfully!");
+    },
+    onError: () => {
+      console.log("Error removing selected calendar");
+    },
+  });
+
+  return (
+    <>
+      <button onClick={() => {
+          removeSelectedCalendar({
+            credentialId: 987,
+            integration: "office365_calendar",
+            externalId: "AQMkADAwATM3AADfEpy7w2EpEOi_xwYa7A_cQcACgtJE7RnHEeyisVq2Eq2ENs2gAAAhFDAAAA",
+          })
+        }}>
+        Remove selected calendar
+      </button>
+    </>
+  );
+} 
+```
+
+### 12. `useDeleteCalendarCredentials`
 
 The useDeleteCalendarCredentials hook allows you to delete a users calendar credentials. This hook returns a mutation function which handles the deletion process. The mutation function accepts an object with the following properties: ***id*** which is the credential id, and ***calendar*** is the name of the calendar which can be either google, office365 or apple.
 
@@ -249,7 +400,7 @@ export default function DeleteUserCalendar() {
 }
 ```
 
-### 9. `useTeams`
+### 13. `useTeams`
 
 The useTeams returns all teams info. This hook is useful when you need to display or manage a user's entire collection of teams.
 
@@ -278,7 +429,7 @@ export default function UserTeams() {
 }
 ```
 
-### 10. `useMe`
+### 14. `useMe`
 
 The useMe returns the current managed user's info. This hook is useful when you need to display a managed user's details.
 
