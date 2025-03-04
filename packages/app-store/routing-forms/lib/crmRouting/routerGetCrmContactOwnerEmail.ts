@@ -18,7 +18,7 @@ export default async function routerGetCrmContactOwnerEmail({
   action: LocalRoute["action"];
 }) {
   // Check if route is skipping CRM contact check
-  if (attributeRoutingConfig?.skipCrmContactCheck) return null;
+  if (attributeRoutingConfig?.skipContactOwner) return null;
 
   // Check if email is present
   let prospectEmail: string | null = null;
@@ -32,7 +32,7 @@ export default async function routerGetCrmContactOwnerEmail({
   if (!prospectEmail) return null;
 
   // Determine if the action is an event type redirect
-  if (action.type !== "eventTypeRedirectUrl") return null;
+  if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId) return null;
 
   const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: action.eventTypeId });
   if (!eventType || eventType.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
@@ -54,7 +54,7 @@ export default async function routerGetCrmContactOwnerEmail({
     if (Object.values(routingOptions).some((option) => option === true)) {
       const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler"))
         .default;
-      const appHandler = appBookingFormHandler[appSlug];
+      const appHandler = appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
 
       const ownerQuery = await appHandler(prospectEmail, attributeRoutingConfig, action.eventTypeId);
 
