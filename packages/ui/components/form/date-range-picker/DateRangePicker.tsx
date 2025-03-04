@@ -4,7 +4,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import * as React from "react";
 
-import classNames from "@calcom/ui/classNames";
+import { classNames as cn } from "@calcom/lib";
 
 import { Button } from "../../button";
 import { Calendar } from "./Calendar";
@@ -61,14 +61,14 @@ export function DatePickerWithRange({
   }
 
   return (
-    <div className={classNames("grid gap-2", className)}>
+    <div className={cn("grid gap-2", className)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <Button
             data-testid="date-range"
             color="secondary"
             EndIcon="calendar"
-            className={classNames("justify-between text-left font-normal", !dates && "text-subtle")}>
+            className={cn("justify-between text-left font-normal", !dates && "text-subtle")}>
             {dates?.startDate ? (
               dates?.endDate ? (
                 <>
@@ -84,7 +84,8 @@ export function DatePickerWithRange({
         </Popover.Trigger>
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
-          align="start">
+          align="start"
+          sideOffset={4}>
           {calendar}
         </Popover.Content>
       </Popover.Root>
