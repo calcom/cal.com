@@ -225,20 +225,20 @@ enum IdentityProvider {
 }
 
 model DestinationCalendar {
-  id                               Int                   @id @default(autoincrement())
-  integration                      String
-  externalId                       String
+  id                     Int                   @id @default(autoincrement())
+  integration            String
+  externalId             String
   /// @zod.custom(imports.emailSchema)
-  primaryEmail                     String?
-  user                             User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                           Int?                  @unique
-  booking                          Booking[]
-  eventType                        EventType?            @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId                      Int?                  @unique
-  credentialId                     Int?
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
-  domainWideDelegationCredentialId String?
+  primaryEmail           String?
+  user                   User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 Int?                  @unique
+  booking                Booking[]
+  eventType              EventType?            @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId            Int?                  @unique
+  credentialId           Int?
+  credential             Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId String?
 
   @@index([userId])
   @@index([eventTypeId])
@@ -480,13 +480,18 @@ model Team {
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
   // Available for Organization only
-  domainWideDelegations  DomainWideDelegation[]
+  delegationCredentials  DelegationCredential[]
   features               TeamFeatures[]
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean              @default(false)
   internalNotePresets          InternalNotePreset[]
+
+  // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
+  // it means that it is an organization managed by another organization.
+  managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
+  managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -586,10 +591,10 @@ model BookingReference {
   externalCalendarId         String?
   deleted                    Boolean?
 
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
-  credentialId                     Int?
-  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: SetNull)
-  domainWideDelegationCredentialId String?
+  credential             Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId           Int?
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: SetNull)
+  delegationCredentialId String?
 
   @@index([bookingId])
   @@index([type])
@@ -726,22 +731,22 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                               String                @id @default(uuid())
-  user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                           Int
-  integration                      String
-  externalId                       String
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId                     Int?
+  id                       String                @id @default(uuid())
+  user                     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   Int
+  integration              String
+  externalId               String
+  credential               Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId             Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId                  String?
-  googleChannelKind                String?
-  googleChannelResourceId          String?
-  googleChannelResourceUri         String?
-  googleChannelExpiration          String?
-  domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
-  domainWideDelegationCredentialId String?
-  error                            String?
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
+  delegationCredential     DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId   String?
+  error                    String?
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
@@ -1514,6 +1519,7 @@ model PlatformOAuthClient {
   bookingCancelRedirectUri     String?
   bookingRescheduleRedirectUri String?
   areEmailsEnabled             Boolean @default(false)
+  areDefaultEventTypesEnabled  Boolean @default(true)
 
   createdAt DateTime @default(now())
 }
@@ -1600,22 +1606,23 @@ model SecondaryEmail {
 
 // Needed to store tasks that need to be processed by a background worker or Tasker
 model Task {
-  id          String    @id @unique @default(uuid())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                  String    @id @unique @default(uuid())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
   // The time at which the task should be executed
-  scheduledAt DateTime  @default(now())
+  scheduledAt         DateTime  @default(now())
   // The time at which the task was successfully executed
-  succeededAt DateTime?
+  succeededAt         DateTime?
   // The task type to be executed. Left it as a freeform string to avoid more migrations for now. Will be enforced at type level.
-  type        String
+  type                String
   // Generic payload for the task
-  payload     String
+  payload             String
   // The number of times the task has been attempted
-  attempts    Int       @default(0)
+  attempts            Int       @default(0)
   // The maximum number of times the task can be attempted
-  maxAttempts Int       @default(3)
-  lastError   String?
+  maxAttempts         Int       @default(3)
+  lastError           String?
+  lastFailedAttemptAt DateTime?
 }
 
 enum SMSLockState {
@@ -1624,16 +1631,35 @@ enum SMSLockState {
   REVIEW_NEEDED
 }
 
+model ManagedOrganization {
+  managedOrganizationId Int  @unique
+  managedOrganization   Team @relation("ManagedOrganization", fields: [managedOrganizationId], references: [id], onDelete: Cascade)
+
+  managerOrganizationId Int
+  managerOrganization   Team @relation("ManagerOrganization", fields: [managerOrganizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([managerOrganizationId, managedOrganizationId])
+  @@index([managerOrganizationId])
+}
+
 model PlatformBilling {
   id Int @id @unique // team id
 
-  customerId     String  @unique
+  customerId     String
   subscriptionId String?
   plan           String  @default("none")
 
   billingCycleStart Int?
   billingCycleEnd   Int?
   overdue           Boolean? @default(false)
+
+  // note(Lauris): in case of a platform managed organization's billing record this field points to the manager organization's billing record.
+  managerBillingId Int?
+  managerBilling   PlatformBilling?  @relation("PlatformManagedBilling", fields: [managerBillingId], references: [id])
+  // note(Lauris): in case of a manager organization's billing record this field points to billing records of its platform managed organizations.
+  managedBillings  PlatformBilling[] @relation("PlatformManagedBilling")
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }
@@ -1741,7 +1767,7 @@ enum EventTypeAutoTranslatedField {
   TITLE
 }
 
-model DomainWideDelegation {
+model DelegationCredential {
   id                  String                @id @default(uuid())
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
   workspacePlatformId Int
@@ -1763,7 +1789,7 @@ model DomainWideDelegation {
   @@unique([organizationId, domain])
 }
 
-// It is for domain-wide delegation
+// It is for delegation credential
 model WorkspacePlatform {
   id                       Int                    @id @default(autoincrement())
   /// @zod.min(1)
@@ -1776,7 +1802,7 @@ model WorkspacePlatform {
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
   enabled                  Boolean                @default(false)
-  domainWideDelegations    DomainWideDelegation[]
+  delegationCredentials    DelegationCredential[]
 
   @@unique([slug])
 }

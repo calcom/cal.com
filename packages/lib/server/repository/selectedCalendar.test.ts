@@ -289,4 +289,152 @@ describe("SelectedCalendarRepository", () => {
       });
     });
   });
+
+  describe("Delegation Credential", () => {
+    it("should create a selected calendar with delegationCredentialId", async () => {
+      const data = {
+        userId: 1,
+        integration: "google_calendar",
+        externalId: "test@gmail.com",
+        delegationCredentialId: "delegationCredential-123",
+      };
+
+      const result = await SelectedCalendarRepository.create(data);
+
+      expect(result).toEqual(expect.objectContaining(data));
+    });
+
+    describe("upsert", () => {
+      describe("updation", () => {
+        it("should update existing record with delegationCredentialId if credentialId is -1", async () => {
+          const initialData = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 1,
+            eventTypeId: null,
+          };
+
+          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+          const data = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: -1,
+            delegationCredentialId: "delegationCredential-123",
+          };
+
+          const result = await SelectedCalendarRepository.upsert(data);
+          expect(result.id).not.toBe(null);
+          expect(result.id).toBe(existingCalendar.id);
+          expect(result.credentialId).toBe(null);
+          expect(result.delegationCredentialId).toBe(data.delegationCredentialId);
+        });
+
+        it("should update existing record with credentialId if credentialId is valid(>0) even if delegationCredentialId is set", async () => {
+          const initialData = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 1,
+            eventTypeId: null,
+          };
+
+          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+          const data = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 2,
+            delegationCredentialId: "delegationCredential-123",
+          };
+
+          const result = await SelectedCalendarRepository.upsert(data);
+          expect(result.id).not.toBe(null);
+          expect(result.id).toBe(existingCalendar.id);
+          expect(result.credentialId).toBe(data.credentialId);
+          expect(result.delegationCredentialId).toBeNull();
+        });
+      });
+
+      describe("creation", () => {
+        it("should create a new record with delegationCredentialId if credentialId is -1", async () => {
+          const initialData = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "test@gmail.com",
+            credentialId: 1,
+            eventTypeId: null,
+          };
+
+          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+          const data = {
+            userId: 1,
+            integration: "google_calendar",
+            externalId: "anotheremail@gmail.com",
+            credentialId: -1,
+            delegationCredentialId: "delegationCredential-123",
+          };
+
+          // It will create a new record because of unique constraint violation
+          const result = await SelectedCalendarRepository.upsert(data);
+          expect(result.id).not.toBe(null);
+          expect(result.id).not.toBe(existingCalendar.id);
+          expect(result.credentialId).toBe(null);
+          expect(result.delegationCredentialId).toBe(data.delegationCredentialId);
+        });
+      });
+
+      it("shouldnt update existing delegationCredentialId if upsert data doesn't have it", async () => {
+        const initialData = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          eventTypeId: null,
+          delegationCredentialId: "delegationCredential-123",
+          credentialId: 1,
+        };
+
+        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+        const data = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          credentialId: 1,
+        };
+
+        const result = await SelectedCalendarRepository.upsert(data);
+        expect(result.id).toBe(existingCalendar.id);
+        expect(result.credentialId).toBe(existingCalendar.credentialId);
+        expect(result.delegationCredentialId).toBe(null);
+      });
+
+      it("shouldnt update delegationCredentialId if it is undefined", async () => {
+        const initialData = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          eventTypeId: null,
+          delegationCredentialId: "delegationCredential-123",
+        };
+
+        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+        const data = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+        };
+
+        const result = await SelectedCalendarRepository.upsert(data);
+        expect(result.id).toBe(existingCalendar.id);
+        expect(result.credentialId).toBe(existingCalendar.credentialId);
+        expect(result.delegationCredentialId).toBe(existingCalendar.delegationCredentialId);
+      });
+    });
+  });
 });

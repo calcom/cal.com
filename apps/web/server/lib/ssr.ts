@@ -6,7 +6,6 @@ import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { map } from "@calcom/features/flags/server/procedures/map";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { createServerSideHelpers } from "@calcom/trpc/react/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
 import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
@@ -15,6 +14,8 @@ import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/ses
 import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
 import { router, mergeRouters } from "@calcom/trpc/server/trpc";
+
+import { createServerSideHelpers } from "@trpc/react-query/server";
 
 const loggedInRouter = router({
   me,

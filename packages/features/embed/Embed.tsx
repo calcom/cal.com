@@ -14,6 +14,7 @@ import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings"
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
+import type { Slot } from "@calcom/features/schedules";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
@@ -42,6 +43,7 @@ import {
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
+import { EmbedTheme } from "./lib/constants";
 import { getDimension } from "./lib/getDimension";
 import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "./lib/hooks/useEmbedParams";
@@ -66,12 +68,6 @@ type GotoStateProps = {
   month?: string | null;
   dialog?: string;
 };
-
-const enum Theme {
-  auto = "auto",
-  light = "light",
-  dark = "dark",
-}
 
 const queryParamsForDialog = [
   "embedType",
@@ -177,7 +173,10 @@ function useEmbedGoto(noQueryParamMode = false) {
   return { gotoState, resetState, gotoEmbedTypeSelectionState };
 }
 
-const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
+const ThemeSelectControl = ({
+  children,
+  ...props
+}: ControlProps<{ value: EmbedTheme; label: string }, false>) => {
   return (
     <components.Control {...props}>
       <Icon name="sun" className="text-subtle mr-2 h-4 w-4" />
@@ -286,7 +285,8 @@ const EmailEmbed = ({
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
-  const onTimeSelect = (time: string) => {
+  const handleSlotClick = (slot: Slot) => {
+    const { time } = slot;
     if (!eventType) {
       return null;
     }
@@ -393,7 +393,7 @@ const EmailEmbed = ({
                     ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
                     : undefined
                 }
-                onTimeSelect={onTimeSelect}
+                handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
                 event={event}
@@ -762,7 +762,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       height: "100%",
       config: defaultConfig,
     } as PreviewState["inline"],
-    theme: Theme.auto,
+    theme: EmbedTheme.auto,
     layout: defaultConfig.layout,
     floatingPopup: {
       config: defaultConfig,
@@ -880,9 +880,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   }
 
   const ThemeOptions = [
-    { value: Theme.auto, label: "Auto" },
-    { value: Theme.dark, label: "Dark Theme" },
-    { value: Theme.light, label: "Light Theme" },
+    { value: EmbedTheme.auto, label: "Auto" },
+    { value: EmbedTheme.dark, label: "Dark EmbedTheme" },
+    { value: EmbedTheme.light, label: "Light EmbedTheme" },
   ];
 
   const layoutOptions = [
@@ -1111,7 +1111,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <CollapsibleContent>
                     <div className="text-sm">
                       <Label className="mb-6">
-                        <div className="mb-2">Theme</div>
+                        <div className="mb-2">EmbedTheme</div>
                         <Select
                           className="w-full"
                           defaultValue={ThemeOptions[0]}

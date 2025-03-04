@@ -85,14 +85,11 @@ export class OAuthClientUsersController {
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
+    if (!client) {
+      throw new NotFoundException(`OAuth Client with ID ${oAuthClientId} not found`);
+    }
 
-    const isPlatformManaged = true;
-    const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
-      oAuthClientId,
-      body,
-      isPlatformManaged,
-      client?.organizationId
-    );
+    const { user, tokens } = await this.oAuthClientUsersService.createOAuthClientUser(client, body);
 
     return {
       status: SUCCESS_STATUS,
