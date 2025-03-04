@@ -1845,6 +1845,7 @@ async function handler(
       paymentUid: payment?.uid,
       paymentId: payment?.id,
       isDryRun,
+      metadata,
       ...(isDryRun ? { troubleshooterData } : {}),
     };
   }
@@ -2035,6 +2036,7 @@ async function handler(
     ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
+    metadata,
   };
 }
 
