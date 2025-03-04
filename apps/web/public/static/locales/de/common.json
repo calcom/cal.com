@@ -55,7 +55,7 @@
   "no_options_available": "Keine Optionen verfügbar",
   "cancellation_reason": "Grund für Ihre Absage (optional)",
   "cancellation_reason_host": "Grund für die Absage",
-  "cancellation_reason_placeholder": "Warum sagen Sie ab? (optional)",
+  "cancellation_reason_placeholder": "Warum sagen Sie ab?",
   "notify_attendee_cancellation_reason_warning": "Der Stornierungsgrund wird mit den Gästen geteilt",
   "rejection_reason_placeholder": "Warum lehnen Sie ab?",
   "rejection_reason": "Grund für die Ablehnung",
