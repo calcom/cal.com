@@ -4,12 +4,12 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useAtomsContext } from "@calcom/atoms/monorepo";
 import {
   SelectedCalendarsSettingsWebWrapper,
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapperSkeleton,
-} from "@calcom/atoms/monorepo";
-import { useAtomsContext } from "@calcom/atoms/monorepo";
+} from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
