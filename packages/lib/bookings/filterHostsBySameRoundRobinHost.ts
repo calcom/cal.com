@@ -46,7 +46,7 @@ export const filterHostsBySameRoundRobinHost = async <
   const currentRRHostId = hosts.find(
     (host) =>
       !host.isFixed &&
-      originalRescheduledBooking?.attendees.some((attendee) => attendee.email === host.user.email)
+      originalRescheduledBooking?.attendees?.some((attendee) => attendee.email === host.user.email)
   )?.user.id;
 
   return hosts.filter(
