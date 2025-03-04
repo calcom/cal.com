@@ -201,9 +201,15 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       }}
       onConnectNowInstantMeeting={() => {
         const newPath = `${pathname}?isInstantMeeting=true`;
-        // Open in a new tab instead of using router.push
-        const fullUrl = window.location.origin + newPath;
-        window.open(fullUrl, "_blank");
+
+        const baseUrl = window.location.href.split("?")[0].split("#")[0];
+
+        const baseUrlWithoutPath = baseUrl.split("/").slice(0, 3).join("/");
+        const fullUrl = newPath.startsWith("/")
+          ? `${baseUrlWithoutPath}${newPath}`
+          : `${baseUrlWithoutPath}/${newPath}`;
+
+        window.open(fullUrl, "_blank", "noopener,noreferrer");
       }}
       onOverlayClickNoCalendar={() => {
         router.push("/apps/categories/calendar");
