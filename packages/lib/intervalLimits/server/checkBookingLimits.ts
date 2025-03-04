@@ -1,13 +1,15 @@
+import "server-only";
+
 import dayjs from "@calcom/dayjs";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 
-import { getErrorFromUnknown } from "../errors";
-import { HttpError } from "../http-error";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
+import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";
 import { parseBookingLimit } from "../isBookingLimits";
-import { BookingRepository } from "./repository/booking";
 
 export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
@@ -53,7 +55,7 @@ export async function checkBookingLimit({
 }: {
   eventStartDate: Date;
   eventId?: number;
-  key: keyof IntervalLimit;
+  key: IntervalLimitKey;
   limitingNumber: number | undefined;
   rescheduleUid?: string | undefined;
   timeZone?: string | null;

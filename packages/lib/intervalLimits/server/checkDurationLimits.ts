@@ -1,11 +1,13 @@
-import dayjs from "@calcom/dayjs";
-import type { IntervalLimit } from "@calcom/types/Calendar";
+import "server-only";
 
-import { getErrorFromUnknown } from "../errors";
-import { HttpError } from "../http-error";
+import dayjs from "@calcom/dayjs";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
+import { getTotalBookingDuration } from "@calcom/lib/server/queries";
+
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
+import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";
 import { parseDurationLimit } from "../isDurationLimits";
-import { getTotalBookingDuration } from "./queries";
 
 export async function checkDurationLimits(
   durationLimits: IntervalLimit,
@@ -43,7 +45,7 @@ export async function checkDurationLimit({
 }: {
   eventStartDate: Date;
   eventId: number;
-  key: keyof IntervalLimit;
+  key: IntervalLimitKey;
   limitingNumber: number | undefined;
   rescheduleUid?: string;
 }) {
