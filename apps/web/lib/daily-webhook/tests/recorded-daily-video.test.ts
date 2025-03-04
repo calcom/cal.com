@@ -11,7 +11,7 @@ import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookin
 
 import { NextRequest } from "next/server";
 import { createMocks } from "node-mocks-http";
-import { describe, afterEach, test, vi, beforeEach, beforeAll } from "vitest";
+import { describe, afterEach, test, vi, beforeEach, beforeAll, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
@@ -19,7 +19,43 @@ import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient"
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { POST as handler } from "@calcom/web/app/api/recorded-daily-video/route";
+import * as recordedDailyVideoRoute from "@calcom/web/app/api/recorded-daily-video/route";
+
+// Mock the next/headers module before importing the handler
+vi.mock("next/headers", () => ({
+  headers: () => new Headers({ "content-type": "application/json" }),
+  cookies: () => ({
+    get: () => null,
+    getAll: () => [],
+    has: () => false,
+  }),
+}));
+
+// Mock NextResponse to handle the response properly
+vi.mock("next/server", async () => {
+  const actual = (await vi.importActual("next/server")) as any;
+  return {
+    ...actual,
+    NextResponse: {
+      json: (data: any, init?: ResponseInit) => {
+        return new Response(JSON.stringify(data), {
+          ...init,
+          headers: {
+            ...init?.headers,
+            "content-type": "application/json",
+          },
+        });
+      },
+      // Add other methods you might need
+      redirect: actual.NextResponse.redirect,
+      next: actual.NextResponse.next,
+      rewrite: actual.NextResponse.rewrite,
+    },
+  };
+});
+
+// Now import the handler after mocking
+const { POST: handler } = recordedDailyVideoRoute;
 
 beforeAll(() => {
   // Setup env vars
@@ -122,12 +158,6 @@ function createNextRequest(mockReq: ReturnType<typeof createMocks>["req"]): Next
   const nextRequest = new NextRequest(request, {
     ip: mockReq.socket?.remoteAddress || "127.0.0.1",
     geo: { city: "", country: "", region: "" },
-  });
-
-  // Add any additional properties needed
-  Object.defineProperty(nextRequest, "prisma", {
-    value: mockReq.prisma,
-    writable: true,
   });
 
   return nextRequest;
@@ -240,7 +270,16 @@ describe("Handler: /api/recorded-daily-video", () => {
       });
 
       const nextReq = createNextRequest(req);
-      await handler(nextReq);
+
+      // Handle the response differently
+      try {
+        const response = await handler(nextReq);
+        // For App Router, we just need to check if the response exists
+        expect(response).toBeDefined();
+      } catch (error) {
+        console.error("Handler error:", error);
+        throw error;
+      }
 
       await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
         triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
