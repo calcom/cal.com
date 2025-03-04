@@ -3,7 +3,6 @@ import { Trans } from "next-i18next";
 import { useState } from "react";
 
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import {
   SettingsToggle,
   Dialog,
@@ -13,6 +12,7 @@ import {
   DialogClose,
   Button,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {

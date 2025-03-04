@@ -4,10 +4,10 @@ import { useState, useEffect, useMemo } from "react";
 
 import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { Badge, Select } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 

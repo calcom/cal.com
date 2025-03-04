@@ -1,7 +1,7 @@
 import type { GroupBase, InputProps, Props } from "react-select";
 import ReactSelect, { components } from "react-select";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 export type SelectProps<
   Option,

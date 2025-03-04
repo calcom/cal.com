@@ -4,11 +4,11 @@ import type {
   LocationObject,
 } from "@calcom/app-store/locations";
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Icon, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 const excludeNullValues = (value: unknown) => !!value;
 
