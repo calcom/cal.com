@@ -1,39 +1,11 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `domainWideDelegationCredentialId` on the `BookingReference` table. All the data in the column will be lost.
-  - You are about to drop the column `domainWideDelegationCredentialId` on the `DestinationCalendar` table. All the data in the column will be lost.
-  - You are about to drop the column `domainWideDelegationCredentialId` on the `SelectedCalendar` table. All the data in the column will be lost.
-  - You are about to drop the `DomainWideDelegation` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "BookingReference" DROP CONSTRAINT "BookingReference_domainWideDelegationCredentialId_fkey";
-
--- DropForeignKey
-ALTER TABLE "DestinationCalendar" DROP CONSTRAINT "DestinationCalendar_domainWideDelegationCredentialId_fkey";
-
--- DropForeignKey
-ALTER TABLE "DomainWideDelegation" DROP CONSTRAINT "DomainWideDelegation_organizationId_fkey";
-
--- DropForeignKey
-ALTER TABLE "DomainWideDelegation" DROP CONSTRAINT "DomainWideDelegation_workspacePlatformId_fkey";
-
--- DropForeignKey
-ALTER TABLE "SelectedCalendar" DROP CONSTRAINT "SelectedCalendar_domainWideDelegationCredentialId_fkey";
+-- AlterTable
+ALTER TABLE "BookingReference" ADD COLUMN     "delegationCredentialId" TEXT;
 
 -- AlterTable
-ALTER TABLE "BookingReference" DROP COLUMN "domainWideDelegationCredentialId",
-ADD COLUMN     "delegationCredentialId" TEXT;
+ALTER TABLE "DestinationCalendar" ADD COLUMN     "delegationCredentialId" TEXT;
 
 -- AlterTable
-ALTER TABLE "DestinationCalendar" DROP COLUMN "domainWideDelegationCredentialId",
-ADD COLUMN     "delegationCredentialId" TEXT;
-
--- AlterTable
-ALTER TABLE "SelectedCalendar" DROP COLUMN "domainWideDelegationCredentialId",
-ADD COLUMN     "delegationCredentialId" TEXT;
-
+ALTER TABLE "SelectedCalendar" ADD COLUMN     "delegationCredentialId" TEXT;
 
 -- CreateTable
 CREATE TABLE "DelegationCredential" (
