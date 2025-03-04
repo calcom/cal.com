@@ -1,11 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { _MembershipModel as Membership, _TeamModel as Team } from "@calcom/prisma/zod";
@@ -24,49 +23,59 @@ type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
 export const schemaTeamReadPublic = Team.omit({});
 export const schemaMembershipPublic = Membership.merge(z.object({ team: Team }).partial());
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const checkoutSession = await getCheckoutSession(req);
-  validateCheckoutSession(checkoutSession);
-  const checkoutSessionSubscription = getCheckoutSessionSubscription(checkoutSession);
-  const checkoutSessionMetadata = getCheckoutSessionMetadata(checkoutSession);
+export async function GET(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const { session_id } = querySchema.parse(Object.fromEntries(url.searchParams));
 
-  const finalizedTeam = await prisma.team.update({
-    where: { id: checkoutSessionMetadata.pendingPaymentTeamId },
-    data: {
-      pendingPayment: false,
-      members: {
-        create: {
-          userId: checkoutSessionMetadata.ownerId as number,
-          role: MembershipRole.OWNER,
-          accepted: true,
+    const checkoutSession = await getCheckoutSession(session_id);
+    validateCheckoutSession(checkoutSession);
+    const checkoutSessionSubscription = getCheckoutSessionSubscription(checkoutSession);
+    const checkoutSessionMetadata = getCheckoutSessionMetadata(checkoutSession);
+
+    const finalizedTeam = await prisma.team.update({
+      where: { id: checkoutSessionMetadata.pendingPaymentTeamId },
+      data: {
+        pendingPayment: false,
+        members: {
+          create: {
+            userId: checkoutSessionMetadata.ownerId as number,
+            role: MembershipRole.OWNER,
+            accepted: true,
+          },
+        },
+        metadata: {
+          paymentId: checkoutSession.id,
+          subscriptionId: checkoutSessionSubscription.id || null,
+          subscriptionItemId: checkoutSessionSubscription.items.data[0].id || null,
         },
       },
-      metadata: {
-        paymentId: checkoutSession.id,
-        subscriptionId: checkoutSessionSubscription.id || null,
-        subscriptionItemId: checkoutSessionSubscription.items.data[0].id || null,
-      },
-    },
-    include: { members: true },
-  });
+      include: { members: true },
+    });
 
-  const response = JSON.stringify(
-    {
+    const response = {
       message: `Team created successfully. We also made user with ID=${checkoutSessionMetadata.ownerId} the owner of this team.`,
       team: schemaTeamReadPublic.parse(finalizedTeam),
       owner: schemaMembershipPublic.parse(finalizedTeam.members[0]),
-    },
-    null,
-    2
-  );
+    };
 
-  return res.status(200).send(response);
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error creating team:", error);
+
+    if (error instanceof HttpError) {
+      return NextResponse.json({ message: error.message }, { status: error.statusCode });
+    }
+
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "An unexpected error occurred" },
+      { status: 500 }
+    );
+  }
 }
 
-async function getCheckoutSession(req: NextApiRequest) {
-  const { session_id } = querySchema.parse(req.query);
-
-  const checkoutSession = await stripe.checkout.sessions.retrieve(session_id, {
+async function getCheckoutSession(sessionId: string) {
+  const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
     expand: ["subscription"],
   });
   if (!checkoutSession) throw new HttpError({ statusCode: 404, message: "Checkout session not found" });
@@ -102,11 +111,5 @@ function getCheckoutSessionMetadata(
     });
   }
 
-  const checkoutSessionMetadata = parseCheckoutSessionMetadata.data;
-
-  return checkoutSessionMetadata;
+  return parseCheckoutSessionMetadata.data;
 }
-
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(handler) }),
-});

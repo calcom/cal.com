@@ -1,5 +1,6 @@
 import { OAuth2Client } from "googleapis-common";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -9,14 +10,20 @@ const scopes = [
   "https://www.googleapis.com/auth/admin.directory.customer.readonly",
 ];
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "GET") {
+export async function GET(request: NextRequest) {
+  try {
     // Get appKeys from google-calendar
     const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
+
     if (!client_id || typeof client_id !== "string")
-      return res.status(400).json({ message: "Google client_id missing." });
+      return NextResponse.json({ message: "Google client_id missing." }, { status: 400 });
+
     if (!client_secret || typeof client_secret !== "string")
-      return res.status(400).json({ message: "Google client_secret missing." });
+      return NextResponse.json({ message: "Google client_secret missing." }, { status: 400 });
+
+    // Get teamId from query params
+    const url = new URL(request.url);
+    const teamId = url.searchParams.get("teamId");
 
     // use different callback to normal calendar connection
     const redirect_uri = `${WEBAPP_URL}/api/teams/googleworkspace/callback`;
@@ -25,11 +32,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
       scope: scopes,
-
       prompt: "consent",
-      state: JSON.stringify({ teamId: req.query.teamId }),
+      state: JSON.stringify({ teamId }),
     });
 
-    res.status(200).json({ url: authUrl });
+    return NextResponse.json({ url: authUrl });
+  } catch (error) {
+    console.error("Error generating Google Workspace auth URL:", error);
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }
