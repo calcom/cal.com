@@ -79,8 +79,7 @@ export class InputBookingsService_2024_08_13 {
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly bookingSeatRepository: BookingSeatRepository,
-    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14
   ) {}
 
   async createBookingRequest(
@@ -427,7 +426,7 @@ export class InputBookingsService_2024_08_13 {
               guests,
               location,
             }
-          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests, location, },
+          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests, location },
         schedulingType: eventType.schedulingType,
       });
 
