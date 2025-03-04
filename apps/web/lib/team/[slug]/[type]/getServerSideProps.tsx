@@ -65,9 +65,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
-  let crmAppSlug = query["cal.crmAppSlug"];
-  let teamMemberEmail = crmContactOwnerEmail;
-  let crmOwnerRecordType = crmContactOwnerRecordType;
+  const crmAppSlugParam = query["cal.crmAppSlug"];
+
+  // Handle string[] type from query params
+  let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
+
+  let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
+    ? crmContactOwnerRecordType[0]
+    : crmContactOwnerRecordType;
+
+  let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
 
   if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
