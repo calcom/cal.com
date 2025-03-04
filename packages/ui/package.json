@@ -100,6 +100,7 @@
   "devDependencies": {
     "@calcom/config": "*",
     "@calcom/tsconfig": "*",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "18.0.26",
     "@types/react-dom": "^18.0.9",
     "execa": "^9.3.0",

@@ -176,8 +176,6 @@ export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardPortal } from "
 export { OrgBanner } from "./components/organization-banner";
 export type { OrgBannerProps } from "./components/organization-banner";
 
-export { StorybookTrpcProvider } from "./components/mocks/trpc";
-
 export { NavigationItem } from "./components/navigation/NavigationItem";
 
 export { Pagination } from "./components/pagination";
