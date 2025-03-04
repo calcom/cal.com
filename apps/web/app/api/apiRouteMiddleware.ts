@@ -1,4 +1,4 @@
-import type { Params } from "app/_types";
+import type { MixedParams } from "app/_types";
 import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -6,8 +6,8 @@ import { NextResponse } from "next/server";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 export const apiRouteMiddleware =
-  (handler: (req: NextRequest, { params }: { params: Params }) => Promise<NextResponse | Response>) =>
-  async (req: NextRequest, { params }: { params: Params }) => {
+  (handler: (req: NextRequest, { params }: { params: MixedParams }) => Promise<NextResponse | Response>) =>
+  async (req: NextRequest, { params }: { params: MixedParams }) => {
     try {
       return await handler(req, { params });
     } catch (error) {

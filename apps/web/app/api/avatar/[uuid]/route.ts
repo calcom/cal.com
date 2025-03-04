@@ -1,4 +1,4 @@
-import type { Params } from "app/_types";
+import type { MixedParams } from "app/_types";
 import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -26,7 +26,7 @@ const handleValidationError = (error: z.ZodError): NextResponse => {
   );
 };
 
-async function handler(req: NextRequest, { params }: { params: Params }) {
+async function handler(req: NextRequest, { params }: { params: MixedParams }) {
   const result = querySchema.safeParse(params);
   if (!result.success) {
     return handleValidationError(result.error);

@@ -1,4 +1,4 @@
-import { type Params } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 
 const orgIdSchema = z.object({ id: z.coerce.number() });
 
-export const generateMetadata = async ({ params }: { params: Params }) => {
+export const generateMetadata = async ({ params }: PageProps) => {
   const input = orgIdSchema.safeParse(params);
   const t = await getTranslate(params.lang);
   if (!input.success) {
@@ -22,7 +22,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   return await _generateMetadata(`${t("editing_org")}: ${org.name}`, t("admin_orgs_edit_description"));
 };
 
-const Page = async ({ params }: { params: Params }) => {
+const Page = async ({ params }: PageProps) => {
   const input = orgIdSchema.safeParse(params);
 
   if (!input.success) notFound();
