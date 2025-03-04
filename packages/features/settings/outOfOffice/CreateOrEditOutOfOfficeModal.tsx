@@ -97,10 +97,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const [searchRedirectMember, setSearchRedirectMember] = useState("");
   const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
   const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchText: debouncedSearchRedirect,
-    },
+    { limit: 10, searchText: debouncedSearchRedirect },
     {
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
