@@ -1635,6 +1635,7 @@
       "post": {
         "operationId": "OrganizationsOrganizationsController_createOrganization",
         "summary": "Create an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "orgId",
@@ -1672,6 +1673,7 @@
       "get": {
         "operationId": "OrganizationsOrganizationsController_getOrganizations",
         "summary": "Get all organizations within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "orgId",
@@ -1701,6 +1703,7 @@
       "get": {
         "operationId": "OrganizationsOrganizationsController_getOrganization",
         "summary": "Get an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "managedOrganizationId",
@@ -1728,6 +1731,7 @@
       "patch": {
         "operationId": "OrganizationsOrganizationsController_updateOrganization",
         "summary": "Update an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "orgId",
@@ -1773,6 +1777,7 @@
       "delete": {
         "operationId": "OrganizationsOrganizationsController_deleteOrganization",
         "summary": "Delete an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "managedOrganizationId",
