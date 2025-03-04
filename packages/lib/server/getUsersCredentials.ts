@@ -8,7 +8,7 @@ type SessionUser = NonNullable<TrpcSessionUser>;
 type User = { id: SessionUser["id"]; email: SessionUser["email"] };
 
 /**
- * It includes in-memory DWD credentials as well.
+ * It includes in-memory DelegationCredential credentials as well.
  */
 export async function getUsersCredentials(user: User) {
   const credentials = await prisma.credential.findMany({

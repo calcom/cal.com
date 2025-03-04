@@ -65,7 +65,7 @@ const ConnectedCalendarList = ({
               description={connectedCalendar.primary?.email ?? connectedCalendar.integration.description}
               className="border-subtle mt-4 rounded-lg border"
               actions={
-                // DWD credential can't be disconnected
+                // Delegation credential can't be disconnected
                 !connectedCalendar.delegationCredentialId &&
                 !disableConnectionModification && (
                   <div className="flex w-32 justify-end">
@@ -120,7 +120,7 @@ const ConnectedCalendarList = ({
             }
             iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
             actions={
-              // DWD credential can't be disconnected
+              // Delegation credential can't be disconnected
               !connectedCalendar.delegationCredentialId && (
                 <div className="flex w-32 justify-end">
                   <DisconnectIntegration

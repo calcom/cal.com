@@ -21,7 +21,7 @@ import { setupAndTeardown } from "./setupAndTeardown";
 describe("getSchedule", () => {
   setupAndTeardown();
   describe("Delegation Credential", () => {
-    test("correctly identifies unavailable slots using DWD credentials", async () => {
+    test("correctly identifies unavailable slots using DelegationCredential credentials", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
@@ -50,7 +50,7 @@ describe("getSchedule", () => {
         id: 101,
         schedules: [TestData.schedules.IstWorkHours],
         selectedCalendars: [TestData.selectedCalendars.google],
-        // User must be part of organization to be able to use that organization's DWD credential
+        // User must be part of organization to be able to use that organization's Delegation credential
         teams: payloadToMakePartOfOrganization,
         // No regular credentials provided
         credentials: [],
@@ -108,7 +108,7 @@ describe("getSchedule", () => {
       });
     });
 
-    test("fails to get schedule when user isn't part of the organization with DWD credential", async () => {
+    test("fails to get schedule when user isn't part of the organization with Delegation credential", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
@@ -147,7 +147,7 @@ describe("getSchedule", () => {
         credentials: [],
       });
 
-      // Create DWD credential for the org user isn't part of
+      // Create Delegation credential for the org user isn't part of
       await createDelegationCredential(org.id);
 
       const googleCalendarMock = mockCalendar("googlecalendar", {
@@ -196,7 +196,7 @@ describe("getSchedule", () => {
 
       expectNoAttemptToGetAvailability(googleCalendarMock);
 
-      // All slots would be available as no DWD credentials are available
+      // All slots would be available as no DelegationCredential credentials are available
       expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots(
         expectedSlotsForSchedule.IstWorkHours.interval["1hr"].allPossibleSlotsStartingAt430,
         {

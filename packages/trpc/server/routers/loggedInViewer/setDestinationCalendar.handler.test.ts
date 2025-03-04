@@ -28,7 +28,7 @@ vi.mock("@calcom/lib/CalendarManager", () => ({
 describe("setDestinationCalendarHandler", () => {
   setupAndTeardown();
 
-  it("should successfully set destination calendar with DWD credentials", async () => {
+  it("should successfully set destination calendar with DelegationCredential credentials", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",

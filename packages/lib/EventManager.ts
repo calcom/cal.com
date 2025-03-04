@@ -155,7 +155,7 @@ export default class EventManager {
       .sort(latestCredentialFirst)
       // TODO: Change it to delegatedCredentialFirst in a followup PR.
       // We are keeping delegated credentials at the end so that there is no impact on existing users connections as we still use their existing credentials
-      // Soon after DWD is released and stable, we switch it. Could be an env variable also to toggle this.
+      // Soon after DelegationCredential is released and stable, we switch it. Could be an env variable also to toggle this.
       .sort(delegatedCredentialLast);
 
     this.videoCredentials = appCredentials
@@ -729,9 +729,11 @@ export default class EventManager {
                 };
               }
             } else if (destination.delegationCredentialId) {
-              log.warn("DWD: DWD seems to be disabled, falling back to first non-delegationCredential");
-              // In case DWD is disabled, we land here where the destination calendar is connected to a DWD credential, but the credential isn't available(because DWD is disabled)
-              // In this case, we fallback to the first non-delegationCredential. That would be there for all existing users before DWD was enabled
+              log.warn(
+                "DelegationCredential: DelegationCredential seems to be disabled, falling back to first non-delegationCredential"
+              );
+              // In case DelegationCredential is disabled, we land here where the destination calendar is connected to a Delegation credential, but the credential isn't available(because DelegationCredential is disabled)
+              // In this case, we fallback to the first non-delegationCredential. That would be there for all existing users before DelegationCredential was enabled
               const firstNonDelegatedCalendarCredential = this.calendarCredentials.find(
                 (cred) => !cred.type.endsWith("other_calendar") && !cred.delegatedToId
               );

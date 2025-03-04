@@ -207,7 +207,7 @@ export default class GoogleCalendarService implements Calendar {
     try {
       await authClient.authorize();
     } catch (error) {
-      this.log.error("DWD: Error authorizing delegation credential", JSON.stringify(error));
+      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
 
       if ((error as any).response?.data?.error === "unauthorized_client") {
         throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
@@ -244,7 +244,7 @@ export default class GoogleCalendarService implements Calendar {
 
     if (this.credential.delegatedTo) {
       if (!this.credential.user?.email) {
-        this.log.error("DWD: No email to impersonate found for delegation credential");
+        this.log.error("DelegationCredential: No email to impersonate found for delegation credential");
       } else {
         const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
         delegationCredentialAuthedCalendar = await this.getAuthedCalendarFromDelegationCredential({

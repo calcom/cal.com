@@ -53,8 +53,8 @@ describe("handleNewBooking", () => {
   describe("Delegation Credential", () => {
     test(
       `should create a successful booking using the delegation credential
-      1. Should create a booking in the database with reference having DWD credential
-      2. Should create an event in calendar with DWD credential
+      1. Should create a booking in the database with reference having Delegation credential
+      2. Should create an event in calendar with Delegation credential
       3. Should use Google Meet as the location even when not explicitly set.
 `,
       async ({ emails }) => {
@@ -90,7 +90,7 @@ describe("handleNewBooking", () => {
           id: 101,
           schedules: [TestData.schedules.IstWorkHours],
           selectedCalendars: [TestData.selectedCalendars.google],
-          // User must be part of organization to be able to use that organization's DWD credential
+          // User must be part of organization to be able to use that organization's Delegation credential
           teams: payloadToMakePartOfOrganization,
           // No regular credentials provided
           credentials: [],
@@ -193,7 +193,7 @@ describe("handleNewBooking", () => {
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
               meetingUrl: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
-              // Verify DWD credential was used
+              // Verify Delegation credential was used
               delegationCredentialId: delegationCredential.id,
             },
           ],
@@ -235,8 +235,8 @@ describe("handleNewBooking", () => {
 
     test(
       `should create a successful booking using the office365 delegation credential with Cal Video as the location
-      1. Should create a booking in the database with reference having DWD credential
-      2. Should create an event in Outlook calendar with DWD credential
+      1. Should create a booking in the database with reference having Delegation credential
+      2. Should create an event in Outlook calendar with Delegation credential
 `,
       async ({ emails }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -271,7 +271,7 @@ describe("handleNewBooking", () => {
           id: 101,
           schedules: [TestData.schedules.IstWorkHours],
           selectedCalendars: [TestData.selectedCalendars.office365],
-          // User must be part of organization to be able to use that organization's DWD credential
+          // User must be part of organization to be able to use that organization's Delegation credential
           teams: payloadToMakePartOfOrganization,
           // No regular credentials provided
           credentials: [],
@@ -392,7 +392,7 @@ describe("handleNewBooking", () => {
               meetingId: "OFFICE_365_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
               meetingUrl: "https://UNUSED_URL",
-              // Verify DWD credential was used
+              // Verify Delegation credential was used
               delegationCredentialId: delegationCredential.id,
             },
           ],
@@ -434,7 +434,7 @@ describe("handleNewBooking", () => {
     );
 
     test(
-      `should fail calendar event creation when organizer isn't part of the organization of DWD Credential`,
+      `should fail calendar event creation when organizer isn't part of the organization of DelegationCredential Credential`,
       async () => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
@@ -474,7 +474,7 @@ describe("handleNewBooking", () => {
           id: 101,
           schedules: [TestData.schedules.IstWorkHours],
           selectedCalendars: [TestData.selectedCalendars.google],
-          // User must be part of organization to be able to use that organization's DWD credential
+          // User must be part of organization to be able to use that organization's Delegation credential
           teams: payloadToMakePartOfOrganization,
           // No regular credentials provided
           credentials: [],
@@ -603,8 +603,8 @@ describe("handleNewBooking", () => {
 
     test(
       `should create a successful dynamic group booking using the delegation credential
-      1. Should create a booking in the database with reference having DWD credential
-      2. Should create an event in calendar with DWD credential for both users
+      1. Should create a booking in the database with reference having Delegation credential
+      2. Should create an event in calendar with Delegation credential for both users
       3. Should use Google Meet as the location even when not explicitly set.
 `,
       async () => {
@@ -751,7 +751,7 @@ describe("handleNewBooking", () => {
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
               meetingUrl: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
-              // Verify DWD credential was used
+              // Verify Delegation credential was used
               delegationCredentialId: delegationCredential.id,
             },
           ],

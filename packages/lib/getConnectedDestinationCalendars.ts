@@ -27,8 +27,8 @@ export type ConnectedDestinationCalendars = Awaited<
 >;
 
 /**
- * Ensures that when DWD is enabled and there is already a calendar connected for the corresponding domain, we only allow the DWD calendar to be returned
- * This is to ensure that duplicate calendar connections aren't shown in UI(apps/installed/calendars). We choose DWD connection to be shown because we don't want users to be able to work with individual calendars
+ * Ensures that when DelegationCredential is enabled and there is already a calendar connected for the corresponding domain, we only allow the DelegationCredential calendar to be returned
+ * This is to ensure that duplicate calendar connections aren't shown in UI(apps/installed/calendars). We choose DelegationCredential connection to be shown because we don't want users to be able to work with individual calendars
  */
 const _ensureNoConflictingNonDelegatedConnectedCalendar = <
   T extends {
@@ -62,7 +62,7 @@ const _ensureNoConflictingNonDelegatedConnectedCalendar = <
       return true;
     }
 
-    // DWD Credential is always of the loggedInUser
+    // DelegationCredential Credential is always of the loggedInUser
     if (!connectedCalendar.primary?.email || connectedCalendar.primary.email !== loggedInUser.email) {
       return true;
     }

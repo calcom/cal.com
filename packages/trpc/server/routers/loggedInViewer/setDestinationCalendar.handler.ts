@@ -35,7 +35,7 @@ export const getFirstConnectedCalendar = ({
   const matchingCalendars = calendars.filter(matcher);
   const delegationCredentialCalendar = matchingCalendars.find((cal) => !!cal.delegationCredentialId);
 
-  // Prefer DWD credential calendar as there could be other one due to existing connections even after DWD is enabled.
+  // Prefer Delegation credential calendar as there could be other one due to existing connections even after DelegationCredential is enabled.
   if (delegationCredentialCalendar) {
     return delegationCredentialCalendar;
   } else {
@@ -48,8 +48,8 @@ export const getFirstConnectedCalendar = ({
  * Also, DestinationCalendar doesn't have unique constraint on externalId, integration and eventTypeId, so there could be multiple destinationCalendars with same externalId, integration and eventTypeId in DB.
  * So, it could update any of the destinationCalendar when there are duplicates in DB. Ideally we should have unique constraint on externalId, integration and eventTypeId.
  *
- * With the addition of DWD credential, it adds another dimension to the problem.
- * A user could have DWD and non-DWD credential for the same calendar and he might be selecting DWD credential connected calendar but it could still be set with nullish destinationCalendar.delegationCredentialId.
+ * With the addition of Delegation credential, it adds another dimension to the problem.
+ * A user could have DelegationCredential and non-Delegation credential for the same calendar and he might be selecting Delegation credential connected calendar but it could still be set with nullish destinationCalendar.delegationCredentialId.
  */
 export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinationCalendarOptions) => {
   const { user } = ctx;

@@ -13,7 +13,7 @@ export default async function handler({
 }) {
   const { id } = input;
 
-  // We might want to consider allowing this in the future. Right now, toggling off DWD achieves similar but non-destructive effect
+  // We might want to consider allowing this in the future. Right now, toggling off DelegationCredential achieves similar but non-destructive effect
   throw new TRPCError({ code: "BAD_REQUEST", message: "Not allowed" });
   await DelegationCredentialRepository.deleteById({ id });
 

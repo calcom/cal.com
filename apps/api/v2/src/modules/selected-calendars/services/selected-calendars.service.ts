@@ -58,7 +58,9 @@ export class SelectedCalendarsService {
       selectedCalendar.delegationCredentialId
     );
     if (!isMemberOfOrganization) {
-      throw new NotFoundException("User is not a member of the organization that owns the DWD credential");
+      throw new NotFoundException(
+        "User is not a member of the organization that owns the Delegation credential"
+      );
     }
 
     const { integration, externalId, credentialId, delegationCredentialId } = selectedCalendar;
@@ -78,7 +80,7 @@ export class SelectedCalendarsService {
       delegationCredentialId
     );
     if (!delegationCredential) {
-      throw new NotFoundException("DWD with provided delegationCredentialId not found");
+      throw new NotFoundException("DelegationCredential with provided delegationCredentialId not found");
     }
 
     const isMemberOfOrganization = await this.organizationsMembershipService.getOrgMembershipByUserId(
@@ -103,7 +105,9 @@ export class SelectedCalendarsService {
         delegationCredentialId
       );
       if (!isMemberOfOrganization) {
-        throw new NotFoundException("User is not a member of the organization that owns the DWD credential");
+        throw new NotFoundException(
+          "User is not a member of the organization that owns the Delegation credential"
+        );
       }
     }
 

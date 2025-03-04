@@ -181,7 +181,7 @@ describe("getAllDelegationCredentialsForUser", () => {
     vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
   });
 
-  it("should return empty array when no DWD found", async () => {
+  it("should return empty array when no DelegationCredential found", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
@@ -189,7 +189,7 @@ describe("getAllDelegationCredentialsForUser", () => {
     expect(result).toEqual([]);
   });
 
-  it("should return empty array when DWD is disabled", async () => {
+  it("should return empty array when DelegationCredential is disabled", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
@@ -197,7 +197,7 @@ describe("getAllDelegationCredentialsForUser", () => {
     expect(result).toEqual([]);
   });
 
-  it("should return credentials for enabled Google DWD", async () => {
+  it("should return credentials for enabled Google DelegationCredential", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
@@ -230,7 +230,7 @@ describe("buildAllCredentials", () => {
   const mockDelegationCredentialGoogleCalendarCred = buildGoogleCalendarDelegationCredential();
   const mockRegularGoogleCalendarCred = buildRegularGoogleCalendarCredential();
 
-  it("should combine DWD and regular credentials", () => {
+  it("should combine DelegationCredential and regular credentials", () => {
     const result = buildAllCredentials({
       delegationCredentials: [mockDelegationCredentialGoogleCalendarCred],
       existingCredentials: [mockRegularGoogleCalendarCred],
@@ -241,7 +241,7 @@ describe("buildAllCredentials", () => {
     expect(result).toContainEqual(mockRegularGoogleCalendarCred);
   });
 
-  it("should deduplicate DWD credentials with same delegatedToId and appId", () => {
+  it("should deduplicate DelegationCredential credentials with same delegatedToId and appId", () => {
     const duplicateDelegationCredential = buildGoogleCalendarDelegationCredential();
     const result = buildAllCredentials({
       delegationCredentials: [mockDelegationCredentialGoogleCalendarCred, duplicateDelegationCredential],
@@ -252,7 +252,7 @@ describe("buildAllCredentials", () => {
     expect(result[0]).toEqual(mockDelegationCredentialGoogleCalendarCred);
   });
 
-  it("should keep DWD credentials with same delegatedToId but different appId", () => {
+  it("should keep DelegationCredential credentials with same delegatedToId but different appId", () => {
     const differentAppDelegationCredential = buildDelegationCredentialGoogleMeetCredential();
     const result = buildAllCredentials({
       delegationCredentials: [mockDelegationCredentialGoogleCalendarCred, differentAppDelegationCredential],
@@ -264,7 +264,7 @@ describe("buildAllCredentials", () => {
     expect(result).toContainEqual(differentAppDelegationCredential);
   });
 
-  it("should filter out DWD credentials from existingCredentials", () => {
+  it("should filter out DelegationCredential credentials from existingCredentials", () => {
     const delegatedCalendarCredential = buildRegularGoogleCalendarCredential({ id: -2 });
     const result = buildAllCredentials({
       delegationCredentials: [mockDelegationCredentialGoogleCalendarCred],
@@ -282,7 +282,7 @@ describe("getDelegationCredentialOrRegularCredential", () => {
   const mockRegularGoogleCalendarCred = buildRegularGoogleCalendarCredential();
   const credentials = [mockDelegationCredentialGoogleCalendarCred, mockRegularGoogleCalendarCred];
 
-  it("should find DWD credential by delegationCredentialId", () => {
+  it("should find Delegation credential by delegationCredentialId", () => {
     const result = getDelegationCredentialOrRegularCredential({
       credentials,
       id: { credentialId: null, delegationCredentialId: mockDelegationCredential.id },
@@ -350,7 +350,7 @@ describe("enrichUsersWithDelegationCredentials", () => {
     );
   });
 
-  it("should enrich users with DWD credentials when available", async () => {
+  it("should enrich users with DelegationCredential credentials when available", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
@@ -362,7 +362,7 @@ describe("enrichUsersWithDelegationCredentials", () => {
 
     expect(result).toHaveLength(2);
     result.forEach((enrichedUser) => {
-      expect(enrichedUser.credentials).toHaveLength(3); // 1 regular + 2 DWD (calendar + meet)
+      expect(enrichedUser.credentials).toHaveLength(3); // 1 regular + 2 DelegationCredential (calendar + meet)
       expect(enrichedUser.credentials).toContainEqual(
         expect.objectContaining({
           type: googleCalendarMetadata.type,
@@ -378,7 +378,7 @@ describe("enrichUsersWithDelegationCredentials", () => {
     });
   });
 
-  it("should not add DWD credentials when DWD is disabled", async () => {
+  it("should not add DelegationCredential credentials when DelegationCredential is disabled", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
@@ -445,7 +445,7 @@ describe("enrichHostsWithDelegationCredentials", () => {
     );
   });
 
-  it("should enrich hosts with DWD credentials when available", async () => {
+  it("should enrich hosts with DelegationCredential credentials when available", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
@@ -458,7 +458,7 @@ describe("enrichHostsWithDelegationCredentials", () => {
     expect(result).toHaveLength(2);
     result.forEach((enrichedHost) => {
       expect(enrichedHost.metadata).toBeDefined(); // Preserve non-user data
-      expect(enrichedHost.user.credentials).toHaveLength(3); // 1 regular + 2 DWD (calendar + meet)
+      expect(enrichedHost.user.credentials).toHaveLength(3); // 1 regular + 2 DelegationCredential (calendar + meet)
       expect(enrichedHost.user.credentials).toContainEqual(
         expect.objectContaining({
           type: googleCalendarMetadata.type,
@@ -474,7 +474,7 @@ describe("enrichHostsWithDelegationCredentials", () => {
     });
   });
 
-  it("should not add DWD credentials when DWD is disabled", async () => {
+  it("should not add DelegationCredential credentials when DelegationCredential is disabled", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
@@ -510,7 +510,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
     vi.clearAllMocks();
   });
 
-  it("should enrich user with DWD credentials when available", async () => {
+  it("should enrich user with DelegationCredential credentials when available", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
@@ -519,7 +519,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
       user: mockUserWithCredentials,
     });
 
-    expect(result.credentials).toHaveLength(3); // 1 regular + 2 DWD (calendar + meet)
+    expect(result.credentials).toHaveLength(3); // 1 regular + 2 DelegationCredential (calendar + meet)
     expect(result.credentials).toContainEqual(
       expect.objectContaining({
         type: googleCalendarMetadata.type,
@@ -534,7 +534,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
     );
   });
 
-  it("should not add DWD credentials when DWD is not found", async () => {
+  it("should not add DelegationCredential credentials when DelegationCredential is not found", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
@@ -553,7 +553,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
     });
   });
 
-  it("should not add DWD credentials when DWD is disabled", async () => {
+  it("should not add DelegationCredential credentials when DelegationCredential is disabled", async () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));

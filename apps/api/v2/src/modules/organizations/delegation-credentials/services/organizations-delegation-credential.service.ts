@@ -54,7 +54,7 @@ export class OrganizationsDelegationCredentialService {
         delegationCredentialId
       );
     if (!delegationCredential) {
-      throw new NotFoundException(`DWD with id ${delegationCredentialId} not found`);
+      throw new NotFoundException(`DelegationCredential with id ${delegationCredentialId} not found`);
     }
 
     return delegationCredential;

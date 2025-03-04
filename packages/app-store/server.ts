@@ -84,7 +84,7 @@ export async function getLocationGroupedOptions(
 
   let credentials;
   if (user) {
-    // We only add delegationCredentials if the request for location options is for a user because DWD Credential is applicable to Users only.
+    // We only add delegationCredentials if the request for location options is for a user because DelegationCredential Credential is applicable to Users only.
     const { credentials: allCredentials } = await enrichUserWithDelegatedConferencingCredentialsWithoutOrgId({
       user: {
         ...user,

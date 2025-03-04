@@ -153,7 +153,7 @@ const cleanIntegrationKeys = (
 
 export const getBusyCalendarTimes = async (
   /**
-   * withCredentials can possibly have a duplicate credential in case DWD is enabled.
+   * withCredentials can possibly have a duplicate credential in case DelegationCredential is enabled.
    * There is no way to deduplicate that at the moment because a `credential` doesn't directly know for which email it is,
    */
   withCredentials: CredentialForCalendarService[],
@@ -216,7 +216,7 @@ export const createEvent = async (
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        // Ideally we should pass externalId always, but let's start with DWD case first as in that case, CalendarService need to handle a special case for DWD to determine the selectedCalendar.
+        // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
         // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
         .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
         .catch(async (error: { code: number; calError: string }) => {

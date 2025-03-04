@@ -174,8 +174,8 @@ const _buildDelegatedConferencingCredential = ({
 export async function getAllDelegationCredentialsForUser({ user }: { user: { email: string; id: number } }) {
   log.debug("called with", safeStringify({ user }));
   // We access the repository without checking for feature flag here.
-  // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
-  // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
+  // In case we need to disable the effects of DelegationCredential on credential we need to toggle DelegationCredential off from organization settings.
+  // We could think of the teamFeatures flag to just disable the UI. The actual effect of DelegationCredential on credentials is disabled by toggling DelegationCredential off from UI
   const delegationCredential =
     await DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({
       email: user.email,
@@ -424,7 +424,7 @@ export async function enrichUserWithDelegatedConferencingCredentialsWithoutOrgId
 }
 
 /**
- * Either get DWD credential from delegationCredentials or find regular credential from Credential table
+ * Either get Delegation credential from delegationCredentials or find regular credential from Credential table
  */
 export async function getDelegationCredentialOrFindRegularCredential({
   id,
@@ -446,7 +446,7 @@ export async function getDelegationCredentialOrFindRegularCredential({
 }
 
 /**
- * Utility function to find a credential from a list of credentials, supporting both regular and DWD credentials
+ * Utility function to find a credential from a list of credentials, supporting both regular and DelegationCredential credentials
  */
 export function getDelegationCredentialOrRegularCredential<
   TCredential extends { delegatedToId?: string | null; id: number }
