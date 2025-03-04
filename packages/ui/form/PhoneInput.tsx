@@ -3,8 +3,8 @@
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import classNames from "@calcom/ui/classNames";
 
 export type PhoneInputProps = {
   value?: string;
