@@ -2,19 +2,19 @@ import "server-only";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
+import type { EventType } from "@calcom/lib/getUserAvailability";
+import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
+import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
-import { getStartEndDateforLimitCheck } from "../getBusyTimes";
-import type { EventType } from "../getUserAvailability";
-import { getPeriodStartDatesBetween } from "../getUserAvailability";
-import monitorCallbackAsync from "../sentryWrapper";
-import { descendingLimitKeys, intervalLimitKeyToUnit } from "./intervalLimit";
-import type { IntervalLimit } from "./intervalLimitSchema";
-import LimitManager from "./limitManager";
-import { checkBookingLimit } from "./server/checkBookingLimits";
+import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
+import type { IntervalLimit } from "../intervalLimitSchema";
+import LimitManager from "../limitManager";
+import { checkBookingLimit } from "./checkBookingLimits";
 
 export const getBusyTimesFromLimits = async (
   ...args: Parameters<typeof _getBusyTimesFromLimits>

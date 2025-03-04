@@ -215,6 +215,8 @@ export const eventTypeColor = z
 
 export type IntervalLimitsType = IntervalLimit | null;
 
+export { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
 
 export const stringToDate = z.string().transform((a) => new Date(a));
