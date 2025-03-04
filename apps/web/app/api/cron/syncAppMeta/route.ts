@@ -1,4 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import logger from "@calcom/lib/logger";
@@ -14,15 +15,11 @@ const log = logger.getSubLogger({
  * syncAppMeta makes sure any app metadata that has been replicated into the database
  * remains synchronized with any changes made to the app config files.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function POST(request: NextRequest) {
+  const apiKey = request.headers.get("authorization") || new URL(request.url).searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
-  }
-  if (req.method !== "POST") {
-    res.status(405).json({ message: "Invalid method" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   log.info(`🧐 Checking DB apps are in-sync with app metadata`);
@@ -63,5 +60,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  res.json({ ok: true });
+  return NextResponse.json({ ok: true });
 }

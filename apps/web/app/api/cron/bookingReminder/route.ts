@@ -1,4 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
@@ -10,19 +11,16 @@ import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function POST(request: NextRequest) {
+  const apiKey = request.headers.get("authorization") || new URL(request.url).searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
-  }
-  if (req.method !== "POST") {
-    res.status(405).json({ message: "Invalid method" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   const reminderIntervalMinutes = [48 * 60, 24 * 60, 3 * 60];
   let notificationsSent = 0;
+
   for (const interval of reminderIntervalMinutes) {
     const bookings = await prisma.booking.findMany({
       where: {
@@ -144,5 +142,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       notificationsSent++;
     }
   }
-  res.status(200).json({ notificationsSent });
+
+  return NextResponse.json({ notificationsSent });
 }
