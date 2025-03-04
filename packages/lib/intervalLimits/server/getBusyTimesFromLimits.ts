@@ -1,5 +1,3 @@
-import "server-only";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
