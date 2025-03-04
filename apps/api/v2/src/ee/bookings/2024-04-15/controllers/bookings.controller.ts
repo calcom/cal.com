@@ -329,6 +329,10 @@ export class BookingsController_2024_04_15 {
 
   private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
+      if (this.isRescheduledByAttendee(req.body)) {
+        return undefined;
+      }
+
       const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
       if (bearerToken) {
         if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
@@ -344,6 +348,20 @@ export class BookingsController_2024_04_15 {
     } catch (err) {
       this.logger.error(err);
     }
+  }
+
+  private isRescheduledByAttendee(requestBody: CreateBookingInput_2024_04_15): boolean {
+    // note(Lauris): we use CreateBookingInput_2024_04_15 both for scheduling bookings and rescheduling them
+    // so we first need to check if body is not for rescheduling we return
+    const { rescheduleUid, rescheduledBy, responses } = requestBody;
+    if (!rescheduleUid) {
+      return false;
+    }
+
+    if (!rescheduledBy) {
+      return true;
+    }
+    return rescheduledBy === responses.email;
   }
 
   private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
@@ -379,7 +397,7 @@ export class BookingsController_2024_04_15 {
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const requestId = req.get("X-Request-Id");
     const clone = { ...req };
-    const userId = (await this.getOwnerId(req)) ?? -1;
+    const userId = await this.getOwnerId(req);
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
@@ -406,7 +424,7 @@ export class BookingsController_2024_04_15 {
     isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const clone = { ...req };
-    const userId = (await this.getOwnerId(req)) ?? -1;
+    const userId = await this.getOwnerId(req);
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;

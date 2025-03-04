@@ -72,6 +72,11 @@ export class CreateBookingInput_2024_04_15 {
   @ApiPropertyOptional()
   rescheduleUid?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  rescheduledBy?: string;
+
   @IsTimeZone()
   @ApiProperty()
   timeZone!: string;
