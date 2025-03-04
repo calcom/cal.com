@@ -35,7 +35,6 @@ const UserProfile = () => {
     onSuccess: async (data) => {
       showToast(t("your_user_profile_updated_successfully"), "success");
       setImageSrc(data.avatarUrl ?? "");
-      await utils.viewer.me.refetch();
     },
     onError: () => {
       showToast(t("problem_saving_user_profile"), "error");
