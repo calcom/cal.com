@@ -47,7 +47,7 @@ export default async function routerGetCrmContactOwnerEmail({
   };
   //   Determine if there is a CRM option enabled in the chosen route
   for (const appSlug of enabledAppSlugs) {
-    const routingOptions = attributeRoutingConfig?.[appSlug];
+    const routingOptions = attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
 
     if (!routingOptions) continue;
     // See if any options are true
