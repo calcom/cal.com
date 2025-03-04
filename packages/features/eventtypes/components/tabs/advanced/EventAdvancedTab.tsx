@@ -3,8 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useAtomsContext } from "@calcom/atoms/monorepo";
 import {
   SelectedCalendarsSettingsWebWrapper,
   SelectedCalendarSettingsScope,

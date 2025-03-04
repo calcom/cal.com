@@ -1,7 +1,7 @@
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
-import { Shell as PlatformShell } from "@calcom/atoms/monorepo";
+import { Shell as PlatformShell } from "@calcom/atoms/src/components/ui/shell";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
