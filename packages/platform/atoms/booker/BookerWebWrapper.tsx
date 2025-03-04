@@ -8,6 +8,7 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
@@ -111,6 +112,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   });
   const slots = useSlots(event);
 
+  const isEmbed = useIsEmbed();
+
   const prefetchNextMonth =
     (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
       !!bookerLayout.extraDays &&
@@ -202,14 +205,18 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       onConnectNowInstantMeeting={() => {
         const newPath = `${pathname}?isInstantMeeting=true`;
 
-        const baseUrl = window.location.href.split("?")[0].split("#")[0];
+        if (isEmbed) {
+          const baseUrl = window.location.href.split("?")[0].split("#")[0];
 
-        const baseUrlWithoutPath = baseUrl.split("/").slice(0, 3).join("/");
-        const fullUrl = newPath.startsWith("/")
-          ? `${baseUrlWithoutPath}${newPath}`
-          : `${baseUrlWithoutPath}/${newPath}`;
+          const baseUrlWithoutPath = baseUrl.split("/").slice(0, 3).join("/");
+          const fullUrl = newPath.startsWith("/")
+            ? `${baseUrlWithoutPath}${newPath}`
+            : `${baseUrlWithoutPath}/${newPath}`;
 
-        window.open(fullUrl, "_blank", "noopener,noreferrer");
+          window.open(fullUrl, "_blank", "noopener,noreferrer");
+        } else {
+          router.push(newPath);
+        }
       }}
       onOverlayClickNoCalendar={() => {
         router.push("/apps/categories/calendar");
