@@ -503,7 +503,7 @@ export const BookerPlatformWrapper = (
           }
         }
         rescheduleUid={props.rescheduleUid ?? null}
-        rescheduledBy={null}
+        rescheduledBy={props.rescheduledBy}
         bookingUid={props.bookingUid ?? null}
         isRedirect={false}
         fromUserNameRedirected=""
