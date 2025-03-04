@@ -1,4 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -15,6 +17,8 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const log = logger.getSubLogger({ prefix: ["[api/logo]"] });
 
@@ -123,10 +127,17 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
       where: {
         slug: subdomain,
         ...(isValidOrgDomain && {
-          metadata: {
-            path: ["isOrganization"],
-            equals: true,
-          },
+          OR: [
+            {
+              metadata: {
+                path: ["isOrganization"],
+                equals: true,
+              },
+            },
+            {
+              isOrganization: true,
+            },
+          ],
         }),
       },
       select: {
@@ -151,15 +162,24 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
 /**
  * This API endpoint is used to serve the logo associated with a team if no logo is found we serve our default logo
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { query } = req;
-  const parsedQuery = logoApiSchema.parse(query);
-  const { isValidOrgDomain } = orgDomainConfig(req);
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const searchParams = url.searchParams;
+  const parsedQuery = logoApiSchema.parse(Object.fromEntries(searchParams.entries()));
 
-  const hostname = req?.headers["host"];
-  if (!hostname) throw new Error("No hostname");
+  // Create a legacy request object for compatibility
+  const legacyReq = buildLegacyRequest(headers(), cookies());
+  const { isValidOrgDomain } = orgDomainConfig(legacyReq);
+
+  const hostname = request.headers.get("host");
+  if (!hostname) {
+    return NextResponse.json({ error: "No hostname" }, { status: 400 });
+  }
+
   const domains = extractSubdomainAndDomain(hostname);
-  if (!domains) throw new Error("No domains");
+  if (!domains) {
+    return NextResponse.json({ error: "No domains" }, { status: 400 });
+  }
 
   const [subdomain] = domains;
   const teamLogos = await getTeamLogos(subdomain, isValidOrgDomain);
@@ -186,11 +206,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    res.setHeader("Content-Type", response.headers.get("content-type") as string);
-    res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
-    res.send(buffer);
+    // Create a new response with the image buffer
+    const imageResponse = new NextResponse(buffer);
+
+    // Set the appropriate headers
+    imageResponse.headers.set("Content-Type", response.headers.get("content-type") || "image/png");
+    imageResponse.headers.set("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
+
+    return imageResponse;
   } catch (error) {
-    res.statusCode = 404;
-    res.json({ error: "Failed fetching logo" });
+    return NextResponse.json({ error: "Failed fetching logo" }, { status: 404 });
   }
 }
