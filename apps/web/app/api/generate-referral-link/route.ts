@@ -1,25 +1,28 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
 import { dub } from "@calcom/features/auth/lib/dub";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-  const session = await getServerSession({ req });
+export async function POST() {
+  const headersList = headers();
+  const cookiesList = cookies();
+  const legacyReq = buildLegacyRequest(headersList, cookiesList);
+
+  const session = await getServerSession({ req: legacyReq });
 
   if (!session?.user?.username) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { shortLink } = await dub.links.get({
       externalId: `ext_${session.user.id.toString()}`,
     });
-    return res.status(200).json({ shortLink });
+    return NextResponse.json({ shortLink });
   } catch (error) {
     console.log("Referral link not found, creating...");
   }
@@ -46,5 +49,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  return res.status(200).json({ shortLink });
+  return NextResponse.json({ shortLink });
 }

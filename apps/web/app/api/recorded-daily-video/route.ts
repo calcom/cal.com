@@ -1,5 +1,7 @@
 import { createHmac } from "crypto";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
@@ -8,7 +10,6 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import {
   getAllTranscriptsAccessLinkFromMeetingId,
   getDownloadLinkOfCalVideoByRecordingId,
@@ -32,11 +33,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
-const computeSignature = (
-  hmacSecret: string,
-  reqBody: NextApiRequest["body"],
-  webhookTimestampHeader: string | string[] | undefined
-) => {
+const computeSignature = (hmacSecret: string, reqBody: any, webhookTimestampHeader: string | null) => {
   const signature = `${webhookTimestampHeader}.${JSON.stringify(reqBody)}`;
   const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
   const hmac = createHmac("sha256", base64DecodedSecret);
@@ -51,53 +48,53 @@ const getDownloadLinkOfCalVideo = async (recordingId: string) => {
   return downloadLink;
 };
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function POST(request: NextRequest) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    return res.status(405).json({ message: "No SendGrid API key or email" });
+    return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
   }
 
-  if (testRequestSchema.safeParse(req.body).success) {
-    return res.status(200).json({ message: "Test request successful" });
+  const body = await request.json();
+
+  if (testRequestSchema.safeParse(body).success) {
+    return NextResponse.json({ message: "Test request successful" });
   }
 
+  const headersList = headers();
   const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
   if (!testMode) {
     const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
     if (!hmacSecret) {
-      return res.status(405).json({ message: "No Daily Webhook Secret" });
+      return NextResponse.json({ message: "No Daily Webhook Secret" }, { status: 405 });
     }
 
-    const computed_signature = computeSignature(hmacSecret, req.body, req.headers["x-webhook-timestamp"]);
+    const webhookTimestamp = headersList.get("x-webhook-timestamp");
+    const computed_signature = computeSignature(hmacSecret, body, webhookTimestamp);
 
-    if (req.headers["x-webhook-signature"] !== computed_signature) {
-      return res.status(403).json({ message: "Signature does not match" });
+    if (headersList.get("x-webhook-signature") !== computed_signature) {
+      return NextResponse.json({ message: "Signature does not match" }, { status: 403 });
     }
   }
 
   log.debug(
     "Daily video webhook Request Body:",
     safeStringify({
-      body: req.body,
+      body,
     })
   );
 
   try {
-    if (req.body?.type === "recording.ready-to-download") {
-      const recordingReadyResponse = recordingReadySchema.safeParse(req.body);
+    if (body?.type === "recording.ready-to-download") {
+      const recordingReadyResponse = recordingReadySchema.safeParse(body);
 
       if (!recordingReadyResponse.success) {
-        return res.status(400).send({
-          message: "Invalid Payload",
-        });
+        return NextResponse.json({ message: "Invalid Payload" }, { status: 400 });
       }
 
       const { room_name, recording_id, status } = recordingReadyResponse.data.payload;
 
       if (status !== "finished") {
-        return res.status(400).send({
-          message: "Recording not finished",
-        });
+        return NextResponse.json({ message: "Recording not finished" }, { status: 400 });
       }
 
       const bookingReference = await getBookingReference(room_name);
@@ -138,19 +135,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         // Submit Transcription Batch Processor Job
         await submitBatchProcessorTranscriptionJob(recording_id);
       } catch (err) {
-        log.error("Failed to  Submit Transcription Batch Processor Job:", safeStringify(err));
+        log.error("Failed to Submit Transcription Batch Processor Job:", safeStringify(err));
       }
 
       // send emails to all attendees only when user has team plan
       await sendDailyVideoRecordingEmails(evt, downloadLink);
 
-      return res.status(200).json({ message: "Success" });
-    } else if (req.body.type === "meeting.ended") {
-      const meetingEndedResponse = meetingEndedSchema.safeParse(req.body);
+      return NextResponse.json({ message: "Success" });
+    } else if (body.type === "meeting.ended") {
+      const meetingEndedResponse = meetingEndedSchema.safeParse(body);
       if (!meetingEndedResponse.success) {
-        return res.status(400).send({
-          message: "Invalid Payload",
-        });
+        return NextResponse.json({ message: "Invalid Payload" }, { status: 400 });
       }
 
       const { room, meeting_id } = meetingEndedResponse.data.payload;
@@ -159,7 +154,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const booking = await getBooking(bookingReference.bookingId as number);
 
       if (!booking.eventType?.canSendCalVideoTranscriptionEmails) {
-        return res.status(200).json({
+        return NextResponse.json({
           message: `Transcription emails are disabled for this event type ${booking.eventTypeId}`,
         });
       }
@@ -167,21 +162,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const transcripts = await getAllTranscriptsAccessLinkFromMeetingId(meeting_id);
 
       if (!transcripts || !transcripts.length)
-        return res
-          .status(200)
-          .json({ message: `No Transcripts found for room name ${room} and meeting id ${meeting_id}` });
+        return NextResponse.json({
+          message: `No Transcripts found for room name ${room} and meeting id ${meeting_id}`,
+        });
 
       const evt = await getCalendarEvent(booking);
       await sendDailyVideoTranscriptEmails(evt, transcripts);
 
-      return res.status(200).json({ message: "Success" });
-    } else if (req.body?.type === "batch-processor.job-finished") {
-      const batchProcessorJobFinishedResponse = batchProcessorJobFinishedSchema.safeParse(req.body);
+      return NextResponse.json({ message: "Success" });
+    } else if (body?.type === "batch-processor.job-finished") {
+      const batchProcessorJobFinishedResponse = batchProcessorJobFinishedSchema.safeParse(body);
 
       if (!batchProcessorJobFinishedResponse.success) {
-        return res.status(400).send({
-          message: "Invalid Payload",
-        });
+        return NextResponse.json({ message: "Invalid Payload" }, { status: 400 });
       }
 
       const { id, input } = batchProcessorJobFinishedResponse.data.payload;
@@ -217,23 +210,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      return res.status(200).json({ message: "Success" });
+      return NextResponse.json({ message: "Success" });
     } else {
-      log.error("Invalid type in /recorded-daily-video", req.body);
-
-      return res.status(200).json({ message: "Invalid type in /recorded-daily-video" });
+      log.error("Invalid type in /recorded-daily-video", body);
+      return NextResponse.json({ message: "Invalid type in /recorded-daily-video" });
     }
   } catch (err) {
     log.error("Error in /recorded-daily-video", err);
 
     if (err instanceof HttpError) {
-      return res.status(err.statusCode).json({ message: err.message });
+      return NextResponse.json({ message: err.message }, { status: err.statusCode });
     } else {
-      return res.status(500).json({ message: "something went wrong" });
+      return NextResponse.json({ message: "something went wrong" }, { status: 500 });
     }
   }
 }
-
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});
