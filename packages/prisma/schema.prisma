@@ -1768,16 +1768,14 @@ enum EventTypeAutoTranslatedField {
 }
 
 model DomainWideDelegation {
-  id                  String            @id @default(uuid())
-  workspacePlatform   WorkspacePlatform @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
-  workspacePlatformId Int
+  id                String   @id @default(uuid())
   // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
   /// @zod.custom(imports.serviceAccountKeySchema)
-  serviceAccountKey   Json
-  enabled             Boolean           @default(false)
-  domain              String
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  serviceAccountKey Json
+  enabled           Boolean  @default(false)
+  domain            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
   // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
@@ -1820,7 +1818,6 @@ model WorkspacePlatform {
   updatedAt                DateTime               @updatedAt
   enabled                  Boolean                @default(false)
   delegationCredentials    DelegationCredential[]
-  domainWideDelegations    DomainWideDelegation[]
 
   @@unique([slug])
 }
