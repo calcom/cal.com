@@ -1,8 +1,9 @@
 import type { z } from "zod";
 
-import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import type { DomainWideDelegationUpdateSchema } from "./schema";
 import {
@@ -47,9 +48,7 @@ export default async function handler({
       });
     }
 
-    const domainWideDelegationRepository = await DomainWideDelegation.init(user.id, organizationId);
-
-    const updatedDelegation = await domainWideDelegationRepository.updateById({
+    const updatedDelegation = await DomainWideDelegationRepository.updateById({
       id,
       data: {
         workspacePlatformId: workspacePlatform.id,

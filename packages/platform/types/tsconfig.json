@@ -8,5 +8,5 @@
     "outDir": "dist"
   },
   "include": [".", "../../types/business-days-plugin.d.ts", "../../types/window.d.ts"],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build", "**/node_modules/**"]
 }

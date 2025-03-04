@@ -1,10 +1,12 @@
+import { getFirstDwdConferencingCredentialAppLocation } from "@calcom/lib/domainWideDelegation/server";
+import type { Prisma } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import type { loadAndValidateUsers } from "./loadAndValidateUsers";
-
-type Users = Awaited<ReturnType<typeof loadAndValidateUsers>>["qualifiedRRUsers"];
-
-const sortUsersByDynamicList = (users: Users, dynamicUserList: string[]) => {
+const sortUsersByDynamicList = <TUser extends { username: string | null }>(
+  users: TUser[],
+  dynamicUserList: string[]
+) => {
   return users.sort((a, b) => {
     const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
     const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
@@ -12,19 +14,41 @@ const sortUsersByDynamicList = (users: Users, dynamicUserList: string[]) => {
   });
 };
 
-export const getLocationValuesForDb = (
-  dynamicUserList: string[],
-  users: Users,
-  locationBodyString: string
-) => {
-  // TODO: It's definition should be moved to getLocationValueForDb
-  let organizerOrFirstDynamicGroupMemberDefaultLocationUrl;
-  if (dynamicUserList.length > 1) {
-    users = sortUsersByDynamicList(users, dynamicUserList);
-    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
-    organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-      firstUsersMetadata?.defaultConferencingApp?.appLink;
+export const getLocationValuesForDb = <
+  TUser extends {
+    username: string | null;
+    metadata: Prisma.JsonValue;
+    credentials: CredentialForCalendarService[];
   }
-  return { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl };
+>({
+  dynamicUserList,
+  users,
+  location: locationBodyString,
+}: {
+  dynamicUserList: string[];
+  users: TUser[];
+  location: string;
+}) => {
+  const isDynamicGroupBookingCase = dynamicUserList.length > 1;
+  let firstDynamicGroupMemberDefaultLocationUrl;
+  // TODO: It's definition should be moved to getLocationValueForDb
+  if (isDynamicGroupBookingCase) {
+    users = sortUsersByDynamicList(users, dynamicUserList);
+    const firstDynamicGroupMember = users[0];
+    const firstDynamicGroupMemberMetadata = userMetadataSchema.parse(firstDynamicGroupMember.metadata);
+    const firstDynamicGroupMemberDwdConferencingAppLocation = getFirstDwdConferencingCredentialAppLocation({
+      credentials: firstDynamicGroupMember.credentials,
+    });
+
+    firstDynamicGroupMemberDefaultLocationUrl =
+      firstDynamicGroupMemberMetadata?.defaultConferencingApp?.appLink ||
+      firstDynamicGroupMemberDwdConferencingAppLocation;
+
+    locationBodyString = firstDynamicGroupMemberDefaultLocationUrl || locationBodyString;
+  }
+
+  return {
+    locationBodyString,
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl: firstDynamicGroupMemberDefaultLocationUrl,
+  };
 };

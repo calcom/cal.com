@@ -7,7 +7,6 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import WebShell from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { VerticalTabItemProps } from "@calcom/ui";
@@ -30,6 +29,7 @@ import {
   VerticalDivider,
   VerticalTabs,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { DeleteDialog } from "./dialogs/DeleteDialog";
 
@@ -278,7 +278,7 @@ function EventTypeSingleLayout({
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
-              className="primary-navigation max-w-64 w-full"
+              className="primary-navigation w-64"
               tabs={EventTypeTabs}
               sticky
               linkShallow
