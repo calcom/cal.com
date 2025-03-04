@@ -5,7 +5,6 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
@@ -30,6 +29,7 @@ import {
   Editor,
   Switch,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -248,7 +248,6 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-subtle rounded transition" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -487,12 +486,9 @@ function FieldEditDialog({
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent
-        className="max-h-none p-0"
-        data-testid="edit-field-dialog"
-        forceOverlayWhenNoModal={true}>
+      <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
+          <div className="h-auto max-h-[85vh] overflow-auto">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
@@ -648,7 +644,7 @@ function FieldEditDialog({
             })()}
           </div>
 
-          <DialogFooter className="relative rounded px-8" showDivider>
+          <DialogFooter className="relative">
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit">
               {isFieldEditMode ? t("save") : t("add")}
@@ -774,7 +770,7 @@ function VariantFields({
   const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
-    throw new Error("Coniguration Issue: FieldType doesn't have `variantsConfig`");
+    throw new Error("Configuration Issue: FieldType doesn't have `variantsConfig`");
   }
 
   const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
@@ -805,7 +801,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded transition" }}
+          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

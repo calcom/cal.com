@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsString, IsEnum } from "class-validator";
+import { IsString, IsEnum, IsOptional } from "class-validator";
 
 import {
   APPLE_CALENDAR_TYPE,
@@ -33,4 +33,9 @@ export class DestinationCalendarsInputBodyDto {
     required: true,
   })
   readonly externalId!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  readonly delegationCredentialId?: string;
 }

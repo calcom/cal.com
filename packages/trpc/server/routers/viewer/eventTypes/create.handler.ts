@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-import { getDefaultLocations } from "@calcom/lib/server";
+import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -24,6 +24,7 @@ type User = {
     id: SessionUser["id"] | null;
   };
   metadata: SessionUser["metadata"];
+  email: SessionUser["email"];
 };
 
 type CreateOptions = {

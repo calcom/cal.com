@@ -5,7 +5,6 @@ import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
-import { classNames } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,6 +27,7 @@ import {
   TextField,
   ToggleGroup,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -234,7 +234,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
           <div className="mb-10 mt-6 space-y-6">
-            {/* Indivdual Invite */}
+            {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
                 name="emailOrUsername"
@@ -433,8 +433,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
+                  StartIcon="link"
                   data-testid="copy-invite-link-button">
-                  <Icon name="link" className="text-default h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>

@@ -4,11 +4,11 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Props } from "react-select";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Button, Icon, Select, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
@@ -64,6 +64,7 @@ export const CheckedTeamSelect = ({
   return (
     <>
       <Select
+        {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
@@ -72,9 +73,8 @@ export const CheckedTeamSelect = ({
         isMulti
         className={customClassNames?.hostsSelect?.select}
         innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
-        {...props}
       />
-      {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
+      {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
         className={classNames(

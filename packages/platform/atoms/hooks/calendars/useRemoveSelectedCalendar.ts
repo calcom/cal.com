@@ -31,16 +31,21 @@ export const useRemoveSelectedCalendar = (
       };
     }>,
     unknown,
-    { credentialId: number; integration: string; externalId: string }
+    {
+      credentialId: number;
+      integration: string;
+      externalId: string;
+      delegationCredentialId: string | null;
+    }
   >({
     mutationFn: (data) => {
-      const { credentialId, externalId, integration } = data;
+      const { credentialId, externalId, integration, delegationCredentialId } = data;
 
       return http
         .delete(
           `/selected-calendars?credentialId=${credentialId}&integration=${integration}&externalId=${encodeURIComponent(
             externalId
-          )}`
+          )}${delegationCredentialId ? `&delegationCredentialId=${delegationCredentialId}` : ""}`
         )
         .then((res) => {
           return res.data;

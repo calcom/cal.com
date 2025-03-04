@@ -4,7 +4,6 @@ import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { forwardRef, useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonProps } from "@calcom/ui";
 import {
@@ -22,6 +21,7 @@ import {
   CommandSeparator,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;

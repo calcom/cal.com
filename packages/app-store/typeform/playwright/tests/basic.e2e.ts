@@ -35,8 +35,9 @@ test.describe("Typeform App", () => {
       context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
       await page.goto(`/routing-forms/forms`);
-      const formId = await addRoutingForm(page);
+      const formId = await addRoutingForm(page, { name: "test form" });
       await addOneFieldAndDescriptionAndSaveForm(formId, page, {
+        name: "test form",
         description: "",
         field: { label: "test", typeIndex: 1 },
       });
@@ -54,8 +55,9 @@ test.describe("Typeform App", () => {
       context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
       await page.goto("/routing-forms/forms");
-      const formId = await addRoutingForm(page);
+      const formId = await addRoutingForm(page, { name: "test form" });
       await addOneFieldAndDescriptionAndSaveForm(formId, page, {
+        name: "test form",
         description: "",
         field: { label: "test", typeIndex: 1 },
       });

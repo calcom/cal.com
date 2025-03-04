@@ -6,6 +6,7 @@ import alby_config_json from "./alby/config.json";
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
+import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
@@ -24,6 +25,7 @@ import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
+import elevenlabs_config_json from "./elevenlabs/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -50,8 +52,10 @@ import linear_config_json from "./linear/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
+import millis_ai_config_json from "./millis-ai/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
 import mock_payment_app_config_json from "./mock-payment-app/config.json";
+import monobot_config_json from "./monobot/config.json";
 import n8n_config_json from "./n8n/config.json";
 import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
@@ -109,6 +113,7 @@ export const appStoreMetadata = {
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
+  attio: attio_config_json,
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
@@ -127,6 +132,7 @@ export const appStoreMetadata = {
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
+  elevenlabs: elevenlabs_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -153,8 +159,10 @@ export const appStoreMetadata = {
   make: make_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
+  "millis-ai": millis_ai_config_json,
   mirotalk: mirotalk_config_json,
   "mock-payment-app": mock_payment_app_config_json,
+  monobot: monobot_config_json,
   n8n: n8n_config_json,
   nextcloudtalk: nextcloudtalk_config_json,
   office365calendar: office365calendar__metadata_ts,

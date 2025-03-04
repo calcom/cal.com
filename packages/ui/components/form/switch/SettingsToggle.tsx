@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ReactNode } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
 import Switch from "./Switch";
@@ -23,6 +23,7 @@ type Props = {
   labelClassName?: string;
   descriptionClassName?: string;
   noIndentation?: boolean;
+  hideSwitch?: boolean;
 };
 
 function SettingsToggle({
@@ -41,6 +42,7 @@ function SettingsToggle({
   labelClassName,
   descriptionClassName,
   noIndentation = false,
+  hideSwitch,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -77,16 +79,18 @@ function SettingsToggle({
                   </p>
                 )}
               </div>
-              <div className="my-auto h-full">
-                <Switch
-                  data-testid={rest["data-testid"]}
-                  fitToHeight={true}
-                  checked={checked}
-                  onCheckedChange={onCheckedChange}
-                  disabled={disabled}
-                  tooltip={tooltip}
-                />
-              </div>
+              {!hideSwitch && (
+                <div className="my-auto h-full">
+                  <Switch
+                    data-testid={rest["data-testid"]}
+                    fitToHeight={true}
+                    checked={checked}
+                    onCheckedChange={onCheckedChange}
+                    disabled={disabled}
+                    tooltip={tooltip}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex space-x-3">
