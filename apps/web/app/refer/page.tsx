@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import ReferralClient from "@calcom/packages/features/dub/ReferralClient";
+import ReferralClient from "@calcom/features/dub/ReferralClient";
 
 async function getReferralToken() {
   const response = await fetch(`/api/user/referrals-token`, {
