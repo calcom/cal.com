@@ -31,3 +31,6 @@ export { ConferencingAppsViewPlatformWrapper as ConferencingAppsSettings } from 
 export { StripeConnect } from "./connect/stripe/StripeConnect";
 export { CreateEventTypePlatformWrapper as CreateEventType } from "./event-types/wrappers/CreateEventTypePlatformWrapper";
 export { PaymentForm } from "./event-types/payments/PaymentForm";
+
+export { useCreateEventType } from "./hooks/event-types/private/useCreateEventType";
+export { useCreateTeamEventType } from "./hooks/event-types/private/useCreateTeamEventType";
