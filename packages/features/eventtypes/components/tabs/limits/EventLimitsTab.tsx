@@ -917,7 +917,6 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
 
           setValue(
             propertyName,
-            // @ts-expect-error FIXME Fix these typings
             {
               ...watchIntervalLimits,
               [rest.value]: defaultLimit,

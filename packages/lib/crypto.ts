@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const ALGORITHM = "aes256";
+const ALGORITHM = "aes-256-cbc";
 const INPUT_ENCODING = "utf8";
 const OUTPUT_ENCODING = "hex";
 const IV_LENGTH = 16; // AES blocksize
@@ -13,15 +13,14 @@ const IV_LENGTH = 16; // AES blocksize
  * @returns Encrypted value using key
  */
 export const symmetricEncrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
-  const iv = crypto.randomBytes(IV_LENGTH);
+  const _key = new Uint8Array(crypto.createHash("sha256").update(key).digest());
+  const iv = new Uint8Array(crypto.randomBytes(IV_LENGTH));
 
   const cipher = crypto.createCipheriv(ALGORITHM, _key, iv);
-  let ciphered = cipher.update(text, INPUT_ENCODING, OUTPUT_ENCODING);
-  ciphered += cipher.final(OUTPUT_ENCODING);
-  const ciphertext = `${iv.toString(OUTPUT_ENCODING)}:${ciphered}`;
+  let encrypted = cipher.update(text, INPUT_ENCODING, OUTPUT_ENCODING);
+  encrypted += cipher.final(OUTPUT_ENCODING);
 
-  return ciphertext;
+  return `${Buffer.from(iv).toString(OUTPUT_ENCODING)}:${encrypted}`;
 };
 
 /**
@@ -29,14 +28,15 @@ export const symmetricEncrypt = function (text: string, key: string) {
  * @param text Value to decrypt
  * @param key Key used to decrypt value must be 32 bytes for AES256 encryption algorithm
  */
-export const symmetricDecrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
+export const symmetricDecrypt = function (encryptedText: string, key: string) {
+  const _key = new Uint8Array(crypto.createHash("sha256").update(key).digest());
+  const [ivHex, encryptedHex] = encryptedText.split(":");
 
-  const components = text.split(":");
-  const iv_from_ciphertext = Buffer.from(components.shift() || "", OUTPUT_ENCODING);
-  const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv_from_ciphertext);
-  let deciphered = decipher.update(components.join(":"), OUTPUT_ENCODING, INPUT_ENCODING);
-  deciphered += decipher.final(INPUT_ENCODING);
+  const iv = new Uint8Array(Buffer.from(ivHex, OUTPUT_ENCODING));
+  const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv);
 
-  return deciphered;
+  let decrypted = decipher.update(encryptedHex, OUTPUT_ENCODING, INPUT_ENCODING);
+  decrypted += decipher.final(INPUT_ENCODING);
+
+  return decrypted;
 };
