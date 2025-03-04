@@ -11,7 +11,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
-import { Dialog as PlatformDialogPrimitives } from "../../../atoms/src/components/ui/dialog";
+import * as PlatformDialogPrimitives from "../../../platform/atoms/src/components/ui/dialog";
 import type { ButtonProps } from "../button";
 import { Button } from "../button";
 import type { IconName } from "../icon";
