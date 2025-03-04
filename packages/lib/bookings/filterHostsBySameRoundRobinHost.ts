@@ -6,7 +6,7 @@ import { isRerouting } from "./routing/utils";
 export const filterHostsBySameRoundRobinHost = async <
   T extends {
     isFixed: false; // ensure no fixed hosts are passed.
-    user: { id: number };
+    user: { id: number; email: string };
   }
 >({
   hosts,
@@ -34,9 +34,22 @@ export const filterHostsBySameRoundRobinHost = async <
       },
     },
     select: {
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
       userId: true,
     },
   });
 
-  return hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+  const currentRRHostId = hosts.find(
+    (host) =>
+      !host.isFixed &&
+      originalRescheduledBooking?.attendees.some((attendee) => attendee.email === host.user.email)
+  )?.user.id;
+
+  return hosts.filter(
+    (host) => host.user.id === currentRRHostId || host.user.id === originalRescheduledBooking?.userId
+  );
 };
