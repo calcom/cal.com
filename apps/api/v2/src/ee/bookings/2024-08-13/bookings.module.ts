@@ -3,6 +3,7 @@ import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controll
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -18,7 +19,15 @@ import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, RedisModule, TokensModule, BillingModule, UsersModule, BookingSeatModule],
+  imports: [
+    PrismaModule,
+    RedisModule,
+    TokensModule,
+    BillingModule,
+    UsersModule,
+    BookingSeatModule,
+    EventTypesModule_2024_06_14,
+  ],
   providers: [
     TokensRepository,
     OAuthFlowService,
