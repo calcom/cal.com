@@ -14,10 +14,10 @@ export class DestinationCalendarsService {
     integration: string,
     externalId: string,
     userId: number,
-    domainWideDelegationCredentialId?: string
+    delegationCredentialId?: string
   ) {
-    // note(Lauris): todo remove the log but leaving this now to confirm domainWideDelegationCredentialId is received
-    console.log("debug: domainWideDelegationCredentialId", domainWideDelegationCredentialId);
+    // note(Lauris): todo remove the log but leaving this now to confirm delegationCredentialId is received
+    console.log("debug: delegationCredentialId", delegationCredentialId);
     const userCalendars = await this.calendarsService.getCalendars(userId);
     const allCalendars: Calendar[] = userCalendars.connectedCalendars
       .map((cal: ConnectedCalendar) => cal.calendars ?? [])
@@ -27,25 +27,25 @@ export class DestinationCalendarsService {
         cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
     )?.credentialId;
 
-    if (!domainWideDelegationCredentialId && !credentialId) {
+    if (!delegationCredentialId && !credentialId) {
       throw new NotFoundException(`Could not find calendar ${externalId}`);
     }
 
-    const dwdCalendar = domainWideDelegationCredentialId
+    const delegatedCalendar = delegationCredentialId
       ? allCalendars.find(
           (cal: Calendar) =>
             cal.externalId === externalId &&
             cal.integration === integration &&
-            cal.domainWideDelegationCredentialId === domainWideDelegationCredentialId
+            cal.delegationCredentialId === delegationCredentialId
         )
       : undefined;
 
-    if (domainWideDelegationCredentialId && !dwdCalendar) {
+    if (delegationCredentialId && !delegatedCalendar) {
       throw new NotFoundException(`Could not find calendar ${externalId}`);
     }
 
-    const primaryEmail = dwdCalendar
-      ? (dwdCalendar.primary && dwdCalendar?.email) || undefined
+    const primaryEmail = delegatedCalendar
+      ? (delegatedCalendar.primary && delegatedCalendar?.email) || undefined
       : allCalendars.find((cal: Calendar) => cal.primary && cal.credentialId === credentialId)?.email;
 
     const {
@@ -58,8 +58,8 @@ export class DestinationCalendarsService {
       externalId,
       userId,
       primaryEmail ?? null,
-      dwdCalendar ? undefined : credentialId,
-      dwdCalendar ? domainWideDelegationCredentialId : undefined
+      delegatedCalendar ? undefined : credentialId,
+      delegatedCalendar ? delegationCredentialId : undefined
     );
 
     return {

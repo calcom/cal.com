@@ -4,8 +4,8 @@ import type { DefaultBodyType } from "msw";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import {
-  CalendarAppDomainWideDelegationInvalidGrantError,
-  CalendarAppDomainWideDelegationConfigurationError,
+  CalendarAppDelegationCredentialInvalidGrantError,
+  CalendarAppDelegationCredentialConfigurationError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -72,27 +72,24 @@ export default class Office365CalendarService implements Calendar {
       appSlug: metadata.slug,
       currentTokenObject: tokenResponse,
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
-        const isDomainWideDelegated = Boolean(credential?.delegatedTo);
+        const isDelegated = Boolean(credential?.delegatedTo);
 
-        if (!isDomainWideDelegated && !refreshToken) {
+        if (!isDelegated && !refreshToken) {
           return null;
         }
 
-        const { client_id, client_secret } = await this.getAuthCredentials(isDomainWideDelegated);
+        const { client_id, client_secret } = await this.getAuthCredentials(isDelegated);
 
-        const url = this.getAuthUrl(
-          isDomainWideDelegated,
-          credential?.delegatedTo?.serviceAccountKey?.tenant_id
-        );
+        const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
         const bodyParams = {
-          scope: isDomainWideDelegated
+          scope: isDelegated
             ? "https://graph.microsoft.com/.default"
             : "User.Read Calendars.Read Calendars.ReadWrite",
           client_id,
           client_secret,
-          grant_type: isDomainWideDelegated ? "client_credentials" : "refresh_token",
-          ...(isDomainWideDelegated ? {} : { refresh_token: refreshToken ?? "" }),
+          grant_type: isDelegated ? "client_credentials" : "refresh_token",
+          ...(isDelegated ? {} : { refresh_token: refreshToken ?? "" }),
         };
 
         return fetch(url, {
@@ -127,8 +124,8 @@ export default class Office365CalendarService implements Calendar {
   private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
     if (delegatedTo) {
       if (!tenantId) {
-        throw new CalendarAppDomainWideDelegationInvalidGrantError(
-          "Invalid DomainWideDelegation Settings: tenantId is missing"
+        throw new CalendarAppDelegationCredentialInvalidGrantError(
+          "Invalid DelegationCredential Settings: tenantId is missing"
         );
       }
       return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
@@ -137,14 +134,14 @@ export default class Office365CalendarService implements Calendar {
     return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
   }
 
-  private async getAuthCredentials(isDomainWideDelegated: boolean) {
-    if (isDomainWideDelegated) {
+  private async getAuthCredentials(isDelegated: boolean) {
+    if (isDelegated) {
       const client_id = this.credential?.delegatedTo?.serviceAccountKey?.client_id;
       const client_secret = this.credential?.delegatedTo?.serviceAccountKey?.private_key;
 
       if (!client_id || !client_secret) {
-        throw new CalendarAppDomainWideDelegationConfigurationError(
-          "Domain Wide Delegated credential without clientId or Secret"
+        throw new CalendarAppDelegationCredentialConfigurationError(
+          "Delegation credential without clientId or Secret"
         );
       }
 
@@ -157,18 +154,18 @@ export default class Office365CalendarService implements Calendar {
   private async getAzureUserId(credential: CredentialForCalendarServiceWithTenantId) {
     if (this.azureUserId) return this.azureUserId;
 
-    const isDomainWideDelegated = Boolean(credential?.delegatedTo);
+    const isDelegated = Boolean(credential?.delegatedTo);
 
-    if (!isDomainWideDelegated) return;
+    if (!isDelegated) return;
 
-    const url = this.getAuthUrl(isDomainWideDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+    const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
-    const dwdClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
-    const dwdClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
+    const delegationCredentialClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
+    const delegationCredentialClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
 
-    if (!dwdClientId || !dwdClientSecret) {
-      throw new CalendarAppDomainWideDelegationConfigurationError(
-        "Domain Wide Delegated credential without clientId or Secret"
+    if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
+      throw new CalendarAppDelegationCredentialConfigurationError(
+        "Delegation credential without clientId or Secret"
       );
     }
     const loginResponse = await fetch(url, {
@@ -176,9 +173,9 @@ export default class Office365CalendarService implements Calendar {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         scope: "https://graph.microsoft.com/.default",
-        client_id: dwdClientId,
+        client_id: delegationCredentialClientId,
         grant_type: "client_credentials",
-        client_secret: dwdClientSecret,
+        client_secret: delegationCredentialClientSecret,
       }),
     });
 
@@ -202,7 +199,7 @@ export default class Office365CalendarService implements Calendar {
       const parsedBody = await response.json();
 
       if (!parsedBody?.value?.[0]?.id) {
-        throw new CalendarAppDomainWideDelegationInvalidGrantError(
+        throw new CalendarAppDelegationCredentialInvalidGrantError(
           "User might not exist in Microsoft Azure Active Directory"
         );
       }
@@ -211,16 +208,16 @@ export default class Office365CalendarService implements Calendar {
     return this.azureUserId;
   }
 
-  // It would error if the domain wide delegation is not set up correctly
-  async testDomainWideDelegationSetup(): Promise<boolean> {
-    const dwdClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
-    const dwdClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
+  // It would error if the delegation credential is not set up correctly
+  async testDelegationCredentialSetup(): Promise<boolean> {
+    const delegationCredentialClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
+    const delegationCredentialClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
     const url = this.getAuthUrl(
       Boolean(this.credential?.delegatedTo),
       this.credential?.delegatedTo?.serviceAccountKey?.tenant_id
     );
 
-    if (!dwdClientId || !dwdClientSecret) {
+    if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
       return false;
     }
     const loginResponse = await fetch(url, {
@@ -228,9 +225,9 @@ export default class Office365CalendarService implements Calendar {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         scope: "https://graph.microsoft.com/.default",
-        client_id: dwdClientId,
+        client_id: delegationCredentialClientId,
         grant_type: "client_credentials",
-        client_secret: dwdClientSecret,
+        client_secret: delegationCredentialClientSecret,
       }),
     });
     const parsedLoginResponse = await loginResponse.json();
