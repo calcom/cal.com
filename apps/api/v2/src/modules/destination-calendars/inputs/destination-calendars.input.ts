@@ -37,5 +37,5 @@ export class DestinationCalendarsInputBodyDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional()
-  readonly domainWideDelegationCredentialId?: string;
+  readonly delegationCredentialId?: string;
 }
