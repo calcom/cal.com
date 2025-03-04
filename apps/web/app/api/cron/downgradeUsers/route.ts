@@ -1,4 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { TeamBilling } from "@calcom/ee/billing/teams";
@@ -8,20 +9,18 @@ const querySchema = z.object({
   page: z.coerce.number().min(0).optional().default(0),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function POST(request: NextRequest) {
+  const apiKey = request.headers.get("authorization") || new URL(request.url).searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
-  }
-  if (req.method !== "POST") {
-    res.status(405).json({ message: "Invalid method" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const pageSize = 90; // Adjust this value based on the total number of teams and the available processing time
-  let { page: pageNumber } = querySchema.parse(req.query);
+
+  const url = new URL(request.url);
+  let { page: pageNumber } = querySchema.parse(Object.fromEntries(url.searchParams));
 
   while (true) {
     const teams = await prisma.team.findMany({
@@ -51,5 +50,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     pageNumber++;
   }
 
-  res.json({ ok: true });
+  return NextResponse.json({ ok: true });
 }

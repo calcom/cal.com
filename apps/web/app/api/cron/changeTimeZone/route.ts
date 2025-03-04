@@ -1,4 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
@@ -19,16 +20,11 @@ const travelScheduleSelect = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
-  if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
-  }
+export async function POST(request: NextRequest) {
+  const apiKey = request.headers.get("authorization") || new URL(request.url).searchParams.get("apiKey");
 
-  if (req.method !== "POST") {
-    res.status(405).json({ message: "Invalid method" });
-    return;
+  if (process.env.CRON_API_KEY !== apiKey) {
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   let timeZonesChanged = 0;
@@ -169,5 +165,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  res.status(200).json({ timeZonesChanged });
+  return NextResponse.json({ timeZonesChanged });
 }
