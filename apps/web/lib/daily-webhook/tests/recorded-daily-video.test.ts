@@ -20,7 +20,7 @@ import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient"
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import handler from "@calcom/web/pages/api/recorded-daily-video";
+import { POST as handler } from "@calcom/web/app/api/recorded-daily-video/route";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
