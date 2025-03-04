@@ -33,7 +33,7 @@ export class TeamsRepository {
   async getTeamMembersIds(teamId: number) {
     const teamMembers = await this.dbRead.prisma.membership.findMany({
       where: {
-        id: teamId,
+        teamId,
       },
     });
     if (!teamMembers || teamMembers.length === 0) {
