@@ -5,8 +5,8 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppError";
-import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -40,8 +40,8 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
   return calendarCredentials;
 };
 
-export const getCalendarCredentialsWithoutDwd = (credentials: CredentialPayload[]) => {
-  return getCalendarCredentials(buildNonDwdCredentials(credentials));
+export const getCalendarCredentialsWithoutDelegated = (credentials: CredentialPayload[]) => {
+  return getCalendarCredentials(buildNonDelegationCredentials(credentials));
 };
 
 export const getConnectedCalendars = async (
@@ -57,12 +57,12 @@ export const getConnectedCalendars = async (
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
-        const domainWideDelegationCredentialId = credential.delegatedToId ?? null;
+        const delegationCredentialId = credential.delegatedToId ?? null;
         if (!calendar) {
           return {
             integration,
             credentialId,
-            domainWideDelegationCredentialId,
+            delegationCredentialId,
           };
         }
         const cals = await calendar.listCalendars();
@@ -75,7 +75,7 @@ export const getConnectedCalendars = async (
               primary: cal.primary || null,
               isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               credentialId,
-              domainWideDelegationCredentialId,
+              delegationCredentialId,
             };
           }),
           ["primary"]
@@ -100,7 +100,7 @@ export const getConnectedCalendars = async (
         return {
           integration: cleanIntegrationKeys(integration),
           credentialId,
-          domainWideDelegationCredentialId,
+          delegationCredentialId,
           primary,
           calendars,
         };
@@ -114,7 +114,7 @@ export const getConnectedCalendars = async (
           }
         }
 
-        if (error instanceof CalendarAppDomainWideDelegationError) {
+        if (error instanceof CalendarAppDelegationCredentialError) {
           errorMessage = error.message;
         }
 
@@ -123,7 +123,7 @@ export const getConnectedCalendars = async (
         return {
           integration: cleanIntegrationKeys(item.integration),
           credentialId: item.credential.id,
-          domainWideDelegationCredentialId: item.credential.delegatedToId,
+          delegationCredentialId: item.credential.delegatedToId,
           error: {
             message: errorMessage,
           },
@@ -209,14 +209,16 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
-  const externalCalendarIdWhenDwdCredentialIsChosen = credential.delegatedToId ? externalId : undefined;
+  const externalCalendarIdWhenDelegationCredentialIsChosen = credential.delegatedToId
+    ? externalId
+    : undefined;
 
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
         // Ideally we should pass externalId always, but let's start with DWD case first as in that case, CalendarService need to handle a special case for DWD to determine the selectedCalendar.
         // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
-        .createEvent(calEvent, credential.id, externalCalendarIdWhenDwdCredentialIsChosen)
+        .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
         .catch(async (error: { code: number; calError: string }) => {
           success = false;
           /**

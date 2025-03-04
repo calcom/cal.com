@@ -4,9 +4,9 @@ import type { TFunction } from "next-i18next";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import {
-  buildNonDwdCredentials,
-  enrichUserWithDwdConferencingCredentialsWithoutOrgId,
-} from "@calcom/lib/domainWideDelegation/server";
+  buildNonDelegationCredentials,
+  enrichUserWithDelegatedConferencingCredentialsWithoutOrgId,
+} from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -63,7 +63,7 @@ export async function getLocationGroupedOptions(
     });
   }
 
-  const nonDwdCredentials = await prisma.credential.findMany({
+  const nonDelegationCredentials = await prisma.credential.findMany({
     where: {
       ...idToSearchObject,
       app: {
@@ -84,17 +84,17 @@ export async function getLocationGroupedOptions(
 
   let credentials;
   if (user) {
-    // We only add dwd credentials if the request for location options is for a user because DWD Credential is applicable to Users only.
-    const { credentials: allCredentials } = await enrichUserWithDwdConferencingCredentialsWithoutOrgId({
+    // We only add delegationCredentials if the request for location options is for a user because DWD Credential is applicable to Users only.
+    const { credentials: allCredentials } = await enrichUserWithDelegatedConferencingCredentialsWithoutOrgId({
       user: {
         ...user,
-        credentials: nonDwdCredentials,
+        credentials: nonDelegationCredentials,
       },
     });
     credentials = allCredentials;
   } else {
-    // TODO: We can avoid calling buildNonDwdCredentials here by moving the above prisma query to the repository and doing it there
-    credentials = buildNonDwdCredentials(nonDwdCredentials);
+    // TODO: We can avoid calling buildNonDelegationCredentials here by moving the above prisma query to the repository and doing it there
+    credentials = buildNonDelegationCredentials(nonDelegationCredentials);
   }
 
   const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });

@@ -2,7 +2,7 @@ import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { enrichUserWithDwdCredentialsWithoutOrgId } from "../domainWideDelegation/server";
+import { enrichUserWithDelegationCredentialsWithoutOrgId } from "../delegationCredential/server";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = { id: SessionUser["id"]; email: SessionUser["email"] };
@@ -21,7 +21,7 @@ export async function getUsersCredentials(user: User) {
     },
   });
 
-  const { credentials: allCredentials } = await enrichUserWithDwdCredentialsWithoutOrgId({
+  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsWithoutOrgId({
     user: {
       email: user.email,
       id: user.id,

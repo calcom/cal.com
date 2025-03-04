@@ -33,11 +33,11 @@ export const getFirstConnectedCalendar = ({
 }) => {
   const calendars = connectedCalendars.flatMap((c) => c.calendars ?? []);
   const matchingCalendars = calendars.filter(matcher);
-  const dwdCredentialCalendar = matchingCalendars.find((cal) => !!cal.domainWideDelegationCredentialId);
+  const delegationCredentialCalendar = matchingCalendars.find((cal) => !!cal.delegationCredentialId);
 
   // Prefer DWD credential calendar as there could be other one due to existing connections even after DWD is enabled.
-  if (dwdCredentialCalendar) {
-    return dwdCredentialCalendar;
+  if (delegationCredentialCalendar) {
+    return delegationCredentialCalendar;
   } else {
     return matchingCalendars[0];
   }
@@ -49,7 +49,7 @@ export const getFirstConnectedCalendar = ({
  * So, it could update any of the destinationCalendar when there are duplicates in DB. Ideally we should have unique constraint on externalId, integration and eventTypeId.
  *
  * With the addition of DWD credential, it adds another dimension to the problem.
- * A user could have DWD and non-DWD credential for the same calendar and he might be selecting DWD credential connected calendar but it could still be set with nullish destinationCalendar.domainWideDelegationCredentialId.
+ * A user could have DWD and non-DWD credential for the same calendar and he might be selecting DWD credential connected calendar but it could still be set with nullish destinationCalendar.delegationCredentialId.
  */
 export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinationCalendarOptions) => {
   const { user } = ctx;
@@ -69,11 +69,11 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
       cal.externalId === externalId && cal.integration === integration && cal.readOnly === false,
   });
 
-  const { credentialId, domainWideDelegationCredentialId } = firstConnectedCalendar || {};
+  const { credentialId, delegationCredentialId } = firstConnectedCalendar || {};
 
   let where;
 
-  if (!credentialId && !domainWideDelegationCredentialId) {
+  if (!credentialId && !delegationCredentialId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
   }
 
@@ -81,8 +81,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     allCals.find(
       (cal) =>
         cal.primary &&
-        (cal.credentialId === credentialId ||
-          cal.domainWideDelegationCredentialId === domainWideDelegationCredentialId)
+        (cal.credentialId === credentialId || cal.delegationCredentialId === delegationCredentialId)
     )?.email ?? null;
 
   if (eventTypeId) {
@@ -110,7 +109,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
       externalId,
       primaryEmail,
       credentialId,
-      domainWideDelegationCredentialId,
+      delegationCredentialId,
     },
     create: {
       ...where,
@@ -118,7 +117,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
       externalId,
       primaryEmail,
       credentialId,
-      domainWideDelegationCredentialId,
+      delegationCredentialId,
     },
   });
 };

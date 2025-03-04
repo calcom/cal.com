@@ -9,7 +9,7 @@ import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
-import { enrichHostsWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
@@ -256,7 +256,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
   const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
-  const matchingHosts = await enrichHostsWithDwdCredentials({
+  const matchingHosts = await enrichHostsWithDelegationCredentials({
     orgId: formOrgId,
     hosts: eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id)),
   });

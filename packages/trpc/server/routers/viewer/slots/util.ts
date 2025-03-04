@@ -10,7 +10,7 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
+import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
@@ -44,10 +44,10 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
-type GetAvailabilityUserWithoutDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialPayload[];
 };
-type GetAvailabilityUserWithDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
 const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
@@ -272,7 +272,7 @@ export function getUsersWithCredentials({
 }: {
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUserWithDwdCredentials;
+    user: GetAvailabilityUserWithDelegationCredentials;
   }[];
 }) {
   return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
@@ -381,7 +381,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
-    findQualifiedHostsWithDwdCredentials<GetAvailabilityUserWithoutDwdCredentials>,
+    findQualifiedHostsWithDelegationCredentials<GetAvailabilityUserWithoutDelegationCredentials>,
     {
       eventType,
       rescheduleUid: input.rescheduleUid ?? null,
@@ -956,7 +956,7 @@ const calculateHostsAndAvailabilities = async ({
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUserWithDwdCredentials;
+    user: GetAvailabilityUserWithDelegationCredentials;
   }[];
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;

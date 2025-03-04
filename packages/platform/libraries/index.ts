@@ -32,19 +32,19 @@ import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCr
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import {
-  getFirstDwdConferencingCredentialAppLocation,
-  getFirstDwdConferencingCredential,
-  getDwdOrRegularCredential,
-  getDwdOrFindRegularCredential,
-  enrichUserWithDwdConferencingCredentialsWithoutOrgId,
-  enrichUserWithDwdCredentialsWithoutOrgId,
-  enrichHostsWithDwdCredentials,
-  enrichUsersWithDwdCredentials,
+  getFirstDelegatedConferencingCredentialAppLocation,
+  getFirstDelegatedConferencingCredential,
+  getDelegationCredentialOrRegularCredential,
+  getDelegationCredentialOrFindRegularCredential,
+  enrichUserWithDelegatedConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsWithoutOrgId,
+  enrichHostsWithDelegationCredentials,
+  enrichUsersWithDelegationCredentials,
   buildAllCredentials,
-  getAllDwdCredentialsForUserByAppSlug,
-  getAllDwdCredentialsForUserByAppType,
+  getAllDelegationCredentialsForUserByAppSlug,
+  getAllDelegationCredentialsForUserByAppType,
   checkIfSuccessfullyConfiguredInWorkspace,
-} from "@calcom/lib/domainWideDelegation/server";
+} from "@calcom/lib/delegationCredential/server";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
@@ -54,7 +54,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
-import addDwd from "@calcom/trpc/server/routers/viewer/domainWideDelegation/add.handler";
+import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
   createNewUsersConnectToOrgIfExists,
@@ -68,17 +68,17 @@ export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 export { getApps };
 
 export {
-  getFirstDwdConferencingCredentialAppLocation,
-  getFirstDwdConferencingCredential,
-  getDwdOrRegularCredential,
-  getDwdOrFindRegularCredential,
-  enrichUserWithDwdConferencingCredentialsWithoutOrgId,
-  enrichUserWithDwdCredentialsWithoutOrgId,
-  enrichHostsWithDwdCredentials,
-  enrichUsersWithDwdCredentials,
+  getFirstDelegatedConferencingCredentialAppLocation,
+  getFirstDelegatedConferencingCredential,
+  getDelegationCredentialOrRegularCredential,
+  getDelegationCredentialOrFindRegularCredential,
+  enrichUserWithDelegatedConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsWithoutOrgId,
+  enrichHostsWithDelegationCredentials,
+  enrichUsersWithDelegationCredentials,
   buildAllCredentials,
-  getAllDwdCredentialsForUserByAppSlug,
-  getAllDwdCredentialsForUserByAppType,
+  getAllDelegationCredentialsForUserByAppSlug,
+  getAllDelegationCredentialsForUserByAppType,
   checkIfSuccessfullyConfiguredInWorkspace,
 };
 
@@ -276,9 +276,9 @@ export { getRoutedUrl };
 
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 
-export { addDwd };
+export { addDelegationCredential };
 
 export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-export { toggleDwdEnabled } from "@calcom/trpc/server/routers/viewer/domainWideDelegation/toggleEnabled.handler";
+export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";

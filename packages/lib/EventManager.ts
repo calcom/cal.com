@@ -82,13 +82,13 @@ const getCredential = ({
   allCredentials,
 }: {
   id: {
-    domainWideDelegationCredentialId: string | null;
+    delegationCredentialId: string | null;
     credentialId: number | null;
   };
   allCredentials: CredentialForCalendarService[];
 }) => {
-  return id.domainWideDelegationCredentialId
-    ? allCredentials.find((c) => c.delegatedToId === id.domainWideDelegationCredentialId)
+  return id.delegationCredentialId
+    ? allCredentials.find((c) => c.delegatedToId === id.delegationCredentialId)
     : allCredentials.find((c) => c.id === id.credentialId);
 };
 
@@ -108,12 +108,12 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 };
 
 /**
- * Ensures invalid non-dwd credentialId isn't returned
+ * Ensures invalid non-delegationCredentialId isn't returned
  */
 function getCredentialPayload(result: EventResult<Exclude<Event, AdditionalInformation>>) {
   return {
     credentialId: result?.credentialId && result.credentialId > 0 ? result.credentialId : undefined,
-    domainWideDelegationCredentialId: result?.delegatedToId || undefined,
+    delegationCredentialId: result?.delegatedToId || undefined,
   };
 }
 
@@ -364,7 +364,7 @@ export default class EventManager {
       credentialId,
       this.calendarCredentials,
       credentialType,
-      reference.domainWideDelegationCredentialId
+      reference.delegationCredentialId
     );
 
     if (calendarCredential) {
@@ -396,10 +396,10 @@ export default class EventManager {
     credentialId: number | null | undefined,
     credentials: CredentialForCalendarService[],
     type: string,
-    domainWideDelegationCredentialId?: string | null
+    delegationCredentialId?: string | null
   ) {
-    if (domainWideDelegationCredentialId) {
-      return this.calendarCredentials.find((cred) => cred.delegatedToId === domainWideDelegationCredentialId);
+    if (delegationCredentialId) {
+      return this.calendarCredentials.find((cred) => cred.delegatedToId === delegationCredentialId);
     }
     const credential = credentials.find((cred) => cred.id === credentialId);
     if (credential) {
@@ -699,11 +699,11 @@ export default class EventManager {
       for (const destination of destinationCalendars) {
         if (eventCreated) break;
         log.silly("Creating Calendar event", JSON.stringify({ destination }));
-        if (destination.credentialId || destination.domainWideDelegationCredentialId) {
+        if (destination.credentialId || destination.delegationCredentialId) {
           let credential = getCredential({
             id: {
               credentialId: destination.credentialId,
-              domainWideDelegationCredentialId: destination.domainWideDelegationCredentialId,
+              delegationCredentialId: destination.delegationCredentialId,
             },
             allCredentials: this.calendarCredentials,
           });
@@ -728,14 +728,14 @@ export default class EventManager {
                   delegatedTo: credentialFromDB.delegatedTo,
                 };
               }
-            } else if (destination.domainWideDelegationCredentialId) {
-              log.warn("DWD: DWD seems to be disabled, falling back to first non-dwd credential");
+            } else if (destination.delegationCredentialId) {
+              log.warn("DWD: DWD seems to be disabled, falling back to first non-delegationCredential");
               // In case DWD is disabled, we land here where the destination calendar is connected to a DWD credential, but the credential isn't available(because DWD is disabled)
-              // In this case, we fallback to the first non-dwd credential. That would be there for all existing users before DWD was enabled
-              const firstNonDwdCalendarCredential = this.calendarCredentials.find(
+              // In this case, we fallback to the first non-delegationCredential. That would be there for all existing users before DWD was enabled
+              const firstNonDelegatedCalendarCredential = this.calendarCredentials.find(
                 (cred) => !cred.type.endsWith("other_calendar") && !cred.delegatedToId
               );
-              credential = firstNonDwdCalendarCredential;
+              credential = firstNonDelegatedCalendarCredential;
             }
           }
           if (credential) {

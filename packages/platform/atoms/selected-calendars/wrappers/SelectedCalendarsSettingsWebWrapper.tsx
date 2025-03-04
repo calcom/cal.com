@@ -66,7 +66,7 @@ const ConnectedCalendarList = ({
               className="border-subtle mt-4 rounded-lg border"
               actions={
                 // DWD credential can't be disconnected
-                !connectedCalendar.domainWideDelegationCredentialId &&
+                !connectedCalendar.delegationCredentialId &&
                 !disableConnectionModification && (
                   <div className="flex w-32 justify-end">
                     <DisconnectIntegration
@@ -95,9 +95,7 @@ const ConnectedCalendarList = ({
                           destination={cal.externalId === destinationCalendarId}
                           credentialId={cal.credentialId}
                           eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
-                          domainWideDelegationCredentialId={
-                            connectedCalendar.domainWideDelegationCredentialId
-                          }
+                          delegationCredentialId={connectedCalendar.delegationCredentialId}
                         />
                       ))}
                     </ul>
@@ -123,7 +121,7 @@ const ConnectedCalendarList = ({
             iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
             actions={
               // DWD credential can't be disconnected
-              !connectedCalendar.domainWideDelegationCredentialId && (
+              !connectedCalendar.delegationCredentialId && (
                 <div className="flex w-32 justify-end">
                   <DisconnectIntegration
                     credentialId={connectedCalendar.credentialId}

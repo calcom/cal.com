@@ -295,7 +295,7 @@ describe("Watching and unwatching calendar", () => {
         integration: "google_calendar",
         externalId: "example@cal.com",
         credentialId: 1,
-        domainWideDelegationCredentialId: null,
+        delegationCredentialId: null,
         googleChannelId: "mock-channel-id",
         googleChannelKind: "api#channel",
         googleChannelResourceId: "mock-resource-id",
@@ -325,7 +325,7 @@ describe("Watching and unwatching calendar", () => {
         integration: "google_calendar",
         externalId: "example@cal.com",
         credentialId: 1,
-        domainWideDelegationCredentialId: null,
+        delegationCredentialId: null,
         googleChannelId: null,
         googleChannelKind: null,
         googleChannelResourceId: null,
@@ -781,7 +781,7 @@ describe("GoogleCalendarService credential handling", () => {
     const calendarService = new CalendarService(credentialWithDWD);
 
     await expect(calendarService.listCalendars()).rejects.toThrow(
-      "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
+      "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
     );
   });
 
@@ -818,7 +818,7 @@ describe("GoogleCalendarService credential handling", () => {
 
     const calendarService = new CalendarService(credentialWithDWD);
 
-    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing domain wide delegation");
+    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing delegation credential");
   });
 
   test("handles missing user email for DWD appropriately", async () => {

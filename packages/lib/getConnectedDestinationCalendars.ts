@@ -1,6 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
-import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
-import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -30,11 +30,11 @@ export type ConnectedDestinationCalendars = Awaited<
  * Ensures that when DWD is enabled and there is already a calendar connected for the corresponding domain, we only allow the DWD calendar to be returned
  * This is to ensure that duplicate calendar connections aren't shown in UI(apps/installed/calendars). We choose DWD connection to be shown because we don't want users to be able to work with individual calendars
  */
-const _ensureNoConflictingNonDwdConnectedCalendar = <
+const _ensureNoConflictingNonDelegatedConnectedCalendar = <
   T extends {
     integration: { slug: string };
     primary?: { email?: string | null | undefined } | undefined;
-    domainWideDelegationCredentialId?: string | null | undefined;
+    delegationCredentialId?: string | null | undefined;
   }
 >({
   connectedCalendars,
@@ -51,14 +51,14 @@ const _ensureNoConflictingNonDwdConnectedCalendar = <
     // If no other calendar with this slug, keep it
     if (allCalendarsWithSameAppSlug.length === 1) return true;
 
-    const dwdCalendarsWithSameAppSlug = allCalendarsWithSameAppSlug.filter(
-      (cal) => cal.domainWideDelegationCredentialId
+    const delegatedCalendarsWithSameAppSlug = allCalendarsWithSameAppSlug.filter(
+      (cal) => cal.delegationCredentialId
     );
-    if (!dwdCalendarsWithSameAppSlug.length) {
+    if (!delegatedCalendarsWithSameAppSlug.length) {
       return true;
     }
 
-    if (connectedCalendar.domainWideDelegationCredentialId) {
+    if (connectedCalendar.delegationCredentialId) {
       return true;
     }
 
@@ -116,7 +116,7 @@ async function handleNoDestinationCalendar({
     integration = "",
     externalId = "",
     credentialId,
-    domainWideDelegationCredentialId,
+    delegationCredentialId,
     email: primaryEmail,
   } = connectedCalendars[0].primary ?? {};
 
@@ -140,12 +140,12 @@ async function handleNoDestinationCalendar({
       integration,
       externalId,
       primaryEmail,
-      ...(!isDwdCredential({ credentialId })
+      ...(!isDelegationCredential({ credentialId })
         ? {
             credentialId,
           }
         : {
-            domainWideDelegationCredentialId,
+            delegationCredentialId,
           }),
     },
   });
@@ -285,7 +285,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
-  const { credentials: allCredentials } = await enrichUserWithDwdCredentialsWithoutOrgId({
+  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsWithoutOrgId({
     user: { id: user.id, email: user.email, credentials: userCredentials },
   });
 
@@ -363,12 +363,12 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     });
   }
 
-  const noConflictingNonDwdConnectedCalendars = _ensureNoConflictingNonDwdConnectedCalendar({
+  const noConflictingNonDelegatedConnectedCalendars = _ensureNoConflictingNonDelegatedConnectedCalendar({
     connectedCalendars,
     loggedInUser: { email: user.email },
   });
   return {
-    connectedCalendars: noConflictingNonDwdConnectedCalendars,
+    connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
     destinationCalendar: {
       ...(user.destinationCalendar as DestinationCalendar),
       ...destinationCalendar,
