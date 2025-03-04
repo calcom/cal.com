@@ -3,12 +3,11 @@ import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 import { vi, it, describe, expect, afterEach } from "vitest";
 import type { Mock } from "vitest";
 
-import { SchedulingType } from "@calcom/prisma/enums";
+import { RRResetInterval, SchedulingType } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { findQualifiedHostsWithDwdCredentials } from "./findQualifiedHostsWithDwdCredentials";
 import * as getRoutedUsers from "./getRoutedUsers";
-import { RRResetInterval } from ".prisma/client";
 
 // Mock the filterHostsByLeadThreshold function
 vi.mock("./filterHostsByLeadThreshold", () => {
