@@ -203,7 +203,7 @@ describe("handleNewBooking", () => {
         expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           credential: buildDelegationCredential({
-            serviceAccountKey: delegationcredential.serviceAccountKey,
+            serviceAccountKey: delegationCredential.serviceAccountKey,
           }),
           calendarId: TestData.selectedCalendars.google.externalId,
           // There would be no videoCallUrl in this case as it is not a dedicated conferencing case and hangoutLink is used instead
@@ -402,7 +402,7 @@ describe("handleNewBooking", () => {
         expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           credential: buildDelegationCredential({
-            serviceAccountKey: delegationcredential.serviceAccountKey,
+            serviceAccountKey: delegationCredential.serviceAccountKey,
           }),
           calendarId: TestData.selectedCalendars.office365.externalId,
           // There would be no videoCallUrl in this case as it is not a dedicated conferencing case and hangoutLink is used instead
