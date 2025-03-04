@@ -40,7 +40,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
   return calendarCredentials;
 };
 
-export const getCalendarCredentialsWithoutDelegated = (credentials: CredentialPayload[]) => {
+export const getCalendarCredentialsWithoutDelegation = (credentials: CredentialPayload[]) => {
   return getCalendarCredentials(buildNonDelegationCredentials(credentials));
 };
 

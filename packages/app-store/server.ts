@@ -5,7 +5,7 @@ import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import {
   buildNonDelegationCredentials,
-  enrichUserWithDelegatedConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
 } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
@@ -85,12 +85,14 @@ export async function getLocationGroupedOptions(
   let credentials;
   if (user) {
     // We only add delegationCredentials if the request for location options is for a user because DelegationCredential Credential is applicable to Users only.
-    const { credentials: allCredentials } = await enrichUserWithDelegatedConferencingCredentialsWithoutOrgId({
-      user: {
-        ...user,
-        credentials: nonDelegationCredentials,
-      },
-    });
+    const { credentials: allCredentials } = await enrichUserWithDelegationConferencingCredentialsWithoutOrgId(
+      {
+        user: {
+          ...user,
+          credentials: nonDelegationCredentials,
+        },
+      }
+    );
     credentials = allCredentials;
   } else {
     // TODO: We can avoid calling buildNonDelegationCredentials here by moving the above prisma query to the repository and doing it there

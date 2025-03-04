@@ -17,7 +17,7 @@ import {
   enrichUsersWithDelegationCredentials,
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsWithoutOrgId,
-  enrichUserWithDelegatedConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
 } from "./server";
 
 // Mock OrganizationRepository
@@ -573,7 +573,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
   });
 });
 
-describe("enrichUserWithDelegatedConferencingCredentialsWithoutOrgId", () => {
+describe("enrichUserWithDelegationConferencingCredentialsWithoutOrgId", () => {
   const mockUserWithCredentials = {
     ...mockUser,
     credentials: [buildRegularGoogleCalendarCredential()],
@@ -588,7 +588,7 @@ describe("enrichUserWithDelegatedConferencingCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
 
-    const result = await enrichUserWithDelegatedConferencingCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationConferencingCredentialsWithoutOrgId({
       user: mockUserWithCredentials,
     });
 
@@ -606,7 +606,7 @@ describe("enrichUserWithDelegatedConferencingCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
 
-    const result = await enrichUserWithDelegatedConferencingCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationConferencingCredentialsWithoutOrgId({
       user: mockUserWithCredentials,
     });
 

@@ -4,19 +4,19 @@ export function isDelegationCredential({ credentialId }: { credentialId: number 
 }
 
 export const buildNonDelegationCredential = <T extends Record<string, unknown> | null>(credential: T) => {
-  type WithDelegatedCredential = T extends null
+  type WithDelegationCredential = T extends null
     ? null
     : T & {
         delegatedTo: null;
         delegatedToId: null;
       };
 
-  if (!credential) return null as WithDelegatedCredential;
+  if (!credential) return null as WithDelegationCredential;
   return {
     ...credential,
     delegatedTo: null,
     delegatedToId: null,
-  } as WithDelegatedCredential;
+  } as WithDelegationCredential;
 };
 
 export const buildNonDelegationCredentials = <T extends Record<string, unknown>>(credentials: T[]) => {

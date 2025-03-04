@@ -413,7 +413,7 @@ export const enrichUserWithDelegationCredentialsWithoutOrgId = async <
   };
 };
 
-export async function enrichUserWithDelegatedConferencingCredentialsWithoutOrgId<
+export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgId<
   TUser extends { id: number; email: string; credentials: CredentialPayload[] }
 >({ user }: { user: TUser }) {
   const { credentials, ...restUser } = await enrichUserWithDelegationCredentialsWithoutOrgId({ user });
@@ -470,7 +470,7 @@ export function getDelegationCredentialOrRegularCredential<
   );
 }
 
-export function getFirstDelegatedConferencingCredential({
+export function getFirstDelegationConferencingCredential({
   credentials,
 }: {
   credentials: CredentialForCalendarService[];
@@ -478,12 +478,12 @@ export function getFirstDelegatedConferencingCredential({
   return credentials.find((credential) => _isConferencingCredential(credential));
 }
 
-export function getFirstDelegatedConferencingCredentialAppLocation({
+export function getFirstDelegationConferencingCredentialAppLocation({
   credentials,
 }: {
   credentials: CredentialForCalendarService[];
 }) {
-  const delegatedConferencingCredential = getFirstDelegatedConferencingCredential({ credentials });
+  const delegatedConferencingCredential = getFirstDelegationConferencingCredential({ credentials });
   if (delegatedConferencingCredential?.appId === googleMeetMetadata.slug) {
     return googleMeetMetadata.appData?.location?.type ?? null;
   }

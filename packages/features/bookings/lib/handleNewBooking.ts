@@ -49,7 +49,7 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
-  getFirstDelegatedConferencingCredentialAppLocation,
+  getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -809,7 +809,7 @@ async function handler(
     }
   }
 
-  const organizationDefaultLocation = getFirstDelegatedConferencingCredentialAppLocation({
+  const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
     credentials: firstUser.credentials,
   });
 

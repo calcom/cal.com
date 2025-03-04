@@ -32,11 +32,11 @@ import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCr
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import {
-  getFirstDelegatedConferencingCredentialAppLocation,
-  getFirstDelegatedConferencingCredential,
+  getFirstDelegationConferencingCredentialAppLocation,
+  getFirstDelegationConferencingCredential,
   getDelegationCredentialOrRegularCredential,
   getDelegationCredentialOrFindRegularCredential,
-  enrichUserWithDelegatedConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
   enrichUserWithDelegationCredentialsWithoutOrgId,
   enrichHostsWithDelegationCredentials,
   enrichUsersWithDelegationCredentials,
@@ -68,11 +68,11 @@ export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 export { getApps };
 
 export {
-  getFirstDelegatedConferencingCredentialAppLocation,
-  getFirstDelegatedConferencingCredential,
+  getFirstDelegationConferencingCredentialAppLocation,
+  getFirstDelegationConferencingCredential,
   getDelegationCredentialOrRegularCredential,
   getDelegationCredentialOrFindRegularCredential,
-  enrichUserWithDelegatedConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
   enrichUserWithDelegationCredentialsWithoutOrgId,
   enrichHostsWithDelegationCredentials,
   enrichUsersWithDelegationCredentials,
