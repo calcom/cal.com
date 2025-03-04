@@ -1,7 +1,9 @@
 import type { NextApiRequest } from "next";
 
+import { buildNonDwdCredential } from "@calcom/lib/domainWideDelegation/server";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
@@ -35,7 +37,8 @@ async function postHandler(req: NextApiRequest) {
       message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
   const { selectedCalendars } = credential;
-  const calendar = await getCalendar(credential);
+
+  const calendar = await getCalendar(buildNonDwdCredential(credential));
 
   // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
   // Necessary to do here so that it is ensure for all calendar apps

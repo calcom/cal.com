@@ -4,6 +4,10 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RRResetInterval } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { CredentialPayload } from "@calcom/types/Credential";
+
+import { enrichHostsWithDwdCredentials } from "../domainWideDelegation/server";
+import getOrgIdFromMemberOrTeamId from "../getOrgIdFromMemberOrTeamId";
 
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
 
@@ -111,6 +115,65 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
           createdAt: null,
         };
       }),
+    };
+  }
+}
+type BaseUserWithCredentialPayload = BaseUser & { credentials: CredentialPayload[] };
+export async function getNormalizedHostsWithDwdCredentials<
+  User extends BaseUserWithCredentialPayload,
+  Host extends BaseHost<User>
+>({
+  eventType,
+}: {
+  eventType: {
+    schedulingType: SchedulingType | null;
+    hosts?: Host[];
+    users: User[];
+    teamId?: number;
+  };
+}) {
+  if (eventType.hosts?.length && eventType.schedulingType) {
+    const hostsWithoutDwd = eventType.hosts.map((host) => ({
+      isFixed: host.isFixed,
+      user: host.user,
+      priority: host.priority,
+      weight: host.weight,
+      createdAt: host.createdAt,
+    }));
+    const firstHost = hostsWithoutDwd[0];
+    const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: firstHost?.user?.id ?? null,
+      teamId: eventType.teamId,
+    });
+    const hostsEnrichedWithDwd = await enrichHostsWithDwdCredentials({
+      orgId: firstUserOrgId ?? null,
+      hosts: hostsWithoutDwd ?? null,
+    });
+    return {
+      hosts: hostsEnrichedWithDwd,
+      fallbackHosts: null,
+    };
+  } else {
+    const hostsWithoutDwd = eventType.users.map((user) => {
+      return {
+        isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+        email: user.email,
+        user: user,
+        createdAt: null,
+      };
+    });
+    const firstHost = hostsWithoutDwd[0];
+    const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: firstHost?.user?.id ?? null,
+      teamId: eventType.teamId,
+    });
+    const hostsEnrichedWithDwd = await enrichHostsWithDwdCredentials({
+      orgId: firstUserOrgId ?? null,
+      hosts: hostsWithoutDwd ?? null,
+    });
+    return {
+      hosts: null,
+      fallbackHosts: hostsEnrichedWithDwd,
     };
   }
 }

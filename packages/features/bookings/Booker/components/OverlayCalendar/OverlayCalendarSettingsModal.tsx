@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Fragment } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Alert,
@@ -17,6 +16,7 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 

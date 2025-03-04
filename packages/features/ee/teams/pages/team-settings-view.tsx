@@ -7,7 +7,7 @@ import { useForm, Controller } from "react-hook-form";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames, validateIntervalLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -15,6 +15,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
 import RoundRobinResetInterval from "../components/RoundRobinResetInterval";

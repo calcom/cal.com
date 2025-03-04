@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.0.6",
+  "version": "5.0.11",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -30,7 +30,6 @@
     "@boxyhq/saml-jackson": "1.18.6",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
-    "@calcom/core": "*",
     "@calcom/dayjs": "*",
     "@calcom/embed-core": "workspace:*",
     "@calcom/embed-react": "workspace:*",
