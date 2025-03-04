@@ -11,7 +11,6 @@ import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefine
 import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
-import { classNames } from "@calcom/lib";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
@@ -21,6 +20,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 

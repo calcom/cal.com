@@ -7,7 +7,7 @@ export default async function BookingPageWrapperLayout({ children }: { children:
   const nonce = h.get("x-nonce") ?? undefined;
 
   return (
-    <PageWrapper isBookingPage={true} requiresLicense={false} nonce={nonce} themeBasis={null}>
+    <PageWrapper isBookingPage={true} requiresLicense={false} nonce={nonce}>
       {children}
     </PageWrapper>
   );

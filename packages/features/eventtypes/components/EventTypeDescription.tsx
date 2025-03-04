@@ -4,7 +4,7 @@ import type { z } from "zod";
 
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
-import { classNames, parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent } from "@calcom/lib";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -13,6 +13,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { Badge } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<

@@ -2,10 +2,10 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, useEffect } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import { Alert, RadioField, Select, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import {
   convertToSmallestCurrencyUnit,

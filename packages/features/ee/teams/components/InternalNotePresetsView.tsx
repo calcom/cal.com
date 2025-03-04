@@ -5,12 +5,12 @@ import { useMemo } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, SettingsToggle, showToast, Icon, Input } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];

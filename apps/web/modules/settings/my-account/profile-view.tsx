@@ -19,7 +19,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -50,6 +49,8 @@ import CustomEmailTextField from "@components/settings/CustomEmailTextField";
 import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 const SkeletonLoader = () => {
   return (
