@@ -3001,5 +3001,6 @@
   "ooo_team_redirect_infinite_not_allowed": "There is already a reverse forwarding between these users.",
   "previous_ooo_empty_title": "No previous OOO found",
   "previous": "Previous",
+  "user_has_no_team_yet": "You don't have a team yet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

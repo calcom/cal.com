@@ -37,6 +37,7 @@ interface OutOfOfficeEntry {
   } | null;
   notes: string | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
+  canEditAndDelete: boolean;
 }
 
 export const OutOfOfficeEntriesList = () => {
@@ -223,7 +224,7 @@ export const OutOfOfficeEntriesList = () => {
                       };
                       editOutOfOfficeEntry(outOfOfficeEntryData);
                     }}
-                    disabled={isPending || isFetching}
+                    disabled={isPending || isFetching || !item.canEditAndDelete}
                   />
                 </Tooltip>
                 <Tooltip content={t("delete")}>
@@ -232,7 +233,12 @@ export const OutOfOfficeEntriesList = () => {
                     type="button"
                     color="destructive"
                     variant="icon"
-                    disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
+                    disabled={
+                      deleteOutOfOfficeEntryMutation.isPending ||
+                      isPending ||
+                      isFetching ||
+                      !item.canEditAndDelete
+                    }
                     StartIcon="trash-2"
                     data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
                     onClick={() => {
