@@ -77,7 +77,7 @@ async function _getServerTranslation(locale: string) {
   };
 }
 
-export const getTranslate = async (lang: string): Promise<TFunction> => {
+export const getTranslate = async (lang = "en"): Promise<TFunction> => {
   const cachedTFunction = translationCache.get(lang);
   if (cachedTFunction) {
     return cachedTFunction;
