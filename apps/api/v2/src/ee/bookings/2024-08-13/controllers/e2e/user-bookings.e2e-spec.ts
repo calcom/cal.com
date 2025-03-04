@@ -1629,6 +1629,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         expect(createdBooking).toHaveProperty("id");
 
         if (responseDataIsBooking(createdBooking)) {
+          console.log("createdBooking.location", createdBooking.location);
           expect(createdBooking.location?.startsWith("http")).toEqual(true);
           await bookingsRepositoryFixture.deleteById(createdBooking.id);
         } else {
