@@ -22,9 +22,9 @@ import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import {
-  enrichHostsWithDwdCredentials,
-  enrichUserWithDwdCredentialsWithoutOrgId,
-} from "@calcom/lib/domainWideDelegation/server";
+  enrichHostsWithDelegationCredentials,
+  enrichUserWithDelegationCredentialsWithoutOrgId,
+} from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
@@ -119,7 +119,7 @@ export const roundRobinReassignment = async ({
 
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
-  const eventTypeHosts = await enrichHostsWithDwdCredentials({
+  const eventTypeHosts = await enrichHostsWithDelegationCredentials({
     orgId,
     hosts: eventType.hosts,
   });
@@ -320,7 +320,7 @@ export const roundRobinReassignment = async ({
     },
   });
 
-  const organizerWithCredentials = await enrichUserWithDwdCredentialsWithoutOrgId({
+  const organizerWithCredentials = await enrichUserWithDelegationCredentialsWithoutOrgId({
     user: { ...organizer, credentials },
   });
 

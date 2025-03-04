@@ -210,7 +210,7 @@ export class EventTypesAtomService {
         credentials = credentials.concat(teamAppCredentials);
       }
     }
-    //TODO: enrich credentials for DWD
+    //TODO: enrich credentials for DelegationCredential
     const enabledApps = await getEnabledAppsFromCredentials(credentials, {
       where: { slug },
     });
