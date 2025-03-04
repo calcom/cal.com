@@ -32,8 +32,9 @@ const UserProfile = () => {
 
   // Create a separate mutation for avatar updates
   const avatarMutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       showToast(t("your_user_profile_updated_successfully"), "success");
+      setImageSrc(data.avatarUrl ?? "");
       await utils.viewer.me.refetch();
     },
     onError: () => {
@@ -132,7 +133,6 @@ const UserProfile = () => {
               const ev2 = new Event("input", { bubbles: true });
               avatarRef.current?.dispatchEvent(ev2);
               updateProfileHandler(newAvatar);
-              setImageSrc(newAvatar);
             }}
             imageSrc={imageSrc}
           />
