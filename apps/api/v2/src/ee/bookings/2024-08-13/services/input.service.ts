@@ -318,7 +318,13 @@ export class InputBookingsService_2024_08_13 {
     const oAuthClientParams = await this.getOAuthClientParams(bodyTransformed.eventTypeId);
 
     const newRequest = { ...request };
-    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    let userId: number | undefined = undefined;
+
+    if (request.body.rescheduledBy) {
+      if (!this.isRescheduledByAttendee(request.body.rescheduledBy, bodyTransformed.responses.email)) {
+        userId = await this.createBookingRequestOwnerId(request);
+      }
+    }
 
     const location = await this.getRescheduleBookingLocation(bookingUid);
     if (oAuthClientParams) {
@@ -452,6 +458,10 @@ export class InputBookingsService_2024_08_13 {
     } catch (err) {
       this.logger.error(err);
     }
+  }
+
+  private isRescheduledByAttendee(rescheduledByEmail: string, bookingResponsesEmail: string) {
+    return rescheduledByEmail === bookingResponsesEmail;
   }
 
   transformGetBookingsFilters(queryParams: GetBookingsInput_2024_08_13) {
