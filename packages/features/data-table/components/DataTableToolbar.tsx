@@ -4,11 +4,11 @@ import type { Table } from "@tanstack/react-table";
 import { useEffect, useState, forwardRef } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonProps } from "@calcom/ui";
 import { Button, Input } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useColumnFilters } from "../hooks";
 

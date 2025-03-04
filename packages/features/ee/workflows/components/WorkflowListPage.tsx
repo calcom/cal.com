@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -22,6 +21,7 @@ import {
   Icon,
   Tooltip,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import type { WorkflowStep } from "../lib/types";
@@ -239,7 +239,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 workflow?.team.logo,
                                 workflow.team?.name as string
                               )}
-                              size="xxs"
+                              size="xs"
                               className="mt-[3px] inline-flex justify-center"
                             />
                             <div>{workflow.team.name}</div>

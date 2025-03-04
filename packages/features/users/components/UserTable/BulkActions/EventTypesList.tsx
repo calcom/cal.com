@@ -3,7 +3,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState, Fragment } from "react";
 
 import { DataTableSelectionBar } from "@calcom/features/data-table";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -22,6 +21,7 @@ import {
   PopoverTrigger,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { UserTableUser } from "../types";
 
@@ -98,7 +98,9 @@ export function EventTypesList({ table, orgTeams }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <DataTableSelectionBar.Button icon="link">{t("add_to_event_type")}</DataTableSelectionBar.Button>
+          <DataTableSelectionBar.Button icon="link" color="secondary">
+            {t("add_to_event_type")}
+          </DataTableSelectionBar.Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
           <Command>

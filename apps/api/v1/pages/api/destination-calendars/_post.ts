@@ -1,8 +1,8 @@
 import type { NextApiRequest } from "next";
 
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getCalendarCredentialsWithoutDelegation, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -82,7 +82,7 @@ async function postHandler(req: NextApiRequest) {
       message: "Bad request, credential id invalid",
     });
 
-  const calendarCredentials = getCalendarCredentials(userCredentials);
+  const calendarCredentials = getCalendarCredentialsWithoutDelegation(userCredentials);
 
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, [], parsedBody.externalId);
 

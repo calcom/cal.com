@@ -3,7 +3,6 @@ import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 
 import { DataTableSkeleton } from "@calcom/features/data-table";
-import classNames from "@calcom/lib/classNames";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,6 +18,7 @@ import {
   Input,
   Button,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 import {
   Table,
   TableBody,

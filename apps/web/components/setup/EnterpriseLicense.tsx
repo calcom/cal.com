@@ -5,13 +5,13 @@ import { useCallback, useState } from "react";
 import { Controller, FormProvider, useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
 
-import { classNames } from "@calcom/lib";
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TextField } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type EnterpriseLicenseFormValues = {
   licenseKey: string;
@@ -93,7 +93,7 @@ const EnterpriseLicense = (
           <Button
             className="w-full justify-center text-lg"
             EndIcon="external-link"
-            href="https://console.cal.com"
+            href="https://go.cal.com/get-license"
             target="_blank">
             {t("purchase_license")}
           </Button>
@@ -115,7 +115,6 @@ const EnterpriseLicense = (
                 placeholder="xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx"
                 labelSrOnly={true}
                 value={value}
-                addOnFilled={false}
                 addOnClassname={classNames(
                   "hover:border-default",
                   errors.licenseKey === undefined && isDirty && "group-hover:border-emphasis"

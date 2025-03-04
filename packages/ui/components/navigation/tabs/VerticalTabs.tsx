@@ -1,4 +1,4 @@
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import type { VerticalTabItemProps } from "./VerticalTabItem";
 import VerticalTabItem from "./VerticalTabItem";
@@ -32,6 +32,9 @@ const NavTabs = function ({
         `no-scrollbar flex flex-col space-y-0.5 overflow-scroll ${className}`,
         sticky && "sticky top-0 -mt-7"
       )}
+      style={{
+        maxWidth: "256px",
+      }}
       aria-label="Tabs"
       {...props}>
       {/* padding top for sticky */}

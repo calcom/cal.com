@@ -6,7 +6,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
-import { classNames } from "@calcom/lib";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,6 +40,7 @@ import {
   TextField,
   Tooltip,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import {
   getWhatsappTemplateForAction,
@@ -626,7 +626,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}
@@ -779,7 +779,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}
@@ -917,7 +917,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubjectFormRef?.(e);
                         refEmailSubject.current = e;
                       }}
-                      rows={1}
+                      rows={2}
                       disabled={props.readOnly || !hasActiveTeamPlan}
                       className="my-0 focus:ring-transparent"
                       required
