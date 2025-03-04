@@ -46,19 +46,20 @@
       "import": "./dist/cal-atoms.js",
       "types": "./dist/index.d.ts"
     },
-    "./booker": "./booker.ts",
+    "./add-members-switch/AddMembersWithSwitchPlatformWrapper": "./add-members-switch/AddMembersWithSwitchPlatformWrapper.ts",
+    "./add-members-switch/AddMembersWithSwitchWebWrapper": "./add-members-switch/AddMembersWithSwitchWebWrapper.ts",
     "./availability/AvailabilitySettings": "./availability/AvailabilitySettings.ts",
-    "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper": "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper.ts",
-    "./selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper": "./selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper.ts",
+    "./booker": "./booker.ts",
     "./components/ui/shell": "./src/components/ui/shell.ts",
     "./connect/conferencing-apps/ConferencingAppsViewWebWrapper": "./connect/conferencing-apps/ConferencingAppsViewWebWrapper.ts",
-    "./hooks/useAtomsContext": "./hooks/useAtomsContext.ts",
-    "./hooks/useIsPlatform": "./hooks/useIsPlatform.ts",
-    "./globals.min.css": "./globals.min.css",
+    "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper": "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper.ts",
     "./dist/index.ts": "./index.ts",
     "./dist/index.d.ts": "./dist/index.d.ts",
-    "./add-members-switch/AddMembersWithSwitchPlatformWrapper": "./add-members-switch/AddMembersWithSwitchPlatformWrapper.ts",
-    "./add-members-switch/AddMembersWithSwitchWebWrapper": "./add-members-switch/AddMembersWithSwitchWebWrapper.ts"
+    "./globals.min.css": "./globals.min.css",
+    "./hooks/useAtomsContext": "./hooks/useAtomsContext.ts",
+    "./hooks/useIsPlatform": "./hooks/useIsPlatform.ts",
+    "./hooks/useIsPlatformBookerEmbed": "./hooks/useIsPlatformBookerEmbed.ts",
+    "./selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper": "./selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper.ts"
   },
   "types": "./dist/index.d.ts",
   "dependencies": {
