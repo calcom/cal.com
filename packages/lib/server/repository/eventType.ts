@@ -814,6 +814,7 @@ export class EventTypeRepository {
             bookingLimits: true,
             includeManagedEventsInLimits: true,
             parentId: true,
+            rrResetInterval: true,
           },
         },
         parent: {
