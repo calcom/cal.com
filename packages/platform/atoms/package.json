@@ -49,7 +49,9 @@
     "./hooks/useIsPlatform": "./hooks/useIsPlatform.ts",
     "./globals.min.css": "./globals.min.css",
     "./dist/index.ts": "./index.ts",
-    "./dist/index.d.ts": "./dist/index.d.ts"
+    "./dist/index.d.ts": "./dist/index.d.ts",
+    "./add-members-switch/AddMembersWithSwitchPlatformWrapper": "./add-members-switch/AddMembersWithSwitchPlatformWrapper",
+    "./add-members-switch/AddMembersWithSwitchWebWrapper": "./add-members-switch/AddMembersWithSwitchWebWrapper"
   },
   "types": "./dist/index.d.ts",
   "dependencies": {
