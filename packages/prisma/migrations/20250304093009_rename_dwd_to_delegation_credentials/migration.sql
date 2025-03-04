@@ -34,8 +34,6 @@ ADD COLUMN     "delegationCredentialId" TEXT;
 ALTER TABLE "SelectedCalendar" DROP COLUMN "domainWideDelegationCredentialId",
 ADD COLUMN     "delegationCredentialId" TEXT;
 
--- DropTable
-DROP TABLE "DomainWideDelegation";
 
 -- CreateTable
 CREATE TABLE "DelegationCredential" (
