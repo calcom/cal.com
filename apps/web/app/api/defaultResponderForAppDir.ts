@@ -26,7 +26,11 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
         : await handler(req, { params });
 
       ok = true;
-      return result;
+      if (result) {
+        return result instanceof Response ? result : NextResponse.json(result);
+      }
+
+      return NextResponse.json({});
     } catch (error) {
       let serverError;
 
