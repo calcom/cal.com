@@ -492,7 +492,7 @@ test.describe("Out of office", () => {
   });
 
   test.describe("Team OOO", () => {
-    test("Admin can Create, edit and delete team member's OOO", async ({ page, users }) => {
+    test("Create, edit and delete", async ({ page, users }) => {
       const t = await localize("en");
       const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }, { name: "member-3" }];
       const teamAdmin = await users.create(
@@ -574,85 +574,6 @@ test.describe("Out of office", () => {
         expect(page.locator(`text=${t("success_deleted_entry_out_of_office")}`)).toBeTruthy();
       });
     });
-    test("Non-Admin has read-only access to team mate's OOO", async ({ page, users }) => {
-      const member1Name = `member-1-${Date.now()}`;
-      const member2Name = `member-2-${Date.now()}`;
-      const member3Name = `member-3-${Date.now()}`;
-      const teamMatesObj = [{ name: member1Name }, { name: member2Name }];
-      const member3User = await users.create(
-        { name: member3Name },
-        {
-          hasTeam: true,
-          teamRole: MembershipRole.MEMBER,
-          teammates: teamMatesObj,
-        }
-      );
-      const member1User = users.get().find((user) => user.name === member1Name);
-      const member2User = users.get().find((user) => user.name === member2Name);
-
-      //create ooos for member1 and member2
-      await prisma.outOfOfficeEntry.create({
-        data: {
-          start: dayjs().startOf("day").toDate(),
-          end: dayjs().startOf("day").add(1, "w").toDate(),
-          uuid: uuidv4(),
-          user: { connect: { id: member1User?.id } },
-          toUser: { connect: { id: member2User?.id } },
-          createdAt: new Date(),
-          reason: {
-            connect: {
-              id: 1,
-            },
-          },
-        },
-      });
-
-      await prisma.outOfOfficeEntry.create({
-        data: {
-          start: dayjs().startOf("day").add(3, "w").toDate(),
-          end: dayjs().startOf("day").add(4, "w").toDate(),
-          uuid: uuidv4(),
-          user: { connect: { id: member2User?.id } },
-          toUser: { connect: { id: member3User?.id } },
-          createdAt: new Date(),
-          reason: {
-            connect: {
-              id: 2,
-            },
-          },
-        },
-      });
-
-      await test.step("member3 logins and navigates to team OOO", async () => {
-        await member3User?.apiLogin();
-        const entriesListRespPromise = page.waitForResponse(
-          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-        );
-        await page.goto("/settings/my-account/out-of-office?type=team");
-        await page.waitForLoadState("domcontentloaded");
-        await selectCustomDateRangeFilter(page);
-        await entriesListRespPromise;
-
-        //Non-Admin canNot create OOO for team members
-        await expect(page.locator('[data-testid="add_entry_ooo"]')).toBeDisabled();
-
-        //Non-Admin can view OOO entries of team members
-        await expect(
-          page.locator(`data-testid=table-redirect-${member2User?.username ?? "n-a"}`).nth(0)
-        ).toBeVisible();
-        await expect(
-          page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
-        ).toBeVisible();
-
-        //Non-Admin canNot edit OOO for team members
-        await expect(page.locator(`[data-testid="ooo-edit-${member2User?.username}"]`)).toBeDisabled();
-        await expect(page.locator(`[data-testid="ooo-edit-${member3User?.username}"]`)).toBeDisabled();
-
-        //Non-Admin canNot delete OOO for team members
-        await expect(page.locator(`[data-testid="ooo-delete-${member2User?.username}"]`)).toBeDisabled();
-        await expect(page.locator(`[data-testid="ooo-delete-${member3User?.username}"]`)).toBeDisabled();
-      });
-    });
   });
 
   test.describe("Date range filters", () => {
@@ -697,7 +618,7 @@ test.describe("Out of office", () => {
         { name: member3Name },
         {
           hasTeam: true,
-          teamRole: MembershipRole.MEMBER,
+          teamRole: MembershipRole.ADMIN,
           teammates: teamMatesObj,
         }
       );

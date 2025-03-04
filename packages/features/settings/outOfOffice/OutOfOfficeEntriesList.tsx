@@ -46,7 +46,6 @@ interface OutOfOfficeEntry {
   } | null;
   notes: string | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
-  canEditAndDelete: boolean;
 }
 
 const endDateColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
@@ -86,7 +85,7 @@ function OutOfOfficeEntriesListContent() {
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
-        searchTerm,
+        searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
         endDateFilterStartRange: endDateRange?.startDate ?? undefined,
         endDateFilterEndRange: endDateRange?.endDate ?? undefined,
       },
@@ -98,6 +97,9 @@ function OutOfOfficeEntriesListContent() {
 
   useEffect(() => {
     refetch();
+    if (selectedTab === OutOfOfficeTab.MINE) {
+      setSearchTerm("");
+    }
   }, [deletedEntry, selectedTab, refetch]);
 
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
@@ -247,7 +249,7 @@ function OutOfOfficeEntriesListContent() {
                       };
                       editOutOfOfficeEntry(outOfOfficeEntryData);
                     }}
-                    disabled={isPending || isFetching || !item.canEditAndDelete}
+                    disabled={isPending || isFetching}
                   />
                 </Tooltip>
                 <Tooltip content={t("delete")}>
@@ -256,12 +258,7 @@ function OutOfOfficeEntriesListContent() {
                     type="button"
                     color="destructive"
                     variant="icon"
-                    disabled={
-                      deleteOutOfOfficeEntryMutation.isPending ||
-                      isPending ||
-                      isFetching ||
-                      !item.canEditAndDelete
-                    }
+                    disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
                     StartIcon="trash-2"
                     data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
                     onClick={() => {

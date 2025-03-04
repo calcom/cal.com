@@ -2,7 +2,6 @@ import type { Prisma } from "@prisma/client";
 
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TLegacyListMembersInputSchema } from "./legacyListMembers.schema";
@@ -38,9 +37,6 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
       where: {
         userId: ctx.user.id,
         accepted: true,
-        ...(input.adminOrOwnedTeamsOnly
-          ? { role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } }
-          : {}),
       },
       select: { teamId: true },
     });
@@ -51,9 +47,6 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
         teamId: { in: input.teamIds },
         userId: ctx.user.id,
         accepted: true,
-        ...(input.adminOrOwnedTeamsOnly
-          ? { role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } }
-          : {}),
       },
     });
     teamsToQuery = memberships.map((m) => m.teamId);

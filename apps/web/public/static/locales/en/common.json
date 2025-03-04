@@ -3001,7 +3001,6 @@
   "ooo_team_redirect_infinite_not_allowed": "There is already a reverse forwarding between these users.",
   "previous_ooo_empty_title": "No previous OOO found",
   "previous": "Previous",
-  "user_has_no_team_yet": "You don't have a team yet",
   "next_number_of_days": "Next {{count}} days",
   "date_to_month": "Date to month",
   "date_to_year": "Date to year",
