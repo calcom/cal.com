@@ -31,7 +31,7 @@ export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
     return {
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: this.adminNoSlots.to.email,
-      subject: this.adminNoSlots.language("org_admin_no_slots|subject", { name: this.adminNoSlots.user }),
+      subject: this.adminNoSlots.language("org_admin_no_slots|heading", { name: this.adminNoSlots.user }),
       html: await renderEmail("OrganizationAdminNoSlotsEmail", this.adminNoSlots),
       text: this.getTextBody(),
     };

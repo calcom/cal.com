@@ -150,7 +150,6 @@
   "ooo_user_is_ooo": "{{displayName}} sedang OOO",
   "ooo_slots_returning": "<0>{{displayName}}</0> dapat mengikuti rapat mereka saat sedang tidak ada.",
   "ooo_slots_book_with": "Pesan {{displayName}}",
-  "ooo_create_entry_modal": "Keluar dari kantor",
   "ooo_select_reason": "Pilih alasan",
   "enterprise_license_locally": "Anda dapat menguji fitur ini secara lokal tetapi tidak pada produksi.",
   "enterprise_license_sales": "Untuk meningkatkan ke edisi perusahaan, hubungi tim penjualan kami. Jika kunci lisensi sudah ada, hubungi support@cal.com untuk bantuan.",

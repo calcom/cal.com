@@ -51,7 +51,6 @@
   "ooo_user_is_ooo": "{{displayName}} je OOO",
   "ooo_slots_returning": "<0>{{displayName}}</0> môže absolvovať svoje stretnutia, keď je mimo.",
   "ooo_slots_book_with": "Rezervovať {{displayName}}",
-  "ooo_create_entry_modal": "Odísť z kancelárie",
   "ooo_select_reason": "Vybrať dôvod",
   "enterprise_license_locally": "Túto funkciu môžete otestovať lokálne, ale nie v produkčnom prostredí.",
   "enterprise_license_sales": "Na upgradovanie na podnikateľskú verziu kontaktujte náš obchodný tím. Ak už je licenčný kľúč na mieste, kontaktujte support@cal.com pre pomoc.",
