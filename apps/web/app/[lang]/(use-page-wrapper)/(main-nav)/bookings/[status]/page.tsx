@@ -12,7 +12,7 @@ const querySchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return await _generateMetadata(t("bookings"), t("bookings_description"));
 };
@@ -22,7 +22,7 @@ const Page = async ({ params }: PageProps) => {
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>

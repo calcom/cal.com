@@ -11,7 +11,7 @@ import type { PageProps as ClientPageProps } from "~/auth/verify-email-change-vi
 import VerifyEmailChange from "~/auth/verify-email-change-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("verify_email_change"), "");
 };
 

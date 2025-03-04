@@ -12,7 +12,7 @@ const userIdSchema = z.object({ id: z.coerce.number() });
 
 export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(params);
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   if (!input.success) {
     return await _generateMetadata(t("editing_user"), t("admin_users_edit_description"));
   }
@@ -31,7 +31,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const user = await UserRepository.adminFindById(input.data.id);
-    const t = await getTranslate(params.lang as string);
+    const t = await getTranslate(params.lang);
 
     return (
       <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>

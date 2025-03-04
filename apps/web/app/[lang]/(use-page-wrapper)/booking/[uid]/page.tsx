@@ -19,7 +19,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     buildLegacyCtx(headers(), cookies(), params, searchParams)
   );
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(
     t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
     t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),

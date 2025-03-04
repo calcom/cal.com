@@ -9,7 +9,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("workflows"), t("workflows_to_automate_notifications"));
 };
 

@@ -4,7 +4,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import CreateTeamEventType, { LayoutWrapper } from "~/settings/teams/[id]/event-types-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return await _generateMetadata(t("add_new_team_event_type"), t("new_event_type_to_book_description"));
 };

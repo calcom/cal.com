@@ -5,12 +5,12 @@ import { getTranslate } from "app/_utils";
 import { ConferencingAppsViewWebWrapper } from "@calcom/atoms/monorepo";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("conferencing"), t("conferencing_description"));
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <ConferencingAppsViewWebWrapper

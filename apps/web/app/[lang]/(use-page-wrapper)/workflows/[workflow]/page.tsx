@@ -31,7 +31,7 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
   if (!workflow) {
     notFound();
   }
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(
      (workflow && workflow.name ? workflow.name : t("untitled")),
     ""

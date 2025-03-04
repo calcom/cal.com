@@ -35,7 +35,7 @@ export const generateMetadata = async ({ params }: PageProps) => {
   if (!schedule) {
     notFound();
   }
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(
     schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability"),
     ""

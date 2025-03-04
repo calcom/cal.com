@@ -11,7 +11,7 @@ import type { PageProps as ClientPageProps } from "~/auth/forgot-password/[id]/f
 import SetNewUserPassword from "~/auth/forgot-password/[id]/forgot-password-single-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("reset_password"), t("change_your_password"));
 };
 

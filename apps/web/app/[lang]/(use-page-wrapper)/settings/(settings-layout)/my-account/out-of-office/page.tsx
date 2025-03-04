@@ -8,12 +8,12 @@ import { OutOfOfficeEntriesList } from "@calcom/features/settings/outOfOffice/Ou
 import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("out_of_office"), t("out_of_office_description"));
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <SettingsHeader

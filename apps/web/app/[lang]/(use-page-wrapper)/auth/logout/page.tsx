@@ -9,7 +9,7 @@ import { ssrInit } from "@server/lib/ssr";
 import Logout from "~/auth/logout-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("logged_out"), t("youve_been_logged_out"));
 };
 

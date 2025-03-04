@@ -7,13 +7,13 @@ import AdminOrgTable from "@calcom/features/ee/organizations/pages/settings/admi
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return await _generateMetadata(t("organizations"), t("orgs_page_description"));
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return (
     <SettingsHeader title={t("organizations")} description={t("orgs_page_description")}>
       <LicenseRequired>

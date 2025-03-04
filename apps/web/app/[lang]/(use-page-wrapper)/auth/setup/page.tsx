@@ -11,7 +11,7 @@ import Setup from "~/auth/setup-view";
 import type { PageProps as ClientPageProps } from "~/auth/setup-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("setup"), t("setup_description"));
 };
 

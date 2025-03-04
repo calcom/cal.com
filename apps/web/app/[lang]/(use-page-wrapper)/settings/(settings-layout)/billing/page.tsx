@@ -7,13 +7,13 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import BillingView from "~/settings/billing/billing-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return await _generateMetadata(t("billing"), t("manage_billing_description"));
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <SettingsHeader

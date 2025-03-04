@@ -11,7 +11,7 @@ import { getServerSideProps } from "@lib/settings/license-key/new/getServerSideP
 import CreateANewLicenseKeyForm, { LayoutWrapper } from "~/settings/license-key/new/new-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("set_up_your_organization"), t("organizations_description"));
 };
 

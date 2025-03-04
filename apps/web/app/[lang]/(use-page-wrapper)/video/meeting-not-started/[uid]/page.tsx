@@ -25,7 +25,7 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
   const booking = await BookingRepository.findBookingByUid({
     bookingUid: parsed.data.uid,
   });
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("this_meeting_has_not_started_yet"), booking?.title ?? "");
 };
 

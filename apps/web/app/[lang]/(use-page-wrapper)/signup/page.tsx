@@ -10,7 +10,7 @@ import type { SignupProps } from "~/signup-view";
 import Signup from "~/signup-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("sign_up"), t("sign_up"));
 };
 

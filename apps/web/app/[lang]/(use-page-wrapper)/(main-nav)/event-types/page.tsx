@@ -13,7 +13,7 @@ import { ssrInit } from "@server/lib/ssr";
 import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("event_types_page_title"), t("event_types_page_subtitle"));
 };
 
@@ -26,7 +26,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   }
 
   await ssrInit(context);
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <ShellMainAppDir

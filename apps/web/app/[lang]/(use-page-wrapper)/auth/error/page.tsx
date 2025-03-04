@@ -8,7 +8,7 @@ import { Button, Icon } from "@calcom/ui";
 import AuthContainer from "@components/ui/AuthContainer";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("error"), "");
 };
 
@@ -17,7 +17,7 @@ const querySchema = z.object({
 });
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   const { error } = querySchema.parse({ error: searchParams?.error || undefined });
   const errorMsg = t("error_during_login") + (error ? ` Error code: ${error}` : "");
   return (

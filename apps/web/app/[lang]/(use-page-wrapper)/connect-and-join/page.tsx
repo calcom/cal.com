@@ -6,7 +6,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import LegacyPage from "~/connect-and-join/connect-and-join-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("connect_and_join"), "");
 };
 

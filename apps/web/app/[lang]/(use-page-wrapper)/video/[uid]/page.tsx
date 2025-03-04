@@ -12,7 +12,7 @@ import type { PageProps as ClientPageProps } from "~/videos/views/videos-single-
 import VideosSingleView from "~/videos/views/videos-single-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return {
     title: `${APP_NAME} Video`,
     description: t("quick_video_meeting"),

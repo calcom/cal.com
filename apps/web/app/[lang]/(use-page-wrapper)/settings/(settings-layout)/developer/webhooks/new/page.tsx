@@ -8,7 +8,7 @@ import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import type { PageProps } from "app/_types";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("webhooks"), t("add_webhook_description", { appName: APP_NAME }));
 };
 const SkeletonLoader = () => {
@@ -23,7 +23,7 @@ const SkeletonLoader = () => {
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <SettingsHeader

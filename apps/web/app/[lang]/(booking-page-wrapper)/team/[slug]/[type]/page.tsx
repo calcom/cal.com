@@ -15,7 +15,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
   const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   const profileName = eventData?.profile?.name ?? "";
   const profileImage = eventData?.profile.image;

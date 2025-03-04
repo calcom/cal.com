@@ -6,12 +6,12 @@ import WorkspacePlatformsPage from "@calcom/features/ee/organizations/pages/sett
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("workspace_platforms"), t("workspace_platforms_description"));
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return (
     <SettingsHeader title={t("workspace_platforms")} description={t("workspace_platforms_description")}>
       <LicenseRequired>

@@ -7,12 +7,12 @@ import { Button } from "@calcom/ui";
 import CopyButton from "./copy-button";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(`${t("something_unexpected_occurred")} | ${APP_NAME}`, "");
 };
 
 async function Error500({ searchParams, params }: PageProps) {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <div className="bg-subtle flex h-screen">

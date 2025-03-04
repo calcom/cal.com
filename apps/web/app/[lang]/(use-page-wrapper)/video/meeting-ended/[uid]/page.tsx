@@ -10,7 +10,7 @@ import type { PageProps as ClientPageProps } from "~/videos/views/videos-meeting
 import MeetingEnded from "~/videos/views/videos-meeting-ended-single-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("meeting_unavailable"), t("meeting_unavailable"));
 };
 

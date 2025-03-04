@@ -10,7 +10,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import LegacyPage, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(
     t("invite_organization_admins"),
     t("invite_organization_admins_description")

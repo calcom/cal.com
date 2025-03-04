@@ -12,7 +12,7 @@ export default async function InsightsLayout({
   params: PageProps["params"];
   children: React.ReactNode;
 }) {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return (
     <div>
       <Shell withoutMain={false} withoutSeo={true} heading={t("insights")} subtitle={t("insights_subtitle")}>

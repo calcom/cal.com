@@ -19,7 +19,7 @@ const getData = withAppDirSsr<OrgTypePageProps>(getServerSideProps);
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;

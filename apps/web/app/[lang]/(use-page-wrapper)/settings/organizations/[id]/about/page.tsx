@@ -10,7 +10,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import LegacyPage, { LayoutWrapper } from "~/settings/organizations/[id]/about-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("about_your_organization"), t("about_your_organization_description"));
 };
 

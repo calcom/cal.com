@@ -32,7 +32,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     ],
   };
   const decodedParams = decodeParams(params);
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   const metadata = await generateMeetingMetadata(
     meeting,
     `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,

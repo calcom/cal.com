@@ -18,7 +18,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
   const profileName = eventData?.profile?.name ?? "";
   const title = eventData?.title ?? "";
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(
      `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
      `${rescheduleUid ? t("reschedule") : ""} ${title}`,

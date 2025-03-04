@@ -5,7 +5,7 @@ import WebhooksView from "@calcom/features/webhooks/pages/webhooks-view";
 import { APP_NAME } from "@calcom/lib/constants";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("webhooks"), t("add_webhook_description", { appName: APP_NAME }));
 };
 

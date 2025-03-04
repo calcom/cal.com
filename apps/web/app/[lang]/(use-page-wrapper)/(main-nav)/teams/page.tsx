@@ -11,7 +11,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import TeamsView, { TeamsCTA } from "~/teams/teams-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("teams"), t("create_manage_teams_collaborative"));
 };
 
@@ -24,7 +24,7 @@ const ServerPage = async ({ searchParams, params }: ServerPageProps) => {
     redirect(callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login");
   }
 
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <ShellMainAppDir

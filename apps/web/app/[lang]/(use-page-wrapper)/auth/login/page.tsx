@@ -11,7 +11,7 @@ import type { PageProps as ClientPageProps } from "~/auth/login-view";
 import Login from "~/auth/login-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("login"), t("login"));
 };
 

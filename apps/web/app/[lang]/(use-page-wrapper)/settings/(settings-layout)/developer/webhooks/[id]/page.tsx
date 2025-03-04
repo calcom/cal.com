@@ -7,12 +7,12 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("webhooks"), t("add_webhook_description", { appName: APP_NAME }));
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   const id = typeof params?.id === "string" ? params.id : undefined;
 
   const webhook = await WebhookRepository.findByWebhookId(id);

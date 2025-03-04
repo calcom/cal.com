@@ -12,7 +12,7 @@ const querySchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("installed_apps"), t("manage_your_connected_apps"));
 };
 

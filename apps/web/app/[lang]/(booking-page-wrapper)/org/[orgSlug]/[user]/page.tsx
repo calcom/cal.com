@@ -20,7 +20,7 @@ const getData = withAppDirSsr<OrgPageProps>(getServerSideProps);
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   if ((props as TeamPageProps)?.team) {
     const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = props as TeamPageProps;

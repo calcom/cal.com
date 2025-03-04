@@ -16,7 +16,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = await getData(
     buildLegacyCtx(headers(), cookies(), params, searchParams)
   );
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   const meeting = {
     title: markdownStrippedBio ?? "",
@@ -28,8 +28,8 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const decodedParams = decodeParams(params);
   const metadata = await generateMeetingMetadata(
     meeting,
-     team.name || t("nameless_team"),
-     team.name || t("nameless_team"),
+    team.name || t("nameless_team"),
+    team.name || t("nameless_team"),
     false,
     getOrgFullOrigin(currentOrgDomain ?? null),
     `/team/${decodedParams.slug}`

@@ -23,7 +23,7 @@ const querySchema = z.object({
 
 export const generateMetadata = async ({ params }: _PageProps) => {
   const parsed = querySchema.safeParse(params);
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   if (!parsed.success) {
     return await _generateMetadata(
        `${t("event_type")}`,

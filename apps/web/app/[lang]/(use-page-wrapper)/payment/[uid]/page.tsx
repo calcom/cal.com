@@ -12,7 +12,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
   const eventName = props.booking.title;
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(
      `${t("payment")} | ${eventName} | ${APP_NAME}`,
     ""

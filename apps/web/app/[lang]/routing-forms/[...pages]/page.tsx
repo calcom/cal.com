@@ -1,4 +1,4 @@
-import type { PageProps } from "app/_types";
+import type { MixedParams, PageProps } from "app/_types";
 import { redirect } from "next/navigation";
 import z from "zod";
 
@@ -10,7 +10,7 @@ const paramsSchema = z
     pages: [],
   });
 
-export default function RoutingForms({ params }: PageProps) {
+export default function RoutingForms({ params }: Omit<PageProps, "params"> & { params: MixedParams }) {
   const { pages } = paramsSchema.parse(params);
   redirect(`/apps/routing-forms/${pages.length ? pages.join("/") : ""}`);
 }

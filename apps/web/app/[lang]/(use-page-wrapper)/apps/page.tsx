@@ -9,7 +9,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import AppsPage from "~/apps/apps-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("app_store"), t("app_store_description"));
 };
 

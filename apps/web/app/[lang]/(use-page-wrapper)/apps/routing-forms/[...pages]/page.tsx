@@ -1,5 +1,5 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps, PageProps as ServerPageProps } from "app/_types";
+import type { PageProps, PageProps as ServerPageProps, MixedParams } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
@@ -10,7 +10,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-const normalizePages = (pages: string[] | string | undefined) => {
+const normalizePages = (pages: string[] | string) => {
   const normalizedPages = Array.isArray(pages) ? pages : pages?.split("/") ?? [];
   return {
     mainPage: normalizedPages[0],
@@ -18,7 +18,7 @@ const normalizePages = (pages: string[] | string | undefined) => {
   };
 };
 
-export const generateMetadata = async ({ params }: PageProps) => {
+export const generateMetadata = async ({ params }: Omit<PageProps, "params"> & { params: MixedParams }) => {
   const { mainPage } = normalizePages(params.pages);
   const t = await getTranslate(params.lang as string);
   return await _generateMetadata(

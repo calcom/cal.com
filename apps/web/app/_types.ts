@@ -1,5 +1,9 @@
 export type Params = {
-  [param: string]: string | string[] | undefined;
+  [param: string]: string;
+};
+
+export type MixedParams = {
+  [param: string]: string | string[];
 };
 
 export type SearchParams = {

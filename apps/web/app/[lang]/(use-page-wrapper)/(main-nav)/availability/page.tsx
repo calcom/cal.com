@@ -10,7 +10,7 @@ import { notFound } from "next/navigation";
 import AvailabilityPage, { AvailabilityCTA } from "~/availability/availability-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return await _generateMetadata(t("availability"), t("configure_availability"));
 };
@@ -28,7 +28,7 @@ const Page = async ({ params }: PageProps) => {
     //   orgId,
     //   userId,
     // });
-    const t = await getTranslate(params.lang as string);
+    const t = await getTranslate(params.lang);
     return (
       <ShellMainAppDir
         heading={t("availability")}

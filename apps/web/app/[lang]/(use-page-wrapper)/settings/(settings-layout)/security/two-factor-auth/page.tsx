@@ -7,12 +7,12 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import TwoFactorAuthView from "~/settings/security/two-factor-auth-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("two_factor_auth"), t("add_an_extra_layer_of_security"));
 };
 
 const Page = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
 
   return (
     <SettingsHeader

@@ -4,7 +4,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import AddNewTeamMembers, { LayoutWrapper } from "~/settings/teams/[id]/onboard-members-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("add_team_members"), t("add_team_members_description"));
 };
 

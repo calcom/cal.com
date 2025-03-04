@@ -7,7 +7,7 @@ import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import InsightsPage from "~/insights/insights-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const t = await getTranslate(params.lang as string);
+  const t = await getTranslate(params.lang);
   return await _generateMetadata(t("insights"), t("insights_subtitle"));
 };
 
