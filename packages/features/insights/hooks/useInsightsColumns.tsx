@@ -257,10 +257,10 @@ function CopyButton({ label, value }: { label: string; value: string }) {
   const { t } = useLocale();
   return (
     <button
-      className="flex items-center gap-1 overflow-hidden"
+      className="flex w-full items-center gap-1 overflow-hidden"
       title={value}
       onClick={() => {
-        // navigator.clipboard.writeText(value);
+        navigator.clipboard.writeText(value);
         setShowCheck(true);
         setTimeout(() => {
           setShowCheck(false);
@@ -268,14 +268,14 @@ function CopyButton({ label, value }: { label: string; value: string }) {
       }}>
       {!showCheck && (
         <>
-          <Icon name="clipboard" className="shrink-0" size={14} />
           <span className="truncate">{label}</span>
+          <Icon name="clipboard" className="shrink-0" size={14} />
         </>
       )}
       {showCheck && (
         <>
+          <span className="grow truncate text-left">{t("copied")}</span>
           <Icon name="check" className="shrink-0" size={14} />
-          <span className="truncate">{t("copied")}</span>
         </>
       )}
     </button>
