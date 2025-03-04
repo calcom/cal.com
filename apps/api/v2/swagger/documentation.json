@@ -1093,7 +1093,7 @@
     },
     "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
-        "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
+        "operationId": "OrganizationsDwdController_createDwd",
         "summary": "Save delegation credentials for your organization.",
         "parameters": [
           {
@@ -1110,7 +1110,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateDelegationCredentialInput"
+                "$ref": "#/components/schemas/CreateDwdInput"
               }
             }
           }
@@ -1121,7 +1121,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateDelegationCredentialOutput"
+                  "$ref": "#/components/schemas/CreateDwdOutput"
                 }
               }
             }
@@ -1134,7 +1134,7 @@
     },
     "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
       "patch": {
-        "operationId": "OrganizationsDelegationCredentialController_updateDelegationCredential",
+        "operationId": "OrganizationsDwdController_updateDwd",
         "summary": "Update delegation credentials of your organization.",
         "parameters": [
           {
@@ -1159,7 +1159,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDelegationCredentialInput"
+                "$ref": "#/components/schemas/UpdateDwdInput"
               }
             }
           }
@@ -1170,7 +1170,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateDelegationCredentialOutput"
+                  "$ref": "#/components/schemas/UpdateDwdOutput"
                 }
               }
             }
@@ -5942,7 +5942,7 @@
             }
           },
           {
-            "name": "delegationCredentialId",
+            "name": "domainWideDelegationCredentialId",
             "required": false,
             "in": "query",
             "schema": {
@@ -11499,7 +11499,7 @@
           "credentialId": {
             "type": "number"
           },
-          "delegationCredentialId": {
+          "domainWideDelegationCredentialId": {
             "type": "string"
           }
         },
@@ -15170,7 +15170,7 @@
           "client_id"
         ]
       },
-      "CreateDelegationCredentialInput": {
+      "CreateDwdInput": {
         "type": "object",
         "properties": {
           "workspacePlatformSlug": {
@@ -15214,7 +15214,7 @@
           "slug"
         ]
       },
-      "DelegationCredentialOutput": {
+      "DwdOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -15251,7 +15251,7 @@
           "updatedAt"
         ]
       },
-      "CreateDelegationCredentialOutput": {
+      "CreateDwdOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -15263,7 +15263,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/DelegationCredentialOutput"
+            "$ref": "#/components/schemas/DwdOutput"
           }
         },
         "required": [
@@ -15271,7 +15271,7 @@
           "data"
         ]
       },
-      "UpdateDelegationCredentialInput": {
+      "UpdateDwdInput": {
         "type": "object",
         "properties": {
           "enabled": {
@@ -15292,7 +15292,7 @@
           }
         }
       },
-      "UpdateDelegationCredentialOutput": {
+      "UpdateDwdOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -15304,7 +15304,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/DelegationCredentialOutput"
+            "$ref": "#/components/schemas/DwdOutput"
           }
         },
         "required": [
@@ -15914,7 +15914,7 @@
           "credentialId": {
             "type": "number"
           },
-          "delegationCredentialId": {
+          "domainWideDelegationCredentialId": {
             "type": "string",
             "nullable": true
           }
@@ -15955,7 +15955,7 @@
           "credentialId": {
             "type": "number"
           },
-          "delegationCredentialId": {
+          "domainWideDelegationCredentialId": {
             "type": "string",
             "nullable": true
           }
@@ -15976,7 +15976,7 @@
           "credentialId": {
             "type": "number"
           },
-          "delegationCredentialId": {
+          "domainWideDelegationCredentialId": {
             "type": "string",
             "nullable": true
           },
@@ -16023,7 +16023,7 @@
             "type": "number",
             "nullable": true
           },
-          "delegationCredentialId": {
+          "domainWideDelegationCredentialId": {
             "type": "string",
             "nullable": true
           },
@@ -18383,7 +18383,7 @@
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
             "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
           },
-          "delegationCredentialId": {
+          "domainWideDelegationCredentialId": {
             "type": "string"
           }
         },

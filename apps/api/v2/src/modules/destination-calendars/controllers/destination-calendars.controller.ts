@@ -29,12 +29,12 @@ export class DestinationCalendarsController {
     @Body() input: DestinationCalendarsInputBodyDto,
     @GetUser() user: UserWithProfile
   ): Promise<DestinationCalendarsOutputResponseDto> {
-    const { integration, externalId, delegationCredentialId } = input;
+    const { integration, externalId, domainWideDelegationCredentialId } = input;
     const updatedDestinationCalendar = await this.destinationCalendarsService.updateDestinationCalendars(
       integration,
       externalId,
       user.id,
-      delegationCredentialId
+      domainWideDelegationCredentialId
     );
 
     return {

@@ -5,37 +5,37 @@ export class CalendarAppError extends Error {
   }
 }
 
-export class CalendarAppDelegationCredentialError extends CalendarAppError {
+export class CalendarAppDomainWideDelegationError extends CalendarAppError {
   constructor(message: string) {
     super(message);
-    this.name = "CalendarAppDelegationCredentialError";
+    this.name = "CalendarAppDomainWideDelegationError";
   }
 }
 
-export class CalendarAppDelegationCredentialConfigurationError extends CalendarAppDelegationCredentialError {
+export class CalendarAppDomainWideDelegationConfigurationError extends CalendarAppDomainWideDelegationError {
   constructor(message: string) {
     super(message);
-    this.name = "CalendarAppDelegationCredentialConfigurationError";
+    this.name = "CalendarAppDomainWideDelegationConfigurationError";
   }
 }
 
-export class CalendarAppDelegationCredentialInvalidGrantError extends CalendarAppDelegationCredentialError {
+export class CalendarAppDomainWideDelegationInvalidGrantError extends CalendarAppDomainWideDelegationError {
   constructor(message: string) {
     super(message);
-    this.name = "CalendarAppDelegationCredentialInvalidGrantError";
+    this.name = "CalendarAppDomainWideDelegationInvalidGrantError";
   }
 }
 
-export class CalendarAppDelegationCredentialClientIdNotAuthorizedError extends CalendarAppDelegationCredentialConfigurationError {
+export class CalendarAppDomainWideDelegationClientIdNotAuthorizedError extends CalendarAppDomainWideDelegationConfigurationError {
   constructor(message: string) {
     super(message);
-    this.name = "CalendarAppDelegationCredentialClientIdNotAuthorizedError";
+    this.name = "CalendarAppDomainWideDelegationClientIdNotAuthorizedError";
   }
 }
 
-export class CalendarAppDelegationCredentialNotSetupError extends CalendarAppDelegationCredentialConfigurationError {
+export class CalendarAppDomainWideDelegationNotSetupError extends CalendarAppDomainWideDelegationConfigurationError {
   constructor(message: string) {
     super(message);
-    this.name = "CalendarAppDelegationCredentialNotSetupError";
+    this.name = "CalendarAppDomainWideDelegationNotSetupError";
   }
 }

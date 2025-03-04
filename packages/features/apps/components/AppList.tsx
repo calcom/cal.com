@@ -12,7 +12,7 @@ import type {
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
@@ -230,7 +230,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
         <DropdownItem
           color="destructive"
           onClick={() => handleDisconnect(credentialId, app, teamId)}
-          disabled={isGlobal || isDelegationCredential({ credentialId })}
+          disabled={isGlobal || isDwdCredential({ credentialId })}
           StartIcon="trash">
           {t("remove_app")}
         </DropdownItem>

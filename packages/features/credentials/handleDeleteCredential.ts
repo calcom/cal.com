@@ -7,7 +7,7 @@ import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
+import { buildNonDwdCredential } from "@calcom/lib/domainWideDelegation/server";
 import { DailyLocationType } from "@calcom/lib/location";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -430,7 +430,7 @@ const handleDeleteCredential = async ({
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
     try {
-      const calendar = await getCalendar(buildNonDelegationCredential(credential));
+      const calendar = await getCalendar(buildNonDwdCredential(credential));
 
       const calendars = await calendar?.listCalendars();
 

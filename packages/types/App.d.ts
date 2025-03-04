@@ -168,9 +168,9 @@ export interface App {
   /** Specifies if the App uses an OAuth flow  */
   isOAuth?: boolean;
   /**
-   * Specifies if the App supports delegation credential
+   * Specifies if the App supports domain-wide delegation
    */
-  delegationCredential?: {
+  domainWideDelegation?: {
     workspacePlatformSlug: string;
   };
 }
