@@ -22,7 +22,7 @@
   "verify_email_page_body": "Изпратихме имейл до {{email}}. Важно е да проверите имейл адреса си, за да гарантирате най-добрата възможност за доставка на имейли и календари от {{appName}}.",
   "verify_email_banner_body": "Проверете имейл адреса си, за да гарантирате най-добрата доставка на имейли и календари",
   "verify_email_email_header": "Потвърдете вашия имейл адрес",
-  "verify_email_email_button": "Потвърди имейл",
+  "verify_email_button": "Потвърди имейл",
   "cal_ai_assistant": "Cal AI асистент",
   "send_cal_video_transcription_emails": "Изпращане на имейли с транскрипция на Cal Video",
   "description_send_cal_video_transcription_emails": "Изпращане на имейли с транскрипцията на Cal Video след края на срещата. (Изисква платен план)",

@@ -22,7 +22,7 @@
   "verify_email_page_body": "Email bat bidali dugu {{email}} helbidera. Garrantzitsua da zure email helbidea egiaztatzea, {{appName}}-tik mezuak eta egutegiko eguneratzeak ahalik eta hobekien jasoko dituzula bermatzeko.",
   "verify_email_banner_body": "Egiaztatu zure email helbidea mezuak eta egutegiko eguneratzeak ahalik eta hobekien jasoko dituzula bermatzeko",
   "verify_email_email_header": "Egiaztatu zure email helbidea",
-  "verify_email_email_button": "Egiaztatu emaila",
+  "verify_email_button": "Egiaztatu emaila",
   "cal_ai_assistant": "Cal AI laguntzailea",
   "send_cal_video_transcription_emails": "Cal Video transkripzio emailak bidali",
   "description_send_cal_video_transcription_emails": "Bidali Cal Video-ren transkripzioa duen emaila bilera amaitu ondoren. (Ordainpeko plana behar da)",

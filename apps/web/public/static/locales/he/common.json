@@ -22,7 +22,7 @@
   "verify_email_page_body": "שלחנו הודעת דוא״ל לכתובת {{email}}. חשוב שתאמת/י את כתובת הדוא״ל שלך כדי להבטיח שתוכל/י לקבל הודעות מ-{{appName}} לכתובת הדוא״ל וללוח השנה שלך.",
   "verify_email_banner_body": "יש לאמת את כתובת הדוא״ל כדי להבטיח שתוכל/י לקבל הודעות לכתובת הדוא״ל וללוח השנה בצורה הטובה ביותר",
   "verify_email_email_header": "יש לאמת את כתובת הדוא״ל שלך",
-  "verify_email_email_button": "אימות כתובת דוא״ל",
+  "verify_email_button": "אימות כתובת דוא״ל",
   "cal_ai_assistant": "מסייע בינה מלאכותית ל־Cal",
   "send_cal_video_transcription_emails": "שלח תמלולי וידאו של Cal במייל",
   "description_send_cal_video_transcription_emails": "שליחת מיילים עם תמלול הווידאו של Cal לאחר סיום הפגישה. (נדרשת חבילה בתשלום)",

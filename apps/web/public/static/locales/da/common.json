@@ -22,7 +22,7 @@
   "verify_email_page_body": "Vi har sendt en e-mail til {{email}}. Det er vigtigt at bekræfte din e-mailadresse for at sikre den bedste levering af e-mails og kalender fra {{appName}}.",
   "verify_email_banner_body": "Bekræft din e-mailadresse for at sikre den bedste levering af e-mails og kalender",
   "verify_email_email_header": "Bekræft din e-mailadresse",
-  "verify_email_email_button": "Bekræft e-mail",
+  "verify_email_button": "Bekræft e-mail",
   "cal_ai_assistant": "Cal AI Assistent",
   "send_cal_video_transcription_emails": "Send Cal Video transskriptionsemails",
   "description_send_cal_video_transcription_emails": "Send emails med transskriptionen af Cal Video efter mødet er slut. (Kræver et betalt abonnement)",

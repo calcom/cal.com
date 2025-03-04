@@ -22,7 +22,7 @@
   "verify_email_page_body": "我們已傳送電子郵件至 {{email}}。請務必驗證您的電子郵件地址，以確保能準確收到 {{appName}} 遞送的電子郵件和行事曆。",
   "verify_email_banner_body": "驗證您的電子郵件地址，以確保能準確收到遞送的電子郵件和行事曆",
   "verify_email_email_header": "驗證您的電子郵件地址",
-  "verify_email_email_button": "驗證電子郵件",
+  "verify_email_button": "驗證電子郵件",
   "cal_ai_assistant": "Cal AI 助理",
   "send_cal_video_transcription_emails": "發送 Cal 視訊會議逐字稿郵件",
   "description_send_cal_video_transcription_emails": "會議結束後發送包含 Cal 視訊會議逐字稿的郵件。（需要付費方案）",

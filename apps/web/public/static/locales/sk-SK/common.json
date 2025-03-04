@@ -22,7 +22,7 @@
   "verify_email_page_body": "Poslali sme email na {{email}}. Je dôležité overiť vašu emailovú adresu, aby sme zaručili najlepšiu doručiteľnosť emailov a kalendára z {{appName}}.",
   "verify_email_banner_body": "Overte svoju emailovú adresu, aby ste zaručili najlepšiu doručiteľnosť emailov a kalendára",
   "verify_email_email_header": "Overte svoju emailovú adresu",
-  "verify_email_email_button": "Overiť email",
+  "verify_email_button": "Overiť email",
   "cal_ai_assistant": "Cal AI asistent",
   "send_cal_video_transcription_emails": "Posielať prepisy Cal Video e-mailom",
   "description_send_cal_video_transcription_emails": "Posielať e-maily s prepisom Cal Video po skončení stretnutia. (Vyžaduje platený plán)",

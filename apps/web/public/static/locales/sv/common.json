@@ -22,7 +22,7 @@
   "verify_email_page_body": "Vi har skickat ett e-postmeddelande till {{email}}. Det är viktigt att verifiera din e-postadress för att garantera den bästa e-post- och kalenderleveransen från {{appName}}.",
   "verify_email_banner_body": "Verifiera din e-postadress för att garantera bästa e-post- och kalenderleverans",
   "verify_email_email_header": "Verifiera din e-postadress",
-  "verify_email_email_button": "Verifiera e-post",
+  "verify_email_button": "Verifiera e-post",
   "cal_ai_assistant": "Cal AI-assistent",
   "send_cal_video_transcription_emails": "Skicka Cal Video-transkriptionsmejl",
   "description_send_cal_video_transcription_emails": "Skicka mejl med transkriptionen av Cal Video efter att mötet avslutas. (Kräver ett betalt abonnemang)",

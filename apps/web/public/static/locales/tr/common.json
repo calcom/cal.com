@@ -22,7 +22,7 @@
   "verify_email_page_body": "{{email}} adresine bir e-posta gönderdik. {{appName}} tarafından gönderilen e-posta ve takvim bilgilerinin güvenilir bir şekilde teslim edilmesini sağlamak için e-posta adresinizi doğrulamanız önemlidir.",
   "verify_email_banner_body": "E-postaların ve takvim bilgilerinin güvenilir bir şekilde teslim edilmesini sağlamak için e-posta adresinizi doğrulayın",
   "verify_email_email_header": "E-posta adresinizi doğrulayın",
-  "verify_email_email_button": "E-postayı doğrula",
+  "verify_email_button": "E-postayı doğrula",
   "cal_ai_assistant": "Cal AI Asistanı",
   "send_cal_video_transcription_emails": "Cal Video Transkript E-postaları Gönder",
   "description_send_cal_video_transcription_emails": "Toplantı sona erdikten sonra Cal Video transkriptini içeren e-postalar gönder. (Ücretli plan gerektirir)",

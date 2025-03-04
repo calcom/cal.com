@@ -22,7 +22,7 @@
   "verify_email_page_body": "أرسلنا رسالة إلكترونية إلى {{email}}. من المهم تأكيد عنوان بريدك الإلكتروني لضمان تسليم البريد الإلكتروني والتقويم من {{appName}}.",
   "verify_email_banner_body": "قم بتأكيد عنوان بريدك الإلكتروني لضمان أفضل تسليم للبريد الإلكتروني والتقويم",
   "verify_email_email_header": "تأكيد عنوان بريدك الإلكتروني",
-  "verify_email_email_button": "تأكيد البريد الإلكتروني",
+  "verify_email_button": "تأكيد البريد الإلكتروني",
   "cal_ai_assistant": "مساعد Cal AI",
   "send_cal_video_transcription_emails": "إرسال رسائل النسخ النصي لفيديو Cal",
   "description_send_cal_video_transcription_emails": "إرسال رسائل بريد إلكتروني تحتوي على النسخ النصي لفيديو Cal بعد انتهاء الاجتماع. (يتطلب خطة مدفوعة)",

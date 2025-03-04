@@ -22,7 +22,7 @@
   "verify_email_page_body": "Στείλαμε ένα email στο {{email}}. Είναι σημαντικό να επαληθεύσετε τη διεύθυνση email σας για να εξασφαλίσετε την καλύτερη δυνατή παράδοση email και ημερολογίου από το {{appName}}.",
   "verify_email_banner_body": "Επαληθεύστε τη διεύθυνση email σας για να εξασφαλίσετε την καλύτερη δυνατή παράδοση email και ημερολογίου",
   "verify_email_email_header": "Επιβεβαιώστε τη διεύθυνση ηλεκτρονικού ταχυδρομείου σας",
-  "verify_email_email_button": "Επιβεβαίωση ηλεκτρονικού ταχυδρομείου",
+  "verify_email_button": "Επιβεβαίωση ηλεκτρονικού ταχυδρομείου",
   "cal_ai_assistant": "Βοηθός Cal AI",
   "send_cal_video_transcription_emails": "Αποστολή email απομαγνητοφώνησης Cal Video",
   "description_send_cal_video_transcription_emails": "Αποστολή email με την απομαγνητοφώνηση του Cal Video μετά το τέλος της συνάντησης. (Απαιτείται συνδρομητικό πακέτο)",

@@ -22,7 +22,7 @@
   "verify_email_page_body": "{{email}} ünvanına bir e-poçt göndərdik. {{appName}}-dən ən yaxşı e-poçt və təqvim çatdırılmasını təmin etmək üçün e-poçt ünvanınızı təsdiqləmək vacibdir.",
   "verify_email_banner_body": "Ən yaxşı e-poçt və təqvim çatdırılmasını təmin etmək üçün e-poçt ünvanınızı təsdiqləyin",
   "verify_email_email_header": "E-poçt ünvanınızı təsdiqləyin",
-  "verify_email_email_button": "E-poçtu təsdiqləyin",
+  "verify_email_button": "E-poçtu təsdiqləyin",
   "cal_ai_assistant": "Cal AI Köməkçisi",
   "send_cal_video_transcription_emails": "Cal Video transkript e-poçtlarını göndər",
   "description_send_cal_video_transcription_emails": "Görüş bitdikdən sonra Cal Video transkripsiyası olan e-poçtları göndərin. (Ödənişli plan tələb olunur)",

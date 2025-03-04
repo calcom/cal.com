@@ -22,7 +22,7 @@
   "verify_email_page_body": "យើងបានផ្ញើអ៊ីមែលទៅ {{email}}។ វាមានសារៈសំខាន់ណាស់ក្នុងការផ្ទៀងផ្ទាត់អាសយដ្ឋានអ៊ីមែលរបស់អ្នក ដើម្បីធានានូវលទ្ធភាពចែកចាយអ៊ីមែល និងប្រតិទិនដ៏ល្អបំផុតពី {{appName}}.",
   "verify_email_banner_body": "ផ្ទៀងផ្ទាត់អាសយដ្ឋានអ៊ីមែលរបស់អ្នក ដើម្បីធានានូវលទ្ធភាពចែកចាយអ៊ីមែល និងប្រតិទិនដ៏ល្អបំផុត",
   "verify_email_email_header": "ផ្ទៀងផ្ទាត់អាសយដ្ឋានអ៊ីមែលរបស់អ្នក។",
-  "verify_email_email_button": "ផ្ទៀងផ្ទាត់អ៊ីមែល",
+  "verify_email_button": "ផ្ទៀងផ្ទាត់អ៊ីមែល",
   "cal_ai_assistant": "Cal AI Assistant",
   "send_cal_video_transcription_emails": "ផ្ញើអ៊ីមែលចម្លងវីដេអូ Cal",
   "description_send_cal_video_transcription_emails": "ផ្ញើអ៊ីមែលជាមួយនឹងការចម្លងវីដេអូ Cal បន្ទាប់ពីការប្រជុំបានបញ្ចប់។ (តម្រូវឱ្យមានគម្រោងបង់ប្រាក់)",

@@ -22,7 +22,7 @@
   "verify_email_page_body": "Nous avons envoyé un e-mail à {{email}}. Il est important de vérifier votre adresse e-mail pour garantir la meilleure délivrabilité des e-mails et des calendriers de {{appName}}.",
   "verify_email_banner_body": "Vérifiez votre adresse e-mail pour garantir la meilleure délivrabilité des e-mails et des calendriers",
   "verify_email_email_header": "Vérifiez votre adresse e-mail",
-  "verify_email_email_button": "Vérifier l'adresse e-mail",
+  "verify_email_button": "Vérifier l'adresse e-mail",
   "cal_ai_assistant": "Assistant Cal AI",
   "send_cal_video_transcription_emails": "Envoyer les e-mails de transcription vidéo Cal",
   "description_send_cal_video_transcription_emails": "Envoyer des e-mails avec la transcription de la vidéo Cal après la fin de la réunion. (Nécessite un abonnement payant)",

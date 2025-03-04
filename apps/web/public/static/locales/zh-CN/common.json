@@ -22,7 +22,7 @@
   "verify_email_page_body": "我们已向 {{email}} 发送了一封电子邮件。请务必验证您的电子邮件地址，以确保让 {{appName}} 发挥最佳的电子邮件和日历递送能力。",
   "verify_email_banner_body": "验证您的电子邮件地址以确保最佳的电子邮件和日历递送能力",
   "verify_email_email_header": "验证您的电子邮件地址",
-  "verify_email_email_button": "验证电子邮件",
+  "verify_email_button": "验证电子邮件",
   "cal_ai_assistant": "Cal AI 助手",
   "send_cal_video_transcription_emails": "发送 Cal 视频转录邮件",
   "description_send_cal_video_transcription_emails": "会议结束后发送包含 Cal 视频转录内容的邮件。（需要付费计划）",

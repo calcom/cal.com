@@ -22,7 +22,7 @@
   "verify_email_page_body": "{{email}} にメールを送信しました。{{appName}} からのメール配信とカレンダー通知が確実に機能するようにするには、メールアドレスの確認が重要です。",
   "verify_email_banner_body": "メール配信とカレンダー通知が確実に機能するようにするには、メールアドレスをご確認ください。",
   "verify_email_email_header": "メールアドレスをご確認ください",
-  "verify_email_email_button": "メールを確認する",
+  "verify_email_button": "メールを確認する",
   "cal_ai_assistant": "Cal AIアシスタント",
   "send_cal_video_transcription_emails": "Cal Video文字起こしメールを送信",
   "description_send_cal_video_transcription_emails": "ミーティング終了後、Cal Videoの文字起こしをメールで送信します。（有料プランが必要です）",

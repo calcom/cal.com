@@ -22,7 +22,7 @@
   "verify_email_page_body": "Küldtünk egy e-mailt ide: {{email}}. Fontos, hogy igazold vissza az e-mail címed, hogy {{appName}} biztosíthassa Neked a legjobb email és naptár funkciókat.",
   "verify_email_banner_body": "Igazold vissza az e-mail címed, hogy biztosíthassuk Neked a legjobb email és naptár funkciókat",
   "verify_email_email_header": "Igazold vissza az e-mail címed",
-  "verify_email_email_button": "E-mail igazolása",
+  "verify_email_button": "E-mail igazolása",
   "cal_ai_assistant": "Cal AI asszisztens",
   "send_cal_video_transcription_emails": "Cal videó átiratok küldése e-mailben",
   "description_send_cal_video_transcription_emails": "A megbeszélés után e-mailben elküldi a Cal videó átiratát. (Fizetős előfizetés szükséges)",

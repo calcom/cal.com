@@ -22,7 +22,7 @@
   "verify_email_page_body": "Hem enviat un correu a {{email}}. És important verificar la teva adreça de correu per garantir la millor entrega de correus i calendaris des de {{appName}}.",
   "verify_email_banner_body": "Verifica la teva adreça de correu per garantir la millor entrega de correus i calendaris",
   "verify_email_email_header": "Verifica la teva adreça de correu",
-  "verify_email_email_button": "Verifica el correu",
+  "verify_email_button": "Verifica el correu",
   "cal_ai_assistant": "Assistent IA de Cal",
   "send_cal_video_transcription_emails": "Envia correus amb la transcripció del vídeo",
   "description_send_cal_video_transcription_emails": "Envia correus amb la transcripció del vídeo de Cal després que finalitzi la reunió. (Requereix un pla de pagament)",

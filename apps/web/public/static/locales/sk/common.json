@@ -16,7 +16,7 @@
   "verify_email_page_body": "Odoslali sme e-mail na adresu {{email}}. E-mailovú adresu je potrebné overiť, aby bola zaručená čo najlepšia doručiteľnosť e-mailov a kalendárov z {{appName}}.",
   "verify_email_banner_body": "Overte svoju e-mailovú adresu, aby ste zaručili čo najlepšiu doručiteľnosť e-mailov a kalendára",
   "verify_email_email_header": "Overte svoju e-mailovú adresu",
-  "verify_email_email_button": "Oveřiť e-mail",
+  "verify_email_button": "Oveřiť e-mail",
   "copy_somewhere_safe": "Uložte tento kľúč API niekde v bezpečí. Nebudete ho môcť znova zobraziť.",
   "verify_email_email_body": "Overte svoju e-mailovú adresu kliknutím na tlačidlo nižšie.",
   "verify_email_email_link_text": "Tu je odkaz pre prípad, že nemáte radi klikanie na tlačidlá:",

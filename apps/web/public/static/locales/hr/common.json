@@ -18,7 +18,7 @@
   "verify_email_page_body": "Poslali smo email na {{email}}. Važno je potvrditi svoju adresu emaila kako biste jamčili najbolju isporuku emaila i kalendara iz aplikacije {{appName}}.",
   "verify_email_banner_body": "Potvrdite svoju adresu e-pošte kako bismo jamčili najbolju isporučivost e-pošte i kalendara",
   "verify_email_email_header": "Potvrdite svoju email adresu",
-  "verify_email_email_button": "Potvrdite e-mail",
+  "verify_email_button": "Potvrdite e-mail",
   "verify_email_change_description": "Nedavno ste zatražili promjenu adrese emaila koju koristite za prijavu na svoj {{appName}} račun. Kliknite na gumb ispod kako biste potvrdili svoju novu adresu emaila.",
   "verify_email_change_success_toast": "Ažurirali ste svoj email na {{email}}",
   "verify_email_change_failure_toast": "Ažuriranje emaila nije uspjelo.",

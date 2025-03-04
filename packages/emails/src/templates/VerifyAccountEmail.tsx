@@ -32,7 +32,7 @@ export const VerifyAccountEmail = (
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         <>{props.language("verify_email_email_body", { appName: APP_NAME })}</>
       </p>
-      <CallToAction label={props.language("verify_email_email_button")} href={props.verificationEmailLink} />
+      <CallToAction label={props.language("verify_email_button")} href={props.verificationEmailLink} />
 
       <div style={{ lineHeight: "6px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>

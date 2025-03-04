@@ -22,7 +22,7 @@
   "verify_email_page_body": "Chúng tôi đã gửi một email đến {{email}}. Bạn cần xác minh địa chỉ email để bảo đảm {{appName}} có thể gửi được email và lịch một cách ổn thoả nhất.",
   "verify_email_banner_body": "Xác minh địa chỉ email của bạn nhằm bảo đảm khả năng gửi email và lịch hẹn tốt nhất",
   "verify_email_email_header": "Xác minh địa chỉ email của bạn",
-  "verify_email_email_button": "Xác minh email",
+  "verify_email_button": "Xác minh email",
   "cal_ai_assistant": "Trợ lý AI của Cal",
   "send_cal_video_transcription_emails": "Gửi email bản ghi Cal Video",
   "description_send_cal_video_transcription_emails": "Gửi email kèm bản ghi của Cal Video sau khi cuộc họp kết thúc. (Yêu cầu gói trả phí)",

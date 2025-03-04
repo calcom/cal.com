@@ -22,7 +22,7 @@
   "verify_email_page_body": "Ми надіслали лист на адресу {{email}}. Підтвердьте свою електронну адресу, щоб уникнути проблем із доставкою листів і даних календаря із застосунку {{appName}}.",
   "verify_email_banner_body": "Підтвердьте свою електронну адресу, щоб уникнути проблем із доставкою листів і даних календаря",
   "verify_email_email_header": "Підтвердьте свою електронну адресу",
-  "verify_email_email_button": "Підтвердити ел. адресу",
+  "verify_email_button": "Підтвердити ел. адресу",
   "cal_ai_assistant": "Cal AI Асистент",
   "send_cal_video_transcription_emails": "Надсилати розшифровку відео Cal",
   "description_send_cal_video_transcription_emails": "Надсилати електронні листи з розшифровкою відео Cal після завершення зустрічі. (Потрібен платний тариф)",

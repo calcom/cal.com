@@ -22,7 +22,7 @@
   "verify_email_page_body": "Lähetimme sähköpostin osoitteeseen {{email}}. Sähköpostiosoitteesi vahvistaminen on tärkeää, jotta varmistetaan paras mahdollinen sähköpostien ja kalenteritietojen toimitus {{appName}}-palvelusta.",
   "verify_email_banner_body": "Vahvista sähköpostiosoitteesi varmistaaksesi parhaan sähköposti- ja kalenteritoimituksen",
   "verify_email_email_header": "Vahvista sähköpostiosoitteesi",
-  "verify_email_email_button": "Vahvista sähköposti",
+  "verify_email_button": "Vahvista sähköposti",
   "cal_ai_assistant": "Cal AI -avustaja",
   "send_cal_video_transcription_emails": "Lähetä Cal-videotransskriptiosähköpostit",
   "description_send_cal_video_transcription_emails": "Lähetä sähköpostit Cal-videon tekstityksellä tapaamisen päätyttyä. (Vaatii maksullisen tilauksen)",

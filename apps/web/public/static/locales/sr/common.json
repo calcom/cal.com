@@ -22,7 +22,7 @@
   "verify_email_page_body": "Poslali smo imejl na {{email}}. Važno je da potvrdite svoju adresu e-pošte kako biste osigurali najbolju isporučivost e-pošte i kalendara od aplikacije {{appName}}.",
   "verify_email_banner_body": "Potvrdite svoju adresu e-pošte kako biste osigurali najbolju isporučivost e-pošte i kalendara",
   "verify_email_email_header": "Potvrdite svoju adresu e-pošte",
-  "verify_email_email_button": "Potvrdi adresu e-pošte",
+  "verify_email_button": "Potvrdi adresu e-pošte",
   "cal_ai_assistant": "Cal AI Asistent",
   "send_cal_video_transcription_emails": "Pošalji transkript Cal Video sastanka",
   "description_send_cal_video_transcription_emails": "Šalje email sa transkriptom Cal Video sastanka nakon što se sastanak završi. (Zahteva plaćeni plan)",

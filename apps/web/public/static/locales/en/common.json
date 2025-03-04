@@ -22,7 +22,7 @@
   "verify_email_page_body": "We've sent an email to {{email}}. It is important to verify your email address to guarantee the best email and calendar deliverability from {{appName}}.",
   "verify_email_banner_body": "Verify your email address to guarantee the best email and calendar deliverability",
   "verify_email_email_header": "Verify your email address",
-  "verify_email_email_button": "Verify email",
+  "verify_email_button": "Verify email",
   "cal_ai_assistant": "Cal AI Assistant",
   "send_cal_video_transcription_emails": "Send Cal Video Transcription Emails",
   "description_send_cal_video_transcription_emails": "Send emails with the transcription of the Cal Video after the meeting ends. (Requires a paid plan)",

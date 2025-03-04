@@ -22,7 +22,7 @@
   "verify_email_page_body": "We hebben een e-mail naar {{email}} gestuurd. Het is belangrijk om uw e-mailadres te verifiëren om de beste bezorgbaarheid van e-mails en agenda's van {{appName}} te garanderen.",
   "verify_email_banner_body": "Verifieer uw e-mailadres om de beste bezorgbaarheid van e-mails en agenda's te garanderen",
   "verify_email_email_header": "Verifieer uw e-mailadres",
-  "verify_email_email_button": "E-mailadres verifiëren",
+  "verify_email_button": "E-mailadres verifiëren",
   "cal_ai_assistant": "Cal AI Assistent",
   "send_cal_video_transcription_emails": "Cal Video transcriptie-e-mails versturen",
   "description_send_cal_video_transcription_emails": "Verstuur e-mails met de transcriptie van de Cal Video na afloop van de meeting. (Vereist een betaald abonnement)",

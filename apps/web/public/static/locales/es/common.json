@@ -22,7 +22,7 @@
   "verify_email_page_body": "Enviamos un correo electrónico a {{email}}. Es importante que verifique su dirección de correo electrónico para garantizar que {{appName}} le ofrezca el mejor servicio de entrega de correos y calendarios.",
   "verify_email_banner_body": "Verifique su dirección de correo electrónico para garantizar la mejor entrega de correo electrónico y calendario",
   "verify_email_email_header": "Verifique su dirección de correo electrónico",
-  "verify_email_email_button": "Verificar correo electrónico",
+  "verify_email_button": "Verificar correo electrónico",
   "cal_ai_assistant": "Asistente AI de Cal",
   "send_cal_video_transcription_emails": "Enviar correos con transcripción de Cal Video",
   "description_send_cal_video_transcription_emails": "Enviar correos electrónicos con la transcripción del Cal Video después de que finalice la reunión. (Requiere un plan de pago)",

@@ -22,7 +22,7 @@
   "verify_email_page_body": "Am trimis un e-mail către {{email}}. Este important să vă verificați adresa de e-mail pentru a garanta cea mai bună furnizare a e-mailurilor și datelor de calendar de la {{appName}}.",
   "verify_email_banner_body": "Verificați-vă adresa de e-mail pentru a garanta cea mai bună furnizare a e-mailurilor și datelor de calendar",
   "verify_email_email_header": "Verificați-vă adresa de e-mail",
-  "verify_email_email_button": "Verificare e-mail",
+  "verify_email_button": "Verificare e-mail",
   "cal_ai_assistant": "Asistentul AI Cal",
   "send_cal_video_transcription_emails": "Trimite e-mailuri cu transcrierea video Cal",
   "description_send_cal_video_transcription_emails": "Trimite e-mailuri cu transcrierea înregistrării video Cal după încheierea întâlnirii. (Necesită un abonament plătit)",

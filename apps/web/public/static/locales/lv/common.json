@@ -16,7 +16,7 @@
   "verify_email_page_body": "Mēs nosūtījām e-pastu uz {{email}}. Ir svarīgi verificēt jūsu e-pastu, lai garantētu labāko e-pastu un kalendāru saņemšanu no {{appName}}.",
   "verify_email_banner_body": "Verificējiet savu e-pasta adresi, lai garantētu labāko e-pastu un kalendāru saņemšanu",
   "verify_email_email_header": "Verificējiet savu e-pasta adresi",
-  "verify_email_email_button": "Verificēt e-pastu",
+  "verify_email_button": "Verificēt e-pastu",
   "copy_somewhere_safe": "Saglabājiet šo API atslēgu drošā vietā. Jūs to nevarēsiet skatīt vēlreiz.",
   "verify_email_email_body": "Lūdzu, apstipriniet savu e-pasta adresi, noklikšķinot uz zemāk esošās pogas.",
   "verify_email_by_code_email_body": "Lūdzu, apstipriniet savu e-pasta adresi, izmantojot zemāk esošo kodu.",

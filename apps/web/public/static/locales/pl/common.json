@@ -22,7 +22,7 @@
   "verify_email_page_body": "Wysłaliśmy wiadomość e-mail na adres {{email}}. Weryfikacja adresu e-mail jest ważna, ponieważ umożliwia zagwarantowanie prawidłowego działania kalendarza i dostarczania wiadomości e-mail z aplikacji {{appName}}.",
   "verify_email_banner_body": "Potwierdź adres e-mail, aby upewnić się, że wiadomości e-mail i powiadomienia z kalendarza będą do Ciebie docierać.",
   "verify_email_email_header": "Zweryfikuj swój adres e-mail",
-  "verify_email_email_button": "Zweryfikuj adres e-mail",
+  "verify_email_button": "Zweryfikuj adres e-mail",
   "cal_ai_assistant": "Asystent AI Cal",
   "send_cal_video_transcription_emails": "Wysyłaj e-maile z transkrypcją Cal Video",
   "description_send_cal_video_transcription_emails": "Wysyłaj e-maile z transkrypcją Cal Video po zakończeniu spotkania. (Wymaga płatnego planu)",

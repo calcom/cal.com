@@ -22,7 +22,7 @@
   "verify_email_page_body": "Odeslali jsme e-mail na adresu {{email}}. E-mailovou adresu je důležité ověřit, aby byla zaručena co nejlepší doručitelnost e-mailů a kalendářů z {{appName}}.",
   "verify_email_banner_body": "Ověřte svoji e-mailovou adresu, abyste zaručili co nejlepší doručitelnost e-mailů a kalendáře",
   "verify_email_email_header": "Ověřte svoji e-mailovou adresu",
-  "verify_email_email_button": "Ověřit e-mail",
+  "verify_email_button": "Ověřit e-mail",
   "cal_ai_assistant": "Cal AI asistent",
   "send_cal_video_transcription_emails": "Posílat e-maily s přepisem Cal videa",
   "description_send_cal_video_transcription_emails": "Posílat e-maily s přepisem Cal videa po skončení schůzky. (Vyžaduje placený tarif)",
