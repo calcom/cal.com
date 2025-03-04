@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 
-import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
@@ -179,6 +178,10 @@ export const getEventTypeById = async ({
       message: "Could not find user or team",
     });
   }
+
+  const getLocationGroupedOptions = await import("@calcom/app-store/server").then(
+    (mod) => mod.getLocationGroupedOptions
+  );
 
   const locationOptions = await getLocationGroupedOptions(
     eventType.teamId ? { teamId: eventType.teamId } : { userId },
