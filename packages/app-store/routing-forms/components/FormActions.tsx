@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
-import { classNames } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -30,6 +29,7 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 

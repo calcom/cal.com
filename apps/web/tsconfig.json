@@ -34,5 +34,5 @@
     "../../packages/features/bookings/lib/getUserBooking.ts",
     "../../packages/features/Segment.tsx"
   ],
-  "exclude": ["node_modules", ".next"]
+  "exclude": ["**/node_modules/**", ".next"]
 }

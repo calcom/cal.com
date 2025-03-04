@@ -152,6 +152,7 @@ test.describe("Routing Forms", () => {
         const form2Id = await addForm(page, { name: "F2" });
 
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+          name: "F1",
           description: "Form 1 Description",
           field: {
             label: "F1 Field1",
@@ -160,6 +161,7 @@ test.describe("Routing Forms", () => {
         });
 
         const { types } = await addOneFieldAndDescriptionAndSaveForm(form2Id, page, {
+          name: "F2",
           description: "Form 2 Description",
           field: {
             label: "F2 Field1",
@@ -185,6 +187,7 @@ test.describe("Routing Forms", () => {
         await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
         // Add 1 more field in F1
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+          name: "F1",
           field: {
             label: "F1 Field2",
             typeIndex: 1,

@@ -3,10 +3,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, showToast, Switch } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type ICalendarSwitchProps = {
   title: string;

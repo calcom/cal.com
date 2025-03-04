@@ -6,7 +6,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   BooleanToggleGroupField,
@@ -19,6 +18,7 @@ import {
   Skeleton,
   TextField,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
