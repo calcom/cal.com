@@ -57,8 +57,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
+  const locale = await getLocale(req);
 
-  if (!url.pathname.startsWith("/api")) {
+  if (!url.pathname.startsWith("/api") && (await safeGet<boolean>("isInMaintenanceMode"))) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
     //       by the application the user is automatically redirected to /auth/login.
@@ -66,30 +67,37 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     //     - For this reason our matchers are sufficient for an app-wide maintenance page.
     //
     // Check whether the maintenance page should be shown
-    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
     // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isInMaintenanceMode) {
-      req.nextUrl.pathname = `/maintenance`;
-      return NextResponse.rewrite(req.nextUrl);
-    }
+    req.nextUrl.pathname = `/${locale}/maintenance`;
+    return NextResponse.rewrite(req.nextUrl);
   }
 
-  const routingFormRewriteResponse = routingForms.handleRewrite(url);
+  const routingFormRewriteResponse = routingForms.handleRewrite(url, locale);
   if (routingFormRewriteResponse) {
     return responseWithHeaders({ url, res: routingFormRewriteResponse, req });
   }
 
-  if (url.pathname.startsWith("/api/trpc/")) {
-    requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
-  }
+  if (url.pathname.startsWith("/api/")) {
+    if (url.pathname.startsWith("/api/auth/signup") && (await safeGet<boolean>("isSignupDisabled"))) {
+      // If is in maintenance mode, point the url pathname to the maintenance page
 
-  if (url.pathname.startsWith("/api/auth/signup")) {
-    const isSignupDisabled = await safeGet<boolean>("isSignupDisabled");
-    // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isSignupDisabled) {
       // TODO: Consider using responseWithHeaders here
       return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
     }
+
+    if (url.pathname.startsWith("/api/trpc/")) {
+      requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
+    }
+
+    return responseWithHeaders({
+      url,
+      res: NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      }),
+      req,
+    });
   }
 
   if (url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login")) {
@@ -101,19 +109,20 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     const returnTo = req.cookies.get("return-to");
 
     if (returnTo?.value) {
-      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      const returnToUrl = new URL(returnTo.value, req.url);
+      returnToUrl.pathname = `/${locale}${returnToUrl.pathname}`;
+      const response = NextResponse.redirect(returnToUrl, { headers: requestHeaders });
       response.cookies.delete("return-to");
       return response;
     }
   }
 
   requestHeaders.set("x-pathname", url.pathname);
-
-  const locale = await getLocale(req);
-
   requestHeaders.set("x-locale", locale);
 
-  const res = NextResponse.next({
+  const localeUrl = new URL(req.url);
+  localeUrl.pathname = `/${locale}${url.pathname}`;
+  const res = NextResponse.rewrite(localeUrl, {
     request: {
       headers: requestHeaders,
     },
@@ -127,10 +136,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 };
 
 const routingForms = {
-  handleRewrite: (url: URL) => {
+  handleRewrite: (url: URL, locale: string) => {
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, `/${locale}/apps/routing-forms/`);
       return NextResponse.rewrite(url);
     }
   },
@@ -175,7 +184,6 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
-    "/",
     "/403",
     "/500",
     "/icons",
