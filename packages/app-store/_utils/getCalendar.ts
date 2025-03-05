@@ -12,17 +12,6 @@ interface CalendarApp {
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
-/**
- * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
- */
-const isCalendarService = (x: unknown): x is CalendarApp =>
-  !!x &&
-  typeof x === "object" &&
-  "lib" in x &&
-  typeof x.lib === "object" &&
-  !!x.lib &&
-  "CalendarService" in x.lib;
-
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
@@ -36,13 +25,16 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarApp = CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
+  const calendarService = await CalendarServiceMap[
+    calendarType.split("_").join("") as keyof typeof CalendarServiceMap
+  ];
 
-  if (!isCalendarService(calendarApp)) {
+  if (!calendarService.default) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
-  log.info("Got calendarApp", calendarApp.lib.CalendarService);
-  const CalendarService = calendarApp.lib.CalendarService;
-  return new CalendarService(credential);
+  // INFO: Casting this as any because unfortunately
+  // the office365calendar service was changed to take different params than the rest of the services.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new calendarService.default(credential as any);
 };

@@ -1,6 +1,6 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
-  "exclude": ["dist", "build", "**/node_modules/**"],
+  "exclude": ["dist", "build", "**/node_modules/**", "**/trpc/**"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
