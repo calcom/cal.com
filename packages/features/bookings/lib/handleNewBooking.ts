@@ -48,9 +48,9 @@ import EventManager from "@calcom/lib/EventManager";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import {
-  enrichHostsWithDelegationCredentials,
-  getFirstDelegationConferencingCredentialAppLocation,
-} from "@calcom/lib/delegationCredential/server";
+  enrichHostsWithDwdCredentials,
+  getFirstDwdConferencingCredentialAppLocation,
+} from "@calcom/lib/domainWideDelegation/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName } from "@calcom/lib/event";
@@ -690,7 +690,7 @@ async function handler(
           // find a lucky user that is not already in the luckyUsers array
           availableUsers: freeUsers,
           allRRHosts: (
-            await enrichHostsWithDelegationCredentials({
+            await enrichHostsWithDwdCredentials({
               orgId: firstUserOrgId ?? null,
               hosts: eventTypeWithUsers.hosts,
             })
@@ -809,7 +809,7 @@ async function handler(
     }
   }
 
-  const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
+  const organizationDefaultLocation = getFirstDwdConferencingCredentialAppLocation({
     credentials: firstUser.credentials,
   });
 

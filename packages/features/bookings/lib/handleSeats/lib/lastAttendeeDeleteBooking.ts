@@ -2,8 +2,8 @@ import type { Attendee } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
-import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
+import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { getDwdOrFindRegularCredential } from "@calcom/lib/domainWideDelegation/server";
 import { deleteMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -20,8 +20,8 @@ const lastAttendeeDeleteBooking = async (
 ) => {
   let deletedReferences = false;
   const bookingUser = originalRescheduledBooking?.user;
-  const delegationCredentials = bookingUser
-    ? await getAllDelegationCredentialsForUser({
+  const dwdCredentials = bookingUser
+    ? await getAllDwdCredentialsForUser({
         user: { email: bookingUser.email, id: bookingUser.id },
       })
     : [];
@@ -29,13 +29,13 @@ const lastAttendeeDeleteBooking = async (
     const integrationsToDelete = [];
 
     for (const reference of originalRescheduledBooking.references) {
-      if (reference.credentialId || reference.delegationCredentialId) {
-        const credential = await getDelegationCredentialOrFindRegularCredential({
+      if (reference.credentialId || reference.domainWideDelegationCredentialId) {
+        const credential = await getDwdOrFindRegularCredential({
           id: {
             credentialId: reference.credentialId,
-            delegationCredentialId: reference.delegationCredentialId,
+            domainWideDelegationCredentialId: reference.domainWideDelegationCredentialId,
           },
-          delegationCredentials,
+          dwdCredentials,
         });
 
         if (credential) {
