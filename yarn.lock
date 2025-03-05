@@ -2318,6 +2318,7 @@ __metadata:
     "@sentry/nestjs": ^8.37.1
     "@sentry/node": ^8.8.0
     "@sentry/profiling-node": ^8.37.1
+    "@snyk/protect": latest
     "@types/cookie-parser": ^1.4.6
     "@types/express": ^4.17.21
     "@types/fs-extra": ^11.0.4
@@ -12902,6 +12903,15 @@ __metadata:
     string-argv: ^0.3.2
     uuid: ^8.3.2
   checksum: c345a12cf59d1c2e73d37af3200b19f4cb493bb445befdbf5d1534c965dadb6b9ced69811e752b9db01eb66fec58c443be9dc0d9a4388ba39d16052b07d8f08a
+  languageName: node
+  linkType: hard
+
+"@snyk/protect@npm:latest":
+  version: 1.1295.4
+  resolution: "@snyk/protect@npm:1.1295.4"
+  bin:
+    snyk-protect: bin/snyk-protect
+  checksum: 13c8ca011aa9439a4b6c222d31ef7368a53fe4f351be4a168bf025e1c1556e3c2c90e2729978e86acf5f72584872b52606515dc604ec1d87351b96c16b27a708
   languageName: node
   linkType: hard
 

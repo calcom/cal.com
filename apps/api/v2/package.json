@@ -52,6 +52,7 @@
     "@sentry/nestjs": "^8.37.1",
     "@sentry/node": "^8.8.0",
     "@sentry/profiling-node": "^8.37.1",
+    "@snyk/protect": "latest",
     "body-parser": "^1.20.2",
     "bull": "^4.12.4",
     "class-transformer": "^0.5.1",
@@ -77,8 +78,7 @@
     "uuid": "^8.3.2",
     "winston": "^3.13.0",
     "winston-transport": "^4.7.0",
-    "zod": "^3.22.4",
-    "@snyk/protect": "latest"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
