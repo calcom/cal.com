@@ -2,11 +2,11 @@ import { getAppFromLocationValue } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 
-const getBulkEventTypes = async (userId: number) => {
+const getBulkEventTypes = async (userId: number, teamId?: number) => {
   const eventTypes = await prisma.eventType.findMany({
     where: {
-      userId,
-      team: null,
+      userId: teamId ? null : userId,
+      teamId: teamId ? teamId : null,
     },
     select: {
       id: true,

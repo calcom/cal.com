@@ -12,6 +12,8 @@ export type UseAtomBulkUpdateEventTypesToDefaultLocationProps = {
   onSuccess?: () => void;
   onError?: (err: Error) => void;
   onSettled?: () => void;
+  organizationId?: number;
+  teamId?: number;
 };
 export const useAtomBulkUpdateEventTypesToDefaultLocation = ({
   onSuccess = () => {
@@ -23,6 +25,8 @@ export const useAtomBulkUpdateEventTypesToDefaultLocation = ({
   onSettled = () => {
     return;
   },
+  organizationId,
+  teamId,
 }: UseAtomBulkUpdateEventTypesToDefaultLocationProps) => {
   return useMutation({
     onSuccess,
@@ -30,7 +34,11 @@ export const useAtomBulkUpdateEventTypesToDefaultLocation = ({
     onSettled,
     mutationFn: (eventTypeIds: number[]) => {
       if (!eventTypeIds || eventTypeIds.length < 1) throw new Error("Event type ids are required");
-      const pathname = `/atoms/${V2_ENDPOINTS.eventTypes}/bulk-update-to-default-location`;
+      let pathname = `/atoms/${V2_ENDPOINTS.eventTypes}/bulk-update-to-default-location`;
+
+      if (organizationId && teamId) {
+        pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/${V2_ENDPOINTS.eventTypes}/bulk-update-to-default-location`;
+      }
 
       return http?.patch(pathname, { eventTypeIds }).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
