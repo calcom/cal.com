@@ -218,6 +218,7 @@ export interface CalendarEvent {
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
   oneTimePassword?: string | null;
+  delegationCredentialId?: string | null;
   domainWideDelegationCredentialId?: string | null;
 }
 
@@ -287,7 +288,7 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  testDomainWideDelegationSetup?(): Promise<boolean>;
+  testDelegationCredentialSetup?(): Promise<boolean>;
 
   watchCalendar?(options: {
     calendarId: string;
