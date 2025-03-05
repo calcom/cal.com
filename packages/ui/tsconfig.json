@@ -4,12 +4,6 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true
   },
-  "include": [
-    "../../apps/web/next-env.d.ts",
-    "../types/*.d.ts",
-    "../types/next-auth.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "include": ["../types/*.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["dist", "build", "**/node_modules/**"]
 }
