@@ -168,10 +168,10 @@ const organizationAdminKeys = [
   "OAuth Clients",
   "SSO",
   "directory_sync",
-  "domain_wide_delegation",
+  "delegation_credential",
 ];
 
-const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
+const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -202,11 +202,11 @@ const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
           });
         }
 
-        // Add domain-wide-delegation menu item only if feature flag is enabled
-        if (isDwdEnabled) {
+        // Add delegation-credential menu item only if feature flag is enabled
+        if (isDelegationCredentialEnabled) {
           newArray.push({
-            name: "domain_wide_delegation",
-            href: "/settings/organizations/domain-wide-delegation",
+            name: "delegation_credential",
+            href: "/settings/organizations/delegation-credential",
           });
         }
 
@@ -243,7 +243,7 @@ const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDwdEnabled]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
 
   return processTabsMemod;
 };
@@ -440,7 +440,9 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org && !currentOrgProp,
   });
 
-  const tabsWithPermissions = useTabs({ isDwdEnabled: !!_currentOrg?.features?.domainWideDelegation });
+  const tabsWithPermissions = useTabs({
+    isDelegationCredentialEnabled: !!_currentOrg?.features?.delegationCredential,
+  });
 
   const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     enabled: !!session.data?.user?.org && !otherTeamsProp,

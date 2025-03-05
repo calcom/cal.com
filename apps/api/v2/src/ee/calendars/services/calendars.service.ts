@@ -39,7 +39,7 @@ export class CalendarsService {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
-  private buildNonDwdCredentials<TCredential>(credentials: TCredential[]) {
+  private buildNonDelegationCredentials<TCredential>(credentials: TCredential[]) {
     return credentials
       .map((credential) => ({
         ...credential,
@@ -83,7 +83,7 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        this.buildNonDwdCredentials(credentials),
+        this.buildNonDelegationCredentials(credentials),
         dateFrom,
         dateTo,
         composedSelectedCalendars
