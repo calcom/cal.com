@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Keine Workspace-Plattformen",
   "workspace_platform": "Workspace-Plattform",
   "workspace_platforms": "Workspace-Plattformen",
-  "workspace_platforms_description": "Verwalten Sie Workspace-Plattformen, die für die organisationsweite Berechtigung verwendet werden können",
+  "workspace_platforms_description": "Verwalten Sie Workspace-Plattformen, die für den Delegierungsnachweis verwendet werden können",
   "edit_workspace_platform": "Workspace-Plattform bearbeiten",
   "edit_service_account": "Servicekonto bearbeiten",
   "add_workspace_platform": "Workspace-Plattform hinzufügen",

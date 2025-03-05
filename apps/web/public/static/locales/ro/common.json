@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Nu există platforme workspace",
   "workspace_platform": "Platformă workspace",
   "workspace_platforms": "Platforme workspace",
-  "workspace_platforms_description": "Gestionează platformele workspace care pot fi folosite pentru delegare la nivel de domeniu",
+  "workspace_platforms_description": "Gestionează platformele de lucru care pot fi utilizate pentru credențialul de delegare",
   "edit_workspace_platform": "Editează platforma workspace",
   "edit_service_account": "Editează contul de serviciu",
   "add_workspace_platform": "Adaugă platformă workspace",

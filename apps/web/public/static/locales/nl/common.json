@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Geen workspace-platforms",
   "workspace_platform": "Workspace-platform",
   "workspace_platforms": "Workspace-platforms",
-  "workspace_platforms_description": "Beheer workspace-platforms die kunnen worden gebruikt voor domeinbrede delegatie",
+  "workspace_platforms_description": "Beheer workspace-platforms die kunnen worden gebruikt voor delegatiereferenties",
   "edit_workspace_platform": "Workspace-platform bewerken",
   "edit_service_account": "Serviceaccount bewerken",
   "add_workspace_platform": "Workspace-platform toevoegen",

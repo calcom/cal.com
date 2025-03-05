@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "لا توجد منصات عمل",
   "workspace_platform": "منصة العمل",
   "workspace_platforms": "منصات العمل",
-  "workspace_platforms_description": "إدارة منصات العمل التي يمكن استخدامها للتفويض على مستوى النطاق",
+  "workspace_platforms_description": "إدارة منصات مساحة العمل التي يمكن استخدامها لبيانات اعتماد التفويض",
   "edit_workspace_platform": "تعديل منصة العمل",
   "edit_service_account": "تعديل حساب الخدمة",
   "add_workspace_platform": "إضافة منصة عمل",

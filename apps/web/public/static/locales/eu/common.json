@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Ez dago workspace plataformarik",
   "workspace_platform": "Workspace plataforma",
   "workspace_platforms": "Workspace plataformak",
-  "workspace_platforms_description": "Kudeatu domeinuaren eskuordetzearako erabil daitezkeen workspace plataformak",
+  "workspace_platforms_description": "Kudeatu eskuordetze kredentzialetarako erabil daitezkeen workspace plataformak",
   "edit_workspace_platform": "Editatu workspace plataforma",
   "edit_service_account": "Editatu zerbitzu kontua",
   "add_workspace_platform": "Gehitu workspace plataforma",
