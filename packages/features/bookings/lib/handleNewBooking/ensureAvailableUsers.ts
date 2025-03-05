@@ -3,10 +3,11 @@ import type { Logger } from "tslog";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
 import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 

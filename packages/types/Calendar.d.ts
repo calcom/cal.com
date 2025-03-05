@@ -8,13 +8,13 @@ import type {
 import type { Dayjs } from "dayjs";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
+import type { Frequency } from "rrule";
 import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { Frequency } from "@calcom/prisma/zod-utils";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { Ensure } from "./utils";
@@ -135,9 +135,7 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export type IntervalLimitUnit = "day" | "week" | "month" | "year";
-
-export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
+export type { IntervalLimit, IntervalLimitUnit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 export type AppsStatus = {
   appName: string;
