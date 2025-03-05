@@ -9,14 +9,19 @@ import http from "../../../lib/http";
 
 export const QUERY_KEY = "get-installed-conferencing-apps";
 
-export const useAtomsGetInstalledConferencingApps = (teamId?: number) => {
-  const { isInit, accessToken, organizationId } = useAtomsContext();
+export const useAtomsGetInstalledConferencingApps = (teamId?: number, organizationId?: number) => {
+  const { isInit, accessToken } = useAtomsContext();
 
-  // Determine which endpoint to use based on whether teamId and organizationId are provided
   let pathname = "/atoms/conferencing";
 
-  if (teamId && organizationId) {
-    pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/conferencing`;
+  if (organizationId) {
+    if (teamId) {
+      // Team-level operation
+      pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/conferencing`;
+    } else {
+      // Organization-level operation
+      pathname = `/atoms/organizations/${organizationId}/conferencing`;
+    }
   }
 
   return useQuery({

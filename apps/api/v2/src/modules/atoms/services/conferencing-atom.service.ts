@@ -12,14 +12,14 @@ export class ConferencingAtomsService {
 
   constructor(private readonly dbWrite: PrismaWriteService) {}
 
-  async getConferencingApps(user: UserWithProfile, teamId?: number, orgId?: number): Promise<ConnectedApps> {
+  async getConferencingApps(user: UserWithProfile, teamId?: number): Promise<ConnectedApps> {
     return getConnectedApps({
       user,
       input: {
         variant: "conferencing",
         onlyInstalled: true,
-        teamId: teamId ?? orgId,
-        includeTeamInstalledApps: teamId || orgId ? true : undefined,
+        teamId: teamId,
+        includeTeamInstalledApps: true,
       },
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });

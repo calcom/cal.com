@@ -48,7 +48,7 @@ type ConferencingAppsViewPlatformWrapperProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
-  orgId?: number;
+  organizationId?: number;
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
@@ -75,11 +75,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
   returnTo,
   onErrorReturnTo,
   teamId,
-  orgId,
+  organizationId,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  console.log("organizationIdddddddd: ", organizationId);
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
@@ -106,9 +107,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
     updateModal({ isOpen: true, credentialId, app });
   };
 
-  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId);
-  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId, orgId);
-  const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(teamId);
+  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId, organizationId);
+  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId, organizationId);
+  const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(
+    teamId,
+    organizationId
+  );
 
   const deleteCredentialMutation = useDeleteCredential({
     onSuccess: () => {
@@ -126,12 +130,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
       handleModelClose();
     },
     teamId,
-    orgId,
+    organizationId,
   });
 
   const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({
     teamId,
-    orgId,
+    organizationId,
   });
 
   const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({});
@@ -187,7 +191,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     returnTo,
     onErrorReturnTo,
     teamId,
-    orgId,
+    organizationId,
   });
 
   const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {
@@ -199,39 +203,45 @@ export const ConferencingAppsViewPlatformWrapper = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {installedApps && !installedApps.find((app) => app.slug == GOOGLE_MEET) && (
-            <DropdownMenuItem>
-              <DropdownItem color="secondary" onClick={() => connect(GOOGLE_MEET)}>
-                {t("google_meet")}
-              </DropdownItem>
-            </DropdownMenuItem>
-          )}
-          {installedApps && !installedApps?.find((app) => app.slug == ZOOM) && (
-            <DropdownMenuItem>
-              <DropdownItem color="secondary" onClick={() => connect(ZOOM)}>
-                {t("zoom")}
-              </DropdownItem>
-            </DropdownMenuItem>
-          )}
+          {/* {installedApps && !installedApps.find((app) => app.slug == GOOGLE_MEET) && ( */}
+          <DropdownMenuItem>
+            <DropdownItem color="secondary" onClick={() => connect(GOOGLE_MEET)}>
+              {t("google_meet")}
+            </DropdownItem>
+          </DropdownMenuItem>
+          {/* )} */}
+          {/* {installedApps && !installedApps?.find((app) => app.slug == ZOOM) && ( */}
+          <DropdownMenuItem>
+            <DropdownItem color="secondary" onClick={() => connect(ZOOM)}>
+              {t("zoom")}
+            </DropdownItem>
+          </DropdownMenuItem>
+          {/* )} */}
 
-          {installedApps && !installedApps?.find((app) => app.slug == OFFICE_365_VIDEO) && (
-            <DropdownMenuItem>
-              <DropdownItem color="secondary" onClick={() => setIsAccountModalOpen(true)}>
-                {t("office_365_video")}
-              </DropdownItem>
-            </DropdownMenuItem>
-          )}
+          {/* {installedApps && !installedApps?.find((app) => app.slug == OFFICE_365_VIDEO) && ( */}
+          <DropdownMenuItem>
+            <DropdownItem color="secondary" onClick={() => setIsAccountModalOpen(true)}>
+              {t("office_365_video")}
+            </DropdownItem>
+          </DropdownMenuItem>
+          {/* )} */}
         </DropdownMenuContent>
       </Dropdown>
     );
   };
+  console.log("eventTypesQuerydata: ", eventTypesQuery?.data);
 
   return (
     <AtomsWrapper>
       <SettingsHeader
         title={t("conferencing")}
         description={t("conferencing_description")}
-        CTA={<AddConferencingButtonPlatform installedApps={installedIntegrationsQuery.data?.items} />}
+        CTA={
+          <AddConferencingButtonPlatform
+
+          // installedApps={installedIntegrationsQuery.data?.items}
+          />
+        }
         borderInShellHeader={true}>
         <>
           <div className="bg-default w-full sm:mx-0 xl:mt-0">

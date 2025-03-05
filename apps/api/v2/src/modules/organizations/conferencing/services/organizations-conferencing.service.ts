@@ -51,30 +51,37 @@ export class OrganizationsConferencingService {
   }: {
     user: UserWithProfile;
     orgId: string;
-    teamId: string;
+    teamId?: string;
     requiredRole?: string;
     minimumPlan?: PlatformPlanType;
-  }): Promise<{ orgId: number; teamId: number }> {
+  }): Promise<{ orgId: number; teamId: number | null }> {
     const userWithAdminFlag = {
       ...user,
       isSystemAdmin: user.role === "ADMIN",
     };
 
-    if (orgId) {
-      await this.ensureOrganizationAccess(orgId);
-      await this.ensureAdminAPIEnabled(orgId);
+    if (!orgId) {
+      throw new BadRequestException("Organization ID is required");
+    }
 
-      if (teamId) {
-        await this.ensureTeamBelongsToOrg(orgId, teamId);
-      }
+    await this.ensureOrganizationAccess(orgId);
+    await this.ensureAdminAPIEnabled(orgId);
+
+    // Only validate team if a teamId is provided
+    if (teamId && teamId.trim() !== "") {
+      await this.ensureTeamBelongsToOrg(orgId, teamId);
     }
 
     await this.ensureUserRoleAccess(userWithAdminFlag, orgId, teamId, requiredRole);
     await this.ensurePlatformPlanAccess({ teamId, orgId, user: userWithAdminFlag, minimumPlan });
 
+    const parsedOrgId = parseInt(orgId, 10);
+    // For organization-level operations, teamId might be empty or null
+    const parsedTeamId = teamId && teamId.trim() !== "" ? parseInt(teamId, 10) : null;
+
     return {
-      orgId: parseInt(orgId, 10),
-      teamId: parseInt(teamId, 10),
+      orgId: parsedOrgId,
+      teamId: parsedTeamId,
     };
   }
 
@@ -101,17 +108,26 @@ export class OrganizationsConferencingService {
 
   private async ensureUserRoleAccess(
     user: ApiAuthGuardUser,
-    orgId?: string,
+    orgId: string,
     teamId?: string,
     requiredRole?: string
   ): Promise<void> {
     if (!requiredRole) return;
 
-    if (!orgId || !teamId) {
-      throw new ForbiddenException("orgId required");
+    // For team-level roles, we need both orgId and teamId
+    if (requiredRole.startsWith("TEAM_") && (!teamId || teamId.trim() === "")) {
+      throw new ForbiddenException("Team ID is required for team-level role access");
     }
 
-    const { canAccess } = await this.rolesGuard.checkUserRoleAccess(user, orgId, teamId, requiredRole);
+    // Use empty string for teamId if it's an org-level operation
+    const effectiveTeamId = teamId && teamId.trim() !== "" ? teamId : "";
+
+    const { canAccess } = await this.rolesGuard.checkUserRoleAccess(
+      user,
+      orgId,
+      effectiveTeamId,
+      requiredRole
+    );
     if (!canAccess) {
       throw new ForbiddenException("User does not have the required role.");
     }
@@ -141,17 +157,7 @@ export class OrganizationsConferencingService {
     }
   }
 
-  async connectTeamNonOauthApps({
-    orgId,
-    teamId,
-    app,
-    user,
-  }: {
-    orgId: number;
-    teamId: number;
-    app: string;
-    user: UserWithProfile;
-  }): Promise<any> {
+  async connectTeamNonOauthApps({ teamId, app }: { teamId: number; app: string }): Promise<any> {
     switch (app) {
       case GOOGLE_MEET:
         return this.googleMeetService.connectGoogleMeetToTeam(teamId);
@@ -173,50 +179,41 @@ export class OrganizationsConferencingService {
   }) {
     const user = await this.usersRepository.findByIdWithProfile(userId);
     const { orgId, teamId } = decodedCallbackState;
-    if (!orgId || !teamId) {
-      throw new BadRequestException("teamid and orgid required");
+
+    if (!orgId) {
+      throw new BadRequestException("orgId required");
     }
 
     if (!user) {
       throw new BadRequestException("user not found");
     }
+
+    // Determine if this is a team-level or organization-level operation
+    const isTeamLevel = !!teamId;
+    const requiredRole = isTeamLevel ? "TEAM_ADMIN" : "ORG_ADMIN";
+
+    // Verify access with appropriate parameters
     const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
       user,
       orgId,
       teamId,
-      requiredRole: "TEAM_ADMIN",
+      requiredRole,
       minimumPlan: "ESSENTIALS",
     });
 
-    return this.conferencingService.connectOauthApps(
-      app,
-      code,
-      userId,
-      decodedCallbackState,
-      validatedTeamId
-    );
+    const entityId = isTeamLevel && validatedTeamId !== null ? validatedTeamId : validatedOrgId;
+
+    return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState, entityId);
   }
 
-  async getConferencingApps({
-    teamId,
-    orgId,
-    user,
-  }: {
-    teamId: number;
-    orgId: number;
-    user: UserWithProfile;
-  }) {
+  async getConferencingApps({ teamId }: { teamId: number }) {
     return this.conferencingRepository.findTeamConferencingApps(teamId);
   }
 
   async getDefaultConferencingApp({
     teamId,
-    orgId,
-    user,
   }: {
     teamId: number;
-    orgId: number;
-    user: UserWithProfile;
   }): Promise<DefaultConferencingAppsOutputDto | undefined> {
     const team = await this.teamsRepository.getById(teamId);
     return teamMetadataSchema.parse(team?.metadata)?.defaultConferencingApp;
@@ -237,12 +234,10 @@ export class OrganizationsConferencingService {
 
   async disconnectConferencingApp({
     teamId,
-    orgId,
     user,
     app,
   }: {
     teamId: number;
-    orgId: number;
     user: UserWithProfile;
     app: string;
   }) {
@@ -255,17 +250,7 @@ export class OrganizationsConferencingService {
     });
   }
 
-  async setDefaultConferencingApp({
-    teamId,
-    orgId,
-    user,
-    app,
-  }: {
-    teamId: number;
-    orgId: number;
-    user: UserWithProfile;
-    app: string;
-  }) {
+  async setDefaultConferencingApp({ teamId, app }: { teamId: number; app: string }) {
     // cal-video is global, so we can skip this check
     if (app !== CAL_VIDEO) {
       await this.checkAppIsValidAndConnected(teamId, app);

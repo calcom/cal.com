@@ -19,7 +19,7 @@ export default function ConferencingApps(props: { calUsername: string; calEmail:
           returnTo={callbackUri}
           onErrorReturnTo={callbackUri}
           teamId={35}
-          orgId={1}
+          organizationId={1}
         />
       </div>
     </main>

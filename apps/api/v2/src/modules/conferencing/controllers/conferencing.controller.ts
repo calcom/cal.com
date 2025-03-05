@@ -121,7 +121,7 @@ export class ConferencingController {
       if (!userId) {
         throw new UnauthorizedException("Invalid Access token.");
       }
-      if (decodedCallbackState.teamId && decodedCallbackState.orgId) {
+      if (decodedCallbackState.orgId) {
         return this.organizationsConferencingService.connectTeamOauthApps({
           app,
           code,

@@ -11,14 +11,14 @@ export type UseUpdateUserDefaultConferencingAppProps = {
   onError?: (err: Error) => void;
   onSettled?: () => void;
   teamId?: number;
-  orgId?: number;
+  organizationId?: number;
 };
 export const useUpdateUserDefaultConferencingApp = ({
   onSuccess,
   onError,
   onSettled,
   teamId,
-  orgId,
+  organizationId,
 }: UseUpdateUserDefaultConferencingAppProps) => {
   return useMutation({
     onSuccess,
@@ -29,8 +29,12 @@ export const useUpdateUserDefaultConferencingApp = ({
 
       let pathname = `/conferencing/${app}/default`;
 
-      if (teamId && orgId) {
-        pathname = `/organizations/${orgId}/teams/${teamId}/conferencing/${app}/default`;
+      if (organizationId) {
+        if (teamId) {
+          pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/default`;
+        } else {
+          pathname = `/organizations/${organizationId}/conferencing/${app}/default`;
+        }
       }
       return http?.post(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {

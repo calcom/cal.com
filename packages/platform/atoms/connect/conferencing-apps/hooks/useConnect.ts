@@ -17,19 +17,25 @@ export type UseGetOauthAuthUrlProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
-  orgId?: number;
+  organizationId?: number;
 };
 
 export const useGetZoomOauthAuthUrl = ({
   returnTo,
   onErrorReturnTo,
   teamId,
-  orgId,
+  organizationId,
 }: UseGetOauthAuthUrlProps) => {
   let pathname = `conferencing/${ZOOM}/oauth/auth-url`;
 
-  if (teamId && orgId) {
-    pathname = `organizations/${orgId}/teams/${teamId}/conferencing/${ZOOM}/oauth/auth-url`;
+  if (organizationId) {
+    if (teamId) {
+      // Team-level operation
+      pathname = `organizations/${organizationId}/teams/${teamId}/conferencing/${ZOOM}/oauth/auth-url`;
+    } else {
+      // Organization-level operation
+      pathname = `organizations/${organizationId}/conferencing/${ZOOM}/oauth/auth-url`;
+    }
   }
 
   // Add query parameters
@@ -40,7 +46,7 @@ export const useGetZoomOauthAuthUrl = ({
   const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
 
   return useQuery({
-    queryKey: ["get-zoom-auth-url", teamId, orgId],
+    queryKey: ["get-zoom-auth-url", teamId, organizationId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
@@ -59,12 +65,16 @@ export const useOffice365GetOauthAuthUrl = ({
   returnTo,
   onErrorReturnTo,
   teamId,
-  orgId,
+  organizationId,
 }: UseGetOauthAuthUrlProps) => {
   let pathname = `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
 
-  if (teamId && orgId) {
-    pathname = `organizations/${orgId}/teams/${teamId}/conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+  if (organizationId) {
+    if (teamId) {
+      pathname = `organizations/${organizationId}/teams/${teamId}/conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+    } else {
+      pathname = `organizations/${organizationId}/conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+    }
   }
 
   // Add query parameters
@@ -75,7 +85,7 @@ export const useOffice365GetOauthAuthUrl = ({
   const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
 
   return useQuery({
-    queryKey: ["get-office365-auth-url", teamId, orgId],
+    queryKey: ["get-office365-auth-url", teamId, organizationId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
@@ -96,11 +106,11 @@ export type UseConnectGoogleMeetProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
-  orgId?: number;
+  organizationId?: number;
 };
 
 export const useConnectNonOauthApp = (
-  { onSuccess, onError, teamId, orgId, returnTo, onErrorReturnTo }: UseConnectGoogleMeetProps = {
+  { onSuccess, onError, teamId, organizationId, returnTo, onErrorReturnTo }: UseConnectGoogleMeetProps = {
     onSuccess: () => {
       return;
     },
@@ -113,8 +123,14 @@ export const useConnectNonOauthApp = (
     mutationFn: (app: string) => {
       let pathname = `/conferencing/${app}/connect`;
 
-      if (teamId && orgId) {
-        pathname = `/organizations/${orgId}/teams/${teamId}/conferencing/${app}/connect`;
+      if (organizationId) {
+        if (teamId) {
+          // Team-level operation
+          pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/connect`;
+        } else {
+          // Organization-level operation
+          pathname = `/organizations/${organizationId}/conferencing/${app}/connect`;
+        }
       }
 
       // Add query parameters

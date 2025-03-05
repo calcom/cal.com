@@ -11,14 +11,14 @@ export type UseDeleteEventTypeProps = {
   onError?: (err: Error) => void;
   onSettled?: () => void;
   teamId?: number;
-  orgId?: number;
+  organizationId?: number;
 };
 export const useDeleteCredential = ({
   onSuccess,
   onError,
   onSettled,
   teamId,
-  orgId,
+  organizationId,
 }: UseDeleteEventTypeProps) => {
   return useMutation({
     onSuccess,
@@ -29,8 +29,12 @@ export const useDeleteCredential = ({
 
       let pathname = `/conferencing/${app}/disconnect`;
 
-      if (teamId && orgId) {
-        pathname = `/organizations/${orgId}/teams/${teamId}/conferencing/${app}/disconnect`;
+      if (organizationId) {
+        if (teamId) {
+          pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/disconnect`;
+        } else {
+          pathname = `/organizations/${organizationId}/conferencing/${app}/disconnect`;
+        }
       }
       return http?.delete(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {

@@ -63,6 +63,7 @@ export class OrganizationsConferencingController {
     private readonly organizationsConferencingService: OrganizationsConferencingService
   ) {}
 
+  // Team-level endpoints
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
@@ -77,8 +78,6 @@ export class OrganizationsConferencingController {
   ): Promise<ConferencingAppOutputResponseDto> {
     const credential = await this.organizationsConferencingService.connectTeamNonOauthApps({
       teamId,
-      orgId,
-      user,
       app,
     });
 
@@ -127,14 +126,10 @@ export class OrganizationsConferencingController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "List team conferencing applications" })
   async listTeamConferencingApps(
-    @GetUser() user: UserWithProfile,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("orgId", ParseIntPipe) orgId: number
+    @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ConferencingAppsOutputResponseDto> {
     const conferencingApps = await this.organizationsConferencingService.getConferencingApps({
       teamId,
-      orgId,
-      user,
     });
 
     return {
@@ -150,15 +145,11 @@ export class OrganizationsConferencingController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set team default conferencing application" })
   async setTeamDefaultApp(
-    @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
     await this.organizationsConferencingService.setDefaultConferencingApp({
       teamId,
-      orgId,
-      user,
       app,
     });
 
@@ -173,13 +164,10 @@ export class OrganizationsConferencingController {
   @ApiOperation({ summary: "Get team default conferencing application" })
   async getTeamDefaultApp(
     @GetUser() user: UserWithProfile,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("orgId", ParseIntPipe) orgId: number
+    @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<GetDefaultConferencingAppOutputResponseDto> {
     const defaultConferencingApp = await this.organizationsConferencingService.getDefaultConferencingApp({
       teamId,
-      orgId,
-      user,
     });
 
     return { status: SUCCESS_STATUS, data: defaultConferencingApp };
@@ -194,12 +182,138 @@ export class OrganizationsConferencingController {
   async disconnectTeamApp(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
   ): Promise<DisconnectConferencingAppOutputResponseDto> {
     await this.organizationsConferencingService.disconnectConferencingApp({
       teamId,
+      user,
+      app,
+    });
+
+    return { status: SUCCESS_STATUS };
+  }
+
+  // Organization-level endpoints
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Post("/conferencing/:app/connect")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Connect your conferencing application to an organization" })
+  async connectOrgApp(
+    @GetUser() user: UserWithProfile,
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("app") app: string
+  ): Promise<ConferencingAppOutputResponseDto> {
+    const credential = await this.organizationsConferencingService.connectTeamNonOauthApps({
+      teamId: orgId,
+      app,
+    });
+
+    return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/conferencing/:app/oauth/auth-url")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get OAuth conferencing app auth url for an organization" })
+  async getOrgOAuthUrl(
+    @Req() req: Request,
+    @Headers("Authorization") authorization: string,
+    @Param("orgId") orgId: string,
+    @Param("app") app: string,
+    @Query("returnTo") returnTo?: string,
+    @Query("onErrorReturnTo") onErrorReturnTo?: string
+  ): Promise<GetConferencingAppsOauthUrlResponseDto> {
+    const origin = req.headers.origin;
+    const accessToken = authorization.replace("Bearer ", "");
+
+    const state: OAuthCallbackState = {
+      returnTo: returnTo ?? origin,
+      onErrorReturnTo: onErrorReturnTo ?? origin,
+      fromApp: false,
+      accessToken,
       orgId,
+    };
+
+    const credential = await this.conferencingService.generateOAuthUrl(app, state);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToInstance(ConferencingAppsOauthUrlOutputDto, credential),
+    };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/conferencing")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "List organization conferencing applications" })
+  async listOrgConferencingApps(
+    @Param("orgId", ParseIntPipe) orgId: number
+  ): Promise<ConferencingAppsOutputResponseDto> {
+    const conferencingApps = await this.organizationsConferencingService.getConferencingApps({
+      teamId: orgId,
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: conferencingApps.map((app) => plainToInstance(ConferencingAppsOutputDto, app)),
+    };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Post("/conferencing/:app/default")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set organization default conferencing application" })
+  async setOrgDefaultApp(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("app") app: string
+  ): Promise<SetDefaultConferencingAppOutputResponseDto> {
+    await this.organizationsConferencingService.setDefaultConferencingApp({
+      teamId: orgId,
+      app,
+    });
+
+    return { status: SUCCESS_STATUS };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/conferencing/default")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get organization default conferencing application" })
+  async getOrgDefaultApp(
+    @GetUser() user: UserWithProfile,
+    @Param("orgId", ParseIntPipe) orgId: number
+  ): Promise<GetDefaultConferencingAppOutputResponseDto> {
+    const defaultConferencingApp = await this.organizationsConferencingService.getDefaultConferencingApp({
+      teamId: orgId,
+    });
+
+    return { status: SUCCESS_STATUS, data: defaultConferencingApp };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Delete("/conferencing/:app/disconnect")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Disconnect organization conferencing application" })
+  async disconnectOrgApp(
+    @GetUser() user: UserWithProfile,
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("app") app: string
+  ): Promise<DisconnectConferencingAppOutputResponseDto> {
+    await this.organizationsConferencingService.disconnectConferencingApp({
+      teamId: orgId,
       user,
       app,
     });
