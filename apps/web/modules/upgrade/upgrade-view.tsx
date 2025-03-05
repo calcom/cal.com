@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,6 +26,10 @@ export default function UpgradePage() {
       showToast(error.message, "error");
     },
   });
+
+  useEffect(() => {
+    publishOrgMutation.mutate();
+  }, [publishOrgMutation]);
 
   const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
 
