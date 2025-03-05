@@ -29,9 +29,12 @@ export default function UpgradePage() {
 
   const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
 
+  // Automatically trigger upgrade when user visits the page and has an org to upgrade
   useEffect(() => {
-    doesUserHaveOrgToUpgrade.data && publishOrgMutation.mutate();
-  }, [doesUserHaveOrgToUpgrade.data, publishOrgMutation]);
+    if (doesUserHaveOrgToUpgrade.data) {
+      publishOrgMutation.mutate();
+    }
+  }, [doesUserHaveOrgToUpgrade.data]);
 
   return (
     <Shell withoutSeo={true}>
