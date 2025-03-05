@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Brak platform workspace",
   "workspace_platform": "Platforma workspace",
   "workspace_platforms": "Platformy workspace",
-  "workspace_platforms_description": "Zarządzaj platformami workspace, które mogą być używane do poświadczeń delegacji",
+  "workspace_platforms_description": "Zarządzaj platformami workspace, które mogą być używane do delegacji na poziomie domeny",
   "edit_workspace_platform": "Edytuj platformę workspace",
   "edit_service_account": "Edytuj konto usługi",
   "add_workspace_platform": "Dodaj platformę workspace",
