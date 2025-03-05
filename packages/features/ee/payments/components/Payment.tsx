@@ -179,7 +179,7 @@ const PaymentForm = (props: Props) => {
       payload = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: WEBAPP_URL,
+          return_url: `${WEBAPP_URL}/booking/${params.uid}`,
         },
         redirect: "if_required",
       });
