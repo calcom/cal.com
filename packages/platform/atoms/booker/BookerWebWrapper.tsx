@@ -206,13 +206,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         const newPath = `${pathname}?isInstantMeeting=true`;
 
         if (isEmbed) {
-          const baseUrl = window.location.href.split("?")[0].split("#")[0];
-
-          const baseUrlWithoutPath = baseUrl.split("/").slice(0, 3).join("/");
-          const fullUrl = newPath.startsWith("/")
-            ? `${baseUrlWithoutPath}${newPath}`
-            : `${baseUrlWithoutPath}/${newPath}`;
-
+          const fullUrl = `${new URL(document.URL).origin}/${newPath}`;
           window.open(fullUrl, "_blank", "noopener,noreferrer");
         } else {
           router.push(newPath);
