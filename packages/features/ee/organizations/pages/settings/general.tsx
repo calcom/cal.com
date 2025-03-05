@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,7 +22,6 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TimezoneSelect,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 

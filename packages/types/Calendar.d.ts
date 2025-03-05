@@ -219,6 +219,7 @@ export interface CalendarEvent {
   platformBookingUrl?: string | null;
   oneTimePassword?: string | null;
   delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 }
 
 export interface EntryPoint {

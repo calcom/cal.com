@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +21,6 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TimezoneSelect,
   SettingsToggle,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
