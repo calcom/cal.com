@@ -2,7 +2,6 @@ import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -16,6 +15,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 

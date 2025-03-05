@@ -3,7 +3,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { availabilityUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -13,9 +12,13 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
+import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
+import { withSelectedCalendars } from "../withSelectedCalendars";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
 
+export type { UserWithLegacySelectedCalendars } from "../withSelectedCalendars";
+export { withSelectedCalendars };
 export type UserAdminTeams = number[];
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
@@ -73,32 +76,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   identityProvider: true,
   teams: true,
 });
-
-export type UserWithLegacySelectedCalendars<TCalendar, TUser> = TUser & {
-  selectedCalendars: TCalendar[];
-};
-
-type UserWithSelectedCalendars<TCalendar, TUser> = Omit<TUser, "selectedCalendars"> & {
-  allSelectedCalendars: TCalendar[];
-  userLevelSelectedCalendars: TCalendar[];
-};
-
-export function withSelectedCalendars<
-  TCalendar extends {
-    eventTypeId: number | null;
-  },
-  TUser extends {
-    selectedCalendars: TCalendar[];
-  }
->(user: UserWithLegacySelectedCalendars<TCalendar, TUser>): UserWithSelectedCalendars<TCalendar, TUser> {
-  // We are renaming selectedCalendars to allSelectedCalendars to make it clear that it contains all the calendars including eventType calendars
-  const { selectedCalendars, ...restUser } = user;
-  return {
-    ...restUser,
-    allSelectedCalendars: selectedCalendars,
-    userLevelSelectedCalendars: selectedCalendars.filter((calendar) => !calendar.eventTypeId),
-  };
-}
 
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
@@ -806,27 +783,11 @@ export class UserRepository {
       return null;
     }
 
-    return withSelectedCalendars(user);
-  }
-
-  static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {
-    const user = await prisma.user.findFirst({
-      where,
-      select: {
-        ...availabilityUserSelect,
-        selectedCalendars: true,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-      },
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    const userWithSelectedCalendars = withSelectedCalendars(user);
-    return userWithSelectedCalendars;
+    const { credentials, ...userWithSelectedCalendars } = withSelectedCalendars(user);
+    return {
+      ...userWithSelectedCalendars,
+      credentials: buildNonDelegationCredentials(credentials),
+    };
   }
 
   static async findUnlockedUserForSession({ userId }: { userId: number }) {

@@ -167,6 +167,12 @@ export interface App {
   createdAt?: string;
   /** Specifies if the App uses an OAuth flow  */
   isOAuth?: boolean;
+  /**
+   * Specifies if the App supports delegation credential
+   */
+  delegationCredential?: {
+    workspacePlatformSlug: string;
+  };
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {

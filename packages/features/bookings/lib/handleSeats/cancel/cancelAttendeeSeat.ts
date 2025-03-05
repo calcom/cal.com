@@ -1,18 +1,19 @@
 import type { NextApiRequest } from "next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { updateMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -67,6 +68,12 @@ async function cancelAttendeeSeat(
   (req as NextApiRequest).statusCode = 200;
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+  const bookingToDeleteUser = bookingToDelete.user ?? null;
+  const delegationCredentials = bookingToDeleteUser
+    ? await getAllDelegationCredentialsForUser({
+        user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
+      })
+    : [];
 
   if (attendee) {
     /* If there are references then we should update them as well */
@@ -74,12 +81,13 @@ async function cancelAttendeeSeat(
     const integrationsToUpdate = [];
 
     for (const reference of bookingToDelete.references) {
-      if (reference.credentialId) {
-        const credential = await prisma.credential.findUnique({
-          where: {
-            id: reference.credentialId,
+      if (reference.credentialId || reference.delegationCredentialId) {
+        const credential = await getDelegationCredentialOrFindRegularCredential({
+          id: {
+            credentialId: reference.credentialId,
+            delegationCredentialId: reference.delegationCredentialId,
           },
-          select: credentialForCalendarServiceSelect,
+          delegationCredentials,
         });
 
         if (credential) {
