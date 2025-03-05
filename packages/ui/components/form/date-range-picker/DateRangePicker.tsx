@@ -85,9 +85,7 @@ export function DatePickerWithRange({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
-          sideOffset={4}
-          side="bottom"
-          avoidCollisions={false}>
+          sideOffset={4}>
           {calendar}
         </Popover.Content>
       </Popover.Root>
