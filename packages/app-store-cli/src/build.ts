@@ -402,7 +402,7 @@ function generateFiles() {
     ["apps.schemas.generated.ts", schemasOutput],
     ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
     ["bookerApps.metadata.generated.ts", bookerMetadataOutput],
-    ["calendar.apps.generated.ts", calendarAppsOutput],
+    ["calendar.services.generated.ts", calendarAppsOutput],
     ["conferencing.videoAdapters.generated.ts", conferencingVideoAdaptersOutput],
     ["crm.services.generated.ts", crmOutput],
     ["payment.apps.generated.ts", paymentAppsOutput],
