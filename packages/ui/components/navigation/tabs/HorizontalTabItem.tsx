@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 
 import { Avatar } from "../../avatar";
@@ -33,6 +34,7 @@ const HorizontalTabItem = function ({
   ...props
 }: HorizontalTabItemProps) {
   const isCurrent = useUrlMatchesCurrentUrl(href, matchFullPath) || props?.isActive;
+  const { t } = useLocale();
 
   return (
     <Link
@@ -63,7 +65,7 @@ const HorizontalTabItem = function ({
           aria-hidden="true"
         />
       )}
-      {avatar && <Avatar size="xs" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-1" />} {name}
+      {avatar && <Avatar size="xs" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-1" />} {t(name)}
     </Link>
   );
 };
