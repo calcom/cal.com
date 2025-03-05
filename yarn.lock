@@ -2945,6 +2945,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/features@workspace:packages/features"
   dependencies:
+    "@calcom/atoms": "*"
     "@calcom/dayjs": "*"
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
@@ -3666,7 +3667,7 @@ __metadata:
     "@trpc/react-query": 11.0.0-next-beta.222
     "@trpc/server": 11.0.0-next-beta.222
     superjson: 1.9.1
-    typescript: ^5.3.3
+    typescript: ^5.8.2
     zod: ^3.22.4
   languageName: unknown
   linkType: soft
