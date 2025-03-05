@@ -1,4 +1,4 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -540,4 +540,4 @@ async function handler(request: NextRequest) {
   });
 }
 
-export const POST = apiRouteMiddleware(handler);
+export const POST = defaultResponderForAppDir(handler);
