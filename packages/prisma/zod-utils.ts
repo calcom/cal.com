@@ -108,6 +108,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
       unit: RequiresConfirmationThresholdUnits,
     })
     .optional(),
+  disableConflictingBookings: z.boolean().optional(),
   config: z
     .object({
       useHostSchedulesForTeamEvent: z.boolean().optional(),
@@ -710,6 +711,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   customInputs: true,
   disableGuests: true,
   requiresConfirmation: true,
+  disableConflictingBookings: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
   requiresConfirmationWillBlockSlot: true,
