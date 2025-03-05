@@ -11,12 +11,6 @@ import { default as webPrisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 const helpscoutRequestBodySchema = z.object({
   customer: z.object({
     email: emailSchema,
