@@ -98,7 +98,13 @@ const AddCertificate = () => {
       })
         .then((response) => {
           response.json().then((response) => {
+            if (response.data.length === 0) {
+              setIsLoading(false);
+              return;
+            }
+
             const proProfessionalId = response.data[0].id;
+
             fetch(
               `${DIRECTUS_BASE_URL}/get-pro-professionals-companies?proProfessionalId=${proProfessionalId}`,
               {
