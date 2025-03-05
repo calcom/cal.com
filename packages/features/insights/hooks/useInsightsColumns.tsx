@@ -70,7 +70,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("bookingUid", {
         id: "bookingUid",
-        header: t("routing_form_insights_booking_uid"),
+        header: t("uid"),
         size: 100,
         enableColumnFilter: false,
         enableSorting: false,
@@ -82,7 +82,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("bookingUid", {
         id: "bookingLink",
-        header: t("routing_form_insights_booking_link"),
+        header: t("link"),
         size: 100,
         enableColumnFilter: false,
         enableSorting: false,
