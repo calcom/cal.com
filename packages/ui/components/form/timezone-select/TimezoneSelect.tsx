@@ -179,7 +179,7 @@ export function TimezoneSelectComponent({
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
         menuList: (state) =>
           classNames(
-            "scroll-bar scrollbar-track-w-20 rounded-md",
+            "scroll-bar h-[25vh] scrollbar-track-w-20 rounded-md",
             timezoneClassNames?.menuList && timezoneClassNames.menuList(state)
           ),
         indicatorsContainer: (state) =>
