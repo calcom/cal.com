@@ -9,6 +9,7 @@ import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@
 import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 import { getReactSelectProps, inputStyles } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
