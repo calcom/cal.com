@@ -164,4 +164,9 @@ export class ReserveSlotInput_2024_04_15 {
     description: "Optional but only for events with seats. Used to retrieve booking of a seated event.",
   })
   bookingUid?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _isDryRun?: boolean;
 }
