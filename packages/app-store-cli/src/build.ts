@@ -40,7 +40,7 @@ function generateFiles() {
   const crmOutput = [];
   const paymentAppsOutput = [];
   const calendarAppsOutput = [];
-  const conferencingAppsOutput = [];
+  const conferencingVideoAdaptersOutput = [];
   const appDirs: { name: string; path: string }[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
@@ -376,7 +376,7 @@ function generateFiles() {
     )
   );
 
-  conferencingAppsOutput.push(
+  conferencingVideoAdaptersOutput.push(
     ...getExportedObject(
       "ConferencingVideoAdapterMap",
       {
@@ -403,7 +403,7 @@ function generateFiles() {
     ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
     ["bookerApps.metadata.generated.ts", bookerMetadataOutput],
     ["calendar.apps.generated.ts", calendarAppsOutput],
-    ["conferencing.apps.generated.ts", conferencingAppsOutput],
+    ["conferencing.apps.generated.ts", conferencingVideoAdaptersOutput],
     ["crm.apps.generated.ts", crmOutput],
     ["payment.apps.generated.ts", paymentAppsOutput],
   ];
