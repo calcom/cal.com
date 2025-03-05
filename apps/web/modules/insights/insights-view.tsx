@@ -18,6 +18,7 @@ import {
   RecentFeedbackTable,
   HighestRatedMembersTable,
   LowestRatedMembersTable,
+  MostCancelledBookingsTable,
 } from "@calcom/features/insights/components";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
@@ -74,6 +75,9 @@ function InsightsPageContent() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <MostCancelledBookingsTable />
         </div>
         <RecentFeedbackTable />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
