@@ -2972,6 +2972,7 @@
   "error_fetching_answer": "Error while fetching answer ",
   "k_bar_ai_error": "An unexpected error occured. Please try again later",
   "select_oAuth_client": "Select Oauth Client",
+  "most_cancelled_bookings": "Most Cancelled Bookings",
   "on_every_instance": "On every instance",
   "delegation_credential_feature_not_enabled": "Delegation credential feature is not enabled for your organization",
   "internal_booking_note": "Internal Note",
