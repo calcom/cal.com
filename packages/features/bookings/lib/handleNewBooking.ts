@@ -7,11 +7,8 @@ import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import {
-  getLocationValueForDB,
-  MeetLocationType,
-  OrganizerDefaultConferencingAppType,
-} from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locationConstants";
+import { getLocationValueForDB, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";

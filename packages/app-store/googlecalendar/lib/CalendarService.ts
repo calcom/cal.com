@@ -6,7 +6,7 @@ import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locationConstants";
 import dayjs from "@calcom/dayjs";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
