@@ -8,8 +8,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
-import { TRPCError } from "@calcom/trpc/server";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
+
+import { TRPCError } from "@trpc/server";
 
 import isRouter from "../lib/isRouter";
 import { onFormSubmission } from "../trpc/utils";
