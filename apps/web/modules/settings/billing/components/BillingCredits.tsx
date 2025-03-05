@@ -1,4 +1,5 @@
 import { ProgressBar } from "@tremor/react";
+import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -7,12 +8,23 @@ import { Button, TextField, Label } from "@calcom/ui";
 
 export default function BillingCredits() {
   const { t } = useLocale();
+  const router = useRouter();
 
   const params = useParamsWithFallback();
   //if this is given we are on the teams billing page
   const teamId = params.id ? Number(params.id) : undefined;
 
   const { data: creditsData } = trpc.viewer.credits.getAllCredits.useQuery({ teamId: teamId });
+
+  const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
+    onSuccess: (data) => {
+      router.push(data.sessionUrl);
+    },
+    onError: (err) => {
+      //todo
+      console.log(`error: ${JSON.stringify(error)}`);
+    },
+  });
 
   if (!creditsData || (!creditsData.teamCredits && !creditsData.userCredits)) {
     return <></>;
@@ -82,7 +94,11 @@ export default function BillingCredits() {
 
             {/* disable button if 0 credits*/}
             <div className="mt-4">
-              <Button color="primary" target="_blank" EndIcon="external-link">
+              <Button
+                color="primary"
+                target="_blank"
+                EndIcon="external-link"
+                onClick={() => buyCreditsMutation.mutate({ quantity: 100 })}>
                 {t("buy_credits")}
               </Button>
             </div>
