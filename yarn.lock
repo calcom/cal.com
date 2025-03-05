@@ -2295,7 +2295,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.126"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.127"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -2432,7 +2432,6 @@ __metadata:
     qs-stringify: ^1.2.1
     react-i18next: ^12.2.0
     stripe: ^9.16.0
-    typescript: ^5.3.3
   languageName: unknown
   linkType: soft
 
@@ -2933,7 +2932,6 @@ __metadata:
     dub: ^0.55.1
     handlebars: ^4.7.7
     jose: ^4.13.1
-    jsonwebtoken: ^9.0.2
     lru-cache: ^9.0.3
     next-auth: ^4.22.1
     nodemailer: ^6.7.8
@@ -3164,7 +3162,7 @@ __metadata:
     sonner: ^1.7.4
     tsdav: 2.0.3
     tslog: ^4.9.2
-    typescript: ^5.8.2
+    typescript: ^4.9.4
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
@@ -3341,13 +3339,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.126":
-  version: 0.0.126
-  resolution: "@calcom/platform-libraries@npm:0.0.126"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.127":
+  version: 0.0.127
+  resolution: "@calcom/platform-libraries@npm:0.0.127"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 0124c5ed2b4859b294085b032da24b975806e2e0176d03a60a6da1edd4e40180ca0ea0bfd047fc79a1c704962c6da445632c6a2f9ec9b7024dd9bbdee3efd30a
+  checksum: bebcc9a000fd2585c4fa632d6660bbebf222d238a8bc8afdb88329b4cee1ea8a8648d25d5473c7d7d2e51b236cb6ec49b836c3d00e47aeee08113113c8b3cb9a
   languageName: node
   linkType: hard
 
@@ -3375,7 +3373,6 @@ __metadata:
     "@types/express": ^4.17.21
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
-    typescript: ^5.8.2
   languageName: unknown
   linkType: soft
 
@@ -27927,7 +27924,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:9.0.2, jsonwebtoken@npm:^9.0.0, jsonwebtoken@npm:^9.0.2":
+"jsonwebtoken@npm:9.0.2, jsonwebtoken@npm:^9.0.0":
   version: 9.0.2
   resolution: "jsonwebtoken@npm:9.0.2"
   dependencies:
