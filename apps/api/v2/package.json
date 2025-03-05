@@ -24,7 +24,9 @@
     "test:e2e:watch": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.json --watch",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
-    "copy-swagger-module": "ts-node -r tsconfig-paths/register swagger/copy-swagger-module.ts"
+    "copy-swagger-module": "ts-node -r tsconfig-paths/register swagger/copy-swagger-module.ts",
+    "prepare": "yarn run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "dependencies": {
     "@axiomhq/winston": "^1.2.0",
@@ -75,7 +77,8 @@
     "uuid": "^8.3.2",
     "winston": "^3.13.0",
     "winston-transport": "^4.7.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@snyk/protect": "latest"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -102,5 +105,6 @@
   },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"
-  }
+  },
+  "snyk": true
 }
