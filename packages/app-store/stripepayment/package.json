@@ -7,7 +7,9 @@
   "main": "./index.ts",
   "description": "A Saas company a payment processing software, and application programming interfaces for e-commerce websites and mobile applications.",
   "scripts": {
-    "downgrade": "ts-node ./downgrade.ts"
+    "downgrade": "ts-node ./downgrade.ts",
+    "prepare": "yarn run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "dependencies": {
     "@calcom/app-store": "*",
@@ -21,10 +23,12 @@
     "@stripe/stripe-js": "^1.35.0",
     "stripe": "^9.16.0",
     "uuid": "^8.3.2",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@snyk/protect": "latest"
   },
   "devDependencies": {
     "@calcom/types": "*",
     "ts-node": "^10.9.1"
-  }
+  },
+  "snyk": true
 }
