@@ -2945,6 +2945,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/features@workspace:packages/features"
   dependencies:
+    "@calcom/atoms": "*"
     "@calcom/dayjs": "*"
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
