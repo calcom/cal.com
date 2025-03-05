@@ -3,7 +3,7 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import {
   sdkActionManager,
@@ -68,9 +68,9 @@ export function UserPage(props: PageProps) {
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-24"
           )}>
-          <div className="mb-8 text-center">
+          <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-4">
             <UserAvatar
-              size="xl"
+              size="lg"
               user={{
                 avatarUrl: user.avatarUrl,
                 profile: user.profile,
@@ -78,7 +78,7 @@ export function UserPage(props: PageProps) {
                 username: profile.username,
               }}
             />
-            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
+            <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
               {profile.name}
               {!isOrg && user.verified && (
                 <Icon
@@ -96,7 +96,7 @@ export function UserPage(props: PageProps) {
             {!isBioEmpty && (
               <>
                 <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  className="text-default break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
@@ -146,5 +146,5 @@ export function UserPage(props: PageProps) {
     </>
   );
 }
-UserPage.isBookingPage = true;
+
 export default UserPage;

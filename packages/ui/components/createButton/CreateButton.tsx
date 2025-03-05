@@ -1,3 +1,5 @@
+"use client";
+
 import { usePathname, useRouter } from "next/navigation";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -60,7 +62,7 @@ export function CreateButton(props: CreateBtnProps) {
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+    const _searchParams = new URLSearchParams(searchParams.toString());
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value !== undefined && value !== null) _searchParams.set(key, value.toString());
     }
@@ -77,6 +79,7 @@ export function CreateButton(props: CreateBtnProps) {
     <>
       {!hasTeams && !platform ? (
         <Button
+          size="sm"
           onClick={() =>
             !!CreateDialog
               ? openModal(options[0])
@@ -97,6 +100,7 @@ export function CreateButton(props: CreateBtnProps) {
             <Button
               variant={disableMobileButton ? "button" : "fab"}
               StartIcon="plus"
+              size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
               {...restProps}>

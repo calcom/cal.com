@@ -10,7 +10,6 @@ const nextConfig = {
   },
   transpilePackages: [
     "@calcom/app-store",
-    "@calcom/core",
     "@calcom/dayjs",
     "@calcom/emails",
     "@calcom/features",

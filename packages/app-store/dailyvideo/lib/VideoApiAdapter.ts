@@ -10,7 +10,7 @@ import {
   recordingItemSchema,
 } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -43,7 +43,7 @@ export interface DailyVideoCallData {
 }
 
 /** @deprecated use metadata on index file */
-export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
+export const FAKE_DAILY_CREDENTIAL: CredentialForCalendarService & { invalid: boolean } = {
   id: 0,
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
@@ -52,6 +52,8 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   appId: "daily-video",
   invalid: false,
   teamId: null,
+  delegatedToId: null,
+  delegatedTo: null,
 };
 
 function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
@@ -238,6 +240,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_knocking: true,
         enable_screenshare: true,
         enable_chat: true,
+        enable_pip_ui: true,
         exp: exp,
         enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
         enable_transcription_storage: !!hasTeamPlan,
@@ -264,6 +267,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_knocking: true,
         enable_screenshare: true,
         enable_chat: true,
+        enable_pip_ui: true,
         exp: exp,
         enable_recording: isScalePlanTrue ? "cloud" : undefined,
         start_video_off: true,

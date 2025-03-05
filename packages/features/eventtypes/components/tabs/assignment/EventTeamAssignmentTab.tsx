@@ -21,10 +21,10 @@ import type {
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 
@@ -210,7 +210,8 @@ const FixedHosts = ({
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
           description={FixedHostHelper}
-          checked={isDisabled}
+          checked={isDisabled && !assignAllTeamMembers}
+          hideSwitch={assignAllTeamMembers}
           labelClassName={classNames("text-sm", customClassNames?.label)}
           descriptionClassName={classNames("text-sm text-subtle", customClassNames?.description)}
           switchContainerClassName={customClassNames?.container}
@@ -227,6 +228,7 @@ const FixedHosts = ({
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
               data-testid="fixed-hosts-select"
+              placeholder={t("add_a_member")}
               teamId={teamId}
               teamMembers={teamMembers}
               customClassNames={customClassNames?.addMembers}

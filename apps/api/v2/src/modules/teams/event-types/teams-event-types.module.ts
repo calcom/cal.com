@@ -1,9 +1,9 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
-import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
-import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
+import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
+import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
+import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/output.service";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TeamsEventTypesController } from "@/modules/teams/event-types/controllers/teams-event-types.controller";

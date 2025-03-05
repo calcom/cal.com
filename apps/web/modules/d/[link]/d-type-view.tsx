@@ -1,6 +1,6 @@
 "use client";
 
-import { Booker } from "@calcom/atoms/monorepo";
+import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
 import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
@@ -33,5 +33,3 @@ export default function Type({
     </main>
   );
 }
-
-Type.isBookingPage = true;
