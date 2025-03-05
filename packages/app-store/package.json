@@ -12,7 +12,9 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json",
+    "prepare": "yarn run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "dependencies": {
     "@calcom/dailyvideo": "*",
@@ -26,9 +28,11 @@
     "lodash": "^4.17.21",
     "qs-stringify": "^1.2.1",
     "react-i18next": "^12.2.0",
-    "stripe": "^9.16.0"
+    "stripe": "^9.16.0",
+    "@snyk/protect": "latest"
   },
   "devDependencies": {
     "@calcom/types": "*"
-  }
+  },
+  "snyk": true
 }
