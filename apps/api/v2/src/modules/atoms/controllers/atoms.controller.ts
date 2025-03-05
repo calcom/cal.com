@@ -57,10 +57,10 @@ export class AtomsController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
   async getAtomEventType(
-    @GetUser("id") userId: number,
+    @GetUser() user: UserWithProfile,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<ApiResponse<unknown>> {
-    const eventType = await this.eventTypesService.getUserEventType(userId, eventTypeId);
+    const eventType = await this.eventTypesService.getUserEventType(user, eventTypeId);
     return {
       status: SUCCESS_STATUS,
       data: eventType,
@@ -72,8 +72,11 @@ export class AtomsController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Version(VERSION_NEUTRAL)
-  async listTeamEventTypes(@Param("teamId", ParseIntPipe) teamId: number): Promise<ApiResponse<unknown>> {
-    const eventTypes = await this.eventTypesService.getUserEventTypes(null, teamId);
+  async listTeamEventTypes(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @GetUser("id") userId: number
+  ): Promise<ApiResponse<unknown>> {
+    const eventTypes = await this.eventTypesService.getUserEventTypes(userId, teamId);
     return {
       status: SUCCESS_STATUS,
       data: eventTypes,
@@ -95,13 +98,13 @@ export class AtomsController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
   async getAtomEventTypeApp(
-    @GetUser("id") userId: number,
+    @GetUser() user: UserWithProfile,
     @Param("appSlug") appSlug: string,
     @Query() queryParams: EventTypesAppInput
   ): Promise<ApiResponse<unknown>> {
     const { teamId } = queryParams;
 
-    const app = await this.eventTypesService.getEventTypesAppIntegration(appSlug, userId, user.name, teamId);
+    const app = await this.eventTypesService.getEventTypesAppIntegration(appSlug, user.id, user.name, teamId);
 
     return {
       status: SUCCESS_STATUS,
@@ -131,6 +134,22 @@ export class AtomsController {
     @Body() body: BulkUpdateEventTypeToDefaultLocationDto
   ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
     await this.eventTypesService.bulkUpdateEventTypesDefaultLocation(user, body.eventTypeIds);
+    return {
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Patch("/organizations/:orgId/teams/:teamId/event-types/bulk-update-to-default-location")
+  @Version(VERSION_NEUTRAL)
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  async bulkUpdateAtomTeamEventTypes(
+    @GetUser() user: UserWithProfile,
+    @Body() body: BulkUpdateEventTypeToDefaultLocationDto,
+    @Param("teamId", ParseIntPipe) teamId: number
+  ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
+    await this.eventTypesService.bulkUpdateEventTypesDefaultLocation(user, body.eventTypeIds, teamId);
     return {
       status: SUCCESS_STATUS,
     };

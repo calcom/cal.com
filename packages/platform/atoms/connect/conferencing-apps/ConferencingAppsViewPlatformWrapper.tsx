@@ -80,7 +80,6 @@ export const ConferencingAppsViewPlatformWrapper = ({
   const { t } = useLocale();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  console.log("organizationIdddddddd: ", organizationId);
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
@@ -138,7 +137,10 @@ export const ConferencingAppsViewPlatformWrapper = ({
     organizationId,
   });
 
-  const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({});
+  const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({
+    organizationId,
+    teamId,
+  });
 
   const handleRemoveApp = ({ app }: RemoveAppParams) => {
     !!app && deleteCredentialMutation.mutate(app);
@@ -229,7 +231,6 @@ export const ConferencingAppsViewPlatformWrapper = ({
       </Dropdown>
     );
   };
-  console.log("eventTypesQuerydata: ", eventTypesQuery?.data);
 
   return (
     <AtomsWrapper>
@@ -277,6 +278,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
                       handleConnectDisconnectIntegrationMenuToggle
                     }
                     handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+                    disableSetAsDefault={organizationId && !teamId}
                   />
                 );
               }}

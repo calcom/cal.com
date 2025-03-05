@@ -44,6 +44,7 @@ interface AppListProps {
   isEventTypesFetching?: boolean;
   handleConnectDisconnectIntegrationMenuToggle: () => void;
   handleBulkEditDialogToggle: () => void;
+  disableSetAsDefault?: boolean;
 }
 
 export const AppList = ({
@@ -59,11 +60,13 @@ export const AppList = ({
   isEventTypesFetching,
   handleConnectDisconnectIntegrationMenuToggle,
   handleBulkEditDialogToggle,
+  disableSetAsDefault = false,
 }: AppListProps) => {
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
     showToast("Default app updated successfully", "success");
@@ -99,8 +102,8 @@ export const AppList = ({
                   <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {!appIsDefault && variant === "conferencing" && (
-                    // && !item.credentialOwner?.teamId
+                  {!appIsDefault && variant === "conferencing" && !disableSetAsDefault && (
+                    // !item.credentialOwner?.teamId &&
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
