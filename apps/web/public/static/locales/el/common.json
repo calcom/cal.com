@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Δεν υπάρχουν πλατφόρμες workspace",
   "workspace_platform": "Πλατφόρμα workspace",
   "workspace_platforms": "Πλατφόρμες workspace",
-  "workspace_platforms_description": "Διαχείριση πλατφορμών workspace που μπορούν να χρησιμοποιηθούν για το διαπιστευτήριο εξουσιοδότησης",
+  "workspace_platforms_description": "Διαχείριση πλατφορμών workspace που μπορούν να χρησιμοποιηθούν για εξουσιοδότηση σε επίπεδο τομέα",
   "edit_workspace_platform": "Επεξεργασία πλατφόρμας workspace",
   "edit_service_account": "Επεξεργασία λογαριασμού υπηρεσίας",
   "add_workspace_platform": "Προσθήκη πλατφόρμας workspace",
