@@ -1,4 +1,5 @@
 export { BookerWebWrapper as Booker } from "./booker";
+export { useBookerI18n, BookerI18nextProvider } from "./booker/BookerI18nextProvider";
 export { CalProvider } from "./cal-provider/CalProvider";
 export { useAtomsContext } from "./hooks/useAtomsContext";
 export { useEventTypeById } from "./hooks/event-types/private/useEventTypeById";

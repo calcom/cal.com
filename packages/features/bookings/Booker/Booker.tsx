@@ -1,4 +1,5 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
@@ -6,10 +7,11 @@ import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
+import { useIsPlatformBookerEmbed, BookerI18nextProvider } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
@@ -567,9 +569,26 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
+  const { data: session } = useSession();
+  const event = props.event;
+  const interfaceLanguage = event.data?.interfaceLanguage;
+
+  const locale = useMemo(() => {
+    if (!!interfaceLanguage && interfaceLanguage !== VISITOR_BROWSER_LANGUAGE) {
+      return interfaceLanguage;
+    }
+    return session?.user.locale;
+  }, [props.event, session]);
+
   return (
     <LazyMotion strict features={loadFramerFeatures}>
-      <BookerComponent {...props} />
+      {locale && locale !== session?.user.locale ? (
+        <BookerI18nextProvider locale={locale}>
+          <BookerComponent {...props} />
+        </BookerI18nextProvider>
+      ) : (
+        <BookerComponent {...props} />
+      )}
     </LazyMotion>
   );
 };
