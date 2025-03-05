@@ -45,3 +45,6 @@ const smsReminderTemplate = (
 };
 
 export default smsReminderTemplate;
+
+export const plainTextTemplate =
+  "Hi {ATTENDEE}, this is a reminder that your meeting ({EVENT_NAME}) with {ORGANIZER} is on {EVENT_DATE_YYYY MMM D} at {EVENT_TIME_h:mma} {TIMEZONE}.";
