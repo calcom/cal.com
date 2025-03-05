@@ -30,11 +30,11 @@ export const useUpdateDestinationCalendars = (
         integration: string;
         externalId: string;
         credentialId: number | null;
-        domainWideDelegationCredentialId?: string;
+        delegationCredentialId?: string;
       };
     }>,
     unknown,
-    { integration: string; externalId: string; domainWideDelegationCredentialId?: string }
+    { integration: string; externalId: string; delegationCredentialId?: string }
   >({
     mutationFn: (data) => {
       return http.put(`/destination-calendars`, data).then((res) => {
