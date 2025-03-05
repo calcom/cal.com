@@ -46,7 +46,7 @@ const html = `<style>
 <div class="modal-box">
   <div class="body">
     <div id="wrapper" class="z-[999999999999] absolute flex w-full items-center">
-      <div class="loader modal-loader border-brand-default dark:border-darkmodebrand">
+      <div style="display: none;" class="loader modal-loader border-brand-default dark:border-darkmodebrand">
         <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
       </div>
       </div>
