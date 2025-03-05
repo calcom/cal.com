@@ -3001,5 +3001,7 @@
   "ooo_team_redirect_infinite_not_allowed": "There is already a reverse forwarding between these users.",
   "previous_ooo_empty_title": "No previous OOO found",
   "previous": "Previous",
+  "uid": "UID",
+  "link": "Link",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
