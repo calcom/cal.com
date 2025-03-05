@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Aucune plateforme workspace",
   "workspace_platform": "Plateforme workspace",
   "workspace_platforms": "Plateformes workspace",
-  "workspace_platforms_description": "Gérez les plateformes workspace qui peuvent être utilisées pour l'identifiant de délégation",
+  "workspace_platforms_description": "Gérez les plateformes workspace qui peuvent être utilisées pour la délégation à l'échelle du domaine",
   "edit_workspace_platform": "Modifier la plateforme workspace",
   "edit_service_account": "Modifier le compte de service",
   "add_workspace_platform": "Ajouter une plateforme workspace",
