@@ -12,7 +12,7 @@ export default function BillingCredits() {
   //if this is given we are on the teams billing page
   const teamId = params.id ? Number(params.id) : undefined;
 
-  const { data: creditsData } = trpc.viewer.getAllCredits.useQuery({ teamId: teamId });
+  const { data: creditsData } = trpc.viewer.credits.getAllCredits.useQuery({ teamId: teamId });
 
   if (!creditsData || (!creditsData.teamCredits && !creditsData.userCredits)) {
     return <></>;
@@ -72,8 +72,6 @@ export default function BillingCredits() {
                   required
                   type="number"
                   containerClassName="w-60"
-                  //labelClassName="w-44"
-                  //  className="w-36" // Ensures limited width
                   label={t("buy_credits")}
                   defaultValue={0}
                   addOnSuffix={<>{t("credits")}</>}

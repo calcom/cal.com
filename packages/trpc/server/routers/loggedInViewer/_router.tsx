@@ -9,7 +9,6 @@ import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZDeleteMeInputSchema } from "./deleteMe.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
-import { ZGetAllCreditsSchema } from "./getAllCredits.schema";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
@@ -54,7 +53,6 @@ type AppsRouterHandlerCache = {
   deleteCredential?: typeof import("./deleteCredential.handler").deleteCredentialHandler;
   bookingUnconfirmedCount?: typeof import("./bookingUnconfirmedCount.handler").bookingUnconfirmedCountHandler;
   getCalVideoRecordings?: typeof import("./getCalVideoRecordings.handler").getCalVideoRecordingsHandler;
-  getAllCredits?: typeof import("./getAllCredits.handler").getAllCreditsHandler;
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
@@ -338,19 +336,6 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.getCalVideoRecordings({ ctx, input });
     }),
-
-  getAllCredits: authedProcedure.input(ZGetAllCreditsSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getAllCredits) {
-      UNSTABLE_HANDLER_CACHE.getAllCredits = (await import("./getAllCredits.handler")).getAllCreditsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getAllCredits) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getAllCredits({ ctx, input });
-  }),
 
   getUserTopBanners: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.getUserTopBanners) {

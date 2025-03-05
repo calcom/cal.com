@@ -14,7 +14,6 @@ type GetAllCreditsOptions = {
 
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
-
   const userCreditsTable = await prisma.creditsTable.findFirst({
     where: {
       userId: ctx.user.id,
