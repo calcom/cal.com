@@ -7,7 +7,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "@calcom/atoms": "*",
+    "@calcom/atoms": "1.0.3",
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
