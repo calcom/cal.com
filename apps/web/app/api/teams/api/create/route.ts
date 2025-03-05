@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -23,7 +24,7 @@ type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
 export const schemaTeamReadPublic = Team.omit({});
 export const schemaMembershipPublic = Membership.merge(z.object({ team: Team }).partial());
 
-export async function GET(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const { session_id } = querySchema.parse(Object.fromEntries(url.searchParams));
@@ -113,3 +114,5 @@ function getCheckoutSessionMetadata(
 
   return parseCheckoutSessionMetadata.data;
 }
+
+export const GET = defaultResponderForAppDir(handler);
