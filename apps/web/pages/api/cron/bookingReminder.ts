@@ -56,6 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             locale: true,
             timeZone: true,
             destinationCalendar: true,
+            isPlatformManaged: true,
+            platformOAuthClients: { select: { areEmailsEnabled: true } },
           },
         },
         eventType: {
@@ -71,11 +73,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    // don't remind platform users with oauth client settings specifying no emails
+    const bookingsToRemind = bookings.filter(
+      (b) =>
+        !b.user ||
+        !b.user?.isPlatformManaged ||
+        (b.user.isPlatformManaged && b.user.platformOAuthClients?.[0].areEmailsEnabled)
+    );
+
     const reminders = await prisma.reminderMail.findMany({
       where: {
         reminderType: ReminderType.PENDING_BOOKING_CONFIRMATION,
         referenceId: {
-          in: bookings.map((b) => b.id),
+          in: bookingsToRemind.map((b) => b.id),
         },
         elapsedMinutes: {
           gte: interval,
