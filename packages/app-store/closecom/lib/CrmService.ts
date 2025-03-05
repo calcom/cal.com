@@ -205,4 +205,8 @@ export default class CloseComCRMService implements CRM {
   getAppOptions() {
     console.log("No options implemented");
   }
+
+  handleAttendeeNoShow() {
+    console.log("Not implemented");
+  }
 }
