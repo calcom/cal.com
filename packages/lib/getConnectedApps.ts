@@ -1,4 +1,3 @@
-import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -13,6 +12,7 @@ import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integ
 import type { TIntegrationsInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/integrations.schema";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
+import { PaymentServiceMap } from "../app-store/payment.apps.generated";
 import { buildNonDelegationCredentials } from "./delegationCredential/clientAndServer";
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
@@ -155,7 +155,9 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
+        const paymentApp = (await PaymentServiceMap[
+          app.dirName as keyof typeof PaymentServiceMap
+        ]) as PaymentApp | null;
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
           const PaymentService = paymentApp.lib.PaymentService;
           const paymentInstance = new PaymentService(credential);
