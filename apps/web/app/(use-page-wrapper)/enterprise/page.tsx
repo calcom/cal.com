@@ -1,11 +1,11 @@
 import { _generateMetadata } from "app/_utils";
 
-import EnterprisePage from "@components/EnterprisePage";
+import UpgradeToEnterprise from "@components/UpgradePageWrapper";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("create_your_org"),
+    (t) => t("enterprise_description"),
     (t) => t("create_your_org_description")
   );
 
-export default EnterprisePage;
+export default UpgradeToEnterprise;
