@@ -1,4 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import type { Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
@@ -35,6 +37,15 @@ const mockOpen = vi.fn((_url: string) => {
 });
 
 vi.stubGlobal("open", mockOpen);
+
+const mockSession = {
+  expires: new Date(Date.now() + 2 * 86400).toISOString(),
+  user: {
+    id: 1,
+    name: "Test User",
+    email: "user@example.com",
+  },
+} as Session;
 
 vi.mock("@calcom/app-store/routing-forms/components/FormInputFields", () => ({
   default: vi.fn(({ response, form, setResponse, disabledFields }) => {
@@ -383,7 +394,9 @@ describe("RerouteDialog", () => {
   describe("New Routing tests", () => {
     test("when verify_new_route is clicked, the form is submitted", async () => {
       render(
-        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+        <SessionProvider session={mockSession}>
+          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+        </SessionProvider>
       );
       fireEvent.click(screen.getByText("verify_new_route"));
 
@@ -402,7 +415,9 @@ describe("RerouteDialog", () => {
     describe("New tab rescheduling", () => {
       test("new tab is closed when new booking is rerouted", async () => {
         render(
-          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          <SessionProvider session={mockSession}>
+            <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          </SessionProvider>
         );
         clickVerifyNewRouteButton();
         clickRescheduleToTheNewEventWithDifferentTimeslotButton();
@@ -441,7 +456,9 @@ describe("RerouteDialog", () => {
 
       test("Rescheduling with same timeslot works", async () => {
         render(
-          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          <SessionProvider session={mockSession}>
+            <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          </SessionProvider>
         );
         clickVerifyNewRouteButton();
         clickRescheduleWithSameTimeslotOfChosenEventButton();

@@ -1237,6 +1237,8 @@ async function handler(
             routingFormResponseId,
             organizerId: organizerUser.id,
             teamId,
+            isRerouting: isReroutingCase,
+            reroutedByEmail: reqBody.rescheduledBy,
           });
         }
       }
