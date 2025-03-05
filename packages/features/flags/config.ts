@@ -16,6 +16,6 @@ export type AppFlags = {
   "disable-signup": boolean;
   attributes: boolean;
   "organizer-request-email-v2": boolean;
-  "delegation-credential": boolean;
+  "domain-wide-delegation": boolean;
   "salesforce-crm-tasker": boolean;
 };

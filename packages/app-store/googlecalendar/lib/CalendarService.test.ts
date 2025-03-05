@@ -295,7 +295,7 @@ describe("Watching and unwatching calendar", () => {
         integration: "google_calendar",
         externalId: "example@cal.com",
         credentialId: 1,
-        delegationCredentialId: null,
+        domainWideDelegationCredentialId: null,
         googleChannelId: "mock-channel-id",
         googleChannelKind: "api#channel",
         googleChannelResourceId: "mock-resource-id",
@@ -325,7 +325,7 @@ describe("Watching and unwatching calendar", () => {
         integration: "google_calendar",
         externalId: "example@cal.com",
         credentialId: 1,
-        delegationCredentialId: null,
+        domainWideDelegationCredentialId: null,
         googleChannelId: null,
         googleChannelKind: null,
         googleChannelResourceId: null,
@@ -711,13 +711,13 @@ describe("GoogleCalendarService credential handling", () => {
     return mockJWTInstance;
   };
 
-  test("uses JWT auth with impersonation when Delegation credential is provided", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+  test("uses JWT auth with impersonation when DWD credential is provided", async () => {
+    const credentialWithDWD = await createCredentialInDb({
       user: { email: "user@example.com" },
       delegatedTo: delegatedCredential,
     });
 
-    const calendarService = new CalendarService(credentialWithDelegation);
+    const calendarService = new CalendarService(credentialWithDWD);
     await calendarService.listCalendars();
 
     const expectedJWTConfig: MockJWT = {
@@ -738,7 +738,7 @@ describe("GoogleCalendarService credential handling", () => {
     });
   });
 
-  test("uses OAuth2 auth when no Delegation credential is provided", async () => {
+  test("uses OAuth2 auth when no DWD credential is provided", async () => {
     const regularCredential = await createCredentialInDb();
     const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
 
@@ -762,8 +762,8 @@ describe("GoogleCalendarService credential handling", () => {
     });
   });
 
-  test("handles DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+  test("handles DWD authorization errors appropriately", async () => {
+    const credentialWithDWD = await createCredentialInDb({
       user: { email: "user@example.com" },
       delegatedTo: delegatedCredential,
     });
@@ -778,15 +778,15 @@ describe("GoogleCalendarService credential handling", () => {
       },
     });
 
-    const calendarService = new CalendarService(credentialWithDelegation);
+    const calendarService = new CalendarService(credentialWithDWD);
 
     await expect(calendarService.listCalendars()).rejects.toThrow(
-      "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
+      "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
     );
   });
 
   test("handles invalid_grant error (user not in workspace) appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDWD = await createCredentialInDb({
       user: { email: "user@example.com" },
       delegatedTo: delegatedCredential,
     });
@@ -801,13 +801,13 @@ describe("GoogleCalendarService credential handling", () => {
       },
     });
 
-    const calendarService = new CalendarService(credentialWithDelegation);
+    const calendarService = new CalendarService(credentialWithDWD);
 
     await expect(calendarService.listCalendars()).rejects.toThrow("User might not exist in Google Workspace");
   });
 
-  test("handles general DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+  test("handles general DWD authorization errors appropriately", async () => {
+    const credentialWithDWD = await createCredentialInDb({
       user: { email: "user@example.com" },
       delegatedTo: delegatedCredential,
     });
@@ -816,18 +816,18 @@ describe("GoogleCalendarService credential handling", () => {
       authorizeError: new Error("Some unexpected error"),
     });
 
-    const calendarService = new CalendarService(credentialWithDelegation);
+    const calendarService = new CalendarService(credentialWithDWD);
 
-    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing delegation credential");
+    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing domain wide delegation");
   });
 
-  test("handles missing user email for DelegationCredential appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+  test("handles missing user email for DWD appropriately", async () => {
+    const credentialWithDWD = await createCredentialInDb({
       user: { email: null },
       delegatedTo: delegatedCredential,
     });
 
-    const calendarService = new CalendarService(credentialWithDelegation);
+    const calendarService = new CalendarService(credentialWithDWD);
     const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
 
     await calendarService.listCalendars();

@@ -1,4 +1,4 @@
-import { getFirstDelegationConferencingCredentialAppLocation } from "@calcom/lib/delegationCredential/server";
+import { getFirstDwdConferencingCredentialAppLocation } from "@calcom/lib/domainWideDelegation/server";
 import type { Prisma } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -36,14 +36,13 @@ export const getLocationValuesForDb = <
     users = sortUsersByDynamicList(users, dynamicUserList);
     const firstDynamicGroupMember = users[0];
     const firstDynamicGroupMemberMetadata = userMetadataSchema.parse(firstDynamicGroupMember.metadata);
-    const firstDynamicGroupMemberDelegationCredentialConferencingAppLocation =
-      getFirstDelegationConferencingCredentialAppLocation({
-        credentials: firstDynamicGroupMember.credentials,
-      });
+    const firstDynamicGroupMemberDwdConferencingAppLocation = getFirstDwdConferencingCredentialAppLocation({
+      credentials: firstDynamicGroupMember.credentials,
+    });
 
     firstDynamicGroupMemberDefaultLocationUrl =
       firstDynamicGroupMemberMetadata?.defaultConferencingApp?.appLink ||
-      firstDynamicGroupMemberDelegationCredentialConferencingAppLocation;
+      firstDynamicGroupMemberDwdConferencingAppLocation;
 
     locationBodyString = firstDynamicGroupMemberDefaultLocationUrl || locationBodyString;
   }

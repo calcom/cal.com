@@ -27,15 +27,15 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
   }
 
   const featureRepo = new FeaturesRepository();
-  const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
+  const hasDomainWideDelegation = await featureRepo.checkIfTeamHasFeature(
     organizationId,
-    "delegation-credential"
+    "domain-wide-delegation"
   );
 
   return {
     ...currentOrg,
     features: {
-      delegationCredential: hasDelegationCredential,
+      domainWideDelegation: hasDomainWideDelegation,
     },
   };
 };

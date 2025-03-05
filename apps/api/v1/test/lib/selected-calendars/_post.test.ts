@@ -81,7 +81,7 @@ describe("POST /api/selected-calendars", () => {
         userId: 444444,
         id: "xxx-xxx",
         eventTypeId: null,
-        delegationCredentialId: null,
+        domainWideDelegationCredentialId: null,
         googleChannelId: null,
         googleChannelKind: null,
         googleChannelResourceId: null,
@@ -123,7 +123,7 @@ describe("POST /api/selected-calendars", () => {
         googleChannelResourceId: null,
         googleChannelResourceUri: null,
         googleChannelExpiration: null,
-        delegationCredentialId: null,
+        domainWideDelegationCredentialId: null,
         eventTypeId: null,
         error: null,
       });

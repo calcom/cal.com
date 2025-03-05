@@ -2,13 +2,13 @@ import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "../delegationCredential/server";
+import { enrichUserWithDwdCredentialsWithoutOrgId } from "../domainWideDelegation/server";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = { id: SessionUser["id"]; email: SessionUser["email"] };
 
 /**
- * It includes in-memory DelegationCredential credentials as well.
+ * It includes in-memory DWD credentials as well.
  */
 export async function getUsersCredentials(user: User) {
   const credentials = await prisma.credential.findMany({
@@ -21,7 +21,7 @@ export async function getUsersCredentials(user: User) {
     },
   });
 
-  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const { credentials: allCredentials } = await enrichUserWithDwdCredentialsWithoutOrgId({
     user: {
       email: user.email,
       id: user.id,

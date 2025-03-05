@@ -218,7 +218,7 @@ export interface CalendarEvent {
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
   oneTimePassword?: string | null;
-  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 }
 
 export interface EntryPoint {
@@ -287,7 +287,7 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  testDelegationCredentialSetup?(): Promise<boolean>;
+  testDomainWideDelegationSetup?(): Promise<boolean>;
 
   watchCalendar?(options: {
     calendarId: string;

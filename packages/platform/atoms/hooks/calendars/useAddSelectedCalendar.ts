@@ -35,15 +35,15 @@ export const useAddSelectedCalendar = (
       credentialId: number;
       integration: string;
       externalId: string;
-      delegationCredentialId: string | null;
+      domainWideDelegationCredentialId: string | null;
     }
   >({
     mutationFn: (data) => {
-      const { delegationCredentialId, ...rest } = data;
+      const { domainWideDelegationCredentialId, ...rest } = data;
       return http
         .post(`/selected-calendars`, {
           ...rest,
-          ...(delegationCredentialId ? { delegationCredentialId } : {}),
+          ...(domainWideDelegationCredentialId ? { domainWideDelegationCredentialId } : {}),
         })
         .then((res) => {
           return res.data;

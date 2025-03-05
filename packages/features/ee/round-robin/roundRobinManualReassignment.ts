@@ -20,7 +20,7 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
@@ -275,7 +275,7 @@ export const roundRobinManualReassignment = async ({
     include: { user: { select: { email: true } } },
   });
 
-  const newUserWithCredentials = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const newUserWithCredentials = await enrichUserWithDwdCredentialsWithoutOrgId({
     user: { ...newUser, credentials },
   });
 

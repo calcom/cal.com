@@ -82,7 +82,7 @@ export class SelectedCalendarRepository {
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
     const credentialPayload = buildCredentialPayloadForPrisma({
       credentialId: data.credentialId,
-      delegationCredentialId: data.delegationCredentialId,
+      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId,
     });
 
     const newData = {
