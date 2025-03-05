@@ -28,8 +28,8 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
   };
 
   const allCredentials = await getAllCredentials(userWithCredentials, {
-    ...eventType,
-    metadata: eventType?.metadata as EventTypeMetadata,
+    ...booking.eventType,
+    metadata: booking.eventType?.metadata as EventTypeMetadata,
   });
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;

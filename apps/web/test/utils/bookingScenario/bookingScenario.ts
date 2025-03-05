@@ -2309,7 +2309,7 @@ export const getDefaultBookingFields = ({
   ] as Fields;
 };
 
-export const createDwdCredential = async (orgId: number, type: "google" | "office365" = "google") => {
+export const createDelegationCredential = async (orgId: number, type: "google" | "office365" = "google") => {
   if (type === "google") {
     const encryptedServiceAccountKey = {
       type: "service_account",
@@ -2349,7 +2349,7 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
     };
 
-    const dwd = await prismock.domainWideDelegation.create({
+    const delegationCredential = await prismock.delegationCredential.create({
       data: {
         workspacePlatform: {
           connect: {
@@ -2368,7 +2368,7 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       },
     });
 
-    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+    return { ...delegationCredential, serviceAccountKey: decryptedServiceAccountKey };
   } else if (type === "office365") {
     const encryptedServiceAccountKey = {
       client_id: "CLIENT_ID",
@@ -2392,7 +2392,7 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       tenant_id: "TENANT_ID",
     };
 
-    const dwd = await prismock.domainWideDelegation.create({
+    const delegationCredential = await prismock.delegationCredential.create({
       data: {
         workspacePlatform: {
           connect: {
@@ -2411,13 +2411,13 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       },
     });
 
-    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+    return { ...delegationCredential, serviceAccountKey: decryptedServiceAccountKey };
   }
   throw new Error(`Unsupported type: ${type}`);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const buildDwdCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
+export const buildDelegationCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
   return {
     id: -1,
     key: {

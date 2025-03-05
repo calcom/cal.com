@@ -94,7 +94,7 @@ describe("Organizations Schedules Endpoints", () => {
       return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/schedules`).expect(403);
     });
 
-    it("should mot be able to get user schedules", async () => {
+    it("should not be able to get user schedules", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/users/${user.id}/schedules/`)
         .expect(403);
