@@ -54,7 +54,7 @@ const createSessionGetter = (userId: number) => async () => {
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const searchParams = url.searchParams;
+  const searchParams = request.nextUrl.searchParams;
 
   try {
     const { action, token, reason } = querySchema.parse(Object.fromEntries(searchParams.entries()));

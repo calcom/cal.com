@@ -28,7 +28,7 @@ const querySchema = z.object({
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const queryParams = Object.fromEntries(url.searchParams.entries());
+  const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
   try {
     const { action, token, bookingUid, userId } = querySchema.parse(queryParams);
@@ -50,8 +50,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const url = new URL(request.url);
-  const queryParams = Object.fromEntries(url.searchParams.entries());
+  const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
   try {
     const { action, token, bookingUid, userId } = querySchema.parse(queryParams);

@@ -22,8 +22,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Google client_secret missing." }, { status: 400 });
 
     // Get teamId from query params
-    const url = new URL(request.url);
-    const teamId = url.searchParams.get("teamId");
+    const teamId = request.nextUrl.searchParams.get("teamId");
 
     // use different callback to normal calendar connection
     const redirect_uri = `${WEBAPP_URL}/api/teams/googleworkspace/callback`;

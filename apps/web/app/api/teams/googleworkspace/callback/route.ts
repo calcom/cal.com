@@ -29,9 +29,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "You must be logged in to do this" }, { status: 401 });
     }
 
-    const url = new URL(request.url);
-    const code = url.searchParams.get("code");
-    const state = url.searchParams.get("state");
+    const code = request.nextUrl.searchParams.get("code");
+    const state = request.nextUrl.searchParams.get("state");
 
     if (!state) {
       return NextResponse.json({ message: "No state provided" }, { status: 400 });

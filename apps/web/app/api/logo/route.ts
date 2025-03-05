@@ -163,8 +163,7 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
  * This API endpoint is used to serve the logo associated with a team if no logo is found we serve our default logo
  */
 export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const searchParams = url.searchParams;
+  const searchParams = request.nextUrl.searchParams;
   const parsedQuery = logoApiSchema.parse(Object.fromEntries(searchParams.entries()));
 
   // Create a legacy request object for compatibility
