@@ -486,7 +486,7 @@ test.describe("Out of office", () => {
   });
 
   test.describe("Team OOO", () => {
-    test("Admin can Create, edit and delete team member's OOO", async ({ page, users }) => {
+    test("Admin can create, edit and delete team member's OOO", async ({ page, users }) => {
       const t = await localize("en");
       const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }, { name: "member-3" }];
       const teamAdmin = await users.create(
