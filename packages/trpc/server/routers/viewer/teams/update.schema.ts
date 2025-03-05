@@ -25,6 +25,7 @@ export const ZUpdateInputSchema = z.object({
   theme: z.string().optional().nullable(),
   bookingLimits: intervalLimitsType.optional(),
   includeManagedEventsInLimits: z.boolean().optional(),
+  rrResetInterval: z.enum(["DAY", "MONTH"]).optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

@@ -741,6 +741,7 @@ export class EventTypeRepository {
         team: {
           select: {
             parentId: true,
+            rrResetInterval: true,
           },
         },
       },
@@ -813,6 +814,7 @@ export class EventTypeRepository {
             bookingLimits: true,
             includeManagedEventsInLimits: true,
             parentId: true,
+            rrResetInterval: true,
           },
         },
         parent: {

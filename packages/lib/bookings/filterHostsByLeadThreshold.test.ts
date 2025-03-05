@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 
 import prisma from "@calcom/prisma";
+import { RRResetInterval } from "@calcom/prisma/client";
 
 import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
@@ -49,6 +50,7 @@ describe("filterHostByLeadThreshold", () => {
           isRRWeightsEnabled: true,
           team: {
             parentId: null,
+            rrResetInterval: RRResetInterval.MONTH,
           },
         },
         routingFormResponse: null,
@@ -66,6 +68,7 @@ describe("filterHostByLeadThreshold", () => {
           isRRWeightsEnabled: true,
           team: {
             parentId: null,
+            rrResetInterval: RRResetInterval.MONTH,
           },
         },
         routingFormResponse: null,
@@ -112,6 +115,7 @@ describe("filterHostByLeadThreshold", () => {
           isRRWeightsEnabled: false,
           team: {
             parentId: null,
+            rrResetInterval: RRResetInterval.MONTH,
           },
         },
         routingFormResponse: null,
@@ -170,6 +174,7 @@ describe("filterHostByLeadThreshold", () => {
         isRRWeightsEnabled: true,
         team: {
           parentId: null,
+          rrResetInterval: RRResetInterval.MONTH,
         },
       },
       routingFormResponse: null,
@@ -184,6 +189,7 @@ describe("filterHostByLeadThreshold", () => {
           isRRWeightsEnabled: true,
           team: {
             parentId: null,
+            rrResetInterval: RRResetInterval.MONTH,
           },
         },
         routingFormResponse: null,
