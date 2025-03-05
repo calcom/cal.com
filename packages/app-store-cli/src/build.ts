@@ -350,10 +350,10 @@ function generateFiles() {
 
   paymentAppsOutput.push(
     ...getExportedObject(
-      "PaymentServiceMap",
+      "PaymentAppMap",
       {
         importConfig: {
-          fileToBeImported: "lib/PaymentService.ts",
+          fileToBeImported: "index.ts",
           importName: "default",
         },
         lazyImport: true,
@@ -403,8 +403,8 @@ function generateFiles() {
     ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
     ["bookerApps.metadata.generated.ts", bookerMetadataOutput],
     ["calendar.apps.generated.ts", calendarAppsOutput],
-    ["conferencing.apps.generated.ts", conferencingVideoAdaptersOutput],
-    ["crm.apps.generated.ts", crmOutput],
+    ["conferencing.videoAdapters.generated.ts", conferencingVideoAdaptersOutput],
+    ["crm.services.generated.ts", crmOutput],
     ["payment.apps.generated.ts", paymentAppsOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {

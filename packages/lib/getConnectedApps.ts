@@ -12,7 +12,7 @@ import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integ
 import type { TIntegrationsInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/integrations.schema";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
-import { PaymentServiceMap } from "../app-store/payment.apps.generated";
+import { PaymentAppMap } from "../app-store/payment.apps.generated";
 import { buildNonDelegationCredentials } from "./delegationCredential/clientAndServer";
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
@@ -155,10 +155,11 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await PaymentServiceMap[
-          app.dirName as keyof typeof PaymentServiceMap
+        const paymentApp = (await PaymentAppMap[
+          app.dirName as keyof typeof PaymentAppMap
         ]) as PaymentApp | null;
-        if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
+
+        if (!!paymentApp?.lib?.PaymentService) {
           const PaymentService = paymentApp.lib.PaymentService;
           const paymentInstance = new PaymentService(credential);
           isSetupAlready = paymentInstance.isSetupAlready();

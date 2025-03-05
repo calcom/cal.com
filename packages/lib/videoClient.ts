@@ -15,7 +15,7 @@ import type { CredentialPayload, CredentialForCalendarServiceWithTenantId } from
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { ConferencingVideoAdapterMap } from "../app-store/conferencing.apps.generated";
+import { ConferencingVideoAdapterMap } from "../app-store/conferencing.videoAdapters.generated";
 
 const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 

@@ -1,19 +1,12 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-const isPaymentApp = (x: unknown): x is PaymentApp =>
-  !!x &&
-  typeof x === "object" &&
-  "lib" in x &&
-  typeof x.lib === "object" &&
-  !!x.lib &&
-  "PaymentService" in x.lib;
+import { PaymentAppMap } from "../../app-store/payment.apps.generated";
 
 const isKeyOf = <T extends object>(obj: T, key: unknown): key is keyof T =>
   typeof key === "string" && key in obj;
@@ -52,12 +45,12 @@ const handlePayment = async ({
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
-  if (!isKeyOf(appStore, key)) {
+  if (!isKeyOf(PaymentAppMap, key)) {
     console.warn(`key: ${key} is not a valid key in appStore`);
     return null;
   }
-  const paymentApp = await appStore[key]?.();
-  if (!isPaymentApp(paymentApp)) {
+  const paymentApp = await PaymentAppMap[key];
+  if (!paymentApp?.lib?.PaymentService) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;
   }
