@@ -98,7 +98,7 @@ function useRouterHelpers() {
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams ?? undefined);
+    const newQuery = new URLSearchParams(searchParams.toString());
     newQuery.delete("slug");
     newQuery.delete("pages");
     Object.keys(newSearchParams).forEach((key) => {
@@ -109,7 +109,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams ?? undefined);
+    const params = new URLSearchParams(searchParams.toString());
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -703,7 +703,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+    const _searchParams = new URLSearchParams(searchParams.toString());
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
     return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;

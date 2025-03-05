@@ -57,7 +57,7 @@ function WebDialog(props: DialogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const newSearchParams = new URLSearchParams(searchParams ?? undefined);
+  const newSearchParams = new URLSearchParams(searchParams.toString());
   const { children, name, ...dialogProps } = props;
 
   // only used if name is set
