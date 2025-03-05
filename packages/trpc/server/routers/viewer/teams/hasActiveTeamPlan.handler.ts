@@ -10,7 +10,8 @@ type HasActiveTeamPlanOptions = {
 };
 
 export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions) => {
-  if (IS_SELF_HOSTED) return true;
+  if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
+
   const teams = await prisma.team.findMany({
     where: {
       members: {
@@ -22,18 +23,27 @@ export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions
     },
   });
 
-  if (!teams.length) return false;
+  if (!teams.length) return { isActive: false, isTrial: false };
 
   // check if user has at least on membership with an active plan
   for (const team of teams) {
     const teamBillingService = new InternalTeamBilling(team);
     const isPlanActive = await teamBillingService.checkIfTeamHasActivePlan();
     if (isPlanActive) {
-      return true;
+      return { isActive: true, isTrial: false };
     }
   }
 
-  return false;
+  // check if user has at least on membership with an trial plan
+  for (const team of teams) {
+    const teamBillingService = new InternalTeamBilling(team);
+    const isTrial = await teamBillingService.checkIfTeamHasTrialPlan();
+    if (isTrial) {
+      return { isActive: false, isTrial: true };
+    }
+  }
+
+  return { isActive: false, isTrial: false };
 };
 
 export default hasActiveTeamPlanHandler;

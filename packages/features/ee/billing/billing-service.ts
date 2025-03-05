@@ -8,4 +8,5 @@ export interface BillingService {
     membershipCount: number;
   }): Promise<void>;
   checkIfTeamHasActivePlan(subscriptionId: string): Promise<boolean>;
+  checkIfTeamHasTrialPlan(subscriptionId: string): Promise<boolean>;
 }
