@@ -27,11 +27,11 @@ export default function UpgradePage() {
     },
   });
 
-  useEffect(() => {
-    publishOrgMutation.mutate();
-  }, [publishOrgMutation]);
-
   const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
+
+  useEffect(() => {
+    doesUserHaveOrgToUpgrade.data && publishOrgMutation.mutate();
+  }, [doesUserHaveOrgToUpgrade.data, publishOrgMutation]);
 
   return (
     <Shell withoutSeo={true}>
