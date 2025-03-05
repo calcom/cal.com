@@ -3712,7 +3712,6 @@ __metadata:
   dependencies:
     "@calcom/config": "*"
     "@calcom/lib": "*"
-    "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
     "@formkit/auto-animate": 1.0.0-beta.5
     "@radix-ui/react-checkbox": ^1.0.4
