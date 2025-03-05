@@ -65,7 +65,7 @@ const StripePaymentComponent = (
             elements,
             redirect: "if_required",
             confirmParams: {
-              return_url: ${WEBAPP_URL}/booking/${params.uid},
+              return_url: `${WEBAPP_URL}/booking/${params.uid}`,
             },
           });
           if (payload.paymentIntent) {
