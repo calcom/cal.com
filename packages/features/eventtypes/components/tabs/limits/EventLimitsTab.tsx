@@ -11,7 +11,6 @@ import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefine
 import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
-import { classNames } from "@calcom/lib";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
@@ -21,6 +20,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -115,22 +115,24 @@ function RangeLimitRadioItem({
   return (
     <div
       className={classNames(
-        "text-default mb-2 flex flex-wrap items-center text-sm",
+        "text-default mb-2 flex flex-col items-start text-sm sm:flex-row sm:items-center",
         customClassNames?.wrapper
       )}>
-      {!isDisabled && (
-        <RadioGroup.Item
-          id={radioValue}
-          value={radioValue}
-          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-          <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-        </RadioGroup.Item>
-      )}
+      <div className="flex w-full items-center sm:w-auto">
+        {!isDisabled && (
+          <RadioGroup.Item
+            id={radioValue}
+            value={radioValue}
+            className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+            <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+          </RadioGroup.Item>
+        )}
+        <span>{t("within_date_range")}</span>
+      </div>
       <div>
-        <span>{t("within_date_range")}&nbsp;</span>
         <div
           className={classNames(
-            "me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse",
+            "me-2 ms-0 mt-2 w-full sm:ms-2 sm:mt-0 sm:w-auto",
             customClassNames?.datePickerWraper
           )}>
           <Controller
@@ -210,7 +212,7 @@ function RollingLimitRadioItem({
             labelSrOnly
             type="number"
             className={classNames(
-              "border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2",
+              "border-default my-0 block w-16 text-sm [appearance:textfield]",
               customClassNames?.textField
             )}
             placeholder="30"
@@ -227,12 +229,15 @@ function RollingLimitRadioItem({
             name="periodCoundCalendarDays"
             value={getSelectedOption()}
             defaultValue={getSelectedOption()}
-            className={customClassNames?.periodTypeSelect?.select}
+            className={classNames(
+              "!mt-0 ml-2 w-28 shrink sm:w-36",
+              customClassNames?.periodTypeSelect?.select
+            )}
             innerClassNames={customClassNames?.periodTypeSelect?.innerClassNames}
           />
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
-        <div className="py-2">
+        <div className="-ml-6 flex flex-col py-2">
           <CheckboxField
             checked={!!rollingExcludeUnavailableDays}
             disabled={isDisabled}
@@ -327,7 +332,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
-          className={classNames("mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2", customClassNames?.input)}
+          className={classNames("mb-0 h-9 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
           min={0}
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
@@ -831,14 +836,14 @@ const IntervalLimitItem = ({
     <div
       data-testid="add-limit"
       className={classNames(
-        "mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse",
+        "mb-4 flex w-full min-w-0 items-center gap-x-2 text-sm rtl:space-x-reverse",
         customClassNames?.container
       )}
       key={limitKey}>
       <TextField
         required
         type="number"
-        containerClassName={textFieldSuffix ? "w-44 -mb-1" : "w-16 mb-0"}
+        containerClassName={textFieldSuffix ? "w-32 sm:w-44 -mb-1 shrink" : "w-14 sm:w-16 mb-0 shrink"}
         className={classNames("mb-0", customClassNames?.limitText)}
         placeholder={`${value}`}
         disabled={disabled}
@@ -912,7 +917,9 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
 
           setValue(
             propertyName,
-            // @ts-expect-error FIXME Fix these typings
+            // TODO: Remove @ts-ignore, type error no longer exists in later TS versions.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             {
               ...watchIntervalLimits,
               [rest.value]: defaultLimit,

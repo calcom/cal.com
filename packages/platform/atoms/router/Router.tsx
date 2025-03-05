@@ -12,10 +12,11 @@ import type { BookerPlatformWrapperAtomPropsForTeam } from "../booker/BookerPlat
  * <Router
  *   formId="1a1a1a1a-2b2b-3c3c-4d4d-5e5e5e5e5e5e"
  *   formResponsesURLParams={new URLSearchParams({ Territory: "Europe" })}
- *   bookerBannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
- *   bookerCustomClassNames={{
- *     bookerWrapper: "dark",
- *   }}
+ *   bookerProps={{
+ *    customClassNames: { bookerWrapper: "dark" },
+ *    bannerUrl: "https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1",
+ *    onCreateBookingSuccess: (data) => console.log(data),
+ *    onCreateBookingError: (err) => console.error(err)
  * />
  * ```
  */
@@ -27,11 +28,10 @@ export const Router = React.memo(
     onExternalRedirect,
     onDisplayBookerEmbed,
     renderMessage,
-    bookerBannerUrl,
-    bookerCustomClassNames,
     onSubmitFormStart,
     onSubmitFormEnd,
     renderLoader,
+    bookerProps,
   }: {
     formId: string;
     formResponsesURLParams?: URLSearchParams;
@@ -40,9 +40,26 @@ export const Router = React.memo(
     onSubmitFormStart?: () => void;
     onSubmitFormEnd?: () => void;
     renderMessage?: (message?: string) => ReactElement | ReactElement[];
+    bookerProps?: Pick<
+      Partial<BookerPlatformWrapperAtomPropsForTeam>,
+      | "customClassNames"
+      | "bannerUrl"
+      | "onCreateBookingSuccess"
+      | "onCreateBookingError"
+      | "onCreateRecurringBookingSuccess"
+      | "onCreateRecurringBookingError"
+      | "onReserveSlotSuccess"
+      | "onReserveSlotError"
+      | "onDeleteSlotSuccess"
+      | "onDeleteSlotError"
+      | "view"
+      | "onDryRunSuccess"
+      | "hostsLimit"
+      | "metadata"
+      | "handleCreateBooking"
+      | "preventEventTypeRedirect"
+    >;
     renderLoader?: (isLoading?: boolean) => ReactElement | ReactElement[];
-    bookerBannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
-    bookerCustomClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
   }) => {
     const [isLoading, setIsLoading] = useState<boolean>();
     const [routerUrl, setRouterUrl] = useState<string>();
@@ -103,13 +120,7 @@ export const Router = React.memo(
       if (redirectParams.get("cal.action") === "eventTypeRedirectUrl") {
         // display booker with redirect URL
         onDisplayBookerEmbed?.();
-        return (
-          <BookerEmbed
-            routingFormUrl={routerUrl}
-            customClassNames={bookerCustomClassNames}
-            bannerUrl={bookerBannerUrl}
-          />
-        );
+        return <BookerEmbed routingFormUrl={routerUrl} {...bookerProps} />;
       } else if (redirectParams.get("cal.action") === "externalRedirectUrl") {
         onExternalRedirect?.();
         window.location.href = routerUrl;

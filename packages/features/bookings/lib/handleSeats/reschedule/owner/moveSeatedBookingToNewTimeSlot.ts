@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import type EventManager from "@calcom/core/EventManager";
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
+import type EventManager from "@calcom/lib/EventManager";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 

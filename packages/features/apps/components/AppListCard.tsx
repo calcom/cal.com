@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { AppListCard as AppListCardComponent } from "@calcom/ui";
@@ -54,7 +54,7 @@ function AppListCardWebWrapper(props: AppListCardProps) {
   useEffect(() => {
     if (shouldHighlight && highlight && searchParams !== null && pathname !== null) {
       timeoutRef.current = setTimeout(() => {
-        const _searchParams = new URLSearchParams(searchParams);
+        const _searchParams = new URLSearchParams(searchParams.toString());
         _searchParams.delete("hl");
         _searchParams.delete("category"); // this comes from params, not from search params
 

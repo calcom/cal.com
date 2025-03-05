@@ -4,11 +4,15 @@ import mapKeys from "lodash/mapKeys";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 
+import {
+  RoutingFormFieldType,
+  isValidRoutingFormFieldType,
+} from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
+import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { RoutingFormResponsesInput } from "@calcom/features/insights/server/raw-data.schema";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -64,6 +68,23 @@ class RoutingEventsInsights {
       teamIds = [organizationId, ...teamsFromOrg.map((t) => t.id)];
     } else if (teamId) {
       teamIds = [teamId];
+    }
+
+    // Filter teamIds to only include teams the user has access to
+    if (teamIds.length > 0) {
+      const accessibleTeams = await prisma.membership.findMany({
+        where: {
+          userId: userId ?? -1,
+          teamId: {
+            in: teamIds,
+          },
+          accepted: true,
+        },
+        select: {
+          teamId: true,
+        },
+      });
+      teamIds = accessibleTeams.map((membership) => membership.teamId);
     }
 
     // Base where condition for forms
@@ -141,7 +162,7 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
   }: {
-    userId?: number;
+    userId: number;
     teamId?: number;
     isAll: boolean;
     organizationId?: number | undefined;
@@ -472,12 +493,12 @@ class RoutingEventsInsights {
 
     const teamConditions = [];
 
-    // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+    // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
     if (formsWhereCondition.teamId?.in) {
-      // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+      // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
     }
-    // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+    // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
@@ -489,7 +510,7 @@ class RoutingEventsInsights {
       ? Prisma.sql`AND ${Prisma.raw(teamConditions.join(" AND "))}`
       : Prisma.sql``;
 
-    // If youre at this point wondering what this does. This groups the responses by form and field and counts the number of responses for each option that don't have a booking.
+    // If you're at this point wondering what this does. This groups the responses by form and field and counts the number of responses for each option that don't have a booking.
     const result = await prisma.$queryRaw<
       {
         formId: string;
@@ -617,14 +638,38 @@ class RoutingEventsInsights {
     });
 
     const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
-    const headers = fields?.map((f) => {
-      return {
-        id: f.id,
-        label: f.label,
-        type: f.type,
-        options: f.options,
-      };
-    });
+    const ids = new Set<string>();
+    const headers = (fields || [])
+      .map((f) => {
+        return {
+          id: f.id,
+          label: f.label,
+          type: f.type,
+          options: f.options,
+        };
+      })
+      .filter((field) => {
+        if (!field.label || !isValidRoutingFormFieldType(field.type)) {
+          return false;
+        }
+        if (
+          field.type === RoutingFormFieldType.SINGLE_SELECT ||
+          field.type === RoutingFormFieldType.MULTI_SELECT
+        ) {
+          return field.options && field.options.length > 0;
+        }
+        return true;
+      })
+      .filter((field) => {
+        // Remove duplicate fields
+        // because we aggregate fields from multiple routing forms.
+        if (ids.has(field.id)) {
+          return false;
+        } else {
+          ids.add(field.id);
+          return true;
+        }
+      });
 
     return headers;
   }
@@ -672,12 +717,12 @@ class RoutingEventsInsights {
 
     const teamConditions = [];
 
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
     }
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
@@ -927,12 +972,12 @@ class RoutingEventsInsights {
 
     const teamConditions = [];
 
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
     }
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }

@@ -2,6 +2,7 @@ import { useSearchParams } from "next/navigation";
 
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
+import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
@@ -46,10 +47,19 @@ export const useSchedule = ({
     selectedDate,
   });
   const searchParams = useSearchParams();
-  const routedTeamMemberIds = searchParams ? getRoutedTeamMemberIdsFromSearchParams(searchParams) : null;
+  const routedTeamMemberIds = searchParams
+    ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
+    : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
   const _cacheParam = searchParams?.get("cal.cache");
   const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+  const utils = trpc.useUtils();
+  const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
+  const email = searchParams?.get("email");
+
+  const routingFormResponseId = routingFormResponseIdParam
+    ? parseInt(routingFormResponseIdParam, 10)
+    : undefined;
 
   const input = {
     isTeamEvent,
@@ -71,6 +81,8 @@ export const useSchedule = ({
     routedTeamMemberIds,
     skipContactOwner,
     shouldServeCache,
+    routingFormResponseId,
+    email,
   };
 
   const options = {
@@ -79,7 +91,12 @@ export const useSchedule = ({
         skipBatch: true,
       },
     },
-    refetchOnWindowFocus: false,
+    // It allows people who might not have the tab in focus earlier, to get latest available slots
+    // It might not work correctly in iframes, so we have refetchInterval to take care of that.
+    // But where it works, it should give user latest availability even if they come back to tab before refetchInterval.
+    refetchOnWindowFocus: true,
+    // It allows long sitting users to get latest available slots
+    refetchInterval: PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS * 1000,
     enabled:
       Boolean(username) &&
       Boolean(month) &&
@@ -88,9 +105,19 @@ export const useSchedule = ({
       (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
   };
 
+  let schedule;
   if (isTeamEvent) {
-    return trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
+    schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
+  } else {
+    schedule = trpc.viewer.public.slots.getSchedule.useQuery(input, options);
   }
-
-  return trpc.viewer.public.slots.getSchedule.useQuery(input, options);
+  return {
+    ...schedule,
+    /**
+     * Invalidates the request and resends it regardless of any other configuration including staleTime
+     */
+    invalidate: () => {
+      return utils.viewer.public.slots.getSchedule.invalidate(input);
+    },
+  };
 };

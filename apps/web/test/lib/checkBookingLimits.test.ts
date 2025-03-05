@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { checkBookingLimits, checkBookingLimit } from "@calcom/lib/server";
+import { checkBookingLimits, checkBookingLimit } from "@calcom/lib/server/checkBookingLimits";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 type Mockdata = {
@@ -62,7 +62,7 @@ describe("Check Booking Limits Tests", () => {
       )
     ).resolves.toBeTruthy();
   });
-  it("Should handle mutiple limits correctly", async () => {
+  it("Should handle multiple limits correctly", async () => {
     prismaMock.booking.count.mockResolvedValue(1);
     expect(
       checkBookingLimit({

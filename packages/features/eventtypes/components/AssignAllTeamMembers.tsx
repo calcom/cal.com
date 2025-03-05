@@ -2,9 +2,9 @@ import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import type { FormValues, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SettingsToggle } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 const AssignAllTeamMembers = ({
   assignAllTeamMembers,
@@ -29,7 +29,7 @@ const AssignAllTeamMembers = ({
         <SettingsToggle
           data-testid="assign-all-team-members-toggle"
           title={t("automatically_add_all_team_members")}
-          labelClassName={classNames("mt-0.5 font-normal", customClassNames?.label)}
+          labelClassName={classNames("mt-[3px] text-sm", customClassNames?.label)}
           switchContainerClassName={customClassNames?.container}
           checked={assignAllTeamMembers}
           onCheckedChange={(active) => {

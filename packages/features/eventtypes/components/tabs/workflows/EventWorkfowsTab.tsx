@@ -10,13 +10,13 @@ import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoa
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
@@ -132,9 +132,8 @@ const WorkflowListItem = (props: ItemProps) => {
         {!workflow.readOnly && (
           <div className="flex-none">
             <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-              <Button type="button" color="minimal" className="mr-4">
+              <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
                 <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-                <Icon name="external-link" className="text-default -mt-[2px] h-4 w-4 stroke-2" />
               </Button>
             </Link>
           </div>
@@ -244,7 +243,7 @@ function EventWorkflowsTab(props: Props) {
         <>
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity={workflowsDisableProps.isLocked ? "neutral" : "green"}
+              severity={workflowsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
                 <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
