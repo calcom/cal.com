@@ -81,8 +81,7 @@ async function handleScimRequest(request: NextRequest, method: string, directory
   const [directoryId, path, resourceId] = directoryParams;
   const shouldLog = DIRECTORY_IDS_TO_LOG.includes(directoryId);
 
-  const url = new URL(request.url);
-  const searchParams = url.searchParams;
+  const searchParams = request.nextUrl.searchParams;
 
   if (shouldLog) {
     console.log(

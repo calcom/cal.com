@@ -14,7 +14,7 @@ const querySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get("authorization") || new URL(request.url).searchParams.get("apiKey");
+  const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
@@ -23,8 +23,7 @@ export async function POST(request: NextRequest) {
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const pageSize = 90; // Adjust this value based on the total number of teams and the available processing time
 
-  const url = new URL(request.url);
-  let { page: pageNumber } = querySchema.parse(Object.fromEntries(url.searchParams));
+  let { page: pageNumber } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
 
   const firstDateOfMonth = new Date();
   firstDateOfMonth.setDate(1);

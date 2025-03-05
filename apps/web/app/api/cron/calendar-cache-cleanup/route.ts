@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import prisma from "@calcom/prisma";
 
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get("authorization") || new URL(request.url).searchParams.get("apiKey");
+  const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
