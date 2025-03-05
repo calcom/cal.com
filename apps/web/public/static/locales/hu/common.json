@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Nincsenek workspace platformok",
   "workspace_platform": "Workspace platform",
   "workspace_platforms": "Workspace platformok",
-  "workspace_platforms_description": "Kezelje a tartományra kiterjedő delegáláshoz használható workspace platformokat",
+  "workspace_platforms_description": "Kezelje azokat a workspace platformokat, amelyek használhatók delegálási hitelesítő adatokhoz",
   "edit_workspace_platform": "Workspace platform szerkesztése",
   "edit_service_account": "Szolgáltatási fiók szerkesztése",
   "add_workspace_platform": "Workspace platform hozzáadása",

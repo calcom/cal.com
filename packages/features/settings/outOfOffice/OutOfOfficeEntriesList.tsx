@@ -61,7 +61,7 @@ export const OutOfOfficeEntriesList = () => {
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
-        searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
+        searchTerm,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -71,9 +71,6 @@ export const OutOfOfficeEntriesList = () => {
 
   useEffect(() => {
     refetch();
-    if (selectedTab === OutOfOfficeTab.MINE) {
-      setSearchTerm("");
-    }
   }, [deletedEntry, selectedTab, refetch]);
 
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
@@ -341,11 +338,9 @@ export const OutOfOfficeEntriesList = () => {
             tableContainerRef={tableContainerRef}
             isPending={isPending}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-            {selectedTab === OutOfOfficeTab.TEAM && (
-              <DataTableToolbar.Root>
-                <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
-              </DataTableToolbar.Root>
-            )}
+            <DataTableToolbar.Root>
+              <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
+            </DataTableToolbar.Root>
           </DataTable>
           {openModal && (
             <CreateOrEditOutOfOfficeEntryModal

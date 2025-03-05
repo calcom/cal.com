@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "គ្មានវេទិកាការងារ",
   "workspace_platform": "វេទិកាការងារ",
   "workspace_platforms": "វេទិកាការងារ",
-  "workspace_platforms_description": "គ្រប់គ្រងវេទិកាការងារដែលអាចប្រើសម្រាប់ការប្រគល់សិទ្ធិទូទាំងដែន",
+  "workspace_platforms_description": "គ្រប់គ្រងវេទិកាការងារដែលអាចប្រើសម្រាប់លិខិតសម្គាល់ប្រគល់សិទ្ធិ",
   "edit_workspace_platform": "កែសម្រួលវេទិកាការងារ",
   "edit_service_account": "កែសម្រួលគណនីសេវាកម្ម",
   "add_workspace_platform": "បន្ថែមវេទិកាការងារ",

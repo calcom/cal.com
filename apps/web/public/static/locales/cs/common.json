@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Žádné workspace platformy",
   "workspace_platform": "Workspace platforma",
   "workspace_platforms": "Workspace platformy",
-  "workspace_platforms_description": "Správa workspace platforem, které lze použít pro delegování na úrovni domény",
+  "workspace_platforms_description": "Spravujte platformy workspace, které lze použít pro delegované pověření",
   "edit_workspace_platform": "Upravit workspace platformu",
   "edit_service_account": "Upravit servisní účet",
   "add_workspace_platform": "Přidat workspace platformu",

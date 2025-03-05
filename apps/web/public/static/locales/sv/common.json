@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Inga workspace-plattformar",
   "workspace_platform": "Workspace-plattform",
   "workspace_platforms": "Workspace-plattformar",
-  "workspace_platforms_description": "Hantera workspace-plattformar som kan användas för domänomfattande delegering",
+  "workspace_platforms_description": "Hantera workspace-plattformar som kan användas för delegationsautentiseringsuppgift",
   "edit_workspace_platform": "Redigera workspace-plattform",
   "edit_service_account": "Redigera servicekonto",
   "add_workspace_platform": "Lägg till workspace-plattform",

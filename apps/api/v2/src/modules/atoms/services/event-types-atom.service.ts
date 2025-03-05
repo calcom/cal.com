@@ -93,9 +93,10 @@ export class EventTypesAtomService {
   ) {
     await this.checkCanUpdateTeamEventType(user.id, eventTypeId, teamId, body.scheduleId);
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
-    const bookingFields = [...(body.bookingFields || [])];
+    const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
 
     if (
+      bookingFields?.length &&
       !bookingFields.find((field) => field.type === "email") &&
       !bookingFields.find((field) => field.type === "phone")
     ) {

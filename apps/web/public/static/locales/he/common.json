@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "אין פלטפורמות עבודה",
   "workspace_platform": "פלטפורמת עבודה",
   "workspace_platforms": "פלטפורמות עבודה",
-  "workspace_platforms_description": "נהל פלטפורמות עבודה שניתן להשתמש בהן להרשאה ברמת הדומיין",
+  "workspace_platforms_description": "נהל פלטפורמות עבודה שניתן להשתמש בהן עבור אישור האצלה",
   "edit_workspace_platform": "ערוך פלטפורמת עבודה",
   "edit_service_account": "ערוך חשבון שירות",
   "add_workspace_platform": "הוסף פלטפורמת עבודה",

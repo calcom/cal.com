@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Ei työtila-alustoja",
   "workspace_platform": "Työtila-alusta",
   "workspace_platforms": "Työtila-alustat",
-  "workspace_platforms_description": "Hallinnoi työtila-alustoja, joita voidaan käyttää toimialueen laajuiseen valtuutukseen",
+  "workspace_platforms_description": "Hallinnoi työtila-alustoja, joita voidaan käyttää delegointitunnisteeseen",
   "edit_workspace_platform": "Muokkaa työtila-alustaa",
   "edit_service_account": "Muokkaa palvelutiliä",
   "add_workspace_platform": "Lisää työtila-alusta",

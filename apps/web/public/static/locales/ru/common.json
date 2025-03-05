@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Нет платформ workspace",
   "workspace_platform": "Платформа workspace",
   "workspace_platforms": "Платформы workspace",
-  "workspace_platforms_description": "Управление платформами workspace, которые могут использоваться для делегирования на уровне домена",
+  "workspace_platforms_description": "Управление платформами workspace, которые могут использоваться для делегированных учетных данных",
   "edit_workspace_platform": "Редактировать платформу workspace",
   "edit_service_account": "Редактировать сервисный аккаунт",
   "add_workspace_platform": "Добавить платформу workspace",
