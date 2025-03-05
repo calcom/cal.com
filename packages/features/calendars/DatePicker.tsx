@@ -160,7 +160,7 @@ const Days = ({
   const weekdayOfFirst = browsingDate.date(1).day();
 
   const includedDates = getAvailableDatesInMonth({
-    browsingDate: browsingDate.toDate(),
+    browsingDate,
     minDate,
     includedDates: props.includedDates,
   });
