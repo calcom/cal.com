@@ -168,10 +168,10 @@ const organizationAdminKeys = [
   "OAuth Clients",
   "SSO",
   "directory_sync",
-  "delegation_credential",
+  "domain_wide_delegation",
 ];
 
-const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
+const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -202,11 +202,11 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
           });
         }
 
-        // Add delegation-credential menu item only if feature flag is enabled
-        if (isDelegationCredentialEnabled) {
+        // Add domain-wide-delegation menu item only if feature flag is enabled
+        if (isDwdEnabled) {
           newArray.push({
-            name: "delegation_credential",
-            href: "/settings/organizations/delegation-credential",
+            name: "domain_wide_delegation",
+            href: "/settings/organizations/domain-wide-delegation",
           });
         }
 
@@ -243,7 +243,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDwdEnabled]);
 
   return processTabsMemod;
 };
@@ -440,9 +440,7 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org && !currentOrgProp,
   });
 
-  const tabsWithPermissions = useTabs({
-    isDelegationCredentialEnabled: !!_currentOrg?.features?.delegationCredential,
-  });
+  const tabsWithPermissions = useTabs({ isDwdEnabled: !!_currentOrg?.features?.domainWideDelegation });
 
   const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     enabled: !!session.data?.user?.org && !otherTeamsProp,

@@ -1,4 +1,4 @@
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
@@ -27,7 +27,7 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
   if (!member.user.username)
     throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });
   const username = member.user.username;
-  const user = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const user = await enrichUserWithDwdCredentialsWithoutOrgId({
     user: member.user,
   });
 

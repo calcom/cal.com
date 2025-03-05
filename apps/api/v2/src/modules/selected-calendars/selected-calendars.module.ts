@@ -2,7 +2,7 @@ import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
+import { OrganizationsDwdRepository } from "@/modules/organizations/dwd/organizations-dwd.repository";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -22,7 +22,7 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     AppsRepository,
     OrganizationsMembershipService,
-    OrganizationsDelegationCredentialRepository,
+    OrganizationsDwdRepository,
     OrganizationsMembershipRepository,
     SelectedCalendarsService,
   ],

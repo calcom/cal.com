@@ -131,7 +131,7 @@ class Primary {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({ type: String, nullable: true })
-  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 }
 
 export class Calendar {
@@ -174,7 +174,7 @@ export class Calendar {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({ type: String, nullable: true })
-  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 }
 
 export class ConnectedCalendar {
@@ -190,7 +190,7 @@ export class ConnectedCalendar {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({ type: String, nullable: true })
-  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 
   @ValidateNested()
   @IsObject()
@@ -238,7 +238,7 @@ class DestinationCalendar {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({ type: String, nullable: true })
-  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 
   @IsString()
   @IsOptional()

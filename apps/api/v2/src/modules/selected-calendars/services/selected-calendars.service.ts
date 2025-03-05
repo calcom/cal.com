@@ -1,5 +1,5 @@
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
+import { OrganizationsDwdRepository } from "@/modules/organizations/dwd/organizations-dwd.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import {
   SelectedCalendarsInputDto,
@@ -11,9 +11,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { SelectedCalendarRepository } from "@calcom/platform-libraries";
 
-type SelectedCalendarsInputDelegationCredential = SelectedCalendarsInputDto & {
-  delegationCredentialId: string;
-};
+type SelectedCalendarsInputDwd = SelectedCalendarsInputDto & { domainWideDelegationCredentialId: string };
 
 @Injectable()
 export class SelectedCalendarsService {
@@ -21,16 +19,16 @@ export class SelectedCalendarsService {
     private readonly calendarsService: CalendarsService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly organizationsMembershipService: OrganizationsMembershipService,
-    private readonly organizationsDelegationCredentialRepository: OrganizationsDelegationCredentialRepository
+    private readonly organizationsDwdRepository: OrganizationsDwdRepository
   ) {}
 
   async addSelectedCalendar(user: UserWithProfile, input: SelectedCalendarsInputDto) {
-    if (input.delegationCredentialId) {
-      const delegationCredentialInput = {
+    if (input.domainWideDelegationCredentialId) {
+      const dwdInput = {
         ...input,
-        delegationCredentialId: input.delegationCredentialId,
+        domainWideDelegationCredentialId: input.domainWideDelegationCredentialId,
       };
-      return this.addSelectedCalendarDelegationCredential(user, delegationCredentialInput);
+      return this.addSelectedCalendarDwd(user, dwdInput);
     }
     return this.addSelectedCalendarUser(user, input);
   }
@@ -49,42 +47,35 @@ export class SelectedCalendarsService {
     return userSelectedCalendar;
   }
 
-  private async addSelectedCalendarDelegationCredential(
-    user: UserWithProfile,
-    selectedCalendar: SelectedCalendarsInputDelegationCredential
-  ) {
-    const isMemberOfOrganization = await this.isMemberOfDelegationCredentialOrganization(
+  private async addSelectedCalendarDwd(user: UserWithProfile, selectedCalendar: SelectedCalendarsInputDwd) {
+    const isMemberOfOrganization = await this.isMemberOfDwdOrganization(
       user.id,
-      selectedCalendar.delegationCredentialId
+      selectedCalendar.domainWideDelegationCredentialId
     );
     if (!isMemberOfOrganization) {
-      throw new NotFoundException(
-        "User is not a member of the organization that owns the Delegation credential"
-      );
+      throw new NotFoundException("User is not a member of the organization that owns the DWD credential");
     }
 
-    const { integration, externalId, credentialId, delegationCredentialId } = selectedCalendar;
-    const delegationCredentialSelectedCalendar = await SelectedCalendarRepository.upsert({
+    const { integration, externalId, credentialId, domainWideDelegationCredentialId } = selectedCalendar;
+    const dwdSelectedCalendar = await SelectedCalendarRepository.upsert({
       userId: user.id,
       integration,
       externalId,
       credentialId,
-      delegationCredentialId,
+      domainWideDelegationCredentialId,
       eventTypeId: null,
     });
-    return delegationCredentialSelectedCalendar;
+    return dwdSelectedCalendar;
   }
 
-  private async isMemberOfDelegationCredentialOrganization(userId: number, delegationCredentialId: string) {
-    const delegationCredential = await this.organizationsDelegationCredentialRepository.findById(
-      delegationCredentialId
-    );
-    if (!delegationCredential) {
-      throw new NotFoundException("DelegationCredential with provided delegationCredentialId not found");
+  private async isMemberOfDwdOrganization(userId: number, domainWideDelegationCredentialId: string) {
+    const dwd = await this.organizationsDwdRepository.findById(domainWideDelegationCredentialId);
+    if (!dwd) {
+      throw new NotFoundException("DWD with provided domainWideDelegationCredentialId not found");
     }
 
     const isMemberOfOrganization = await this.organizationsMembershipService.getOrgMembershipByUserId(
-      delegationCredential.organizationId,
+      dwd.organizationId,
       userId
     );
 
@@ -95,19 +86,17 @@ export class SelectedCalendarsService {
     selectedCalendar: SelectedCalendarsQueryParamsInputDto,
     user: UserWithProfile
   ) {
-    const { integration, externalId, credentialId, delegationCredentialId } = selectedCalendar;
+    const { integration, externalId, credentialId, domainWideDelegationCredentialId } = selectedCalendar;
 
-    if (!delegationCredentialId) {
+    if (!domainWideDelegationCredentialId) {
       await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
     } else {
-      const isMemberOfOrganization = await this.isMemberOfDelegationCredentialOrganization(
+      const isMemberOfOrganization = await this.isMemberOfDwdOrganization(
         user.id,
-        delegationCredentialId
+        domainWideDelegationCredentialId
       );
       if (!isMemberOfOrganization) {
-        throw new NotFoundException(
-          "User is not a member of the organization that owns the Delegation credential"
-        );
+        throw new NotFoundException("User is not a member of the organization that owns the DWD credential");
       }
     }
 
@@ -115,7 +104,7 @@ export class SelectedCalendarsService {
       user.id,
       integration,
       externalId,
-      delegationCredentialId
+      domainWideDelegationCredentialId
     );
 
     return removedCalendarEntry;
