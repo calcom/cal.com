@@ -7,16 +7,14 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import type { nameObjectSchema } from "@calcom/core/event";
-import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
@@ -36,6 +34,8 @@ import {
   formatToLocalizedTime,
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
+import type { nameObjectSchema } from "@calcom/lib/event";
+import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

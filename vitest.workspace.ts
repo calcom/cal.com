@@ -79,7 +79,7 @@ const workspaces = packagedEmbedTestsOnly
             "apps/api/v1/**/*",
             "apps/api/v2/**/*",
           ],
-          name: "@calcom/core",
+          name: "@calcom/lib",
           setupFiles: ["setupVitest.ts"],
         },
       },

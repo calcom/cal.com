@@ -16,7 +16,7 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api"];
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
 // Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
 export const POST_METHODS_ALLOWED_APP_ROUTES = ["/settings/my-account/general"];
 
@@ -39,9 +39,20 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
+export function checkStaticFiles(pathname: string) {
+  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
+  // Skip Next.js internal paths (_next) and static assets
+  if (pathname.startsWith("/_next") || hasFileExtension) {
+    return NextResponse.next();
+  }
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
+
+  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
+  if (isStaticFile) return isStaticFile;
 
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
