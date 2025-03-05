@@ -1,7 +1,7 @@
 import logger from "@calcom/lib/logger";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { CrmServiceMap } from "../crm.apps.generated";
+import { CrmServiceMap } from "../crm.services.generated";
 
 const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export const getCrm = async (credential: CredentialPayload, appOptions: any) => {
