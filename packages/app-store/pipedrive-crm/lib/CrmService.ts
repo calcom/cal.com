@@ -234,4 +234,8 @@ export default class PipedriveCrmService implements CRM {
   getAppOptions() {
     console.log("No options implemented");
   }
+
+  async handleAttendeeNoShow() {
+    console.log("Not implemented");
+  }
 }
