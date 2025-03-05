@@ -1,3 +1,4 @@
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -14,6 +15,7 @@ type GetOptions = {
 };
 
 export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
+  const t = await getTranslation(ctx.user.locale, "common");
   const { cursor, limit, fetchTeamMembersEntries, searchTerm } = input;
   let fetchOOOEntriesForIds = [ctx.user.id];
   let reportingUserIds = [0];
@@ -31,7 +33,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       },
     });
     if (teams.length === 0) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "user_has_no_team_yet" });
+      throw new TRPCError({ code: "NOT_FOUND", message: t("user_has_no_team_yet") });
     }
     const ownerOrAdminTeamIds = teams
       .filter((team) => team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN)
@@ -58,7 +60,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       .flatMap((team) => team.members.filter((member) => member.accepted).map((member) => member.userId))
       .filter((id) => id !== ctx.user.id);
     if (userIds.length === 0) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "no_team_members" });
+      throw new TRPCError({ code: "NOT_FOUND", message: t("no_team_members") });
     }
     fetchOOOEntriesForIds = userIds;
     reportingUserIds = teamMembers
