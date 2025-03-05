@@ -9,6 +9,16 @@ type EmbedConfig = {
   theme?: Theme;
 };
 
+export type EmbedState = {
+  embedType: EmbedType | null;
+  embedTabName: string | null;
+  embedUrl: string | null;
+  eventId: string | null;
+  namespace: string | null;
+  date: string | null;
+  month: string | null;
+} | null;
+
 export type PreviewState = {
   inline: Brand<
     {

@@ -9,6 +9,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
   id: SessionUser["id"];
+  email: SessionUser["email"];
   metadata: SessionUser["metadata"];
 };
 

@@ -1,7 +1,7 @@
 import type { GroupBase, InputProps, Props } from "react-select";
 import ReactSelect, { components } from "react-select";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 export type SelectProps<
   Option,
@@ -15,7 +15,7 @@ export const InputComponent = <Option, IsMulti extends boolean, Group extends Gr
 }: InputProps<Option, IsMulti, Group>) => {
   return (
     <components.Input
-      // disables our default form focus hightlight on the react-select input element
+      // disables our default form focus highlight on the react-select input element
       inputClassName={classNames("focus:ring-0 focus:ring-offset-0", inputClassName)}
       {...props}
     />

@@ -1,6 +1,5 @@
 "use client";
 
-import { type DehydratedState } from "@tanstack/react-query";
 import type { SSRConfig } from "next-i18next";
 // import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import { usePathname } from "next/navigation";
@@ -16,8 +15,6 @@ export type PageWrapperProps = Readonly<{
   children: React.ReactNode;
   requiresLicense: boolean;
   nonce: string | undefined;
-  themeBasis: string | null;
-  dehydratedState?: DehydratedState;
   isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;

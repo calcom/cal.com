@@ -2,10 +2,11 @@ import type { Attendee } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { deleteMeeting } from "@calcom/core/videoClient";
+import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
+import { deleteMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { OriginalRescheduledBooking } from "../../handleNewBooking/types";
@@ -18,16 +19,23 @@ const lastAttendeeDeleteBooking = async (
   originalBookingEvt?: CalendarEvent
 ) => {
   let deletedReferences = false;
+  const bookingUser = originalRescheduledBooking?.user;
+  const delegationCredentials = bookingUser
+    ? await getAllDelegationCredentialsForUser({
+        user: { email: bookingUser.email, id: bookingUser.id },
+      })
+    : [];
   if ((!filteredAttendees || filteredAttendees.length === 0) && originalRescheduledBooking) {
     const integrationsToDelete = [];
 
     for (const reference of originalRescheduledBooking.references) {
-      if (reference.credentialId) {
-        const credential = await prisma.credential.findUnique({
-          where: {
-            id: reference.credentialId,
+      if (reference.credentialId || reference.delegationCredentialId) {
+        const credential = await getDelegationCredentialOrFindRegularCredential({
+          id: {
+            credentialId: reference.credentialId,
+            delegationCredentialId: reference.delegationCredentialId,
           },
-          select: credentialForCalendarServiceSelect,
+          delegationCredentials,
         });
 
         if (credential) {

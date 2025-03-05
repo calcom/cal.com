@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import { validateCustomEventName } from "@calcom/core/event";
 import {
   DEFAULT_PROMPT_VALUE,
   DEFAULT_BEGIN_MESSAGE,
@@ -17,6 +16,7 @@ import type {
   EventTypeUpdateInput,
 } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
+import { validateCustomEventName } from "@calcom/lib/event";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -32,15 +32,10 @@ export const useEventTypeForm = ({
   onSubmit: (data: EventTypeUpdateInput) => void;
 }) => {
   const { t } = useLocale();
-  const bookingFields: Record<string, Fields[number]["name"]> = {};
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
-  eventType.bookingFields.forEach(({ name }: { name: string }) => {
-    bookingFields[name] = name;
-  });
-
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
@@ -145,6 +140,12 @@ export const useEventTypeForm = ({
           eventName: z
             .string()
             .superRefine((val, ctx) => {
+              const bookingFields: Record<string, Fields[number]["name"]> = {};
+              const _bookingFields = form.getValues("bookingFields");
+              _bookingFields.forEach(({ name }: { name: string }) => {
+                bookingFields[name] = name;
+              });
+
               const validationResult = validateCustomEventName(val, bookingFields);
               if (validationResult !== true) {
                 ctx.addIssue({
