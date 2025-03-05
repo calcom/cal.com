@@ -1,9 +1,9 @@
 "use client";
 
+import classNames from "classnames";
 import type { FormEvent } from "react";
 import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Input, Skeleton, Icon, Label } from "@calcom/ui";
 import type { InputFieldProps } from "@calcom/ui/components/form/inputs/types";
