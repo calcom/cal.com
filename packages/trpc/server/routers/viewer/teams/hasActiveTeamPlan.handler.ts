@@ -34,7 +34,16 @@ export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions
     }
   }
 
-  return { isActive: false, isTrial: true };
+  // check if user has at least on membership with an trial plan
+  for (const team of teams) {
+    const teamBillingService = new InternalTeamBilling(team);
+    const isTrial = await teamBillingService.checkIfTeamHasTrialPlan();
+    if (isTrial) {
+      return { isActive: false, isTrial: true };
+    }
+  }
+
+  return { isActive: false, isTrial: false };
 };
 
 export default hasActiveTeamPlanHandler;

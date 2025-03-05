@@ -6,19 +6,31 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "../tooltip";
 import { Badge } from "./Badge";
 
-export const UpgradeTeamsBadge = function UpgradeTeamsBadge({ checkForTrial }: { checkForTrial?: boolean }) {
+export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
+  checkForActiveStatus,
+}: {
+  checkForActiveStatus?: boolean;
+}) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
-  const { isTrial } = useHasActiveTeamPlan();
+  const { hasActiveTeamPlan, isTrial } = useHasActiveTeamPlan();
 
   if (hasPaidPlan) {
-    if (!checkForTrial && !isTrial) return null;
+    if (!checkForActiveStatus || hasActiveTeamPlan) return null;
   }
 
+  const badgeString = isTrial ? t("trial_mode") : hasPaidPlan ? t("inactive_team_plan") : t("upgrade");
+
+  const tooltipString = isTrial
+    ? t("limited_access_trial_mode")
+    : hasPaidPlan
+    ? t("inactive_team_plan_description")
+    : t("upgrade_to_enable_feature");
+
   return (
-    <Tooltip content={isTrial ? t("limited_access_trial_mode") : t("upgrade_to_enable_feature")}>
-      <Link href={isTrial ? "" : "/teams"}>
-        <Badge variant="gray">{isTrial ? t("trial_mode") : t("upgrade")}</Badge>
+    <Tooltip content={tooltipString}>
+      <Link href={!hasPaidPlan ? "/teams" : ""}>
+        <Badge variant="gray">{badgeString}</Badge>
       </Link>
     </Tooltip>
   );

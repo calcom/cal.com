@@ -36,4 +36,10 @@ export class StripeBillingService implements BillingService {
 
     return subscription.status === "active" || subscription.status === "past_due";
   }
+  async checkIfTeamHasTrialPlan(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    if (!subscription || !subscription.status) return false;
+
+    return subscription.status === "trialing";
+  }
 }

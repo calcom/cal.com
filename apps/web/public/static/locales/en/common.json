@@ -3002,6 +3002,8 @@
   "previous_ooo_empty_title": "No previous OOO found",
   "previous": "Previous",
   "trial_mode": "Trial mode",
+  "inactive_team_plan": "Inactive team plan",
+  "inactive_team_plan_description": "Your team plan is inactive. Check your subcription or reach out to customer support",
   "limited_access_trial_mode": "Limited access during trial. Feature available after trial ends.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
