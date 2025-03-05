@@ -31,7 +31,7 @@ import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
  *     - users
  *     responses:
  *       201:
- *         description: OK, user removed successfuly
+ *         description: OK, user removed successfully
  *       400:
  *        description: Bad request. User id is invalid.
  *       401:

@@ -274,7 +274,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
       .expect(403);
   });
 
-  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer())
       .delete(`/v2/oauth-clients/${oAuthClient.id}/webhooks/1234453`)
       .expect(404);
