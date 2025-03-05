@@ -1,6 +1,5 @@
 import { useSession } from "next-auth/react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -16,6 +15,7 @@ import {
   DropdownMenuSeparator,
   showToast,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { UserTableUser, UserTableAction } from "./types";
 

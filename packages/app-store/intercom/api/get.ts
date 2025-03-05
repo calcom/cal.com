@@ -66,11 +66,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
             });
            
-           /* Not functionnal 
            Cal("on", {
-              action: "eventTypeSelected",
-              callback: (e) => INTERCOM_MESSENGER_SHEET_LIBRARY.submitSheet({...e.detail}),
-            });*/
+              action: "bookingSuccessful",
+              callback: (e) => {
+                console.log("bookingSuccessful", e)
+                try { 
+                  INTERCOM_MESSENGER_SHEET_LIBRARY.submitSheet(e.detail.data)
+                } catch(error) {
+                  console.log("Error Intercom sheet", error)
+                }
+              }
+            });
+
           </script>
           <!-- Cal inline embed code ends -->
         </body>

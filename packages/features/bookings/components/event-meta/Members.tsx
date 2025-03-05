@@ -1,4 +1,4 @@
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";

@@ -7,12 +7,11 @@ import { Controller, useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import cn from "@calcom/lib/classNames";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
@@ -35,6 +34,9 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+
+import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
@@ -368,7 +370,7 @@ const TeamMembersMatchResult = ({
           <div data-testid="chosen-route">
             {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
           </div>
-          <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+          <div data-testid="attribute-logic-matched" className={classNames(hasMainWarnings && "text-error")}>
             {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
             {hasMainWarnings && (
               <Alert
@@ -380,7 +382,7 @@ const TeamMembersMatchResult = ({
           </div>
           <div
             data-testid="attribute-logic-fallback-matched"
-            className={cn(hasFallbackWarnings && "text-error")}>
+            className={classNames(hasFallbackWarnings && "text-error")}>
             {t("attribute_logic_fallback_matched")}:{" "}
             <span className="font-semibold">{renderFallbackLogicStatus()}</span>
             {hasFallbackWarnings && (
@@ -591,7 +593,7 @@ export const TestForm = ({
               <span className="text-default underline">
                 <a
                   target="_blank"
-                  className={cn(
+                  className={classNames(
                     findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
                   )}
                   href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}

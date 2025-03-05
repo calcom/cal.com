@@ -425,7 +425,7 @@ export class BookingsController_2024_04_15 {
         oAuthClientId
       );
     }
-    if (requestBody?.responses?.guests) {
+    if (requestBody?.responses?.guests && requestBody?.responses?.guests.length) {
       requestBody.responses.guests = await this.platformBookingsService.getPlatformAttendeesEmails(
         requestBody.responses.guests,
         oAuthClientId

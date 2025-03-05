@@ -2,9 +2,9 @@ import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import type { FormValues, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SettingsToggle } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 const AssignAllTeamMembers = ({
   assignAllTeamMembers,

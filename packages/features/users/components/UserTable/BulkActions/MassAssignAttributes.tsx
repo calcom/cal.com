@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useMemo, type PropsWithChildren } 
 import type { Dispatch, SetStateAction } from "react";
 
 import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
@@ -24,6 +23,7 @@ import {
   PopoverTrigger,
   showToast,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { UserTableUser } from "../types";
 

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Fragment } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
+import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
 import type { IconName } from "../../icon";

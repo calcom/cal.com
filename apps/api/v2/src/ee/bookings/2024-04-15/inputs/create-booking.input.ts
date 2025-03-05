@@ -34,10 +34,11 @@ class Response {
   @ApiProperty()
   email!: string;
 
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @ApiProperty({ type: [String] })
-  guests!: string[];
+  @ApiPropertyOptional({ type: [String] })
+  guests?: string[];
 
   @IsOptional()
   @ValidateNested()
