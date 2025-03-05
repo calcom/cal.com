@@ -1039,7 +1039,7 @@
     },
     "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
-        "operationId": "OrganizationsDwdController_createDwd",
+        "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
         "summary": "Save delegation credentials for your organization.",
         "parameters": [
           {
@@ -1056,7 +1056,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateDwdInput"
+                "$ref": "#/components/schemas/CreateDelegationCredentialInput"
               }
             }
           }
@@ -1067,7 +1067,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateDwdOutput"
+                  "$ref": "#/components/schemas/CreateDelegationCredentialOutput"
                 }
               }
             }
@@ -1078,7 +1078,7 @@
     },
     "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
       "patch": {
-        "operationId": "OrganizationsDwdController_updateDwd",
+        "operationId": "OrganizationsDelegationCredentialController_updateDelegationCredential",
         "summary": "Update delegation credentials of your organization.",
         "parameters": [
           {
@@ -1103,7 +1103,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDwdInput"
+                "$ref": "#/components/schemas/UpdateDelegationCredentialInput"
               }
             }
           }
@@ -1114,7 +1114,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateDwdOutput"
+                  "$ref": "#/components/schemas/UpdateDelegationCredentialOutput"
                 }
               }
             }
@@ -5606,7 +5606,7 @@
             }
           },
           {
-            "name": "domainWideDelegationCredentialId",
+            "name": "delegationCredentialId",
             "required": false,
             "in": "query",
             "schema": {
@@ -7953,7 +7953,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -8569,7 +8569,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -8581,7 +8581,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -9734,7 +9734,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -10340,7 +10340,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -10352,7 +10352,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10573,7 +10573,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string"
           }
         },
@@ -11700,7 +11700,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -11712,7 +11712,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -12477,7 +12477,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -12489,7 +12489,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -13709,7 +13709,7 @@
         },
         "required": ["private_key", "client_email", "client_id"]
       },
-      "CreateDwdInput": {
+      "CreateDelegationCredentialInput": {
         "type": "object",
         "properties": {
           "workspacePlatformSlug": {
@@ -13746,7 +13746,7 @@
         },
         "required": ["name", "slug"]
       },
-      "DwdOutput": {
+      "DelegationCredentialOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -13783,7 +13783,7 @@
           "updatedAt"
         ]
       },
-      "CreateDwdOutput": {
+      "CreateDelegationCredentialOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -13792,12 +13792,12 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/DwdOutput"
+            "$ref": "#/components/schemas/DelegationCredentialOutput"
           }
         },
         "required": ["status", "data"]
       },
-      "UpdateDwdInput": {
+      "UpdateDelegationCredentialInput": {
         "type": "object",
         "properties": {
           "enabled": {
@@ -13818,7 +13818,7 @@
           }
         }
       },
-      "UpdateDwdOutput": {
+      "UpdateDelegationCredentialOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -13827,7 +13827,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/DwdOutput"
+            "$ref": "#/components/schemas/DelegationCredentialOutput"
           }
         },
         "required": ["status", "data"]
@@ -14337,7 +14337,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           }
@@ -14372,7 +14372,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           }
@@ -14388,7 +14388,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           },
@@ -14432,7 +14432,7 @@
             "type": "number",
             "nullable": true
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           },
@@ -16513,7 +16513,7 @@
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
             "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string"
           }
         },
