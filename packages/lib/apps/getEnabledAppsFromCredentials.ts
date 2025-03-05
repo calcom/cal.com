@@ -4,9 +4,10 @@ import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
+
 import { isDwdCredential } from "../domainWideDelegation/clientAndServer";
 
-type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
+type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean; updatedAt?: Date };
 
 /**
  *
@@ -56,7 +57,7 @@ const getEnabledAppsFromCredentials = async (
 
   let enabledApps = await prisma.app.findMany({
     where,
-    select: { slug: true, enabled: true },
+    select: { slug: true, enabled: true, updatedAt: true },
   });
 
   const dwdSupportedEnabledApps = await prisma.app.findMany({
@@ -75,7 +76,7 @@ const getEnabledAppsFromCredentials = async (
   const filteredApps = apps.reduce((reducedArray, app) => {
     const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
     if (appDbQuery?.enabled || app.isGlobal) {
-      reducedArray.push({ ...app, enabled: true });
+      reducedArray.push({ ...app, enabled: true, updatedAt: appDbQuery?.updatedAt });
     }
     return reducedArray;
   }, [] as EnabledApp[]);
