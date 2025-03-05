@@ -870,7 +870,12 @@ export function getEmailTemplateText(
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(params.timeFormat);
 
-  let { emailBody, emailSubject } = emailReminderTemplate(true, locale, action, timeFormat);
+  let { emailBody, emailSubject } = emailReminderTemplate({
+    isEditingMode: true,
+    locale,
+    action,
+    timeFormat,
+  });
 
   if (template === WorkflowTemplates.RATING) {
     const ratingTemplate = emailRatingTemplate({
