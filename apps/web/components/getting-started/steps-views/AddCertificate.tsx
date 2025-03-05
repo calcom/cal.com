@@ -12,7 +12,7 @@ enum CertificateRegistrationStatus {
 
 const SPEDY_BASE_URL = "https://api.spedy.com.br/v1";
 const SPEDY_API_KEY = process.env.NEXT_PUBLIC_SPEDY_API_KEY || "";
-const DIRECTUS_BASE_URL = "https://api.agenda.yinflow.life/v2/directus";
+const DIRECTUS_BASE_URL = "https://agenda.yinflow.life/api";
 const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN || "";
 
 const AddCertificate = () => {
@@ -90,7 +90,7 @@ const AddCertificate = () => {
   useEffect(() => {
     if (user) {
       setIsLoading(true);
-      fetch(`${DIRECTUS_BASE_URL}/pro_professionals/${42}`, {
+      fetch(`${DIRECTUS_BASE_URL}/get-pro-professionals?calUserId=${user.id}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${DIRECTUS_TOKEN}`,
@@ -99,12 +99,15 @@ const AddCertificate = () => {
         .then((response) => {
           response.json().then((response) => {
             const proProfessionalId = response.data[0].id;
-            fetch(`${DIRECTUS_BASE_URL}/pro_professional_companies/${proProfessionalId}`, {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${DIRECTUS_TOKEN}`,
-              },
-            })
+            fetch(
+              `${DIRECTUS_BASE_URL}/get-pro-professionals-companies?proProfessionalId=${proProfessionalId}`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+                },
+              }
+            )
               .then((response) => {
                 response.json().then((response) => {
                   const spedyId = response.data[0].spedy_id;
