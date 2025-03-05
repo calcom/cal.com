@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Ingen arbeidsplattformer",
   "workspace_platform": "Arbeidsplattform",
   "workspace_platforms": "Arbeidsplattformer",
-  "workspace_platforms_description": "Administrer arbeidsplattformer som kan brukes for domeneomfattende delegering",
+  "workspace_platforms_description": "Administrer arbeidsplattformer som kan brukes for delegeringslegitimasjon",
   "edit_workspace_platform": "Rediger arbeidsplattform",
   "edit_service_account": "Rediger tjenestekonto",
   "add_workspace_platform": "Legg til arbeidsplattform",

@@ -10,10 +10,6 @@
     "@calcom/features/*": ["../features/*"],
     "@calcom/lib": ["../lib"],
     "@calcom/lib/*": ["../lib/*"],
-    "@calcom/platform-constants": ["../platform/constants/index.ts"],
-    "@calcom/platform-enums": ["../platform/enums/index.ts"],
-    "@calcom/platform-types": ["../platform/types/index.ts"],
-    "@calcom/platform-utils": ["../platform/utils/index.ts"],
     "@calcom/prisma": ["../prisma"],
     "@calcom/prisma/*": ["../prisma/*"],
     "@calcom/repository/*": ["../lib/server/repository/*"]

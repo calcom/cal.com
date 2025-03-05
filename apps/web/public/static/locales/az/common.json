@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "İş sahəsi platformaları yoxdur",
   "workspace_platform": "İş sahəsi platforması",
   "workspace_platforms": "İş sahəsi platformaları",
-  "workspace_platforms_description": "Domen səviyyəsində səlahiyyət üçün istifadə edilə bilən iş sahəsi platformalarını idarə edin",
+  "workspace_platforms_description": "Nümayəndəlik etimadnaməsi üçün istifadə edilə bilən iş sahəsi platformalarını idarə edin",
   "edit_workspace_platform": "İş sahəsi platformasını redaktə et",
   "edit_service_account": "Servis hesabını redaktə et",
   "add_workspace_platform": "İş sahəsi platforması əlavə et",

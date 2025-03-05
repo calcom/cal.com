@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Tööruumi platvormid puuduvad",
   "workspace_platform": "Tööruumi platvorm",
   "workspace_platforms": "Tööruumi platvormid",
-  "workspace_platforms_description": "Halda tööruumi platvorme, mida saab kasutada domeeniüleseks delegeerimiseks",
+  "workspace_platforms_description": "Halda tööruumi platvorme, mida saab kasutada delegeerimise volituse jaoks",
   "edit_workspace_platform": "Muuda tööruumi platvormi",
   "edit_service_account": "Muuda teenusekontot",
   "add_workspace_platform": "Lisa tööruumi platvorm",

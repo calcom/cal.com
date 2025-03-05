@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Няма работни платформи",
   "workspace_platform": "Работна платформа",
   "workspace_platforms": "Работни платформи",
-  "workspace_platforms_description": "Управление на работни платформи, които могат да се използват за делегиране на ниво домейн",
+  "workspace_platforms_description": "Управлявайте работните платформи, които могат да се използват за делегирани идентификационни данни",
   "edit_workspace_platform": "Редактиране на работна платформа",
   "edit_service_account": "Редактиране на служебен акаунт",
   "add_workspace_platform": "Добавяне на работна платформа",

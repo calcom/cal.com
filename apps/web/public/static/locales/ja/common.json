@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "ワークスペースプラットフォームがありません",
   "workspace_platform": "ワークスペースプラットフォーム",
   "workspace_platforms": "ワークスペースプラットフォーム",
-  "workspace_platforms_description": "ドメイン全体の委任に使用できるワークスペースプラットフォームを管理",
+  "workspace_platforms_description": "委任認証情報に使用できるワークスペースプラットフォームを管理する",
   "edit_workspace_platform": "ワークスペースプラットフォームを編集",
   "edit_service_account": "サービスアカウントを編集",
   "add_workspace_platform": "ワークスペースプラットフォームを追加",
