@@ -15,6 +15,7 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 import appConfig from "../config.json";
 import { API_HITPAY, SANDBOX_API_HITPAY } from "./constants";
 import { hitpayCredentialKeysSchema } from "./hitpayCredentialKeysSchema";
+import type { PaidBooking } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:hitpay"] });
 
@@ -40,18 +41,53 @@ export class PaymentService implements IAbstractPaymentService {
     bookerEmail: string
   ) {
     try {
-      const booking = await prisma.booking.findFirst({
+      const booking: PaidBooking | null = await prisma.booking.findFirst({
+        where: {
+          id: bookingId,
+        },
         select: {
           uid: true,
           title: true,
-        },
-        where: {
-          id: bookingId,
+          startTime: true,
+          endTime: true,
+          eventType: {
+            select: {
+              slug: true,
+              seatsPerTimeSlot: true,
+            },
+          },
+          attendees: { include: { bookingSeat: true } },
         },
       });
 
       if (!booking || !this.credentials) {
         throw new Error("Booking or API key not found");
+      }
+
+      const { startTime, endTime } = booking;
+      const bookingsWithSameTimeSlot = await prisma.booking.findMany({
+        where: {
+          startTime,
+          endTime,
+        },
+        select: {
+          uid: true,
+          title: true,
+        },
+      });
+
+      if (booking.eventType?.seatsPerTimeSlot) {
+        if (
+          booking.eventType.seatsPerTimeSlot <=
+            booking.attendees.filter((attendee) => !!attendee.bookingSeat).length ||
+          bookingsWithSameTimeSlot.length > booking.eventType.seatsPerTimeSlot
+        ) {
+          throw new Error(ErrorCode.BookingSeatsFull);
+        }
+      } else {
+        if (bookingsWithSameTimeSlot.length > 1) {
+          throw new Error(ErrorCode.NoAvailableUsersFound);
+        }
       }
 
       const { isSandbox } = this.credentials;
@@ -87,6 +123,18 @@ export class PaymentService implements IAbstractPaymentService {
       });
 
       const data = response.data;
+
+      const getRequestUrl = `${hitpayAPIurl}/v1/payment-requests?request_id=${data.id}&is_default=1`;
+      const getResponse = await axios.get(getRequestUrl, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+          "X-BUSINESS-API-KEY": keyObj.apiKey,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+      const getData = getResponse.data;
+      const defaultLink = getData.data[0].url;
+
       const uid = uuidv4();
 
       const paymentData = await prisma.payment.create({
@@ -105,7 +153,12 @@ export class PaymentService implements IAbstractPaymentService {
           amount: parseFloat(data.amount.replace(/,/g, "")) * 100,
           externalId: data.id,
           currency: data.currency,
-          data: Object.assign({}, data, { isPaid: false }) as unknown as Prisma.InputJsonValue,
+          data: Object.assign(
+            {},
+            { defaultLink, ...data },
+            { bookingUserName: username, eventTypeSlug: booking.eventType?.slug, bookingUid: booking.uid },
+            { isPaid: false }
+          ) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
           success: false,

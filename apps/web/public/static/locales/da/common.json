@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Ingen workspace-platforme",
   "workspace_platform": "Workspace-platform",
   "workspace_platforms": "Workspace-platforme",
-  "workspace_platforms_description": "Administrer workspace-platforme, der kan bruges til domæneomfattende delegation",
+  "workspace_platforms_description": "Administrer workspace-platforme, der kan bruges til delegationslegitimation",
   "edit_workspace_platform": "Rediger workspace-platform",
   "edit_service_account": "Rediger servicekonto",
   "add_workspace_platform": "Tilføj workspace-platform",

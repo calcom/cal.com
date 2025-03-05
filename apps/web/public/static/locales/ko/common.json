@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "워크스페이스 플랫폼 없음",
   "workspace_platform": "워크스페이스 플랫폼",
   "workspace_platforms": "워크스페이스 플랫폼",
-  "workspace_platforms_description": "도메인 전체 위임에 사용할 수 있는 워크스페이스 플랫폼 관리",
+  "workspace_platforms_description": "위임 자격 증명에 사용할 수 있는 워크스페이스 플랫폼 관리",
   "edit_workspace_platform": "워크스페이스 플랫폼 수정",
   "edit_service_account": "서비스 계정 수정",
   "add_workspace_platform": "워크스페이스 플랫폼 추가",

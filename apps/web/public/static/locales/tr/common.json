@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Çalışma alanı platformu yok",
   "workspace_platform": "Çalışma alanı platformu",
   "workspace_platforms": "Çalışma alanı platformları",
-  "workspace_platforms_description": "Alan adı genelinde yetkilendirme için kullanılabilecek çalışma alanı platformlarını yönetin",
+  "workspace_platforms_description": "Yetki devri kimlik bilgisi için kullanılabilecek çalışma alanı platformlarını yönetin",
   "edit_workspace_platform": "Çalışma alanı platformunu düzenle",
   "edit_service_account": "Hizmet hesabını düzenle",
   "add_workspace_platform": "Çalışma alanı platformu ekle",

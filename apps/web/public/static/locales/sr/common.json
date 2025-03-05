@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Nema workspace platformi",
   "workspace_platform": "Workspace platforma",
   "workspace_platforms": "Workspace platforme",
-  "workspace_platforms_description": "Upravljajte workspace platformama koje se mogu koristiti za delegiranje na nivou domena",
+  "workspace_platforms_description": "Upravljajte workspace platformama koje se mogu koristiti za delegirani kredencijal",
   "edit_workspace_platform": "Izmeni workspace platformu",
   "edit_service_account": "Izmeni servisni nalog",
   "add_workspace_platform": "Dodaj workspace platformu",

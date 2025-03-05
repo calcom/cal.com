@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "Không có nền tảng workspace",
   "workspace_platform": "Nền tảng workspace",
   "workspace_platforms": "Các nền tảng workspace",
-  "workspace_platforms_description": "Quản lý các nền tảng workspace có thể được sử dụng cho ủy quyền toàn miền",
+  "workspace_platforms_description": "Quản lý các nền tảng workspace có thể được sử dụng cho thông tin xác thực ủy quyền",
   "edit_workspace_platform": "Chỉnh sửa nền tảng workspace",
   "edit_service_account": "Chỉnh sửa tài khoản dịch vụ",
   "add_workspace_platform": "Thêm nền tảng workspace",

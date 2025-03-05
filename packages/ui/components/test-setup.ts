@@ -53,7 +53,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   },
 }));
 
-vi.mock("@calcom/atoms/monorepo", () => ({
+vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => {
     return false;
   },
