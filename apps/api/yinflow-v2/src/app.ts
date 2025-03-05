@@ -41,7 +41,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   // app.use(helmet());
 
   app.enableCors({
-    origin: "*",
+    origin: true,
     methods: ["GET", "PATCH", "DELETE", "HEAD", "POST", "PUT", "OPTIONS"],
     allowedHeaders: [
       X_CAL_CLIENT_ID,
