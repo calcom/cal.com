@@ -2961,6 +2961,12 @@
   "desc": "Desc",
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
+  "buy_credits": "Buy Credits",
+  "credits": "Credits",
+  "view_and_manage_credits": "View and manage credits",
+  "view_and_manage_credits_description": "View and managed credits for SMS sending and Cal.ai. One credit is equivalent to one cent (USD).",
   "end_date_not_selected": "You didn't set an end date for your OOO",
+  "buy_additional_credits": "Buy additional credits ($0.01 per credit)",
+  "overview": "Overview",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

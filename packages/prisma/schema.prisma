@@ -378,6 +378,7 @@ model User {
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
   BookingInternalNote        BookingInternalNote[]
   creationSource             CreationSource?
+  credits                    CreditsTable[]
 
   @@unique([email])
   @@unique([email, username])
@@ -487,9 +488,35 @@ model Team {
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean              @default(false)
   internalNotePresets          InternalNotePreset[]
+  credits                      CreditsTable[]
 
   @@unique([slug, parentId])
   @@index([parentId])
+}
+
+model CreditsTable {
+  id                Int                @id @default(autoincrement())
+  team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId            Int?
+  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?
+  additionalCredits Int
+  expenseLogs       CreditExpenseLog[]
+}
+
+model CreditExpenseLog {
+  id             Int           @id @default(autoincrement())
+  creditsTable   CreditsTable? @relation(fields: [creditsTabelId], references: [id], onDelete: Cascade)
+  creditsTabelId Int?
+  credits        Int
+  reason         String
+  creditType     CreditType
+  date           DateTime
+}
+
+enum CreditType {
+  MONTHLY
+  ADDITIONAL
 }
 
 model OrganizationSettings {
