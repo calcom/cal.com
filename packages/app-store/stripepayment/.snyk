@@ -1,0 +1,18 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:semver:20150403':
+    - '@calcom/features > @calcom/atoms > rollup-plugin-node-builtins > browserify-fs > levelup > semver':
+        patched: '2025-03-05T12:49:36.342Z'
+        id: 'npm:semver:20150403'
+        path: >-
+          @calcom/features > @calcom/atoms > rollup-plugin-node-builtins >
+          browserify-fs > levelup > semver
+    - '@calcom/app-store > @calcom/features > @calcom/atoms > rollup-plugin-node-builtins > browserify-fs > levelup > semver':
+        patched: '2025-03-05T12:49:36.342Z'
+        id: 'npm:semver:20150403'
+        path: >-
+          @calcom/app-store > @calcom/features > @calcom/atoms >
+          rollup-plugin-node-builtins > browserify-fs > levelup > semver
