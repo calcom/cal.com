@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "無工作區平台",
   "workspace_platform": "工作區平台",
   "workspace_platforms": "工作區平台",
-  "workspace_platforms_description": "管理可用於網域範圍委派的工作區平台",
+  "workspace_platforms_description": "管理可用於委派憑證的工作區平台",
   "edit_workspace_platform": "編輯工作區平台",
   "edit_service_account": "編輯服務帳戶",
   "add_workspace_platform": "新增工作區平台",

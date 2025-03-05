@@ -88,15 +88,15 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
       .string()
       .trim()
       .min(64)
-      .max(64, {
-        message: t("max_limit_allowed_hint", { limit: 64 }),
+      .max(128, {
+        message: t("max_limit_allowed_hint", { limit: 128 }),
       }),
     saltKey: z
       .string()
       .trim()
       .min(64)
-      .max(64, {
-        message: t("max_limit_allowed_hint", { limit: 64 }),
+      .max(128, {
+        message: t("max_limit_allowed_hint", { limit: 128 }),
       }),
   });
 
@@ -137,11 +137,13 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
 
   useEffect(() => {
     const keyObj = isSandbox ? props.sandbox : props.prod;
-    reset({
+    const _keyData = {
       apiKey: keyObj?.apiKey || "",
       saltKey: keyObj?.saltKey || "",
-    });
-    setKeyData(keyObj);
+    };
+
+    reset(_keyData);
+    setKeyData(_keyData);
   }, [isSandbox]);
 
   useEffect(() => {

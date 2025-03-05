@@ -2280,7 +2280,7 @@
   "no_workspace_platforms": "No hi ha plataformes de workspace",
   "workspace_platform": "Plataforma workspace",
   "workspace_platforms": "Plataformes workspace",
-  "workspace_platforms_description": "Gestioneu les plataformes workspace que es poden utilitzar per a la delegació per a tot el domini",
+  "workspace_platforms_description": "Gestiona les plataformes de workspace que es poden utilitzar per a la credencial de delegació",
   "edit_workspace_platform": "Editar plataforma workspace",
   "edit_service_account": "Editar compte de servei",
   "add_workspace_platform": "Afegir plataforma workspace",
