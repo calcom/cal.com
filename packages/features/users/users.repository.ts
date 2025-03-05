@@ -1,5 +1,3 @@
-import { captureException } from "@sentry/nextjs";
-
 import db from "@calcom/prisma";
 
 import type { IUsersRepository } from "./users.repository.interface";
@@ -13,6 +11,7 @@ export class UsersRepository implements IUsersRepository {
       });
       return user;
     } catch (err) {
+      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }
