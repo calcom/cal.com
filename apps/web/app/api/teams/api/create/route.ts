@@ -26,8 +26,7 @@ export const schemaMembershipPublic = Membership.merge(z.object({ team: Team }).
 
 async function handler(request: NextRequest) {
   try {
-    const url = new URL(request.url);
-    const { session_id } = querySchema.parse(Object.fromEntries(url.searchParams));
+    const { session_id } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
 
     const checkoutSession = await getCheckoutSession(session_id);
     validateCheckoutSession(checkoutSession);
