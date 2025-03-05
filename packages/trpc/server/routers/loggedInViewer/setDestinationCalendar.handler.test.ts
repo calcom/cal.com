@@ -6,7 +6,7 @@ import {
   getOrganizer,
   getScenarioData,
   createOrganization,
-  createDelegationCredential,
+  createDwdCredential,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
@@ -28,7 +28,7 @@ vi.mock("@calcom/lib/CalendarManager", () => ({
 describe("setDestinationCalendarHandler", () => {
   setupAndTeardown();
 
-  it("should successfully set destination calendar with DelegationCredential credentials", async () => {
+  it("should successfully set destination calendar with DWD credentials", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",
@@ -73,9 +73,9 @@ describe("setDestinationCalendarHandler", () => {
       ],
     });
 
-    const delegationCredential = await createDelegationCredential(org.id);
+    const dwd = await createDwdCredential(org.id);
 
-    const delegationCredentialId = delegationCredential.id;
+    const dwdCredentialId = dwd.id;
     const testExternalId = "TEST@group.calendar.google.com";
 
     // Mock the getConnectedCalendars response
@@ -90,7 +90,7 @@ describe("setDestinationCalendarHandler", () => {
               primary: true,
               email: organizer.email,
               credentialId: -1,
-              delegationCredentialId: delegationCredentialId,
+              domainWideDelegationCredentialId: dwdCredentialId,
             },
             {
               externalId: testExternalId,
@@ -99,7 +99,7 @@ describe("setDestinationCalendarHandler", () => {
               primary: null,
               email: organizer.email,
               credentialId: -1,
-              delegationCredentialId: delegationCredentialId,
+              domainWideDelegationCredentialId: dwdCredentialId,
             },
           ],
         },
@@ -129,7 +129,7 @@ describe("setDestinationCalendarHandler", () => {
               integration: "google_calendar",
               externalId: testExternalId,
               credentialId: null,
-              delegationCredentialId: delegationCredentialId,
+              domainWideDelegationCredentialId: dwdCredentialId,
             },
           ],
         },
@@ -146,7 +146,7 @@ describe("setDestinationCalendarHandler", () => {
             integration: "google_calendar",
             externalId: testExternalId,
             credentialId: null,
-            delegationCredentialId: delegationCredentialId,
+            domainWideDelegationCredentialId: dwdCredentialId,
           },
         ],
       } as NonNullable<TrpcSessionUser>,
@@ -172,7 +172,7 @@ describe("setDestinationCalendarHandler", () => {
         integration: "google_calendar",
         externalId: testExternalId,
         credentialId: null,
-        delegationCredentialId: delegationCredentialId,
+        domainWideDelegationCredentialId: dwdCredentialId,
       })
     );
   });

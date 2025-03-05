@@ -44,24 +44,24 @@ export class DestinationCalendarRepository {
       externalId?: string;
       credentialId?: number | null;
       primaryEmail?: string | null;
-      delegationCredentialId?: string | null;
+      domainWideDelegationCredentialId?: string | null;
     };
     create: {
       integration: string;
       externalId: string;
       credentialId: number | null;
       primaryEmail?: string | null;
-      delegationCredentialId?: string | null;
+      domainWideDelegationCredentialId?: string | null;
     };
   }) {
     const credentialPayloadForUpdate = buildCredentialPayloadForPrisma({
       credentialId: update.credentialId,
-      delegationCredentialId: update.delegationCredentialId,
+      domainWideDelegationCredentialId: update.domainWideDelegationCredentialId,
     });
 
     const credentialPayloadForCreate = buildCredentialPayloadForPrisma({
       credentialId: create.credentialId,
-      delegationCredentialId: create.delegationCredentialId,
+      domainWideDelegationCredentialId: create.domainWideDelegationCredentialId,
     });
 
     return await prisma.destinationCalendar.upsert({

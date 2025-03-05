@@ -17,7 +17,7 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
-  delegationCredentialId: string | null;
+  domainWideDelegationCredentialId: string | null;
   eventTypeId: number | null;
   disabled?: boolean;
 };
@@ -36,7 +36,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     isChecked,
     name,
     credentialId,
-    delegationCredentialId,
+    domainWideDelegationCredentialId,
     eventTypeId,
     disabled,
   } = props;
@@ -48,7 +48,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
-        ...(delegationCredentialId && { delegationCredentialId }),
+        ...(domainWideDelegationCredentialId && { domainWideDelegationCredentialId }),
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
         ...(eventTypeId ? { eventTypeId: String(eventTypeId) } : {}),
