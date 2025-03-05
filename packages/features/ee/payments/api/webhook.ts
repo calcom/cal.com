@@ -43,7 +43,6 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
     log.error("Stripe: Payment Not Found", safeStringify(paymentIntent), safeStringify(payment));
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   await handlePaymentSuccess(payment.id, payment.bookingId);
 }

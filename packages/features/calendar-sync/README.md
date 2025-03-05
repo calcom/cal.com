@@ -44,6 +44,8 @@ We have BookingReference created from bookings
   - [ ] If start and end times changed, reschedule in Cal.com
   - [ ] If event got deleted, trigger a cancelation in Cal.com
 - [ ] E2E test for calendar sync flow and triggers
+  - [ ] Figure out how to mock backend calls to google
+  - [ ] Booking with a gCal installed should save a `BookingReference` with `rawData`.
   - [ ] should cancel event on Cal.com when it's deleted on Google Calendar
     - [ ] Mock a webhook received
     - [ ] Mock `calendar.events.get` response for a removed event

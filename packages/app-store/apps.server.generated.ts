@@ -53,6 +53,7 @@ export const apiHandlers = {
   metapixel: import("./metapixel/api"),
   "millis-ai": import("./millis-ai/api"),
   mirotalk: import("./mirotalk/api"),
+  "mock-calendar-app": import("./mock-calendar-app/api"),
   "mock-payment-app": import("./mock-payment-app/api"),
   monobot: import("./monobot/api"),
   n8n: import("./n8n/api"),

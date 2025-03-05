@@ -32,6 +32,7 @@ export const EventTypeAddonMap = {
   insihts: dynamic(() => import("./insihts/components/EventTypeAppCardInterface")),
   matomo: dynamic(() => import("./matomo/components/EventTypeAppCardInterface")),
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
+  "mock-calendar-app": dynamic(() => import("./mock-calendar-app/components/EventTypeAppCardInterface")),
   "mock-payment-app": dynamic(() => import("./mock-payment-app/components/EventTypeAppCardInterface")),
   paypal: dynamic(() => import("./paypal/components/EventTypeAppCardInterface")),
   "pipedrive-crm": dynamic(() => import("./pipedrive-crm/components/EventTypeAppCardInterface")),

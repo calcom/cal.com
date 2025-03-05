@@ -4464,6 +4464,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/mock-calendar-app@workspace:packages/app-store/mock-calendar-app":
+  version: 0.0.0-use.local
+  resolution: "@calcom/mock-calendar-app@workspace:packages/app-store/mock-calendar-app"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app":
   version: 0.0.0-use.local
   resolution: "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app"

@@ -48,10 +48,15 @@ const appStore = {
 
 const exportedAppStore: typeof appStore & {
   ["mock-payment-app"]?: () => Promise<typeof import("./mock-payment-app/index")>;
+  ["mock-calendar-app"]?: () => Promise<typeof import("./mock-calendar-app/index")>;
 } = appStore;
 
 if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
   exportedAppStore["mock-payment-app"] = () => import("./mock-payment-app/index");
+}
+
+if (process.env.NEXT_PUBLIC_IS_E2E === "1") {
+  exportedAppStore["mock-calendar-app"] = () => import("./mock-calendar-app/index");
 }
 
 export default exportedAppStore;
