@@ -8547,7 +8547,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -9272,7 +9272,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -9284,7 +9284,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10584,7 +10584,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -11249,7 +11249,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -11261,7 +11261,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -12841,7 +12841,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -12853,7 +12853,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -13682,7 +13682,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -13694,7 +13694,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -18381,7 +18381,7 @@
           "externalId": {
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
-            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+            "description": "Unique identifier used to represent the specific calendar, as returned by the /calendars endpoint"
           },
           "domainWideDelegationCredentialId": {
             "type": "string"
