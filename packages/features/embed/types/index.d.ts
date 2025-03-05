@@ -43,6 +43,6 @@ export type PreviewState = {
   layout: BookerLayouts;
 };
 
-export type EmbedFramework = "react" | "HTML";
+export type EmbedFramework = "react" | "HTML" | "react-atom";
 export type EmbedTabs = typeof tabs;
 export type EmbedTypes = ReturnType<typeof useEmbedTypes>;
