@@ -11,6 +11,30 @@ import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
 
+export const formatNumberByLocale = (value: string, locale: string): string => {
+  if (!value) return "";
+
+  const cleanNumber = value.replace(/[^0-9.]/g, "");
+
+  if (cleanNumber === "" || isNaN(Number(cleanNumber))) {
+    return value;
+  }
+
+  try {
+    const formatter = new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 0,
+      useGrouping: true,
+    });
+    return formatter.format(Number(cleanNumber));
+  } catch {
+    return value;
+  }
+};
+
+export const getRawValue = (formattedValue: string): string => {
+  return formattedValue.replace(/[^0-9.]/g, "");
+};
+
 export const inputStyles = cva(
   [
     // Base styles
@@ -97,6 +121,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
   const name = props.name || "";
+  const [inputValue, setInputValue] = useState<string>("");
+
   const {
     label = t(name),
     labelProps,
@@ -124,8 +150,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     size,
     ...passThrough
   } = props;
-
-  const [inputValue, setInputValue] = useState<string>("");
 
   return (
     <div className={classNames(containerClassName)}>
@@ -159,7 +183,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           <input
             data-testid={dataTestid ? `${dataTestid}-input` : "input-field"}
             id={id}
-            type={type}
+            type={type === "number" ? "text" : type}
             placeholder={placeholder}
             className={classNames(
               "w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",
@@ -170,9 +194,17 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               className
             )}
             {...passThrough}
-            {...(type == "search" && {
+            {...(type === "search" && {
               onChange: (e) => {
                 setInputValue(e.target.value);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
+            {...(type === "number" && {
+              onChange: (e) => {
+                const formattedValue = formatNumberByLocale(e.target.value, i18n?.language || "en");
+                setInputValue(formattedValue);
                 props.onChange && props.onChange(e);
               },
               value: inputValue,
@@ -203,7 +235,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       ) : (
         <Input
           id={id}
-          type={type}
+          type={type === "number" ? "text" : type}
           placeholder={placeholder}
           size={size}
           className={classNames(
@@ -211,6 +243,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}
+          {...(type === "number" && {
+            onChange: (e) => {
+              const formattedValue = formatNumberByLocale(e.target.value, i18n?.language || "en");
+              setInputValue(formattedValue);
+              props.onChange && props.onChange(e);
+            },
+            value: inputValue,
+          })}
           readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
