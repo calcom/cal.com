@@ -47,6 +47,7 @@ type ConferencingAppsViewPlatformWrapperProps = {
   disableToasts?: boolean;
   returnTo?: string;
   onErrorReturnTo?: string;
+  onConnectError?: () => void;
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
@@ -72,6 +73,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   disableToasts = false,
   returnTo,
   onErrorReturnTo,
+  onConnectError,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -174,6 +176,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     onError: () => {
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
       showToast(`Error: unable to install app`, "error");
+      onConnectError?.();
     },
     returnTo,
     onErrorReturnTo,
