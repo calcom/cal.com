@@ -6,6 +6,8 @@ import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+export const dynamic = "force-dynamic";
+
 export const GET = async () => {
   try {
     const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
