@@ -6,6 +6,17 @@ import { getWorkingHours } from "./availability";
 import { getTimeZone } from "./date-fns";
 import type { DateRange } from "./date-ranges";
 
+interface SlotData {
+  time: Dayjs;
+  userIds?: number[];
+  away?: boolean;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
+  reason?: string;
+  emoji?: string;
+  busy?: boolean;
+}
+
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
@@ -30,17 +41,6 @@ export type TimeFrame = {
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 const minimumOfZero = (input: number) => (input < 0 ? 0 : input);
-
-type SlotData = {
-  time: Dayjs;
-  userIds?: number[];
-  away?: boolean;
-  fromUser?: IFromUser;
-  toUser?: IToUser;
-  reason?: string;
-  emoji?: string;
-  busy?: boolean;
-};
 
 function createOOOData(dateOutOfOfficeExists: IOutOfOfficeData[string] | undefined) {
   if (!dateOutOfOfficeExists) return null;
@@ -201,16 +201,7 @@ function buildSlots({
   };
 
   // Create slots for all times, marking availability
-  const slots: {
-    time: Dayjs;
-    userIds?: number[];
-    away?: boolean;
-    fromUser?: IFromUser;
-    toUser?: IToUser;
-    reason?: string;
-    emoji?: string;
-    busy?: boolean;
-  }[] = [];
+  const slots: SlotData[] = [];
 
   // Create slots for all times
   for (const [time, isAvailable] of Object.entries(slotsTimeFrameAvailable)) {
@@ -433,15 +424,7 @@ function buildSlotsWithDateRanges({
     }
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
-      let slotData: {
-        time: Dayjs;
-        userIds?: number[];
-        away?: boolean;
-        fromUser?: IFromUser;
-        toUser?: IToUser;
-        reason?: string;
-        emoji?: string;
-      } = {
+      let slotData: SlotData = {
         time: slotStartTime,
       };
 
