@@ -314,7 +314,7 @@ expect.extend({
 export default config;
 
 function ensureAppServerIsReadyToServeEmbed(webServer: { port?: number; url?: string }) {
-  // We should't depend on an embed dependency for App's tests. So, conditionally modify App webServer.
+  // We shouldn't depend on an embed dependency for App's tests. So, conditionally modify App webServer.
   // Only one of port or url can be specified, so remove port.
   delete webServer.port;
   webServer.url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/embed/embed.js`;

@@ -142,7 +142,7 @@ test.describe("Update Profile", () => {
 
     await expect(page.getByTestId("toast-success")).toContainText(email);
 
-    // After email verification is successfull. user is sent to /event-types
+    // After email verification is successful. user is sent to /event-types
     await page.waitForURL("/event-types");
 
     await page.goto("/settings/my-account/profile");

@@ -24,7 +24,7 @@ test.describe("OAuth Provider", () => {
   test.beforeAll(async () => {
     client = await createTestCLient();
   });
-  test("should create valid access toke & refresh token for user", async ({ page, users }) => {
+  test("should create valid access token & refresh token for user", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" });
     await user.apiLogin();
 
