@@ -19,6 +19,9 @@
     "./react": {
       "default": "./react/index.ts",
       "types": "./dist/router.d.ts"
+    },
+    "./components/QueryCell": {
+      "default": "./components/QueryCell.js"
     }
   },
   "dependencies": {
