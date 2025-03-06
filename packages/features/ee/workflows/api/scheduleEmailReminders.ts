@@ -321,6 +321,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             },
             attendees,
             location: bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl || booking.location,
+            title: booking.title || booking.eventType?.title || "",
           };
 
           sendEmailPromises.push(
