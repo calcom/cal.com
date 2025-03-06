@@ -290,13 +290,13 @@ describe("SelectedCalendarRepository", () => {
     });
   });
 
-  describe("Domain Wide Delegation", () => {
-    it("should create a selected calendar with domainWideDelegationCredentialId", async () => {
+  describe("Delegation Credential", () => {
+    it("should create a selected calendar with delegationCredentialId", async () => {
       const data = {
         userId: 1,
         integration: "google_calendar",
         externalId: "test@gmail.com",
-        domainWideDelegationCredentialId: "dwd-123",
+        delegationCredentialId: "delegationCredential-123",
       };
 
       const result = await SelectedCalendarRepository.create(data);
@@ -306,7 +306,7 @@ describe("SelectedCalendarRepository", () => {
 
     describe("upsert", () => {
       describe("updation", () => {
-        it("should update existing record with domainWideDelegationCredentialId if credentialId is -1", async () => {
+        it("should update existing record with delegationCredentialId if credentialId is -1", async () => {
           const initialData = {
             userId: 1,
             integration: "google_calendar",
@@ -322,17 +322,17 @@ describe("SelectedCalendarRepository", () => {
             integration: "google_calendar",
             externalId: "test@gmail.com",
             credentialId: -1,
-            domainWideDelegationCredentialId: "dwd-123",
+            delegationCredentialId: "delegationCredential-123",
           };
 
           const result = await SelectedCalendarRepository.upsert(data);
           expect(result.id).not.toBe(null);
           expect(result.id).toBe(existingCalendar.id);
           expect(result.credentialId).toBe(null);
-          expect(result.domainWideDelegationCredentialId).toBe(data.domainWideDelegationCredentialId);
+          expect(result.delegationCredentialId).toBe(data.delegationCredentialId);
         });
 
-        it("should update existing record with credentialId if credentialId is valid(>0) even if domainWideDelegationCredentialId is set", async () => {
+        it("should update existing record with credentialId if credentialId is valid(>0) even if delegationCredentialId is set", async () => {
           const initialData = {
             userId: 1,
             integration: "google_calendar",
@@ -348,19 +348,19 @@ describe("SelectedCalendarRepository", () => {
             integration: "google_calendar",
             externalId: "test@gmail.com",
             credentialId: 2,
-            domainWideDelegationCredentialId: "dwd-123",
+            delegationCredentialId: "delegationCredential-123",
           };
 
           const result = await SelectedCalendarRepository.upsert(data);
           expect(result.id).not.toBe(null);
           expect(result.id).toBe(existingCalendar.id);
           expect(result.credentialId).toBe(data.credentialId);
-          expect(result.domainWideDelegationCredentialId).toBeNull();
+          expect(result.delegationCredentialId).toBeNull();
         });
       });
 
       describe("creation", () => {
-        it("should create a new record with domainWideDelegationCredentialId if credentialId is -1", async () => {
+        it("should create a new record with delegationCredentialId if credentialId is -1", async () => {
           const initialData = {
             userId: 1,
             integration: "google_calendar",
@@ -376,7 +376,7 @@ describe("SelectedCalendarRepository", () => {
             integration: "google_calendar",
             externalId: "anotheremail@gmail.com",
             credentialId: -1,
-            domainWideDelegationCredentialId: "dwd-123",
+            delegationCredentialId: "delegationCredential-123",
           };
 
           // It will create a new record because of unique constraint violation
@@ -384,17 +384,17 @@ describe("SelectedCalendarRepository", () => {
           expect(result.id).not.toBe(null);
           expect(result.id).not.toBe(existingCalendar.id);
           expect(result.credentialId).toBe(null);
-          expect(result.domainWideDelegationCredentialId).toBe(data.domainWideDelegationCredentialId);
+          expect(result.delegationCredentialId).toBe(data.delegationCredentialId);
         });
       });
 
-      it("shouldnt update existing domainWideDelegationCredentialId if upsert data doesn't have it", async () => {
+      it("shouldnt update existing delegationCredentialId if upsert data doesn't have it", async () => {
         const initialData = {
           userId: 1,
           integration: "google_calendar",
           externalId: "test@gmail.com",
           eventTypeId: null,
-          domainWideDelegationCredentialId: "dwd-123",
+          delegationCredentialId: "delegationCredential-123",
           credentialId: 1,
         };
 
@@ -410,16 +410,16 @@ describe("SelectedCalendarRepository", () => {
         const result = await SelectedCalendarRepository.upsert(data);
         expect(result.id).toBe(existingCalendar.id);
         expect(result.credentialId).toBe(existingCalendar.credentialId);
-        expect(result.domainWideDelegationCredentialId).toBe(null);
+        expect(result.delegationCredentialId).toBe(null);
       });
 
-      it("shouldnt update domainWideDelegationCredentialId if it is undefined", async () => {
+      it("shouldnt update delegationCredentialId if it is undefined", async () => {
         const initialData = {
           userId: 1,
           integration: "google_calendar",
           externalId: "test@gmail.com",
           eventTypeId: null,
-          domainWideDelegationCredentialId: "dwd-123",
+          delegationCredentialId: "delegationCredential-123",
         };
 
         const existingCalendar = await SelectedCalendarRepository.create(initialData);
@@ -433,9 +433,7 @@ describe("SelectedCalendarRepository", () => {
         const result = await SelectedCalendarRepository.upsert(data);
         expect(result.id).toBe(existingCalendar.id);
         expect(result.credentialId).toBe(existingCalendar.credentialId);
-        expect(result.domainWideDelegationCredentialId).toBe(
-          existingCalendar.domainWideDelegationCredentialId
-        );
+        expect(result.delegationCredentialId).toBe(existingCalendar.delegationCredentialId);
       });
     });
   });
