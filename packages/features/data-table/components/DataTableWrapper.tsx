@@ -138,7 +138,8 @@ export function DataTableWrapper<TData>({
           paginationMode={paginationMode}
           onScroll={
             paginationMode === "infinite"
-              ? (e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)
+              ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>
+                  fetchMoreOnBottomReached(e.target as HTMLDivElement)
               : undefined
           }>
           {totalRowCount && (

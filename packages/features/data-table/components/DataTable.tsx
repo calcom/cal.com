@@ -2,7 +2,7 @@
 
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
-import type { Table as ReactTableType, Header } from "@tanstack/react-table";
+import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
@@ -49,7 +49,7 @@ export type DataTableProps<TData> = {
   paginationMode?: "infinite" | "standard";
 };
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData>({
   table,
   tableContainerRef,
   isPending,
@@ -66,7 +66,7 @@ export function DataTable<TData, TValue>({
   containerClassName,
   paginationMode = "infinite",
   ...rest
-}: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
+}: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
   const pathname = usePathname() as string | null;
   const identifier = _identifier ?? pathname ?? undefined;
 
@@ -146,9 +146,9 @@ export function DataTable<TData, TValue>({
           }}>
           {!hideHeader && (
             <TableHeader className="sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
                 <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
-                  {headerGroup.headers.map((header) => {
+                  {headerGroup.headers.map((header: Header<TData, unknown>) => {
                     const { column } = header;
                     return (
                       <TableHead
