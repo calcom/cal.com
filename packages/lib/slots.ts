@@ -20,13 +20,14 @@ interface SlotData {
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
-  dateRanges: DateRange[];
+  dateRanges?: DateRange[];
   minimumBookingNotice: number;
   eventLength: number;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   workingHours?: { userId: number; days: number[]; startTime: number; endTime: number }[];
   dateOverrides?: { userId?: number; start: Date; end: Date }[];
+  organizerTimeZone?: string;
 };
 export type TimeFrame = {
   userIds?: number[];
@@ -459,6 +460,7 @@ const getSlots = ({
   datesOutOfOffice,
   workingHours = [],
   dateOverrides = [],
+  organizerTimeZone: providedOrganizerTimeZone,
 }: GetSlots): {
   time: Dayjs;
   userIds?: number[];
@@ -468,7 +470,7 @@ const getSlots = ({
   reason?: string;
   emoji?: string;
 }[] => {
-  const organizerTimeZone = getTimeZone(inviteeDate);
+  const organizerTimeZone = providedOrganizerTimeZone || getTimeZone(inviteeDate);
   if (dateRanges && !organizerTimeZone) {
     return buildSlotsWithDateRanges({
       dateRanges,
