@@ -9,5 +9,5 @@ export interface BillingService {
     subscriptionItemId: string;
     membershipCount: number;
   }): Promise<void>;
-  getSubscriptionStatus(subscriptionId: string): Promise<Stripe.Subscription.Status | null>;
+  getSubscriptionStatus(subscriptionId: string): Stripe.Subscription.Status | null;
 }
