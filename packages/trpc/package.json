@@ -14,7 +14,8 @@
   "exports": {
     ".": {
       "types": "./dist/router.d.ts",
-      "default": "./index.ts"
+      "default": "./index.ts",
+      "react": "./react/index.ts"
     }
   },
   "dependencies": {
