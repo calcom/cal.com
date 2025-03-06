@@ -895,9 +895,9 @@ export default class SalesforceCRMService implements CRM {
                       'https://www.${emailDomain}', 'https://${emailDomain}') LIMIT 1`
     );
     if (accountQuery.records.length > 0) {
-      const accountId = accountQuery.records[0] as { Id: string };
-      log.info("Found account based on email domain", safeStringify({ accountId }));
-      return accountId;
+      const account = accountQuery.records[0] as { Id: string };
+      log.info("Found account based on email domain", safeStringify({ accountId: account.Id }));
+      return account.Id;
     }
 
     // Fallback to querying which account the majority of contacts are under
