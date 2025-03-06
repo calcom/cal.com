@@ -293,6 +293,10 @@ export default class BiginCrmService implements CRM {
   getAppOptions() {
     console.log("No options implemented");
   }
+
+  async handleAttendeeNoShow() {
+    console.log("Not implemented");
+  }
 }
 
 const toISO8601String = (date: Date) => {

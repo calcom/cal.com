@@ -684,7 +684,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
-    it("should cancel all remaning recurrences", async () => {
+    it("should cancel all remaining recurrences", async () => {
       const recurringBookingUid = recurringBooking[0].recurringBookingUid;
 
       return request(app.getHttpServer())

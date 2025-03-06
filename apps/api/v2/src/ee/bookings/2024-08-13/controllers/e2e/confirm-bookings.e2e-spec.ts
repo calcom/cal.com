@@ -174,7 +174,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(dbBooking?.status).toEqual("ACCEPTED");
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });
@@ -235,7 +235,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(dbBooking?.status).toEqual("REJECTED");
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });

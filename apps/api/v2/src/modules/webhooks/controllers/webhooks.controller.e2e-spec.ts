@@ -180,11 +180,11 @@ describe("WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer()).delete(`/v2/webhooks/12993`).expect(404);
   });
 
-  it("/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not belong to user", () => {
+  it("/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not belong to user", () => {
     return request(app.getHttpServer()).delete(`/v2/webhooks/${otherWebhook.id}`).expect(403);
   });
 });

@@ -16,7 +16,6 @@ import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
-import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
@@ -94,14 +93,6 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-
-  // Check to see if the user has any compatible credentials
-  if (
-    !data?.credentials.some((credential) => enabledIncompleteBookingApps.includes(credential?.appId ?? ""))
-  ) {
-    return <div>No apps installed that support this feature</div>;
-  }
-
   return (
     <>
       <div className="bg-default border-subtle rounded-md border p-8">
@@ -294,7 +285,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
               },
               actionType: IncompleteBookingActionType.SALESFORCE,
               enabled: salesforceActionEnabled,
-              credentialId: selectedCredential?.value ?? data.credentials[0].id,
+              credentialId: selectedCredential?.value ?? data?.credentials[0].id,
             });
           }}>
           {t("save")}

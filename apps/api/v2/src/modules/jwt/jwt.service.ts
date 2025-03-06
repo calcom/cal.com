@@ -23,7 +23,7 @@ export class JwtService {
   }
 
   getIssuedAtTime() {
-    // divided by 1000 because iat (issued at time) is in seconds (not milliseconds) as informed by JWT speficication
+    // divided by 1000 because iat (issued at time) is in seconds (not milliseconds) as informed by JWT specification
     return Math.floor(Date.now() / 1000);
   }
 }

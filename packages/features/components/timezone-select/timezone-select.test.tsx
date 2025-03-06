@@ -81,7 +81,27 @@ describe("Test TimezoneSelect", () => {
 
   describe("Test TimezoneSelect with isPending = false", () => {
     beforeAll(async () => {
-      await runtimeMock(false);
+      // INFO: This needs to be here before the other calls to runtimeMock. For some reason,
+      // when we moved this file from @calcom/ui, the imports started breaking, resulting in
+      // errors of "Cannot set property 'trpc' of [object Module] which has only a getter"
+      // TODO: Update this pattern to be more consistent. Using this direct mocking in the
+      // functions below breaks some tests.
+      vi.mock("@calcom/trpc/react", () => ({
+        trpc: {
+          viewer: {
+            timezones: {
+              cityTimezones: {
+                useQuery() {
+                  return {
+                    data: cityTimezonesMock,
+                    isPending: false,
+                  };
+                },
+              },
+            },
+          },
+        },
+      }));
     });
     test("Should render with the correct CSS when provided with classNames prop", async () => {
       renderSelect({ value: timezoneMockValues[0], classNames });

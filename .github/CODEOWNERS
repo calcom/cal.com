@@ -1,4 +1,4 @@
-/apps/api/**/* @calcom/Platform
+/apps/api/**/* @calcom/Platform @calcom/Foundation
 /deploy/**/* @calcom/Foundation
 /infra/**/* @calcom/Foundation
 /packages/app-store/applecalendar/**/* @calcom/Foundation
@@ -17,6 +17,6 @@
 /packages/lib/getUserAvailability.ts @calcom/Foundation
 /packages/lib/server/getLuckyUser.ts @calcom/Foundation
 /packages/lib/slots.ts @calcom/Foundation
-/packages/platform/**/* @calcom/Platform
+/packages/platform/**/* @calcom/Platform @calcom/Foundation
 /packages/prisma/**/* @calcom/Foundation
 /packages/trpc/server/routers/viewer/slots/**/* @calcom/Foundation

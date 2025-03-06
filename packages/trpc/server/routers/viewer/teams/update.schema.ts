@@ -1,8 +1,8 @@
 import { z } from "zod";
 
+import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
-import { intervalLimitsType } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateInputSchema = z.object({
   id: z.number(),

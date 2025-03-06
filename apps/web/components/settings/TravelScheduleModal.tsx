@@ -3,6 +3,7 @@ import type { UseFormSetValue } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Dialog,
@@ -12,7 +13,6 @@ import {
   Button,
   Label,
   DateRangePicker,
-  TimezoneSelect,
   SettingsToggle,
   DatePicker,
 } from "@calcom/ui";

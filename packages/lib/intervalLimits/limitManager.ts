@@ -1,5 +1,7 @@
 import type { Dayjs } from "@calcom/dayjs";
-import type { EventBusyDate, IntervalLimitUnit } from "@calcom/types/Calendar";
+import type { EventBusyDate } from "@calcom/types/Calendar";
+
+import type { IntervalLimitUnit } from "./intervalLimitSchema";
 
 type BusyMapKey = `${IntervalLimitUnit}-${ReturnType<Dayjs["toISOString"]>}`;
 

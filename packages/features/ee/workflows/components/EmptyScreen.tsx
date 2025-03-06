@@ -1,10 +1,11 @@
 import { useRouter } from "next/navigation";
 
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import type { IconName } from "@calcom/ui";
-import { CreateButtonWithTeamsList, EmptyScreen as ClassicEmptyScreen, Icon, showToast } from "@calcom/ui";
+import { EmptyScreen as ClassicEmptyScreen, Icon, showToast } from "@calcom/ui";
 
 type WorkflowExampleType = {
   Icon: IconName;

@@ -257,7 +257,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
               expect(data.absentHost).toEqual(false);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });

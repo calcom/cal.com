@@ -76,7 +76,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
   const allCredentials = await getAllCredentials(user, {
-    ...eventType,
+    ...booking.eventType,
     metadata,
   });
 

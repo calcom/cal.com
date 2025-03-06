@@ -190,7 +190,7 @@ export const useBookingSuccessRedirect = () => {
           ...query,
           ...bookingExtraParams,
         },
-        searchParams: searchParams ?? undefined,
+        searchParams: new URLSearchParams(searchParams.toString()),
       });
 
       newSearchParams.forEach((value, key) => {
