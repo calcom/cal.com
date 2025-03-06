@@ -378,7 +378,7 @@ model User {
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
   BookingInternalNote        BookingInternalNote[]
   creationSource             CreationSource?
-  credits                    CreditsTable[]
+  creditsTable               CreditsTable?
 
   @@unique([email])
   @@unique([email, username])
@@ -488,7 +488,7 @@ model Team {
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean              @default(false)
   internalNotePresets          InternalNotePreset[]
-  credits                      CreditsTable[]
+  credits                      CreditsTable?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -497,17 +497,17 @@ model Team {
 model CreditsTable {
   id                Int                @id @default(autoincrement())
   team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId            Int?
+  teamId            Int?               @unique
   user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int?
+  userId            Int?               @unique
   additionalCredits Int
   expenseLogs       CreditExpenseLog[]
 }
 
 model CreditExpenseLog {
-  id             Int           @id @default(autoincrement())
-  creditsTable   CreditsTable? @relation(fields: [creditsTabelId], references: [id], onDelete: Cascade)
-  creditsTabelId Int?
+  id             Int          @id @default(autoincrement())
+  creditsTableId Int
+  creditsTable   CreditsTable @relation(fields: [creditsTableId], references: [id], onDelete: Cascade)
   credits        Int
   reason         String
   creditType     CreditType

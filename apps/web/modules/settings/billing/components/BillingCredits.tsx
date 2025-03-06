@@ -18,7 +18,9 @@ export default function BillingCredits() {
 
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
     onSuccess: (data) => {
-      router.push(data.sessionUrl);
+      if (data.sessionUrl) {
+        router.push(data.sessionUrl);
+      }
     },
     onError: (err) => {
       //todo

@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { getMonthlyCredits } from "@calcom/features/ee/billing/lib/credits";
 import { prisma } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -14,7 +15,7 @@ type GetAllCreditsOptions = {
 
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
-  const userCreditsTable = await prisma.creditsTable.findFirst({
+  const userCreditsTable = await prisma.creditsTable.findUnique({
     where: {
       userId: ctx.user.id,
     },
@@ -28,7 +29,7 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
   const teamOrOrgId = ctx.user.organizationId ?? teamId;
 
   if (teamOrOrgId) {
-    const teamCreditsTable = await prisma.creditsTable.findFirst({
+    const teamCreditsTable = await prisma.creditsTable.findUnique({
       where: {
         teamId: teamOrOrgId,
       },
@@ -50,19 +51,7 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
       },
     });
 
-    // todo: check for active team  subscription
-
-    //calculate total credits
-    const activeMembers = await prisma.membership.count({
-      where: {
-        teamId: teamId,
-        accepted: true,
-      },
-    });
-
-    // todo: where do I get price per seat from?
-    const pricePerSeat = 15;
-    const totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
+    const totalMonthlyCredits = await getMonthlyCredits(teamOrOrgId);
 
     const totalMonthlyCreditsUsed =
       teamCreditsTable?.expenseLogs.reduce((sum, log) => sum + log.credits, 0) || 0;
