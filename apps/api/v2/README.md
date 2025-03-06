@@ -54,9 +54,30 @@ CALCOM_LICENSE_KEY=c4234812-12ab-42s6-a1e3-55bedd4a5bb
 
 ## Running the app
 
+# Development
+
+D
 ```bash
-# development
 $ yarn run start
+```
+
+OR if you don't want to use docker, you can run following command.
+
+```bash
+$ yarn dev:no-docker
+```
+
+Additionally you can run following command(in different terminal) to ensure that any change in any of the dependencies is rebuilt and detected. It watches platform-libraries, platform-constants, platform-enums, platform-utils, platform-types.
+
+```bash
+$ yarn run dev:build:watch
+```
+
+If you are making changes in packages/platform/libraries, you should run the following command too that would connect your local packages/platform/libraries to the api/v2
+
+```bash
+$ yarn local
+```
 
 # watch mode
 $ yarn run start:dev
@@ -64,6 +85,9 @@ $ yarn run start:dev
 # production mode
 $ yarn run start:prod
 ```
+
+
+
 
 ## Test
 
@@ -73,6 +97,12 @@ $ yarn run test
 
 # e2e tests
 $ yarn run test:e2e
+
+# e2e tests in watch mode
+$ yarn test:e2e:watch 
+
+# run specific e2e test file in watch mode
+$ yarn test:e2e:watch --testPathPattern=filePath
 
 # test coverage
 $ yarn run test:cov

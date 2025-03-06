@@ -12,6 +12,13 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getEventName } from "../event";
 
+export const enum CalendarLinkType {
+  GOOGLE_CALENDAR = "googleCalendar",
+  MICROSOFT_OFFICE = "microsoftOffice",
+  MICROSOFT_OUTLOOK = "microsoftOutlook",
+  ICS = "ics",
+}
+
 const buildICalLink = ({
   startTime,
   endTime,
@@ -48,7 +55,7 @@ const buildICalLink = ({
     throw iCalEvent.error;
   }
 
-  return encodeURIComponent(iCalEvent.value ? iCalEvent.value : false);
+  return `data:text/calendar,${encodeURIComponent(iCalEvent.value ? iCalEvent.value : false)}`;
 };
 
 const buildGoogleCalendarLink = ({
@@ -66,17 +73,23 @@ const buildGoogleCalendarLink = ({
   bookingLocation: string | null;
   parsedRecurringEvent: ReturnType<typeof parseRecurringEvent> | null;
 }) => {
-  const googleCalendarLink = `https://calendar.google.com/calendar/r/eventedit?dates=${startTime
-    .utc()
-    .format("YYYYMMDDTHHmmss[Z]")}/${endTime.utc().format("YYYYMMDDTHHmmss[Z]")}&text=${encodeURIComponent(
-    eventName
-  )}&details=${encodeURIComponent(eventDescription ?? "")}${
-    bookingLocation ? `&location=${encodeURIComponent(bookingLocation)}` : ""
-  }${parsedRecurringEvent ? `&recur=${encodeURIComponent(new RRule(parsedRecurringEvent).toString())}` : ""}`;
+  const startTimeInUtcFormat = startTime.utc().format("YYYYMMDDTHHmmss[Z]");
+  const endTimeInUtcFormat = endTime.utc().format("YYYYMMDDTHHmmss[Z]");
+  const recurrence = parsedRecurringEvent
+    ? encodeURIComponent(new RRule(parsedRecurringEvent).toString())
+    : "";
+
+  const location = bookingLocation ? encodeURIComponent(bookingLocation) : "";
+  const description = encodeURIComponent(eventDescription ?? "");
+
+  const googleCalendarLink = `https://calendar.google.com/calendar/r/eventedit?dates=${startTimeInUtcFormat}/${endTimeInUtcFormat}&text=${eventName}&details=${description}${
+    location ? `&location=${location}` : ""
+  }${recurrence ? `&recur=${recurrence}` : ""}`;
+
   return googleCalendarLink;
 };
 
-const buildOffice365Link = ({
+const buildMicrosoftOfficeLink = ({
   startTime,
   endTime,
   eventName,
@@ -89,18 +102,19 @@ const buildOffice365Link = ({
   eventDescription: string | null;
   bookingLocation: string | null;
 }) => {
+  const startTimeInUtcFormat = startTime.utc().format();
+  const endTimeInUtcFormat = endTime.utc().format();
+  const location = bookingLocation ? encodeURIComponent(bookingLocation) : "";
+  const description = encodeURIComponent(eventDescription ?? "");
+
   // TODO: Why do we need to encode URI this href but not the google calendar link?
-  const office365Link = `https://outlook.office.com/calendar/0/deeplink/compose?body=${encodeURIComponent(
-    eventDescription ?? ""
-  )}&enddt=${endTime.utc().format()}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${startTime
-    .utc()
-    .format()}&subject=${encodeURIComponent(eventName)}${
-    bookingLocation ? `&location=${encodeURIComponent(bookingLocation)}` : ""
+  const microsoftOfficeLink = `https://outlook.office.com/calendar/0/deeplink/compose?body=${description}&enddt=${endTimeInUtcFormat}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${startTimeInUtcFormat}&subject=${eventName}${
+    location ? `&location=${location}` : ""
   }`;
-  return office365Link;
+  return microsoftOfficeLink;
 };
 
-const buildOutlookLink = ({
+const buildMicrosoftOutlookLink = ({
   startTime,
   endTime,
   eventName,
@@ -113,32 +127,31 @@ const buildOutlookLink = ({
   eventDescription: string | null;
   bookingLocation: string | null;
 }) => {
-  const outlookLink =
+  const startTimeInUtcFormat = startTime.utc().format();
+  const endTimeInUtcFormat = endTime.utc().format();
+  const location = bookingLocation ? encodeURIComponent(bookingLocation) : "";
+  const microsoftOutlookLink =
     encodeURI(
-      `https://outlook.live.com/calendar/0/deeplink/compose?body=${eventDescription}&enddt=${endTime
-        .utc()
-        .format()}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${startTime
-        .utc()
-        .format()}&subject=${eventName}`
-    ) + (bookingLocation ? `&location=${encodeURIComponent(bookingLocation)}` : "");
-  return outlookLink;
+      `https://outlook.live.com/calendar/0/deeplink/compose?body=${eventDescription}&enddt=${endTimeInUtcFormat}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${startTimeInUtcFormat}&subject=${eventName}`
+    ) + (location ? `&location=${location}` : "");
+  return microsoftOutlookLink;
 };
 
-export const getCalendarLinks = async ({
+export const getCalendarLinks = ({
   booking,
   eventType,
   t,
 }: {
   booking: {
-    startTime: string;
-    endTime: string;
+    startTime: Date;
+    endTime: Date;
     location: string;
     title: string;
     responses: Prisma.JsonObject;
     metadata: Prisma.JsonObject;
   };
   eventType: {
-    recurringEvent: string;
+    recurringEvent: Prisma.JsonObject;
     description: string;
     eventName: string;
     isDynamic: boolean;
@@ -164,7 +177,6 @@ export const getCalendarLinks = async ({
     eventType: eventType.title,
     eventName: evtName,
     host: eventType.team?.name || eventType.users[0]?.name || "Nameless",
-    // TO-TEST: What location is it supposed to be ? That is stored in DB or somehing else?
     location: booking.location,
     bookingFields: booking.responses,
     eventDuration: eventType.length,
@@ -189,8 +201,7 @@ export const getCalendarLinks = async ({
     parsedRecurringEvent,
   });
 
-  // Generate Office 365 link
-  const office365Link = buildOffice365Link({
+  const microsoftOfficeLink = buildMicrosoftOfficeLink({
     startTime,
     endTime,
     eventName,
@@ -198,7 +209,7 @@ export const getCalendarLinks = async ({
     bookingLocation: videoCallUrl,
   });
 
-  const outlookLink = buildOutlookLink({
+  const microsoftOutlookLink = buildMicrosoftOutlookLink({
     startTime,
     endTime,
     eventName,
@@ -223,19 +234,23 @@ export const getCalendarLinks = async ({
   return [
     {
       label: "Google Calendar",
+      id: CalendarLinkType.GOOGLE_CALENDAR,
       link: googleCalendarLink,
     },
     {
-      label: "Office 365",
-      link: office365Link,
+      label: "Microsoft Office",
+      id: CalendarLinkType.MICROSOFT_OFFICE,
+      link: microsoftOfficeLink,
+    },
+    {
+      label: "Microsoft Outlook",
+      id: CalendarLinkType.MICROSOFT_OUTLOOK,
+      link: microsoftOutlookLink,
     },
     {
       label: "ICS",
+      id: CalendarLinkType.ICS,
       link: icsFileLink,
-    },
-    {
-      label: "Outlook",
-      link: outlookLink,
     },
   ];
 };

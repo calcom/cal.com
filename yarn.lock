@@ -2628,7 +2628,8 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.127"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@9.9.9"
+    "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -2662,6 +2663,7 @@ __metadata:
     bull: ^4.12.4
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
+    concurrently: ^9.1.2
     cookie-parser: ^1.4.6
     dotenv: ^16.3.1
     fs-extra: ^11.2.0
@@ -2676,6 +2678,7 @@ __metadata:
     nest-winston: ^1.9.4
     next-auth: ^4.22.1
     node-mocks-http: ^1.16.2
+    npm-run-all: ^4.1.5
     passport: ^0.7.0
     passport-jwt: ^4.0.1
     prettier: ^2.8.6
@@ -3684,7 +3687,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:0.0.2":
+"@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
   dependencies:
@@ -3694,17 +3697,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.127":
-  version: 0.0.127
-  resolution: "@calcom/platform-libraries@npm:0.0.127"
-  dependencies:
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: bebcc9a000fd2585c4fa632d6660bbebf222d238a8bc8afdb88329b4cee1ea8a8648d25d5473c7d7d2e51b236cb6ec49b836c3d00e47aeee08113113c8b3cb9a
-  languageName: node
-  linkType: hard
-
-"@calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@9.9.9, @calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
@@ -22093,6 +22086,24 @@ __metadata:
     conc: dist/bin/concurrently.js
     concurrently: dist/bin/concurrently.js
   checksum: f705c9a7960f1b16559ca64958043faeeef6385c0bf30a03d1375e15ab2d96dba4f8166f1bbbb1c85e8da35ca0ce3c353875d71dff2aa132b2357bb533b3332e
+  languageName: node
+  linkType: hard
+
+"concurrently@npm:^9.1.2":
+  version: 9.1.2
+  resolution: "concurrently@npm:9.1.2"
+  dependencies:
+    chalk: ^4.1.2
+    lodash: ^4.17.21
+    rxjs: ^7.8.1
+    shell-quote: ^1.8.1
+    supports-color: ^8.1.1
+    tree-kill: ^1.2.2
+    yargs: ^17.7.2
+  bin:
+    conc: dist/bin/concurrently.js
+    concurrently: dist/bin/concurrently.js
+  checksum: 9e25e8ee6272ada26739aff1fb43e96ac458fafca82f45b8360bdd9115d60bbc679d282dfc52001b861b6e9f32b3063aed975691d8dec9e62807a9679763a1d8
   languageName: node
   linkType: hard
 
@@ -42765,7 +42776,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shell-quote@npm:^1.7.3":
+"shell-quote@npm:^1.7.3, shell-quote@npm:^1.8.1":
   version: 1.8.2
   resolution: "shell-quote@npm:1.8.2"
   checksum: 1e97b62ced1c4c5135015978ebf273bed1f425a68cf84163e83fbb0f34b3ff9471e656720dab2b7cbb4ae0f58998e686d17d166c28dfb3662acd009e8bd7faed

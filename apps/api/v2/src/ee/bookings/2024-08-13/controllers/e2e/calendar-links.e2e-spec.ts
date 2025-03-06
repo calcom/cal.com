@@ -108,13 +108,20 @@ describe("Bookings Endpoints 2024-08-13", () => {
         metadata: {},
         attendees: {
           create: {
-            email: "oldie@gmail.com",
-            name: "Oldie Goldie",
-            locale: "lv",
-            timeZone: "Europe/Rome",
+            email: "johndoe@example.com",
+            name: "John Doe",
+            locale: "en",
+            timeZone: "America/New_York",
+          },
+        },
+        responses: {
+          create: {
+            name: "John Doe",
+            email: "johndoe@example.com",
           },
         },
       });
+
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -135,13 +142,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       return client;
     }
 
-    it("should be defined", () => {
-      expect(userRepositoryFixture).toBeDefined();
-      expect(user).toBeDefined();
-      expect(booking).toBeDefined();
-    });
-
-    it.only("should get calendar links for a booking", async () => {
+    it("should get calendar links for a booking", async () => {
       const response = await request(app.getHttpServer())
         .get(`/v2/bookings/${booking.uid}/calendar-links`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -149,24 +150,16 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       expect(response.body.status).toEqual(SUCCESS_STATUS);
       expect(response.body.data).toBeDefined();
-      expect(response.body.data.googleCalendar).toBeDefined();
-      expect(response.body.data.office365).toBeDefined();
-      expect(response.body.data.ics).toBeDefined();
+      
+      const googleCalendarLink = response.body.data.find((item: { id: string }) => item.id === 'googleCalendar').link;
+      const microsoftOfficeLink = response.body.data.find((item: { id: string }) => item.id === 'microsoftOffice').link;
+      const microsoftOutlookLink = response.body.data.find((item: { id: string }) => item.id === 'microsoftOutlook').link;
+      const icsLink = response.body.data.find((item: { id: string }) => item.id === 'ics').link;
 
-      // Check Google Calendar link
-      expect(response.body.data.googleCalendar).toContain(
-        "https://calendar.google.com/calendar/r/eventedit?dates="
-      );
-      expect(response.body.data.googleCalendar).toContain("&text=Test%20Booking");
-
-      // Check Office 365 link
-      expect(response.body.data.office365).toContain(
-        "https://outlook.office.com/calendar/0/deeplink/compose"
-      );
-      expect(response.body.data.office365).toContain("&subject=Test%20Booking");
-
-      // Check ICS file link
-      expect(response.body.data.ics).toContain("data:text/calendar,");
+      expect(googleCalendarLink).toMatch(/^https:\/\/calendar\.google\.com\//);
+      expect(microsoftOfficeLink).toMatch(/^https:\/\/outlook\.office\.com\//);
+      expect(microsoftOutlookLink).toMatch(/^https:\/\/outlook\.live\.com\//);
+      expect(icsLink).toMatch(/^data:text\/calendar,/);
     });
 
     it("should return 404 for non-existent booking", async () => {

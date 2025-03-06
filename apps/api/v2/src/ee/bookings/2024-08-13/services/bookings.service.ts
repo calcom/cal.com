@@ -1,5 +1,5 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { CalendarLinks } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
+import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
@@ -553,7 +553,7 @@ export class BookingsService_2024_08_13 {
     return this.getBooking(bookingUid);
   }
 
-  async getCalendarLinks(bookingUid: string): Promise<CalendarLinks> {
+  async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
 
     if (!booking) {
@@ -561,14 +561,22 @@ export class BookingsService_2024_08_13 {
     }
 
     if (!booking.eventTypeId) {
-      throw new NotFoundException(`Booking with uid ${bookingUid} has no event type`);
+      throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
     }
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(booking.eventTypeId);
+    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(booking.eventTypeId);
     if (!eventType) {
-      throw new NotFoundException(`Booking with uid ${bookingUid} has no event type`);
+      throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
     }
     // TODO: Maybe we should get locale from query params?
-    return getCalendarLinks({ booking, eventType, t: await getTranslation("en", "common") });
+    return getCalendarLinks({
+      booking,
+      eventType: {
+        ...eventType,
+        // TODO: Support dynamic event bookings later. It would require a slug input it seems
+        isDynamic: false,
+      },
+      t: await getTranslation("en", "common"),
+    });
   }
 }

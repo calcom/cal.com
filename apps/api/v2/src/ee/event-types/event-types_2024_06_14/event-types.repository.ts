@@ -76,6 +76,13 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
+  async getEventTypeByIdIncludeUsersAndTeam(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: { users: true, team: true },
+    });
+  }
+
   async getEventTypeByIdWithOwnerAndTeam(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
