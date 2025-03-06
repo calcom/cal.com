@@ -35,6 +35,7 @@ export type EventDataMap = {
      * This is only used for recurring bookings
      */
     allBookings?: { startTime: string; endTime: string }[];
+    videoCallUrl?: string;
   };
 
   /**
