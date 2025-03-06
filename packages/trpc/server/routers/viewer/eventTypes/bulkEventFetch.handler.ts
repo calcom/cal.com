@@ -1,4 +1,4 @@
-import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
+import { getBulkUserEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -9,5 +9,5 @@ type BulkEventFetchOptions = {
 };
 
 export const bulkEventFetchHandler = async ({ ctx }: BulkEventFetchOptions) => {
-  return getBulkEventTypes(ctx.user.id);
+  return getBulkUserEventTypes(ctx.user.id);
 };

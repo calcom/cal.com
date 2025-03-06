@@ -4,6 +4,7 @@ import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiSuccessResponse } from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
+import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
 export const QUERY_KEY = "bulk-update-event-types-to-default-location";
@@ -25,9 +26,9 @@ export const useAtomBulkUpdateEventTypesToDefaultLocation = ({
   onSettled = () => {
     return;
   },
-  organizationId,
   teamId,
 }: UseAtomBulkUpdateEventTypesToDefaultLocationProps) => {
+  const { organizationId } = useAtomsContext();
   return useMutation({
     onSuccess,
     onError,
@@ -36,7 +37,7 @@ export const useAtomBulkUpdateEventTypesToDefaultLocation = ({
       if (!eventTypeIds || eventTypeIds.length < 1) throw new Error("Event type ids are required");
       let pathname = `/atoms/${V2_ENDPOINTS.eventTypes}/bulk-update-to-default-location`;
 
-      if (organizationId && teamId) {
+      if (teamId) {
         pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/${V2_ENDPOINTS.eventTypes}/bulk-update-to-default-location`;
       }
 

@@ -15,17 +15,13 @@ type ResponseDataType =
       appLink?: string;
     }
   | undefined;
-export const useGetDefaultConferencingApp = (teamId?: number, organizationId?: number) => {
-  const { isInit, accessToken } = useAtomsContext();
+export const useGetDefaultConferencingApp = (teamId?: number) => {
+  const { isInit, accessToken, organizationId } = useAtomsContext();
 
   let pathname = `/conferencing/default`;
 
-  if (organizationId) {
-    if (teamId) {
-      pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/default`;
-    } else {
-      pathname = `/organizations/${organizationId}/conferencing/default`;
-    }
+  if (teamId) {
+    pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/default`;
   }
 
   return useQuery({

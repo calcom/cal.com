@@ -45,7 +45,6 @@ import {
   getAllDwdCredentialsForUserByAppType,
   checkIfSuccessfullyConfiguredInWorkspace,
 } from "@calcom/lib/domainWideDelegation/server";
-import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -62,6 +61,8 @@ import {
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { App } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
+
+export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
 
 export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 
@@ -273,7 +274,6 @@ export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
 export { handleDeleteCredential };
-export { getBulkEventTypes };
 
 export { getBookingFieldsWithSystemFields };
 

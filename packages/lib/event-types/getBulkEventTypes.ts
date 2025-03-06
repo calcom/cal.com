@@ -2,19 +2,11 @@ import { getAppFromLocationValue } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 
-const getBulkEventTypes = async (userId: number, teamId?: number) => {
-  const eventTypes = await prisma.eventType.findMany({
-    where: {
-      userId: teamId ? null : userId,
-      teamId: teamId ? teamId : null,
-    },
-    select: {
-      id: true,
-      title: true,
-      locations: true,
-    },
-  });
-
+/**
+ * Process event types to add logo information
+ * @param eventTypes - The event types to process
+ */
+const processEventTypes = (eventTypes: { id: number; title: string; locations: unknown }[]) => {
   const eventTypesWithLogo = eventTypes.map((eventType) => {
     const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
 
@@ -35,4 +27,34 @@ const getBulkEventTypes = async (userId: number, teamId?: number) => {
   };
 };
 
-export default getBulkEventTypes;
+export const getBulkUserEventTypes = async (userId: number) => {
+  const eventTypes = await prisma.eventType.findMany({
+    where: {
+      userId: userId,
+      teamId: null,
+    },
+    select: {
+      id: true,
+      title: true,
+      locations: true,
+    },
+  });
+
+  return processEventTypes(eventTypes);
+};
+
+export const getBulkTeamEventTypes = async (teamId: number) => {
+  const eventTypes = await prisma.eventType.findMany({
+    where: {
+      userId: null,
+      teamId: teamId,
+    },
+    select: {
+      id: true,
+      title: true,
+      locations: true,
+    },
+  });
+
+  return processEventTypes(eventTypes);
+};

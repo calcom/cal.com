@@ -19,7 +19,8 @@ import {
   MembershipRole,
   EventTypeMetaDataSchema,
   getClientSecretFromPayment,
-  getBulkEventTypes,
+  getBulkUserEventTypes,
+  getBulkTeamEventTypes,
   bulkUpdateEventsToDefaultLocation,
 } from "@calcom/platform-libraries";
 import type {
@@ -81,8 +82,12 @@ export class EventTypesAtomService {
     return eventType;
   }
 
-  async getUserEventTypes(userId: number, teamId?: number) {
-    return getBulkEventTypes(userId, teamId);
+  async getUserEventTypes(userId: number) {
+    return getBulkUserEventTypes(userId);
+  }
+
+  async getTeamEventTypes(teamId: number) {
+    return getBulkTeamEventTypes(teamId);
   }
 
   async updateTeamEventType(

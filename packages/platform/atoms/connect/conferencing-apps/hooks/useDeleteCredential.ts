@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { App } from "@calcom/types/App";
 
+import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
 export const QUERY_KEY = "use-delete-credential";
@@ -11,15 +12,9 @@ export type UseDeleteEventTypeProps = {
   onError?: (err: Error) => void;
   onSettled?: () => void;
   teamId?: number;
-  organizationId?: number;
 };
-export const useDeleteCredential = ({
-  onSuccess,
-  onError,
-  onSettled,
-  teamId,
-  organizationId,
-}: UseDeleteEventTypeProps) => {
+export const useDeleteCredential = ({ onSuccess, onError, onSettled, teamId }: UseDeleteEventTypeProps) => {
+  const { organizationId } = useAtomsContext();
   return useMutation({
     onSuccess,
     onError,
@@ -29,12 +24,8 @@ export const useDeleteCredential = ({
 
       let pathname = `/conferencing/${app}/disconnect`;
 
-      if (organizationId) {
-        if (teamId) {
-          pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/disconnect`;
-        } else {
-          pathname = `/organizations/${organizationId}/conferencing/${app}/disconnect`;
-        }
+      if (teamId) {
+        pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/disconnect`;
       }
       return http?.delete(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {

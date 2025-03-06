@@ -48,7 +48,6 @@ type ConferencingAppsViewPlatformWrapperProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
-  organizationId?: number;
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
@@ -75,7 +74,6 @@ export const ConferencingAppsViewPlatformWrapper = ({
   returnTo,
   onErrorReturnTo,
   teamId,
-  organizationId,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -106,12 +104,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
     updateModal({ isOpen: true, credentialId, app });
   };
 
-  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId, organizationId);
-  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId, organizationId);
-  const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(
-    teamId,
-    organizationId
-  );
+  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId);
+  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId);
+  const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(teamId);
 
   const deleteCredentialMutation = useDeleteCredential({
     onSuccess: () => {
@@ -129,16 +124,13 @@ export const ConferencingAppsViewPlatformWrapper = ({
       handleModelClose();
     },
     teamId,
-    organizationId,
   });
 
   const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({
     teamId,
-    organizationId,
   });
 
   const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({
-    organizationId,
     teamId,
   });
 
@@ -193,7 +185,6 @@ export const ConferencingAppsViewPlatformWrapper = ({
     returnTo,
     onErrorReturnTo,
     teamId,
-    organizationId,
   });
 
   const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {
@@ -278,7 +269,6 @@ export const ConferencingAppsViewPlatformWrapper = ({
                       handleConnectDisconnectIntegrationMenuToggle
                     }
                     handleBulkEditDialogToggle={handleBulkEditDialogToggle}
-                    disableSetAsDefault={organizationId && !teamId}
                   />
                 );
               }}

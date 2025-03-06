@@ -72,11 +72,8 @@ export class AtomsController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Version(VERSION_NEUTRAL)
-  async listTeamEventTypes(
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @GetUser("id") userId: number
-  ): Promise<ApiResponse<unknown>> {
-    const eventTypes = await this.eventTypesService.getUserEventTypes(userId, teamId);
+  async listTeamEventTypes(@Param("teamId", ParseIntPipe) teamId: number): Promise<ApiResponse<unknown>> {
+    const eventTypes = await this.eventTypesService.getTeamEventTypes(teamId);
     return {
       status: SUCCESS_STATUS,
       data: eventTypes,
@@ -198,22 +195,6 @@ export class AtomsController {
   ): Promise<ApiResponse<ConnectedApps>> {
     const conferencingApps = await this.conferencingService.getConferencingApps(user, teamId);
 
-    return {
-      status: SUCCESS_STATUS,
-      data: conferencingApps,
-    };
-  }
-
-  @Get("/organizations/:orgId/conferencing")
-  @Roles("ORG_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Version(VERSION_NEUTRAL)
-  async listOrganizationInstalledConferencingApps(
-    @GetUser() user: UserWithProfile,
-    @Param("orgId", ParseIntPipe) organizationId: number
-  ): Promise<ApiResponse<ConnectedApps>> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(user, organizationId);
     return {
       status: SUCCESS_STATUS,
       data: conferencingApps,
