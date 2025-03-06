@@ -50,8 +50,8 @@ describe("handleNewBooking", () => {
           3. Should trigger BOOKING_CREATED webhook for every booking
       `,
         async ({ emails }) => {
-          const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-            .handleRecurringEventBooking;
+          const handleRecurringEventBooking = (await import("@calcom/web/app/api/book/recurring-event/route"))
+            .POST;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -259,8 +259,8 @@ describe("handleNewBooking", () => {
       test(
         `should fail recurring booking if second slot is already booked`,
         async ({}) => {
-          const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-            .handleRecurringEventBooking;
+          const handleRecurringEventBooking = (await import("@calcom/web/app/api/book/recurring-event/route"))
+            .POST;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -393,8 +393,8 @@ describe("handleNewBooking", () => {
         async ({ emails }) => {
           const recurringCountInRequest = 4;
 
-          const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-            .handleRecurringEventBooking;
+          const handleRecurringEventBooking = (await import("@calcom/web/app/api/book/recurring-event/route"))
+            .POST;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -612,8 +612,8 @@ describe("handleNewBooking", () => {
         async ({ emails }) => {
           const recurringCountInRequest = 4;
 
-          const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-            .handleRecurringEventBooking;
+          const handleRecurringEventBooking = (await import("@calcom/web/app/api/book/recurring-event/route"))
+            .POST;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -823,8 +823,8 @@ describe("handleNewBooking", () => {
     });
     describe("Round robin event type:", () => {
       test("should when when a fixed host is not available on the second slot", async () => {
-        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-          .handleRecurringEventBooking;
+        const handleRecurringEventBooking = (await import("@calcom/web/app/api/book/recurring-event/route"))
+          .POST;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -996,8 +996,8 @@ describe("handleNewBooking", () => {
       });
 
       test("should create successfully bookings that are all assigned to the next available least recently booked user", async () => {
-        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-          .handleRecurringEventBooking;
+        const handleRecurringEventBooking = (await import("@calcom/web/app/api/book/recurring-event/route"))
+          .POST;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -1188,8 +1188,8 @@ describe("handleNewBooking", () => {
 
       test(`should create bookings that are all assigned to the least recently booked user that is available on the first two slots,
             if the least recently booked user is not available on the second slot`, async () => {
-        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-          .handleRecurringEventBooking;
+        const handleRecurringEventBooking = (await import("@calcom/web/app/api/book/recurring-event/route"))
+          .POST;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
