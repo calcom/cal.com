@@ -128,8 +128,10 @@ function BookingsContent({ status }: BookingsProps) {
         userIds,
         attendeeName,
         attendeeEmail,
-        afterStartDate: dateRange?.startDate ?? undefined,
-        beforeEndDate: dateRange?.endDate ?? undefined,
+        afterStartDate: dateRange?.startDate
+          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+          : undefined,
+        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
       },
     },
     {
