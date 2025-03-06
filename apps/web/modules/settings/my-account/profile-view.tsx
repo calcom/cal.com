@@ -19,7 +19,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -50,6 +49,8 @@ import CustomEmailTextField from "@components/settings/CustomEmailTextField";
 import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 const SkeletonLoader = () => {
   return (
@@ -658,31 +659,36 @@ const ProfileForm = ({
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
-          <div className="-mt-2 flex flex-wrap gap-2">
-            {secondaryEmailFields.map((field, index) => (
-              <CustomEmailTextField
-                key={field.itemId}
-                formMethods={formMethods}
-                formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
-                emailVerified={Boolean(field.emailVerified)}
-                emailPrimary={field.emailPrimary}
-                dataTestId={`profile-form-email-${index}`}
-                handleChangePrimary={() => {
-                  const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                    ...secondaryField,
-                    emailPrimary: cIndex === index,
-                  }));
-                  updateAllSecondaryEmailFields(fields);
-                }}
-                handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                handleItemDelete={() => deleteSecondaryEmail(index)}
-              />
-            ))}
+          <div className="-mt-2 flex flex-wrap items-start gap-2">
+            <div
+              className={
+                secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
+              }>
+              {secondaryEmailFields.map((field, index) => (
+                <CustomEmailTextField
+                  key={field.itemId}
+                  formMethods={formMethods}
+                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                  emailVerified={Boolean(field.emailVerified)}
+                  emailPrimary={field.emailPrimary}
+                  dataTestId={`profile-form-email-${index}`}
+                  handleChangePrimary={() => {
+                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                      ...secondaryField,
+                      emailPrimary: cIndex === index,
+                    }));
+                    updateAllSecondaryEmailFields(fields);
+                  }}
+                  handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                  handleItemDelete={() => deleteSecondaryEmail(index)}
+                />
+              ))}
+            </div>
             <Button
               color="secondary"
               StartIcon="plus"
-              className="mt-2 h-full"
+              className="mt-2"
               onClick={() => handleAddSecondaryEmail()}
               data-testid="add-secondary-email">
               {t("add_email")}

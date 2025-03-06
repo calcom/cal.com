@@ -8,9 +8,9 @@ import { createServer } from "http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";

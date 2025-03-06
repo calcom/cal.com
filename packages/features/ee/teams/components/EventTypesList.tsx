@@ -3,7 +3,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState, Fragment } from "react";
 
 import { DataTableSelectionBar } from "@calcom/features/data-table";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -21,6 +20,7 @@ import {
   PopoverTrigger,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { User } from "./MemberList";
 

@@ -10,6 +10,7 @@ export const ZIntegrationsInputSchema = z.object({
   extendsFeature: z.literal("EventType").optional(),
   teamId: z.union([z.number(), z.null()]).optional(),
   sortByMostPopular: z.boolean().optional(),
+  sortByInstalledFirst: z.boolean().optional(),
   categories: z.nativeEnum(AppCategories).array().optional(),
   appId: z.string().optional(),
 });

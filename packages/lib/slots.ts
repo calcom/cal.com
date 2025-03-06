@@ -1,6 +1,6 @@
-import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAvailability";
 
 import { getWorkingHours } from "./availability";
 import { getTimeZone } from "./date-fns";
@@ -9,11 +9,10 @@ import type { DateRange } from "./date-ranges";
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
-  dateRanges?: DateRange[];
+  dateRanges: DateRange[];
   minimumBookingNotice: number;
   eventLength: number;
   offsetStart?: number;
-  organizerTimeZone?: string;
   datesOutOfOffice?: IOutOfOfficeData;
   workingHours?: { userId: number; days: number[]; startTime: number; endTime: number }[];
   dateOverrides?: { userId?: number; start: Date; end: Date }[];
@@ -467,12 +466,6 @@ function buildSlotsWithDateRanges({
   return Array.from(slots.values());
 }
 
-function fromIndex<T>(cb: (val: T, i: number, a: T[]) => boolean, index: number) {
-  return function (e: T, i: number, a: T[]) {
-    return i >= index && cb(e, i, a);
-  };
-}
-
 const getSlots = ({
   inviteeDate,
   frequency,
@@ -480,7 +473,6 @@ const getSlots = ({
   dateRanges,
   eventLength,
   offsetStart = 0,
-  organizerTimeZone,
   datesOutOfOffice,
   workingHours = [],
   dateOverrides = [],
@@ -493,6 +485,7 @@ const getSlots = ({
   reason?: string;
   emoji?: string;
 }[] => {
+  const organizerTimeZone = getTimeZone(inviteeDate);
   if (dateRanges && !organizerTimeZone) {
     return buildSlotsWithDateRanges({
       dateRanges,
@@ -598,11 +591,10 @@ const getSlots = ({
       const indexes: number[] = [];
       while (
         (i = computedLocalAvailability.findIndex(
-          fromIndex(
-            (a) => !a.userIds?.length || (!!override.userIds[0] && a.userIds?.includes(override.userIds[0])),
-            i + 1
-          )
-        )) != -1
+          (a, index) =>
+            index >= i + 1 &&
+            (!a.userIds?.length || (!!override.userIds[0] && a.userIds.includes(override.userIds[0])))
+        )) !== -1
       ) {
         indexes.push(i);
       }

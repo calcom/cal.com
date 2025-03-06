@@ -8,7 +8,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import tasker from "@calcom/features/tasker";
-import { validateIntervalLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -38,6 +38,7 @@ type User = {
   };
   userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
   organizationId: number | null;
+  email: SessionUser["email"];
   locale: string;
 };
 

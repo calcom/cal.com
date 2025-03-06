@@ -11,16 +11,16 @@ import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefine
 import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
-import { classNames } from "@calcom/lib";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
+import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -917,7 +917,9 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
 
           setValue(
             propertyName,
-            // @ts-expect-error FIXME Fix these typings
+            // TODO: Remove @ts-ignore, type error no longer exists in later TS versions.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             {
               ...watchIntervalLimits,
               [rest.value]: defaultLimit,

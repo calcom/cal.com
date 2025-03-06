@@ -34,6 +34,12 @@ interface PlainChatConfig {
   chatButtons: Array<{
     icon: string;
     text: string;
+    threadDetails?: {
+      labelTypeIds: Array<string>;
+      tierIdentifier: {
+        externalId: string;
+      };
+    };
     form?: {
       fields: Array<{
         type: string;
@@ -43,7 +49,11 @@ interface PlainChatConfig {
           text: string;
           threadDetails: {
             labelTypeIds: Array<string>;
+            tierIdentifier: {
+              externalId: string;
+            };
           };
+          onClick?: () => void;
         }>;
       }>;
     };
@@ -59,6 +69,7 @@ interface PlainChatConfig {
     launcherIconColor: string;
   };
   position: {
+    zIndex: string;
     bottom: string;
     right: string;
   };
@@ -150,10 +161,18 @@ const PlainChat = () => {
           {
             icon: "chat",
             text: "Ask a question",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+              tierIdentifier: { externalId: data.userTier },
+            },
           },
           {
             icon: "bulb",
             text: "Send feedback",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+              tierIdentifier: { externalId: data.userTier },
+            },
           },
           {
             icon: "error",
@@ -169,6 +188,10 @@ const PlainChat = () => {
                       text: "I'm unable to use the app",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+                        tierIdentifier: { externalId: data.userTier },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Unable to use app");
                       },
                     },
                     {
@@ -176,6 +199,10 @@ const PlainChat = () => {
                       text: "Major functionality degraded",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+                        tierIdentifier: { externalId: data.userTier },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Major functionality degraded");
                       },
                     },
                     {
@@ -183,6 +210,10 @@ const PlainChat = () => {
                       text: "Minor annoyance",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
+                        tierIdentifier: { externalId: data.userTier },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Minor annoyance");
                       },
                     },
                   ],
@@ -202,6 +233,7 @@ const PlainChat = () => {
           launcherIconColor: "#FFFFFF",
         },
         position: {
+          zIndex: "1",
           bottom: "20px",
           right: "20px",
         },

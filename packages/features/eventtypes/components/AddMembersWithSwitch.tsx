@@ -3,11 +3,9 @@ import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import type { Options } from "react-select";
 
-import {
-  useIsPlatform,
-  AddMembersWithSwitchWebWrapper,
-  AddMembersWithSwitchPlatformWrapper,
-} from "@calcom/atoms/monorepo";
+import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
+import { AddMembersWithSwitchWebWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchWebWrapper";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Segment } from "@calcom/features/Segment";
 import type {
   FormValues,

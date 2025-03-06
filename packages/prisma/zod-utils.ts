@@ -20,6 +20,7 @@ import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-bu
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
@@ -212,14 +213,9 @@ export const eventTypeColor = z
   })
   .nullable();
 
-export const intervalLimitsType = z
-  .object({
-    PER_DAY: z.number().optional(),
-    PER_WEEK: z.number().optional(),
-    PER_MONTH: z.number().optional(),
-    PER_YEAR: z.number().optional(),
-  })
-  .nullable();
+export type IntervalLimitsType = IntervalLimit | null;
+
+export { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
 
@@ -809,14 +805,14 @@ export const bookingSeatDataSchema = z.object({
   responses: bookingResponses,
 });
 
+// Schema for decrypted service account key
 export const serviceAccountKeySchema = z
   .object({
-    type: z.string(),
-    client_id: z.string(),
-    client_email: z.string(),
     private_key: z.string(),
+    client_email: z.string().optional(),
+    client_id: z.string(),
+    tenant_id: z.string().optional(),
   })
-  // There could be more properties available here by the Workspace platform(e.g. Google), we don't want to loose them but don't need them also at the moment
   .passthrough();
 
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;

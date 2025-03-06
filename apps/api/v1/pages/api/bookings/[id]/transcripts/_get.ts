@@ -1,8 +1,8 @@
 import type { NextApiRequest } from "next";
 
-import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClient";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
 

@@ -18,10 +18,6 @@ vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
   },
 }));
 
-vi.mock("@calcom/trpc/react", () => ({
-  trpc: {},
-}));
-
 vi.mock("next/navigation", async () => ({
   ...((await vi.importActual("next/navigation")) as object),
   useRouter() {
@@ -57,7 +53,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   },
 }));
 
-vi.mock("@calcom/atoms/monorepo", () => ({
+vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => {
     return false;
   },
