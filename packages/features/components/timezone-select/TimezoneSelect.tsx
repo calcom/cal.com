@@ -8,10 +8,8 @@ import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
+import { getReactSelectProps, inputStyles } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-
-import { inputStyles } from "../inputs/TextField";
-import { getReactSelectProps } from "../select";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
@@ -68,6 +66,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
   grow?: boolean;
 };
 
+// TODO: I wonder if we move this to ui package, and keep the TRPC version in features
 export function TimezoneSelectComponent({
   className,
   classNames: timezoneClassNames,
@@ -179,7 +178,7 @@ export function TimezoneSelectComponent({
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
         menuList: (state) =>
           classNames(
-            "scroll-bar scrollbar-track-w-20 rounded-md",
+            "scroll-bar h-40 scrollbar-track-w-20 rounded-md",
             timezoneClassNames?.menuList && timezoneClassNames.menuList(state)
           ),
         indicatorsContainer: (state) =>
