@@ -9,10 +9,7 @@ import { SkeletonText, SkeletonButton, SkeletonAvatar, SkeletonContainer } from 
 
 const fetchReferralsToken = async () => {
   try {
-    const response = await fetch("/api/user/referrals-token", {
-      method: "GET",
-      credentials: "include",
-    });
+    const response = await fetch("/api/user/referrals-token");
 
     if (!response.ok) {
       const errorText = await response.text();
