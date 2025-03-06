@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Er is al een omgekeerde doorverwijzing tussen deze gebruikers.",
   "previous_ooo_empty_title": "Geen eerdere OOO gevonden",
   "previous": "Vorige",
+  "uid": "UID",
+  "link": "Link",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

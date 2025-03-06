@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "이 사용자들 사이에 이미 역방향 전달이 설정되어 있습니다.",
   "previous_ooo_empty_title": "이전 부재 기록 없음",
   "previous": "이전",
+  "uid": "UID",
+  "link": "링크",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
