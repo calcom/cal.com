@@ -16,8 +16,8 @@ import { router } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
+import { RouterPositionInsights } from "./router-position";
 import { RoutingEventsInsights } from "./routing-events";
-import { VirtualQueuesInsights } from "./virtual-queues";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
@@ -1749,7 +1749,7 @@ export const insightsRouter = router({
     }),
   getUserRelevantTeamRoutingForms: authedProcedure.query(async ({ ctx }) => {
     try {
-      const routingForms = await VirtualQueuesInsights.getUserRelevantTeamRoutingForms({
+      const routingForms = await RouterPositionInsights.getUserRelevantTeamRoutingForms({
         userId: ctx.user.id,
       });
 

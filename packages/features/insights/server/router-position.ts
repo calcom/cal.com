@@ -1,7 +1,7 @@
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 
-class VirtualQueuesInsights {
+class RouterPositionInsights {
   static async getUserRelevantTeamRoutingForms({ userId }: { userId: number }) {
     type JsonField = { [key: string]: any };
 
@@ -87,4 +87,4 @@ class VirtualQueuesInsights {
   }
 }
 
-export { VirtualQueuesInsights };
+export { RouterPositionInsights };
