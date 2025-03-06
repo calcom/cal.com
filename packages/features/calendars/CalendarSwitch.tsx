@@ -3,10 +3,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, showToast, Switch } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type ICalendarSwitchProps = {
   title: string;
@@ -17,7 +17,7 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
-  domainWideDelegationCredentialId: string | null;
+  delegationCredentialId: string | null;
   eventTypeId: number | null;
   disabled?: boolean;
 };
@@ -36,7 +36,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     isChecked,
     name,
     credentialId,
-    domainWideDelegationCredentialId,
+    delegationCredentialId,
     eventTypeId,
     disabled,
   } = props;
@@ -48,7 +48,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
-        ...(domainWideDelegationCredentialId && { domainWideDelegationCredentialId }),
+        ...(delegationCredentialId && { delegationCredentialId }),
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
         ...(eventTypeId ? { eventTypeId: String(eventTypeId) } : {}),

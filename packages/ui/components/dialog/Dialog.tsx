@@ -6,11 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
 import React, { useMemo, useState } from "react";
 
-import { Dialog as PlatformDialogPrimitives, useIsPlatform } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
+import * as PlatformDialogPrimitives from "../../../platform/atoms/src/components/ui/dialog";
 import type { ButtonProps } from "../button";
 import { Button } from "../button";
 import type { IconName } from "../icon";
@@ -56,7 +57,7 @@ function WebDialog(props: DialogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const newSearchParams = new URLSearchParams(searchParams ?? undefined);
+  const newSearchParams = new URLSearchParams(searchParams.toString());
   const { children, name, ...dialogProps } = props;
 
   // only used if name is set

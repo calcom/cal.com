@@ -83,7 +83,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           className="border-subtle mt-4 rounded-lg border"
                           actions={
                             <div className="flex w-32 justify-end">
-                              {allowDelete && !connectedCalendar.domainWideDelegationCredentialId && (
+                              {allowDelete && !connectedCalendar.delegationCredentialId && (
                                 <PlatformDisconnectIntegration
                                   credentialId={connectedCalendar.credentialId}
                                   trashIcon
@@ -107,9 +107,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === destinationCalendarId}
                                     credentialId={cal.credentialId}
-                                    domainWideDelegationCredentialId={
-                                      connectedCalendar.domainWideDelegationCredentialId
-                                    }
+                                    delegationCredentialId={connectedCalendar.delegationCredentialId}
                                     eventTypeId={null}
                                   />
                                 );
@@ -127,7 +125,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                         message={<span>{connectedCalendar.error?.message || t("calendar_error")}</span>}
                         iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                         actions={
-                          !Boolean(connectedCalendar.domainWideDelegationCredentialId) && (
+                          !Boolean(connectedCalendar.delegationCredentialId) && (
                             <div className="flex w-32 justify-end">
                               <PlatformDisconnectIntegration
                                 credentialId={connectedCalendar.credentialId}
@@ -222,7 +220,7 @@ const PlatformDisconnectIntegration = (props: {
 };
 
 const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { isChecked, title, credentialId, type, externalId, domainWideDelegationCredentialId } = props;
+  const { isChecked, title, credentialId, type, externalId, delegationCredentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const { toast } = useToast();
 
@@ -255,13 +253,13 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
     externalId: string;
   }) => {
     if (isOn) {
-      await addSelectedCalendar({ credentialId, integration, externalId, domainWideDelegationCredentialId });
+      await addSelectedCalendar({ credentialId, integration, externalId, delegationCredentialId });
     } else {
       await removeSelectedCalendar({
         credentialId,
         integration,
         externalId,
-        domainWideDelegationCredentialId,
+        delegationCredentialId,
       });
     }
   };
