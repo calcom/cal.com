@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
+import PhoneInput from "@calcom/features/components/phone-input";
 import { getTemplateFieldsSchema } from "@calcom/features/ee/cal-ai-phone/getTemplateFieldsSchema";
 import { TEMPLATES_FIELDS } from "@calcom/features/ee/cal-ai-phone/template-fields-map";
 import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
@@ -12,17 +13,7 @@ import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Label,
-  EmptyScreen,
-  SettingsToggle,
-  Divider,
-  TextField,
-  PhoneInput,
-  showToast,
-  Icon,
-} from "@calcom/ui";
+import { Button, Label, EmptyScreen, SettingsToggle, Divider, TextField, showToast, Icon } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
 type AIEventControllerProps = {
