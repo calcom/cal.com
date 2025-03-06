@@ -1,6 +1,5 @@
-import type { IntervalLimit } from "@calcom/types/Calendar";
-
 import { ascendingLimitKeys } from "./intervalLimit";
+import type { IntervalLimit } from "./intervalLimitSchema";
 
 export const validateIntervalLimitOrder = (input: IntervalLimit) => {
   // Sort limits by validationOrder

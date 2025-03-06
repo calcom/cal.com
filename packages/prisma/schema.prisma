@@ -225,20 +225,22 @@ enum IdentityProvider {
 }
 
 model DestinationCalendar {
-  id                     Int                   @id @default(autoincrement())
-  integration            String
-  externalId             String
+  id                               Int                   @id @default(autoincrement())
+  integration                      String
+  externalId                       String
   /// @zod.custom(imports.emailSchema)
-  primaryEmail           String?
-  user                   User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                 Int?                  @unique
-  booking                Booking[]
-  eventType              EventType?            @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId            Int?                  @unique
-  credentialId           Int?
-  credential             Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  delegationCredentialId String?
+  primaryEmail                     String?
+  user                             User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                           Int?                  @unique
+  booking                          Booking[]
+  eventType                        EventType?            @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId                      Int?                  @unique
+  credentialId                     Int?
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId           String?
+  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
 
   @@index([userId])
   @@index([eventTypeId])
@@ -482,7 +484,9 @@ model Team {
   smsLockReviewedByAdmin Boolean                 @default(false)
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
-  features               TeamFeatures[]
+  domainWideDelegations  DomainWideDelegation[]
+
+  features TeamFeatures[]
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
@@ -592,10 +596,12 @@ model BookingReference {
   externalCalendarId         String?
   deleted                    Boolean?
 
-  credential             Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
-  credentialId           Int?
-  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: SetNull)
-  delegationCredentialId String?
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId                     Int?
+  delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: SetNull)
+  delegationCredentialId           String?
+  domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: SetNull)
+  domainWideDelegationCredentialId String?
 
   @@index([bookingId])
   @@index([type])
@@ -732,22 +738,24 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                       String                @id @default(uuid())
-  user                     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                   Int
-  integration              String
-  externalId               String
-  credential               Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId             Int?
+  id                               String                @id @default(uuid())
+  user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                           Int
+  integration                      String
+  externalId                       String
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId                     Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId          String?
-  googleChannelKind        String?
-  googleChannelResourceId  String?
-  googleChannelResourceUri String?
-  googleChannelExpiration  String?
-  delegationCredential     DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  delegationCredentialId   String?
-  error                    String?
+  googleChannelId                  String?
+  googleChannelKind                String?
+  googleChannelResourceId          String?
+  googleChannelResourceUri         String?
+  googleChannelExpiration          String?
+  delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId           String?
+  domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
+  error                            String?
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
@@ -1795,6 +1803,28 @@ model DelegationCredential {
   @@unique([organizationId, domain])
 }
 
+model DomainWideDelegation {
+  id                  String                @id @default(uuid())
+  workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
+  workspacePlatformId Int
+  // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
+  /// @zod.custom(imports.serviceAccountKeySchema)
+  serviceAccountKey   Json
+  enabled             Boolean               @default(false)
+  organizationId      Int
+  organization        Team                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domain              String
+  selectedCalendars   SelectedCalendar[]
+  destinationCalendar DestinationCalendar[]
+  bookingReferences   BookingReference[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
+  // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
+  @@unique([organizationId, domain])
+}
+
 // It is for delegation credential
 model WorkspacePlatform {
   id                       Int                    @id @default(autoincrement())
@@ -1809,6 +1839,7 @@ model WorkspacePlatform {
   updatedAt                DateTime               @updatedAt
   enabled                  Boolean                @default(false)
   delegationCredentials    DelegationCredential[]
+  domainWideDelegations    DomainWideDelegation[]
 
   @@unique([slug])
 }
