@@ -5,10 +5,10 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 export default function GreetmateButton() {
   const { data: user } = useMeQuery();
-  const { data: greeterApp } = useApp("greetmate-ai");
+  const { data: greetmateApp } = useApp("greetmate-ai");
 
-  // Make sure that greeterApp is installed. We shouldn't show the button when app is not installed
-  if (!user || !greeterApp) {
+  // Make sure that greetmateApp is installed. We shouldn't show the button when app is not installed
+  if (!user || !greetmateApp) {
     return null;
   }
 
