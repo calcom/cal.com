@@ -10,7 +10,7 @@ import { SkeletonText, SkeletonButton, SkeletonAvatar, SkeletonContainer } from 
 const fetchReferralsToken = async () => {
   try {
     const response = await fetch("/api/user/referrals-token", {
-      method: "GET", // Changed back to GET to match the API
+      method: "GET",
       credentials: "include",
     });
 
