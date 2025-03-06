@@ -9,6 +9,7 @@ module.exports = {
   arrowParens: "always",
   endOfLine: "auto",
   importOrder: [
+    "^next-test-api-route-handler",
     // Mocks must be at the top as they contain vi.mock calls
     "(.*)/__mocks__/(.*)",
     // bookingScenario contains prismock that must be imported asap

@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -9,7 +8,8 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import getIP from "@calcom/lib/getIP";
 import { CreationSource } from "@calcom/prisma/enums";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "../../../../lib/buildLegacyCtx";
+import { defaultResponderForAppDir } from "../../../api/defaultResponderForAppDir";
 
 async function handler(req: NextRequest) {
   const body = await req.json();
