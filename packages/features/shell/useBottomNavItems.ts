@@ -31,6 +31,11 @@ export function useBottomNavItems({
       target: "__blank",
     },
     {
+      name: "earn_20_percent_affiliate",
+      href: "/refer",
+      icon: "gift",
+    },
+    {
       name: "copy_public_page_link",
       href: "",
       onClick: (e: { preventDefault: () => void }) => {

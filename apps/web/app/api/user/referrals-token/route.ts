@@ -7,21 +7,25 @@ import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const GET = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { publicToken } = await dub.embedTokens.referrals({
-    programId: "prog_mODHMDrJPWlkpT7uzsUASFhK",
-    tenantId: session.user.id.toString(),
-    partner: {
-      name: session?.user.name || "",
-      email: session?.user.email || "",
-      username: session?.user.username || "",
-      image: session?.user.image || null,
-      tenantId: session?.user.id.toString() || "",
-    },
-  });
+  try {
+    const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { publicToken } = await dub.embedTokens.referrals({
+      programId: process.env.NEXT_PUBLIC_DUB_PROGRAM_ID as string,
+      tenantId: session.user.id.toString(),
+      partner: {
+        name: session?.user.name || session?.user.email || "",
+        email: session?.user.email || session?.user.name || "",
+        username: session?.user.username || "",
+        image: session?.user.image || null,
+        tenantId: session?.user.id.toString() || "",
+      },
+    });
 
-  return NextResponse.json({ publicToken });
+    return NextResponse.json({ publicToken });
+  } catch (error) {
+    console.error("Error generating referrals token:", error);
+  }
 };
