@@ -54,7 +54,6 @@
     "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
     "./components/icon/Spinner": "./components/icon/Spinner.tsx",
     "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
-    "./components/form/timezone-select/TimezoneSelect": "./components/form/timezone-select/index.ts",
     "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./__mocks__/ui": "./__mocks__/ui.tsx"
   },
@@ -69,7 +68,6 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@calcom/trpc": "*",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.4",
@@ -100,6 +98,7 @@
   "devDependencies": {
     "@calcom/config": "*",
     "@calcom/tsconfig": "*",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "18.0.26",
     "@types/react-dom": "^18.0.9",
     "execa": "^9.3.0",

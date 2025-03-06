@@ -15,10 +15,10 @@ import type {
   EventTypeSetupProps,
   EventTypeUpdateInput,
 } from "@calcom/features/eventtypes/lib/types";
-import { validateIntervalLimitOrder } from "@calcom/lib";
 import { validateCustomEventName } from "@calcom/lib/event";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 

@@ -9,6 +9,7 @@ import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -28,14 +29,13 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
   Badge,
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  CreateButton,
   Dialog,
   Dropdown,
   DropdownItem,
@@ -59,6 +59,8 @@ import {
 import classNames from "@calcom/ui/classNames";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
+
+import { TRPCClientError } from "@trpc/client";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];

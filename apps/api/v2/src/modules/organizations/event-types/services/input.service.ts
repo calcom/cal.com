@@ -245,7 +245,11 @@ export class InputOrganizationsEventTypesService {
       const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
       const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
       if (invalidHosts.length) {
-        throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
+        throw new NotFoundException(
+          `Invalid hosts: ${invalidHosts
+            .map((host) => host.userId)
+            .join(", ")} are not members of team with id ${teamId}.`
+        );
       }
     }
   }
