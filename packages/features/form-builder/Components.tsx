@@ -6,6 +6,7 @@ import type {
   TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
+import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   AddressInput,
@@ -17,7 +18,6 @@ import {
   InfoBadge,
   InputField,
   Label,
-  PhoneInput,
   RadioField,
   Tooltip,
 } from "@calcom/ui";

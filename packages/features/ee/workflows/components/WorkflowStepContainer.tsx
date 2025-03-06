@@ -6,6 +6,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
+import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -33,7 +34,6 @@ import {
   Icon,
   Input,
   Label,
-  PhoneInput,
   Select,
   showToast,
   TextArea,
