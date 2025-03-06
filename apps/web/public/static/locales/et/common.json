@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Nende kasutajate vahel on juba vastupidine edasisuunamine.",
   "previous_ooo_empty_title": "Eelmist OOO-d ei leitud",
   "previous": "Eelmine",
+  "uid": "UID",
+  "link": "Link",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

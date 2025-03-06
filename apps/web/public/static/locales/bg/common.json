@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Вече съществува обратно пренасочване между тези потребители.",
   "previous_ooo_empty_title": "Не са намерени предишни OOO",
   "previous": "Предишен",
+  "uid": "UID",
+  "link": "Линк",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

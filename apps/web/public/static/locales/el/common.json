@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Υπάρχει ήδη αντίστροφη προώθηση μεταξύ αυτών των χρηστών.",
   "previous_ooo_empty_title": "Δεν βρέθηκαν προηγούμενες απουσίες",
   "previous": "Προηγούμενο",
+  "uid": "UID",
+  "link": "Σύνδεσμος",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
