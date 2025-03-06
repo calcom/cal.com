@@ -1,19 +1,43 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
+import { type Table } from "@tanstack/react-table";
+
+import { Pagination } from "@calcom/ui";
+
+import { useDataTable } from "../hooks";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
-  totalDbDataCount: number;
+  totalRowCount: number;
+  paginationMode?: "infinite" | "standard";
 }
 
-export function DataTablePagination<TData>({ table, totalDbDataCount }: DataTablePaginationProps<TData>) {
-  const loadedCount = table.getFilteredRowModel().rows.length;
+export function DataTablePagination<TData>({
+  table,
+  totalRowCount,
+  paginationMode = "infinite",
+}: DataTablePaginationProps<TData>) {
+  const { pageIndex, pageSize, setPageIndex, setPageSize } = useDataTable();
+
+  if (paginationMode === "infinite") {
+    const loadedCount = table.getFilteredRowModel().rows.length;
+    return (
+      <p className="text-subtle text-sm tabular-nums">
+        Loaded <span className="text-default font-medium">{loadedCount}</span> of{" "}
+        <span className="text-default font-medium">{totalRowCount}</span>
+      </p>
+    );
+  }
 
   return (
-    <p className="text-subtle text-sm tabular-nums">
-      Loaded <span className="text-default font-medium">{`${loadedCount}`}</span> of
-      <span className="text-default font-medium"> {`${totalDbDataCount}`}</span>
-    </p>
+    <Pagination
+      currentPage={pageIndex + 1}
+      pageSize={pageSize}
+      totalItems={totalRowCount}
+      onPageChange={(page) => setPageIndex(page - 1)}
+      onPageSizeChange={(newSize) => setPageSize(newSize)}
+      onNext={() => setPageIndex(pageIndex + 1)}
+      onPrevious={() => setPageIndex(pageIndex - 1)}
+    />
   );
 }

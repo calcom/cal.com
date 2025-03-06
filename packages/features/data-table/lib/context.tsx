@@ -26,6 +26,11 @@ export type DataTableContextType = {
 
   columnVisibility: VisibilityState;
   setColumnVisibility: OnChangeFn<VisibilityState>;
+
+  pageIndex: number;
+  pageSize: number;
+  setPageIndex: (pageIndex: number) => void;
+  setPageSize: (pageSize: number) => void;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -33,8 +38,14 @@ export const DataTableContext = createContext<DataTableContextType | null>(null)
 const DEFAULT_ACTIVE_FILTERS: ActiveFilter[] = [];
 const DEFAULT_SORTING: SortingState = [];
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+const DEFAULT_PAGE_SIZE = 10;
 
-export function DataTableProvider({ children }: { children: React.ReactNode }) {
+interface DataTableProviderProps {
+  children: React.ReactNode;
+  defaultPageSize?: number;
+}
+
+export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZE }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
@@ -46,6 +57,13 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
   const [columnVisibility, setColumnVisibility] = useQueryState<VisibilityState>(
     "cols",
     parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
+  );
+
+  const [pageIndex, setPageIndex] = useQueryState("page", parseAsJson(z.number().parse).withDefault(0));
+
+  const [pageSize, setPageSize] = useQueryState(
+    "size",
+    parseAsJson(z.number().parse).withDefault(defaultPageSize)
   );
 
   const clearAll = useCallback(
@@ -82,6 +100,14 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
     [setActiveFilters]
   );
 
+  const setPageSizeAndGoToFirstPage = useCallback(
+    (newPageSize: number) => {
+      setPageSize(newPageSize);
+      setPageIndex(0);
+    },
+    [setPageSize, setPageIndex]
+  );
+
   return (
     <DataTableContext.Provider
       value={{
@@ -94,6 +120,10 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
         setSorting,
         columnVisibility,
         setColumnVisibility,
+        pageIndex,
+        pageSize,
+        setPageIndex,
+        setPageSize: setPageSizeAndGoToFirstPage,
       }}>
       {children}
     </DataTableContext.Provider>

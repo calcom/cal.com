@@ -87,7 +87,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
       }
     );
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(
@@ -332,7 +332,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         </DataTableToolbar.Root>
 
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
+          <DataTablePagination table={table} totalRowCount={totalRowCount} />
         </div>
 
         {numberOfSelectedRows > 0 && (

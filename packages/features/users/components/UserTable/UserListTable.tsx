@@ -21,6 +21,7 @@ import {
   multiSelectFilter,
   ColumnFilterType,
   convertFacetedValuesToMap,
+  useDataTable,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -103,7 +104,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider>
+    <DataTableProvider defaultPageSize={30}>
       <UserListTableContent />
     </DataTableProvider>
   );
@@ -117,10 +118,21 @@ function UserListTableContent() {
 
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
-  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
-  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery();
-  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
-  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery();
+  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
+  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -129,39 +141,27 @@ function UserListTableContent() {
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
-    trpc.viewer.organizations.listMembers.useInfiniteQuery(
-      {
-        limit: 30,
-        searchTerm: debouncedSearchTerm,
-        expand: ["attributes"],
-        filters: columnFilters,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-      }
-    );
+  const { pageIndex, pageSize } = useDataTable();
 
-  const exportQuery = trpc.viewer.organizations.listMembers.useInfiniteQuery(
+  const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
-      limit: 100, // Max limit
+      limit: pageSize,
+      offset: pageIndex * pageSize,
       searchTerm: debouncedSearchTerm,
       expand: ["attributes"],
       filters: columnFilters,
     },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      enabled: false,
+      placeholderData: keepPreviousData,
     }
   );
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
+  const flatData = useMemo(() => data?.rows ?? [], [data]) as UserTableUser[];
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -430,14 +430,16 @@ function UserListTableContent() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount, attributes]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, totalRowCount, attributes]);
 
   const table = useReactTable({
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
-    debugTable: true,
     manualPagination: true,
+    state: {
+      rowSelection,
+    },
     initialState: {
       columnVisibility: initalColumnVisibility,
       columnPinning: {
@@ -447,9 +449,6 @@ function UserListTableContent() {
     },
     defaultColumn: {
       size: 150,
-    },
-    state: {
-      rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -502,30 +501,35 @@ function UserListTableContent() {
         throw new Error("Header is missing.");
       }
 
-      const result = await exportQuery.refetch();
-      if (!result.data) {
-        throw new Error("There are no members found.");
-      }
-      const allMembers = result.data.pages.flatMap((page) => page.rows ?? []) ?? [];
-      let lastPage = result.data.pages[result.data.pages.length - 1];
+      // Fetch all pages
+      let allRows: UserTableUser[] = [];
+      let offset: number | undefined = 0;
+      const limit = 100;
 
-      while (lastPage.nextCursor) {
-        const nextPage = await exportQuery.fetchNextPage();
-        if (!nextPage.data) {
-          break;
+      while (offset !== undefined) {
+        const result = await trpc.viewer.organizations.listMembers.query({
+          limit,
+          offset,
+          searchTerm: debouncedSearchTerm,
+          expand: ["attributes"],
+          filters: columnFilters,
+        });
+
+        if (!result.rows?.length) {
+          offset = undefined;
+          continue;
         }
-        const latestPageItems = nextPage.data.pages[nextPage.data.pages.length - 1].rows ?? [];
-        allMembers.push(...latestPageItems);
-        lastPage = nextPage.data.pages[nextPage.data.pages.length - 1];
+
+        allRows = [...allRows, ...result.rows];
+        offset = offset + limit;
+      }
+
+      if (!allRows.length) {
+        throw new Error("There are no members found.");
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(
-        headers,
-        allMembers as UserTableUser[],
-        ATTRIBUTE_IDS,
-        domain
-      );
+      const csvRaw = generateCsvRawForMembersTable(headers, allRows, ATTRIBUTE_IDS, domain);
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }
@@ -550,10 +554,8 @@ function UserListTableContent() {
         testId="user-list-data-table"
         table={table}
         isPending={isPending}
-        hasNextPage={hasNextPage}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
-        totalDBRowCount={totalDBRowCount}
+        totalRowCount={data?.meta?.totalRowCount}
+        paginationMode="standard"
         ToolbarLeft={
           <DataTableToolbar.SearchBar
             table={table}
