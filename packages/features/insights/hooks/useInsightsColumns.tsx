@@ -1,12 +1,13 @@
 import { createColumnHelper } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { dataTableFilter, ColumnFilterType } from "@calcom/features/data-table";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { Badge, Icon } from "@calcom/ui";
@@ -254,26 +255,22 @@ export const useInsightsColumns = ({
 };
 
 function CopyButton({ label, value }: { label: string; value: string }) {
-  const [showCheck, setShowCheck] = useState(false);
+  const { copyToClipboard, isCopied } = useCopy();
   const { t } = useLocale();
   return (
     <button
       className="flex w-full items-center gap-1 overflow-hidden"
       title={value}
       onClick={() => {
-        navigator.clipboard.writeText(value);
-        setShowCheck(true);
-        setTimeout(() => {
-          setShowCheck(false);
-        }, 2000);
+        copyToClipboard(value);
       }}>
-      {!showCheck && (
+      {!isCopied && (
         <>
           <span className="truncate">{label}</span>
           <Icon name="clipboard" className="shrink-0" size={14} />
         </>
       )}
-      {showCheck && (
+      {isCopied && (
         <>
           <span className="grow truncate text-left">{t("copied")}</span>
           <Icon name="check" className="shrink-0" size={14} />
