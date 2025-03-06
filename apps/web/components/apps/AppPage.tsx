@@ -9,13 +9,13 @@ import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/uti
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
@@ -80,12 +80,14 @@ export const AppPage = ({
   const searchParams = useCompatSearchParams();
 
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
+  const utils = trpc.useUtils();
 
   const mutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data?.setupPending) return;
       setIsLoading(false);
-      showToast(t("app_successfully_installed"), "success");
+      showToast(data?.message || t("app_successfully_installed"), "success");
+      await utils.viewer.appCredentialsByType.invalidate({ appType: type });
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
@@ -170,6 +172,7 @@ export const AppPage = ({
 
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
   useEffect(() => {
     if (searchParams?.get("defaultInstall") === "true") {

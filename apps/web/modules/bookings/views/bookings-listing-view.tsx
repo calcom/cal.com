@@ -33,7 +33,7 @@ import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-import { useProperHeightForMobile } from "~/bookings/hooks/useProperHeightForMobile";
+import { useStretchedHeightToBottom } from "~/bookings/hooks/useStretchedHeightToBottom";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = (typeof validStatuses)[number];
@@ -109,7 +109,7 @@ function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  useProperHeightForMobile(tableContainerRef);
+  useStretchedHeightToBottom(tableContainerRef);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;

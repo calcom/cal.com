@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -24,6 +23,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;

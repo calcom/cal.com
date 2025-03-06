@@ -67,22 +67,28 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
     end: {
       gte: new Date().toISOString(),
     },
-    ...(searchTerm && {
-      user: {
-        OR: [
-          {
-            email: {
-              contains: searchTerm,
+    ...(searchTerm
+      ? {
+          OR: [
+            { notes: { contains: searchTerm } },
+            { reason: { reason: { contains: searchTerm } } },
+            {
+              toUser: {
+                OR: [{ email: { contains: searchTerm } }, { name: { contains: searchTerm } }],
+              },
             },
-          },
-          {
-            username: {
-              contains: searchTerm,
-            },
-          },
-        ],
-      },
-    }),
+            ...(fetchTeamMembersEntries
+              ? [
+                  {
+                    user: {
+                      OR: [{ email: { contains: searchTerm } }, { name: { contains: searchTerm } }],
+                    },
+                  },
+                ]
+              : []),
+          ],
+        }
+      : {}),
   };
 
   const getTotalEntries = await prisma.outOfOfficeEntry.count({
@@ -101,6 +107,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
         select: {
           username: true,
           name: true,
+          email: true,
         },
       },
       reason: {
