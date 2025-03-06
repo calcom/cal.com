@@ -43,7 +43,7 @@ const RoundRobinResetInterval = ({ team }: ProfileViewProps) => {
     },
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
-      showToast("Round Robin interval successfully updated", "success");
+      showToast(t("rr_interval_successfully_updated"), "success");
     },
   });
 
