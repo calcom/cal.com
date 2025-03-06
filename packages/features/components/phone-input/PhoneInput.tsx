@@ -84,7 +84,6 @@ function BasePhoneInputWeb({
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
-  console.log("value", value);
   return (
     <PhoneInput
       {...rest}
