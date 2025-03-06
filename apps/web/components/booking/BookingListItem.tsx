@@ -120,6 +120,16 @@ function BookingListItem(booking: BookingItemProps) {
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
+
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+    onSuccess: async (data) => {
+      showToast(data.message, "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -289,7 +299,15 @@ function BookingListItem(booking: BookingItemProps) {
       id: "no_show",
       label: t("mark_as_no_show"),
       onClick: () => {
-        setIsNoShowDialogOpen(true);
+        // If there's only one attendee, mark them as no-show directly without showing the dialog
+        if (attendeeList.length === 1) {
+          noShowMutation.mutate({
+            bookingUid: booking.uid,
+            attendees: [{ email: attendeeList[0].email, noShow: true }],
+          });
+        } else {
+          setIsNoShowDialogOpen(true);
+        }
       },
       icon: "eye-off" as const,
     });
