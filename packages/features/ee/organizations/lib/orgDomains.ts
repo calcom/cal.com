@@ -43,7 +43,7 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
     return null;
   }
   // Define which is the current domain/subdomain
-  const slug = hostname.replace(`.${currentHostname}` ?? "", "");
+  const slug = hostname.replace(currentHostname ? `.${currentHostname}` : "", "");
   const hasNoDotInSlug = slug.indexOf(".") === -1;
   if (hasNoDotInSlug) {
     return slug;

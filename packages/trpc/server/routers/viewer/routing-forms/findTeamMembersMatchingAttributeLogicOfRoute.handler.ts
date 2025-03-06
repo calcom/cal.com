@@ -9,6 +9,7 @@ import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
@@ -21,8 +22,9 @@ import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableFo
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
-import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
@@ -254,7 +256,10 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
   const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
-  const matchingHosts = eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id));
+  const matchingHosts = await enrichHostsWithDelegationCredentials({
+    orgId: formOrgId,
+    hosts: eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id)),
+  });
 
   if (matchingTeamMembers.length !== matchingHosts.length) {
     throw new TRPCError({

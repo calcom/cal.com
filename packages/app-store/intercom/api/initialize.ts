@@ -16,9 +16,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       content: {
         components: [
           {
+            type: "text",
+            text: card_creation_options?.invitation_input ?? "Schedule a meeting with me",
+            align: "left",
+            style: "header",
+          },
+          {
             type: "button",
             id: "submit-issue-form",
-            label: "Book a meeting",
+            label: card_creation_options?.booking_button_input ?? "Booking button text",
             style: "primary",
             action: {
               type: "sheet",
