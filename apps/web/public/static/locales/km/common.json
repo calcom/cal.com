@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "មានការបញ្ជូនបន្តត្រឡប់រវាងអ្នកប្រើប្រាស់ទាំងនេះរួចហើយ។",
   "previous_ooo_empty_title": "រកមិនឃើញ OOO ពីមុនទេ",
   "previous": "មុន",
+  "uid": "UID",
+  "link": "តំណ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

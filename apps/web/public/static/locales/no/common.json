@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Det finnes allerede en omvendt videresending mellom disse brukerne.",
   "previous_ooo_empty_title": "Ingen tidligere fravær funnet",
   "previous": "Forrige",
+  "uid": "UID",
+  "link": "Lenke",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
