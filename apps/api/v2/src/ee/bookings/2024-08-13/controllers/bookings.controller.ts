@@ -1,4 +1,5 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
@@ -333,6 +334,24 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Get("/:bookingUid/calendar-links")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_READ])
+  @ApiOperation({
+    summary: "Get 'Add to Calendar' links for a booking",
+    description:
+      "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office 365, and a downloadable ICS file.",
+  })
+  @HttpCode(HttpStatus.OK)
+  async getCalendarLinks(@Param("bookingUid") bookingUid: string): Promise<CalendarLinksOutput_2024_08_13> {
+    const calendarLinks = await this.bookingsService.getCalendarLinks(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: calendarLinks,
     };
   }
 }

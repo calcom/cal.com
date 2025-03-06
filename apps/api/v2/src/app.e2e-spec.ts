@@ -48,7 +48,7 @@ describe("AppController", () => {
     const mockDefaultBlockDuration = 5000;
 
     beforeEach(async () => {
-      const moduleRef: TestingModule = await Test.createTestingModule({
+      const moduleRef = await Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule_2024_04_15],
       }).compile();
 
