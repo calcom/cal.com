@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { dataTableFilter, ColumnFilterType } from "@calcom/features/data-table";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { Badge, Icon } from "@calcom/ui";
@@ -89,8 +90,8 @@ export const useInsightsColumns = ({
         cell: (info) => {
           const bookingUid = info.getValue();
           if (!bookingUid) return null;
-          const displayedUrl = `${location.host}/booking/${bookingUid}`;
-          const bookingUrl = `https://${displayedUrl}`;
+          const bookingUrl = `${WEBAPP_URL}/booking/${bookingUid}`;
+          const displayedUrl = bookingUrl.replace(/^https?:\/\//, "");
           return <CopyButton label={displayedUrl} value={bookingUrl} />;
         },
       }),
