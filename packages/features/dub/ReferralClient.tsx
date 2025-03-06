@@ -13,6 +13,9 @@ export default function ReferralClient({ publicToken }: { publicToken: string })
       token={publicToken}
       options={{
         theme,
+        themeOptions: {
+          backgroundColor: `${theme === "dark" ? "#0F0F0F" : "#FFFFFF"}`,
+        },
       }}
     />
   );
