@@ -31,7 +31,10 @@ type App = Partial<AppMeta> & {
   path: string;
 };
 function generateFiles() {
-  const browserOutput = [`import dynamic from "next/dynamic"`];
+  const browserInstallAppOutput = [`import dynamic from "next/dynamic"`];
+  const browserAppSettingsComponentOutput = [`import dynamic from "next/dynamic"`];
+  const browserEventTypeAddOnOutput = [`import dynamic from "next/dynamic"`];
+  const browserEventTypeSettingsOutput = [`import dynamic from "next/dynamic"`];
   const metadataOutput = [];
   const bookerMetadataOutput = [];
   const schemasOutput = [];
@@ -297,7 +300,7 @@ function generateFiles() {
     })
   );
 
-  browserOutput.push(
+  browserInstallAppOutput.push(
     ...getExportedObject("InstallAppButtonMap", {
       importConfig: {
         fileToBeImported: "components/InstallAppButton.tsx",
@@ -308,7 +311,7 @@ function generateFiles() {
 
   // TODO: Make a component map creator that accepts ComponentName and does the rest.
   // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
-  browserOutput.push(
+  browserAppSettingsComponentOutput.push(
     ...getExportedObject("AppSettingsComponentsMap", {
       importConfig: {
         fileToBeImported: "components/AppSettingsInterface.tsx",
@@ -317,7 +320,7 @@ function generateFiles() {
     })
   );
 
-  browserOutput.push(
+  browserEventTypeAddOnOutput.push(
     ...getExportedObject("EventTypeAddonMap", {
       importConfig: {
         fileToBeImported: "components/EventTypeAppCardInterface.tsx",
@@ -325,7 +328,7 @@ function generateFiles() {
       lazyImport: true,
     })
   );
-  browserOutput.push(
+  browserEventTypeSettingsOutput.push(
     ...getExportedObject("EventTypeSettingsMap", {
       importConfig: {
         fileToBeImported: "components/EventTypeAppSettingsInterface.tsx",
@@ -398,7 +401,10 @@ function generateFiles() {
   const filesToGenerate: [string, string[]][] = [
     ["apps.metadata.generated.ts", metadataOutput],
     ["apps.server.generated.ts", serverOutput],
-    ["apps.browser.generated.tsx", browserOutput],
+    ["apps.browser-install.generated.tsx", browserInstallAppOutput],
+    ["apps.browser-appsettings.generated.tsx", browserAppSettingsComponentOutput],
+    ["apps.browser-addon.generated.tsx", browserEventTypeAddOnOutput],
+    ["apps.browser-eventypesettings.generated.tsx", browserEventTypeSettingsOutput],
     ["apps.schemas.generated.ts", schemasOutput],
     ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
     ["bookerApps.metadata.generated.ts", bookerMetadataOutput],

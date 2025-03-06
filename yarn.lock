@@ -3574,7 +3574,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/stripepayment@workspace:packages/app-store/stripepayment"
   dependencies:
-    "@calcom/app-store": "*"
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
     "@calcom/features": "*"
