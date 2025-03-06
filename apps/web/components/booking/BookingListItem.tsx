@@ -121,9 +121,21 @@ function BookingListItem(booking: BookingItemProps) {
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
 
+  const attendeeList = booking.attendees.map((attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      id: attendee.id,
+      noShow: attendee.noShow || false,
+      phoneNumber: attendee.phoneNumber,
+    };
+  });
+
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
+      // Invalidate and refetch the bookings query to update the UI
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -297,19 +309,20 @@ function BookingListItem(booking: BookingItemProps) {
   if (isBookingInPast || isOngoing) {
     editBookingActions.push({
       id: "no_show",
-      label: t("mark_as_no_show"),
+      label:
+        attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
       onClick: () => {
         // If there's only one attendee, mark them as no-show directly without showing the dialog
         if (attendeeList.length === 1) {
           noShowMutation.mutate({
             bookingUid: booking.uid,
-            attendees: [{ email: attendeeList[0].email, noShow: true }],
+            attendees: [{ email: attendeeList[0].email, noShow: !attendeeList[0].noShow }],
           });
         } else {
           setIsNoShowDialogOpen(true);
         }
       },
-      icon: "eye-off" as const,
+      icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : ("eye-off" as const),
     });
   }
 
@@ -445,15 +458,6 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
-  });
 
   return (
     <>
