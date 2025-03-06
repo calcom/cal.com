@@ -82,6 +82,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   bannerUrl?: string;
   onDryRunSuccess?: () => void;
   hostsLimit?: number;
+  preventEventTypeRedirect?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -102,7 +103,15 @@ export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomPro
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW", bannerUrl, routingFormSearchParams } = props;
+  const {
+    view = "MONTH_VIEW",
+    bannerUrl,
+    routingFormSearchParams,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
+    preventEventTypeRedirect,
+  } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -205,6 +214,9 @@ export const BookerPlatformWrapper = (
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
     eventId: event.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
@@ -296,7 +308,6 @@ export const BookerPlatformWrapper = (
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
   }, [routingFormSearchParams]);
-
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
@@ -305,6 +316,7 @@ export const BookerPlatformWrapper = (
     timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
+    teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
           isTeamEvent: props.isTeamEvent,
@@ -347,7 +359,7 @@ export const BookerPlatformWrapper = (
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
 
-      if (!!event.data?.successRedirectUrl) {
+      if (!preventEventTypeRedirect && !!event.data?.successRedirectUrl) {
         window.location.href = event.data.successRedirectUrl;
       }
     },
@@ -476,6 +488,9 @@ export const BookerPlatformWrapper = (
   return (
     <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
+        teamMemberEmail={teamMemberEmail}
+        crmAppSlug={crmAppSlug}
+        crmOwnerRecordType={crmOwnerRecordType}
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
         username={username}
@@ -508,8 +523,8 @@ export const BookerPlatformWrapper = (
         onOverlaySwitchStateChange={onOverlaySwitchStateChange}
         extraOptions={extraOptions ?? {}}
         bookings={{
-          handleBookEvent: () => {
-            handleBookEvent();
+          handleBookEvent: (timeSlot?: string) => {
+            handleBookEvent(timeSlot);
             return;
           },
           expiryTime: undefined,

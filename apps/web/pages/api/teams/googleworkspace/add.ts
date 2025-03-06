@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!client_secret || typeof client_secret !== "string")
       return res.status(400).json({ message: "Google client_secret missing." });
 
-    // use differnt callback to normal calendar connection
+    // use different callback to normal calendar connection
     const redirect_uri = `${WEBAPP_URL}/api/teams/googleworkspace/callback`;
     const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uri);
 

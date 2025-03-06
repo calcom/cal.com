@@ -17,7 +17,7 @@ Build and test complex workflows in a matter of minutes, then deploy them via ph
 
 ## Preset Functions
 
-Ease of use functions like book a meeting at Cal.com, Call transfer, voicemail dection, etc...
+Ease of use functions like book a meeting at Cal.com, Call transfer, voicemail detection, etc...
 
 ## Humanlike Voice Experience
 
@@ -27,6 +27,6 @@ Lifelike AI conversations with just 600ms latency, smooth turn-taking, and natur
 
 Support n+ languages, n+ countries phone numbers
 
-## Effortless Prodcution
+## Effortless Production
 
 Effortlessly handle millions of calls with scalable concurrent calling

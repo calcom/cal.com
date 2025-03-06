@@ -7,11 +7,11 @@ import type { UseFormReturn } from "react-hook-form";
 import type z from "zod";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { Badge, Icon, Switch, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export const LockedSwitch = (
   isManagedEventType: boolean,
@@ -31,7 +31,7 @@ export const LockedSwitch = (
         setUnlockedFields(fieldName, !enabled || undefined);
       }}
       checked={fieldState[fieldName]}
-      small={!options.simple}
+      size="sm"
     />
   ) : null;
 };
@@ -58,7 +58,7 @@ export const LockedIndicator = (
           <Badge
             variant={isLocked ? "gray" : "green"}
             className={classNames(
-              "ml-2 transform justify-between gap-1.5 p-1",
+              "ml-2 transform justify-between p-1",
               isManagedEventType && !options.simple && "w-28"
             )}>
             {!options.simple && (
@@ -78,7 +78,7 @@ export const LockedIndicator = (
                   setUnlockedFields(fieldName, !enabled || undefined);
                 }}
                 checked={isLocked}
-                small={!options.simple}
+                size="sm"
               />
             )}
           </Badge>

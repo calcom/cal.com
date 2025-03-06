@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";

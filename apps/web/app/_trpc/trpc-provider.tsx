@@ -1,13 +1,15 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HydrateClient } from "app/_trpc/HydrateClient";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 
-import { httpBatchLink, httpLink, loggerLink, splitLink, TRPCClientError } from "@calcom/trpc/client";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+
+import { httpBatchLink, httpLink, loggerLink, splitLink, TRPCClientError } from "@trpc/client";
 
 export type Endpoint = (typeof ENDPOINTS)[number];
 
@@ -42,9 +44,10 @@ const isTRPCClientError = (cause: unknown): cause is TRPCClientError<AppRouter> 
 
 type Props = {
   children: React.ReactNode;
+  dehydratedState: DehydratedState;
 };
 
-export const TrpcProvider = ({ children }: Props) => {
+export const TrpcProvider = ({ children, dehydratedState }: Props) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -126,7 +129,9 @@ export const TrpcProvider = ({ children }: Props) => {
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <HydrateClient state={dehydratedState}>{children}</HydrateClient>
+      </QueryClientProvider>
     </trpc.Provider>
   );
 };

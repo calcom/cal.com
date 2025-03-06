@@ -1,6 +1,13 @@
 "use client";
 
 import {
+  DataTableProvider,
+  DataTableFilters,
+  DateRangeFilter,
+  ColumnFilterType,
+  type FilterableColumn,
+} from "@calcom/features/data-table";
+import {
   AverageEventDurationChart,
   BookingKPICards,
   BookingStatusLineChart,
@@ -12,25 +19,56 @@ import {
   HighestRatedMembersTable,
   LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
-import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { Filters } from "@calcom/features/insights/filters";
+import "@calcom/features/insights/components/tremor.css";
+import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { Download } from "@calcom/features/insights/filters/Download";
+import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
+import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
+import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage() {
+  return (
+    <DataTableProvider>
+      <InsightsOrgTeamsProvider>
+        <InsightsPageContent />
+      </InsightsOrgTeamsProvider>
+    </DataTableProvider>
+  );
+}
+
+const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "createdAt",
+  title: "createdAt",
+  type: ColumnFilterType.DATE_RANGE,
+};
+
+function InsightsPageContent() {
   const { t } = useLocale();
+  const { table } = useInsightsBookings();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
 
   return (
-    <FiltersProvider>
-      <Filters />
+    <>
+      <div
+        className="flex flex-wrap items-center gap-2"
+        data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
+        <OrgTeamsFilter />
+        <DataTableFilters.AddFilterButton table={table} />
+        <DataTableFilters.ActiveFilters table={table} />
+        <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+        <div className="grow" />
+        <Download />
+        <DateRangeFilter column={createdAtColumn} />
+      </div>
 
-      <div className="mb-4 space-y-4">
+      <div className="my-4 space-y-4">
         <BookingKPICards />
 
         <BookingStatusLineChart />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <PopularEventsTable />
-
           <AverageEventDurationChart />
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -53,6 +91,6 @@ export default function InsightsPage() {
           </a>
         </small>
       </div>
-    </FiltersProvider>
+    </>
   );
 }
