@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Между этими пользователями уже существует обратное перенаправление.",
   "previous_ooo_empty_title": "Предыдущие статусы \"Вне офиса\" не найдены",
   "previous": "Предыдущий",
+  "uid": "UID",
+  "link": "Ссылка",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

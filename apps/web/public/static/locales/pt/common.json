@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Já existe um encaminhamento reverso entre estes utilizadores.",
   "previous_ooo_empty_title": "Nenhum fora do escritório anterior encontrado",
   "previous": "Anterior",
+  "uid": "UID",
+  "link": "Link",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

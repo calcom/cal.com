@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Istnieje już odwrotne przekierowanie między tymi użytkownikami.",
   "previous_ooo_empty_title": "Nie znaleziono poprzedniego OOO",
   "previous": "Poprzedni",
+  "uid": "UID",
+  "link": "Link",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

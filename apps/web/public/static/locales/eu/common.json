@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Dagoeneko alderantzizko birbideratze bat dago erabiltzaile hauen artean.",
   "previous_ooo_empty_title": "Ez da aurreko OOOrik aurkitu",
   "previous": "Aurrekoa",
+  "uid": "UID",
+  "link": "Esteka",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

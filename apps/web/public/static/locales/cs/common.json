@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Mezi těmito uživateli již existuje zpětné přesměrování.",
   "previous_ooo_empty_title": "Nenalezeno žádné předchozí OOO",
   "previous": "Předchozí",
+  "uid": "UID",
+  "link": "Odkaz",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

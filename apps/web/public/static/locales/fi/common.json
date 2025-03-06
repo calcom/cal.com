@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Näiden käyttäjien välillä on jo käänteinen uudelleenohjaus.",
   "previous_ooo_empty_title": "Aiempia poissaoloja ei löytynyt",
   "previous": "Edellinen",
+  "uid": "UID",
+  "link": "Linkki",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
