@@ -37,6 +37,7 @@ import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import granola_config_json from "./granola/config.json";
+import greetmate_ai_config_json from "./greetmate-ai/config.json";
 import gtm_config_json from "./gtm/config.json";
 import hitpay_config_json from "./hitpay/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
@@ -144,6 +145,7 @@ export const appStoreMetadata = {
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
   granola: granola_config_json,
+  "greetmate-ai": greetmate_ai_config_json,
   gtm: gtm_config_json,
   hitpay: hitpay_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
