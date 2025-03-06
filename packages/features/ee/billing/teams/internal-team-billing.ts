@@ -161,17 +161,10 @@ export class InternalTeamBilling implements TeamBilling {
       paymentRequired: false,
     };
   }
-  /** Used to check if the current team plan is active */
-  async checkIfTeamHasActivePlan() {
+  /** Returns the subscription status (active, past_due, trialing, ...) */
+  async getSubscriptionStatus() {
     const { subscriptionId } = this.team.metadata;
     if (!subscriptionId) return false;
-    return await billing.checkIfTeamHasActivePlan(subscriptionId);
-  }
-
-  /** Used to check if the current team plan is a trial */
-  async checkIfTeamHasTrialPlan() {
-    const { subscriptionId } = this.team.metadata;
-    if (!subscriptionId) return false;
-    return await billing.checkIfTeamHasTrialPlan(subscriptionId);
+    return await billing.getSubscriptionStatus(subscriptionId);
   }
 }
