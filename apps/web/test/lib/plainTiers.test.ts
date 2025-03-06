@@ -35,8 +35,8 @@ vi.mock("@lib/buildLegacyCtx", () => ({
   }),
 }));
 
-vi.mock("app/api/apiRouteMiddleware", () => ({
-  apiRouteMiddleware: (handler: () => Promise<Response>) => handler,
+vi.mock("app/api/defaultResponderForAppDir", () => ({
+  defaultResponderForAppDir: (handler: () => Promise<Response>) => handler,
 }));
 
 vi.mock("@calcom/prisma", () => ({

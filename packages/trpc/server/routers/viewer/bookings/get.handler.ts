@@ -92,6 +92,7 @@ export async function getBookings({
         recurringEvent: true,
         currency: true,
         metadata: true,
+        disableGuests: true,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,

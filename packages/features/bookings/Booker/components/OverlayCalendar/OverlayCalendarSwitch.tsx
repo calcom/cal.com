@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Switch } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useBookerStore } from "../../store";
 import { useOverlayCalendarStore } from "./store";
