@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Label, Select } from "@calcom/ui";
 
-export default function InsightsVirtualQueuesPage() {
+export default function InsightsRouterPositionPage() {
   const { t } = useLocale();
   const { data: routingForms, isLoading: isRoutingFormsLoading } =
     trpc.viewer.insights.getUserRelevantTeamRoutingForms.useQuery();

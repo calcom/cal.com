@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 
-import InsightsVirtualQueuesPage from "~/insights/insights-virtual-queues-view";
+import InsightsRouterPositionPage from "~/insights/insights-router-position-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -19,5 +19,5 @@ export default async function Page() {
     return notFound();
   }
 
-  return <InsightsVirtualQueuesPage />;
+  return <InsightsRouterPositionPage />;
 }
