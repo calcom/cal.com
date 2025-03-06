@@ -320,6 +320,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               language: { translate: t, locale: booking.user?.locale ?? "en" },
             },
             attendees,
+            location: bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl || booking.location,
           };
 
           sendEmailPromises.push(
