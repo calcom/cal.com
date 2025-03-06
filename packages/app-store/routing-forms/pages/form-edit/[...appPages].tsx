@@ -222,7 +222,10 @@ function Field({
               // The identifier field will have the same value as the label field until it is changed
               value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
+                const transformedValue = e.target.value.toLowerCase().replace(/\s+/g, "_");
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, transformedValue, {
+                  shouldDirty: true,
+                });
               }}
             />
           </div>
