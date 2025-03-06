@@ -81,6 +81,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
   giphyThankYouPage: z.string().optional(),
   additionalNotesRequired: z.boolean().optional(),
   disableSuccessPage: z.boolean().optional(),
+  multipleRoundRobinHosts: z.number().min(1).optional(), // Number of hosts to select in round-robin, defaults to 1
   disableStandardEmails: z
     .object({
       all: z

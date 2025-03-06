@@ -76,6 +76,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     weight?: number | null;
   }[];
   routingFormResponse: RoutingFormResponse | null;
+  numberOfHostsToSelect?: number; // Optional parameter for selecting multiple hosts
 }
 // === dayjs.utc().startOf("month").toDate();
 const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
@@ -424,7 +425,7 @@ export async function getLuckyUser<
     priority?: number | null;
     weight?: number | null;
   }
->(getLuckyUserParams: GetLuckyUserParams<T>) {
+>(getLuckyUserParams: GetLuckyUserParams<T>): Promise<T | T[]> {
   const {
     currentMonthBookingsOfAvailableUsers,
     bookingsOfNotAvailableUsersOfThisMonth,
@@ -436,7 +437,26 @@ export async function getLuckyUser<
     oooData,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
 
-  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
+  const { numberOfHostsToSelect = 1 } = getLuckyUserParams;
+
+  if (numberOfHostsToSelect === 1) {
+    // Original single-host selection logic
+    const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
+      ...getLuckyUserParams,
+      currentMonthBookingsOfAvailableUsers,
+      bookingsOfNotAvailableUsersOfThisMonth,
+      allRRHostsBookingsOfThisMonth,
+      allRRHostsCreatedThisMonth,
+      organizersWithLastCreated,
+      attributeWeights,
+      virtualQueuesData,
+      oooData,
+    });
+
+    return luckyUser;
+  }
+  // Multi-host selection logic
+  const { users } = await getOrderedListOfLuckyUsers({
     ...getLuckyUserParams,
     currentMonthBookingsOfAvailableUsers,
     bookingsOfNotAvailableUsersOfThisMonth,
@@ -448,7 +468,8 @@ export async function getLuckyUser<
     oooData,
   });
 
-  return luckyUser;
+  // Return the first N users from the ordered list
+  return users.slice(0, numberOfHostsToSelect);
 }
 
 type FetchedData = {
