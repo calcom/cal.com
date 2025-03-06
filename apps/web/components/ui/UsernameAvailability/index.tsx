@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/types/AppRouter";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 

@@ -9,7 +9,7 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/types/AppRouter";
 import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter, Tooltip } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
