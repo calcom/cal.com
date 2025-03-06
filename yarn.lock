@@ -2628,7 +2628,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.126"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.124"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3314,7 +3314,6 @@ __metadata:
     class-variance-authority: ^0.7.1
     framer-motion: ^10.12.8
     lexical: ^0.9.0
-    next-test-api-route-handler: ^4.0.15
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
     stripe-event-types: ^3.1.0
@@ -3697,13 +3696,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.126":
-  version: 0.0.126
-  resolution: "@calcom/platform-libraries@npm:0.0.126"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.124":
+  version: 0.0.124
+  resolution: "@calcom/platform-libraries@npm:0.0.124"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 0124c5ed2b4859b294085b032da24b975806e2e0176d03a60a6da1edd4e40180ca0ea0bfd047fc79a1c704962c6da445632c6a2f9ec9b7024dd9bbdee3efd30a
+  checksum: e18a22d3c4004e8a33eb01d9412916dd98cff96bccb56c3a082e37e8801c9900d08471a716758d4b15cd5f1c2bfcbe83afa6f2452743a8d57f4ac7978622ec59
   languageName: node
   linkType: hard
 
@@ -19497,7 +19496,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@whatwg-node/fetch@npm:^0.10.0, @whatwg-node/fetch@npm:^0.10.4, @whatwg-node/fetch@npm:^0.10.5":
+"@whatwg-node/fetch@npm:^0.10.0, @whatwg-node/fetch@npm:^0.10.4":
   version: 0.10.5
   resolution: "@whatwg-node/fetch@npm:0.10.5"
   dependencies:
@@ -19541,27 +19540,6 @@ __metadata:
   dependencies:
     tslib: ^2.6.3
   checksum: 04b1df5719d1937ef2e4c5ff0d414e38bd0ed16787f7938da232328001666e07369baa85ca700e1494b4950bd1f984ce244b10374aaf27215d57a6d7435fe99d
-  languageName: node
-  linkType: hard
-
-"@whatwg-node/promise-helpers@npm:^1.2.2":
-  version: 1.2.4
-  resolution: "@whatwg-node/promise-helpers@npm:1.2.4"
-  dependencies:
-    tslib: ^2.6.3
-  checksum: cb152385087bd85f4ca2a76968e7dea299c719765e5884f72239d384a01b9db386d26f3853ed8936a6799b3f42e0a1a559bfe4aacfb1572c5e9da8c84c358589
-  languageName: node
-  linkType: hard
-
-"@whatwg-node/server@npm:^0.9.70":
-  version: 0.9.71
-  resolution: "@whatwg-node/server@npm:0.9.71"
-  dependencies:
-    "@whatwg-node/disposablestack": ^0.0.6
-    "@whatwg-node/fetch": ^0.10.5
-    "@whatwg-node/promise-helpers": ^1.2.2
-    tslib: ^2.6.3
-  checksum: b0c9b894c8b01950e73dc5349f8944eccab8a7cfb1e9e8c929fa8b8cbd0754ec779c7ec2e5e8d24a69db4af5e55fdcc95b1a0f52564ba3b9c7d8cdc4fa3fa857
   languageName: node
   linkType: hard
 
@@ -23564,13 +23542,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "cookie@npm:1.0.2"
-  checksum: 2c5a6214147ffa7135ce41860c781de17e93128689b0d080d3116468274b3593b607bcd462ac210d3a61f081db3d3b09ae106e18d60b1f529580e95cf2db8a55
-  languageName: node
-  linkType: hard
-
 "cookiejar@npm:^2.1.2":
   version: 2.1.3
   resolution: "cookiejar@npm:2.1.3"
@@ -23653,13 +23624,6 @@ __metadata:
   version: 3.39.0
   resolution: "core-js@npm:3.39.0"
   checksum: 7a3670e9a2a89e0a049daa288d742d09f6e16d27a8945c5e2ef6fc45dc57e5c4bc5db589da05947486f54ae978d14cf27bd3fb1db0b9907000a611e8af37355b
-  languageName: node
-  linkType: hard
-
-"core-js@npm:^3.40.0":
-  version: 3.41.0
-  resolution: "core-js@npm:3.41.0"
-  checksum: 05331e92f354d3b92fa296fb3fc90c7b25d1a65230046c68651be29d67245bb156bdde7bf5c8cf8b3ecddfff93273a9ba6567f5e4ee6ceb70f39cee430693509
   languageName: node
   linkType: hard
 
@@ -37359,19 +37323,6 @@ __metadata:
   bin:
     next-swagger-doc-cli: dist/cli.js
   checksum: b9e11ecda6327e4a881a61f17b96407d9a260a532467b3552eb4bdb874c48889fc437db437395c121c80b33ba3be87cbff00f34c6f103259df78588227c83a2e
-  languageName: node
-  linkType: hard
-
-"next-test-api-route-handler@npm:^4.0.15":
-  version: 4.0.15
-  resolution: "next-test-api-route-handler@npm:4.0.15"
-  dependencies:
-    "@whatwg-node/server": ^0.9.70
-    cookie: ^1.0.2
-    core-js: ^3.40.0
-  peerDependencies:
-    next: ">=9"
-  checksum: 52e02bf15bbb716ce570814119e3f24493f5969f4e0ce9eea175479bd525f480684517489e711b5295abf79a088119026ea71af107a5c00d6656b23db824cc20
   languageName: node
   linkType: hard
 

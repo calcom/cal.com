@@ -26,7 +26,6 @@
   },
   "devDependencies": {
     "@testing-library/react-hooks": "^8.0.1",
-    "@types/web-push": "^3.6.3",
-    "next-test-api-route-handler": "^4.0.15"
+    "@types/web-push": "^3.6.3"
   }
 }

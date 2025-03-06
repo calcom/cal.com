@@ -4,11 +4,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
+import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
-import { CreationSource } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -32,12 +32,10 @@ async function handler(req: NextRequest) {
   const session = await getServerSession({ req: legacyRequest });
   /* To mimic API behavior and comply with types */
   legacyRequest.userId = session?.user?.id || -1;
-  legacyRequest.body = {
-    ...body,
-    creationSource: CreationSource.WEBAPP,
-  };
-  const booking = await handleNewBooking(legacyRequest);
-  return NextResponse.json(booking);
+  legacyRequest.body = body;
+
+  const createdBookings: BookingResponse[] = await handleNewRecurringBooking(legacyRequest);
+  return NextResponse.json(createdBookings);
 }
 
-export const POST = defaultResponderForAppDir(handler, "/api/book/event");
+export const POST = defaultResponderForAppDir(handler, "/api/book/recurring-event");
