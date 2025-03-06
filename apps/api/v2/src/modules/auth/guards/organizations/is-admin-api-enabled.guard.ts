@@ -37,7 +37,6 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
   ): Promise<{ canAccess: boolean; organization?: Team | null }> {
     let canAccess = false;
     const REDIS_CACHE_KEY = `apiv2:org:${organizationId}:guard:isAdminAccess`;
-    // Check Redis Cache
     const cachedData = await this.redisService.redis.get(REDIS_CACHE_KEY);
 
     if (cachedData) {

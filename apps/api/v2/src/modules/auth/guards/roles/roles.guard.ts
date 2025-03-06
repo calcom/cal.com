@@ -33,16 +33,14 @@ export class RolesGuard implements CanActivate {
     teamId: string,
     allowedRole: string
   ): Promise<{ canAccess: boolean }> {
-    // const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
-    //   teamId ?? "none"
-    // }:guard:roles:${allowedRole}`;
-    // const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
-    //
+    const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
+      teamId ?? "none"
+    }:guard:roles:${allowedRole}`;
+    const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
 
-    // if (cachedAccess) {
-    //   return { canAccess: cachedAccess };
-    // }
-    console.log("allowedRole: ", allowedRole);
+    if (cachedAccess) {
+      return { canAccess: cachedAccess };
+    }
 
     let canAccess = false;
 
@@ -100,7 +98,6 @@ export class RolesGuard implements CanActivate {
     // Checking the role for team and org, org is above team in term of permissions
     else if (Boolean(teamId) && Boolean(orgId)) {
       const teamMembership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
-
       const orgMembership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
 
       if (!orgMembership) {
@@ -141,7 +138,7 @@ export class RolesGuard implements CanActivate {
         });
       }
     }
-    // await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
+    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
     return { canAccess };
   }
 }

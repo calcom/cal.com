@@ -63,7 +63,6 @@ export class OrganizationsConferencingController {
     private readonly organizationsConferencingService: OrganizationsConferencingService
   ) {}
 
-  // Team-level endpoints
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
@@ -89,7 +88,7 @@ export class OrganizationsConferencingController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get OAuth conferencing app auth url for a team" })
+  @ApiOperation({ summary: "Get OAuth conferencing app's auth url for a team" })
   async getTeamOAuthUrl(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,

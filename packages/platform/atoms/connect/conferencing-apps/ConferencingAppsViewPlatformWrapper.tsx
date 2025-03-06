@@ -196,20 +196,20 @@ export const ConferencingAppsViewPlatformWrapper = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {/* {installedApps && !installedApps.find((app) => app.slug == GOOGLE_MEET) && ( */}
-          <DropdownMenuItem>
-            <DropdownItem color="secondary" onClick={() => connect(GOOGLE_MEET)}>
-              {t("google_meet")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          {/* )} */}
-          {/* {installedApps && !installedApps?.find((app) => app.slug == ZOOM) && ( */}
-          <DropdownMenuItem>
-            <DropdownItem color="secondary" onClick={() => connect(ZOOM)}>
-              {t("zoom")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          {/* )} */}
+          {installedApps && !installedApps.find((app) => app.slug == GOOGLE_MEET) && (
+            <DropdownMenuItem>
+              <DropdownItem color="secondary" onClick={() => connect(GOOGLE_MEET)}>
+                {t("google_meet")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
+          {installedApps && !installedApps?.find((app) => app.slug == ZOOM) && (
+            <DropdownMenuItem>
+              <DropdownItem color="secondary" onClick={() => connect(ZOOM)}>
+                {t("zoom")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
 
           {/* {installedApps && !installedApps?.find((app) => app.slug == OFFICE_365_VIDEO) && ( */}
           <DropdownMenuItem>
@@ -228,12 +228,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
       <SettingsHeader
         title={t("conferencing")}
         description={t("conferencing_description")}
-        CTA={
-          <AddConferencingButtonPlatform
-
-          // installedApps={installedIntegrationsQuery.data?.items}
-          />
-        }
+        CTA={<AddConferencingButtonPlatform installedApps={installedIntegrationsQuery.data?.items} />}
         borderInShellHeader={true}>
         <>
           <div className="bg-default w-full sm:mx-0 xl:mt-0">

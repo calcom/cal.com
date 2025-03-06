@@ -13,7 +13,6 @@ export type UseAtomBulkUpdateEventTypesToDefaultLocationProps = {
   onSuccess?: () => void;
   onError?: (err: Error) => void;
   onSettled?: () => void;
-  organizationId?: number;
   teamId?: number;
 };
 export const useAtomBulkUpdateEventTypesToDefaultLocation = ({

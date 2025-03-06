@@ -25,11 +25,9 @@ export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo, teamId }: Us
   let pathname = `conferencing/${ZOOM}/oauth/auth-url`;
 
   if (teamId) {
-    // Team-level operation
     pathname = `organizations/${organizationId}/teams/${teamId}/conferencing/${ZOOM}/oauth/auth-url`;
   }
 
-  // Add query parameters
   const queryParams = new URLSearchParams();
   if (returnTo) queryParams.append("returnTo", returnTo);
   if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
@@ -111,11 +109,9 @@ export const useConnectNonOauthApp = (
       let pathname = `/conferencing/${app}/connect`;
 
       if (teamId) {
-        // Team-level operation
         pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/connect`;
       }
 
-      // Add query parameters
       const queryParams = new URLSearchParams();
       if (returnTo) queryParams.append("returnTo", returnTo);
       if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);

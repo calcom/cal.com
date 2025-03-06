@@ -12,7 +12,6 @@ import {
   CONFERENCING_APPS,
   CAL_VIDEO,
   GOOGLE_MEET,
-  SUCCESS_STATUS,
   ZOOM,
   OFFICE_365_VIDEO,
 } from "@calcom/platform-constants";

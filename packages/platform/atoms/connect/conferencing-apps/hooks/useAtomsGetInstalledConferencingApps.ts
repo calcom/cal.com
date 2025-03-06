@@ -15,7 +15,6 @@ export const useAtomsGetInstalledConferencingApps = (teamId?: number) => {
   let pathname = "/atoms/conferencing";
 
   if (teamId) {
-    // Team-level operation
     pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/conferencing`;
   }
 
