@@ -206,9 +206,25 @@ const getEmbedTypeSpecificString = ({
   embedCalOrigin: string;
   namespace: string;
 }) => {
-  const frameworkCodes = Codes[embedFramework];
+  const frameworkCodes = Codes[embedFramework as keyof typeof Codes];
   if (!frameworkCodes) {
     throw new Error(`No code available for the framework:${embedFramework}`);
+  }
+  if (embedFramework === "react-atom") {
+    return frameworkCodes["inline"]({
+      calLink,
+      uiInstructionCode: getEmbedUIInstructionString({
+        apiName: "cal",
+        theme: previewState.theme,
+        brandColor: previewState.palette.brandColor,
+        darkBrandColor: previewState.palette.darkBrandColor,
+        hideEventTypeDetails: previewState.hideEventTypeDetails,
+        layout: previewState.layout,
+      }),
+      previewState: previewState.inline,
+      embedCalOrigin,
+      namespace,
+    });
   }
   if (embedType === "email") return "";
   let uiInstructionStringArg: {
