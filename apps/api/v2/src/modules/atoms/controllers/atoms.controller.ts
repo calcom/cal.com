@@ -146,7 +146,7 @@ export class AtomsController {
     @Body() body: BulkUpdateEventTypeToDefaultLocationDto,
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
-    await this.eventTypesService.bulkUpdateEventTypesDefaultLocation(user, body.eventTypeIds, teamId);
+    await this.eventTypesService.bulkUpdateTeamEventTypesDefaultLocation(body.eventTypeIds, teamId);
     return {
       status: SUCCESS_STATUS,
     };
@@ -193,7 +193,7 @@ export class AtomsController {
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ApiResponse<ConnectedApps>> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(user, teamId);
+    const conferencingApps = await this.conferencingService.getTeamConferencingApps(user, teamId);
 
     return {
       status: SUCCESS_STATUS,
@@ -207,7 +207,7 @@ export class AtomsController {
   async listUserInstalledConferencingApps(
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<ConnectedApps>> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(user, undefined);
+    const conferencingApps = await this.conferencingService.getUserConferencingApps(user);
     return {
       status: SUCCESS_STATUS,
       data: conferencingApps,

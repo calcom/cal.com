@@ -22,6 +22,7 @@ import {
   getBulkUserEventTypes,
   getBulkTeamEventTypes,
   bulkUpdateEventsToDefaultLocation,
+  bulkUpdateTeamEventsToDefaultLocation,
 } from "@calcom/platform-libraries";
 import type {
   App,
@@ -329,10 +330,17 @@ export class EventTypesAtomService {
     };
   }
 
-  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[], teamId?: number) {
+  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[]) {
     return bulkUpdateEventsToDefaultLocation({
       eventTypeIds,
       user,
+      prisma: this.dbWrite.prisma as unknown as PrismaClient,
+    });
+  }
+
+  async bulkUpdateTeamEventTypesDefaultLocation(eventTypeIds: number[], teamId: number) {
+    return bulkUpdateTeamEventsToDefaultLocation({
+      eventTypeIds,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
       teamId,
     });
