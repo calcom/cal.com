@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
@@ -25,6 +24,7 @@ import {
   Label,
   Input,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
@@ -296,6 +296,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onDatesChange={(values) => {
                         onChange(values);
                       }}
+                      strictlyBottom={true}
                     />
                   )}
                 />

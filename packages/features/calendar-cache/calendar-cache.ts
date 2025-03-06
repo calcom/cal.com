@@ -1,7 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import prisma from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { Calendar } from "@calcom/types/Calendar";
 
 import { CalendarCacheRepository } from "./calendar-cache.repository";
@@ -10,9 +9,8 @@ import { CalendarCacheRepositoryMock } from "./calendar-cache.repository.mock";
 
 export class CalendarCache {
   static async initFromCredentialId(credentialId: number): Promise<ICalendarCacheRepository> {
-    const credential = await prisma.credential.findUnique({
-      where: { id: credentialId },
-      select: credentialForCalendarServiceSelect,
+    const credential = await CredentialRepository.findCredentialForCalendarServiceById({
+      id: credentialId,
     });
     const calendar = await getCalendar(credential);
     return await CalendarCache.init(calendar);

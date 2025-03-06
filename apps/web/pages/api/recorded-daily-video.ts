@@ -2,11 +2,6 @@ import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import {
-  getDownloadLinkOfCalVideoByRecordingId,
-  submitBatchProcessorTranscriptionJob,
-} from "@calcom/core/videoClient";
-import { getAllTranscriptsAccessLinkFromMeetingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -14,6 +9,11 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import {
+  getAllTranscriptsAccessLinkFromMeetingId,
+  getDownloadLinkOfCalVideoByRecordingId,
+  submitBatchProcessorTranscriptionJob,
+} from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";

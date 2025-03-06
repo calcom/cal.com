@@ -4,11 +4,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import EventManager from "@calcom/core/EventManager";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import EventManager from "@calcom/lib/EventManager";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -76,7 +76,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
   const allCredentials = await getAllCredentials(user, {
-    ...eventType,
+    ...booking.eventType,
     metadata,
   });
 
@@ -130,7 +130,7 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
 
 /**
  * @deprecated
- * We need to create a PaymentManager in `@calcom/core`
+ * We need to create a PaymentManager in `@calcom/lib`
  * to prevent circular dependencies on App Store migration
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
