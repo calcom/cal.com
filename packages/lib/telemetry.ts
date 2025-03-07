@@ -85,6 +85,13 @@ export const nextCollectBasicSettings: CollectOpts = {
   ],
 };
 
+const getCookies = (req: NextRequest | NextApiRequest): { [key: string]: string } => {
+  const isAppRouter = typeof (req as NextRequest).headers.get === "function";
+  return isAppRouter
+    ? Object.fromEntries((req as NextRequest).cookies.getAll().map((c) => [c.name, c.value]))
+    : ((req as NextApiRequest).cookies as { [key: string]: string });
+};
+
 export const extendEventData = (
   req: NextRequest | NextApiRequest,
   res: NextResponse | NextApiResponse,
@@ -95,7 +102,7 @@ export const extendEventData = (
       ? !!req.headers.get("x-vercel-id")
       : !!(req.headers as { [key: string]: string })?.["x-vercel-id"];
   const pageUrl = original?.page_url || req.url || undefined;
-  const cookies = req.cookies as { [key: string]: string };
+  const cookies = getCookies(req);
   return {
     title: "",
     ipAddress: "",
