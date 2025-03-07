@@ -254,7 +254,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               name: team.team.name,
               slug: team.team.slug,
             };
-          }),
+          })
+          .filter((team) => team !== undefined),
         attributes,
       };
     }) || []

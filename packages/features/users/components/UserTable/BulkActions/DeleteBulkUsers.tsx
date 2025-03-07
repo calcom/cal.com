@@ -32,7 +32,6 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
           }
           const newRows = oldData.rows.filter((user) => !userIds.includes(user.id));
           return {
-            ...oldData,
             rows: newRows,
             meta: {
               totalRowCount: oldData.meta.totalRowCount - (oldData.rows.length - newRows.length),

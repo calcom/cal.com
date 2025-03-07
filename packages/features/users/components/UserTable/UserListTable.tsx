@@ -141,12 +141,12 @@ function UserListTableContent() {
 
   const columnFilters = useColumnFilters();
 
-  const { pageIndex, pageSize } = useDataTable();
+  const { limit, offset } = useDataTable();
 
   const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
-      limit: pageSize,
-      offset: pageIndex * pageSize,
+      limit,
+      offset,
       searchTerm: debouncedSearchTerm,
       expand: ["attributes"],
       filters: columnFilters,
@@ -161,7 +161,7 @@ function UserListTableContent() {
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.rows ?? [], [data]) as UserTableUser[];
+  const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -174,8 +174,8 @@ function UserListTableContent() {
       if (!attributes?.length) {
         return [];
       }
-      return (
-        (attributes?.map((attribute) => {
+      const attributeColumns: ColumnDef<UserTableUser>[] =
+        attributes?.map((attribute) => {
           // TODO: We need to normalize AttributeOption table first
           // so that we can have `number_value` column for numeric operations.
           // Currently, `value` column is used for both text and number attributes.
@@ -184,7 +184,7 @@ function UserListTableContent() {
           const isNumber = false;
           const isText = attribute.type === "TEXT";
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
-          const isMultiSelect = attribute.type === "MULTI_SELECT";
+          // const isMultiSelect = attribute.type === "MULTI_SELECT";
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
@@ -200,15 +200,15 @@ function UserListTableContent() {
               filter: { type: filterType },
             },
             size: 120,
-            accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
+            accessorFn: (data) => data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
             cell: ({ row }) => {
-              const attributeValues = row.original.attributes.filter(
+              const attributeValues = row.original.attributes?.filter(
                 (attr) => attr.attributeId === attribute.id
               );
-              if (attributeValues.length === 0) return null;
+              if (attributeValues?.length === 0) return null;
               return (
                 <div className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}>
-                  {attributeValues.map((attributeValue) => {
+                  {attributeValues?.map((attributeValue) => {
                     const isAGroupOption = attributeValue.contains?.length > 0;
                     const suffix = attribute.isWeightsEnabled
                       ? `${attributeValue.weight || 100}%`
@@ -238,27 +238,22 @@ function UserListTableContent() {
               );
             },
             filterFn: (row, id, filterValue) => {
-              const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+              const attributeValues = row.original.attributes?.filter((attr) => attr.attributeId === id);
 
               if (isTextFilterValue(filterValue)) {
-                return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+                return attributeValues?.some((attr) => textFilter(attr.value, filterValue)) ?? false;
               } else if (isSingleSelectFilterValue(filterValue)) {
-                return singleSelectFilter(
-                  attributeValues.map((attr) => attr.value),
-                  filterValue
-                );
+                return singleSelectFilter(attributeValues?.map((attr) => attr.value) ?? [], filterValue);
               } else if (isMultiSelectFilterValue(filterValue)) {
-                return multiSelectFilter(
-                  attributeValues.map((attr) => attr.value),
-                  filterValue
-                );
+                return multiSelectFilter(attributeValues?.map((attr) => attr.value) ?? [], filterValue);
               }
               return false;
             },
           };
-        }) as ColumnDef<UserTableUser>[]) ?? []
-      );
+        }) ?? [];
+      return attributeColumns;
     };
+
     const cols: ColumnDef<UserTableUser>[] = [
       // Disabling select for this PR: Will work on actions etc in a follow up
       {
@@ -430,7 +425,7 @@ function UserListTableContent() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, totalRowCount, attributes]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate]);
 
   const table = useReactTable({
     data: flatData,

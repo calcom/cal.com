@@ -308,7 +308,6 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
           });
 
           return {
-            ...oldData,
             rows: newRows,
             meta: {
               totalRowCount: oldData.meta.totalRowCount - (oldData.rows.length - newRows.length),

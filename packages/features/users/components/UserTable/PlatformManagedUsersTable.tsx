@@ -323,8 +323,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             <DeleteBulkUsers
-              limit={limit}
-              offset={offset}
               users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
               onRemove={() => table.toggleAllPageRowsSelected(false)}
             />
