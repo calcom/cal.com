@@ -12,7 +12,9 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json",
+    "build": "yarn generate || true",
+    "generate": "yarn tsc --project tsconfig.json"
   },
   "dependencies": {
     "@calcom/dailyvideo": "*",
