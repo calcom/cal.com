@@ -488,6 +488,8 @@ function UserListTableContent() {
     },
   });
 
+  const utils = trpc.useUtils();
+
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
   const handleDownload = async () => {
@@ -507,7 +509,7 @@ function UserListTableContent() {
       const limit = 100;
 
       while (offset !== undefined) {
-        const result = await trpc.viewer.organizations.listMembers.query({
+        const result = await utils.viewer.organizations.listMembers.fetch({
           limit,
           offset,
           searchTerm: debouncedSearchTerm,

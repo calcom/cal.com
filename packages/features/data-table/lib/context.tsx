@@ -31,6 +31,9 @@ export type DataTableContextType = {
   pageSize: number;
   setPageIndex: (pageIndex: number) => void;
   setPageSize: (pageSize: number) => void;
+
+  offset: number;
+  limit: number;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -124,6 +127,8 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
         pageSize,
         setPageIndex,
         setPageSize: setPageSizeAndGoToFirstPage,
+        limit: pageSize,
+        offset: pageIndex * pageSize,
       }}>
       {children}
     </DataTableContext.Provider>

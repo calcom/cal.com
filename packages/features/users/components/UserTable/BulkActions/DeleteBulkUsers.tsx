@@ -1,4 +1,4 @@
-import { DataTableSelectionBar } from "@calcom/features/data-table";
+import { DataTableSelectionBar, useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
@@ -12,22 +12,31 @@ interface Props {
 
 export function DeleteBulkUsers({ users, onRemove }: Props) {
   const { t } = useLocale();
+  const { limit, offset } = useDataTable();
   const selectedRows = users; // Get selected rows from table
   const utils = trpc.useUtils();
   const deleteMutation = trpc.viewer.organizations.bulkDeleteUsers.useMutation({
     onSuccess: (_, { userIds }) => {
       showToast("Deleted Users", "success");
-      utils.viewer.organizations.listMembers.setInfiniteData(
-        { limit: 10, searchTerm: "", expand: ["attributes"] },
-        // @ts-expect-error - infinite data types are not correct
+      utils.viewer.organizations.listMembers.setData(
+        { searchTerm: "", limit, offset, expand: ["attributes"] },
         (oldData) => {
-          if (!oldData) return oldData;
+          if (!oldData) {
+            return {
+              canUserGetMembers: false,
+              rows: [],
+              meta: {
+                totalRowCount: 0,
+              },
+            };
+          }
+          const newRows = oldData.rows.filter((user) => !userIds.includes(user.id));
           return {
             ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              rows: page.rows.filter((user) => !userIds.includes(user.id)),
-            })),
+            rows: newRows,
+            meta: {
+              totalRowCount: oldData.meta.totalRowCount - (oldData.rows.length - newRows.length),
+            },
           };
         }
       );

@@ -70,11 +70,13 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const columnFilters = useColumnFilters();
 
   const { pageIndex, pageSize } = useDataTable();
+  const limit = pageSize;
+  const offset = pageIndex * pageSize;
 
   const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
-      limit: pageSize,
-      offset: pageIndex * pageSize,
+      limit,
+      offset,
       searchTerm: debouncedSearchTerm,
       filters: columnFilters,
       oAuthClientId,
@@ -321,6 +323,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             <DeleteBulkUsers
+              limit={limit}
+              offset={offset}
               users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
               onRemove={() => table.toggleAllPageRowsSelected(false)}
             />

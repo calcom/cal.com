@@ -2,7 +2,7 @@ import type { Table } from "@tanstack/react-table";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
+import { DataTableSelectionBar, useDataTable, type ColumnFilter } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
@@ -236,6 +236,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
     foundAttributeInCache,
   } = useAttributes();
 
+  const { limit, offset } = useDataTable();
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -244,71 +245,74 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
       // Optimistically update the infinite query data
       const selectedRows = table.getSelectedRowModel().flatRows;
 
-      utils.viewer.organizations.listMembers.setInfiniteData(
+      utils.viewer.organizations.listMembers.setData(
         {
-          limit: 10,
+          limit,
+          offset,
           searchTerm: "",
           expand: ["attributes"],
           filters,
         },
-        // @ts-expect-error i really dont know how to type this
         (oldData) => {
           if (!oldData) {
             return {
-              pages: [],
-              pageParams: [],
+              canUserGetMembers: false,
+              rows: [],
+              meta: {
+                totalRowCount: 0,
+              },
             };
           }
 
-          const newPages = oldData?.pages.map((page) => ({
-            ...page,
-            rows: page.rows.map((row) => {
-              if (selectedRows.some((selectedRow) => selectedRow.original.id === row.id)) {
-                // Update the attributes for the selected users
+          const newRows = oldData.rows.map((row) => {
+            if (selectedRows.some((selectedRow) => selectedRow.original.id === row.id)) {
+              // Update the attributes for the selected users
 
-                const attributeOptionValues = foundAttributeInCache?.options.filter((option) =>
-                  selectedAttributeOptions.includes(option.id)
-                );
+              const attributeOptionValues = foundAttributeInCache?.options.filter((option) =>
+                selectedAttributeOptions.includes(option.id)
+              );
 
-                const newAttributes =
-                  row.attributes?.filter((attr) => attr.attributeId !== selectedAttribute) || [];
+              const newAttributes =
+                row.attributes?.filter((attr) => attr.attributeId !== selectedAttribute) || [];
 
-                if (attributeOptionValues && attributeOptionValues.length > 0) {
-                  const newAttributeValues = attributeOptionValues?.map((value) => ({
-                    id: value.id,
-                    attributeId: value.attributeId,
-                    value: value.value,
-                    slug: value.slug,
-                    contains: value.contains,
-                    isGroup: value.isGroup,
-                    weight: 100,
-                  }));
-                  newAttributes.push(...newAttributeValues);
-                } else {
-                  // Text or number input we don't have an option to fall back on
-                  newAttributes.push({
-                    id: "-1",
-                    attributeId: foundAttributeInCache?.id ?? "-1",
-                    value: selectedAttributeOptions[0],
-                    slug: slugify(selectedAttributeOptions[0]),
-                    contains: [],
-                    isGroup: false,
-                    weight: 100,
-                  });
-                }
-
-                return {
-                  ...row,
-                  attributes: newAttributes,
-                };
+              if (attributeOptionValues && attributeOptionValues.length > 0) {
+                const newAttributeValues = attributeOptionValues?.map((value) => ({
+                  id: value.id,
+                  attributeId: value.attributeId,
+                  value: value.value,
+                  slug: value.slug,
+                  contains: value.contains,
+                  isGroup: value.isGroup,
+                  weight: 100,
+                }));
+                newAttributes.push(...newAttributeValues);
+              } else {
+                // Text or number input we don't have an option to fall back on
+                newAttributes.push({
+                  id: "-1",
+                  attributeId: foundAttributeInCache?.id ?? "-1",
+                  value: selectedAttributeOptions[0],
+                  slug: slugify(selectedAttributeOptions[0]),
+                  contains: [],
+                  isGroup: false,
+                  weight: 100,
+                });
               }
-              return row;
-            }),
-          }));
+
+              return {
+                ...row,
+                attributes: newAttributes,
+              };
+            }
+            return row;
+          });
 
           return {
             ...oldData,
-            pages: newPages,
+            rows: newRows,
+            meta: {
+              totalRowCount: oldData.meta.totalRowCount - (oldData.rows.length - newRows.length),
+            },
           };
         }
       );
