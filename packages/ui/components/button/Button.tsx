@@ -4,7 +4,7 @@ import type { LinkProps } from "next/link";
 import Link from "next/link";
 import React, { forwardRef } from "react";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
@@ -46,7 +46,7 @@ export const buttonClasses = cva(
       variant: {
         button: "",
         icon: "flex justify-center",
-        fab: "rounded-full justify-center md:rounded-[10px] radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
+        fab: "min-w-14 min-h-14 md:min-w-min md:min-h-min rounded-full justify-center md:rounded-[10px] radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
       },
       color: {
         primary: [
@@ -206,7 +206,7 @@ export const buttonClasses = cva(
       {
         variant: "fab",
         size: "base",
-        className: "min-h-14 md:min-h-9 md:min-w-auto md:px-4 md:py-2.5",
+        className: "md:px-4 md:py-2.5",
       },
     ],
     defaultVariants: {

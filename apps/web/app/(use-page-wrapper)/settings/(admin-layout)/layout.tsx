@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import React from "react";
 
@@ -8,10 +7,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import SettingsLayoutAppDir from "../(settings-layout)/layout";
 import type { AdminLayoutProps } from "./AdminLayoutAppDirClient";
-
-const AdminLayoutAppDirClient = dynamic(() => import("./AdminLayoutAppDirClient"), {
-  ssr: false,
-});
+import AdminLayoutAppDirClient from "./AdminLayoutAppDirClient";
 
 type AdminLayoutAppDirProps = Omit<AdminLayoutProps, "userRole">;
 

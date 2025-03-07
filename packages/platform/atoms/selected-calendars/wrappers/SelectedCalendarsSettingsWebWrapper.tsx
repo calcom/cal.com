@@ -65,6 +65,8 @@ const ConnectedCalendarList = ({
               description={connectedCalendar.primary?.email ?? connectedCalendar.integration.description}
               className="border-subtle mt-4 rounded-lg border"
               actions={
+                // Delegation credential can't be disconnected
+                !connectedCalendar.delegationCredentialId &&
                 !disableConnectionModification && (
                   <div className="flex w-32 justify-end">
                     <DisconnectIntegration
@@ -93,6 +95,7 @@ const ConnectedCalendarList = ({
                           destination={cal.externalId === destinationCalendarId}
                           credentialId={cal.credentialId}
                           eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
+                          delegationCredentialId={connectedCalendar.delegationCredentialId}
                         />
                       ))}
                     </ul>
@@ -117,14 +120,17 @@ const ConnectedCalendarList = ({
             }
             iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
             actions={
-              <div className="flex w-32 justify-end">
-                <DisconnectIntegration
-                  credentialId={connectedCalendar.credentialId}
-                  trashIcon
-                  onSuccess={onChanged}
-                  buttonProps={{ className: "border border-default" }}
-                />
-              </div>
+              // Delegation credential can't be disconnected
+              !connectedCalendar.delegationCredentialId && (
+                <div className="flex w-32 justify-end">
+                  <DisconnectIntegration
+                    credentialId={connectedCalendar.credentialId}
+                    trashIcon
+                    onSuccess={onChanged}
+                    buttonProps={{ className: "border border-default" }}
+                  />
+                </div>
+              )
             }
           />
         );
