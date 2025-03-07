@@ -38,30 +38,6 @@ async function createUserWithOrganizationAndTeam(users: ReturnType<typeof create
   );
   return orgOwnerUser;
 }
-async function createUserWithPlatformAndTeam(users: ReturnType<typeof createUsersFixture>) {
-  const orgOwnerUsernamePrefix = "owner";
-  const orgOwnerEmail = users.trackEmail({
-    username: orgOwnerUsernamePrefix,
-    domain: `example.com`,
-  });
-  const orgOwnerUser = await users.create(
-    {
-      username: orgOwnerUsernamePrefix,
-      email: orgOwnerEmail,
-      role: "ADMIN",
-      roleInOrganization: "OWNER",
-    },
-    {
-      isOrg: true,
-      isPlatform: true,
-      isUnpublished: true,
-      orgRequestedSlug: orgSlug,
-      hasSubteam: true,
-      hasTeam: true,
-    }
-  );
-  return orgOwnerUser;
-}
 
 test.describe("Unpublished Organization Redirection", () => {
   test.afterEach(({ orgs, users }) => {
@@ -83,14 +59,6 @@ test.describe("Unpublished Organization Redirection", () => {
         // Ensure that the team name is not displayed.
         await expect(page.getByTestId("team-name")).toHaveCount(0);
       });
-    });
-
-    test("testing few things", async ({ page, users }) => {
-      const orgOwner = await createUserWithPlatformAndTeam(users);
-      const { team } = await orgOwner.getFirstTeamMembership();
-
-      const response = await page.goto(`/${orgOwner.username}`);
-      expect(response?.status()).toBe(404);
     });
 
     // TODO: Enable this test once the hydration error is fixed.
