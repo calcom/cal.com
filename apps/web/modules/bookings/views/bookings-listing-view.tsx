@@ -387,6 +387,7 @@ function BookingsContent({ status }: BookingsProps) {
                 fetchNextPage={query.fetchNextPage}
                 isFetching={query.isFetching}
                 variant="compact"
+                paginationMode="infinite"
                 ToolbarLeft={
                   <>
                     <DataTableFilters.AddFilterButton table={table} />

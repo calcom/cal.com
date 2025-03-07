@@ -131,6 +131,7 @@ export function RoutingFormResponsesTable() {
           hasNextPage={hasNextPage}
           fetchNextPage={fetchNextPage}
           isFetching={isFetching}
+          paginationMode="infinite"
           ToolbarLeft={
             <>
               <OrgTeamsFilter />
