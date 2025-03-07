@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 import {
-  CalendarAppDomainWideDelegationConfigurationError,
-  CalendarAppDomainWideDelegationInvalidGrantError,
+  CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
@@ -49,26 +49,26 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     appSlug: config.slug,
     currentTokenObject: tokenResponse,
     fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
-      const isDomainWideDelegated = Boolean(credential?.delegatedTo);
-      if (!isDomainWideDelegated && !refreshToken) {
+      const isDelegated = Boolean(credential?.delegatedTo);
+      if (!isDelegated && !refreshToken) {
         return null;
       }
 
-      const credentials = isDomainWideDelegated
+      const credentials = isDelegated
         ? {
             client_id: credential?.delegatedTo?.serviceAccountKey?.client_id,
             client_secret: credential?.delegatedTo?.serviceAccountKey?.private_key,
           }
         : await getO365VideoAppKeys();
 
-      if (isDomainWideDelegated && (!credentials.client_id || !credentials.client_secret)) {
-        throw new CalendarAppDomainWideDelegationConfigurationError(
-          "Domain Wide Delegated credential without clientId or Secret"
+      if (isDelegated && (!credentials.client_id || !credentials.client_secret)) {
+        throw new CalendarAppDelegationCredentialConfigurationError(
+          "Delegation credential without clientId or Secret"
         );
       }
 
-      const url = getAuthUrl(isDomainWideDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
-      const scope = isDomainWideDelegated
+      const url = getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+      const scope = isDelegated
         ? "https://graph.microsoft.com/.default"
         : "User.Read Calendars.Read Calendars.ReadWrite";
 
@@ -76,8 +76,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         scope,
         client_id: credentials.client_id || "",
         client_secret: credentials.client_secret || "",
-        grant_type: isDomainWideDelegated ? "client_credentials" : "refresh_token",
-        ...(isDomainWideDelegated ? {} : { refresh_token: refreshToken ?? "" }),
+        grant_type: isDelegated ? "client_credentials" : "refresh_token",
+        ...(isDelegated ? {} : { refresh_token: refreshToken ?? "" }),
       };
 
       return await fetch(url, {
@@ -108,8 +108,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
   function getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
     if (delegatedTo) {
       if (!tenantId) {
-        throw new CalendarAppDomainWideDelegationInvalidGrantError(
-          "Invalid DomainWideDelegation Settings: tenantId is missing"
+        throw new CalendarAppDelegationCredentialInvalidGrantError(
+          "Invalid DelegationCredential Settings: tenantId is missing"
         );
       }
       return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
@@ -129,18 +129,18 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
   async function getAzureUserId(credential: CredentialForCalendarServiceWithTenantId) {
     if (azureUserId) return azureUserId;
 
-    const isDomainWideDelegated = Boolean(credential?.delegatedTo);
+    const isDelegated = Boolean(credential?.delegatedTo);
 
-    if (!isDomainWideDelegated) return null;
+    if (!isDelegated) return null;
 
-    const url = getAuthUrl(isDomainWideDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+    const url = getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
-    const dwdClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
-    const dwdClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
+    const delegationCredentialClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
+    const delegationCredentialClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
 
-    if (!dwdClientId || !dwdClientSecret) {
-      throw new CalendarAppDomainWideDelegationConfigurationError(
-        "Domain Wide Delegated credential without clientId or Secret"
+    if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
+      throw new CalendarAppDelegationCredentialConfigurationError(
+        "Delegation credential without clientId or Secret"
       );
     }
     const loginResponse = await fetch(url, {
@@ -148,9 +148,9 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         scope: "https://graph.microsoft.com/.default",
-        client_id: dwdClientId,
+        client_id: delegationCredentialClientId,
         grant_type: "client_credentials",
-        client_secret: dwdClientSecret,
+        client_secret: delegationCredentialClientSecret,
       }),
     });
 
@@ -173,7 +173,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     const parsedBody = await response.json();
 
     if (!parsedBody?.value?.[0]?.id) {
-      throw new CalendarAppDomainWideDelegationInvalidGrantError(
+      throw new CalendarAppDelegationCredentialInvalidGrantError(
         "User might not exist in Microsoft Azure Active Directory"
       );
     }
