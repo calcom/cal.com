@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Між цими користувачами вже існує зворотне перенаправлення.",
   "previous_ooo_empty_title": "Попередніх режимів \"Поза офісом\" не знайдено",
   "previous": "Попередній",
+  "uid": "UID",
+  "link": "Посилання",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
