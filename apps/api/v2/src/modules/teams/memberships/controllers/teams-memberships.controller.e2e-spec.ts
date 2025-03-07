@@ -1,8 +1,8 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateOrgTeamMembershipDto } from "@/modules/organizations/inputs/create-organization-team-membership.input";
-import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/inputs/update-organization-team-membership.input";
-import { OrgTeamMembershipOutputDto } from "@/modules/organizations/outputs/organization-teams-memberships.output";
+import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
+import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
+import { OrgTeamMembershipOutputDto } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";

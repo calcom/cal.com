@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import type { ToastT } from "sonner";
+import type { ExternalToast } from "sonner";
 import { toast } from "sonner";
 
 import { Icon } from "../icon";
@@ -72,9 +72,9 @@ export function showToast(
   message: string,
   variant: ToastVariants,
   // Options or duration (duration for backwards compatibility reasons)
-  options: number | ToastT = TOAST_VISIBLE_DURATION
+  options: number | ExternalToast = TOAST_VISIBLE_DURATION
 ) {
-  const _options: ToastT = typeof options === "number" ? { duration: options, id: "" } : options;
+  const _options: ExternalToast = typeof options === "number" ? { duration: options } : options;
   if (!_options.duration) _options.duration = TOAST_VISIBLE_DURATION;
   if (!_options.position) _options.position = "bottom-center";
 

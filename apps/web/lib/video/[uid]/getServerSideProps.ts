@@ -95,23 +95,26 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     exp: epochTimeFourteenDaysAfter,
   });
 
+  const sessionUserId = !!session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+
   // set meetingPassword for guests
-  if (session?.user.id !== bookingObj.user?.id) {
+  if (sessionUserId !== bookingObj.user?.id) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
       videoReferencePassword,
-      session?.user.id
+      sessionUserId
     );
 
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
+
   // Only for backward compatibility and setting user id in participants for organizer
   else {
     const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
       oldVideoReference.id,
       videoReferencePassword,
-      session?.user.id
+      sessionUserId
     );
     if (!!meetingPassword) {
       bookingObj.references.forEach((bookRef) => {

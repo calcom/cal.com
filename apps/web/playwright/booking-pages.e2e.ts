@@ -13,6 +13,7 @@ import {
   bookTimeSlot,
   confirmBooking,
   confirmReschedule,
+  expectSlotNotAllowedToBook,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -126,10 +127,7 @@ test.describe("free user", () => {
 
     await page.goto(bookingUrl);
 
-    // book same time spot again
-    await bookTimeSlot(page, { expectedStatusCode: 409 });
-
-    await page.locator("[data-testid=booking-fail]").waitFor({ state: "visible" });
+    await expectSlotNotAllowedToBook(page);
   });
 });
 
@@ -322,23 +320,24 @@ test.describe("pro user", () => {
     await Promise.all(promises);
   });
 
-  test("Time slots should be reserved when selected", async ({ context, page }) => {
+  test("Time slots should be reserved when selected", async ({ context, page, browser }) => {
     const initialUrl = page.url();
     await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
-    const pageTwo = await context.newPage();
-    await pageTwo.goto(initialUrl);
-    await pageTwo.waitForURL(initialUrl);
-    await pageTwo.locator('[data-testid="event-type-link"]').first().click();
+    const newContext = await browser.newContext();
+    const pageTwoInNewContext = await newContext.newPage();
+    await pageTwoInNewContext.goto(initialUrl);
+    await pageTwoInNewContext.waitForURL(initialUrl);
+    await pageTwoInNewContext.locator('[data-testid="event-type-link"]').first().click();
 
-    await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
-    await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+    await pageTwoInNewContext.locator('[data-testid="incrementMonth"]').waitFor();
+    await pageTwoInNewContext.click('[data-testid="incrementMonth"]');
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
     // 9:30 should be the first available time slot
-    await pageTwo.locator('[data-testid="time"]').nth(0).waitFor();
-    const firstSlotAvailable = pageTwo.locator('[data-testid="time"]').nth(0);
+    await pageTwoInNewContext.locator('[data-testid="time"]').nth(0).waitFor();
+    const firstSlotAvailable = pageTwoInNewContext.locator('[data-testid="time"]').nth(0);
     // Find text inside the element
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:30");
@@ -526,6 +525,7 @@ test.describe("Booking round robin event", () => {
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("Does not book seated round robin host outside availability with date override", async ({

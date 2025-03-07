@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
@@ -12,7 +12,7 @@ export const errorCodes = {
 type BaseUser = {
   id: number;
   email: string;
-  credentials: CredentialPayload[];
+  credentials: CredentialForCalendarService[];
   userLevelSelectedCalendars: SelectedCalendar[];
 } & Record<string, unknown>;
 
