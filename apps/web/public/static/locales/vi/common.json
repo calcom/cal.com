@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Đã có một chuyển tiếp ngược lại giữa những người dùng này.",
   "previous_ooo_empty_title": "Không tìm thấy OOO trước đó",
   "previous": "Trước",
+  "uid": "UID",
+  "link": "Liên kết",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Bu kullanıcılar arasında zaten ters yönde bir yönlendirme var.",
   "previous_ooo_empty_title": "Önceki OOO bulunamadı",
   "previous": "Önceki",
+  "uid": "UID",
+  "link": "Bağlantı",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

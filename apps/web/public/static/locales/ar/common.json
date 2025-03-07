@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "هناك بالفعل إعادة توجيه عكسية بين هؤلاء المستخدمين.",
   "previous_ooo_empty_title": "لم يتم العثور على حالات عدم توفر سابقة",
   "previous": "السابق",
+  "uid": "المعرف الفريد",
+  "link": "رابط",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

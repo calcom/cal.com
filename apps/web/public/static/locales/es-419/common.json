@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Ya existe un reenvío inverso entre estos usuarios.",
   "previous_ooo_empty_title": "No se encontraron ausencias anteriores",
   "previous": "Anterior",
+  "uid": "UID",
+  "link": "Enlace",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
