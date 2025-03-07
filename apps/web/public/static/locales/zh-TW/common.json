@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "這些用戶之間已經存在反向轉發。",
   "previous_ooo_empty_title": "找不到先前的外出辦公記錄",
   "previous": "上一個",
+  "uid": "UID",
+  "link": "連結",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

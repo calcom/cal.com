@@ -2981,5 +2981,7 @@
   "ooo_team_redirect_infinite_not_allowed": "Ja hi ha una redirecció inversa entre aquests usuaris.",
   "previous_ooo_empty_title": "No s'ha trobat cap OOO anterior",
   "previous": "Anterior",
+  "uid": "UID",
+  "link": "Enllaç",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
