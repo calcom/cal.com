@@ -1,10 +1,28 @@
 import { z } from "zod";
 
 import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 
-export const ZUpdateInputSchema = z.object({
+export type TUpdateInputSchema = {
+  id: number;
+  bio?: string | null;
+  name?: string | null;
+  logo?: string | null;
+  slug?: string | null;
+  hideBranding?: boolean | null;
+  hideBookATeamMember?: boolean | null;
+  isPrivate?: boolean | null;
+  brandColor?: string | null;
+  darkBrandColor?: string | null;
+  theme?: string | null;
+  bookingLimits?: IntervalLimit | null;
+  includeManagedEventsInLimits?: boolean | null;
+  rrResetInterval?: "DAY" | "MONTH" | null;
+};
+
+export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   id: z.number(),
   bio: z.string().optional(),
   name: z.string().optional(),
@@ -27,5 +45,3 @@ export const ZUpdateInputSchema = z.object({
   includeManagedEventsInLimits: z.boolean().optional(),
   rrResetInterval: z.enum(["DAY", "MONTH"]).optional(),
 });
-
-export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
