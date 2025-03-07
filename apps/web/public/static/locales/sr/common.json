@@ -2981,5 +2981,8 @@
   "ooo_team_redirect_infinite_not_allowed": "Već postoji obrnuto preusmeravanje između ovih korisnika.",
   "previous_ooo_empty_title": "Nije pronađeno prethodno OOO",
   "previous": "Prethodno",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Savet: Možete dodati „ između korisničkih imena: cal.com/anna+brian da biste napravili dinamički grupni sastanak",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

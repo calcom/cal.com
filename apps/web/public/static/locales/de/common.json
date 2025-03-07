@@ -2981,5 +2981,8 @@
   "ooo_team_redirect_infinite_not_allowed": "Es gibt bereits eine umgekehrte Weiterleitung zwischen diesen Benutzern.",
   "previous_ooo_empty_title": "Keine vorherige Abwesenheit gefunden",
   "previous": "Vorherige",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Tipp: Sie können ein '+' zwischen Benutzernamen setzen: cal.com/anna+brian, um ein dynamisches Gruppentreffen zu erstellen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

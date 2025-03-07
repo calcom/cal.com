@@ -2981,5 +2981,8 @@
   "ooo_team_redirect_infinite_not_allowed": "这些用户之间已经存在反向转发。",
   "previous_ooo_empty_title": "未找到以前的OOO",
   "previous": "上一个",
+  "uid": "UID",
+  "link": "链接",
+  "tip_username_plus": "提示：您可以在用户名之间添加 '+' 符号：cal.com/anna+brian 来创建动态群组会议",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
