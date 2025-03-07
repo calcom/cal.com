@@ -32,7 +32,39 @@ export class BookingInputLinkLocation_2024_08_13 {
   type!: "link";
 }
 
-export const supportedIntegrations = ["cal-video", "google-meet"] as const;
+export const supportedIntegrations = [
+  "cal-video",
+  "google-meet",
+  "zoom",
+  "whereby-video",
+  "whatsapp-video",
+  "webex-video",
+  "telegram-video",
+  "tandem",
+  "sylaps-video",
+  "skype-video",
+  "sirius-video",
+  "signal-video",
+  "shimmer-video",
+  "salesroom-video",
+  "roam-video",
+  "riverside-video",
+  "ping-video",
+  "office365-video",
+  "mirotalk-video",
+  "jitsi",
+  "jelly-video",
+  "jelly-conferencing",
+  "huddle",
+  "facetime-video",
+  "element-call-video",
+  "eightxeight-video",
+  "discord-video",
+  "demodesk-video",
+  "campsite-conferencing",
+  "campfire-video",
+  "around-video",
+] as const;
 export type Integration_2024_08_13 = (typeof supportedIntegrations)[number];
 
 export class BookingInputIntegrationLocation_2024_08_13 {
