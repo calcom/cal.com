@@ -18,76 +18,77 @@ export const getEventTypesFromDB = async (id: number) => {
     email: true,
     timeZone: true,
   };
+  const eventTypeSelect: Prisma.EventTypeSelect<Prisma.DefaultArgs> = {
+    id: true,
+    title: true,
+    description: true,
+    length: true,
+    eventName: true,
+    recurringEvent: true,
+    requiresConfirmation: true,
+    canSendCalVideoTranscriptionEmails: true,
+    userId: true,
+    successRedirectUrl: true,
+    customInputs: true,
+    locations: true,
+    price: true,
+    currency: true,
+    bookingFields: true,
+    allowReschedulingPastBookings: true,
+    disableGuests: true,
+    timeZone: true,
+    profile: {
+      select: {
+        organizationId: true,
+      },
+    },
+    teamId: true,
+    owner: {
+      select: userSelect,
+    },
+    users: {
+      select: userSelect,
+    },
+    hosts: {
+      select: {
+        user: {
+          select: userSelect,
+        },
+      },
+    },
+    team: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        hideBranding: true,
+      },
+    },
+    workflows: {
+      select: {
+        workflow: {
+          select: workflowSelect,
+        },
+      },
+    },
+    metadata: true,
+    seatsPerTimeSlot: true,
+    seatsShowAttendees: true,
+    seatsShowAvailabilityCount: true,
+    schedulingType: true,
+    periodStartDate: true,
+    periodEndDate: true,
+    parent: {
+      select: {
+        teamId: true,
+      },
+    },
+  };
   const eventType = await prisma.eventType.findUnique({
     where: {
       id,
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      length: true,
-      eventName: true,
-      recurringEvent: true,
-      requiresConfirmation: true,
-      canSendCalVideoTranscriptionEmails: true,
-      userId: true,
-      successRedirectUrl: true,
-      customInputs: true,
-      locations: true,
-      price: true,
-      currency: true,
-      bookingFields: true,
-      allowReschedulingPastBookings: true,
-      disableGuests: true,
-      timeZone: true,
-      profile: {
-        select: {
-          organizationId: true,
-        },
-      },
-      teamId: true,
-      owner: {
-        select: userSelect,
-      },
-      users: {
-        select: userSelect,
-      },
-      hosts: {
-        select: {
-          user: {
-            select: userSelect,
-          },
-        },
-      },
-      team: {
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          hideBranding: true,
-        },
-      },
-      workflows: {
-        select: {
-          workflow: {
-            select: workflowSelect,
-          },
-        },
-      },
-      metadata: true,
-      seatsPerTimeSlot: true,
-      seatsShowAttendees: true,
-      seatsShowAvailabilityCount: true,
-      schedulingType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      parent: {
-        select: {
-          teamId: true,
-        },
-      },
-    },
+    select: eventTypeSelect,
   });
 
   if (!eventType) {
