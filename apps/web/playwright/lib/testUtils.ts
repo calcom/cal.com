@@ -165,7 +165,7 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await page.locator('[name="email"]').press("Enter");
+  await confirmBooking(page);
 };
 
 export async function expectSlotNotAllowedToBook(page: Page) {
