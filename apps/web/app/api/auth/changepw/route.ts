@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -6,7 +7,6 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -71,6 +71,6 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ message: "Password updated successfully" }, { status: 200 });
 }
 
-const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const postHandler = defaultResponderForAppDir(handler);
 
 export { postHandler as POST };

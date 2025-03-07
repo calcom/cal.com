@@ -1,10 +1,10 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -75,6 +75,6 @@ async function expireResetPasswordRequest(rawRequestId: string) {
   });
 }
 
-const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const postHandler = defaultResponderForAppDir(handler);
 
 export { postHandler as POST };
