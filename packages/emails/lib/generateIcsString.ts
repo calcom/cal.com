@@ -3,7 +3,6 @@ import { createEvent } from "ics";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
-import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -33,6 +32,17 @@ export type ICSCalendarEvent = Pick<
   | "hideCalendarEventDetails"
 >;
 
+const toICalDateArray = (date: string): DateArray => {
+  const d = new Date(date);
+  return [
+    d.getUTCFullYear(),
+    d.getUTCMonth() + 1, // Convert 0-based month to 1-based
+    d.getUTCDate(),
+    d.getUTCHours(),
+    d.getUTCMinutes(),
+  ] satisfies DateArray;
+};
+
 const generateIcsString = ({
   event,
   status,
@@ -57,16 +67,12 @@ const generateIcsString = ({
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
     sequence: event.iCalSequence || 0,
-    start: dayjs(event.startTime)
-      .utc()
-      .toArray()
-      .slice(0, 6)
-      .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+    start: toICalDateArray(event.startTime),
+    end: toICalDateArray(event.endTime),
     startInputType: "utc",
     productId: "calcom/ics",
     title: event.title,
     description: getRichDescription(event, t),
-    duration: { minutes: dayjs(event.endTime).diff(dayjs(event.startTime), "minute") },
     organizer: { name: event.organizer.name, email: event.organizer.email },
     ...{ recurrenceRule },
     attendees: [
@@ -91,6 +97,7 @@ const generateIcsString = ({
     method: "REQUEST",
     status,
     ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
+    busyStatus: "BUSY",
   });
   if (icsEvent.error) {
     throw icsEvent.error;

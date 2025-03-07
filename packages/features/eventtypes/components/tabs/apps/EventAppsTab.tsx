@@ -92,7 +92,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         <div className="before:border-0">
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity={appsDisableProps.isLocked ? "neutral" : "green"}
+              severity={appsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
                 <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>

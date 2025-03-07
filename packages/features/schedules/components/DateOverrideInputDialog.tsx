@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { classNames as cs } from "@calcom/lib";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
@@ -18,6 +17,7 @@ import {
   Form,
   Button,
 } from "@calcom/ui";
+import cs from "@calcom/ui/classNames";
 
 import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";

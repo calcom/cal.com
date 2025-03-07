@@ -35,7 +35,7 @@ vi.mock("@calcom/app-store/utils", () => ({
   getEventTypeAppData: vi.fn(),
 }));
 
-vi.mock("@calcom/core/event", () => ({
+vi.mock("@calcom/lib/event", () => ({
   getEventName: vi.fn(),
 }));
 

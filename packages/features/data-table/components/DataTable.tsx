@@ -9,7 +9,6 @@ import kebabCase from "lodash/kebabCase";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, memo } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   TableNew,
@@ -26,6 +25,7 @@ import {
   CommandItem,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";
@@ -153,7 +153,7 @@ export function DataTable<TData, TValue>({
                         key={header.id}
                         style={{
                           ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                          ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
+                          ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
                           width: `var(--header-${kebabCase(header?.id)}-size)`,
                         }}
                         className={classNames(
@@ -265,13 +265,12 @@ function DataTableBody<TData>({
               className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
               {row.getVisibleCells().map((cell) => {
                 const column = cell.column;
-                const meta = column?.columnDef.meta;
                 return (
                   <TableCell
                     key={cell.id}
                     style={{
                       ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                      ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
+                      ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
                       width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                     }}
                     className={classNames(

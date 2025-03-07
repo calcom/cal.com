@@ -89,9 +89,7 @@ export default function ForgotPassword(props: PageProps) {
   return (
     <AuthContainer
       showLogo
-      title={!success ? t("forgot_password") : t("reset_link_sent")}
       heading={!success ? t("forgot_password") : t("reset_link_sent")}
-      description={t("request_password_reset")}
       footerText={
         !success && (
           <>

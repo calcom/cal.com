@@ -81,6 +81,15 @@ export const useGetRoutingFormUrlProps = ({ routingFormUrl }: { routingFormUrl?:
           ["cal.salesforce.rrSkipToAccountLookupField"]:
             routingSearchParams.get("cal.salesforce.rrSkipToAccountLookupField") ?? undefined,
         }),
+        ...(routingSearchParams.get("cal.teamMemberEmail") && {
+          teamMemberEmail: routingSearchParams.get("cal.teamMemberEmail") ?? undefined,
+        }),
+        ...(routingSearchParams.get("cal.crmOwnerRecordType") && {
+          crmOwnerRecordType: routingSearchParams.get("cal.crmOwnerRecordType") ?? undefined,
+        }),
+        ...(routingSearchParams.get("cal.crmAppSlug") && {
+          crmAppSlug: routingSearchParams.get("cal.crmAppSlug") ?? undefined,
+        }),
       } satisfies RoutingFormSearchParamsForEmbed;
       return { ...routingformProps, defaultFormValues };
     }
