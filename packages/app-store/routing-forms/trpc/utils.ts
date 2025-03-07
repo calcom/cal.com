@@ -1,7 +1,6 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
-import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -11,18 +10,6 @@ import type { Ensure } from "@calcom/types/utils";
 
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
-
-let tasker: Tasker;
-
-if (typeof window === "undefined") {
-  import("@calcom/features/tasker")
-    .then((module) => {
-      tasker = module.default;
-    })
-    .catch((error) => {
-      console.error("Failed to load tasker:", error);
-    });
-}
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
@@ -170,6 +157,18 @@ export async function onFormSubmission(
       console.error(`Error executing routing form webhook`, webhook, e);
     });
   });
+
+  let tasker: Tasker;
+
+  if (typeof window === "undefined") {
+    import("@calcom/features/tasker")
+      .then((module) => {
+        tasker = module.default;
+      })
+      .catch((error) => {
+        console.error("Failed to load tasker:", error);
+      });
+  }
 
   const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
     const scheduledAt = dayjs().add(15, "minute").toDate();

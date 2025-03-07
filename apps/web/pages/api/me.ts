@@ -3,8 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { performance } from "@calcom/lib/server/perfObserver";
 
-let isCold = true;
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const prePrismaDate = performance.now();
   const prisma = (await import("@calcom/prisma")).default;
@@ -16,9 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!user) return res.status(404).json({ message: "No user found" });
   const lastUpdate = performance.now();
 
-  res.setHeader("x-is-cold", isCold.toString());
-  isCold = false;
-
   return res.status(200).json({
     message: `Hello ${user.name}`,
     prePrismaDate,
@@ -28,6 +23,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     preUserDate,
     userDuration: `User took ${lastUpdate - preUserDate}ms`,
     lastUpdate,
-    wasCold: isCold,
   });
 }

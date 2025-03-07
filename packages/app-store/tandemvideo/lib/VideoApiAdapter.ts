@@ -32,28 +32,27 @@ interface ITandemCreateMeetingResponse {
   };
 }
 
-let client_id = "";
-let client_secret = "";
-let base_url = "";
-
 const tandemAuth = async (credential: CredentialPayload) => {
+  let clientId = "";
+  let clientSecret = "";
+  let baseUrl = "";
   const appKeys = await getAppKeysFromSlug("tandem");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (typeof appKeys.base_url === "string") base_url = appKeys.base_url;
-  if (!client_id) throw new HttpError({ statusCode: 400, message: "Tandem client_id missing." });
-  if (!client_secret) throw new HttpError({ statusCode: 400, message: "Tandem client_secret missing." });
-  if (!base_url) throw new HttpError({ statusCode: 400, message: "Tandem base_url missing." });
+  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+  if (typeof appKeys.base_url === "string") baseUrl = appKeys.base_url;
+  if (!clientId) throw new HttpError({ statusCode: 400, message: "Tandem client_id missing." });
+  if (!clientSecret) throw new HttpError({ statusCode: 400, message: "Tandem client_secret missing." });
+  if (!baseUrl) throw new HttpError({ statusCode: 400, message: "Tandem base_url missing." });
 
   const credentialKey = credential.key as unknown as TandemToken;
   const isTokenValid = (token: TandemToken) => token && token.access_token && token.expiry_date < Date.now();
 
   const refreshAccessToken = async (refreshToken: string) => {
-    const result = await fetch(`${base_url}/api/v1/oauth/v2/token`, {
+    const result = await fetch(`${baseUrl}/api/v1/oauth/v2/token`, {
       method: "POST",
       body: new URLSearchParams({
-        client_id,
-        client_secret,
+        client_id: clientId,
+        client_secret: clientSecret,
         code: refreshToken,
       }),
     });
