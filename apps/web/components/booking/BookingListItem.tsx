@@ -314,13 +314,15 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         // If there's only one attendee, mark them as no-show directly without showing the dialog
         if (attendeeList.length === 1) {
+          const attendee = attendeeList[0];
           noShowMutation.mutate({
             bookingUid: booking.uid,
-            attendees: [{ email: attendeeList[0].email, noShow: !attendeeList[0].noShow }],
+            attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
           });
-        } else {
-          setIsNoShowDialogOpen(true);
+          return;
         }
+
+        setIsNoShowDialogOpen(true);
       },
       icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : ("eye-off" as const),
     });
