@@ -1,5 +1,7 @@
 import crypto from "crypto";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { authenticator } from "otplib";
 import qrcode from "qrcode";
 
@@ -10,54 +12,57 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-  const session = await getServerSession({ req });
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+
   if (!session) {
-    return res.status(401).json({ message: "Not authenticated" });
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   if (!session.user?.id) {
     console.error("Session is missing a user id.");
-    return res.status(500).json({ error: ErrorCode.InternalServerError });
+    return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { password: true } });
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: { password: true },
+  });
+
   if (!user) {
     console.error(`Session references user that no longer exists.`);
-    return res.status(401).json({ message: "Not authenticated" });
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   if (user.identityProvider !== IdentityProvider.CAL && !user.password?.hash) {
-    return res.status(400).json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled });
+    return NextResponse.json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled }, { status: 400 });
   }
 
   if (!user.password?.hash) {
-    return res.status(400).json({ error: ErrorCode.UserMissingPassword });
+    return NextResponse.json({ error: ErrorCode.UserMissingPassword }, { status: 400 });
   }
 
   if (user.twoFactorEnabled) {
-    return res.status(400).json({ error: ErrorCode.TwoFactorAlreadyEnabled });
+    return NextResponse.json({ error: ErrorCode.TwoFactorAlreadyEnabled }, { status: 400 });
   }
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
     console.error("Missing encryption key; cannot proceed with two factor setup.");
-    return res.status(500).json({ error: ErrorCode.InternalServerError });
+    return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
 
-  const isCorrectPassword = await verifyPassword(req.body.password, user.password.hash);
+  const isCorrectPassword = await verifyPassword(body.password, user.password.hash);
   if (!isCorrectPassword) {
-    return res.status(400).json({ error: ErrorCode.IncorrectPassword });
+    return NextResponse.json({ error: ErrorCode.IncorrectPassword }, { status: 400 });
   }
 
-  // This generates a secret 32 characters in length. Do not modify the number of
-  // bytes without updating the sanity checks in the enable and login endpoints.
+  // This generates a secret 32 characters in length
   const secret = authenticator.generateSecret(20);
 
-  // generate backup codes with 10 character length
+  // Generate backup codes with 10 character length
   const backupCodes = Array.from(Array(10), () => crypto.randomBytes(5).toString("hex"));
 
   await prisma.user.update({
@@ -75,5 +80,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const keyUri = authenticator.keyuri(name, "Cal", secret);
   const dataUri = await qrcode.toDataURL(keyUri);
 
-  return res.json({ secret, keyUri, dataUri, backupCodes });
+  return NextResponse.json({ secret, keyUri, dataUri, backupCodes });
 }
