@@ -576,6 +576,7 @@ export class BookingsService_2024_08_13 {
         // TODO: Support dynamic event bookings later. It would require a slug input it seems
         isDynamic: false,
       },
+      // It can be made customizable through the API endpoint later.
       t: await getTranslation("en", "common"),
     });
   }
