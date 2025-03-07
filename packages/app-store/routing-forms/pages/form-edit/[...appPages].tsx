@@ -134,6 +134,10 @@ function Field({
     name: `${hookFieldNamespace}.identifier`,
   });
 
+  const transformLabelToIdentifier = (label: string) => {
+    return label.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  };
+
   function move(index: number, increment: 1 | -1) {
     const newList = [...watchedOptions];
 
@@ -206,7 +210,12 @@ function Field({
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+                const newLabel = e.target.value;
+                const transformedLabel = transformLabelToIdentifier(newLabel);
+                hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, { shouldDirty: true });
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, transformedLabel, {
+                  shouldDirty: true,
+                });
               }}
             />
           </div>
@@ -220,9 +229,9 @@ function Field({
               //This change has the same effects that already existed in relation to this field,
               // but written in a different way.
               // The identifier field will have the same value as the label field until it is changed
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
+              value={identifier || routerField?.identifier || ""}
               onChange={(e) => {
-                const transformedValue = e.target.value.toLowerCase().replace(/\s+/g, "_");
+                const transformedValue = transformLabelToIdentifier(e.target.value);
                 hookForm.setValue(`${hookFieldNamespace}.identifier`, transformedValue, {
                   shouldDirty: true,
                 });
