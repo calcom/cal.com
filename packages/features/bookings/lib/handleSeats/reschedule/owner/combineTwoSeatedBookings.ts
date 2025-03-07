@@ -9,7 +9,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
+import type { createLoggerWithEventDetails } from "../../../createLoggerWithEventDetails";
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";

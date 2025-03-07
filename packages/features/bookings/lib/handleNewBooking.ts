@@ -84,6 +84,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import { createLoggerWithEventDetails } from "./createLoggerWithEventDetails";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
@@ -120,16 +121,6 @@ const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
-};
-
-export const createLoggerWithEventDetails = (
-  eventTypeId: number,
-  reqBodyUser: string | string[] | undefined,
-  eventTypeSlug: string | undefined
-) => {
-  return logger.getSubLogger({
-    prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
-  });
 };
 
 function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
