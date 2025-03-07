@@ -63,13 +63,10 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       throw new TRPCError({ code: "NOT_FOUND", message: t("no_team_members") });
     }
     fetchOOOEntriesForIds = userIds;
-    reportingUserIds = teamMembers
-      .filter(({ id }) => ownerOrAdminTeamIds.includes(id))
-      .flatMap(({ members }) =>
-        members
-          .filter(({ accepted, userId }) => accepted && userId !== ctx.user.id)
-          .map(({ userId }) => userId)
-      );
+    const adminTeams = teamMembers.filter(({ id }) => ownerOrAdminTeamIds.includes(id));
+    reportingUserIds = adminTeams.flatMap(({ members }) =>
+      members.filter(({ accepted, userId }) => accepted && userId !== ctx.user.id).map(({ userId }) => userId)
+    );
   }
 
   const whereClause = {
