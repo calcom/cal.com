@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Medzi týmito používateľmi už existuje spätné presmerovanie.",
   "previous_ooo_empty_title": "Nenašla sa žiadna predchádzajúca neprítomnosť",
   "previous": "Predchádzajúce",
+  "uid": "UID",
+  "link": "Odkaz",
+  "tip_username_plus": "Tip: Môžete pridať '+' medzi používateľské mená: cal.com/anna+brian na vytvorenie dynamického skupinového stretnutia",
+  "user_has_no_team_yet": "Zatiaľ nemáte žiadny tím",
+  "no_team_members": "Zatiaľ nemáte žiadnych členov tímu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
