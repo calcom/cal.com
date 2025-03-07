@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   AddressInput,
   Button,
+  Checkbox,
   CheckboxField,
   EmailField,
   Group,
@@ -339,18 +340,16 @@ export const Components: Record<FieldType, Component> = {
         <div>
           {options.map((option, i) => {
             return (
-              <label key={i} className="block">
-                <input
-                  type="checkbox"
+              <label key={i} className="flex items-center">
+                <Checkbox
                   disabled={readOnly}
-                  onChange={(e) => {
+                  onCheckedChange={(checked) => {
                     const newValue = value.filter((v) => v !== option.value);
-                    if (e.target.checked) {
+                    if (checked) {
                       newValue.push(option.value);
                     }
                     setValue(newValue);
                   }}
-                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />

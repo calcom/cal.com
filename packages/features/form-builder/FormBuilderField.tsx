@@ -250,6 +250,8 @@ export const ComponentForField = ({
     );
   }
 
+  console.log(componentConfig);
+
   if (componentConfig.propsType === "text") {
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
