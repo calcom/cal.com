@@ -65,7 +65,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
             )}
           />
 
-          <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
+          <div className="bg-subtle -mx-3 my-2 h-px" role="separator" />
 
           <div className="flex items-center justify-between">
             <Button

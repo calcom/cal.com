@@ -240,6 +240,4 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   );
 }
 
-TeamPage.isBookingPage = true;
-
 export default TeamPage;

@@ -36,10 +36,10 @@ export const InstallAppButtonChild = ({
   return (
     <Button
       data-testid="install-app-button"
+      {...props}
       disabled={shouldDisableInstallation}
       color="primary"
-      size="base"
-      {...props}>
+      size="base">
       {multiInstall ? t("install_another") : t("install_app")}
     </Button>
   );

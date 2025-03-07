@@ -6,6 +6,7 @@ import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -22,7 +23,6 @@ import {
   Badge,
   Button,
   ButtonGroup,
-  CreateButtonWithTeamsList,
   EmptyScreen,
   Icon,
   List,
@@ -201,7 +201,10 @@ export default function RoutingForms({
                 SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list" ref={parent}>
-                    {forms?.map(({ form, readOnly }, index) => {
+                    {forms?.map(({ form, readOnly, hasError }, index) => {
+                      // Make the form read only if it has an error
+                      // TODO: Consider showing error in UI so user can report and get it fixed.
+                      readOnly = readOnly || hasError;
                       if (!form) {
                         return null;
                       }

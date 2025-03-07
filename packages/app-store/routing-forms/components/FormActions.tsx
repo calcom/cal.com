@@ -1,14 +1,11 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
-import { classNames } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -32,17 +29,27 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
-import type { SerializableForm } from "../types/types";
 
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
+type FormField = {
+  identifier?: string;
+  id: string;
+  type: string;
+  label: string;
+  routerId?: string | null;
+};
+
+type RoutingForm = {
+  id: string;
+  name: string;
+  disabled: boolean;
+  fields?: FormField[];
+};
+
 export type NewFormDialogState = { action: "new" | "duplicate"; target: string | null } | null;
 export type SetNewFormDialogState = React.Dispatch<React.SetStateAction<NewFormDialogState>>;
-const newFormModalQuerySchema = z.object({
-  action: z.literal("new").or(z.literal("duplicate")),
-  target: z.string().optional(),
-});
 
 function NewFormDialog({
   appUrl,

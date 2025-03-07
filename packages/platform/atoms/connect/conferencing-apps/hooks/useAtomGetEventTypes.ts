@@ -11,7 +11,7 @@ export const QUERY_KEY = "use-get-event-types";
 type ResponseEventType = { eventTypes: Array<{ id: number; title: string }> };
 
 export const useAtomGetEventTypes = () => {
-  const pathname = `/atoms/${V2_ENDPOINTS.eventTypes}/`;
+  const pathname = `/atoms/${V2_ENDPOINTS.eventTypes}`;
   const { isInit, accessToken } = useAtomsContext();
 
   return useQuery({

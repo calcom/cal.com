@@ -411,7 +411,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               createdBooking = data;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -552,7 +552,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.createdAt).toEqual(createdBooking.createdAt);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -612,7 +612,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -1489,7 +1489,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.cancelledByEmail).toEqual(cancelledByEmail);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -1539,7 +1539,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.rescheduledByEmail).toEqual(rescheduledByEmail);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
