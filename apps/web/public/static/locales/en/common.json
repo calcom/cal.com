@@ -2958,5 +2958,6 @@
   "verify_email_change": "Verify email change",
   "recurring_event_doesnt_support_seats": "Recurring event doesn't support seats option",
   "seats_doesnt_support_recurring": "Seats doesn't support recurring event",
+  "recurring_event_seats_error": "Recurring events cannot offer seats. Disable seats or make the event non-recurring.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
