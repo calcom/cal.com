@@ -64,10 +64,6 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     { username: { contains: input.searchText, mode: "insensitive" } },
   ];
 
-  if (input.includeEmail) {
-    searchTextClauses.push({ email: { contains: input.searchText, mode: "insensitive" } });
-  }
-
   // Fetch unique users through memberships
   const memberships = await prisma.membership.findMany({
     where: {

@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "@calcom/ee/teams/components/MemberInvitationModal";
-import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -30,6 +29,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { TeamRole } from "./TeamPill";
 

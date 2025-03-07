@@ -144,15 +144,6 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
     .findMany({
       where: {
         userId: ctx.user.id,
-        ...(searchString
-          ? {
-              OR: [
-                { user: { username: { contains: searchString } } },
-                { user: { name: { contains: searchString } } },
-                { user: { email: { contains: searchString } } },
-              ],
-            }
-          : {}),
       },
       select: {
         id: true,
