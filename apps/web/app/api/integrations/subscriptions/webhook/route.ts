@@ -1,5 +1,5 @@
-import { buffer } from "micro";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { headers } from "next/headers";
+import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
@@ -7,14 +7,6 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// This file is a catch-all for any integration related subscription/paid app.
 
 const handleSubscriptionUpdate = async (event: Stripe.Event) => {
   const subscription = event.data.object as Stripe.Subscription;
@@ -73,12 +65,9 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "customer.subscription.deleted": handleSubscriptionDeleted,
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextRequest) {
   try {
-    if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
-    }
-    const sig = req.headers["stripe-signature"];
+    const sig = headers().get("stripe-signature");
     if (!sig) {
       throw new HttpCode({ statusCode: 400, message: "Missing stripe-signature" });
     }
@@ -86,7 +75,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!process.env.STRIPE_WEBHOOK_SECRET_APPS) {
       throw new HttpCode({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET_APPS" });
     }
-    const requestBuffer = await buffer(req);
+    const rawBody = await req.text();
+    const requestBuffer = Buffer.from(rawBody);
     const payload = requestBuffer.toString();
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET_APPS);
@@ -104,13 +94,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(err.statusCode ?? 500).send({
-      message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
-    });
+    return NextResponse.json(
+      {
+        message: err.message,
+        stack: IS_PRODUCTION ? undefined : err.stack,
+      },
+      {
+        status: err.statusCode ?? 500,
+      }
+    );
     return;
   }
 
   // Return a response to acknowledge receipt of the event
-  res.json({ received: true });
+  return NextResponse.json(
+    {
+      received: true,
+    },
+    {
+      status: 200,
+    }
+  );
 }
+
+export const POST = handler;
