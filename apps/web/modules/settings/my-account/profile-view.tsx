@@ -32,6 +32,7 @@ import {
   DialogTrigger,
   Editor,
   Form,
+  Icon,
   ImageUploader,
   Label,
   PasswordField,
@@ -654,6 +655,9 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
+        <p className="text-subtle mt-1 flex items-center gap-1 text-sm">
+          <Icon name="info" /> {t("tip_username_plus")}
+        </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
