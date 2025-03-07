@@ -306,6 +306,26 @@ function BookingListItem(booking: BookingItemProps) {
     });
   }
 
+  const handleNoShow = ({
+    attendees,
+    shouldToggle = true,
+  }: {
+    attendees: { email: string; noShow: boolean }[];
+    shouldToggle?: boolean;
+  }) => {
+    noShowMutation.mutate({
+      bookingUid: booking.uid,
+      attendees: attendees.map((attendee) => ({
+        email: attendee.email,
+        noShow: shouldToggle ? !attendee.noShow : attendee.noShow,
+      })),
+    });
+  };
+
+  const toggleSingleAttendeeNoShow = (attendee: { email: string; noShow: boolean }) => {
+    handleNoShow({ attendees: [attendee] });
+  };
+
   if (isBookingInPast || isOngoing) {
     editBookingActions.push({
       id: "no_show",
@@ -314,11 +334,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         // If there's only one attendee, mark them as no-show directly without showing the dialog
         if (attendeeList.length === 1) {
-          const attendee = attendeeList[0];
-          noShowMutation.mutate({
-            bookingUid: booking.uid,
-            attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-          });
+          toggleSingleAttendeeNoShow(attendeeList[0]);
           return;
         }
 
@@ -508,10 +524,11 @@ function BookingListItem(booking: BookingItemProps) {
       )}
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
-          bookingUid={booking.uid}
           attendees={attendeeList}
-          setIsOpen={setIsNoShowDialogOpen}
+          bookingUid={booking.uid}
           isOpen={isNoShowDialogOpen}
+          setIsOpen={setIsNoShowDialogOpen}
+          handleNoShow={handleNoShow}
         />
       )}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
@@ -676,6 +693,7 @@ function BookingListItem(booking: BookingItemProps) {
                     currentEmail={userEmail}
                     bookingUid={booking.uid}
                     isBookingInPast={isBookingInPast}
+                    handleNoShow={handleNoShow}
                   />
                 )}
                 {isCancelled && booking.rescheduled && (
@@ -900,10 +918,19 @@ type AttendeeProps = {
 type NoShowProps = {
   bookingUid: string;
   isBookingInPast: boolean;
+  handleNoShow: (args: { attendees: { email: string; noShow: boolean }[]; shouldToggle?: boolean }) => void;
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
+  const {
+    email,
+    name,
+    bookingUid,
+    isBookingInPast,
+    noShow: noShowAttendee,
+    phoneNumber,
+    handleNoShow,
+  } = attendeeProps;
   const { t } = useLocale();
 
   const [noShow, setNoShow] = useState(noShowAttendee);
@@ -926,7 +953,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
     attendee: { email: string; noShow: boolean };
     bookingUid: string;
   }) {
-    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
+    handleNoShow({ attendees: [attendee] });
     setNoShow(!noShow);
   }
 
@@ -1012,10 +1039,11 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 type GroupedAttendeeProps = {
   attendees: AttendeeProps[];
   bookingUid: string;
+  handleNoShow: (args: { attendees: { email: string; noShow: boolean }[]; shouldToggle?: boolean }) => void;
 };
 
 const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
-  const { bookingUid } = groupedAttendeeProps;
+  const { bookingUid, handleNoShow } = groupedAttendeeProps;
   const attendees = groupedAttendeeProps.attendees.map((attendee) => {
     return {
       id: attendee.id,
@@ -1025,14 +1053,6 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     };
   });
   const { t } = useLocale();
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      showToast(t(data.message), "success");
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
   const { control, handleSubmit } = useForm<{
     attendees: AttendeeProps[];
   }>({
@@ -1049,7 +1069,13 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
 
   const onSubmit = (data: { attendees: AttendeeProps[] }) => {
     const filteredData = data.attendees.slice(1);
-    noShowMutation.mutate({ bookingUid, attendees: filteredData });
+    handleNoShow({
+      attendees: filteredData.map((attendee) => ({
+        email: attendee.email,
+        noShow: attendee.noShow,
+      })),
+      shouldToggle: false,
+    });
     setOpenDropdown(false);
   };
 
@@ -1112,11 +1138,13 @@ const NoShowAttendeesDialog = ({
   isOpen,
   setIsOpen,
   bookingUid,
+  handleNoShow,
 }: {
   attendees: AttendeeProps[];
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
   bookingUid: string;
+  handleNoShow: (args: { attendees: { email: string; noShow: boolean }[]; shouldToggle?: boolean }) => void;
 }) => {
   const { t } = useLocale();
   const [noShowAttendees, setNoShowAttendees] = useState(
@@ -1151,9 +1179,13 @@ const NoShowAttendeesDialog = ({
             key={attendee.id}
             onSubmit={(e) => {
               e.preventDefault();
-              noShowMutation.mutate({
-                bookingUid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+              handleNoShow({
+                attendees: [
+                  {
+                    email: attendee.email,
+                    noShow: attendee.noShow,
+                  },
+                ],
               });
             }}>
             <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
@@ -1245,12 +1277,14 @@ const DisplayAttendees = ({
   currentEmail,
   bookingUid,
   isBookingInPast,
+  handleNoShow,
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
   currentEmail?: string | null;
   bookingUid: string;
   isBookingInPast: boolean;
+  handleNoShow: (args: { attendees: { email: string; noShow: boolean }[]; shouldToggle?: boolean }) => void;
 }) => {
   const { t } = useLocale();
   attendees.sort((a, b) => a.id - b.id);
@@ -1259,7 +1293,12 @@ const DisplayAttendees = ({
     <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+      <Attendee
+        {...attendees[0]}
+        bookingUid={bookingUid}
+        isBookingInPast={isBookingInPast}
+        handleNoShow={handleNoShow}
+      />
       {attendees.length > 1 && (
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
@@ -1267,17 +1306,27 @@ const DisplayAttendees = ({
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
-                  <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+                  <Attendee
+                    {...attendee}
+                    bookingUid={bookingUid}
+                    isBookingInPast={isBookingInPast}
+                    handleNoShow={handleNoShow}
+                  />
                 </p>
               ))}>
               {isBookingInPast ? (
-                <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />
+                <GroupedAttendees attendees={attendees} bookingUid={bookingUid} handleNoShow={handleNoShow} />
               ) : (
                 <GroupedGuests guests={attendees} />
               )}
             </Tooltip>
           ) : (
-            <Attendee {...attendees[1]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+            <Attendee
+              {...attendees[1]}
+              bookingUid={bookingUid}
+              isBookingInPast={isBookingInPast}
+              handleNoShow={handleNoShow}
+            />
           )}
         </>
       )}
