@@ -68,7 +68,7 @@ export enum EventDetailBlocks {
   DURATION,
   LOCATION,
   REQUIRES_CONFIRMATION,
-  // Includes input to select # of occurences.
+  // Includes input to select # of occurrences.
   OCCURENCES,
   PRICE,
 }

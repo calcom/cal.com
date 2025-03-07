@@ -1,23 +1,27 @@
 "use client";
 
-import type { GetServerSidePropsContext } from "next";
-import React from "react";
+import type { GetServerSidePropsContext, GetServerSideProps } from "next";
+import type { ReactElement, ReactNode, ComponentType } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import type { AppPrisma, AppSsrInit, AppUser } from "@calcom/types/AppGetServerSideProps";
-
-import type { AppProps } from "@lib/app-providers";
 
 import RoutingFormsRoutingConfig from "../app-routing.config";
 
 const DEFAULT_ROUTE = "forms";
 
-type GetServerSidePropsRestArgs = [AppPrisma, AppUser, AppSsrInit];
-type Component = {
-  default: React.ComponentType & Pick<AppProps["Component"], "getLayout">;
-  getServerSideProps?: (context: GetServerSidePropsContext, ...rest: GetServerSidePropsRestArgs) => void;
+type ComponentWithLayout = ComponentType & {
+  getLayout?: (page: ReactElement) => ReactNode;
 };
+
+type Component = {
+  default: ComponentWithLayout;
+  getServerSideProps?: (
+    context: GetServerSidePropsContext,
+    ...rest: Parameters<GetServerSideProps>
+  ) => ReturnType<GetServerSideProps>;
+};
+
 const getComponent = (route: string): Component => {
   return (RoutingFormsRoutingConfig as unknown as Record<string, Component>)[route];
 };
@@ -34,27 +38,4 @@ export default function LayoutHandler(props: { [key: string]: unknown }) {
       <PageComponent {...props} />
     </FormProvider>
   );
-}
-
-LayoutHandler.getLayout = (page: React.ReactElement) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const params = useParamsWithFallback();
-  const pageKey = Array.isArray(params.pages)
-    ? params.pages[0]
-    : params.pages?.split("/")[0] ?? DEFAULT_ROUTE;
-
-  const component = getComponent(pageKey).default;
-  if (component && "getLayout" in component) {
-    return component.getLayout?.(page);
-  } else {
-    return page;
-  }
-};
-
-export async function getServerSideProps(
-  context: GetServerSidePropsContext,
-  ...rest: GetServerSidePropsRestArgs
-) {
-  const component = getComponent(context.params?.pages?.[0] || "");
-  return component.getServerSideProps?.(context, ...rest) || { props: {} };
 }

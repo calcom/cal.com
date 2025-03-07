@@ -8,8 +8,9 @@ import {
   IsOptional,
   IsArray,
   IsObject,
-  IsEmail,
   ValidateNested,
+  isEmail,
+  Validate,
 } from "class-validator";
 
 class Location {
@@ -27,14 +28,17 @@ class Response {
   @ApiProperty()
   name!: string;
 
-  @IsEmail()
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid response email",
+  })
   @ApiProperty()
   email!: string;
 
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @ApiProperty({ type: [String] })
-  guests!: string[];
+  @ApiPropertyOptional({ type: [String] })
+  guests?: string[];
 
   @IsOptional()
   @ValidateNested()
@@ -113,8 +117,9 @@ export class CreateBookingInput_2024_04_15 {
   @ApiPropertyOptional()
   seatReferenceUid?: string;
 
-  @Type(() => Response)
   @ApiProperty({ type: Response })
+  @ValidateNested()
+  @Type(() => Response)
   responses!: Response;
 
   @IsString()

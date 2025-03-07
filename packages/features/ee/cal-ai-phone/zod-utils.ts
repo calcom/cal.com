@@ -44,7 +44,8 @@ export type TCreatePhoneCallSchema = z.infer<typeof createPhoneCallSchema>;
 
 export const ZGetPhoneNumberSchema = z
   .object({
-    agent_id: z.string(),
+    agent_id: z.string().optional(),
+    nickname: z.string(),
     inbound_agent_id: z.string(),
     outbound_agent_id: z.string(),
     error_message: z.string().optional(),
@@ -56,7 +57,7 @@ export type TGetPhoneNumberSchema = z.infer<typeof ZGetPhoneNumberSchema>;
 export const ZCreatePhoneSchema = z
   .object({
     call_id: z.string(),
-    agent_id: z.string(),
+    agent_id: z.string().optional(),
   })
   .passthrough();
 
@@ -121,7 +122,8 @@ export type Fields = z.infer<typeof FieldsSchema>;
 export const ZCreateRetellLLMSchema = z
   .object({
     llm_id: z.string(),
-    llm_websocket_url: z.string(),
+    llm_websocket_url: z.string().optional(),
+    inbound_dynamic_variables_webhook_url: z.string(),
   })
   .passthrough();
 
@@ -132,7 +134,8 @@ export const ZGetRetellLLMSchema = z
     general_prompt: z.string(),
     begin_message: z.string().nullable().optional(),
     llm_id: z.string(),
-    llm_websocket_url: z.string(),
+    llm_websocket_url: z.string().optional(),
+    inbound_dynamic_variables_webhook_url: z.string(),
     general_tools: z.array(
       z
         .object({

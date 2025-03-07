@@ -8,9 +8,12 @@ import { OAuthClientsController } from "@/modules/oauth-clients/controllers/oaut
 import { OAuthFlowController } from "@/modules/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { OAuthClientsInputService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients-input.service";
+import { OAuthClientsOutputService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients-output.service";
+import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
-import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
+import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -18,6 +21,7 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { Global, Module } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 
 @Global()
 @Module({
@@ -40,6 +44,10 @@ import { Global, Module } from "@nestjs/common";
     OAuthFlowService,
     OAuthClientUsersService,
     OrganizationsTeamsService,
+    OAuthClientsService,
+    OAuthClientsInputService,
+    OAuthClientsOutputService,
+    JwtService,
   ],
   controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
   exports: [OAuthClientRepository],

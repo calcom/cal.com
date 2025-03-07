@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
@@ -112,7 +112,7 @@ export async function patchHandler(req: NextApiRequest) {
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaBookingEditBodyParams>) {
   const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
   if (body.userId && !isSystemWideAdmin && !isOrganizationOwnerOrAdmin) {
-    // Organizer has to be a cal user and we can't allow a booking to be transfered to some other cal user's name
+    // Organizer has to be a cal user and we can't allow a booking to be transferred to some other cal user's name
     throw new HttpError({
       statusCode: 403,
       message: "Only admin can change the organizer of a booking",

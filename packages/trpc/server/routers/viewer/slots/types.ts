@@ -30,6 +30,8 @@ export const getScheduleSchema = z
     _enableTroubleshooter: z.boolean().optional(),
     _bypassCalendarBusyTimes: z.boolean().optional(),
     _shouldServeCache: z.boolean().optional(),
+    routingFormResponseId: z.number().optional(),
+    email: z.string().nullish(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API
@@ -54,6 +56,7 @@ export const reserveSlotSchema = z
     // endTime ISOString
     slotUtcEndDate: z.string(),
     bookingUid: z.string().optional(),
+    _isDryRun: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
