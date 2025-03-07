@@ -400,7 +400,7 @@ describe("enrichUsersWithDelegationCredentials", () => {
     );
   });
 
-  it("should return empty array when no users is empty", async () => {
+  it("should return empty array when users is empty", async () => {
     const result = await enrichUsersWithDelegationCredentials({
       orgId: 1,
       users: [],
