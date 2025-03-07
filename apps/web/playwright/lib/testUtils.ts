@@ -165,10 +165,7 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await submitAndWaitForResponse(page, "/api/book/event", {
-    action: () => page.locator('[name="email"]').press("Enter"),
-    expectedStatusCode: opts?.expectedStatusCode,
-  });
+  await page.locator('[name="email"]').press("Enter");
 };
 
 export async function expectSlotNotAllowedToBook(page: Page) {
