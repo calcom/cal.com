@@ -1,10 +1,10 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import prisma from "@calcom/prisma";
 
 async function handler(req: NextRequest) {
@@ -44,6 +44,6 @@ async function handler(req: NextRequest) {
   }
 }
 
-const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const postHandler = defaultResponderForAppDir(handler);
 
 export { postHandler as POST };

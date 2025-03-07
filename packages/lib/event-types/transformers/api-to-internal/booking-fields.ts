@@ -215,6 +215,28 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     };
   }
 
+  if (field.type === "url") {
+    return {
+      name: field.slug,
+      type: field.type,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      labelAsSafeHtml: `<p>${field.label}</p>\n`,
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: !!field.required,
+      disableOnPrefill: !!field.disableOnPrefill,
+      hidden: !!field.hidden,
+    };
+  }
+
   return {
     name: field.slug,
     type: field.type,

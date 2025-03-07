@@ -14,11 +14,12 @@ import {
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
+import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
+import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form } from "@calcom/ui";
 
 import { QueryCell } from "../../lib/QueryCell";
 

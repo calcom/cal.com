@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
@@ -64,6 +64,25 @@ test.describe("Bookings", () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
+    });
+
+    test("Cannot choose date range presets", async ({ page, users, bookings, webhooks }) => {
+      const firstUser = await users.create();
+      await firstUser.apiLogin();
+      await page.goto(`/bookings/upcoming`);
+
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeHidden();
+
+      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeVisible();
     });
   });
   test.describe("Past bookings", () => {
@@ -209,6 +228,25 @@ test.describe("Bookings", () => {
       // Close webhook receiver
       webhookReceiver.close();
     });
+
+    test("Can choose date range presets", async ({ page, users, bookings, webhooks }) => {
+      const firstUser = await users.create();
+      await firstUser.apiLogin();
+      await page.goto(`/bookings/past`);
+
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible();
+
+      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeHidden();
+    });
   });
 
   test("People filter includes bookings where filtered person is attendee", async ({
@@ -301,17 +339,24 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
-    await Promise.all([
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url())),
-      page.goto(`/bookings/upcoming?status=upcoming&userIds=${thirdUser.id}`),
-    ]);
+    await page.goto(`/bookings/upcoming`);
+
+    await page.locator('[data-testid="add-filter-button"]').click();
+    await page.locator('[data-testid="add-filter-item-userId"]').click();
+    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+
+    await page
+      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
+      .click();
+
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee
     const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
     const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
     const bookingListCount = await bookingListItems.count();
+
     expect(bookingListCount).toBe(3);
 
     //verify with the booking titles
@@ -332,6 +377,80 @@ test.describe("Bookings", () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)
     ).toBeVisible();
+  });
+
+  test("Does not show booking from another user from collective event type when a member is filtered", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+    const owner = await users.create(
+      { username: "pro-user", name: "pro-user" },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    const { team } = await owner.getFirstTeamMembership();
+    const eventType = await owner.getFirstTeamEvent(team.id);
+    const { id: eventTypeId, title: teamEventTitle, slug: teamEventSlug } = eventType;
+
+    // remove myself from host of this event type
+    await prisma.host.delete({
+      where: {
+        userId_eventTypeId: {
+          userId: owner.id,
+          eventTypeId,
+        },
+      },
+    });
+
+    // teammate-1
+    const host = await prisma.membership.findFirstOrThrow({
+      where: {
+        teamId: team.id,
+        userId: {
+          not: owner.id,
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    await createBooking({
+      bookingsFixture: bookings,
+      organizer: host.user,
+      organizerEventType: eventType,
+      attendees: [{ name: "test user", email: "test@example.com", timeZone: "Europe/Paris" }],
+      relativeDate: 0,
+      title: "Booking from test user",
+    });
+
+    // teammate-2
+    const anotherUser = teamMatesObj.find((m) => m.name !== host.user.name)?.name;
+
+    await owner.apiLogin();
+    await page.goto("/bookings/upcoming");
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    await page.locator('[data-testid="add-filter-button"]').click();
+    await page.locator('[data-testid="add-filter-item-userId"]').click();
+    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+    await page
+      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${anotherUser}")`)
+      .click();
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
   });
 });
 

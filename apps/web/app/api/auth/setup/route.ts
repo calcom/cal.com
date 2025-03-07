@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -6,7 +7,6 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -57,6 +57,6 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ message: "First admin user created successfully." });
 }
 
-const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const postHandler = defaultResponderForAppDir(handler);
 
 export { postHandler as POST };

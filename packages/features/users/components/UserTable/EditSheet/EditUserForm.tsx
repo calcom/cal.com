@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -15,7 +16,6 @@ import {
   ToggleGroup,
   InputField,
   TextAreaField,
-  TimezoneSelect,
   Label,
   showToast,
   Avatar,
