@@ -1,5 +1,6 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
 import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
@@ -9,6 +10,7 @@ import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -25,14 +27,37 @@ export class TeamsEventTypesService {
   async createTeamEventType(
     user: UserWithProfile,
     teamId: number,
-    body: InputTeamEventTransformed_2024_06_14
+    body: Awaited<
+      ReturnType<
+        InstanceType<
+          typeof InputOrganizationsEventTypesService
+        >["transformAndValidateCreateTeamEventTypeInput"]
+      >
+    >
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     const eventTypeUser = await this.getUserToCreateTeamEvent(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hosts, children, destinationCalendar, ...rest } = body;
-
+    const { hosts, children, destinationCalendar, metadata, ...rest } = body;
+    const { bookerLayouts, ...restMetaData } = metadata ?? {};
+    const layouts = bookerLayouts
+      ? {
+          bookerLayouts: {
+            defaultLayout: bookerLayouts.defaultLayout as unknown as BookerLayouts,
+            enabledLayouts: bookerLayouts.enabledLayouts as unknown as BookerLayouts[],
+          },
+        }
+      : {};
     const { eventType: eventTypeCreated } = await createEventType({
-      input: { teamId: teamId, ...rest },
+      input: {
+        teamId: teamId,
+        metadata: metadata
+          ? {
+              ...restMetaData,
+              ...layouts,
+            }
+          : {},
+        ...rest,
+      },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -62,6 +87,7 @@ export class TeamsEventTypesService {
       organization: { id: null, isOrgAdmin: false, metadata: {}, requestedSlug: null },
       profile: { id: profileId || null },
       metadata: user.metadata,
+      email: user.email,
     };
   }
 
@@ -100,14 +126,38 @@ export class TeamsEventTypesService {
   async updateTeamEventType(
     eventTypeId: number,
     teamId: number,
-    body: InputTeamEventTransformed_2024_06_14,
+    body: Awaited<
+      ReturnType<
+        InstanceType<
+          typeof InputOrganizationsEventTypesService
+        >["transformAndValidateUpdateTeamEventTypeInput"]
+      >
+    >,
     user: UserWithProfile
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     await this.validateEventTypeExists(teamId, eventTypeId);
     const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
-
+    const { metadata, ...rest } = body;
+    const { bookerLayouts, ...restMetaData } = metadata ?? {};
+    const layouts = bookerLayouts
+      ? {
+          bookerLayouts: {
+            defaultLayout: bookerLayouts.defaultLayout as unknown as BookerLayouts,
+            enabledLayouts: bookerLayouts.enabledLayouts as unknown as BookerLayouts[],
+          },
+        }
+      : {};
     await updateEventType({
-      input: { id: eventTypeId, ...body },
+      input: {
+        id: eventTypeId,
+        metadata: metadata
+          ? {
+              ...restMetaData,
+              ...layouts,
+            }
+          : {},
+        ...rest,
+      },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

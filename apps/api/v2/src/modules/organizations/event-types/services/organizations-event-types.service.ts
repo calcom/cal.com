@@ -1,5 +1,6 @@
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
+import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
 import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
@@ -7,8 +8,10 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger } from "@nestjs/common";
 
-import { createEventType } from "@calcom/platform-libraries";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import { createEventType } from "@calcom/platform-libraries/event-types";
 import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 @Injectable()
 export class OrganizationsEventTypesService {
@@ -26,14 +29,37 @@ export class OrganizationsEventTypesService {
     user: UserWithProfile,
     teamId: number,
     orgId: number,
-    body: InputTeamEventTransformed_2024_06_14
+    body: Awaited<
+      ReturnType<
+        InstanceType<
+          typeof InputOrganizationsEventTypesService
+        >["transformAndValidateCreateTeamEventTypeInput"]
+      >
+    >
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hosts, children, destinationCalendar, ...rest } = body;
-
+    const { hosts, children, destinationCalendar, metadata, ...rest } = body;
+    const { bookerLayouts, ...restMetaData } = metadata ?? {};
+    const layouts = bookerLayouts
+      ? {
+          bookerLayouts: {
+            defaultLayout: bookerLayouts.defaultLayout as unknown as BookerLayouts,
+            enabledLayouts: bookerLayouts.enabledLayouts as unknown as BookerLayouts[],
+          },
+        }
+      : {};
     const { eventType: eventTypeCreated } = await createEventType({
-      input: { teamId: teamId, ...rest },
+      input: {
+        teamId: teamId,
+        metadata: metadata
+          ? {
+              ...restMetaData,
+              ...layouts,
+            }
+          : {},
+        ...rest,
+      },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -57,6 +83,7 @@ export class OrganizationsEventTypesService {
       organization: { isOrgAdmin },
       profile: { id: profileId || null },
       metadata: user.metadata,
+      email: user.email,
     };
   }
 
@@ -87,7 +114,13 @@ export class OrganizationsEventTypesService {
   async updateTeamEventType(
     eventTypeId: number,
     teamId: number,
-    body: InputTeamEventTransformed_2024_06_14,
+    body: Awaited<
+      ReturnType<
+        InstanceType<
+          typeof InputOrganizationsEventTypesService
+        >["transformAndValidateUpdateTeamEventTypeInput"]
+      >
+    >,
     user: UserWithProfile
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     return this.teamsEventTypesService.updateTeamEventType(eventTypeId, teamId, body, user);
