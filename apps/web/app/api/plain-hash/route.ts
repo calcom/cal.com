@@ -32,6 +32,9 @@ async function handler() {
   }
 
   const secret = process.env.PLAIN_CHAT_HMAC_SECRET_KEY;
+  if (!secret) {
+    return NextResponse.json({ error: "Missing Plain Chat secret" }, { status: 500 });
+  }
 
   // Get user's team membership info
   const user = await prisma.user.findUnique({
