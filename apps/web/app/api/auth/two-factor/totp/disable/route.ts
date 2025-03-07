@@ -62,14 +62,17 @@ export async function POST(req: NextRequest) {
     }
 
     const backupCodes = JSON.parse(symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY));
-    const index = backupCodes.indexOf(body.backupCode.replaceAll("-", ""));
 
+    // check if user-supplied code matches one
+    const index = backupCodes.indexOf(body.backupCode.replaceAll("-", ""));
     if (index === -1) {
       return NextResponse.json({ error: ErrorCode.IncorrectBackupCode }, { status: 400 });
     }
-  }
-  // If user has 2FA and NOT using backup code, try TOTP
-  else if (user.twoFactorEnabled) {
+
+    // we delete all stored backup codes at the end, no need to do this here
+
+    // if user has 2fa and NOT using backup code, try totp
+  } else if (user.twoFactorEnabled) {
     if (!body.code) {
       return NextResponse.json({ error: ErrorCode.SecondFactorRequired }, { status: 400 });
     }
@@ -92,6 +95,7 @@ export async function POST(req: NextRequest) {
       throw new Error(ErrorCode.InternalServerError);
     }
 
+    // If user has 2fa enabled, check if body.code is correct
     const isValidToken = totpAuthenticatorCheck(body.code, secret);
     if (!isValidToken) {
       return NextResponse.json({ error: ErrorCode.IncorrectTwoFactorCode }, { status: 400 });
