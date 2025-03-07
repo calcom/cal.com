@@ -8,11 +8,11 @@ import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFro
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isEmail } from "@calcom/lib/isEmail";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 import {
   Button,
   Dialog,
