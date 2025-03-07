@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: "Token expired" }, { status: 401 });
   }
 
+  // The user is verifying the secondary email
   if (foundToken?.secondaryEmailId) {
     await prisma.secondaryEmail.update({
       where: {
@@ -85,7 +86,9 @@ export async function GET(req: NextRequest) {
   }
 
   const userMetadataParsed = userMetadata.parse(user.metadata);
+  // Attach the new email and verify
   if (userMetadataParsed?.emailChangeWaitingForVerification) {
+    // Ensure this email isn't in use
     const existingUser = await prisma.user.findUnique({
       where: { email: userMetadataParsed?.emailChangeWaitingForVerification },
       select: {
@@ -96,6 +99,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: USER_ALREADY_EXISTING_MESSAGE }, { status: 401 });
     }
 
+    // Ensure this email isn't being added by another user as secondary email
     const existingSecondaryUser = await prisma.secondaryEmail.findUnique({
       where: {
         email: userMetadataParsed?.emailChangeWaitingForVerification,
@@ -114,6 +118,7 @@ export async function GET(req: NextRequest) {
     const updatedEmail = userMetadataParsed.emailChangeWaitingForVerification;
     delete userMetadataParsed.emailChangeWaitingForVerification;
 
+    // Update and re-verify
     await prisma.user.update({
       where: {
         id: user.id,
@@ -130,6 +135,8 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // The user is trying to update the email to an already existing unverified secondary email of his
+    // so we swap the emails and its verified status
     if (existingSecondaryUser?.userId === user.id) {
       await prisma.secondaryEmail.update({
         where: {
