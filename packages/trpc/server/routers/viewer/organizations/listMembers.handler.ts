@@ -255,7 +255,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               slug: team.team.slug,
             };
           })
-          .filter((team) => team !== undefined),
+          .filter((team): team is NonNullable<typeof team> => team !== undefined),
         attributes,
       };
     }) || []
