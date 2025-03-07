@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
@@ -38,8 +38,8 @@ export default function DisconnectIntegration(props: {
     },
   });
 
-  // Such a credential is added in-memory and removed when Domain-wide delegation is disabled.
-  const disableDisconnect = isDwdCredential({ credentialId });
+  // Such a credential is added in-memory and removed when Delegation credential is disabled.
+  const disableDisconnect = isDelegationCredential({ credentialId });
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={() => mutation.mutate({ id: credentialId, ...(teamId ? { teamId } : {}) })}

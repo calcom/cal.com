@@ -1,6 +1,7 @@
 import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,7 +23,6 @@ import {
   SheetHeader,
   SheetTitle,
   showToast,
-  TimezoneSelect,
 } from "@calcom/ui";
 
 import type { SliderUser } from "./AvailabilitySliderTable";

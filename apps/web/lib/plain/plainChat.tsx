@@ -69,6 +69,7 @@ interface PlainChatConfig {
     launcherIconColor: string;
   };
   position: {
+    zIndex: string;
     bottom: string;
     right: string;
   };
@@ -232,6 +233,7 @@ const PlainChat = () => {
           launcherIconColor: "#FFFFFF",
         },
         position: {
+          zIndex: "1",
           bottom: "20px",
           right: "20px",
         },
