@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -75,6 +74,4 @@ async function expireResetPasswordRequest(rawRequestId: string) {
   });
 }
 
-const postHandler = defaultResponderForAppDir(handler);
-
-export { postHandler as POST };
+export { handler as POST };
