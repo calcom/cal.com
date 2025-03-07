@@ -9,7 +9,7 @@ Deprecations/Removals:
 - NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE env variable is removed and user must set NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW with the difference that it doesn't have 00 in the end (37 instead of 3700 now). Reason was that 00 is a stripe specific thing and also because we store the price in DB with OrganizationOnboarding record and it doesn't make sense for it to be 3700 when infact it is 37.
 
 Deployment Plan:
-- [ ] Need Stripe Product ID in Env variable
+- [x] Need Stripe Product ID in Env variable
 - [ ] Set NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW to 37
 
 
