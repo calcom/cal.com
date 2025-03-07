@@ -8,8 +8,17 @@ import { FormProvider, useForm } from "react-hook-form";
 import { expect } from "vitest";
 import { vi } from "vitest";
 
+import PhoneInput from "@calcom/features/components/phone-input/PhoneInput";
+
 import { getBookingFieldsWithSystemFields } from "../../../lib/getBookingFields";
 import { BookingFields } from "./BookingFields";
+
+// Mock PhoneInput to avoid calling the lazy import
+vi.mock("@calcom/features/components/phone-input", () => {
+  return {
+    default: PhoneInput,
+  };
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormMethods = UseFormReturn<any>;
