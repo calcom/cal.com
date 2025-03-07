@@ -181,6 +181,7 @@ export default class EventManager {
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
+    log.warn(`Falling back to cal video if no location is set: ${evt.location}`);
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
@@ -197,7 +198,6 @@ export default class EventManager {
       const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
 
       if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
-      log.warn(`Falling back to cal video if no location is set: ${evt.location}`);
     }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
