@@ -116,13 +116,13 @@ export interface App {
   url: string;
   /** Optional documentation website URL */
   docsUrl?: string;
-  /** Wether if the app is verified by Cal.com or not */
+  /** Whether the app is verified by Cal.com or not */
   verified?: boolean;
-  /** Wether the app should appear in the trending section of the app store */
+  /** Whether the app should appear in the trending section of the app store */
   trending?: boolean;
-  /** Rating from 0 to 5, harcoded for now. Should be fetched later on. */
+  /** Rating from 0 to 5, hardcoded for now. Should be fetched later on. */
   rating?: number;
-  /** Number of reviews, harcoded for now. Should be fetched later on. */
+  /** Number of reviews, hardcoded for now. Should be fetched later on. */
   reviews?: number;
   /**
    *  Whether if the app is installed globally or needs user intervention.
@@ -168,9 +168,9 @@ export interface App {
   /** Specifies if the App uses an OAuth flow  */
   isOAuth?: boolean;
   /**
-   * Specifies if the App supports domain-wide delegation
+   * Specifies if the App supports delegation credential
    */
-  domainWideDelegation?: {
+  delegationCredential?: {
     workspacePlatformSlug: string;
   };
 }

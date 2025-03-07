@@ -1,4 +1,3 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
 import type { NextRequest } from "next/server";
 import { ImageResponse } from "next/server";
 import type { SatoriOptions } from "satori";
@@ -115,6 +114,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-const getHandler = apiRouteMiddleware(handler);
-
-export { getHandler as GET };
+export { handler as GET };

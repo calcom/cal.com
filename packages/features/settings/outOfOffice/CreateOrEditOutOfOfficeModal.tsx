@@ -300,6 +300,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onDatesChange={(values) => {
                         onChange(values);
                       }}
+                      strictlyBottom={true}
                     />
                   )}
                 />
