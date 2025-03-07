@@ -229,7 +229,7 @@ function Field({
               //This change has the same effects that already existed in relation to this field,
               // but written in a different way.
               // The identifier field will have the same value as the label field until it is changed
-              value={identifier || routerField?.identifier || ""}
+              value={identifier || ""}
               onChange={(e) => {
                 const transformedValue = transformLabelToIdentifier(e.target.value);
                 hookForm.setValue(`${hookFieldNamespace}.identifier`, transformedValue, {
