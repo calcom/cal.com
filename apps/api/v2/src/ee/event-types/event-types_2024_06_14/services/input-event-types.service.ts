@@ -25,11 +25,14 @@ import {
   transformSeatsApiToInternal,
   SystemField,
   CustomField,
-} from "@calcom/platform-libraries";
+  InternalLocation,
+  InternalLocationSchema,
+} from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
   InputEventTransformed_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
@@ -58,7 +61,7 @@ export class InputEventTypesService_2024_06_14 {
     const transformedBody = this.transformInputCreateEventType(inputEventType);
 
     await this.validateEventTypeInputs({
-      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      seatsPerTimeSlot: transformedBody?.seatsPerTimeSlot || null,
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
@@ -303,13 +306,13 @@ export class InputEventTypesService_2024_06_14 {
     eventName,
   }: ValidationContext) {
     let seatsPerTimeSlotDb: number | null = null;
-    let locationsDb: ReturnType<typeof this.transformInputLocations> = [];
+    let locationsDb: ReturnType<typeof this.transformLocations> = [];
     let requiresConfirmationDb = false;
 
     if (eventTypeId != null) {
       const eventTypeDb = await this.eventTypesRepository.getEventTypeWithSeats(eventTypeId);
       seatsPerTimeSlotDb = eventTypeDb?.seatsPerTimeSlot ?? null;
-      locationsDb = this.outputEventTypesService.transformLocations(eventTypeDb?.locations) ?? [];
+      locationsDb = this.transformLocations(eventTypeDb?.locations) ?? [];
       requiresConfirmationDb = eventTypeDb?.requiresConfirmation ?? false;
     }
 
@@ -331,13 +334,29 @@ export class InputEventTypesService_2024_06_14 {
   }
   validateSeatsSingleLocationRule(
     seatsEnabled: boolean,
-    locations: ReturnType<typeof this.transformInputLocations>
+    locations: ReturnType<typeof this.transformLocations>
   ) {
     if (seatsEnabled && locations.length > 1) {
       throw new BadRequestException(
         "Seats Validation failed: Seats are enabled but more than one location provided."
       );
     }
+  }
+  transformLocations(locations: any) {
+    if (!locations) return [];
+
+    const knownLocations: InternalLocation[] = [];
+    const unknownLocations: OutputUnknownLocation_2024_06_14[] = [];
+
+    for (const location of locations) {
+      const result = InternalLocationSchema.safeParse(location);
+      if (result.success) {
+        knownLocations.push(result.data);
+      } else {
+        unknownLocations.push({ type: "unknown", location: JSON.stringify(location) });
+      }
+    }
+    return [...knownLocations];
   }
 
   validateSeatsRequiresConfirmationFalseRule(seatsEnabled: boolean, requiresConfirmation: boolean) {
@@ -349,7 +368,7 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   validateMultipleLocationsSeatsDisabledRule(
-    locations: ReturnType<typeof this.transformInputLocations>,
+    locations: ReturnType<typeof this.transformLocations>,
     seatsEnabled: boolean
   ) {
     if (locations.length > 1 && seatsEnabled) {

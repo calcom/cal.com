@@ -81,7 +81,7 @@ export class AtomsController {
   ): Promise<ApiResponse<unknown>> {
     const { teamId } = queryParams;
 
-    const app = await this.eventTypesService.getEventTypesAppIntegration(appSlug, user.id, user.name, teamId);
+    const app = await this.eventTypesService.getEventTypesAppIntegration(appSlug, user, teamId);
 
     return {
       status: SUCCESS_STATUS,
