@@ -1,7 +1,7 @@
 import type { User as UserAuth } from "next-auth";
 import { useState } from "react";
 
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { IS_CALCOM, IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
@@ -23,17 +23,12 @@ export function useBottomNavItems({
   const [isReferalLoading, setIsReferalLoading] = useState(false);
   const { fetchAndCopyToClipboard } = useCopy();
 
-  return [
+  const navItems = [
     {
       name: "view_public_page",
       href: publicPageUrl,
       icon: "external-link",
       target: "__blank",
-    },
-    {
-      name: "earn_20_percent_affiliate",
-      href: "/refer",
-      icon: "gift",
     },
     {
       name: "copy_public_page_link",
@@ -85,4 +80,16 @@ export function useBottomNavItems({
       icon: "settings",
     },
   ].filter(Boolean) as NavigationItemType[];
+
+  // Conditionally add the referral item after "view_public_page"
+  if (IS_DUB_REFERRALS_ENABLED) {
+    const viewPublicPageIndex = navItems.findIndex((item) => item.name === "view_public_page");
+    navItems.splice(viewPublicPageIndex + 1, 0, {
+      name: "earn_20_percent_affiliate",
+      href: "/refer",
+      icon: "gift",
+    });
+  }
+
+  return navItems;
 }

@@ -3,10 +3,17 @@
 import { useState, useEffect } from "react";
 
 import ReferralClient from "@calcom/features/dub/ReferralClient";
+import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { SkeletonText, SkeletonButton, SkeletonAvatar, SkeletonContainer } from "@calcom/ui";
 
-// Assuming you're using next-auth
+const DisabledReferralsPage = () => (
+  <div className="mx-auto max-w-4xl p-8 text-center">
+    <h2 className="mb-4 text-xl font-semibold">Referral Program</h2>
+    <p>You need a Dub API Key and Program Id to use this page.</p>
+  </div>
+);
 
+// Existing code for fetching the token
 const fetchReferralsToken = async () => {
   try {
     const response = await fetch("/api/user/referrals-token");
@@ -31,7 +38,8 @@ const fetchReferralsToken = async () => {
   }
 };
 
-export default function ReferralsPage() {
+// The enabled referrals page implementation
+const EnabledReferralsPage = () => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -112,4 +120,9 @@ export default function ReferralsPage() {
   }
 
   return <ReferralClient publicToken={token} />;
+};
+
+// Export the appropriate component based on the feature flag
+export default function ReferralsPage() {
+  return IS_DUB_REFERRALS_ENABLED ? <EnabledReferralsPage /> : <DisabledReferralsPage />;
 }

@@ -3,7 +3,9 @@
 import { DubEmbed } from "@dub/embed-react";
 import { useTheme } from "next-themes";
 
-export default function ReferralClient({ publicToken }: { publicToken: string }) {
+import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
+
+const ReferralClientImpl = ({ publicToken }: { publicToken: string }) => {
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme === "dark" ? "dark" : "light";
 
@@ -19,4 +21,7 @@ export default function ReferralClient({ publicToken }: { publicToken: string })
       }}
     />
   );
-}
+};
+
+// Export a no-op component if the feature is disabled
+export default IS_DUB_REFERRALS_ENABLED ? ReferralClientImpl : () => null;
