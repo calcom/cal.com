@@ -27,10 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { password: true },
-  });
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { password: true } });
 
   if (!user) {
     console.error(`Session references user that no longer exists.`);
@@ -59,7 +56,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: ErrorCode.IncorrectPassword }, { status: 400 });
   }
 
-  // This generates a secret 32 characters in length
+  // This generates a secret 32 characters in length. Do not modify the number of
+  // bytes without updating the sanity checks in the enable and login endpoints.
   const secret = authenticator.generateSecret(20);
 
   // Generate backup codes with 10 character length

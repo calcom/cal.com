@@ -25,10 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { password: true },
-  });
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { password: true } });
 
   if (!user) {
     console.error(`Session references user that no longer exists.`);
