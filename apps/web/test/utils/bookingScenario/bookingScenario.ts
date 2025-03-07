@@ -1671,6 +1671,7 @@ export function mockCalendar(
     creationCrash?: boolean;
     updationCrash?: boolean;
     getAvailabilityCrash?: boolean;
+    credential?: CredentialForCalendarService;
   }
 ): CalendarServiceMethodMock {
   const appStoreLookupKey = metadataLookupKey;
@@ -1689,8 +1690,21 @@ export function mockCalendar(
   const deleteEventCalls: DeleteEventMethodMockCall[] = [];
   const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
+  const credential = calendarData?.credential || {
+    id: 1,
+    type: "oauth",
+    key: "MOCK_CREDENTIAL",
+    userId: 1,
+    teamId: null,
+    appId: app.slug,
+    user: {
+      email: "MOCK_USER_EMAIL",
+    },
+    invalid: false,
+    delegatedTo: null,
+  };
 
-  const appMock = calendarServicesMapMock[appStoreLookupKey as keyof typeof calendarServicesMapMock];
+  const appMock = calendarServicesMapMock[appStoreLookupKey as keyof typeof calendarServicesMapMock] as any;
 
   appMock &&
     `mockResolvedValue` in appMock &&
@@ -1866,9 +1880,7 @@ export function mockVideoApp({
   const deleteMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  videoAdaptersMapMock.default[
-    appStoreLookupKey as keyof typeof videoAdaptersMapMock.default
-  ].mockImplementation(() => {
+  videoAdaptersMapMock[appStoreLookupKey as keyof typeof videoAdaptersMapMock].mockImplementation(() => {
     return new Promise((resolve) => {
       resolve({
         lib: {
@@ -2036,7 +2048,7 @@ export function mockCrmApp(
     ownerEmail: string;
   }[] = [];
   const eventsCreated: boolean[] = [];
-  const appMock = crmServicesMapMock[metadataLookupKey as keyof typeof crmServicesMapMock];
+  const appMock = crmServicesMapMock[metadataLookupKey as keyof typeof crmServicesMapMock] as any;
   appMock &&
     `mockResolvedValue` in appMock &&
     appMock.mockResolvedValue({
