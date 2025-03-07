@@ -1,4 +1,4 @@
-import { EventTypeSettingsMap } from "../apps.browser-eventsettings.generated";
+import { EventTypeSettingsMap } from "../apps.browser-eventtypesettings.generated";
 import type { EventTypeAppSettingsComponentProps } from "../types";
 import { DynamicComponent } from "./DynamicComponent";
 

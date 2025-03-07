@@ -404,7 +404,7 @@ function generateFiles() {
     ["apps.browser-install.generated.tsx", browserInstallAppOutput],
     ["apps.browser-appsettings.generated.tsx", browserAppSettingsComponentOutput],
     ["apps.browser-addon.generated.tsx", browserEventTypeAddOnOutput],
-    ["apps.browser-eventypesettings.generated.tsx", browserEventTypeSettingsOutput],
+    ["apps.browser-eventtypesettings.generated.tsx", browserEventTypeSettingsOutput],
     ["apps.schemas.generated.ts", schemasOutput],
     ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
     ["bookerApps.metadata.generated.ts", bookerMetadataOutput],
