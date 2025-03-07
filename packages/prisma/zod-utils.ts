@@ -12,6 +12,7 @@ import type {
   ZodTypeAny,
 } from "zod";
 
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
@@ -69,7 +70,7 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
-export const EventTypeAppMetadataSchema = z.object({}).partial();
+export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
 export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
 
 const _eventTypeMetaDataSchemaWithoutApps = z.object({
