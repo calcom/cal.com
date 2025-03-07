@@ -22,6 +22,14 @@
     },
     "./components/QueryCell": {
       "default": "./components/QueryCell.js"
+    },
+    "./react/hooks/useMeQuery": {
+      "default": "./react/hooks/useMeQuery.ts",
+      "types": "./dist/router.d.ts"
+    },
+    "./react/hooks/useEmailVerifyCheck": {
+      "default": "./react/hooks/useEmailVerifyCheck.ts",
+      "types": "./dist/router.d.ts"
     }
   },
   "dependencies": {
