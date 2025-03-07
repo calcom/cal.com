@@ -512,6 +512,7 @@
   "recording_transcription_generated": "Transcript Generated",
   "booking_created": "Booking Created",
   "booking_rejected": "Booking Rejected",
+  "booking_cancellation_reason":"Booking Cancellation Reason",
   "booking_requested": "Booking Requested",
   "booking_payment_initiated": "Booking Payment Initiated",
   "meeting_ended": "Meeting Ended",

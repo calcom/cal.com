@@ -208,7 +208,7 @@ async function handler(req: CustomRequest) {
   }
 
   // get webhooks
-  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+  const eventTrigger: WebhookTriggerEvents[] = ["BOOKING_CANCELLED", "BOOKING_CANCELLATION_REASON"];
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
@@ -224,7 +224,15 @@ async function handler(req: CustomRequest) {
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUserId,
     eventTypeId: bookingToDelete.eventTypeId as number,
-    triggerEvent: eventTrigger,
+    triggerEvent: eventTrigger[0],
+    teamId,
+    orgId,
+    oAuthClientId: platformClientId,
+  };
+  const subscriberOptOfCancellingReason: GetSubscriberOptions = {
+    userId: organizerUserId,
+    eventTypeId: bookingToDelete.eventTypeId as number,
+    triggerEvent: eventTrigger[1],
     teamId,
     orgId,
     oAuthClientId: platformClientId,
@@ -240,6 +248,7 @@ async function handler(req: CustomRequest) {
   };
 
   const webhooks = await getWebhooks(subscriberOptions);
+  const cancellationReasonWebhook = await getWebhooks(subscriberOptOfCancellingReason);
 
   const organizer = await prisma.user.findFirstOrThrow({
     where: {
@@ -374,7 +383,7 @@ async function handler(req: CustomRequest) {
     } satisfies HandleCancelBookingResponse;
 
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+    sendPayload(webhook.secret, eventTrigger[0], new Date().toISOString(), webhook, {
       ...evt,
       ...eventTypeInfo,
       status: "CANCELLED",
@@ -382,12 +391,28 @@ async function handler(req: CustomRequest) {
       cancelledBy: cancelledBy,
     }).catch((e) => {
       logger.error(
+        `Error executing webhook for event: ${eventTrigger[0]}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        safeStringify(e)
+      );
+    })
+  );
+
+  const cancellationReasonPromises = cancellationReasonWebhook.map((webhook) =>
+    sendPayload(webhook.secret, eventTrigger[1], new Date().toISOString(), webhook, {
+      ...evt,
+      ...eventTypeInfo,
+      status: "CANCELLED",
+      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+      cancelledBy: cancelledBy,
+      cancellationReason,
+    }).catch((e) => {
+      logger.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)
       );
     })
   );
-  await Promise.all(promises);
+  await Promise.all([...promises, ...cancellationReasonPromises]);
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
