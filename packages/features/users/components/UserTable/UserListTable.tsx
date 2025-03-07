@@ -104,7 +104,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider defaultPageSize={30}>
+    <DataTableProvider defaultPageSize={25}>
       <UserListTableContent />
     </DataTableProvider>
   );

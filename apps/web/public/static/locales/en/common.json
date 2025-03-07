@@ -3003,5 +3003,7 @@
   "previous": "Previous",
   "uid": "UID",
   "link": "Link",
+  "rows_per_page": "rows per page",
+  "pagination_status": "{{currentRange}} of {{totalItems}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

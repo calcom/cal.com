@@ -133,8 +133,9 @@ export function DataTable<TData>({
         ref={tableContainerRef}
         onScroll={onScroll}
         className={classNames(
-          "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
+          "relative overflow-auto", // Set a fixed height for the container
           "scrollbar-thin border-subtle relative rounded-md border",
+          paginationMode === "infinite" && "h-[80dvh]",
           containerClassName
         )}
         style={{ gridArea: "body" }}>
