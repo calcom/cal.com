@@ -140,9 +140,142 @@ export async function POST(request: NextRequest) {
         ],
       };
 
-      // ... (rest of the function remains the same)
-      // This is a large function, so I'm omitting the middle part for brevity
-      // The implementation would be identical to the original, just with the return statement changed
+      const bookingsFromSelected = await prisma.bookingTimeStatus.groupBy({
+        by: ["eventTypeId"],
+        where: bookingWhere,
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: "desc",
+          },
+        },
+        take: 10,
+      });
+
+      const eventTypeIds = bookingsFromSelected.reduce((acc: number[], booking) => {
+        if (typeof booking.eventTypeId !== "number") return acc;
+        return [...acc, booking.eventTypeId];
+      }, []);
+
+      const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {
+        id: {
+          in: eventTypeIds,
+        },
+      };
+
+      const eventTypesFrom = await prisma.eventType.findMany({
+        select: {
+          id: true,
+          title: true,
+          teamId: true,
+          userId: true,
+          slug: true,
+          users: {
+            select: {
+              username: true,
+            },
+          },
+          team: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+        where: eventTypeWhereConditional,
+      });
+
+      const eventTypeHashMap: Map<
+        number,
+        Prisma.EventTypeGetPayload<{
+          select: {
+            id: true;
+            title: true;
+            teamId: true;
+            userId: true;
+            slug: true;
+            users: {
+              select: {
+                username: true;
+              };
+            };
+            team: {
+              select: {
+                slug: true;
+              };
+            };
+          };
+        }>
+      > = new Map();
+      eventTypesFrom.forEach((eventType) => {
+        eventTypeHashMap.set(eventType.id, eventType);
+      });
+
+      EventData["mostBookedEvents"] = bookingsFromSelected.map((booking) => {
+        const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId ?? 0);
+        if (!eventTypeSelected) {
+          return {};
+        }
+
+        let eventSlug = "";
+        if (eventTypeSelected.userId) {
+          eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
+        }
+        if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
+          eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
+        }
+        return {
+          eventTypeId: booking.eventTypeId,
+          eventTypeName: eventSlug,
+          count: booking._count.id,
+        };
+      });
+
+      // Most booked members
+      const bookingsFromTeam = await prisma.bookingTimeStatus.groupBy({
+        by: ["userId"],
+        where: bookingWhere,
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: "desc",
+          },
+        },
+        take: 10,
+      });
+
+      const userIds = bookingsFromTeam
+        .filter((booking) => typeof booking.userId === "number")
+        .map((booking) => booking.userId);
+
+      if (userIds.length === 0) {
+        EventData["membersWithMostBookings"] = [];
+      } else {
+        const teamUsers = await prisma.user.findMany({
+          where: {
+            id: {
+              in: userIds as number[],
+            },
+          },
+          select: { id: true, name: true, email: true, avatarUrl: true, username: true },
+        });
+
+        const userHashMap = new Map();
+        teamUsers.forEach((user) => {
+          userHashMap.set(user.id, user);
+        });
+
+        EventData["membersWithMostBookings"] = bookingsFromTeam.map((booking) => {
+          return {
+            userId: booking.userId,
+            user: userHashMap.get(booking.userId),
+            count: booking._count.id,
+          };
+        });
+      }
 
       // Send mail to all Owners and Admins
       const mailReceivers = team?.members?.filter(
