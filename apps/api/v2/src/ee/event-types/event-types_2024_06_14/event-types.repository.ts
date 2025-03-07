@@ -1,8 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UsersService } from "@/modules/users/services/users.service";
 import { Injectable } from "@nestjs/common";
-
+import type { Prisma } from "@prisma/client";
 import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
@@ -77,10 +76,19 @@ export class EventTypesRepository_2024_06_14 {
   }
 
   async getEventTypeByIdIncludeUsersAndTeam(eventTypeId: number) {
-    return this.dbRead.prisma.eventType.findUnique({
+    const eventType = await this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: { users: true, team: true },
     });
+
+    if (!eventType) {
+      return null;
+    }
+
+    return {
+      ...eventType,
+      recurringEvent: eventType.recurringEvent as Prisma.JsonObject | null | undefined,
+    };
   }
 
   async getEventTypeByIdWithOwnerAndTeam(eventTypeId: number) {

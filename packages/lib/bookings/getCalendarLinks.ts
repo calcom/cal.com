@@ -7,12 +7,12 @@ import type { z } from "zod";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { getEventName } from "../event";
 
+type RecurringEventOrPrismaJsonObject = RecurringEvent | Prisma.JsonObject | null | undefined;
 export const enum CalendarLinkType {
   GOOGLE_CALENDAR = "googleCalendar",
   MICROSOFT_OFFICE = "microsoftOffice",
@@ -65,20 +65,18 @@ const buildGoogleCalendarLink = ({
   eventName,
   eventDescription,
   bookingLocation,
-  parsedRecurringEvent,
+  recurringEvent,
 }: {
   startTime: Dayjs;
   endTime: Dayjs;
   eventName: string;
   eventDescription: string | null;
   bookingLocation: string | null;
-  parsedRecurringEvent: ReturnType<typeof parseRecurringEvent> | null;
+  recurringEvent: RecurringEventOrPrismaJsonObject;
 }) => {
   const startTimeInUtcFormat = startTime.utc().format("YYYYMMDDTHHmmss[Z]");
   const endTimeInUtcFormat = endTime.utc().format("YYYYMMDDTHHmmss[Z]");
-  const recurrence = parsedRecurringEvent
-    ? encodeURIComponent(new RRule(parsedRecurringEvent).toString())
-    : "";
+  const recurrence = recurringEvent ? encodeURIComponent(new RRule(recurringEvent).toString()) : "";
 
   const location = bookingLocation ? encodeURIComponent(bookingLocation) : "";
   const description = encodeURIComponent(eventDescription ?? "");
@@ -149,15 +147,15 @@ export const getCalendarLinks = ({
     location: string | null;
     title: string;
     responses: Prisma.JsonObject;
-    metadata: Prisma.JsonValue;
+    metadata: Prisma.JsonObject | null;
   };
   eventType: {
-    recurringEvent: Prisma.JsonObject | RecurringEvent | null;
-    description: string | null;
-    eventName: string | null;
+    recurringEvent: RecurringEventOrPrismaJsonObject;
+    description?: string | null;
+    eventName?: string | null;
     isDynamic: boolean;
     length: number;
-    team: {
+    team?: {
       name: string;
     } | null;
     users: {
@@ -191,7 +189,7 @@ export const getCalendarLinks = ({
   // Calculate start and end times
   const startTime = dayjs(booking.startTime);
   const endTime = dayjs(booking.endTime);
-  const parsedRecurringEvent = parseRecurringEvent(eventType.recurringEvent || "");
+  const recurringEvent = eventType.recurringEvent;
 
   const googleCalendarLink = buildGoogleCalendarLink({
     startTime,
@@ -199,7 +197,7 @@ export const getCalendarLinks = ({
     eventName,
     eventDescription,
     bookingLocation: videoCallUrl ?? null,
-    parsedRecurringEvent,
+    recurringEvent,
   });
 
   const microsoftOfficeLink = buildMicrosoftOfficeLink({

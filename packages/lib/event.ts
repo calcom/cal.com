@@ -24,7 +24,7 @@ export type EventNameObjectType = {
   host: string;
   location?: string | null;
   eventDuration: number;
-  bookingFields?: Prisma.JsonObject;
+  bookingFields?: Prisma.JsonObject | null;
   t: TFunction;
 };
 
@@ -106,7 +106,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   return dynamicEventName;
 }
 
-export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject) => {
+export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject | null) => {
   let customInputVariables: string[] = [];
   if (bookingFields) {
     customInputVariables = Object.keys(bookingFields).map((customInput) => {

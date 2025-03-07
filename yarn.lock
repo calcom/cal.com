@@ -2678,7 +2678,6 @@ __metadata:
     nest-winston: ^1.9.4
     next-auth: ^4.22.1
     node-mocks-http: ^1.16.2
-    npm-run-all: ^4.1.5
     passport: ^0.7.0
     passport-jwt: ^4.0.1
     prettier: ^2.8.6
@@ -5057,34 +5056,34 @@ __metadata:
   linkType: hard
 
 "@envelop/core@npm:^5.1.0":
-  version: 5.2.1
-  resolution: "@envelop/core@npm:5.2.1"
+  version: 5.2.3
+  resolution: "@envelop/core@npm:5.2.3"
   dependencies:
-    "@envelop/instruments": ^1.0.0
-    "@envelop/types": ^5.2.0
-    "@whatwg-node/promise-helpers": ^1.2.1
+    "@envelop/instrumentation": ^1.0.0
+    "@envelop/types": ^5.2.1
+    "@whatwg-node/promise-helpers": ^1.2.4
     tslib: ^2.5.0
-  checksum: 518d9b5e9443bca58faa0a3ff315f0fecb6836dc14eb852d5951d26944f7791a8763e46464c6eb1706eeae201dcbf3a0a2c04c35a79e1b70386d4ed25b3154ec
+  checksum: b63c0ed8f95316e49c14f4f17bc6e14c3fb62dc65013b40cf8fbbad354734eda8b585f50a78dc5677731ef0c3184b2b5f9d69a007d62756797230fed6d3a6578
   languageName: node
   linkType: hard
 
-"@envelop/instruments@npm:^1.0.0":
+"@envelop/instrumentation@npm:^1.0.0":
   version: 1.0.0
-  resolution: "@envelop/instruments@npm:1.0.0"
+  resolution: "@envelop/instrumentation@npm:1.0.0"
   dependencies:
     "@whatwg-node/promise-helpers": ^1.2.1
     tslib: ^2.5.0
-  checksum: 1efbc15b515b06b33229e265ea1e074b03519e8d21861a8d2b49c91ffa2132f5c6dc896ba455b2a96b13c6cc6b06566b1a3eba494b2c230aa24192a9f5efb3c6
+  checksum: a6ec4705f54e1bc430d38722deb8449113ec043e276c6c0ab333524ab1101009660785d9e7648724770820867919a867d00d7ba25197a03f229ce1b6f2a537e3
   languageName: node
   linkType: hard
 
-"@envelop/types@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "@envelop/types@npm:5.2.0"
+"@envelop/types@npm:^5.2.1":
+  version: 5.2.1
+  resolution: "@envelop/types@npm:5.2.1"
   dependencies:
     "@whatwg-node/promise-helpers": ^1.0.0
     tslib: ^2.5.0
-  checksum: 777eabba264cef962c983763e99a579f429fe017af668c6f532fc4064bbce44ba62d21d56e3d28e2210c94965d30197f0d30f6766bb18ed1ad5ac899ac2d5d58
+  checksum: 0e13a72dc3b2f44baefeac6241df4de6da2cb0a9e61f97a6a55ce3fbae2e98453e4a5465fd1c29310c853f4aaa907a4da7a8348d4a833f7538796cf9ab16535d
   languageName: node
   linkType: hard
 
@@ -18305,7 +18304,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@whatwg-node/promise-helpers@npm:^1.0.0, @whatwg-node/promise-helpers@npm:^1.2.1":
+"@whatwg-node/promise-helpers@npm:^1.0.0, @whatwg-node/promise-helpers@npm:^1.2.1, @whatwg-node/promise-helpers@npm:^1.2.4":
   version: 1.2.4
   resolution: "@whatwg-node/promise-helpers@npm:1.2.4"
   dependencies:
@@ -24164,9 +24163,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.112
-  resolution: "electron-to-chromium@npm:1.5.112"
-  checksum: 626e9e0d919d2e23cb37b20ea9ff916be1b2ef96a4955bdfc18f8203a2c98e66fd9cc62a9d1969291538f4c962201add11cc124ca2cab6cde99360ed7802ef58
+  version: 1.5.113
+  resolution: "electron-to-chromium@npm:1.5.113"
+  checksum: 7339108c6379ce36cf64560d431c42fc4b4fc3ac2ed434aad1730a39bc03fed5273faba3c7aa9387efc361b3732653c16ecdf23e33d8f0c67de378a7a5206cf9
   languageName: node
   linkType: hard
 
@@ -28781,8 +28780,8 @@ __metadata:
   linkType: hard
 
 "hast-util-to-jsx-runtime@npm:^2.0.0":
-  version: 2.3.5
-  resolution: "hast-util-to-jsx-runtime@npm:2.3.5"
+  version: 2.3.6
+  resolution: "hast-util-to-jsx-runtime@npm:2.3.6"
   dependencies:
     "@types/estree": ^1.0.0
     "@types/hast": ^3.0.0
@@ -28796,10 +28795,10 @@ __metadata:
     mdast-util-mdxjs-esm: ^2.0.0
     property-information: ^7.0.0
     space-separated-tokens: ^2.0.0
-    style-to-object: ^1.0.0
+    style-to-js: ^1.0.0
     unist-util-position: ^5.0.0
     vfile-message: ^4.0.0
-  checksum: f3361d19b1a85aabfd4f2c56dad3c1a12119189d8e60f3053f42ad4a60f531e0839785331e225eca09ec2bf98090173a1d4ed16e2cc423d2d376c876ea67bca2
+  checksum: 78c25465cf010f1004b22f0bbb3bd47793f458ead3561c779ea2b9204ceb1adc9c048592b0a15025df0c683a12ebe16a8bef008c06d9c0369f51116f64b35a2d
   languageName: node
   linkType: hard
 
@@ -38445,11 +38444,11 @@ __metadata:
   linkType: hard
 
 "playwright-core@npm:^1.38.1":
-  version: 1.50.1
-  resolution: "playwright-core@npm:1.50.1"
+  version: 1.51.0
+  resolution: "playwright-core@npm:1.51.0"
   bin:
     playwright-core: cli.js
-  checksum: 9c9c3115e8c39c9a2f4e0dc5b2bc1d76925fb0244051ace2bcffc7b2b66cf6fe1b96d9162f81bc7d9b7811b8c6f9df5aa93052d1284bfd6d30203bf4f7b58868
+  checksum: e14798a7323539e1d6f076a6aa0492ea7c5fa89f4db85a53b27001b0f84bde2a5f8b14e25e05c5396594c89173a48398728522932bb7bd2006dd4bb48c8b0979
   languageName: node
   linkType: hard
 
@@ -38779,8 +38778,8 @@ __metadata:
   linkType: hard
 
 "posthog-js@npm:^1.167.0":
-  version: 1.227.2
-  resolution: "posthog-js@npm:1.227.2"
+  version: 1.229.2
+  resolution: "posthog-js@npm:1.229.2"
   dependencies:
     core-js: ^3.38.1
     fflate: ^0.4.8
@@ -38794,7 +38793,7 @@ __metadata:
       optional: true
     rrweb-snapshot:
       optional: true
-  checksum: fe785d5fbd0b0b1d4276d344fcba480a5894baf69266834de5027514d88ce8c4c0f3f99074c1967e25d911fb9d0e3e00effc66dd8879ef55157bfcce87f7fae7
+  checksum: 942a20f35b78f90e42be9e165b4971a6ba51d203cc153ce92f7507096bb261f60589cb7e085eebcf91265b9032f41fbddc73819bbf7ed72b063728db9a29cef1
   languageName: node
   linkType: hard
 
@@ -44137,7 +44136,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"style-to-object@npm:^1.0.0":
+"style-to-js@npm:^1.0.0":
+  version: 1.1.16
+  resolution: "style-to-js@npm:1.1.16"
+  dependencies:
+    style-to-object: 1.0.8
+  checksum: 1f424ca17d923090821197f27e077e88bcf92b15274157f20330a18405f52a66395232546dc694c776d1a8f1868dabe15738532e18ce59a0683b046610bb4964
+  languageName: node
+  linkType: hard
+
+"style-to-object@npm:1.0.8":
   version: 1.0.8
   resolution: "style-to-object@npm:1.0.8"
   dependencies:

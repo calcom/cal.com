@@ -56,7 +56,6 @@ CALCOM_LICENSE_KEY=c4234812-12ab-42s6-a1e3-55bedd4a5bb
 
 # Development
 
-D
 ```bash
 $ yarn run start
 ```

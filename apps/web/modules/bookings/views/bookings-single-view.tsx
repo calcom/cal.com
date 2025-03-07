@@ -131,9 +131,13 @@ export default function Success(props: PageProps) {
   ) {
     rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
-  const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
-    bookingInfo?.metadata || {}
-  )?.videoCallUrl;
+
+  const parsedBookingMetadata = bookingMetadataSchema.parse(bookingInfo?.metadata || {});
+  const bookingWithParsedMetadata = {
+    ...bookingInfo,
+    metadata: parsedBookingMetadata,
+  };
+  const locationVideoCallUrl = bookingWithParsedMetadata.metadata?.videoCallUrl;
 
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
@@ -151,7 +155,7 @@ export default function Success(props: PageProps) {
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
   const calendarLinks = getCalendarLinks({
-    booking: bookingInfo,
+    booking: bookingWithParsedMetadata,
     eventType: eventType,
     t,
   });
