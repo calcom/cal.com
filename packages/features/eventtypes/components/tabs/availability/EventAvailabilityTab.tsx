@@ -6,7 +6,7 @@ import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import type { GetAllSchedulesByUserIdQueryType } from "@calcom/atoms/event-types/wrappers/EventAvailabilityTabWebWrapper";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -18,13 +18,13 @@ import type {
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];

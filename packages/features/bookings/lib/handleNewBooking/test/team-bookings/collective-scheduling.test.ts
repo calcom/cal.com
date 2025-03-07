@@ -60,7 +60,7 @@ describe("handleNewBooking", () => {
     describe("Collective Assignment", () => {
       describe("When there is no schedule set on eventType - Hosts schedules would be used", () => {
         test(
-          `succesfully creates a booking when all the hosts are free as per their schedules
+          `successfully creates a booking when all the hosts are free as per their schedules
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
@@ -375,7 +375,7 @@ describe("handleNewBooking", () => {
 
       describe("When there is a schedule set on eventType - Event Type common schedule would be used", () => {
         test(
-          `succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
@@ -551,7 +551,7 @@ describe("handleNewBooking", () => {
           timeout
         );
         test(
-          `[Event Type with both Attendee Phone number and Email as required fields] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `[Event Type with both Attendee Phone number and Email as required fields] successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
@@ -788,7 +788,7 @@ describe("handleNewBooking", () => {
         );
 
         test(
-          `[Event Type with only Attendee Phone number as required field and Email as hidden field] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `[Event Type with only Attendee Phone number as required field and Email as hidden field] successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
@@ -1029,7 +1029,7 @@ describe("handleNewBooking", () => {
           timeout
         );
         test(
-          `[Event Type that requires confirmation with only Attendee Phone number as required field and Email as optional field] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `[Event Type that requires confirmation with only Attendee Phone number as required field and Email as optional field] successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
@@ -1931,7 +1931,7 @@ describe("handleNewBooking", () => {
 
       describe("Team(T1) not part of any org but the organizer is part of an organization(O1)", () => {
         test(
-          `succesfully creates a booking when all the hosts are free as per their schedules
+          `successfully creates a booking when all the hosts are free as per their schedules
           - Destination calendars for event-type and non-first hosts are used to create calendar events
           - Reschedule and Cancel link in email are not of the org domain because the team is not part of any org
         `,

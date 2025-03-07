@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,6 +11,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
 import { Avatar, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -15,7 +16,6 @@ import {
   ToggleGroup,
   InputField,
   TextAreaField,
-  TimezoneSelect,
   Label,
   showToast,
   Avatar,
@@ -159,7 +159,7 @@ export function EditForm({
             avatar: values.avatar,
             bio: values.bio,
             timeZone: values.timeZone,
-            // @ts-expect-error theyre there in local types but for some reason it errors?
+            // @ts-expect-error they're there in local types but for some reason it errors?
             attributeOptions: values.attributes
               ? // @ts-expect-error  same as above
                 { userId: selectedUser?.id ?? "", attributes: values.attributes }

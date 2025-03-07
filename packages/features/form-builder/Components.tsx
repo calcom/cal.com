@@ -6,6 +6,7 @@ import type {
   TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
+import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   AddressInput,
@@ -17,7 +18,6 @@ import {
   InfoBadge,
   InputField,
   Label,
-  PhoneInput,
   RadioField,
   Tooltip,
 } from "@calcom/ui";
@@ -546,4 +546,4 @@ export const Components: Record<FieldType, Component> = {
     },
   },
 } as const;
-// Should use `statisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config
+// Should use `satisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config

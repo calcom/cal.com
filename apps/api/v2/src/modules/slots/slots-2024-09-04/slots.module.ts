@@ -1,7 +1,7 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
-import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SlotsController_2024_09_04 } from "@/modules/slots/slots-2024-09-04/controllers/slots.controller";
 import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";

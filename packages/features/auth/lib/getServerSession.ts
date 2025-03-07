@@ -42,7 +42,7 @@ export async function getServerSession(options: {
   log.debug("Getting server session", safeStringify({ token }));
 
   if (!token || !token.email || !token.sub) {
-    log.debug("Couldnt get token");
+    log.debug("Couldn't get token");
     return null;
   }
 

@@ -1,9 +1,10 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
 import type { TServiceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 
+type WorkspacePlatformServiceAccountKey = TServiceAccountKeySchema | null;
 const safeWorkspacePlatformSelect = {
   id: true,
   name: true,
@@ -31,11 +32,19 @@ export class WorkspacePlatformRepository {
     slug: string;
     name: string;
     description: string;
-    defaultServiceAccountKey: TServiceAccountKeySchema;
+    defaultServiceAccountKey?: WorkspacePlatformServiceAccountKey;
     enabled: boolean;
   }) {
+    const { defaultServiceAccountKey: _defaultServiceAccountKey, ...rest } = data;
+    const defaultServiceAccountKey =
+      _defaultServiceAccountKey === undefined || _defaultServiceAccountKey === null
+        ? Prisma.JsonNull
+        : _defaultServiceAccountKey;
     return await prisma.workspacePlatform.create({
-      data,
+      data: {
+        defaultServiceAccountKey,
+        ...rest,
+      },
       select: safeWorkspacePlatformSelect,
     });
   }

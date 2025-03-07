@@ -10,13 +10,13 @@ import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoa
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 

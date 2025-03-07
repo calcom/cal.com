@@ -3,7 +3,7 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import {
   sdkActionManager,
@@ -146,5 +146,5 @@ export function UserPage(props: PageProps) {
     </>
   );
 }
-UserPage.isBookingPage = true;
+
 export default UserPage;

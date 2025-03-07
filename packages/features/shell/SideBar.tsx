@@ -3,20 +3,18 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
-import { IS_CALCOM, IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
+import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import { Avatar, ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo, showToast } from "@calcom/ui";
+import { Avatar, ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { KBarTrigger } from "../kbar/Kbar";
 import { Navigation } from "./navigation/Navigation";
-import { type NavigationItemType } from "./navigation/NavigationItem";
+import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 
@@ -48,78 +46,23 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
   const session = useSession();
-  const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
-  const [isReferalLoading, setIsReferalLoading] = useState(false);
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
+
+  const bottomNavItems = useBottomNavItems({
+    publicPageUrl,
+    isAdmin,
+    user,
+  });
 
   const sidebarStylingAttributes = {
     maxHeight: `calc(100vh - ${bannersHeight}px)`,
     top: `${bannersHeight}px`,
   };
-
-  // Todo: extract this to a hook
-  const bottomNavItems: NavigationItemType[] = [
-    {
-      name: "view_public_page",
-      href: publicPageUrl,
-      icon: "external-link",
-      target: "__blank",
-    },
-    {
-      name: "copy_public_page_link",
-      href: "",
-      onClick: (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-        navigator.clipboard.writeText(publicPageUrl);
-        showToast(t("link_copied"), "success");
-      },
-      icon: "copy",
-    },
-    IS_CALCOM
-      ? {
-          name: "copy_referral_link",
-          href: "",
-          onClick: (e: { preventDefault: () => void }) => {
-            e.preventDefault();
-            setIsReferalLoading(true);
-            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
-            setTimeout(() => {
-              fetchAndCopyToClipboard(
-                fetch("/api/generate-referral-link", {
-                  method: "POST",
-                })
-                  .then((res) => res.json())
-                  .then((res) => res.shortLink),
-                {
-                  onSuccess: () => showToast(t("link_copied"), "success"),
-                  onFailure: () => showToast("Copy to clipboard failed", "error"),
-                }
-              );
-              setIsReferalLoading(false);
-            }, 1000);
-          },
-          icon: "gift",
-          isLoading: isReferalLoading,
-        }
-      : null,
-    isAdmin
-      ? {
-          name: "impersonation",
-          href: "/settings/admin/impersonation",
-          icon: "lock",
-        }
-      : null,
-    {
-      name: "settings",
-      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
-      icon: "settings",
-    },
-  ].filter(Boolean) as NavigationItemType[];
 
   return (
     <div className="relative">

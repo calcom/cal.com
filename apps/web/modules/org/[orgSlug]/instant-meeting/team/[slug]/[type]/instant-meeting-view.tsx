@@ -2,7 +2,7 @@
 
 import type { EmbedProps } from "app/WithEmbedSSR";
 
-import { Booker } from "@calcom/atoms/monorepo";
+import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
 import type { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";

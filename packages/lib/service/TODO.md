@@ -8,7 +8,7 @@
 - [x] Unlocked attribute shouldn't get updates from SCIM but in case they still do, we follow this strategy
     - If attribute from SCIM, doesn't exist on user, we allow it to be freely set on the user
     - If attribute from SCIM, exists on user 
-        - [x] It is a single select or a non-enum attribute, we don't let it be overriden and completely ignore the SCIM update for that attribute
+        - [x] It is a single select or a non-enum attribute, we don't let it be overridden and completely ignore the SCIM update for that attribute
         - [x] It is a multi select, we remove the options that were created from SCIM and add the new options from SCIM. AttributeToUser.createdByDSyncId is set to SCIM directorySync id for those options. It allows both SCIM set and User set options to be assigned to the User.
     - [x] The options created by SCIM aren't deletable from Cal.com UI. User can only remove options created by Cal.com i.e. where AttributeToUser.createdByDSyncId is null.
 - Restrict setting values 
@@ -25,9 +25,9 @@
 ## Test
 - Okta to Cal.com
   1. Add a user with attribute
-  2. Simular a failure in adding the user
+  2. Simulate a failure in adding the user
     - Failure could be in user creation or attribute assignment creation
-  3. Remove the user and Re-add the user and see it is correctly synced.
+  3. Remove the user and Re-add the user and see if it's correctly synced.
   - [x] Try removing a locked attribute assignment from a user.
 
 
