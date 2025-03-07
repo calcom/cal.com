@@ -7,19 +7,19 @@ import slugify from "@calcom/lib/slugify";
 
 export type TUpdateInputSchema = {
   id: number;
-  bio?: string | null;
-  name?: string | null;
+  bio?: string;
+  name?: string;
   logo?: string | null;
-  slug?: string | null;
-  hideBranding?: boolean | null;
-  hideBookATeamMember?: boolean | null;
-  isPrivate?: boolean | null;
-  brandColor?: string | null;
-  darkBrandColor?: string | null;
+  slug?: string;
+  hideBranding?: boolean;
+  hideBookATeamMember?: boolean;
+  isPrivate?: boolean;
+  brandColor?: string;
+  darkBrandColor?: string;
   theme?: string | null;
   bookingLimits?: IntervalLimit | null;
-  includeManagedEventsInLimits?: boolean | null;
-  rrResetInterval?: "DAY" | "MONTH" | null;
+  includeManagedEventsInLimits?: boolean;
+  rrResetInterval?: "DAY" | "MONTH";
 };
 
 export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
