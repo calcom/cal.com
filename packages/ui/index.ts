@@ -121,9 +121,7 @@ export { ShellSubHeading } from "./components/layout";
 
 /** ⬇️ TODO - Move these to components */
 export { default as AddressInput } from "./form/AddressInputLazy";
-export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { default as MultiEmail } from "./form/MultiEmailLazy";
-export { default as PhoneInputNonLazy } from "./form/PhoneInput";
 export { default as AddressInputNonLazy } from "./form/AddressInput";
 
 export { UnstyledSelect } from "./form/Select";
