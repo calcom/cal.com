@@ -132,8 +132,6 @@ export {
   transformWorkingHoursForAtom,
   transformAvailabilityForAtom,
   transformDateOverridesForAtom,
-  transformApiScheduleAvailability,
-  transformApiScheduleOverrides,
 } from "@calcom/lib/schedules/transformers";
 
 export type {
