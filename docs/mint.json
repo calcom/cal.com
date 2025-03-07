@@ -201,6 +201,7 @@
             "platform/atoms/conferencing-apps"
           ]
         },
+        "platform/hooks",
         {
           "group": "Guides",
           "icon": "book",

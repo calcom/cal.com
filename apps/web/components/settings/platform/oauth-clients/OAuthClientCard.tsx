@@ -1,11 +1,11 @@
 import { useRouter } from "next/navigation";
 import React from "react";
 
-import { classNames } from "@calcom/lib";
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import { Button, Icon, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type OAuthClientCardProps = {
   name: string;

@@ -9,7 +9,6 @@ import kebabCase from "lodash/kebabCase";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, memo } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   TableNew,
@@ -26,6 +25,7 @@ import {
   CommandItem,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";

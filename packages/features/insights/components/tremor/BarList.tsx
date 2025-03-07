@@ -1,7 +1,7 @@
 // Tremor BarList [v0.1.1]
 import React from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 type Bar<T> = T & {
   key?: string;
