@@ -4,7 +4,7 @@ import z from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { HttpError } from "@calcom/lib/http-error";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 
 const extractAuthToken = (req: NextRequest) => {
   const authHeader = req.headers.get("authorization");
@@ -31,7 +31,7 @@ async function handler(req: NextRequest) {
   return NextResponse.json(userInfo);
 }
 
-const getHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const getHandler = defaultResponderForAppDir(handler)
 
 export { getHandler as GET };
 

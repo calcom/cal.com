@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import type { HttpError } from "@calcom/lib/http-error";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 
 async function handler(req: NextRequest) {
   const { oauthController } = await jackson();
@@ -22,7 +22,7 @@ async function handler(req: NextRequest) {
   }
 }
 
-const getHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const getHandler = defaultResponderForAppDir(handler)
 
 export { getHandler as GET };
 

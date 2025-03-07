@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 
 async function handler(req: NextRequest) {
   const { oauthController } = await jackson();
@@ -16,6 +16,6 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ message: "No redirect URL provided" }, { status: 400 });
 }
 
-const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const postHandler = defaultResponderForAppDir(handler)
 
 export { postHandler as POST };
