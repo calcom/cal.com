@@ -2979,5 +2979,6 @@
   "previous": "Previous",
   "uid": "UID",
   "link": "Link",
+  "tip_username_plus": "Tip: You can a '+' between usernames: cal.com/anna+brian to make a dynamic group meeting",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
