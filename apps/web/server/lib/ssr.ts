@@ -11,6 +11,7 @@ import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
 import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
+import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
 import { router, mergeRouters } from "@calcom/trpc/server/trpc";
 
@@ -40,6 +41,9 @@ const routerSlice = router({
       }),
       teamsAndUserProfilesQuery: router({
         teamsAndUserProfilesQuery,
+      }),
+      eventTypes: router({
+        get,
       }),
     })
   ),
