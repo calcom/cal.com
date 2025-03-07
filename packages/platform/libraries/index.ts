@@ -53,7 +53,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
-import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
@@ -84,7 +83,6 @@ export {
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
-export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<
   ReturnType<
     typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
@@ -148,7 +146,6 @@ export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezon
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 
 export { TRPCError } from "@trpc/server";
-export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 export type { TUpdateInputSchema as TUpdateEventTypeInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/update.schema";
 export { createNewUsersConnectToOrgIfExists, sendSignupToOrganizationEmail };
 
