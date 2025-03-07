@@ -207,8 +207,8 @@ export type {
   InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
-
+export { parseEventTypeColor } from "@calcom/lib";
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 

@@ -16,7 +16,10 @@ export default defineConfig({
     platform: "node",
     ssr: true,
     lib: {
-      entry: resolve(__dirname, "./index.ts"),
+      entry: {
+        index: resolve(__dirname, "./index.ts"),
+        "event-types": resolve(__dirname, "./event-types.ts"),
+      },
       name: "calcom-lib",
       fileName: "calcom-lib",
     },
