@@ -1013,7 +1013,7 @@ async function handler(
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
-      timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
     })
     .withAttendees(attendeesList)
     .withMetadataAndResponses({

@@ -2,7 +2,9 @@ import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type { CalendarEvent, Person, CalEventResponses } from "@calcom/types/Calendar";
+import type { SchedulingType } from "@calcom/prisma/enums";
+import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
+import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 export class CalendarEventBuilder {
   private event: Partial<CalendarEvent>;
@@ -72,7 +74,7 @@ export class CalendarEventBuilder {
     email: string;
     username?: string;
     timeZone: string;
-    timeFormat?: TimeFormat | null;
+    timeFormat?: TimeFormat;
     language: {
       translate: TFunction;
       locale: string;
@@ -238,10 +240,12 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  withRecurringEventId(recurringEventId?: string) {
+  withRecurringEventId(recurringEventId: string) {
     this.event = {
       ...this.event,
-      recurringEventId,
+      existingRecurringEvent: {
+        recurringEventId,
+      },
     };
     return this;
   }
