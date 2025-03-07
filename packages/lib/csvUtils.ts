@@ -132,7 +132,12 @@ export const generateCsvRawForMembersTable = (
       email, // Members column
       `${orgDomain}/${username}`, // Link column
       role, // Role column
-      sanitizeValue(teams.map((team) => team.name).join(",")), // Teams column
+      sanitizeValue(
+        teams
+          .map((team) => team?.name)
+          .filter(Boolean)
+          .join(",")
+      ), // Teams column
     ];
 
     // Add attribute columns
