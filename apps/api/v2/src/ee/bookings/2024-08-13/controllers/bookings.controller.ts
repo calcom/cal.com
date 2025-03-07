@@ -343,7 +343,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
     description:
-      "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office 365, and a downloadable ICS file.",
+      "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
   })
   @HttpCode(HttpStatus.OK)
   async getCalendarLinks(@Param("bookingUid") bookingUid: string): Promise<CalendarLinksOutput_2024_08_13> {

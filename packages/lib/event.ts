@@ -22,7 +22,7 @@ export type EventNameObjectType = {
   eventName?: string | null;
   teamName?: string | null;
   host: string;
-  location?: string;
+  location?: string | null;
   eventDuration: number;
   bookingFields?: Prisma.JsonObject;
   t: TFunction;

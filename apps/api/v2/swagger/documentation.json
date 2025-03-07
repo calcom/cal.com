@@ -4264,7 +4264,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getCalendarLinks",
         "summary": "Get 'Add to Calendar' links for a booking",
-        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office 365, and a downloadable ICS file.",
+        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
         "parameters": [
           {
             "name": "cal-api-version",

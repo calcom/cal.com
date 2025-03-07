@@ -9,6 +9,7 @@ import dayjs from "@calcom/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { getEventName } from "../event";
 
@@ -145,22 +146,22 @@ export const getCalendarLinks = ({
   booking: {
     startTime: Date;
     endTime: Date;
-    location: string;
+    location: string | null;
     title: string;
     responses: Prisma.JsonObject;
-    metadata: Prisma.JsonObject;
+    metadata: Prisma.JsonValue;
   };
   eventType: {
-    recurringEvent: Prisma.JsonObject;
-    description: string;
-    eventName: string;
+    recurringEvent: Prisma.JsonObject | RecurringEvent | null;
+    description: string | null;
+    eventName: string | null;
     isDynamic: boolean;
     length: number;
     team: {
       name: string;
     } | null;
     users: {
-      name: string;
+      name: string | null;
     }[];
     title: string;
   };
@@ -169,7 +170,7 @@ export const getCalendarLinks = ({
   let evtName = eventType.eventName;
   const videoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl ?? null;
 
-  if (eventType.isDynamic && booking.responses?.title) {
+  if (eventType.isDynamic && booking.responses.title) {
     evtName = booking.responses.title as string;
   }
   const eventNameObject = {
@@ -185,12 +186,12 @@ export const getCalendarLinks = ({
 
   // Create event name and description
   const eventName = getEventName(eventNameObject, true);
-  const eventDescription = eventType?.description || "";
+  const eventDescription = eventType.description || "";
 
   // Calculate start and end times
   const startTime = dayjs(booking.startTime);
   const endTime = dayjs(booking.endTime);
-  const parsedRecurringEvent = parseRecurringEvent(eventType?.recurringEvent || "");
+  const parsedRecurringEvent = parseRecurringEvent(eventType.recurringEvent || "");
 
   const googleCalendarLink = buildGoogleCalendarLink({
     startTime,
