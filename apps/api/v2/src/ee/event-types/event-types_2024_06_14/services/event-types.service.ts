@@ -121,6 +121,7 @@ export class EventTypesService_2024_06_14 {
       profile: { id: profileId },
       metadata: user.metadata,
       selectedCalendars,
+      email: user.email,
     };
   }
 
