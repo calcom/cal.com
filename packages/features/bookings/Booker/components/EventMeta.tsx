@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
-import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/monorepo";
+import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
@@ -23,7 +23,7 @@ import { FromToTime } from "../utils/dates";
 import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
-  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
+  () => import("@calcom/features/components/timezone-select").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
   }

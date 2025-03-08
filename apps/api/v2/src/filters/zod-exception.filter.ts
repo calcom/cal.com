@@ -1,3 +1,4 @@
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
 import { Request } from "express";
@@ -19,7 +20,7 @@ export class ZodExceptionFilter implements ExceptionFilter {
     this.logger.error(`ZodError: ${error.message}`, {
       error,
       body: request.body,
-      headers: request.headers,
+      headers: filterReqHeaders(request.headers),
       url: request.url,
       method: request.method,
       requestId,

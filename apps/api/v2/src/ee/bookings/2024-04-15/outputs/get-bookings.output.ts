@@ -160,7 +160,7 @@ class User {
   email!: string;
 }
 
-class GetBookingsDataEntry {
+export class GetBookingsDataEntry {
   @IsInt()
   @ApiProperty()
   id!: number;

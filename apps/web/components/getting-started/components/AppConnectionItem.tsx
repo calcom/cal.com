@@ -113,7 +113,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
             </Button>
           )}
         />
-        {/* It is possible that app is already installed here during onboarding due to Domain Wide Delegation enabled at organization level. We allow the user to set it as default */}
+        {/* It is possible that app is already installed here during onboarding due to Delegation Credential enabled at organization level. We allow the user to set it as default */}
         {installed && !isDefault && (
           <Button
             color="secondary"
