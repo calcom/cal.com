@@ -57,7 +57,7 @@ type FormValues = {
   calVideoLogo: string | null;
 };
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
@@ -101,7 +101,7 @@ const OrgProfileView = () => {
   );
 
   if (isPending || !orgBranding || !currentOrganisation) {
-    return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
+    return <SkeletonLoader />;
   }
 
   const isOrgAdminOrOwner =

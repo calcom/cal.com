@@ -7,8 +7,8 @@ import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
 
+import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import { HelpCards } from "@components/settings/platform/dashboard/HelpCards";
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";

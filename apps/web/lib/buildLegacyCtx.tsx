@@ -26,7 +26,7 @@ const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
   return createProxifiedObject(cookiesObject);
 };
 
-function decodeParams(params: Params): Params {
+export function decodeParams(params: Params): Params {
   return Object.entries(params).reduce((acc, [key, value]) => {
     // Handle array values
     if (Array.isArray(value)) {

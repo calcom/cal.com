@@ -71,7 +71,22 @@ const buildBaseWhereCondition = async ({
         id: true,
       },
     });
-    if (teamsFromOrg.length === 0) return { whereCondition, isEmptyResponse: true };
+
+    if (teamsFromOrg.length === 0) {
+      return {
+        whereCondition: {
+          ...whereCondition,
+          OR: [
+            ...(whereCondition.OR ?? []),
+            {
+              teamId: ctx.userOrganizationId,
+              isTeamBooking: true,
+            },
+          ],
+        },
+        isEmptyResponse: true,
+      };
+    }
 
     const teamConditional = {
       id: {

@@ -35,7 +35,6 @@ export type WebhooksByViewer = {
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   return await WebhookRepository.getAllWebhooksByUserId({
     userId: ctx.user.id,
-    organizationId: ctx.user.profile?.organizationId,
     userRole: ctx.user.role,
   });
 };

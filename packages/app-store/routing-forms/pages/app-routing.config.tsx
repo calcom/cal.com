@@ -7,7 +7,6 @@ import * as forms from "./forms/[...appPages]";
 // extracts getServerSideProps function from the client component
 import { getServerSideProps as getServerSidePropsForms } from "./forms/getServerSideProps";
 import * as IncompleteBooking from "./incomplete-booking/[...appPages]";
-import * as LayoutHandler from "./layout-handler/[...appPages]";
 import * as Reporting from "./reporting/[...appPages]";
 import * as RouteBuilder from "./route-builder/[...appPages]";
 import * as RoutingLink from "./routing-link/[...appPages]";
@@ -19,11 +18,10 @@ const routingConfig = {
   forms: forms,
   "routing-link": RoutingLink,
   reporting: Reporting,
-  layoutHandler: LayoutHandler,
   "incomplete-booking": IncompleteBooking,
 };
 
-export const serverSidePropsConfig: Record<string, AppGetServerSideProps> = {
+export const routingServerSidePropsConfig: Record<string, AppGetServerSideProps> = {
   forms: getServerSidePropsForms,
   "form-edit": getServerSidePropsSingleForm,
   "route-builder": getServerSidePropsSingleForm,

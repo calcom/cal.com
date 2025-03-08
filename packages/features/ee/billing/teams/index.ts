@@ -13,7 +13,7 @@ export class TeamBilling {
     if (IS_TEAM_BILLING_ENABLED) return new InternalTeamBilling(team);
     return new StubTeamBilling(team);
   }
-  /** Initialize multuple team billings at once for bulk operations */
+  /** Initialize multiple team billings at once for bulk operations */
   static initMany(teams: TeamBillingInput[]) {
     return teams.map((team) => TeamBilling.init(team));
   }

@@ -4,10 +4,9 @@ import { signOut } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
-import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -15,6 +14,7 @@ import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
