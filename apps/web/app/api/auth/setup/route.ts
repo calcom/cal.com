@@ -1,12 +1,12 @@
-import type { NextApiRequest } from "next";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import z from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -24,13 +24,13 @@ const querySchema = z.object({
   }),
 });
 
-async function handler(req: NextApiRequest) {
+async function handler(req: NextRequest) {
   const userCount = await prisma.user.count();
   if (userCount !== 0) {
     throw new HttpError({ statusCode: 400, message: "No setup needed." });
   }
 
-  const parsedQuery = querySchema.safeParse(req.body);
+  const parsedQuery = querySchema.safeParse(await req.json());
   if (!parsedQuery.success) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
@@ -54,9 +54,9 @@ async function handler(req: NextApiRequest) {
     },
   });
 
-  return { message: "First admin user created successfully." };
+  return NextResponse.json({ message: "First admin user created successfully." });
 }
 
-export default defaultHandler({
-  POST: Promise.resolve({ default: defaultResponder(handler) }),
-});
+const postHandler = defaultResponderForAppDir(handler);
+
+export { postHandler as POST };
