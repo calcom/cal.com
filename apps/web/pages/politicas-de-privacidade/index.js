@@ -26,6 +26,24 @@ function Policy() {
               armazenamento e compartilhamento de dados, tendo todos os seus sistemas sendo gerenciados por
               profssionais competentes e certificados para atuação em suas respectivas funções.
             </div>
+            
+            <div className="google-limited-use-notice" style={{
+              padding: "15px",
+              margin: "20px 0",
+              backgroundColor: "#f8f9fa",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              fontWeight: "bold"
+            }}>
+              O uso e transferência para qualquer outro aplicativo de informações recebidas das APIs do Google pela Yinflow.Life por meio de seu aplicativo Agenda.Yinflow aderirão à <a 
+                href="https://developers.google.com/terms/api-services-user-data-policy" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="style-7">
+                Política de Dados do Usuário dos Serviços de API do Google
+              </a>, atendendo inclusive aos requisitos de Uso Limitado.
+            </div>
+            
             <h4 className="style-8">2. COLETA E USO DE DADOS</h4>
             <div className="style-9">
               <strong className="style-10">2.1.</strong> Nós obtemos seus dados pessoais através de seu
@@ -421,7 +439,7 @@ function Policy() {
                   <tr className="style-188">
                     <td className="style-189">O que é feito com meus dados depois de 20 anos?</td>
                     <td className="style-190">
-                      Conforme Lei nº 13.787, de 27 de dezembro de 2018: “Art. 6º Decorrido o prazo mínimo de
+                      Conforme Lei nº 13.787, de 27 de dezembro de 2018: "Art. 6º Decorrido o prazo mínimo de
                       20 (vinte) anos a partir do último registro, os prontuários em suporte de papel e os
                       digitalizados poderão ser eliminados. § 1º Prazos diferenciados para a guarda de
                       prontuário de paciente, em papel ou digitalizado, poderão ser fixados em regulamento, de
@@ -433,7 +451,7 @@ function Policy() {
                       registradas na forma de regulamento. § 5º As disposições deste artigo aplicam-se a todos
                       os prontuários de paciente, independentemente de sua forma de armazenamento, inclusive
                       aos microfilmados e aos arquivados eletronicamente em meio óptico, bem como aos
-                      constituídos por documentos gerados e mantidos originalmente de forma eletrônica.”
+                      constituídos por documentos gerados e mantidos originalmente de forma eletrônica."
                     </td>
                   </tr>
                 </tbody>
