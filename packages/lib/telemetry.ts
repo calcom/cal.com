@@ -86,7 +86,7 @@ export const nextCollectBasicSettings: CollectOpts = {
 };
 
 const getCookies = (req: NextRequest | NextApiRequest): { [key: string]: string } => {
-  const isAppRouter = typeof (req as NextRequest).headers.get === "function";
+  const isAppRouter = "get" in req.headers && typeof req.headers.get === "function";
   return isAppRouter
     ? Object.fromEntries((req as NextRequest).cookies.getAll().map((c) => [c.name, c.value]))
     : ((req as NextApiRequest).cookies as { [key: string]: string });
