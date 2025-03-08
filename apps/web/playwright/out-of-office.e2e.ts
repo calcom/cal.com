@@ -696,7 +696,7 @@ test.describe("Out of office", () => {
         { name: member3Name },
         {
           hasTeam: true,
-          teamRole: MembershipRole.ADMIN,
+          teamRole: MembershipRole.MEMBER,
           teammates: teamMatesObj,
         }
       );
