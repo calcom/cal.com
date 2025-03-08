@@ -2,7 +2,7 @@ import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { buildNonDwdCredential } from "../../domainWideDelegation/server";
+import { buildNonDelegationCredential } from "../../delegationCredential/server";
 
 type CredentialCreateInput = {
   type: string;
@@ -14,7 +14,7 @@ type CredentialCreateInput = {
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {
     const credential = await prisma.credential.create({ data: { ...data } });
-    return buildNonDwdCredential(credential);
+    return buildNonDelegationCredential(credential);
   }
   static async findByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
     const credential = await prisma.credential.findFirst({
@@ -23,7 +23,7 @@ export class CredentialRepository {
         userId,
       },
     });
-    return buildNonDwdCredential(credential);
+    return buildNonDelegationCredential(credential);
   }
 
   /**
@@ -31,7 +31,7 @@ export class CredentialRepository {
    */
   static async findFirstByIdWithUser({ id }: { id: number }) {
     const credential = await prisma.credential.findFirst({ where: { id }, select: safeCredentialSelect });
-    return buildNonDwdCredential(credential);
+    return buildNonDelegationCredential(credential);
   }
 
   /**
@@ -42,7 +42,7 @@ export class CredentialRepository {
       where: { id },
       select: { ...safeCredentialSelect, key: true },
     });
-    return buildNonDwdCredential(credential);
+    return buildNonDelegationCredential(credential);
   }
 
   static async findFirstByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
@@ -56,7 +56,7 @@ export class CredentialRepository {
 
   static async findFirstByUserIdAndType({ userId, type }: { userId: number; type: string }) {
     const credential = await prisma.credential.findFirst({ where: { userId, type } });
-    return buildNonDwdCredential(credential);
+    return buildNonDelegationCredential(credential);
   }
 
   static async deleteById({ id }: { id: number }) {
@@ -73,6 +73,6 @@ export class CredentialRepository {
       return dbCredential;
     }
 
-    return buildNonDwdCredential(dbCredential);
+    return buildNonDelegationCredential(dbCredential);
   }
 }

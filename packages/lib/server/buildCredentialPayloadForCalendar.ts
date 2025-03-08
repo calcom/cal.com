@@ -1,28 +1,28 @@
-import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 
 export function buildCredentialPayloadForPrisma({
   credentialId,
-  domainWideDelegationCredentialId,
+  delegationCredentialId,
 }: {
   credentialId: number | null | undefined;
-  domainWideDelegationCredentialId: string | null | undefined;
+  delegationCredentialId: string | null | undefined;
 }) {
   if (credentialId === undefined) {
     return {
       credentialId,
-      domainWideDelegationCredentialId,
+      delegationCredentialId,
     };
   }
 
-  if (isDwdCredential({ credentialId })) {
+  if (isDelegationCredential({ credentialId })) {
     return {
       credentialId: null,
-      domainWideDelegationCredentialId,
+      delegationCredentialId,
     };
   } else {
     return {
       credentialId,
-      domainWideDelegationCredentialId: null,
+      delegationCredentialId: null,
     };
   }
 }
