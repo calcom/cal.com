@@ -407,7 +407,7 @@ async function handler(req: CustomRequest) {
       cancellationReason,
     }).catch((e) => {
       logger.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        `Error executing webhook for event: ${eventTrigger[1]}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)
       );
     })
