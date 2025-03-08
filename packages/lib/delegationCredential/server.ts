@@ -462,7 +462,8 @@ export function getDelegationCredentialOrRegularCredential<
       // Ensure that we don't match null to null
       if (cred.delegatedToId) {
         return cred.delegatedToId === id.delegationCredentialId;
-      } else if (id.credentialId) {
+      }
+      if (id.credentialId) {
         return cred.id === id.credentialId;
       }
       return false;

@@ -141,12 +141,17 @@ export const roundRobinReassignment = async ({
     roundRobinReassignLogger
   );
 
-  const reassignedRRHost = await getLuckyUser({
+  const reassignedRRHostResult = await getLuckyUser({
     availableUsers,
     eventType,
     allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
     routingFormResponse: null,
   });
+
+  // Normalize reassignedRRHost to always be a single user object
+  const reassignedRRHost = Array.isArray(reassignedRRHostResult)
+    ? reassignedRRHostResult[0]
+    : reassignedRRHostResult;
 
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
@@ -155,7 +160,7 @@ export const roundRobinReassignment = async ({
   const currentBookingTitle = booking.title;
   let newBookingTitle = currentBookingTitle;
 
-  const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
+  const reassignedRRHostT = await getTranslation(reassignedRRHost?.locale || "en", "common");
 
   const teamMembers = await getTeamMembers({
     eventTypeHosts: eventType.hosts,
@@ -247,7 +252,7 @@ export const roundRobinReassignment = async ({
     );
     await prisma.attendee.update({
       where: {
-        id: previousRRHostAttendee!.id,
+        id: previousRRHostAttendee?.id,
       },
       data: {
         name: reassignedRRHost.name || "",
