@@ -1,4 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
@@ -13,11 +14,10 @@ const passwordResetRequestSchema = z.object({
   requestId: z.string(), // format doesn't matter.
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Bad Method when not POST
-  if (req.method !== "POST") return res.status(405).end();
-
-  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(req.body);
+async function handler(req: NextRequest) {
+  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(
+    await req.json()
+  );
   // rate-limited there is a low, very low chance that a password request stays valid long enough
   // to brute force 3.8126967e+40 options.
   const maybeRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
@@ -54,12 +54,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (e) {
-    return res.status(404).end();
+    return NextResponse.json({}, { status: 404 });
   }
 
   await expireResetPasswordRequest(rawRequestId);
 
-  return res.status(201).json({ message: "Password reset." });
+  return NextResponse.json({ message: "Password reset." }, { status: 201 });
 }
 
 async function expireResetPasswordRequest(rawRequestId: string) {
@@ -73,3 +73,5 @@ async function expireResetPasswordRequest(rawRequestId: string) {
     },
   });
 }
+
+export { handler as POST };
