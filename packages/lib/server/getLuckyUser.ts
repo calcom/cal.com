@@ -458,18 +458,10 @@ export async function getLuckyUser<
   // Multi-host selection logic
   const { users } = await getOrderedListOfLuckyUsers({
     ...getLuckyUserParams,
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
   });
 
   // Return the first N users from the ordered list
-  return users.slice(0, numberOfHostsToSelect);
+  return users.slice(0, numberOfHostsToSelect) as T[];
 }
 
 type FetchedData = {
@@ -773,9 +765,12 @@ type AvailableUserBase = PartialUser & {
   weight: number | null;
 };
 
-export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
-  getLuckyUserParams: GetLuckyUserParams<AvailableUser>
-) {
+export async function getOrderedListOfLuckyUsers<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(getLuckyUserParams: GetLuckyUserParams<T>) {
   const { availableUsers, eventType } = getLuckyUserParams;
 
   const {
@@ -805,7 +800,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
 
   let remainingAvailableUsers = [...availableUsers];
   let currentMonthBookingsOfRemainingAvailableUsers = [...currentMonthBookingsOfAvailableUsers];
-  const orderedUsersSet = new Set<AvailableUser>();
+  const orderedUsersSet = new Set<T>();
   const perUserBookingsCount: Record<number, number> = {};
 
   const startTime = performance.now();
@@ -821,7 +816,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
       getLuckyUser_requiresDataToBePreFetched({
         ...getLuckyUserParams,
         eventType,
-        availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
+        availableUsers: remainingAvailableUsers as [T, ...T[]],
         currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfRemainingAvailableUsers,
         bookingsOfNotAvailableUsersOfThisMonth,
         allRRHostsBookingsOfThisMonth,
