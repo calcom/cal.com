@@ -630,6 +630,7 @@ test.describe("Out of office", () => {
         );
         await page.goto("/settings/my-account/out-of-office?type=team");
         await page.waitForLoadState("domcontentloaded");
+        await selectCustomDateRangeFilter(page);
         await entriesListRespPromise;
 
         //Non-Admin canNot create OOO for team members
