@@ -31,12 +31,8 @@ import {
   VERSION_2024_04_15,
   CAL_API_VERSION_HEADER,
 } from "@calcom/platform-constants";
-import {
-  EventTypesByViewer,
-  EventTypesPublic,
-  eventTypeBookingFields,
-  eventTypeLocations,
-} from "@calcom/platform-libraries";
+import { EventTypesByViewer, eventTypeBookingFields, eventTypeLocations } from "@calcom/platform-libraries";
+import { EventTypesPublic } from "@calcom/platform-libraries/event-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {
