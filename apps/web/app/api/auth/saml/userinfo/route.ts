@@ -1,10 +1,10 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 
 const extractAuthToken = (req: NextRequest) => {
   const authHeader = req.headers.get("authorization");
@@ -31,7 +31,7 @@ async function handler(req: NextRequest) {
   return NextResponse.json(userInfo);
 }
 
-const getHandler = defaultResponderForAppDir(handler)
+const getHandler = defaultResponderForAppDir(handler);
 
 export { getHandler as GET };
 

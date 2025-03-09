@@ -1,10 +1,10 @@
 import type { OAuthReq } from "@boxyhq/saml-jackson";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import type { HttpError } from "@calcom/lib/http-error";
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 
 async function handler(req: NextRequest) {
   const { oauthController } = await jackson();
@@ -22,7 +22,7 @@ async function handler(req: NextRequest) {
   }
 }
 
-const getHandler = defaultResponderForAppDir(handler)
+const getHandler = defaultResponderForAppDir(handler);
 
 export { getHandler as GET };
 
