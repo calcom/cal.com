@@ -13,7 +13,7 @@ import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integ
 import type { TIntegrationsInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/integrations.schema";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
-import { buildNonDwdCredentials } from "./domainWideDelegation/clientAndServer";
+import { buildNonDelegationCredentials } from "./delegationCredential/clientAndServer";
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
 
@@ -106,7 +106,7 @@ export async function getConnectedApps({
     userTeams = [...teamsQuery, ...parentTeams];
 
     const teamAppCredentials = userTeams.flatMap((teamApp) => {
-      return teamApp.credentials ? buildNonDwdCredentials(teamApp.credentials.flat()) : [];
+      return teamApp.credentials ? buildNonDelegationCredentials(teamApp.credentials.flat()) : [];
     });
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;

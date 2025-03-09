@@ -1,6 +1,6 @@
 import { useTranslation } from "next-i18next";
 
-import { useAtomsContext } from "@calcom/atoms/monorepo";
+import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { useBookingLanguage } from "@calcom/features/bookings/Booker";
 
 export const useLocale = (namespace: Parameters<typeof useTranslation>[0] = "common") => {

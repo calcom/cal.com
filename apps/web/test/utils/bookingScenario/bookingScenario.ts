@@ -15,6 +15,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -30,9 +31,12 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
-import type { CalendarEvent, IntegrationCalendar } from "@calcom/types/Calendar";
-import type { NewCalendarEventType } from "@calcom/types/Calendar";
-import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
+import type {
+  CalendarEvent,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  EventBusyDate,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getMockPaymentService } from "./MockPaymentService";
@@ -2309,7 +2313,7 @@ export const getDefaultBookingFields = ({
   ] as Fields;
 };
 
-export const createDwdCredential = async (orgId: number, type: "google" | "office365" = "google") => {
+export const createDelegationCredential = async (orgId: number, type: "google" | "office365" = "google") => {
   if (type === "google") {
     const encryptedServiceAccountKey = {
       type: "service_account",
@@ -2349,7 +2353,7 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
     };
 
-    const dwd = await prismock.domainWideDelegation.create({
+    const delegationCredential = await prismock.delegationCredential.create({
       data: {
         workspacePlatform: {
           connect: {
@@ -2368,7 +2372,7 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       },
     });
 
-    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+    return { ...delegationCredential, serviceAccountKey: decryptedServiceAccountKey };
   } else if (type === "office365") {
     const encryptedServiceAccountKey = {
       client_id: "CLIENT_ID",
@@ -2392,7 +2396,7 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       tenant_id: "TENANT_ID",
     };
 
-    const dwd = await prismock.domainWideDelegation.create({
+    const delegationCredential = await prismock.delegationCredential.create({
       data: {
         workspacePlatform: {
           connect: {
@@ -2411,13 +2415,13 @@ export const createDwdCredential = async (orgId: number, type: "google" | "offic
       },
     });
 
-    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+    return { ...delegationCredential, serviceAccountKey: decryptedServiceAccountKey };
   }
   throw new Error(`Unsupported type: ${type}`);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const buildDwdCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
+export const buildDelegationCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
   return {
     id: -1,
     key: {
