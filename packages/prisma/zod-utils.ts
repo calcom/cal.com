@@ -14,11 +14,10 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
-import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { isSupportedTimeZone } from "@calcom/lib/dayjs";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
@@ -234,14 +233,6 @@ export const stringOrNumber = z.union([
   }),
   z.number().int(),
 ]);
-
-export const stringToDayjs = (val: string) => {
-  const matches = val.match(/([+-]\d{2}:\d{2})$/);
-  const timezone = matches ? matches[1] : "+00:00";
-  return dayjs(val).utcOffset(timezone);
-};
-
-export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
