@@ -28,20 +28,21 @@ function Policy() {
             </div>
             
             <div className="google-limited-use-notice" style={{
-              padding: "15px",
+              padding: "20px",
               margin: "20px 0",
               backgroundColor: "#f8f9fa",
-              border: "1px solid #ddd",
+              border: "2px solid #ddd",
               borderRadius: "4px",
-              fontWeight: "bold"
+              fontSize: "1.1em"
             }}>
-              O uso e transferência para qualquer outro aplicativo de informações recebidas das APIs do Google pela Yinflow.Life por meio de seu aplicativo Agenda.Yinflow aderirão à <a 
+              <strong>Aviso Importante sobre Uso de APIs do Google:</strong><br/>
+              O uso e transferência para qualquer outro aplicativo de informações recebidas das APIs do Google pela Yinflow.Life aderirão à <a 
                 href="https://developers.google.com/terms/api-services-user-data-policy" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="style-7">
                 Política de Dados do Usuário dos Serviços de API do Google
-              </a>, atendendo inclusive aos requisitos de Uso Limitado.
+              </a>, incluindo os requisitos de Uso Limitado. Seus dados do Google Calendar são usados exclusivamente para fornecer as funcionalidades de agendamento e nunca serão vendidos, usados para publicidade ou compartilhados com terceiros.
             </div>
             
             <h4 className="style-8">2. COLETA E USO DE DADOS</h4>
@@ -255,6 +256,24 @@ function Policy() {
                   Compartilhamento: Dados de eventos obtidos pela API do Google Calendar não serão
                   compartilhados.
                   <br className="style-108" />
+                </li>
+                <li>
+                  <strong>Segurança dos Dados:</strong> Implementamos rigorosas práticas de segurança para proteger seus dados do Google Calendar, incluindo:
+                  <ul>
+                    <li>Criptografia em trânsito e em repouso</li>
+                    <li>Controles de acesso estritos</li>
+                    <li>Monitoramento contínuo de segurança</li>
+                    <li>Auditorias regulares de segurança</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Não Utilizamos seus Dados Para:</strong>
+                  <ul>
+                    <li>Publicidade ou marketing</li>
+                    <li>Venda ou transferência a terceiros</li>
+                    <li>Análise de crédito ou fins financeiros</li>
+                    <li>Qualquer finalidade além do agendamento</li>
+                  </ul>
                 </li>
               </ul>
             </div>
