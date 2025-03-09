@@ -210,7 +210,7 @@ export default function Signup({ prepopulateFormValues, redirectUrl }: SignupPro
                 Acesse o <span class="text-[42px] font-medium leading-none text-[#06C6A9]"> Painel do Profissional</span><br />
               </p>
               <p className="mt-6 text-lg font-normal leading-5 text-[#114559]">
-                Configure sua conta utilizando seu e-email Google e obtenha acesso ao Painel do Profissional.
+                Configure sua conta utilizando seu e-mail Google e obtenha acesso ao Painel do Profissional.
               </p>
               <p className="mt-6 text-lg font-normal leading-5 text-[#114559]">
                 Em caso de dúvidas, <a href="https://www.yinflow.life/whatsapp-time-de-operacoes" class="cadastro-agenda">entre em contato com o Time de Operações.</a>
