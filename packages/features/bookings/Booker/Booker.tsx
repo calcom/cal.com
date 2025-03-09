@@ -1,6 +1,10 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
+import i18n from "i18next";
+import type { Resource } from "i18next";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { I18nextProvider, initReactI18next } from "react-i18next";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
@@ -16,6 +20,7 @@ import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -566,7 +571,88 @@ const BookerComponent = ({
   );
 };
 
+type BookingLanguageContextType = {
+  i18n: typeof i18n;
+  t: typeof i18n.t;
+  isLocaleReady: boolean;
+};
+
+const BookingLanguageContext = createContext<BookingLanguageContextType | null>(null);
+
+export const useBookingLanguage = () => {
+  return useContext(BookingLanguageContext);
+};
+
+const BookingLanguageProvider = ({ locale, children }: { locale: string; children: React.ReactNode }) => {
+  const { data } = useViewerI18n(locale);
+  const [translationValues, setTranslationValues] = useState<BookingLanguageContextType | null>(null);
+
+  useEffect(() => {
+    if (!data?.i18n?._nextI18Next?.initialI18nStore) {
+      return;
+    }
+
+    const setupI18n = async () => {
+      const i18nInstance = i18n.createInstance();
+
+      await i18nInstance.use(initReactI18next).init({
+        resources: data.i18n._nextI18Next.initialI18nStore as Resource,
+        lng: locale,
+        fallbackLng: "en",
+        ns: ["common"],
+        react: {
+          useSuspense: false,
+        },
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+
+      setTranslationValues({
+        i18n: i18nInstance,
+        t: i18nInstance.t,
+        isLocaleReady: true,
+      });
+    };
+
+    setupI18n();
+  }, [data, locale]);
+
+  if (!translationValues || !translationValues.isLocaleReady) {
+    return null;
+  }
+
+  return (
+    <BookingLanguageContext.Provider value={translationValues}>
+      <I18nextProvider i18n={translationValues.i18n}>{children}</I18nextProvider>
+    </BookingLanguageContext.Provider>
+  );
+};
+
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
+  const { data: session } = useSession();
+  const event = props.event;
+  const language = event.data?.language;
+
+  const bookingLocale = useMemo(() => {
+    if (language) {
+      return language;
+    }
+    return session?.user?.locale || props.userLocale || "en";
+  }, [language, session?.user?.locale, props.userLocale]);
+
+  const shouldUseCustomLanguage = bookingLocale && bookingLocale !== session?.user?.locale;
+
+  if (shouldUseCustomLanguage) {
+    return (
+      <LazyMotion strict features={loadFramerFeatures}>
+        <BookingLanguageProvider locale={bookingLocale}>
+          <BookerComponent {...props} />
+        </BookingLanguageProvider>
+      </LazyMotion>
+    );
+  }
+
   return (
     <LazyMotion strict features={loadFramerFeatures}>
       <BookerComponent {...props} />

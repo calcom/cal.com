@@ -95,6 +95,8 @@ export type FormValues = {
   schedule: number | null;
   useEventLevelSelectedCalendars: boolean;
 
+  language: string | null;
+
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)

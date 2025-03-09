@@ -523,6 +523,7 @@ export class EventTypeRepository {
       currency: true,
       bookingFields: true,
       useEventTypeDestinationCalendarEmail: true,
+      language: true,
       owner: {
         select: {
           id: true,

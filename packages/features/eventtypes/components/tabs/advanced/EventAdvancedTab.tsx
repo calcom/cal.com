@@ -36,6 +36,7 @@ import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -51,6 +52,7 @@ import {
   Switch,
   TextField,
   ColorPicker,
+  Select,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
@@ -90,6 +92,10 @@ export type EventAdvancedTabCustomClassNames = {
     seatsInput: InputClassNames;
   };
   timezoneLock?: SettingsToggleClassNames;
+  language?: SettingsToggleClassNames & {
+    description?: string;
+    select?: SelectClassNames;
+  };
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
@@ -488,13 +494,14 @@ export const EventAdvancedTab = ({
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
-
   const [eventTypeColorState, setEventTypeColorState] = useState(
     eventType.eventTypeColor || {
       lightEventTypeColor: DEFAULT_LIGHT_BRAND_COLOR,
       darkEventTypeColor: DEFAULT_DARK_BRAND_COLOR,
     }
   );
+  const [isBookingPageLanguageChecked, setIsBookingPageLanguageChecked] = useState(!!eventType.language);
+  const [eventLanguageState, setEventLanguageState] = useState(eventType.language || localeOptions[0].value);
 
   let verifiedSecondaryEmails = [
     {
@@ -918,6 +925,52 @@ export const EventAdvancedTab = ({
             data-testid="lock-timezone-toggle"
           />
         )}
+      />
+      <Controller
+        name="language"
+        render={({ field: { value, onChange } }) => {
+          return (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.language?.label)}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                isBookingPageLanguageChecked && "rounded-b-none",
+                customClassNames?.language?.container
+              )}
+              title={t("set_language_on_booking_page")}
+              description={t("description_set_language_on_booking_page")}
+              descriptionClassName={customClassNames?.language?.description}
+              checked={isBookingPageLanguageChecked}
+              onCheckedChange={(e) => {
+                const langValue = e ? eventLanguageState || localeOptions[0].value : null;
+                onChange(langValue);
+                setIsBookingPageLanguageChecked(e);
+              }}
+              childrenClassName={classNames("lg:ml-0", customClassNames?.language?.children)}>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <Label>{t("language")}</Label>
+                <Select
+                  className={classNames("w-full", customClassNames?.language?.select?.select)}
+                  options={localeOptions}
+                  value={
+                    value
+                      ? localeOptions.find((option) => option.value === value)
+                      : eventType.language
+                      ? localeOptions.find((option) => option.value === eventType.language)
+                      : localeOptions[0]
+                  }
+                  onChange={(language) => {
+                    if (language) {
+                      onChange(language.value);
+                      setEventLanguageState(language.value);
+                    }
+                  }}
+                />
+              </div>
+            </SettingsToggle>
+          );
+        }}
       />
       <Controller
         name="allowReschedulingPastBookings"

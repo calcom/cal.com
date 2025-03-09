@@ -142,6 +142,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
+    language: true,
   });
 };
 
@@ -512,6 +513,7 @@ export const getPublicEvent = async (
     instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
+    language: event.language,
   };
 };
 

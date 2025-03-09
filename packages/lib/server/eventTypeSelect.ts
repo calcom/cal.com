@@ -65,4 +65,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   assignRRMembersUsingSegment: true,
   maxLeadThreshold: true,
   useEventLevelSelectedCalendars: true,
+  language: true,
 });
