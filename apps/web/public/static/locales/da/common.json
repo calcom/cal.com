@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Der er allerede en omvendt videresendelse mellem disse brugere.",
   "previous_ooo_empty_title": "Ingen tidligere fravær fundet",
   "previous": "Forrige",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Tip: Du kan tilføje et '+' mellem brugernavne: cal.com/anna+brian for at lave et dynamisk gruppemøde",
+  "user_has_no_team_yet": "Du har ikke et team endnu",
+  "no_team_members": "Du har ikke nogen teammedlemmer endnu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
