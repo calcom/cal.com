@@ -1,6 +1,6 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "0.0.0",
+  "version": "9.9.9",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
