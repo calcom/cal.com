@@ -7,15 +7,11 @@ import { v4 as uuidv4 } from "uuid";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { setTestEmail } from "@calcom/lib/testEmails";
 
-let sendgridAPIKey: string;
-let senderEmail: string;
-
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
 function assertSendgrid() {
   if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL) {
-    sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-    senderEmail = process.env.SENDGRID_EMAIL as string;
+    const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
     sgMail.setApiKey(sendgridAPIKey);
     client.setApiKey(sendgridAPIKey);
   } else {
@@ -50,7 +46,7 @@ export function sendSendgridMail(
       setTestEmail({
         to: mailData.to?.toString() || "",
         from: {
-          email: senderEmail,
+          email: process.env.SENDGRID_EMAIL as string,
           name: addData.sender || SENDER_NAME,
         },
         subject: mailData.subject || "",
@@ -64,7 +60,7 @@ export function sendSendgridMail(
     return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
   }
 
-  if (!sendgridAPIKey) {
+  if (!process.env.SENDGRID_API_KEY) {
     console.info("No sendgrid API key provided, skipping email");
     return Promise.resolve();
   }
@@ -72,13 +68,13 @@ export function sendSendgridMail(
   return sgMail.send({
     to: mailData.to,
     from: {
-      email: senderEmail,
+      email: process.env.SENDGRID_EMAIL as string,
       name: addData.sender || SENDER_NAME,
     },
     subject: mailData.subject,
     html: addHTMLStyles(mailData.html),
     batchId: mailData.batchId,
-    replyTo: mailData.replyTo || senderEmail,
+    replyTo: mailData.replyTo || (process.env.SENDGRID_EMAIL as string),
     attachments: mailData.attachments,
     sendAt: mailData.sendAt,
   });

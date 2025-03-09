@@ -11,9 +11,6 @@ import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
-let client_id = "";
-let client_secret = "";
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
@@ -31,11 +28,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  let clientId = "";
+  let clientSecret = "";
   const appKeys = await getAppKeysFromSlug("msteams");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) return res.status(400).json({ message: "Office 365 client_id missing." });
-  if (!client_secret) return res.status(400).json({ message: "Office 365 client_secret missing." });
+  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+  if (!clientId) return res.status(400).json({ message: "Office 365 client_id missing." });
+  if (!clientSecret) return res.status(400).json({ message: "Office 365 client_secret missing." });
 
   const toUrlEncoded = (payload: Record<string, string>) =>
     Object.keys(payload)
@@ -43,12 +42,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .join("&");
 
   const body = toUrlEncoded({
-    client_id,
+    client_id: clientId,
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
     redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365video/callback`,
-    client_secret,
+    client_secret: clientSecret,
   });
 
   const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {

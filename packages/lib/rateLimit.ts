@@ -16,22 +16,13 @@ export type RateLimitHelper = {
   onRateLimiterResponse?: (response: RatelimitResponse) => void;
 };
 
-let warningDisplayed = false;
-
-/** Prevent flooding the logs while testing/building */
-function logOnce(message: string) {
-  if (warningDisplayed) return;
-  log.warn(message);
-  warningDisplayed = true;
-}
-
 export const API_KEY_RATE_LIMIT = 30;
 
 export function rateLimiter() {
   const { UNKEY_ROOT_KEY } = process.env;
 
   if (!UNKEY_ROOT_KEY) {
-    logOnce("Disabled due to not finding UNKEY_ROOT_KEY env variable");
+    log.warn("Disabled due to not finding UNKEY_ROOT_KEY env variable");
     return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
   const timeout = {
