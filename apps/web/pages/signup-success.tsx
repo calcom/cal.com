@@ -75,10 +75,9 @@ export default function SignupSuccess() {
             />
           </svg>
 
-          <span className="text-4xl font-medium text-[#114559]">Sua conta foi criada com sucesso!</span>
+          <span className="text-4xl font-medium text-[#114559]">Sua conta foi configurada com sucesso!</span>
           <span className="text-sm text-[#114559]">
-            Agora você já pode acessar o seu Yinflow.Life.
-            <b className="font-semibold">Painel do Profissional</b> e atender seus primeiros pacientes na
+            Acesse o <b className="font-semibold">Painel do Profissional</b> para atender e gerenciar seus pacientes na Yinflow.Life.
           </span>
           <a
             href={PAINEL_URL}
