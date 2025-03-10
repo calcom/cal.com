@@ -15,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 import isRouter from "../lib/isRouter";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
+import { canOrgSkipRequiredFields } from "./utils";
 
 export type Form = SerializableForm<
   App_RoutingForms_Form & {
@@ -37,12 +38,14 @@ export const handleResponse = async ({
   // formFillerId,
   chosenRouteId,
   isPreview,
+  isHeadlessMode = false,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
   form: Form;
   formFillerId: string;
   chosenRouteId: string | null;
   isPreview: boolean;
+  isHeadlessMode: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -59,16 +62,24 @@ export const handleResponse = async ({
       fields: form.fields,
     };
 
-    const missingFields = serializableFormWithFields.fields
-      .filter((field) => !(field.required ? response[field.id]?.value : true))
-      .map((f) => f.label);
+    // Skip required field validation for headless forms when org is allowed
+    const shouldValidateRequired = !isHeadlessMode ? true : !canOrgSkipRequiredFields(formOrgId);
 
-    if (missingFields.length) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Missing required fields ${missingFields.join(", ")}`,
-      });
+    if (shouldValidateRequired) {
+      const missingFields = serializableFormWithFields.fields
+        .filter((field) => !(field.required ? response[field.id]?.value : true))
+        .map((f) => f.label);
+
+      if (missingFields.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Missing required fields ${missingFields.join(", ")}`,
+        });
+      }
+    } else {
+      moduleLogger.debug("Skipped required fields check", safeStringify({ formOrgId, isHeadlessMode }));
     }
+
     const invalidFields = serializableFormWithFields.fields
       .filter((field) => {
         const fieldValue = response[field.id]?.value;
