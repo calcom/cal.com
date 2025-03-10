@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "これらのユーザー間にはすでに逆方向の転送が存在します。",
   "previous_ooo_empty_title": "過去のOOOが見つかりません",
   "previous": "前へ",
+  "uid": "UID",
+  "link": "リンク",
+  "tip_username_plus": "ヒント：ユーザー名の間に'+'を入れることで動的なグループミーティングを作成できます。例：cal.com/anna+brian",
+  "user_has_no_team_yet": "まだチームがありません",
+  "no_team_members": "まだチームメンバーがいません",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
