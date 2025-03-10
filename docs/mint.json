@@ -185,7 +185,6 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
-        "platform/quickstart",
         {
           "group": "Atoms",
           "icon": "atom",
@@ -200,6 +199,7 @@
             "platform/atoms/payment-form"
           ]
         },
+        "platform/quickstart",
         "platform/booking-redirects",
         "platform/faq"
       ]
