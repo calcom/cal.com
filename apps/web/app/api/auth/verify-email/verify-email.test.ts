@@ -6,7 +6,7 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
-import { moveUserToMatchingOrg } from "./verify-email";
+import { moveUserToMatchingOrg } from "./route";
 
 vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler");
 vi.mock("@calcom/lib/server/repository/organization");

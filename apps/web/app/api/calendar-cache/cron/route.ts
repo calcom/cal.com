@@ -1,15 +1,14 @@
-import type { NextApiRequest } from "next";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
+import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
-import { CalendarCache } from "../calendar-cache";
-
-const validateRequest = (req: NextApiRequest) => {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+const validateRequest = (req: NextRequest) => {
+  const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -56,7 +55,6 @@ const handleCalendarsToUnwatch = async () => {
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { eventTypeIds, credentialId, id }]) => {
         if (!credentialId) {
-          // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
           console.log("no credentialId for SelecedCalendar: ", id);
           return;
@@ -78,7 +76,6 @@ const handleCalendarsToWatch = async () => {
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
         if (!credentialId) {
-          // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
           console.log("no credentialId for SelecedCalendar: ", id);
           return;
@@ -92,17 +89,14 @@ const handleCalendarsToWatch = async () => {
   return result;
 };
 
-// This cron is used to activate and renew calendar subscriptions
-const handler = defaultResponder(async (request: NextApiRequest) => {
+const handler = defaultResponderForAppDir(async (request: NextRequest) => {
   validateRequest(request);
   await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);
 
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team
-  return {
+  return NextResponse.json({
     executedAt: new Date().toISOString(),
-  };
+  });
 });
 
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(handler) }),
-});
+export { handler as GET };
