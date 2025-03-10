@@ -51,24 +51,27 @@ const handleEvents = async (event: DirectorySyncEvent) => {
 };
 
 // This is the handler for the SCIM API requests
-export async function GET(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "GET", params.directory);
+export async function GET(request: NextRequest, { params }: { params: Promise<{ directory?: string[] }> }) {
+  return handleScimRequest(request, "GET", (await params).directory);
 }
 
-export async function POST(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "POST", params.directory);
+export async function POST(request: NextRequest, { params }: { params: Promise<{ directory?: string[] }> }) {
+  return handleScimRequest(request, "POST", (await params).directory);
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "PUT", params.directory);
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ directory?: string[] }> }) {
+  return handleScimRequest(request, "PUT", (await params).directory);
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "PATCH", params.directory);
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ directory?: string[] }> }) {
+  return handleScimRequest(request, "PATCH", (await params).directory);
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "DELETE", params.directory);
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ directory?: string[] }> }
+) {
+  return handleScimRequest(request, "DELETE", (await params).directory);
 }
 
 async function handleScimRequest(request: NextRequest, method: string, directoryParams?: string[]) {
