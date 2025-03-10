@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "這些用戶之間已經存在反向轉發。",
   "previous_ooo_empty_title": "找不到先前的外出辦公記錄",
   "previous": "上一個",
+  "trial_mode": "試用模式",
+  "inactive_team_plan": "未啟用的團隊方案",
+  "inactive_team_plan_description": "您的團隊方案未啟用。請檢查您的訂閱或聯繫客戶支援",
+  "limited_access_trial_mode": "試用期間功能受限。試用結束後即可使用完整功能。",
+  "uid": "UID",
+  "link": "連結",
+  "tip_username_plus": "提示：您可以在使用者名稱之間加上 '+'：cal.com/anna+brian 來建立動態群組會議",
+  "user_has_no_team_yet": "您還沒有團隊",
+  "no_team_members": "您還沒有團隊成員",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
