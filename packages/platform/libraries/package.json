@@ -27,5 +27,17 @@
     "vite": "^5.0.12",
     "vite-plugin-dts": "^3.7.2",
     "vite-plugin-environment": "^1.1.3"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./emails": {
+      "import": "./dist/emails.js",
+      "require": "./dist/emails.cjs",
+      "types": "./dist/emails.d.ts"
+    }
   }
 }

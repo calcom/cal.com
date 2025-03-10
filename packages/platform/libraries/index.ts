@@ -6,17 +6,6 @@ import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
-import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
-import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
-import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
-import AttendeeRescheduledEmail from "@calcom/emails/templates/attendee-rescheduled-email";
-import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
-import AttendeeUpdatedEmail from "@calcom/emails/templates/attendee-updated-email";
-import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
-import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
-import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
-import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
-import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
@@ -207,8 +196,8 @@ export type {
   InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
-
+export { parseEventTypeColor } from "@calcom/lib";
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
@@ -246,27 +235,6 @@ export { getClientSecretFromPayment };
 
 export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 
-export { AttendeeScheduledEmail };
-
-export { OrganizerScheduledEmail };
-
-export { AttendeeDeclinedEmail };
-
-export { AttendeeCancelledEmail };
-
-export { OrganizerCancelledEmail };
-
-export { OrganizerReassignedEmail };
-
-export { OrganizerRescheduledEmail };
-
-export { AttendeeRescheduledEmail };
-
-export { AttendeeUpdatedEmail };
-
-export { OrganizerRequestEmail };
-
-export { AttendeeRequestEmail };
 export { handleDeleteCredential };
 export { getBulkEventTypes };
 

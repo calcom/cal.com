@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
-import "server-only";
 
+// import "server-only";
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
