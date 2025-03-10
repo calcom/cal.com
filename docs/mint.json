@@ -202,7 +202,16 @@
             "platform/atoms/conferencing-apps"
           ]
         },
-        "platform/hooks",
+        {
+          "group": "Hooks",
+          "icon": "brackets-curly",
+          "pages": [
+            "platform/bookings-hooks",
+            "platform/event-types-hooks",
+            "platform/calendars-hooks",
+            "platform/user-or-team-related-hooks"
+          ]
+        },
         {
           "group": "Guides",
           "icon": "book",
