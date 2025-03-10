@@ -12,7 +12,7 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
-import type { BookingType } from "./getOriginalRescheduledBooking";
+import type { BookingType } from "./originalRescheduledBookingUtils";
 import type { IsFixedAwareUser } from "./types";
 
 type DateRange = {

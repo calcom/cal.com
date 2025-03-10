@@ -6,7 +6,7 @@ import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
 import type { Booking } from "../handleNewBooking/createBooking";
 import type { NewBookingEventType } from "../handleNewBooking/getEventTypesFromDB";
-import type { OriginalRescheduledBooking } from "../handleNewBooking/getOriginalRescheduledBooking";
+import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 

@@ -98,13 +98,13 @@ import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResp
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
-import type { BookingType } from "./handleNewBooking/getOriginalRescheduledBooking";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
+import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
+import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
