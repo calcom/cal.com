@@ -7,7 +7,7 @@
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "dev:cron": "ts-node cron-tester.ts",
     "dev-https": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --experimental-https",
     "dx": "yarn dev",
