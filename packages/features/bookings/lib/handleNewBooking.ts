@@ -1848,6 +1848,7 @@ async function handler(
       paymentUid: payment?.uid,
       paymentId: payment?.id,
       isDryRun,
+      videoCallUrl: metadata?.videoCallUrl,
       ...(isDryRun ? { troubleshooterData } : {}),
     };
   }
@@ -2038,6 +2039,7 @@ async function handler(
     ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
+    videoCallUrl: metadata?.videoCallUrl,
   };
 }
 
