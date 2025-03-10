@@ -2358,7 +2358,7 @@ __metadata:
     ts-loader: ^9.4.3
     ts-node: ^10.9.1
     tsconfig-paths: ^4.1.0
-    typescript: ^4.9.4
+    typescript: ^5.8.2
     uuid: ^8.3.2
     winston: ^3.13.0
     winston-transport: ^4.7.0
@@ -2464,6 +2464,7 @@ __metadata:
     "@radix-ui/react-slot": ^1.0.2
     "@radix-ui/react-switch": ^1.1.0
     "@radix-ui/react-toast": ^1.1.5
+    "@radix-ui/react-tooltip-atoms": "npm:@radix-ui/react-tooltip@^1.0.0"
     "@rollup/plugin-node-resolve": ^15.0.1
     "@tanstack/react-query": ^5.17.15
     "@types/jest": ^29.5.12
@@ -10761,7 +10762,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tooltip@npm:^1.0.0":
+"@radix-ui/react-tooltip-atoms@npm:@radix-ui/react-tooltip@^1.0.0, @radix-ui/react-tooltip@npm:^1.0.0":
   version: 1.0.6
   resolution: "@radix-ui/react-tooltip@npm:1.0.6"
   dependencies:
