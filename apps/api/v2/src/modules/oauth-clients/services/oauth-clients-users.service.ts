@@ -35,7 +35,7 @@ export class OAuthClientUsersService {
         "You cannot create a managed user outside of an organization - the OAuth client does not belong to any organization."
       );
     } else {
-      const email = this.getOAuthUserEmail(oAuthClientId, body.email);
+      const email = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
           invitations: [
@@ -97,13 +97,13 @@ export class OAuthClientUsersService {
   }
 
   async getExistingUserByEmail(oAuthClientId: string, email: string) {
-    const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
+    const oAuthEmail = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, email);
     return await this.userRepository.findByEmail(oAuthEmail);
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {
     if (body.email) {
-      const emailWithOAuthId = this.getOAuthUserEmail(oAuthClientId, body.email);
+      const emailWithOAuthId = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
       body.email = emailWithOAuthId;
       const newUsername = slugify(emailWithOAuthId);
       await this.userRepository.updateUsername(userId, newUsername);
@@ -112,7 +112,7 @@ export class OAuthClientUsersService {
     return this.userRepository.update(userId, body);
   }
 
-  getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+  static getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
     const [username, emailDomain] = userEmail.split("@");
     return `${username}+${oAuthClientId}@${emailDomain}`;
   }

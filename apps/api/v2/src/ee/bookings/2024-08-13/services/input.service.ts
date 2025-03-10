@@ -8,6 +8,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
@@ -34,7 +35,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
+import { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -323,14 +324,14 @@ export class InputBookingsService_2024_08_13 {
       request.body.rescheduledBy &&
       !request.body.rescheduledBy.includes(oAuthClientParams.platformClientId)
     ) {
-      request.body.rescheduledBy = this.getOAuthUserEmail(
+      request.body.rescheduledBy = OAuthClientUsersService.getOAuthUserEmail(
         oAuthClientParams.platformClientId,
         request.body.rescheduledBy
       );
     }
 
     if (request.body.rescheduledBy) {
-      if (!this.isRescheduledByAttendee(request.body.rescheduledBy, bodyTransformed.responses.email)) {
+      if (request.body.rescheduledBy !== bodyTransformed.responses.email) {
         userId = (await this.usersRepository.findByEmail(request.body.rescheduledBy))?.id;
       }
     }
@@ -349,11 +350,6 @@ export class InputBookingsService_2024_08_13 {
     }
 
     return newRequest as unknown as BookingRequest;
-  }
-
-  getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
-    const [username, emailDomain] = userEmail.split("@");
-    return `${username}+${oAuthClientId}@${emailDomain}`;
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
@@ -473,10 +469,6 @@ export class InputBookingsService_2024_08_13 {
     } catch (err) {
       this.logger.error(err);
     }
-  }
-
-  private isRescheduledByAttendee(rescheduledByEmail: string, bookingResponsesEmail: string) {
-    return rescheduledByEmail === bookingResponsesEmail;
   }
 
   transformGetBookingsFilters(queryParams: GetBookingsInput_2024_08_13) {
