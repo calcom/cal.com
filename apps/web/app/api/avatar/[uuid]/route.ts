@@ -27,7 +27,7 @@ const handleValidationError = (error: z.ZodError): NextResponse => {
 };
 
 async function handler(req: NextRequest, { params }: { params: Params }) {
-  const result = querySchema.safeParse(params);
+  const result = querySchema.safeParse(await params);
   if (!result.success) {
     return handleValidationError(result.error);
   }

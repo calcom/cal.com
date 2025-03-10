@@ -116,7 +116,7 @@ async function handleBookingAction(
     const createCaller = createCallerFactory(bookingsRouter);
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
-    const legacyReq = request ? buildLegacyRequest(headers(), cookies()) : ({} as any);
+    const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
     const res = {} as any;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);

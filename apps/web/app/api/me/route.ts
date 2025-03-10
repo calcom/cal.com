@@ -14,7 +14,7 @@ export async function GET() {
   const preSessionDate = performance.now();
 
   // Create a legacy request object for compatibility
-  const legacyReq = buildLegacyRequest(headers(), cookies());
+  const legacyReq = buildLegacyRequest(await headers(), await cookies());
 
   const session = await getServerSession({ req: legacyReq });
   if (!session) {

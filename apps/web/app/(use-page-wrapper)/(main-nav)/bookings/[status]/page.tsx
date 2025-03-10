@@ -18,7 +18,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async ({ params }: PageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }

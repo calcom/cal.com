@@ -22,7 +22,7 @@ const querySchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: _PageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     return await _generateMetadata(
       (t) => `${t("event_type")}`,
@@ -43,7 +43,7 @@ export const generateMetadata = async ({ params }: _PageProps) => {
 const getData = withAppDirSsr<EventTypePageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
 
   return <EventTypePageWrapper {...props} />;

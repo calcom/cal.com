@@ -10,7 +10,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const props = await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
   const eventName = props.booking.title;
   return await _generateMetadata(
     (t) => `${t("payment")} | ${eventName} | ${APP_NAME}`,
@@ -21,7 +21,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<PaymentPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const props = await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
 
   return <PaymentPage {...props} />;
 };

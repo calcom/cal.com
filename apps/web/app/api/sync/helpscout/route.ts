@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   if (!process.env.CALENDSO_ENCRYPTION_KEY)
     return NextResponse.json({ message: "Missing encryption key" }, { status: 500 });
 
-  const legacyRequest = buildLegacyRequest(headers(), cookies());
+  const legacyRequest = buildLegacyRequest(await headers(), await cookies());
 
   // Get the raw request body
   const rawBody = await getRawBody(legacyRequest);

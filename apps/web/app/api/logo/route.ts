@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
   const parsedQuery = logoApiSchema.parse(Object.fromEntries(searchParams.entries()));
 
   // Create a legacy request object for compatibility
-  const legacyReq = buildLegacyRequest(headers(), cookies());
+  const legacyReq = buildLegacyRequest(await headers(), await cookies());
   const { isValidOrgDomain } = orgDomainConfig(legacyReq);
 
   const hostname = request.headers.get("host");
