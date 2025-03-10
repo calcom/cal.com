@@ -166,6 +166,10 @@ export function TeamsListing() {
           />
         )}
       </UpgradeTip>
+
+      <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
+        <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
+      </p>
     </>
   );
 }
