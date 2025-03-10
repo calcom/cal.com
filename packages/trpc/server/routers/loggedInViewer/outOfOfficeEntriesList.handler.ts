@@ -83,7 +83,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       in: fetchOOOEntriesForIds,
     },
     end: {
-      gte: endDateFilterStartRange,
+      gte: endDateFilterStartRange ?? new Date().toISOString(),
       lte: endDateFilterEndRange,
     },
     ...(searchTerm

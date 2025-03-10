@@ -283,7 +283,6 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
     const reasonListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
@@ -324,7 +323,6 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const reasonListRespPromise = page.waitForResponse(
@@ -363,7 +361,6 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -408,7 +405,6 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -430,7 +426,6 @@ test.describe("Out of office", () => {
     await member1User?.apiLogin();
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
     await addOOOButton.click();
     await reasonListRespPromise;
@@ -459,7 +454,6 @@ test.describe("Out of office", () => {
     );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
-    await selectCustomDateRangeFilter(page);
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -481,7 +475,6 @@ test.describe("Out of office", () => {
       await member1User?.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
-      await selectCustomDateRangeFilter(page);
       await entriesListRespPromise;
       await addOOOButton.click();
       await reasonListRespPromise;
@@ -514,7 +507,6 @@ test.describe("Out of office", () => {
       );
       await page.goto("/settings/my-account/out-of-office?type=team");
       await page.waitForLoadState("domcontentloaded");
-      await selectCustomDateRangeFilter(page);
       await entriesListRespPromise;
 
       const addOOOButton = page.getByTestId("add_entry_ooo");
@@ -630,7 +622,6 @@ test.describe("Out of office", () => {
         );
         await page.goto("/settings/my-account/out-of-office?type=team");
         await page.waitForLoadState("domcontentloaded");
-        await selectCustomDateRangeFilter(page);
         await entriesListRespPromise;
 
         //Non-Admin canNot create OOO for team members
@@ -661,8 +652,12 @@ test.describe("Out of office", () => {
       await user.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
       await expect(
-        page.locator('[data-testid="filter-popover-trigger-end"] span', { hasText: "Last 7 Days" }).nth(0)
+        page
+          .locator('[data-testid="filter-popover-trigger-dateRange"] span', { hasText: "Last 7 Days" })
+          .nth(0)
       ).toBeVisible();
     });
 
@@ -671,7 +666,10 @@ test.describe("Out of office", () => {
       await user.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
-      await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible(); //Last 7 Days
@@ -700,7 +698,7 @@ test.describe("Out of office", () => {
       const member1User = users.get().find((user) => user.name === member1Name);
       const member2User = users.get().find((user) => user.name === member2Name);
 
-      //create OOO for member3, start:currentDate+2Days, end:currentDate+4days (for custom range to get future)
+      //create OOO for member3, start:currentDate+2Days, end:currentDate+4days (future ooo)
       await prisma.outOfOfficeEntry.create({
         data: {
           start: dayjs().startOf("day").add(2, "days").toDate(),
@@ -758,42 +756,41 @@ test.describe("Out of office", () => {
       await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
 
-      //Default filter 'Last 7 Days'
-      //1 OOO record should be visible for member3, end=currentDate-4days
+      //By Default future OOO will be displayed
+      //1 OOO record should be visible for member3, end=currentDate+4days
       expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
-      await expect(page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)).toBeVisible();
+      await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
+
+      //Default filter 'Last 7 Days' when DateRange Filter is selected
+      await test.step("Default filter - 'Last 7 Days'", async () => {
+        await page.locator('[data-testid="add-filter-button"]').click();
+        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+        await page.locator('[data-testid="add-filter-button"]').click();
+        const entriesListRespPromise = page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
+        await page.locator('[data-testid="add-filter-button"]').click();
+        await entriesListRespPromise;
+
+        //1 OOO record should be visible for member3, end=currentDate-4days
+        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
+        await expect(
+          page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
+        ).toBeVisible();
+      });
 
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
-        await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+        await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
         await page.locator(`[data-testid="date-range-options-t"]`).click();
+        await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
         await entriesListRespPromise;
-        await page.locator('[data-testid="filter-popover-trigger-end"]').click(); //close popover
 
-        //2 OOO records should be visible for member3, end=currentDate-4days and end=currentDate-12days
+        //2 OOO records should be visible end=currentDate-4days, end=currentDate-12days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(2);
-        await expect(
-          page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
-        ).toBeVisible();
-        await expect(
-          page.locator(`data-testid=table-redirect-${member1User?.username}`).nth(0)
-        ).toBeVisible();
-      });
-
-      //Select 'Custom' to get past and future OOOs
-      await test.step("select 'Custom'", async () => {
-        const entriesListRespPromise = page.waitForResponse(
-          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-        );
-        await selectCustomDateRangeFilter(page);
-        await entriesListRespPromise;
-
-        //all 3 OOO records should be visible
-        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(3);
-        await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible(); //future
         await expect(
           page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
         ).toBeVisible();
@@ -849,18 +846,4 @@ async function selectDateAndCreateOOO(
     await page.getByTestId(`team_username_select_${redirectToUserId}`).click();
   }
   await saveAndWaitForResponse(page, expectedStatusCode);
-}
-
-//selects custom date range filter with
-//start date = 1st of previous 2 months
-//end date = 1st of next 2 months
-//example: if current date is 28Feb2025, start date = 1Dec2024, end date = 1Apr2025
-async function selectCustomDateRangeFilter(page: Page) {
-  await page.locator('[data-testid="filter-popover-trigger-end"]').click();
-  await page.locator(`[data-testid="date-range-options-c"]`).click();
-  await page.locator(`button[name="previous-month"]`).click({ clickCount: 2, delay: 100 });
-  await page.locator(`button[name="day"]:text-is("1")`).nth(0).click();
-  await page.locator(`button[name="next-month"]`).click({ clickCount: 4, delay: 100 });
-  await page.locator(`button[name="day"]:text-is("1")`).nth(0).click();
-  await page.locator('[data-testid="filter-popover-trigger-end"]').click(); //close popover
 }
