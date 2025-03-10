@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Există deja o redirecționare inversă între acești utilizatori.",
   "previous_ooo_empty_title": "Nu s-a găsit niciun OOO anterior",
   "previous": "Anterior",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Sfat: Puteți adăuga un '+' între numele de utilizator: cal.com/anna+brian pentru a crea o întâlnire de grup dinamică",
+  "user_has_no_team_yet": "Nu aveți încă o echipă",
+  "no_team_members": "Nu aveți încă membri în echipă",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
