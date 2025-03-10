@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Mezi těmito uživateli již existuje zpětné přesměrování.",
   "previous_ooo_empty_title": "Nenalezeno žádné předchozí OOO",
   "previous": "Předchozí",
+  "trial_mode": "Zkušební režim",
+  "inactive_team_plan": "Neaktivní týmový plán",
+  "inactive_team_plan_description": "Váš týmový plán je neaktivní. Zkontrolujte své předplatné nebo kontaktujte zákaznickou podporu",
+  "limited_access_trial_mode": "Omezený přístup během zkušební doby. Funkce bude dostupná po skončení zkušební doby.",
+  "uid": "UID",
+  "link": "Odkaz",
+  "tip_username_plus": "Tip: Můžete přidat '+' mezi uživatelská jména: cal.com/anna+brian pro vytvoření dynamické skupinové schůzky",
+  "user_has_no_team_yet": "Zatím nemáte žádný tým",
+  "no_team_members": "Zatím nemáte žádné členy týmu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Näiden käyttäjien välillä on jo käänteinen uudelleenohjaus.",
   "previous_ooo_empty_title": "Aiempia poissaoloja ei löytynyt",
   "previous": "Edellinen",
+  "trial_mode": "Kokeilujakso",
+  "inactive_team_plan": "Ei-aktiivinen tiimitilaus",
+  "inactive_team_plan_description": "Tiimitilauksesi ei ole aktiivinen. Tarkista tilauksesi tai ota yhteyttä asiakastukeen",
+  "limited_access_trial_mode": "Rajoitettu pääsy kokeilujakson aikana. Ominaisuus käytettävissä kokeilujakson päätyttyä.",
+  "uid": "UID",
+  "link": "Linkki",
+  "tip_username_plus": "Vinkki: Voit lisätä '+'-merkin käyttäjänimien väliin: cal.com/anna+brian luodaksesi dynaamisen ryhmätapaamisen",
+  "user_has_no_team_yet": "Sinulla ei ole vielä tiimiä",
+  "no_team_members": "Sinulla ei ole vielä tiimin jäseniä",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

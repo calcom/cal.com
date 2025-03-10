@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Đã có một chuyển tiếp ngược lại giữa những người dùng này.",
   "previous_ooo_empty_title": "Không tìm thấy OOO trước đó",
   "previous": "Trước",
+  "trial_mode": "Chế độ dùng thử",
+  "inactive_team_plan": "Gói nhóm không hoạt động",
+  "inactive_team_plan_description": "Gói nhóm của bạn đang không hoạt động. Hãy kiểm tra đăng ký của bạn hoặc liên hệ với bộ phận hỗ trợ khách hàng",
+  "limited_access_trial_mode": "Truy cập hạn chế trong thời gian dùng thử. Tính năng sẽ khả dụng sau khi kết thúc thời gian dùng thử.",
+  "uid": "UID",
+  "link": "Liên kết",
+  "tip_username_plus": "Mẹo: Bạn có thể thêm dấu '+' giữa các tên người dùng: cal.com/anna+brian để tạo cuộc họp nhóm động",
+  "user_has_no_team_yet": "Bạn chưa có nhóm nào",
+  "no_team_members": "Bạn chưa có thành viên nhóm nào",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

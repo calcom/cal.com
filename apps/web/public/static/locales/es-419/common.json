@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Ya existe un reenvío inverso entre estos usuarios.",
   "previous_ooo_empty_title": "No se encontraron ausencias anteriores",
   "previous": "Anterior",
+  "trial_mode": "Modo de prueba",
+  "inactive_team_plan": "Plan de equipo inactivo",
+  "inactive_team_plan_description": "Tu plan de equipo está inactivo. Revisa tu suscripción o comunícate con el servicio de atención al cliente",
+  "limited_access_trial_mode": "Acceso limitado durante el período de prueba. Función disponible después de que termine la prueba.",
+  "uid": "UID",
+  "link": "Enlace",
+  "tip_username_plus": "Consejo: Puedes usar un '+' entre nombres de usuario: cal.com/anna+brian para crear una reunión grupal dinámica",
+  "user_has_no_team_yet": "Aún no tienes un equipo",
+  "no_team_members": "Aún no tienes miembros en tu equipo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

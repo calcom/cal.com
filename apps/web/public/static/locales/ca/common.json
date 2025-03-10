@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Ja hi ha una redirecció inversa entre aquests usuaris.",
   "previous_ooo_empty_title": "No s'ha trobat cap OOO anterior",
   "previous": "Anterior",
+  "trial_mode": "Mode de prova",
+  "inactive_team_plan": "Pla d'equip inactiu",
+  "inactive_team_plan_description": "El teu pla d'equip està inactiu. Comprova la teva subscripció o contacta amb el suport al client",
+  "limited_access_trial_mode": "Accés limitat durant el període de prova. Funció disponible després de finalitzar la prova.",
+  "uid": "UID",
+  "link": "Enllaç",
+  "tip_username_plus": "Consell: Pots afegir un '+' entre noms d'usuari: cal.com/anna+brian per crear una reunió de grup dinàmica",
+  "user_has_no_team_yet": "Encara no tens cap equip",
+  "no_team_members": "Encara no tens membres a l'equip",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
