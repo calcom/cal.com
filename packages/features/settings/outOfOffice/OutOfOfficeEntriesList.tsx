@@ -12,7 +12,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import type { FilterableColumn } from "@calcom/features/data-table";
 import {
   DataTableWrapper,
   DataTableToolbar,
@@ -53,12 +52,6 @@ interface OutOfOfficeEntry {
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
   canEditAndDelete: boolean;
 }
-
-const endDateColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
-  id: "end",
-  title: "end",
-  type: ColumnFilterType.DATE_RANGE,
-};
 
 export default function OutOfOfficeEntriesList() {
   return (

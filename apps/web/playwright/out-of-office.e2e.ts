@@ -284,6 +284,7 @@ test.describe("Out of office", () => {
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
+
     const reasonListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
     );
