@@ -7,7 +7,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
+import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
