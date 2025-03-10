@@ -83,7 +83,7 @@ export const VerifyEmailChangeEmail = (
           </p>
         </div>
       </div>
-      <CallToAction label={props.language("verify_email_email_button")} href={props.verificationEmailLink} />
+      <CallToAction label={props.language("verify_email_button")} href={props.verificationEmailLink} />
       <div style={{ lineHeight: "6px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
           <>
