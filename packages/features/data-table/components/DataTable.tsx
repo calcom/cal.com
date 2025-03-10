@@ -284,7 +284,7 @@ function DataTableBody<TData>({
     <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => (
         <TableRow
-          ref={virtualItem ? (node) => rowVirtualizer?.measureElement(node) : undefined}
+          ref={virtualItem ? (node) => rowVirtualizer.measureElement(node) : undefined}
           key={row.id}
           data-index={virtualItem?.index} //needed for dynamic row height measurement
           data-state={row.getIsSelected() && "selected"}

@@ -27,17 +27,19 @@ export function DataTablePagination<TData>({
         <span className="text-default font-medium">{totalRowCount}</span>
       </p>
     );
+  } else if (paginationMode === "standard") {
+    return (
+      <Pagination
+        currentPage={pageIndex + 1}
+        pageSize={pageSize}
+        totalItems={totalRowCount}
+        onPageChange={(page) => setPageIndex(page - 1)}
+        onPageSizeChange={(newSize) => setPageSize(newSize)}
+        onNext={() => setPageIndex(pageIndex + 1)}
+        onPrevious={() => setPageIndex(pageIndex - 1)}
+      />
+    );
+  } else {
+    return null;
   }
-
-  return (
-    <Pagination
-      currentPage={pageIndex + 1}
-      pageSize={pageSize}
-      totalItems={totalRowCount}
-      onPageChange={(page) => setPageIndex(page - 1)}
-      onPageSizeChange={(newSize) => setPageSize(newSize)}
-      onNext={() => setPageIndex(pageIndex + 1)}
-      onPrevious={() => setPageIndex(pageIndex - 1)}
-    />
-  );
 }
