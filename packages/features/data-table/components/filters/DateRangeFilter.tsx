@@ -3,11 +3,6 @@ import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
-import {
-  FUTURE_PRESET_VALUES,
-  getDefaultFutureEndDate,
-  getDefaultFutureStartDate,
-} from "@calcom/features/data-table/lib/dateRange";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   DateRangePicker,
@@ -34,7 +29,6 @@ import {
   getDefaultStartDate,
   getDefaultEndDate,
   type PresetOption,
-  DEFAULT_PRESET_FUTURE,
 } from "../../lib/dateRange";
 import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
 import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
@@ -74,22 +68,6 @@ const getDateRangeFromPreset = (val: string | null) => {
       startDate = dayjs().startOf("year");
       endDate = dayjs().endOf("day");
       break;
-    case "nw": // Next 7 days
-      startDate = dayjs().startOf("day");
-      endDate = dayjs().add(1, "week").endOf("day");
-      break;
-    case "nt": // Last 30 days
-      startDate = dayjs().startOf("day");
-      endDate = dayjs().add(30, "day").endOf("day");
-      break;
-    case "nm": // Date to Month
-      startDate = dayjs().startOf("day");
-      endDate = dayjs().endOf("month");
-      break;
-    case "ny": // Date to Year
-      startDate = dayjs().startOf("day");
-      endDate = dayjs().endOf("year");
-      break;
     default:
       startDate = getDefaultStartDate();
       endDate = getDefaultEndDate();
@@ -105,7 +83,6 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
   const range = options?.range ?? "past";
   const forceCustom = range === "custom";
   const forcePast = range === "past";
-  const includeFuture = range === "future";
 
   const { t } = useLocale();
   const currentDate = dayjs();
@@ -115,13 +92,12 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
   const [endDate, setEndDate] = useState<Dayjs | undefined>(
     filterValue?.data.endDate ? dayjs(filterValue.data.endDate) : undefined
   );
-  const DEFAULT = includeFuture ? DEFAULT_PRESET_FUTURE : DEFAULT_PRESET;
   const [selectedPreset, setSelectedPreset] = useState<PresetOption>(
     forceCustom
       ? CUSTOM_PRESET
       : filterValue?.data.preset
-      ? PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT
-      : DEFAULT
+      ? PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
+      : DEFAULT_PRESET
   );
 
   const updateValues = useCallback(
@@ -149,9 +125,9 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
     // if the query param is not set yet
     if (!filterValue && !forceCustom) {
       updateValues({
-        preset: includeFuture ? DEFAULT_PRESET_FUTURE : DEFAULT_PRESET,
-        startDate: includeFuture ? getDefaultFutureStartDate() : getDefaultStartDate(),
-        endDate: includeFuture ? getDefaultFutureEndDate() : getDefaultEndDate(),
+        preset: DEFAULT_PRESET,
+        startDate: getDefaultStartDate(),
+        endDate: getDefaultEndDate(),
       });
     }
   }, [filterValue, forceCustom, updateValues]);
@@ -242,9 +218,7 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
         {!forceCustom && (
           <Command className={classNames("w-40", isCustomPreset && "rounded-b-none")}>
             <CommandList>
-              {PRESET_OPTIONS.filter(
-                (option) => includeFuture || !(FUTURE_PRESET_VALUES as string[]).includes(option.value)
-              ).map((option) => (
+              {PRESET_OPTIONS.map((option) => (
                 <CommandItem
                   key={option.value}
                   data-testid={`date-range-options-${option.value}`}

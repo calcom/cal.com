@@ -656,13 +656,13 @@ test.describe("Out of office", () => {
   });
 
   test.describe("Date range filters", () => {
-    test("Default date range filter set to `Next 7 Days`", async ({ page, users }) => {
+    test("Default date range filter set to `Last 7 Days`", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
       await expect(
-        page.locator('[data-testid="filter-popover-trigger-end"] span', { hasText: "Next 7 Days" }).nth(0)
+        page.locator('[data-testid="filter-popover-trigger-end"] span', { hasText: "Last 7 Days" }).nth(0)
       ).toBeVisible();
     });
 
@@ -673,10 +673,6 @@ test.describe("Out of office", () => {
       await page.waitForLoadState("domcontentloaded");
       await page.locator('[data-testid="filter-popover-trigger-end"]').click();
 
-      await expect(page.locator('[data-testid="date-range-options-nw"]')).toBeVisible(); //Next 7 Days
-      await expect(page.locator('[data-testid="date-range-options-nt"]')).toBeVisible(); //Next 30 Days
-      await expect(page.locator('[data-testid="date-range-options-nm"]')).toBeVisible(); //Date to Month
-      await expect(page.locator('[data-testid="date-range-options-ny"]')).toBeVisible(); //Date to Year
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible(); //Last 7 Days
       await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible(); //Last 30 Days
@@ -704,7 +700,7 @@ test.describe("Out of office", () => {
       const member1User = users.get().find((user) => user.name === member1Name);
       const member2User = users.get().find((user) => user.name === member2Name);
 
-      //create OOO for member3, start:currentDate+2Days, end:currentDate+4days
+      //create OOO for member3, start:currentDate+2Days, end:currentDate+4days (for custom range to get future)
       await prisma.outOfOfficeEntry.create({
         data: {
           start: dayjs().startOf("day").add(2, "days").toDate(),
@@ -720,11 +716,11 @@ test.describe("Out of office", () => {
         },
       });
 
-      //create OOO for member3, start:currentDate+10Days, end:currentDate+12days
+      //create OOO for member3, start:currentDate-12Days, end:currentDate-10days (for Last 30 Days)
       await prisma.outOfOfficeEntry.create({
         data: {
-          start: dayjs().startOf("day").add(10, "days").toDate(),
-          end: dayjs().startOf("day").add(12, "days").toDate(),
+          start: dayjs().startOf("day").subtract(12, "days").toDate(),
+          end: dayjs().startOf("day").subtract(10, "days").toDate(),
           uuid: uuidv4(),
           user: { connect: { id: member3User?.id } },
           toUser: { connect: { id: member1User?.id } },
@@ -737,7 +733,7 @@ test.describe("Out of office", () => {
         },
       });
 
-      //create OOO for member3, start:currentDate-2Days, end:currentDate-4days
+      //create OOO for member3, start:currentDate-2Days, end:currentDate-4days (for Last 7 Days)
       await prisma.outOfOfficeEntry.create({
         data: {
           start: dayjs().startOf("day").subtract(4, "days").toDate(),
@@ -762,43 +758,47 @@ test.describe("Out of office", () => {
       await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
 
-      //Default filter 'Next 7 Days'
-      //1 OOO record should be visible for member3, end=currentDate+4days
+      //Default filter 'Last 7 Days'
+      //1 OOO record should be visible for member3, end=currentDate-4days
       expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
-      await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
+      await expect(page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)).toBeVisible();
 
-      //Select 'Next 30 Days'
-      await test.step("select 'Next 30 Days'", async () => {
+      //Select 'Last 30 Days'
+      await test.step("select 'Last 30 Days'", async () => {
         await page.locator('[data-testid="filter-popover-trigger-end"]').click();
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.locator(`[data-testid="date-range-options-nt"]`).click();
+        await page.locator(`[data-testid="date-range-options-t"]`).click();
         await entriesListRespPromise;
         await page.locator('[data-testid="filter-popover-trigger-end"]').click(); //close popover
 
-        //2 OOO records should be visible for member3, end=currentDate+4days and end=currentDate+12days
+        //2 OOO records should be visible for member3, end=currentDate-4days and end=currentDate-12days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(2);
-        await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
+        await expect(
+          page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
+        ).toBeVisible();
         await expect(
           page.locator(`data-testid=table-redirect-${member1User?.username}`).nth(0)
         ).toBeVisible();
       });
 
-      //Select 'Last 7 Days'
-      await test.step("select 'Last 7 Days'", async () => {
-        await page.locator('[data-testid="filter-popover-trigger-end"]').click();
+      //Select 'Custom' to get past and future OOOs
+      await test.step("select 'Custom'", async () => {
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.locator(`[data-testid="date-range-options-w"]`).click();
+        await selectCustomDateRangeFilter(page);
         await entriesListRespPromise;
-        await page.locator('[data-testid="filter-popover-trigger-end"]').click(); //close popover
 
-        //1 OOO record should be visible for member3, end=currentDate-4days
-        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
+        //all 3 OOO records should be visible
+        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(3);
+        await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible(); //future
         await expect(
           page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
+        ).toBeVisible();
+        await expect(
+          page.locator(`data-testid=table-redirect-${member1User?.username}`).nth(0)
         ).toBeVisible();
       });
     });
