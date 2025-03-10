@@ -326,7 +326,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
     let removedActiveOnIds = [1];
     const activeOnIds = [2];
 
-    //workflow removed from team 2, but still acitve on team 3 --> so reminder should not be removed
+    //workflow removed from team 2, but still active on team 3 --> so reminder should not be removed
     await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
       workflowSteps: workflow?.steps || [],
@@ -613,7 +613,7 @@ describe("scheduleBookingReminders", () => {
       null //teamId
     );
 
-    // two sms schould be scheduled
+    // two sms should be scheduled
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",

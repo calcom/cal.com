@@ -11,14 +11,13 @@ import Script from "next/script";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { classNames } from "@calcom/lib";
 import {
   APP_NAME,
   URL_PROTOCOL_REGEX,
@@ -40,6 +39,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, PasswordField, TextField, Form, Alert, CheckboxField, Icon, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 

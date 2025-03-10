@@ -3,9 +3,9 @@ import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 import type { z } from "zod";
 
-import type { EventNameObjectType } from "@calcom/core/event";
-import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import type { EventNameObjectType } from "@calcom/lib/event";
+import { getEventName } from "@calcom/lib/event";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -355,7 +355,13 @@ export const sendCancelledSeatEmailsAndSMS = async (
     emailsToSend.push(sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)));
   if (!eventTypeDisableHostEmail(eventTypeMetadata))
     emailsToSend.push(
-      sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent: formattedCalEvent }))
+      sendEmail(
+        () =>
+          new OrganizerAttendeeCancelledSeatEmail({
+            calEvent: formattedCalEvent,
+            attendee: cancelledAttendee,
+          })
+      )
     );
 
   await Promise.all(emailsToSend);

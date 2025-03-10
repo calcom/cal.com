@@ -30,18 +30,22 @@ export type DataTableContextType = {
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
+const DEFAULT_ACTIVE_FILTERS: ActiveFilter[] = [];
+const DEFAULT_SORTING: SortingState = [];
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+
 export function DataTableProvider({ children }: { children: React.ReactNode }) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
-    parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault([])
+    parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
   );
   const [sorting, setSorting] = useQueryState(
     "sorting",
-    parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault([])
+    parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault(DEFAULT_SORTING)
   );
   const [columnVisibility, setColumnVisibility] = useQueryState<VisibilityState>(
     "cols",
-    parseAsJson(ZColumnVisibility.parse).withDefault({})
+    parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
   );
 
   const clearAll = useCallback(

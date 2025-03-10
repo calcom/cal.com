@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { classNames } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -26,6 +25,7 @@ import {
   RadioGroup as RadioArea,
   TextAreaField,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 enum ReassignType {
   ROUND_ROBIN = "round_robin",

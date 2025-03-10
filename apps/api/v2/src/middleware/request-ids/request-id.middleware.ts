@@ -1,3 +1,4 @@
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import { Injectable, NestMiddleware, Logger } from "@nestjs/common";
 import { Request, Response, NextFunction } from "express";
 import { v4 as uuid } from "uuid";
@@ -15,7 +16,7 @@ export class RequestIdMiddleware implements NestMiddleware {
       requestId,
       method,
       url: baseUrl,
-      headers,
+      headers: filterReqHeaders(headers),
       requestBody,
       timestamp: new Date().toISOString(),
     });

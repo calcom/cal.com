@@ -74,6 +74,7 @@ describe("OAuth Client Users Endpoints", () => {
     let app: INestApplication;
 
     let oAuthClient: PlatformOAuthClient;
+    let oAuthClientEventTypesDisabled: PlatformOAuthClient;
     let organization: Team;
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
@@ -84,12 +85,16 @@ describe("OAuth Client Users Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let postResponseData: CreateManagedUserOutput["data"];
+    let postResponseData2: CreateManagedUserOutput["data"];
 
     const platformAdminEmail = `oauth-client-users-admin-${randomString()}@api.com`;
     let platformAdmin: User;
 
     const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
+
+    const userEmail2 = `oauth-client-users-user2-${randomString()}@api.com`;
+    const userTimeZone2 = "America/New_York";
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -116,6 +121,7 @@ describe("OAuth Client Users Endpoints", () => {
         isOrganization: true,
       });
       oAuthClient = await createOAuthClient(organization.id);
+      oAuthClientEventTypesDisabled = await createOAuthClient(organization.id, false);
 
       await profilesRepositoryFixture.create({
         uid: "asd1qwwqeqw-asddsadasd",
@@ -136,12 +142,13 @@ describe("OAuth Client Users Endpoints", () => {
       await app.init();
     });
 
-    async function createOAuthClient(organizationId: number) {
+    async function createOAuthClient(organizationId: number, areDefaultEventTypesEnabled?: boolean) {
       const data = {
         logo: "logo-url",
         name: "name",
         redirectUris: [CLIENT_REDIRECT_URI],
         permissions: 32,
+        areDefaultEventTypesEnabled,
       };
       const secret = "secret";
 
@@ -185,7 +192,7 @@ describe("OAuth Client Users Endpoints", () => {
         .expect(400);
     });
 
-    it(`/POST`, async () => {
+    it(`/POST with default event types`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
         timeZone: userTimeZone,
@@ -218,14 +225,55 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
-      await userConnectedToOAuth(responseBody.data.user.email);
+      await userConnectedToOAuth(oAuthClient.id, responseBody.data.user.email);
       await userHasDefaultEventTypes(responseBody.data.user.id);
       await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
       await userHasOnlyOneSchedule(responseBody.data.user.id);
     });
 
-    async function userConnectedToOAuth(userEmail: string) {
-      const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClient.id);
+    it(`/POST without default event types`, async () => {
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail2,
+        timeZone: userTimeZone2,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+        name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClientEventTypesDisabled.id}/users`)
+        .set("x-cal-secret-key", oAuthClientEventTypesDisabled.secret)
+        .send(requestBody)
+        .expect(201);
+
+      const responseBody: CreateManagedUserOutput = response.body;
+
+      postResponseData2 = responseBody.data;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.user.email).toEqual(
+        getOAuthUserEmail(oAuthClientEventTypesDisabled.id, requestBody.email)
+      );
+      expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
+      expect(responseBody.data.user.name).toEqual(requestBody.name);
+      expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
+      expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
+      expect(responseBody.data.user.locale).toEqual(requestBody.locale);
+      expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
+
+      await userConnectedToOAuth(oAuthClientEventTypesDisabled.id, responseBody.data.user.email);
+      await userDoesNotHaveDefaultEventTypes(responseBody.data.user.id);
+      await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
+    });
+
+    async function userConnectedToOAuth(oAuthClientId: string, userEmail: string) {
+      const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClientId);
       const newOAuthUser = oAuthUsers?.find((user) => user.email === userEmail);
 
       expect(oAuthUsers?.length).toEqual(1);
@@ -249,6 +297,11 @@ describe("OAuth Client Users Endpoints", () => {
       expect(
         defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutesVideo.slug)
       ).toBeTruthy();
+    }
+
+    async function userDoesNotHaveDefaultEventTypes(userId: number) {
+      const defaultEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
+      expect(defaultEventTypes?.length).toEqual(0);
     }
 
     async function userHasDefaultSchedule(userId: number, scheduleId: number | null) {
@@ -358,9 +411,15 @@ describe("OAuth Client Users Endpoints", () => {
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await oauthClientRepositoryFixture.delete(oAuthClientEventTypesDisabled.id);
       await teamRepositoryFixture.delete(organization.id);
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(postResponseData2.user.id);
       } catch (e) {
         // User might have been deleted by the test
       }
