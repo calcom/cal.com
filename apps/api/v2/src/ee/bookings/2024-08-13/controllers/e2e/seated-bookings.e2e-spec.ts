@@ -40,6 +40,8 @@ import {
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
+  const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
+
   describe("Seated bookings", () => {
     let app: INestApplication;
     let organization: Team;
@@ -330,7 +332,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/abc-def-ghi",
+        location: googleMeetUrl,
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
@@ -383,6 +385,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -418,6 +424,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -797,7 +807,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/abc-def-ghi",
+        location: googleMeetUrl,
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
@@ -850,6 +860,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -885,6 +899,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -910,7 +928,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/abc-def-ghi",
+        location: googleMeetUrl,
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
@@ -966,6 +984,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeOne,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: createdRecurringSeatedBooking[0].attendees[0].metadata,
             });
@@ -982,6 +1004,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeTwo,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -1017,6 +1043,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeOne,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: createdRecurringSeatedBooking[0].attendees[0].metadata,
             });
@@ -1030,6 +1060,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeTwo,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
