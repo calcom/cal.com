@@ -5,7 +5,7 @@ import classNames from "@calcom/ui/classNames";
 
 import { UpgradeTeamsBadge } from "../../badge";
 import { Icon } from "../../icon";
-import type { SelectProps } from "./Select";
+import type { SelectProps } from "./types";
 
 export const InputComponent = <
   Option,
