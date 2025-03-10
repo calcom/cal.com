@@ -1,7 +1,6 @@
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 
-import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Dialog, ConfirmationDialogContent, showToast } from "@calcom/ui";
@@ -17,33 +16,12 @@ export function DeleteMemberModal({
 }) {
   const { t } = useLocale();
   const { data: session } = useSession();
-  const { limit, offset } = useDataTable();
   const utils = trpc.useUtils();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
-      // @ts-expect-error rows can't be of type never[] but oldData can be due to the filter
-      utils.viewer.organizations.listMembers.setData({ limit, offset, searchTerm: "" }, (oldData) => {
-        if (!oldData) {
-          return {
-            canUserGetMembers: false,
-            rows: [],
-            meta: {
-              totalRowCount: 0,
-            },
-          };
-        }
-        const newRows = oldData.rows.filter((member) => member.id !== state.deleteMember.user?.id);
-        return {
-          ...oldData,
-          rows: newRows,
-          meta: {
-            totalRowCount: oldData.meta.totalRowCount - (oldData.rows.length - newRows.length),
-          },
-        };
-      });
-
-      // Existing invalidations
-      Promise.all([utils.viewer.teams.get.invalidate(), utils.viewer.eventTypes.invalidate()]);
+      utils.viewer.organizations.listMembers.invalidate();
+      utils.viewer.teams.get.invalidate();
+      utils.viewer.eventTypes.invalidate();
 
       showToast(t("success"), "success");
 
