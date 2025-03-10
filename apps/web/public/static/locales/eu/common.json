@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Dagoeneko alderantzizko birbideratze bat dago erabiltzaile hauen artean.",
   "previous_ooo_empty_title": "Ez da aurreko OOOrik aurkitu",
   "previous": "Aurrekoa",
+  "uid": "UID",
+  "link": "Esteka",
+  "tip_username_plus": "Aholkua: Erabiltzaile-izenen artean '+' jar dezakezu: cal.com/anna+brian talde-bilera dinamikoa sortzeko",
+  "user_has_no_team_yet": "Oraindik ez duzu talderik",
+  "no_team_members": "Oraindik ez dituzu taldekiderik",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
