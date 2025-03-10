@@ -3687,15 +3687,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/typeform@workspace:packages/app-store/typeform":
-  version: 0.0.0-use.local
-  resolution: "@calcom/typeform@workspace:packages/app-store/typeform"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/types@*, @calcom/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@calcom/types@workspace:packages/types"
