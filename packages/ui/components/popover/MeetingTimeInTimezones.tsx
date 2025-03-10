@@ -6,7 +6,7 @@ import {
   isPreviousDayInTimezone,
   isSupportedTimeZone,
   sortByTimezone,
-} from "@calcom/lib/date-fns";
+} from "@calcom/lib/dayjs";
 
 import { Icon } from "../icon";
 

@@ -1,7 +1,8 @@
 import { describe, expect, it, beforeAll, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { stringToDayjs } from "@calcom/prisma/zod-utils";
+
+import { stringToDayjs } from "./index";
 
 beforeAll(() => {
   vi.setSystemTime(dayjs.utc("2021-06-20T11:59:59Z").toDate());
