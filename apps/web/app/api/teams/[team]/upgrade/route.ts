@@ -19,11 +19,11 @@ const querySchema = z.object({
   session_id: z.string().min(1),
 });
 
-export async function GET(req: NextRequest, { params }: { params: { team: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ team: string }> }) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const { team: id, session_id } = querySchema.parse({
-      team: params.team,
+      team: (await params).team,
       session_id: searchParams.get("session_id"),
     });
 

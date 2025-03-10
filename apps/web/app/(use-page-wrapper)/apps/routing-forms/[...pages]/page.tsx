@@ -18,8 +18,8 @@ const normalizePages = (pages: string[] | string | undefined) => {
   };
 };
 
-export const generateMetadata = async ({ params }: { params: { pages: string[] } }) => {
-  const { mainPage } = normalizePages(await params.pages);
+export const generateMetadata = async ({ params }: { params: Promise<{ pages: string[] }> }) => {
+  const { mainPage } = normalizePages((await params).pages);
   return await _generateMetadata(
     // TODO: Need to show the actual form name instead of "Form"
     (t) => (mainPage === "routing-link" ? `Form | Cal.com Forms` : `${t("routing_forms")} | Cal.com Forms`),
