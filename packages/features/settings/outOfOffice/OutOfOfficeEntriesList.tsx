@@ -316,7 +316,7 @@ function OutOfOfficeEntriesListContent() {
         totalDBRowCount={totalDBRowCount}
         tableContainerRef={tableContainerRef}
         ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
-        ToolbarRight={<DateRangeFilter column={endDateColumn} options={{ range: "future" }} />}
+        ToolbarRight={<DateRangeFilter column={endDateColumn} />}
         EmptyView={
           <EmptyScreen
             className="mt-6"
