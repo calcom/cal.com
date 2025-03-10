@@ -50,6 +50,6 @@ import { JwtService } from "@nestjs/jwt";
     JwtService,
   ],
   controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
-  exports: [OAuthClientRepository],
+  exports: [OAuthClientRepository, OAuthFlowService],
 })
 export class OAuthClientModule {}
