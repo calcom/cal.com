@@ -15,7 +15,7 @@ type GetAllCreditsOptions = {
 
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
-  const userCreditsTable = await prisma.creditsTable.findUnique({
+  const userCreditBalance = await prisma.creditBalance.findUnique({
     where: {
       userId: ctx.user.id,
     },
@@ -24,12 +24,12 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
     },
   });
 
-  let userCredits = userCreditsTable ?? undefined;
+  let userCredits = userCreditBalance ?? undefined;
 
   const teamOrOrgId = ctx.user.organizationId ?? teamId;
 
   if (teamOrOrgId) {
-    const teamCreditsTable = await prisma.creditsTable.findUnique({
+    const teamCreditBalance = await prisma.creditBalance.findUnique({
       where: {
         teamId: teamOrOrgId,
       },
@@ -54,12 +54,12 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
     const totalMonthlyCredits = await getMonthlyCredits(teamOrOrgId);
 
     const totalMonthlyCreditsUsed =
-      teamCreditsTable?.expenseLogs.reduce((sum, log) => sum + log.credits, 0) || 0;
+      teamCreditBalance?.expenseLogs.reduce((sum, log) => sum + log.credits, 0) || 0;
 
     const teamCredits = {
       totalMonthlyCredits,
       totalRemainingMonthlyCredits: totalMonthlyCredits - totalMonthlyCreditsUsed,
-      additionalCredits: teamCreditsTable?.additionalCredits ?? 0,
+      additionalCredits: teamCreditBalance?.additionalCredits ?? 0,
     };
     return { teamCredits, userCredits };
   } else {
