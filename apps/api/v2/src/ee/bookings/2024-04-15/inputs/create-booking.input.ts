@@ -76,9 +76,11 @@ export class CreateBookingInput_2024_04_15 {
   @ApiPropertyOptional()
   rescheduleUid?: string;
 
-  @IsString()
   @IsOptional()
   @ApiPropertyOptional()
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid rescheduledBy email format",
+  })
   rescheduledBy?: string;
 
   @IsTimeZone()
