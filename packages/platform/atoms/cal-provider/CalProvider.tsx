@@ -8,49 +8,9 @@ import { VERSION_2024_06_14 } from "@calcom/platform-constants";
 import http from "../lib/http";
 import type { CalProviderProps } from "./BaseCalProvider";
 import { BaseCalProvider } from "./BaseCalProvider";
-import type {
-  frTranslationKeys,
-  enTranslationKeys,
-  ptBrTranslationKeys,
-  deTranslationKeys,
-  esTranslationKeys,
-  nlTranslationKeys,
-  translationKeys,
-} from "./languages";
+import type { translationKeys } from "./languages";
 
 const queryClient = new QueryClient();
-
-type i18nFrProps = {
-  labels?: Partial<Record<frTranslationKeys, string>>;
-  language?: "fr";
-};
-
-type i18nEnProps = {
-  labels?: Partial<Record<enTranslationKeys, string>>;
-  language?: "en";
-};
-
-type i18nPtBrProps = {
-  labels?: Partial<Record<ptBrTranslationKeys, string>>;
-  language?: "pt-BR";
-};
-
-type i18nDeProps = {
-  labels?: Partial<Record<deTranslationKeys, string>>;
-  language?: "de";
-};
-
-type i18nEsProps = {
-  labels?: Partial<Record<esTranslationKeys, string>>;
-  language?: "es";
-};
-
-type i18nNlProps = {
-  labels?: Partial<Record<nlTranslationKeys, string>>;
-  language?: "nl";
-};
-
-export type i18nProps = i18nFrProps | i18nEnProps | i18nPtBrProps | i18nDeProps | i18nEsProps | i18nNlProps;
 
 /**
  * Renders a CalProvider component.

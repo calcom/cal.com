@@ -20,7 +20,6 @@ import { useTimezone } from "../hooks/useTimezone";
 import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
-import type { i18nProps } from "./CalProvider";
 import type {
   translationKeys,
   CalProviderLanguagesType,
@@ -30,6 +29,7 @@ import type {
   deTranslationKeys,
   esTranslationKeys,
   nlTranslationKeys,
+  i18nProps,
 } from "./languages";
 import { EN } from "./languages";
 
@@ -44,6 +44,7 @@ export type CalProviderProps = {
   organizationId?: number;
   isEmbed?: boolean;
 } & i18nProps;
+
 export function BaseCalProvider({
   clientId,
   accessToken,
