@@ -197,6 +197,7 @@ export default class EventManager {
       const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
 
       if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+      log.warn("Falling back to cal video as no location is set");
     }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
