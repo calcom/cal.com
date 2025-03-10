@@ -90,12 +90,12 @@ export default function TeamListItem(props: Props) {
     setOpenMemberInvitationModal(false);
   };
 
-  if (!team) return <></>;
+  if (!team) return null;
   const teamUrl = team.isOrganization
     ? getTeamUrlSync({ orgSlug: team.slug, teamSlug: null })
     : getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug });
   const teamInfo = (
-    <div className="item-center flex px-5 py-5">
+    <div className="item-center flex truncate p-5">
       <Avatar
         size="md"
         imageSrc={getPlaceholderAvatar(team?.logoUrl || team?.parent?.logoUrl, team?.name as string)}
@@ -148,7 +148,7 @@ export default function TeamListItem(props: Props) {
         ) : (
           teamInfo
         )}
-        <div className="px-5 py-5">
+        <div className="p-5">
           {isInvitee ? (
             <>
               <div className="hidden justify-center sm:flex">
@@ -168,7 +168,13 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
+                    <Button
+                      className="radix-state-open:rounded-r-md"
+                      type="button"
+                      color="secondary"
+                      variant="icon"
+                      StartIcon="ellipsis"
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
