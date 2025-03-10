@@ -38,12 +38,20 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
+    },
+    "./slots": {
+      "import": "./dist/slots.js",
+      "require": "./dist/slots.cjs",
+      "types": "./dist/slots.d.ts"
     }
   },
   "typesVersions": {
     "*": {
       "event-types": [
         "dist/event-types.d.ts"
+      ],
+      "slots": [
+        "dist/slots.d.ts"
       ]
     }
   }
