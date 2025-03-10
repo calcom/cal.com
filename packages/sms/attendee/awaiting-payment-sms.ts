@@ -10,11 +10,18 @@ export default class AwaitingPaymentSMS extends SMSManager {
 
   getMessage(attendee: Person) {
     const t = attendee.language.translate;
-    return `${t("meeting_awaiting_payment")}: ${t("complete_your_booking_subject", {
+
+    const messageText = `${t("meeting_awaiting_payment")}: ${t("complete_your_booking_subject", {
       title: this.calEvent.title,
       date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
-    })}. \n\n ${t("you_can_view_booking_details_with_this_url", {
-      url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}?changes=true`,
-    })} `;
+    })}`;
+
+    const bookingUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}?changes=true`;
+
+    const urlText = t("you_can_view_booking_details_with_this_url", {
+      url: bookingUrl,
+    });
+
+    return `${messageText}\n\n${urlText}`;
   }
 }
