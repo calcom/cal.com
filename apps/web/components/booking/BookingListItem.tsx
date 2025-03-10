@@ -8,6 +8,7 @@ import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/a
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import { DeleteBookingDialog } from "@calcom/features/bookings/components/dialog/DeleteBookingDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -328,6 +329,18 @@ function BookingListItem(booking: BookingItemProps) {
     });
   }
 
+  if (isBookingInPast) {
+    editBookingActions.push({
+      id: "delete_history",
+      label: t("delete"),
+      onClick: () => {
+        setIsOpenDeleteBookingDialog(true);
+      },
+      icon: "trash" as const,
+      color: "destructive",
+    });
+  }
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -384,6 +397,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
+  const [isOpenDeleteBookingDialog, setIsOpenDeleteBookingDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -487,6 +501,11 @@ function BookingListItem(booking: BookingItemProps) {
       <AddGuestsDialog
         isOpenDialog={isOpenAddGuestsDialog}
         setIsOpenDialog={setIsOpenAddGuestsDialog}
+        bookingId={booking.id}
+      />
+      <DeleteBookingDialog
+        isOpenDialog={isOpenDeleteBookingDialog}
+        setIsOpenDialog={setIsOpenDeleteBookingDialog}
         bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
