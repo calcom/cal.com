@@ -30,8 +30,8 @@ import type {
   deTranslationKeys,
   esTranslationKeys,
   nlTranslationKeys,
-} from "./cal-provider/languages";
-import { EN } from "./cal-provider/languages";
+} from "./languages";
+import { EN } from "./languages";
 
 export type CalProviderProps = {
   children?: ReactNode;
