@@ -7,8 +7,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export async function GET() {
-  const headersList = headers();
-  const cookiesList = cookies();
+  const headersList = await headers();
+  const cookiesList = await cookies();
   const legacyReq = buildLegacyRequest(headersList, cookiesList);
 
   const session = await getServerSession({ req: legacyReq });

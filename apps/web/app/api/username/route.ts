@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { username, orgSlug } = bodySchema.parse(body);
 
-    const legacyReq = buildLegacyRequest(headers(), cookies());
+    const legacyReq = buildLegacyRequest(await headers(), await cookies());
 
     // Get current org domain from request headers
     const { currentOrgDomain } = orgDomainConfig(legacyReq);

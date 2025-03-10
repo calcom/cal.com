@@ -8,8 +8,8 @@ import prisma from "@calcom/prisma";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export async function POST() {
-  const headersList = headers();
-  const cookiesList = cookies();
+  const headersList = await headers();
+  const cookiesList = await cookies();
   const legacyReq = buildLegacyRequest(headersList, cookiesList);
 
   const session = await getServerSession({ req: legacyReq });
