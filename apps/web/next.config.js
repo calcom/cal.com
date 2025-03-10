@@ -177,7 +177,10 @@ const orgDomainMatcherConfig = {
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
-  serverExternalPackages: ["next-i18next", "deasync", "http-cookie-agent", "rest-facade", "superagent-proxy"],
+  serverExternalPackages: ["next-i18next", 
+    "deasync", "http-cookie-agent", // Dependencies of @ewsjs/xhr
+    "rest-facade", "superagent-proxy" // Dependencies of @tryvital/vital-node
+  ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
