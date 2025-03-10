@@ -9,9 +9,9 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useTelemetry } from "@calcom/lib/hooks/telemetry";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
