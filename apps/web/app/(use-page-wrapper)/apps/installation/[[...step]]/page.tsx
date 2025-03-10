@@ -22,7 +22,9 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<OnboardingPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
+  const props = await getData(
+    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+  );
   return <Page {...props} />;
 };
 export default ServerPage;
