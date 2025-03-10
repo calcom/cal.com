@@ -9,6 +9,7 @@ import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -33,7 +34,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -75,7 +76,8 @@ export class InputBookingsService_2024_08_13 {
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly bookingSeatRepository: BookingSeatRepository,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly platformBookingsService: PlatformBookingsService,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createBookingRequest(
@@ -316,9 +318,20 @@ export class InputBookingsService_2024_08_13 {
     const newRequest = { ...request };
     let userId: number | undefined = undefined;
 
+    if (
+      oAuthClientParams &&
+      request.body.rescheduledBy &&
+      !request.body.rescheduledBy.includes(oAuthClientParams.platformClientId)
+    ) {
+      request.body.rescheduledBy = this.getOAuthUserEmail(
+        oAuthClientParams.platformClientId,
+        request.body.rescheduledBy
+      );
+    }
+
     if (request.body.rescheduledBy) {
       if (!this.isRescheduledByAttendee(request.body.rescheduledBy, bodyTransformed.responses.email)) {
-        userId = await this.createBookingRequestOwnerId(request);
+        userId = (await this.usersRepository.findByEmail(request.body.rescheduledBy))?.id;
       }
     }
 
@@ -336,6 +349,11 @@ export class InputBookingsService_2024_08_13 {
     }
 
     return newRequest as unknown as BookingRequest;
+  }
+
+  getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+    const [username, emailDomain] = userEmail.split("@");
+    return `${username}+${oAuthClientId}@${emailDomain}`;
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {

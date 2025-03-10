@@ -140,7 +140,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       className="underline"
                       onClick={() => {
                         router.push(
-                          `/booking?rescheduleUid=${booking?.uid}&eventTypeSlug=${booking?.eventType.slug}`
+                          `/booking?rescheduleUid=${booking?.uid}&eventTypeSlug=${booking?.eventType.slug}&rescheduledBy=bu@example.com`
                         );
                       }}>
                       Reschedule
