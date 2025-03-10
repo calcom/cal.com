@@ -57,7 +57,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
       value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
       label: "after_guests_cal_video_no_show",
     },
-    { value: WebhookTriggerEvents.BOOKING_CANCELLATION_REASON, label: "Booking Cancellation Reason" },
+    { value: WebhookTriggerEvents.BOOKING_CANCELLATION_REASON, label: "booking_cancellation_reason" },
   ],
   "routing-forms": [
     { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },
