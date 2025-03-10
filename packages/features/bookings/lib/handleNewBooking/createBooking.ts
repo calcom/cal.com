@@ -11,14 +11,11 @@ import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
-import type {
-  EventTypeId,
-  AwaitedBookingData,
-  NewBookingEventType,
-  PaymentAppData,
-  OriginalRescheduledBooking,
-  LoadedUsers,
-} from "./types";
+import type { AwaitedBookingData, EventTypeId } from "./getBookingData";
+import type { NewBookingEventType } from "./getEventTypesFromDB";
+import type { LoadedUsers } from "./loadUsers";
+import type { OriginalRescheduledBooking } from "./originalRescheduledBookingUtils";
+import type { PaymentAppData } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 

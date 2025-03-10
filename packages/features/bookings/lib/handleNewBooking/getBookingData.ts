@@ -8,8 +8,8 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod/custom/booking";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
+import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import { handleCustomInputs } from "./handleCustomInputs";
-import type { getEventTypeResponse } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
