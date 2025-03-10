@@ -1,5 +1,5 @@
 import type { Params } from "app/_types";
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -63,6 +63,6 @@ async function handler(req: NextRequest, { params }: { params: Params }) {
   });
 }
 
-const getHandler = apiRouteMiddleware(handler);
+const getHandler = defaultResponderForAppDir(handler);
 
 export { getHandler as GET };

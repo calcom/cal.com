@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -26,6 +27,12 @@ import {
   RoutingReasons,
 } from "./enums";
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
+
+class SFObjectToUpdateNotFoundError extends RetryableError {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
 type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
@@ -204,7 +211,7 @@ export default class SalesforceCRMService implements CRM {
 
     if (!firstContact?.id) {
       log.error("No contacts found for event", { contacts });
-      throw new Error("No contacts found for event");
+      throw new SFObjectToUpdateNotFoundError("No contacts found for event");
     }
 
     const eventWhoIds = contacts.reduce((contactIds, contact) => {
@@ -883,11 +890,13 @@ export default class SalesforceCRMService implements CRM {
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
+      `SELECT Id, Website FROM Account WHERE Website IN ('${emailDomain}', 'www.${emailDomain}', 
+                      'http://www.${emailDomain}', 'http://${emailDomain}',
+                      'https://www.${emailDomain}', 'https://${emailDomain}') LIMIT 1`
     );
-
     if (accountQuery.records.length > 0) {
       const account = accountQuery.records[0] as { Id: string };
+      log.info("Found account based on email domain", safeStringify({ accountId: account.Id }));
       return account.Id;
     }
 
@@ -896,7 +905,15 @@ export default class SalesforceCRMService implements CRM {
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
 
-    return this.getDominantAccountId(response.records as { AccountId: string }[]);
+    const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
+
+    if (accountId) {
+      log.info("Found account based on other contacts", safeStringify({ accountId }));
+    } else {
+      log.info("No account found");
+    }
+
+    return accountId;
   }
 
   private async getAccountBasedOnEmailDomainOfContacts(email: string) {

@@ -6,7 +6,6 @@ import { DailyProvider } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
-import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
@@ -14,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 

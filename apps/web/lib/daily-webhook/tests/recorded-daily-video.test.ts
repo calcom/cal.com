@@ -9,21 +9,54 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
 
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest } from "next/server";
 import { createMocks } from "node-mocks-http";
-import { describe, afterEach, test, vi, beforeEach, beforeAll } from "vitest";
+import { describe, afterEach, test, vi, beforeEach, beforeAll, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
+import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import handler from "@calcom/web/pages/api/recorded-daily-video";
+import * as recordedDailyVideoRoute from "@calcom/web/app/api/recorded-daily-video/route";
 
-type CustomNextApiRequest = NextApiRequest & Request;
-type CustomNextApiResponse = NextApiResponse & Response;
+// Mock the next/headers module before importing the handler
+vi.mock("next/headers", () => ({
+  headers: () => new Headers({ "content-type": "application/json" }),
+  cookies: () => ({
+    get: () => null,
+    getAll: () => [],
+    has: () => false,
+  }),
+}));
+
+// Mock NextResponse to handle the response properly
+vi.mock("next/server", async () => {
+  const actual = (await vi.importActual("next/server")) as any;
+  return {
+    ...actual,
+    NextResponse: {
+      json: (data: any, init?: ResponseInit) => {
+        return new Response(JSON.stringify(data), {
+          ...init,
+          headers: {
+            ...init?.headers,
+            "content-type": "application/json",
+          },
+        });
+      },
+      // Add other methods you might need
+      redirect: actual.NextResponse.redirect,
+      next: actual.NextResponse.next,
+      rewrite: actual.NextResponse.rewrite,
+    },
+  };
+});
+
+// Now import the handler after mocking
+const { POST: handler } = recordedDailyVideoRoute;
+
 beforeAll(() => {
   // Setup env vars
   vi.stubEnv("SENDGRID_API_KEY", "FAKE_SENDGRID_API_KEY");
@@ -37,7 +70,7 @@ vi.mock("@calcom/app-store/dailyvideo/lib", () => {
   };
 });
 
-vi.mock("@calcom/core/videoClient", () => {
+vi.mock("@calcom/lib/videoClient", () => {
   return {
     getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
   };
@@ -111,6 +144,24 @@ const TRANSCRIPTION_ACCESS_LINK = {
     },
   ],
 };
+
+// We may need to make this more globally available. Will move if we need it elsewhere
+function createNextRequest(mockReq: ReturnType<typeof createMocks>["req"]): NextRequest {
+  // Create a Request object that NextRequest can wrap
+  const request = new Request("https://example.com/api/recorded-daily-video", {
+    method: mockReq.method,
+    headers: new Headers(mockReq.headers as Record<string, string>),
+    body: mockReq.body ? JSON.stringify(mockReq.body) : undefined,
+  });
+
+  // Create a NextRequest from the Request
+  const nextRequest = new NextRequest(request, {
+    ip: mockReq.socket?.remoteAddress || "127.0.0.1",
+    geo: { city: "", country: "", region: "" },
+  });
+
+  return nextRequest;
+}
 
 describe("Handler: /api/recorded-daily-video", () => {
   beforeEach(() => {
@@ -212,13 +263,23 @@ describe("Handler: /api/recorded-daily-video", () => {
         download_link: recordingDownloadLink,
       });
 
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks({
         method: "POST",
         body: BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD,
         prisma,
       });
 
-      await handler(req, res);
+      const nextReq = createNextRequest(req);
+
+      // Handle the response differently
+      try {
+        const response = await handler(nextReq);
+        // For App Router, we just need to check if the response exists
+        expect(response).toBeDefined();
+      } catch (error) {
+        console.error("Handler error:", error);
+        throw error;
+      }
 
       await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
         triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,

@@ -1,4 +1,4 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -26,7 +26,7 @@ async function handler(req: NextRequest) {
   return NextResponse.json(result, { status: statusCode });
 }
 
-const deleteHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
-const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const deleteHandler = defaultResponderForAppDir(handler);
+const postHandler = defaultResponderForAppDir(handler);
 
 export { deleteHandler as DELETE, postHandler as POST };

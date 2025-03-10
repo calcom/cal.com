@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
+import { OAuth2Client, JWT } from "googleapis-common";
 import type { GaxiosResponse } from "googleapis-common";
-import { OAuth2Client } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
@@ -12,6 +12,11 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import {
+  CalendarAppDelegationCredentialClientIdNotAuthorizedError,
+  CalendarAppDelegationCredentialInvalidGrantError,
+  CalendarAppDelegationCredentialError,
+} from "@calcom/lib/CalendarAppError";
 import { uniqueBy } from "@calcom/lib/array";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -32,7 +37,7 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
@@ -70,10 +75,10 @@ export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;
   private log: typeof logger;
-  private credential: CredentialPayload;
+  private credential: CredentialForCalendarServiceWithEmail;
   private myGoogleAuth!: MyGoogleAuth;
   private oAuthManagerInstance!: OAuthManager;
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialForCalendarServiceWithEmail) {
     this.integrationName = "google_calendar";
     this.credential = credential;
     this.auth = this.initGoogleAuth(credential);
@@ -91,7 +96,7 @@ export default class GoogleCalendarService implements Calendar {
     return this.myGoogleAuth;
   }
 
-  private initGoogleAuth = (credential: CredentialPayload) => {
+  private initGoogleAuth = (credential: CredentialForCalendarServiceWithEmail) => {
     const currentTokenObject = getTokenObjectFromCredential(credential);
     const auth = new OAuthManager({
       // Keep it false because we are not using auth.request everywhere. That would be done later as it involves many google calendar sdk functionc calls and needs to be tested well.
@@ -175,7 +180,84 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
+  private getAuthedCalendarFromDelegationCredential = async ({
+    delegationCredential,
+    emailToImpersonate,
+  }: {
+    emailToImpersonate: string;
+    delegationCredential: {
+      serviceAccountKey: {
+        client_email: string;
+        client_id: string;
+        private_key: string;
+      };
+    };
+  }) => {
+    const serviceAccountClientEmail = delegationCredential.serviceAccountKey.client_email;
+    const serviceAccountClientId = delegationCredential.serviceAccountKey.client_id;
+    const serviceAccountPrivateKey = delegationCredential.serviceAccountKey.private_key;
+
+    const authClient = new JWT({
+      email: serviceAccountClientEmail,
+      key: serviceAccountPrivateKey,
+      scopes: ["https://www.googleapis.com/auth/calendar"],
+      subject: emailToImpersonate,
+    });
+
+    try {
+      await authClient.authorize();
+    } catch (error) {
+      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
+
+      if ((error as any).response?.data?.error === "unauthorized_client") {
+        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
+          "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
+        );
+      }
+
+      if ((error as any).response?.data?.error === "invalid_grant") {
+        throw new CalendarAppDelegationCredentialInvalidGrantError(
+          "User might not exist in Google Workspace"
+        );
+      }
+
+      // Catch all error
+      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
+    }
+
+    this.log.debug(
+      "Using delegation credential with service account email",
+      safeStringify({
+        serviceAccountClientEmail,
+        serviceAccountClientId,
+        emailToImpersonate,
+      })
+    );
+
+    return new calendar_v3.Calendar({
+      auth: authClient,
+    });
+  };
+
   public authedCalendar = async () => {
+    let delegationCredentialAuthedCalendar;
+
+    if (this.credential.delegatedTo) {
+      if (!this.credential.user?.email) {
+        this.log.error("DelegationCredential: No email to impersonate found for delegation credential");
+      } else {
+        const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
+        delegationCredentialAuthedCalendar = await this.getAuthedCalendarFromDelegationCredential({
+          delegationCredential: this.credential.delegatedTo,
+          emailToImpersonate: this.credential.user.email.replace(oauthClientIdAliasRegex, ""),
+        });
+      }
+    }
+
+    if (delegationCredentialAuthedCalendar) {
+      return delegationCredentialAuthedCalendar;
+    }
+
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
     const calendar = new calendar_v3.Calendar({
       auth: myGoogleAuth,
@@ -183,7 +265,13 @@ export default class GoogleCalendarService implements Calendar {
     return calendar;
   };
 
-  private getAttendees = (event: CalendarEvent) => {
+  private getAttendees = ({
+    event,
+    hostExternalCalendarId,
+  }: {
+    event: CalendarEvent;
+    hostExternalCalendarId?: string;
+  }) => {
     // When rescheduling events we know the external id of the calendar so we can just look for it in the destinationCalendar array.
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
       (cal) => cal.credentialId === this.credential.id
@@ -200,7 +288,7 @@ export default class GoogleCalendarService implements Calendar {
         organizer: true,
         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
-        email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
+        email: hostExternalCalendarId ?? selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
       },
       ...eventAttendees,
     ];
@@ -269,7 +357,11 @@ export default class GoogleCalendarService implements Calendar {
     return res.data;
   }
 
-  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(
+    calEventRaw: CalendarEvent,
+    credentialId: number,
+    externalCalendarId?: string
+  ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
@@ -284,7 +376,7 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: formattedCalEvent.endTime,
         timeZone: formattedCalEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees(formattedCalEvent),
+      attendees: this.getAttendees({ event: formattedCalEvent, hostExternalCalendarId: externalCalendarId }),
       reminders: {
         useDefault: true,
       },
@@ -318,8 +410,9 @@ export default class GoogleCalendarService implements Calendar {
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
 
     const selectedCalendar =
-      formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
-      "primary";
+      externalCalendarId ??
+      (formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+        "primary");
 
     try {
       let event: calendar_v3.Schema$Event | undefined;
@@ -451,7 +544,7 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: formattedCalEvent.endTime,
         timeZone: formattedCalEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees(formattedCalEvent),
+      attendees: this.getAttendees({ event: formattedCalEvent, hostExternalCalendarId: externalCalendarId }),
       reminders: {
         useDefault: true,
       },
@@ -770,6 +863,13 @@ export default class GoogleCalendarService implements Calendar {
       this.log.error("There was an error getting calendars: ", safeStringify(error));
       throw error;
     }
+  }
+
+  // It would error if the delegation credential is not set up correctly
+  async testDelegationCredentialSetup() {
+    const calendar = await this.authedCalendar();
+    const cals = await calendar.calendarList.list({ fields: "items(id)" });
+    return !!cals.data.items;
   }
 
   /**

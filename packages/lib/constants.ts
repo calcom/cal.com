@@ -76,6 +76,10 @@ export const PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS =
 export const PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM =
   process.env.NEXT_PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM === "1";
 
+// Enables a feature for x% of all visitors. Takes a number between 0 and 100.
+export const PUBLIC_QUICK_AVAILABILITY_ROLLOUT =
+  parseInt(process.env.NEXT_PUBLIC_QUICK_AVAILABILITY_ROLLOUT ?? "", 10) || 0;
+
 export const CURRENT_TIMEZONE = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
 
 /** @deprecated use `WEBAPP_URL` */
@@ -137,6 +141,9 @@ export const CREDENTIAL_SYNC_SECRET_HEADER_NAME =
   process.env.CALCOM_CREDENTIAL_SYNC_HEADER_NAME || "calcom-credential-sync-secret";
 
 export const CREDENTIAL_SYNC_ENDPOINT = process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT;
+
+// Service Account Encryption Key for encrypting/decrypting service account keys
+export const SERVICE_ACCOUNT_ENCRYPTION_KEY = process.env.CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY;
 
 export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
