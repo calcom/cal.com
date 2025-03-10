@@ -10,12 +10,12 @@ import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/h
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";

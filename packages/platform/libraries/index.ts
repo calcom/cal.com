@@ -5,6 +5,7 @@ import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
+import getApps from "@calcom/app-store/utils";
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
 import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
@@ -30,6 +31,20 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import {
+  getFirstDelegationConferencingCredentialAppLocation,
+  getFirstDelegationConferencingCredential,
+  getDelegationCredentialOrRegularCredential,
+  getDelegationCredentialOrFindRegularCredential,
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsWithoutOrgId,
+  enrichHostsWithDelegationCredentials,
+  enrichUsersWithDelegationCredentials,
+  buildAllCredentials,
+  getAllDelegationCredentialsForUserByAppSlug,
+  getAllDelegationCredentialsForUserByAppType,
+  checkIfSuccessfullyConfiguredInWorkspace,
+} from "@calcom/lib/delegationCredential/server";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
@@ -39,13 +54,32 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
-import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
 import {
   createNewUsersConnectToOrgIfExists,
   sendSignupToOrganizationEmail,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { App } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
+
+export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+
+export { getApps };
+
+export {
+  getFirstDelegationConferencingCredentialAppLocation,
+  getFirstDelegationConferencingCredential,
+  getDelegationCredentialOrRegularCredential,
+  getDelegationCredentialOrFindRegularCredential,
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsWithoutOrgId,
+  enrichHostsWithDelegationCredentials,
+  enrichUsersWithDelegationCredentials,
+  buildAllCredentials,
+  getAllDelegationCredentialsForUserByAppSlug,
+  getAllDelegationCredentialsForUserByAppType,
+  checkIfSuccessfullyConfiguredInWorkspace,
+};
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
@@ -81,8 +115,6 @@ export { handleInstantMeeting };
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
 
-export { getAvailableSlots };
-export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
@@ -91,7 +123,7 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
-export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
 export {
   transformWorkingHoursForAtom,
@@ -131,6 +163,7 @@ export {
   // note(Lauris): Api to internal
   transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
+  transformTeamLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
@@ -171,7 +204,8 @@ export type {
   InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
+export { parseEventTypeColor } from "@calcom/lib";
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
@@ -191,7 +225,7 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { IcsFeedCalendarService };
-export { validateCustomEventName } from "@calcom/core/event";
+export { validateCustomEventName } from "@calcom/lib/event";
 export { getEnabledAppsFromCredentials };
 export type { App };
 export type { CredentialDataWithTeamName };
@@ -240,4 +274,9 @@ export { getRoutedUrl };
 
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 
+export { addDelegationCredential };
+
+export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
+export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";

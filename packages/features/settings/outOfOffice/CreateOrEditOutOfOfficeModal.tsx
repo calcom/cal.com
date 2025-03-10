@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
@@ -25,6 +24,7 @@ import {
   Label,
   Input,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
@@ -62,9 +62,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const [searchMember, setSearchMember] = useState("");
   const debouncedSearchMember = useDebounce(searchMember, 500);
   const oooForMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearchMember },
+    { limit: 10, searchText: debouncedSearchMember, adminOrOwnedTeamsOnly: true },
     {
-      enabled: true,
+      enabled: oooType === OutOfOfficeTab.TEAM,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
@@ -97,7 +97,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const [searchRedirectMember, setSearchRedirectMember] = useState("");
   const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
   const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearchRedirect },
+    {
+      limit: 10,
+      searchText: debouncedSearchRedirect,
+      adminOrOwnedTeamsOnly: oooType === OutOfOfficeTab.TEAM,
+    },
     {
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -218,7 +222,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             />
 
             {/* In case of Team, Select Member for whom OOO is created */}
-            {oooType === "team" && (
+            {oooType === OutOfOfficeTab.TEAM && (
               <>
                 <div className="mb-4">
                   <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
@@ -296,6 +300,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onDatesChange={(values) => {
                         onChange(values);
                       }}
+                      strictlyBottom={true}
                     />
                   )}
                 />
