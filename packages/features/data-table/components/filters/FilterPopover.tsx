@@ -136,7 +136,7 @@ export function FilterPopover({ column }: FilterPopoverProps) {
       <PopoverTrigger asChild>
         <Button
           color="secondary"
-          className="items-center"
+          className="h-[34px] items-center"
           StartIcon={icon}
           EndIcon="chevron-down"
           data-testid={`filter-popover-trigger-${column.id}`}>
