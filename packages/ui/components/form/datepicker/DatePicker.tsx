@@ -1,8 +1,8 @@
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 
-import { classNames as cn } from "@calcom/lib";
 import { Button } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { Calendar } from "../date-range-picker/Calendar";
 
@@ -34,14 +34,14 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
   );
 
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={classNames("grid gap-2", className)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <Button
             data-testid="pick-date"
             color="secondary"
             EndIcon="calendar"
-            className={cn("justify-between text-left font-normal", !date && "text-subtle")}>
+            className={classNames("justify-between text-left font-normal", !date && "text-subtle")}>
             {date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>}
           </Button>
         </Popover.Trigger>

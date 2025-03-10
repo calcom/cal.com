@@ -114,7 +114,6 @@ describe("Bookings Endpoints 2024-04-15", () => {
           optionValue: "",
         },
         notes: "test",
-        guests: [],
       };
 
       const body: CreateBookingInput_2024_04_15 = {
@@ -145,6 +144,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
           expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
           expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
           expect(responseBody.data.metadata).toEqual(bookingMetadata);
+          expect(responseBody.data.responses).toEqual(bookingResponses);
 
           createdBooking = responseBody.data;
         });
@@ -244,6 +244,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
           expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
           expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
           expect(responseBody.data.metadata).toEqual(bookingMetadata);
+          expect(responseBody.data.responses).toEqual(bookingResponses);
 
           createdBooking = responseBody.data;
         });
@@ -269,7 +270,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
             optionValue: "",
           },
           notes: "test",
-          guests: [],
+          guests: ["someone@example.com"],
         };
 
         const body: CreateBookingInput_2024_04_15 = {
@@ -301,6 +302,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
             expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
             expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
             expect(responseBody.data.metadata).toEqual(newBookingMetadata);
+            expect(responseBody.data.responses).toEqual(bookingResponses);
 
             createdBooking = responseBody.data;
           });

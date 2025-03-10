@@ -7,11 +7,11 @@ import type { UseFormReturn } from "react-hook-form";
 import type z from "zod";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { Badge, Icon, Switch, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export const LockedSwitch = (
   isManagedEventType: boolean,

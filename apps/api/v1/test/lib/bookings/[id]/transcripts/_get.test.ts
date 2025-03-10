@@ -5,8 +5,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
-import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClient";
 import { buildBooking } from "@calcom/lib/test/builder";
+import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/lib/videoClient";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
@@ -16,7 +16,7 @@ import handler from "../../../../../pages/api/bookings/[id]/transcripts/_get";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-vi.mock("@calcom/core/videoClient", () => {
+vi.mock("@calcom/lib/videoClient", () => {
   return {
     getAllTranscriptsAccessLinkFromRoomName: vi.fn(),
   };

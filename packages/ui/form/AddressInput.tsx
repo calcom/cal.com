@@ -1,4 +1,4 @@
-import cx from "@calcom/lib/classNames";
+import cx from "@calcom/ui/classNames";
 
 import { Input } from "../components/form";
 import { Icon } from "../components/icon";

@@ -177,7 +177,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -307,7 +307,7 @@ test.describe("Organization", () => {
     await page.goto("/settings/organizations/new");
 
     await test.step("Basic info", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
       expect(await page.locator("input[name=slug]").inputValue()).toBe("example");
 
@@ -344,7 +344,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -430,7 +430,7 @@ test.describe("Organization", () => {
     await page.goto("/teams");
 
     await test.step("Has org self serve banner", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       const selfServeButtonLocator = await page.getByTestId("setup_your_org_action_button");
       await expect(selfServeButtonLocator).toBeVisible();
 
@@ -439,7 +439,7 @@ test.describe("Organization", () => {
     });
 
     await test.step("Basic info", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       const slugLocator = await page.locator("input[name=slug]");
       expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
       expect(await slugLocator.inputValue()).toBe("example");
@@ -476,7 +476,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -561,11 +561,11 @@ async function fillAndSubmitFirstStepAsAdmin(
   orgSlug: string
 ) {
   await page.locator("input[name=orgOwnerEmail]").fill(targetOrgEmail);
-  // Since we are admin fill in this infomation instead of deriving it
+  // Since we are admin fill in this information instead of deriving it
   await page.locator("input[name=name]").fill(orgName);
   await page.locator("input[name=slug]").fill(orgSlug);
 
-  // Fill in seat infomation
+  // Fill in seat information
   await page.locator("input[name=seats]").fill("30");
   await page.locator("input[name=pricePerSeat]").fill("30");
 

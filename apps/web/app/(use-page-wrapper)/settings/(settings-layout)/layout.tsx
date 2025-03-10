@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import React from "react";
 
@@ -8,10 +7,7 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
-
-const SettingsLayoutAppDirClient = dynamic(() => import("./SettingsLayoutAppDirClient"), {
-  ssr: false,
-});
+import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
 type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
 

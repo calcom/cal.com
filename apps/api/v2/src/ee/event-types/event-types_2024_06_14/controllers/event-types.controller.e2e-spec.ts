@@ -377,6 +377,15 @@ describe("Event types Endpoints", () => {
             disableOnPrefill: true,
             hidden: false,
           },
+          {
+            type: "url",
+            label: "Video Url",
+            slug: "video-url",
+            required: true,
+            placeholder: "add video url",
+            disableOnPrefill: true,
+            hidden: false,
+          },
         ],
         scheduleId: firstSchedule.id,
         bookingLimitsCount: {
@@ -474,6 +483,16 @@ describe("Event types Endpoints", () => {
               required: true,
               placeholder: "select language",
               options: ["javascript", "python", "cobol"],
+              disableOnPrefill: true,
+              hidden: false,
+              isDefault: false,
+            },
+            {
+              type: "url",
+              label: "Video Url",
+              slug: "video-url",
+              required: true,
+              placeholder: "add video url",
               disableOnPrefill: true,
               hidden: false,
               isDefault: false,
@@ -1826,7 +1845,6 @@ describe("Event types Endpoints", () => {
       await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
-        await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
       } catch (e) {
         // Event type might have been deleted by the test
       }
