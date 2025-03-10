@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,6 +28,13 @@ export default function UpgradePage() {
   });
 
   const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
+
+  // Automatically trigger upgrade when user visits the page and has an org to upgrade
+  useEffect(() => {
+    if (doesUserHaveOrgToUpgrade.data) {
+      publishOrgMutation.mutate();
+    }
+  }, [doesUserHaveOrgToUpgrade.data]);
 
   return (
     <Shell withoutSeo={true}>
