@@ -14,11 +14,7 @@ import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 export type DestinationCalendarProps = {
   connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
-  onChange: (value: {
-    externalId: string;
-    integration: string;
-    domainWideDelegationCredentialId?: string;
-  }) => void;
+  onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
   hidePlaceholder?: boolean;
   value: string | undefined;
@@ -41,7 +37,7 @@ export const DestinationCalendarSelector = ({
     value: string;
     label: string;
     subtitle: string;
-    domainWideDelegationCredentialId?: string;
+    delegationCredentialId?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -82,7 +78,7 @@ export const DestinationCalendarSelector = ({
               selectedCalendar?.primary?.name
             })`,
             value: `${cal.integration}:${cal.externalId}`,
-            domainWideDelegationCredentialId: cal.domainWideDelegationCredentialId || undefined,
+            delegationCredentialId: cal.delegationCredentialId || undefined,
           })),
       })) ?? []
     );
@@ -141,7 +137,7 @@ export const DestinationCalendarSelector = ({
           onChange({
             integration,
             externalId,
-            domainWideDelegationCredentialId: newValue.domainWideDelegationCredentialId,
+            delegationCredentialId: newValue.delegationCredentialId,
           });
         }}
         isLoading={isPending}

@@ -1,8 +1,8 @@
 /* Schedule any workflow reminder that falls within 7 days for WHATSAPP */
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
@@ -12,11 +12,11 @@ import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
 import * as twilio from "../lib/reminders/providers/twilioProvider";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function handler(req: NextRequest) {
+  const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   //delete all scheduled whatsapp reminders where scheduled date is past current date
@@ -42,8 +42,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   })) as PartialWorkflowReminder[];
 
   if (!unscheduledReminders.length) {
-    res.json({ ok: true });
-    return;
+    return NextResponse.json({ ok: true });
   }
 
   for (const reminder of unscheduledReminders) {
@@ -115,9 +114,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
-  res.status(200).json({ message: "WHATSAPP scheduled" });
+  return NextResponse.json({ message: "WHATSAPP scheduled" }, { status: 200 });
 }
-
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});
