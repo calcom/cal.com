@@ -15,7 +15,7 @@ import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/get
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { BookingResponse } from "@calcom/platform-libraries";
-import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries/calendars";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type {
   ApiErrorResponse,
   ApiSuccessResponse,
