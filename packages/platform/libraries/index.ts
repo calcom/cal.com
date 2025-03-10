@@ -24,7 +24,6 @@ import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooki
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
@@ -45,7 +44,6 @@ import {
   getAllDelegationCredentialsForUserByAppType,
   checkIfSuccessfullyConfiguredInWorkspace,
 } from "@calcom/lib/delegationCredential/server";
-import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -91,17 +89,8 @@ export type UpdateScheduleOutputType = Awaited<
   >
 >;
 
-export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
-export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
-
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
-export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
-export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
-export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
-
-export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
-export { getPublicEvent };
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
 const handleNewBooking = newBookingMethods.default;
@@ -120,7 +109,7 @@ export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/l
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
-export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
+
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
@@ -153,8 +142,6 @@ export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
-
 export { userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -168,8 +155,6 @@ export { CalendarService };
 export { getCalendar };
 
 export { getTranslation };
-
-export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
 export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
@@ -218,7 +203,6 @@ export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
 export { handleDeleteCredential };
-export { getBulkEventTypes };
 
 export { getBookingFieldsWithSystemFields };
 

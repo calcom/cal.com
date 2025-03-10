@@ -12,6 +12,13 @@ import {
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/client";
 
+export type TransformedCreateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>
+>;
+
+export type TransformedUpdateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputUpdateTeamEventType"]>
+>;
 @Injectable()
 export class InputOrganizationsEventTypesService {
   constructor(

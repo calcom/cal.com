@@ -35,6 +35,7 @@ import {
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
@@ -275,7 +276,12 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputBookerLayouts(inputBookerLayouts: CreateEventTypeInput_2024_06_14["bookerLayouts"]) {
-    return transformBookerLayoutsApiToInternal(inputBookerLayouts);
+    const layouts = transformBookerLayoutsApiToInternal(inputBookerLayouts);
+    if (!layouts) return undefined;
+    return {
+      defaultLayout: layouts.defaultLayout as unknown as BookerLayouts,
+      enabledLayouts: layouts.enabledLayouts as unknown as BookerLayouts[],
+    };
   }
 
   transformInputConfirmationPolicy(

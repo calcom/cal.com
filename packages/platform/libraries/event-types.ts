@@ -1,3 +1,6 @@
+import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
+
 export { createHandler as createEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/create.handler";
 export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
 
@@ -53,3 +56,17 @@ export type {
 export { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export { validateCustomEventName } from "@calcom/lib/event";
+
+export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
+export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
+export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
+export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
+export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+
+export { getBulkEventTypes };
+
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
+export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
+export { getPublicEvent };

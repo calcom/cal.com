@@ -10,13 +10,10 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 
 import {
-  getEventTypeById,
   getEnabledAppsFromCredentials,
   getAppFromSlug,
   MembershipRole,
   getClientSecretFromPayment,
-  getBulkEventTypes,
-  bulkUpdateEventsToDefaultLocation,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
 } from "@calcom/platform-libraries";
 import type {
@@ -28,6 +25,11 @@ import type {
   TDependencyData,
   CredentialPayload,
 } from "@calcom/platform-libraries";
+import {
+  getBulkEventTypes,
+  getEventTypeById,
+  bulkUpdateEventsToDefaultLocation,
+} from "@calcom/platform-libraries/event-types";
 import {
   updateEventType,
   TUpdateEventTypeInputSchema,
