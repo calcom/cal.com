@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Esiste già un reindirizzamento inverso tra questi utenti.",
   "previous_ooo_empty_title": "Nessuna assenza precedente trovata",
   "previous": "Precedente",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Suggerimento: Puoi aggiungere un '+' tra i nomi utente: cal.com/anna+brian per creare una riunione di gruppo dinamica",
+  "user_has_no_team_yet": "Non hai ancora un team",
+  "no_team_members": "Non hai ancora membri del team",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

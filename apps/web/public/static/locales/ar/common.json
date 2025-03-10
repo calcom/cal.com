@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "هناك بالفعل إعادة توجيه عكسية بين هؤلاء المستخدمين.",
   "previous_ooo_empty_title": "لم يتم العثور على حالات عدم توفر سابقة",
   "previous": "السابق",
+  "uid": "المعرّف الفريد",
+  "link": "رابط",
+  "tip_username_plus": "نصيحة: يمكنك إضافة \"+\" بين أسماء المستخدمين: cal.com/anna+brian لإنشاء اجتماع جماعي ديناميكي",
+  "user_has_no_team_yet": "ليس لديك فريق بعد",
+  "no_team_members": "ليس لديك أعضاء فريق بعد",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
