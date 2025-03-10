@@ -180,13 +180,13 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
     });
   tabs.includes("payments") &&
     tabsNavigation.push({
-      name: t("event_payments_tab_title"),
+      name: t("payments"),
       onClick: () => onClick("payments"),
       isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,
       icon: "credit-card",
       info: t(`event_payments_tab_description`),
-      "data-testid": "event_payments_tab_title",
+      "data-testid": "payments",
     });
 
   return tabsNavigation;
