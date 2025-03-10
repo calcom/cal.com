@@ -5,7 +5,6 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 
 export { symmetricEncrypt, symmetricDecrypt };
 export { CalendarService };
-// export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb };
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 export { IcsFeedCalendarService };
