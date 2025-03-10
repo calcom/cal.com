@@ -225,53 +225,6 @@ const nextConfig = {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
-    (config.optimization = {
-      splitChunks: {
-        chunks: "all", // This will split dynamic imports into separate chunks
-      },
-    }),
-      (config.ignoreWarnings = [
-        {
-          message: /Critical dependency: the request of a dependency is an expression/,
-        },
-        {
-          message:
-            /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
-        },
-        {
-          message: /Module not found: Can't resolve 'canvas'/,
-        },
-      ]);
-    config.plugins.push({
-      apply(compiler) {
-        // When a module starts being processed, we track its start time.
-        compiler.hooks.compilation.tap("TrackModuleStartTime", (compilation) => {
-          compilation.hooks.buildModule.tap("TrackModuleBuildStart", (module) => {
-            if (module.resource) {
-              // Mark the start time of module processing
-              module.buildStartTime = performance.now();
-            }
-          });
-        });
-
-        // After the module is built, calculate the time taken for the build.
-        compiler.hooks.compilation.tap("TrackModuleEndTime", (compilation) => {
-          compilation.hooks.afterOptimizeModules.tap("TrackModuleAfterBuild", () => {
-            // After all modules are processed, log the time taken for each one
-            compilation.modules.forEach((module) => {
-              if (module.buildStartTime) {
-                const endTime = performance.now();
-                const duration = endTime - module.buildStartTime;
-
-                if (!module.resource.includes("node_modules"))
-                  console.log(`Module: ${module.resource}, built in: ${duration.toFixed(2)} ms`);
-              }
-            });
-          });
-        });
-      },
-    });
-    config.stats = "detailed";
     if (isServer) {
       if (process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1") {
         config.devtool = false;

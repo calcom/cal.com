@@ -47,9 +47,9 @@ export const availabilityRouter = router({
   }),
   listTeam: authedProcedure.input(ZListTeamAvailaiblityScheme).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.listTeamAvailability) {
-      // UNSTABLE_HANDLER_CACHE.listTeamAvailability = await import("./team/listTeamAvailability.handler").then(
-      //   (mod) => mod.listTeamAvailabilityHandler
-      // );
+      UNSTABLE_HANDLER_CACHE.listTeamAvailability = await import("./team/listTeamAvailability.handler").then(
+        (mod) => mod.listTeamAvailabilityHandler
+      );
     }
 
     // Unreachable code but required for type safety
@@ -65,9 +65,9 @@ export const availabilityRouter = router({
   schedule: scheduleRouter,
   calendarOverlay: authedProcedure.input(ZCalendarOverlayInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
-      // UNSTABLE_HANDLER_CACHE.calendarOverlay = await import("./calendarOverlay.handler").then(
-      //   (mod) => mod.calendarOverlayHandler
-      // );
+      UNSTABLE_HANDLER_CACHE.calendarOverlay = await import("./calendarOverlay.handler").then(
+        (mod) => mod.calendarOverlayHandler
+      );
     }
 
     // Unreachable code but required for type safety
