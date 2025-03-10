@@ -47,7 +47,7 @@ export class BaseConfirmationPolicy_2024_06_14 {
   @IsBoolean()
   @ApiProperty({
     description: "Unconfirmed bookings still block calendar slots.",
-    type: boolean,
+    type: Boolean,
   })
   blockUnconfirmedBookingsInBooker!: boolean;
 
