@@ -1198,3 +1198,168 @@ describe("attribute weights and virtual queues", () => {
     ).resolves.toStrictEqual(users[1]);
   });
 });
+
+describe("multiple host selection", () => {
+  it("can select multiple hosts when numberOfHostsToSelect is provided", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        priority: 2,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        priority: 2,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 3,
+        username: "test3",
+        name: "Test User 3",
+        email: "test3@example.com",
+        priority: 2,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([]);
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 1,
+        userId: 1,
+        createdAt: new Date("2022-01-25T06:30:00.000Z"),
+      }),
+      buildBooking({
+        id: 2,
+        userId: 2,
+        createdAt: new Date("2022-01-25T05:30:00.000Z"),
+      }),
+      buildBooking({
+        id: 3,
+        userId: 3,
+        createdAt: new Date("2022-01-25T04:30:00.000Z"),
+      }),
+    ]);
+
+    const allRRHosts = [
+      {
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        weight: users[0].weight,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        weight: users[1].weight,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: users[2].id, email: users[2].email, credentials: [], selectedCalendars: [] },
+        weight: users[2].weight,
+        createdAt: new Date(0),
+      },
+    ];
+
+    // Request 2 hosts
+    const result = await getLuckyUser({
+      availableUsers: users,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: {},
+      },
+      allRRHosts,
+      routingFormResponse: null,
+      numberOfHostsToSelect: 2,
+    });
+
+    // Verify we get an array with the first 2 users
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toHaveLength(2);
+    // The first user should be the least recently booked
+    expect(result[0].id).toBe(users[2].id);
+  });
+
+  it("returns a single user when numberOfHostsToSelect is not provided", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([]);
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 1,
+        userId: 1,
+        createdAt: new Date("2022-01-25T05:30:00.000Z"),
+      }),
+      buildBooking({
+        id: 2,
+        userId: 2,
+        createdAt: new Date("2022-01-25T04:30:00.000Z"),
+      }),
+    ]);
+
+    // Test without numberOfHostsToSelect parameter
+    const result = await getLuckyUser({
+      availableUsers: users,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: {},
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    });
+
+    // Verify we get a single user, not an array
+    expect(Array.isArray(result)).toBe(false);
+    // The result should be the least recently booked user
+    expect(result).toEqual(users[1]);
+  });
+});

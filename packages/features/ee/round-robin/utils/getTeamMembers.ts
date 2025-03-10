@@ -19,6 +19,7 @@ type Attendee = {
 type OrganizerType =
   | getEventTypeResponse["hosts"][number]["user"]
   | IsFixedAwareUser
+  | IsFixedAwareUser[]
   | {
       id: number;
       email: string;
@@ -46,7 +47,9 @@ export async function getTeamMembers({
       const user = host.user;
       return (
         user.email !== previousHost?.email &&
-        user.email !== organizer.email &&
+        (Array.isArray(organizer)
+          ? organizer.some((o) => o.email === user.email)
+          : user.email !== organizer.email) &&
         attendees.some((attendee) => attendee.email === user.email)
       );
     })
@@ -64,8 +67,17 @@ export async function getTeamMembers({
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  if (reassignedHost.email !== organizer.email) {
-    const tReassignedHost = await getTranslation(reassignedHost.locale ?? "en", "common");
+  if (
+    Array.isArray(reassignedHost)
+      ? !reassignedHost.some(
+          (h) => h.email === (Array.isArray(organizer) ? organizer[0].email : organizer.email)
+        )
+      : reassignedHost.email !== (Array.isArray(organizer) ? organizer[0].email : organizer.email)
+  ) {
+    const tReassignedHost = await getTranslation(
+      Array.isArray(reassignedHost) ? reassignedHost[0].locale ?? "en" : reassignedHost.locale ?? "en",
+      "common"
+    );
     teamMembers.push({
       id: reassignedHost.id,
       email: reassignedHost.email,

@@ -76,6 +76,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     weight?: number | null;
   }[];
   routingFormResponse: RoutingFormResponse | null;
+  numberOfHostsToSelect?: number; // Optional parameter for selecting multiple hosts
 }
 // === dayjs.utc().startOf("month").toDate();
 const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
@@ -424,7 +425,7 @@ export async function getLuckyUser<
     priority?: number | null;
     weight?: number | null;
   }
->(getLuckyUserParams: GetLuckyUserParams<T>) {
+>(getLuckyUserParams: GetLuckyUserParams<T>): Promise<T | T[]> {
   const {
     currentMonthBookingsOfAvailableUsers,
     bookingsOfNotAvailableUsersOfThisMonth,
@@ -436,19 +437,31 @@ export async function getLuckyUser<
     oooData,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
 
-  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
+  const { numberOfHostsToSelect = 1 } = getLuckyUserParams;
+
+  if (numberOfHostsToSelect === 1) {
+    // Original single-host selection logic
+    const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
+      ...getLuckyUserParams,
+      currentMonthBookingsOfAvailableUsers,
+      bookingsOfNotAvailableUsersOfThisMonth,
+      allRRHostsBookingsOfThisMonth,
+      allRRHostsCreatedThisMonth,
+      organizersWithLastCreated,
+      attributeWeights,
+      virtualQueuesData,
+      oooData,
+    });
+
+    return luckyUser;
+  }
+  // Multi-host selection logic
+  const { users } = await getOrderedListOfLuckyUsers({
     ...getLuckyUserParams,
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
   });
 
-  return luckyUser;
+  // Return the first N users from the ordered list
+  return users.slice(0, numberOfHostsToSelect) as T[];
 }
 
 type FetchedData = {
@@ -752,9 +765,12 @@ type AvailableUserBase = PartialUser & {
   weight: number | null;
 };
 
-export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
-  getLuckyUserParams: GetLuckyUserParams<AvailableUser>
-) {
+export async function getOrderedListOfLuckyUsers<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(getLuckyUserParams: GetLuckyUserParams<T>) {
   const { availableUsers, eventType } = getLuckyUserParams;
 
   const {
@@ -784,7 +800,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
 
   let remainingAvailableUsers = [...availableUsers];
   let currentMonthBookingsOfRemainingAvailableUsers = [...currentMonthBookingsOfAvailableUsers];
-  const orderedUsersSet = new Set<AvailableUser>();
+  const orderedUsersSet = new Set<T>();
   const perUserBookingsCount: Record<number, number> = {};
 
   const startTime = performance.now();
@@ -800,7 +816,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
       getLuckyUser_requiresDataToBePreFetched({
         ...getLuckyUserParams,
         eventType,
-        availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
+        availableUsers: remainingAvailableUsers as [T, ...T[]],
         currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfRemainingAvailableUsers,
         bookingsOfNotAvailableUsersOfThisMonth,
         allRRHostsBookingsOfThisMonth,
