@@ -450,6 +450,7 @@ export enum BillingPeriod {
 
 export const teamMetadataSchema = z
   .object({
+    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
     requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),

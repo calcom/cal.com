@@ -11,55 +11,76 @@ import {
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 import type { App } from "@calcom/types/App";
 
+import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";
 
 export type UseGetOauthAuthUrlProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
+  teamId?: number;
 };
 
-export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
+export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo, teamId }: UseGetOauthAuthUrlProps) => {
+  const { organizationId } = useAtomsContext();
+  let pathname = `conferencing/${ZOOM}/oauth/auth-url`;
+
+  if (teamId) {
+    pathname = `organizations/${organizationId}/teams/${teamId}/conferencing/${ZOOM}/oauth/auth-url`;
+  }
+
+  const queryParams = new URLSearchParams();
+  if (returnTo) queryParams.append("returnTo", returnTo);
+  if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
+
+  const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
+
   return useQuery({
-    queryKey: ["get-zoom-auth-url"],
+    queryKey: ["get-zoom-auth-url", teamId, organizationId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
-      return http
-        ?.get<ApiResponse<{ url: string }>>(
-          `conferencing/${ZOOM}/oauth/auth-url${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}${
-            onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
-          }`
-        )
-        .then(({ data: responseBody }) => {
-          if (responseBody.status === SUCCESS_STATUS) {
-            return responseBody.data.url;
-          }
-          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
-          return "";
-        });
+      return http?.get<ApiResponse<{ url: string }>>(fullPath).then(({ data: responseBody }) => {
+        if (responseBody.status === SUCCESS_STATUS) {
+          return responseBody.data.url;
+        }
+        if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
+        return "";
+      });
     },
   });
 };
 
-export const useOffice365GetOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
+export const useOffice365GetOauthAuthUrl = ({
+  returnTo,
+  onErrorReturnTo,
+  teamId,
+}: UseGetOauthAuthUrlProps) => {
+  const { organizationId } = useAtomsContext();
+  let pathname = `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+
+  if (teamId) {
+    pathname = `organizations/${organizationId}/teams/${teamId}/conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+  }
+
+  // Add query parameters
+  const queryParams = new URLSearchParams();
+  if (returnTo) queryParams.append("returnTo", returnTo);
+  if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
+
+  const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
+
   return useQuery({
-    queryKey: ["get-office365-auth-url"],
+    queryKey: ["get-office365-auth-url", teamId, organizationId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
-      return http
-        ?.get<ApiResponse<{ url: string }>>(
-          `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url${
-            returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""
-          }${onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""}`
-        )
-        .then(({ data: responseBody }) => {
-          if (responseBody.status === SUCCESS_STATUS) {
-            return responseBody.data.url;
-          }
-          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
-          return "";
-        });
+      return http?.get<ApiResponse<{ url: string }>>(fullPath).then(({ data: responseBody }) => {
+        if (responseBody.status === SUCCESS_STATUS) {
+          return responseBody.data.url;
+        }
+        if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
+        return "";
+      });
     },
   });
 };
@@ -69,10 +90,11 @@ export type UseConnectGoogleMeetProps = {
   onError?: (err: ApiErrorResponse) => void;
   returnTo?: string;
   onErrorReturnTo?: string;
+  teamId?: number;
 };
 
 export const useConnectNonOauthApp = (
-  { onSuccess, onError }: UseConnectGoogleMeetProps = {
+  { onSuccess, onError, teamId, returnTo, onErrorReturnTo }: UseConnectGoogleMeetProps = {
     onSuccess: () => {
       return;
     },
@@ -81,10 +103,21 @@ export const useConnectNonOauthApp = (
     },
   }
 ) => {
+  const { organizationId } = useAtomsContext();
   return useMutation({
     mutationFn: (app: string) => {
-      const pathname = `/conferencing/${app}/connect`;
-      return http?.post(pathname).then((res) => {
+      let pathname = `/conferencing/${app}/connect`;
+
+      if (teamId) {
+        pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/connect`;
+      }
+
+      const queryParams = new URLSearchParams();
+      if (returnTo) queryParams.append("returnTo", returnTo);
+      if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
+
+      const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
+      return http?.post(fullPath).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return { status: res.data };
         } else {
@@ -97,9 +130,9 @@ export const useConnectNonOauthApp = (
   });
 };
 
-export const useConnect = ({ returnTo, onErrorReturnTo, ...props }: UseConnectGoogleMeetProps) => {
-  const { refetch: refetchZoomAuthUrl } = useGetZoomOauthAuthUrl({ returnTo, onErrorReturnTo });
-  const { refetch: refetchOffice365AuthUrl } = useOffice365GetOauthAuthUrl({ returnTo, onErrorReturnTo });
+export const useConnect = (props: UseConnectGoogleMeetProps) => {
+  const { refetch: refetchZoomAuthUrl } = useGetZoomOauthAuthUrl(props);
+  const { refetch: refetchOffice365AuthUrl } = useOffice365GetOauthAuthUrl(props);
   const connectNonOauthApp = useConnectNonOauthApp(props);
 
   const connect = async (app: App["slug"]) => {

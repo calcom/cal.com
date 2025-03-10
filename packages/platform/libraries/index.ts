@@ -45,7 +45,6 @@ import {
   getAllDelegationCredentialsForUserByAppType,
   checkIfSuccessfullyConfiguredInWorkspace,
 } from "@calcom/lib/delegationCredential/server";
-import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -62,6 +61,8 @@ import {
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { App } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
+
+export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
 
 export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 
@@ -125,6 +126,7 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
+export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/lib/bulkUpdateTeamEventsToDefaultLocation";
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
@@ -158,9 +160,14 @@ export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
-
-export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+export {
+  eventTypeBookingFields,
+  eventTypeLocations,
+  EventTypeMetaDataSchema,
+  userMetadata,
+  bookingMetadataSchema,
+  teamMetadataSchema,
+} from "@calcom/prisma/zod-utils";
 
 export {
   // note(Lauris): Api to internal
@@ -207,7 +214,9 @@ export type {
   InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
+export { parseEventTypeColor } from "@calcom/lib";
+
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
@@ -268,7 +277,6 @@ export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
 export { handleDeleteCredential };
-export { getBulkEventTypes };
 
 export { getBookingFieldsWithSystemFields };
 

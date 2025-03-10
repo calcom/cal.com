@@ -70,7 +70,7 @@ export class EventTypesController_2024_06_14 {
     @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput_2024_06_14> {
     const transformedBody = await this.inputEventTypesService.transformAndValidateCreateEventTypeInput(
-      user.id,
+      user,
       body
     );
 
@@ -155,7 +155,7 @@ export class EventTypesController_2024_06_14 {
   ): Promise<UpdateEventTypeOutput_2024_06_14> {
     const transformedBody = await this.inputEventTypesService.transformAndValidateUpdateEventTypeInput(
       body,
-      user.id,
+      user,
       eventTypeId
     );
 
