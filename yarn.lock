@@ -2295,7 +2295,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.127"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.141"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -2464,6 +2464,7 @@ __metadata:
     "@radix-ui/react-slot": ^1.0.2
     "@radix-ui/react-switch": ^1.1.0
     "@radix-ui/react-toast": ^1.1.5
+    "@radix-ui/react-tooltip-atoms": "npm:@radix-ui/react-tooltip@^1.0.0"
     "@rollup/plugin-node-resolve": ^15.0.1
     "@tanstack/react-query": ^5.17.15
     "@types/jest": ^29.5.12
@@ -3340,13 +3341,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.127":
-  version: 0.0.127
-  resolution: "@calcom/platform-libraries@npm:0.0.127"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.141":
+  version: 0.0.141
+  resolution: "@calcom/platform-libraries@npm:0.0.141"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: bebcc9a000fd2585c4fa632d6660bbebf222d238a8bc8afdb88329b4cee1ea8a8648d25d5473c7d7d2e51b236cb6ec49b836c3d00e47aeee08113113c8b3cb9a
+  checksum: d04decc53e23323cea4db8cc02f777c08912476013757129a1ef91b6507ce569fcd6d678c6e603428504f0f249d6005807f4e454939237e098ba88b33975912a
   languageName: node
   linkType: hard
 
@@ -3663,7 +3664,7 @@ __metadata:
     "@trpc/client": 11.0.0-next-beta.222
     "@trpc/next": 11.0.0-next-beta.222
     "@trpc/react-query": 11.0.0-next-beta.222
-    "@trpc/server": 11.0.0-next-beta.222
+    "@trpc/server": 11.0.0-rc.824
     superjson: 1.9.1
     typescript: ^5.8.2
     zod: ^3.22.4
@@ -10761,7 +10762,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tooltip@npm:^1.0.0":
+"@radix-ui/react-tooltip-atoms@npm:@radix-ui/react-tooltip@^1.0.0, @radix-ui/react-tooltip@npm:^1.0.0":
   version: 1.0.6
   resolution: "@radix-ui/react-tooltip@npm:1.0.6"
   dependencies:
@@ -13695,10 +13696,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/server@npm:11.0.0-next-beta.222":
-  version: 11.0.0-next-beta.222
-  resolution: "@trpc/server@npm:11.0.0-next-beta.222"
-  checksum: bf157b6ed6da0d4080cdfb089963e1da4527df87c2f19e159b74f4bf339e3c443061c800e39ec42bf79ccaf7800127d4426274492daf5059763ca248dd7df9fc
+"@trpc/server@npm:11.0.0-rc.824":
+  version: 11.0.0-rc.824
+  resolution: "@trpc/server@npm:11.0.0-rc.824"
+  peerDependencies:
+    typescript: ">=5.7.2"
+  checksum: 92f23474006f9e556c8e1ff0803488cf96ac6dde0af82474f054cd38ab2d5037febd2e056758491c8799b680e86f70c97ab2be80ab37b228c7dbcb96bb3c1472
   languageName: node
   linkType: hard
 
