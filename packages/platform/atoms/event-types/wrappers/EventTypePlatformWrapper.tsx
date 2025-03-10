@@ -18,6 +18,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
+import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
@@ -72,6 +73,7 @@ const EventType = ({
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
   const { toast } = useToast();
+  const { organizationId } = useAtomsContext();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
@@ -180,6 +182,7 @@ const EventType = ({
         eventType={eventType}
         teamMembers={teamMembers}
         customClassNames={customClassNames?.eventAssignmentTab}
+        orgId={organizationId}
       />
     ) : (
       <></>

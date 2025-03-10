@@ -30,4 +30,10 @@ export class StripeBillingService implements BillingService {
     const checkoutSession = await this.stripe.checkout.sessions.retrieve(paymentId);
     return checkoutSession.payment_status === "paid";
   }
+  async checkIfTeamHasActivePlan(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    if (!subscription || !subscription.status) return false;
+
+    return subscription.status === "active" || subscription.status === "past_due";
+  }
 }

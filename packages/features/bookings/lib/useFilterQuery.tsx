@@ -12,11 +12,11 @@ export const filterQuerySchema = z.object({
   afterStartDate: z
     .string()
     .optional()
-    .transform((date) => (date ? dayjs(date).format("YYYY-MM-DD") : undefined)),
+    .transform((date) => (date ? dayjs(date).startOf("day").format("YYYY-MM-DDTHH:mm:ss") : undefined)),
   beforeEndDate: z
     .string()
     .optional()
-    .transform((date) => (date ? dayjs(date).format("YYYY-MM-DD") : undefined)),
+    .transform((date) => (date ? dayjs(date).endOf("day").format("YYYY-MM-DDTHH:mm:ss") : undefined)),
 });
 
 export function useFilterQuery() {

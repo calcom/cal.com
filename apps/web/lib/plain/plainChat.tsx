@@ -34,7 +34,12 @@ interface PlainChatConfig {
   chatButtons: Array<{
     icon: string;
     text: string;
-    type: string;
+    threadDetails?: {
+      labelTypeIds: Array<string>;
+      tierIdentifier: {
+        externalId: string;
+      };
+    };
     form?: {
       fields: Array<{
         type: string;
@@ -43,11 +48,12 @@ interface PlainChatConfig {
           icon: string;
           text: string;
           threadDetails: {
-            severity: string;
             labelTypeIds: Array<string>;
-            issueType: string;
-            priority: string;
+            tierIdentifier: {
+              externalId: string;
+            };
           };
+          onClick?: () => void;
         }>;
       }>;
     };
@@ -63,6 +69,7 @@ interface PlainChatConfig {
     launcherIconColor: string;
   };
   position: {
+    zIndex: string;
     bottom: string;
     right: string;
   };
@@ -79,11 +86,16 @@ const PlainChat = () => {
   const userEmail = session?.user?.email;
 
   const isAppDomain = useMemo(() => {
-    const restrictedPaths = process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || [];
+    const restrictedPathsSet = new Set(
+      (process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || []).map((path) => path.trim())
+    );
+
+    const pathSegments = pathname?.split("/").filter(Boolean) || [];
+
     return (
       typeof window !== "undefined" &&
       window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
-      !restrictedPaths.some((path) => pathname?.startsWith(path.trim()))
+      !pathSegments.some((segment) => restrictedPathsSet.has(segment))
     );
   }, [pathname]);
 
@@ -149,17 +161,22 @@ const PlainChat = () => {
           {
             icon: "chat",
             text: "Ask a question",
-            type: "primary",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+              tierIdentifier: { externalId: data.userTier },
+            },
           },
           {
             icon: "bulb",
             text: "Send feedback",
-            type: "default",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+              tierIdentifier: { externalId: data.userTier },
+            },
           },
           {
             icon: "error",
             text: "Report an issue",
-            type: "default",
             form: {
               fields: [
                 {
@@ -170,30 +187,33 @@ const PlainChat = () => {
                       icon: "support",
                       text: "I'm unable to use the app",
                       threadDetails: {
-                        severity: "critical",
-                        issueType: "critical",
                         labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                        priority: "u",
+                        tierIdentifier: { externalId: data.userTier },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Unable to use app");
                       },
                     },
                     {
                       icon: "error",
                       text: "Major functionality degraded",
                       threadDetails: {
-                        severity: "major",
-                        issueType: "major",
                         labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-                        priority: "h",
+                        tierIdentifier: { externalId: data.userTier },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Major functionality degraded");
                       },
                     },
                     {
                       icon: "bug",
                       text: "Minor annoyance",
                       threadDetails: {
-                        severity: "minor",
-                        issueType: "minor",
                         labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
-                        priority: "l",
+                        tierIdentifier: { externalId: data.userTier },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Minor annoyance");
                       },
                     },
                   ],
@@ -213,6 +233,7 @@ const PlainChat = () => {
           launcherIconColor: "#FFFFFF",
         },
         position: {
+          zIndex: "1",
           bottom: "20px",
           right: "20px",
         },

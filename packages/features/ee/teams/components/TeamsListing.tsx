@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, ButtonGroup, EmptyScreen, Icon, Label, showToast } from "@calcom/ui";
 
@@ -95,7 +96,7 @@ export function TeamsListing() {
 
   useEffect(() => {
     if (!router) return;
-    if (token) inviteMemberByToken({ token });
+    if (token) inviteMemberByToken({ token, creationSource: CreationSource.WEBAPP });
     else setInviteTokenChecked(true);
   }, [router, inviteMemberByToken, setInviteTokenChecked, token]);
 
@@ -165,6 +166,10 @@ export function TeamsListing() {
           />
         )}
       </UpgradeTip>
+
+      <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
+        <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
+      </p>
     </>
   );
 }

@@ -57,6 +57,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     { label: t("text"), value: SalesforceFieldType.TEXT },
     { label: t("date"), value: SalesforceFieldType.DATE },
     { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
+    { label: t("custom"), value: SalesforceFieldType.CUSTOM },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
@@ -208,7 +209,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("value")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToEventObjectMap).map((key) => (
+                {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
                   <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />
@@ -302,7 +303,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("when_to_write")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToRecordFields).map((key) => (
+                {Object.keys(onBookingWriteToRecordFields).map((key) => (
                   <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />

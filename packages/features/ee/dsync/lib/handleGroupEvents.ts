@@ -100,11 +100,13 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     if (newUserEmails.length) {
       const createUsersAndConnectToOrgProps = {
         emailsToCreate: newUserEmails,
-        organizationId: org.id,
         identityProvider: IdentityProvider.CAL,
         identityProviderId: null,
       };
-      const newUsers = await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+      const newUsers = await createUsersAndConnectToOrg({
+        createUsersAndConnectToOrgProps,
+        org,
+      });
       await prisma.membership.createMany({
         data: newUsers.map((user) => ({
           userId: user.id,

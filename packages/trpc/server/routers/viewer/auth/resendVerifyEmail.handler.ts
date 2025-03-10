@@ -1,11 +1,9 @@
-import type { NextApiRequest } from "next";
-
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TRPCContext } from "../../../createContext";
 import type { TrpcSessionUser } from "../../../trpc";
@@ -23,7 +21,7 @@ const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
 export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
   let emailToVerify = ctx.user.email;
-  const identifer = ctx.req ? getIP(ctx.req as NextApiRequest) : emailToVerify;
+  const identifer = emailToVerify;
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",

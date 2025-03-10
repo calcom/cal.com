@@ -1,6 +1,6 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
+import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -75,8 +75,16 @@ export class TeamsEventTypesService {
     return eventType;
   }
 
-  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string): Promise<DatabaseTeamEventType | null> {
-    const eventType = await this.teamsEventTypesRepository.getTeamEventTypeBySlug(teamId, eventTypeSlug);
+  async getTeamEventTypeBySlug(
+    teamId: number,
+    eventTypeSlug: string,
+    hostsLimit?: number
+  ): Promise<DatabaseTeamEventType | null> {
+    const eventType = await this.teamsEventTypesRepository.getTeamEventTypeBySlug(
+      teamId,
+      eventTypeSlug,
+      hostsLimit
+    );
 
     if (!eventType) {
       return null;

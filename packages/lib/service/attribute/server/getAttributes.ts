@@ -272,6 +272,7 @@ async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId
       id: true,
       name: true,
       type: true,
+      isWeightsEnabled: true,
       options: {
         select: {
           id: true,

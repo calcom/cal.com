@@ -4,7 +4,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import * as React from "react";
 
-import { classNames as cn } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../../button";
 import { Calendar } from "./Calendar";
@@ -15,6 +15,9 @@ type DatePickerWithRangeProps = {
   disabled?: boolean;
   minDate?: Date | null;
   maxDate?: Date;
+  withoutPopover?: boolean;
+  "data-testid"?: string;
+  strictlyBottom?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -24,6 +27,9 @@ export function DatePickerWithRange({
   maxDate,
   onDatesChange,
   disabled,
+  withoutPopover,
+  "data-testid": testId,
+  strictlyBottom,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
     if (dates?.endDate) {
@@ -36,15 +42,35 @@ export function DatePickerWithRange({
   }
   const fromDate = minDate ?? new Date();
 
+  const calendar = (
+    <Calendar
+      initialFocus
+      //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
+      fromDate={minDate === null ? undefined : fromDate}
+      toDate={maxDate}
+      mode="range"
+      defaultMonth={dates?.startDate}
+      selected={{ from: dates?.startDate, to: dates?.endDate }}
+      onDayClick={(day) => handleDayClick(day)}
+      numberOfMonths={1}
+      disabled={disabled}
+      data-testid={testId}
+    />
+  );
+
+  if (withoutPopover) {
+    return calendar;
+  }
+
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={classNames("grid gap-2", className)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <Button
             data-testid="date-range"
             color="secondary"
             EndIcon="calendar"
-            className={cn("justify-between text-left font-normal", !dates && "text-subtle")}>
+            className={classNames("justify-between text-left font-normal", !dates && "text-subtle")}>
             {dates?.startDate ? (
               dates?.endDate ? (
                 <>
@@ -61,19 +87,10 @@ export function DatePickerWithRange({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
-          sideOffset={4}>
-          <Calendar
-            initialFocus
-            //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
-            fromDate={minDate === null ? undefined : fromDate}
-            toDate={maxDate}
-            mode="range"
-            defaultMonth={dates?.startDate}
-            selected={{ from: dates?.startDate, to: dates?.endDate }}
-            onDayClick={(day) => handleDayClick(day)}
-            numberOfMonths={1}
-            disabled={disabled}
-          />
+          sideOffset={4}
+          side={strictlyBottom ? "bottom" : undefined}
+          avoidCollisions={!strictlyBottom}>
+          {calendar}
         </Popover.Content>
       </Popover.Root>
     </div>

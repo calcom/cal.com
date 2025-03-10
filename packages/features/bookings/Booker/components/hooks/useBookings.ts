@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
-import { useHandleBookEvent } from "@calcom/atoms/monorepo";
+import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -28,7 +28,7 @@ export interface IUseBookings {
           BookerEvent,
           | "id"
           | "slug"
-          | "hosts"
+          | "subsetOfHosts"
           | "requiresConfirmation"
           | "isDynamic"
           | "metadata"
@@ -38,8 +38,8 @@ export interface IUseBookings {
           | "recurringEvent"
           | "schedulingType"
         > & {
-          users: Pick<
-            BookerEvent["users"][number],
+          subsetOfUsers: Pick<
+            BookerEvent["subsetOfUsers"][number],
             "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
           >[];
         })
@@ -187,9 +187,9 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
-      const users = !!event.data?.hosts?.length
-        ? event.data?.hosts.map((host) => host.user)
-        : event.data?.users;
+      const users = !!event.data?.subsetOfHosts?.length
+        ? event.data?.subsetOfHosts.map((host) => host.user)
+        : event.data?.subsetOfUsers;
 
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length

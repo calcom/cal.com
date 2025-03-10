@@ -33,7 +33,7 @@ jobs:
         with:
           filters: |
             has-files-requiring-all-checks:
-              - "!(**.md|.github/CODEOWNERS|docs/**|apps/web/public/static/locales/**/common.json)"
+              - "!(**.md|.github/CODEOWNERS|docs/**|help/**|apps/web/public/static/locales/**/common.json)"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |

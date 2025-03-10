@@ -85,9 +85,9 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 export type UserFromSession = Awaited<ReturnType<typeof getUserFromSession>>;
 
 const getSession = async (ctx: TRPCContextInner) => {
-  const { req, res } = ctx;
+  const { req } = ctx;
   const { getServerSession } = await import("@calcom/features/auth/lib/getServerSession");
-  return req ? await getServerSession({ req, res }) : null;
+  return req ? await getServerSession({ req }) : null;
 };
 
 export const getUserSession = async (ctx: TRPCContextInner) => {
