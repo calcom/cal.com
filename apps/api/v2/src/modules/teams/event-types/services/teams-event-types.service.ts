@@ -33,27 +33,10 @@ export class TeamsEventTypesService {
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     const eventTypeUser = await this.getUserToCreateTeamEvent(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hosts, children, destinationCalendar, metadata, ...rest } = body;
-    const { bookerLayouts, ...restMetaData } = metadata ?? {};
-    const layouts = bookerLayouts
-      ? {
-          bookerLayouts: {
-            defaultLayout: bookerLayouts.defaultLayout as unknown as BookerLayouts,
-            enabledLayouts: bookerLayouts.enabledLayouts as unknown as BookerLayouts[],
-          },
-        }
-      : {};
+    const { hosts, children, destinationCalendar, ...rest } = body;
+
     const { eventType: eventTypeCreated } = await createEventType({
-      input: {
-        teamId: teamId,
-        metadata: metadata
-          ? {
-              ...restMetaData,
-              ...layouts,
-            }
-          : {},
-        ...rest,
-      },
+      input: { teamId: teamId, ...rest },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

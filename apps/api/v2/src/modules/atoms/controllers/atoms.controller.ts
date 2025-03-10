@@ -124,7 +124,11 @@ export class AtomsController {
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeReturn
   ): Promise<ApiResponse<UpdateEventTypeReturn>> {
-    const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
+    const eventType = await this.eventTypesService.updateEventType(
+      eventTypeId,
+      { ...body, id: eventTypeId },
+      user
+    );
     return {
       status: SUCCESS_STATUS,
       data: eventType,
@@ -140,7 +144,12 @@ export class AtomsController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Body() body: UpdateEventTypeReturn
   ): Promise<ApiResponse<UpdateEventTypeReturn>> {
-    const eventType = await this.eventTypesService.updateTeamEventType(eventTypeId, body, user, teamId);
+    const eventType = await this.eventTypesService.updateTeamEventType(
+      eventTypeId,
+      { ...body, id: eventTypeId },
+      user,
+      teamId
+    );
     return {
       status: SUCCESS_STATUS,
       data: eventType,

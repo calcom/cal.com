@@ -122,7 +122,7 @@ export class EventTypesAtomService {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    return eventType.eventType;
+    return eventType;
   }
 
   async updateEventType(eventTypeId: number, body: TUpdateEventTypeInputSchema, user: UserWithProfile) {
@@ -152,7 +152,7 @@ export class EventTypesAtomService {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    return eventType.eventType;
+    return eventType;
   }
 
   async checkCanUpdateTeamEventType(
