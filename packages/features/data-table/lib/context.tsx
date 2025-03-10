@@ -1,7 +1,7 @@
 "use client";
 
 import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
-import { useQueryState, parseAsArrayOf, parseAsJson } from "nuqs";
+import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
 import { createContext, useCallback } from "react";
 import { z } from "zod";
 
@@ -62,12 +62,8 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
     parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
   );
 
-  const [pageIndex, setPageIndex] = useQueryState("page", parseAsJson(z.number().parse).withDefault(0));
-
-  const [pageSize, setPageSize] = useQueryState(
-    "size",
-    parseAsJson(z.number().parse).withDefault(defaultPageSize)
-  );
+  const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
+  const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
