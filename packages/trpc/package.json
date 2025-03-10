@@ -5,12 +5,32 @@
   "description": "Shared tRPC library for Cal.com",
   "authors": "zomars",
   "version": "1.0.0",
-  "main": "index.ts",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "build": "yarn trpc:generate || true",
     "trpc:generate": "yarn tsc --project tsconfig.json"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/router.d.ts",
+      "default": "./index.ts"
+    },
+    "./react": {
+      "default": "./react/index.ts",
+      "types": "./dist/router.d.ts"
+    },
+    "./components/QueryCell": {
+      "default": "./components/QueryCell.js"
+    },
+    "./react/hooks/useMeQuery": {
+      "default": "./react/hooks/useMeQuery.ts",
+      "types": "./dist/router.d.ts"
+    },
+    "./react/hooks/useEmailVerifyCheck": {
+      "default": "./react/hooks/useEmailVerifyCheck.ts",
+      "types": "./dist/router.d.ts"
+    }
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.15",
