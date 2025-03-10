@@ -3,7 +3,7 @@ import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
