@@ -554,6 +554,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             time: slot.time,
             busy: busySlotsFromReservedSlots,
             ...availabilityCheckProps,
+            disableConflictingBookings: eventType.disableConflictingBookings,
           })
         ) {
           return slot;

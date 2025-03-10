@@ -73,6 +73,7 @@ export type EventAdvancedTabCustomClassNames = {
     };
   };
   requiresConfirmation?: RequiresConfirmationCustomClassNames;
+  disableConflictingBookings?: SettingsToggleClassNames;
   bookerEmailVerification?: SettingsToggleClassNames;
   canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
   calendarNotes?: SettingsToggleClassNames;
@@ -473,6 +474,7 @@ export const EventAdvancedTab = ({
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const sendCalVideoTranscriptionEmailsProps = shouldLockDisableProps("canSendCalVideoTranscriptionEmails");
+  const disableConflictingBookingsLocked = shouldLockDisableProps("disableConflictingBookings");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const hideCalendarEventDetailsLocked = shouldLockDisableProps("hideCalendarEventDetails");
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
@@ -567,6 +569,26 @@ export const EventAdvancedTab = ({
           }}
         />
       </div>
+      <Controller
+        name="disableConflictingBookings"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm", customClassNames?.disableConflictingBookings?.label)}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.disableConflictingBookings?.container
+            )}
+            title="Disable conflicting bookings"
+            data-testid="disable-conflicting-bookings"
+            {...disableConflictingBookingsLocked}
+            description="Disable conflicting bookings"
+            descriptionClassName={customClassNames?.disableConflictingBookings?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}
