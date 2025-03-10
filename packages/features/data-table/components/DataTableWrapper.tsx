@@ -1,6 +1,8 @@
 "use client";
 
 import type { Table as ReactTableType, VisibilityState } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 
 import {
@@ -12,17 +14,14 @@ import {
 } from "@calcom/features/data-table";
 import classNames from "@calcom/ui/classNames";
 
-export type DataTableWrapperProps<TData, TValue> = {
+type BaseDataTableWrapperProps<TData> = {
   testId?: string;
   bodyTestId?: string;
   table: ReactTableType<TData>;
   isPending: boolean;
-  hasNextPage: boolean;
-  fetchNextPage: () => void;
-  isFetching: boolean;
   hideHeader?: boolean;
   variant?: "default" | "compact";
-  totalDBRowCount?: number;
+  totalRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
@@ -33,7 +32,23 @@ export type DataTableWrapperProps<TData, TValue> = {
   tableContainerRef?: React.RefObject<HTMLDivElement>;
 };
 
-export function DataTableWrapper<TData, TValue>({
+type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
+  paginationMode: "infinite";
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  isFetching: boolean;
+};
+
+type StandardPaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
+  paginationMode: "standard";
+  hasNextPage?: never;
+  fetchNextPage?: never;
+  isFetching?: never;
+};
+
+export type DataTableWrapperProps<TData> = InfinitePaginationProps<TData> | StandardPaginationProps<TData>;
+
+export function DataTableWrapper<TData>({
   testId,
   bodyTestId,
   table,
@@ -41,7 +56,7 @@ export function DataTableWrapper<TData, TValue>({
   hasNextPage,
   fetchNextPage,
   isFetching,
-  totalDBRowCount,
+  totalRowCount,
   variant,
   hideHeader,
   ToolbarLeft,
@@ -52,14 +67,16 @@ export function DataTableWrapper<TData, TValue>({
   containerClassName,
   children,
   tableContainerRef: externalRef,
-}: DataTableWrapperProps<TData, TValue>) {
+  paginationMode,
+}: DataTableWrapperProps<TData>) {
   const internalRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = externalRef || internalRef;
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
-    hasNextPage,
-    fetchNextPage,
-    isFetching,
+    hasNextPage: paginationMode === "infinite" ? hasNextPage : false,
+    fetchNextPage: paginationMode === "infinite" ? fetchNextPage : noop,
+    isFetching: paginationMode === "infinite" ? isFetching : false,
+    enabled: paginationMode === "infinite",
   });
   const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
   const columnFilters = useColumnFilters();
@@ -81,7 +98,7 @@ export function DataTableWrapper<TData, TValue>({
       onSortingChange: setSorting,
       onColumnVisibilityChange: setColumnVisibility,
     }));
-  }, [table, sorting, columnFilters, columnVisibility]);
+  }, [table, sorting, columnFilters, columnVisibility, setSorting, setColumnVisibility]);
 
   let view: "loader" | "empty" | "table" = "table";
   if (isPending && LoaderView) {
@@ -118,10 +135,20 @@ export function DataTableWrapper<TData, TValue>({
           variant={variant}
           className={className}
           containerClassName={containerClassName}
-          onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-          {totalDBRowCount && (
+          paginationMode={paginationMode}
+          onScroll={
+            paginationMode === "infinite"
+              ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>
+                  fetchMoreOnBottomReached(e.target as HTMLDivElement)
+              : undefined
+          }>
+          {totalRowCount && (
             <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-              <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
+              <DataTablePagination<TData>
+                table={table}
+                totalRowCount={totalRowCount}
+                paginationMode={paginationMode}
+              />
             </div>
           )}
         </DataTable>

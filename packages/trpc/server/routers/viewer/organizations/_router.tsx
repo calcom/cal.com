@@ -20,7 +20,7 @@ import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
-import { ZListMembersSchema } from "./listMembers.schema";
+import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
@@ -71,7 +71,7 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("getMembers"), () => import("./getMembers.handler"));
     return handler(opts);
   }),
-  listMembers: authedProcedure.input(ZListMembersSchema).query(async (opts) => {
+  listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
