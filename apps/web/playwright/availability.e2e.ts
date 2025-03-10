@@ -7,7 +7,7 @@ import { localize, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Availablity", () => {
+test.describe("Availability", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
