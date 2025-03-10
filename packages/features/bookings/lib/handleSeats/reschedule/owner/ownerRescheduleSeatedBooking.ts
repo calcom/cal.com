@@ -1,9 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
-import type EventManager from "@calcom/core/EventManager";
-import { getBusyTimes } from "@calcom/core/getBusyTimes";
 import dayjs from "@calcom/dayjs";
+import type EventManager from "@calcom/lib/EventManager";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { getBusyTimes } from "@calcom/lib/getBusyTimes";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
 import type {
@@ -60,7 +62,7 @@ const ownerRescheduleSeatedBooking = async (
 
       // Get booker's busy times for the new slot
       const busyTimes = await getBusyTimes({
-        credentials: bookerUser.credentials,
+        credentials: buildNonDelegationCredentials(bookerUser.credentials),
         selectedCalendars: bookerUser.selectedCalendars,
         userId: bookerUser.id,
         userEmail: bookerEmail,
@@ -71,7 +73,7 @@ const ownerRescheduleSeatedBooking = async (
       });
 
       // Check if the new time slot conflicts with booker's availability
-      const hasConflict = busyTimes.some((busy) => {
+      const hasConflict = busyTimes.some((busy: EventBusyDetails) => {
         const busyStart = dayjs(busy.start);
         const busyEnd = dayjs(busy.end);
         return (

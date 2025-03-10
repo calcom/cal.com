@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import React from "react";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../button";
 

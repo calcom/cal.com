@@ -6,9 +6,10 @@ import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 
-import { httpBatchLink, httpLink, loggerLink, splitLink, TRPCClientError } from "@calcom/trpc/client";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+
+import { httpBatchLink, httpLink, loggerLink, splitLink, TRPCClientError } from "@trpc/client";
 
 export type Endpoint = (typeof ENDPOINTS)[number];
 

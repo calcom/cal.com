@@ -1,11 +1,11 @@
 import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { UpgradeTeamsBadge } from "../../badge";
 import { Icon } from "../../icon";
-import type { SelectProps } from "./Select";
+import type { SelectProps } from "./types";
 
 export const InputComponent = <
   Option,

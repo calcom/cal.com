@@ -12,7 +12,6 @@ import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -29,6 +28,7 @@ import {
   Select,
   Badge,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;

@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -36,7 +37,8 @@ async function postHandler(req: NextApiRequest) {
       message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
   const { selectedCalendars } = credential;
-  const calendar = await getCalendar(credential);
+
+  const calendar = await getCalendar(buildNonDelegationCredential(credential));
 
   // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
   // Necessary to do here so that it is ensure for all calendar apps

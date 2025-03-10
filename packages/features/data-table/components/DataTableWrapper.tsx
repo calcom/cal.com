@@ -10,7 +10,7 @@ import {
   useDataTable,
   useColumnFilters,
 } from "@calcom/features/data-table";
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 export type DataTableWrapperProps<TData, TValue> = {
   testId?: string;
