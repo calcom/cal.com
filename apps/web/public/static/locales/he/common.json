@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "כבר קיימת הפניה הפוכה בין משתמשים אלה.",
   "previous_ooo_empty_title": "לא נמצאו יציאות מהמשרד קודמות",
   "previous": "קודם",
+  "uid": "מזהה ייחודי",
+  "link": "קישור",
+  "tip_username_plus": "טיפ: ניתן להוסיף '+' בין שמות משתמשים: cal.com/anna+brian ליצירת פגישה קבוצתית דינמית",
+  "user_has_no_team_yet": "עדיין אין לך צוות",
+  "no_team_members": "עדיין אין לך חברי צוות",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
