@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Между этими пользователями уже существует обратное перенаправление.",
   "previous_ooo_empty_title": "Предыдущие статусы \"Вне офиса\" не найдены",
   "previous": "Предыдущий",
+  "uid": "UID",
+  "link": "Ссылка",
+  "tip_username_plus": "Совет: Вы можете добавить '+' между именами пользователей: cal.com/anna+brian, чтобы создать динамическую групповую встречу",
+  "user_has_no_team_yet": "У вас пока нет команды",
+  "no_team_members": "У вас пока нет участников команды",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
