@@ -9,7 +9,7 @@ import { SelectedCalendarsRepository } from "@/modules/selected-calendars/select
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { SelectedCalendarRepository } from "@calcom/platform-libraries";
+import { SelectedCalendarRepository } from "@calcom/platform-libraries/calendars";
 
 type SelectedCalendarsInputDelegationCredential = SelectedCalendarsInputDto & {
   delegationCredentialId: string;
