@@ -10,18 +10,15 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const session = await getServerSession({ req, res });
   /* To mimic API behavior and comply with types */
   req.userId = session?.user?.id || -1;
-  const calUserId = req.query.calUserId as string;
+  const email = req.query.email as string;
 
   try {
-    const response = await fetch(
-      `${DIRECTUS_BASE_URL}/pro_professionals?filter[cal_user_id][_eq]=${calUserId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${DIRECTUS_TOKEN}`,
-        },
-      }
-    );
+    const response = await fetch(`${DIRECTUS_BASE_URL}/pro_professionals?filter[email][_eq]=${email}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+      },
+    });
 
     return await response.json();
   } catch {

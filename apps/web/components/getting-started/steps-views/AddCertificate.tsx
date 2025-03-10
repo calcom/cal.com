@@ -90,7 +90,7 @@ const AddCertificate = () => {
   useEffect(() => {
     if (user) {
       setIsLoading(true);
-      fetch(`${DIRECTUS_BASE_URL}/get-pro-professionals?calUserId=${user.id}`, {
+      fetch(`${DIRECTUS_BASE_URL}/get-pro-professionals?email=${user.email}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${DIRECTUS_TOKEN}`,
