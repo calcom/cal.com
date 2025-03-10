@@ -12,8 +12,9 @@ import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import { TRPCError } from "@calcom/trpc";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 

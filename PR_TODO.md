@@ -1,3 +1,6 @@
+- This is to be removed before merge.
+- Any TODOs become followup ticket(s)
+
 Description:
 - Org is now created only through stripe webhook and thus code has been adapted to be idempotent in case of retries from Stripe when failure happens.
 - We store the complete progress of the onboarding in OrganizationOnboarding table including any error that last happened and the end of lifecycle with isComplete set to true.

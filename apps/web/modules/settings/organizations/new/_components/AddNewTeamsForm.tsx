@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
