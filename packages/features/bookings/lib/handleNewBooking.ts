@@ -885,6 +885,9 @@ async function handler(
       }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
+  log.info("locationBodyString", locationBodyString);
+  log.info("event type locations", eventType.locations);
+
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamDestinationCalendars: DestinationCalendar[] = [];
 
