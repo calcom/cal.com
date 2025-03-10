@@ -1,6 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 

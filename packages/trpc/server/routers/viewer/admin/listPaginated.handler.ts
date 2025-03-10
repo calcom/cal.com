@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listPaginated.schema";
 
 type GetOptions = {
