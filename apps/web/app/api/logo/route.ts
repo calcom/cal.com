@@ -196,13 +196,14 @@ export async function GET(request: NextRequest) {
     // If we need to resize the team logos (via Next.js' built-in image processing)
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
       const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
-      buffer = await optimizeImage({
+      const result = await optimizeImage({
         buffer,
         contentType: detectContentType(buffer) ?? "image/jpeg",
         quality: 100,
         width: logoDefinition.w,
         height: logoDefinition.h, // optional
       });
+      buffer = Buffer.from(result instanceof ArrayBuffer ? result : result.slice(0));
     }
 
     // Create a new response with the image buffer

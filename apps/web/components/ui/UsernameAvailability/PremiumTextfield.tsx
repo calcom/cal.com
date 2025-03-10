@@ -226,7 +226,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              const _searchParams = new URLSearchParams(searchParams ?? undefined);
+              const _searchParams = new URLSearchParams(searchParams?.toString() || "");
               _searchParams.delete("paymentStatus");
               if (searchParams?.toString() !== _searchParams.toString()) {
                 router.replace(`${pathname}?${_searchParams.toString()}`);
