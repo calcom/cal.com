@@ -55,7 +55,6 @@ import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
-import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
   createNewUsersConnectToOrgIfExists,
   sendSignupToOrganizationEmail,
@@ -116,8 +115,6 @@ export { handleInstantMeeting };
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
 
-export { getAvailableSlots };
-export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
@@ -207,7 +204,8 @@ export type {
   InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
+export { parseEventTypeColor } from "@calcom/lib";
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
