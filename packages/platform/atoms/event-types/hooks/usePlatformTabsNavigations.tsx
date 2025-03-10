@@ -2,6 +2,7 @@
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import type { PlatformTabs } from "event-types/wrappers/types";
 import type { TFunction } from "next-i18next";
 import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -11,8 +12,6 @@ import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtype
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { VerticalTabItemProps } from "@calcom/ui";
-
-import type { PlatformTabs } from "../wrappers/EventTypePlatformWrapper";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;

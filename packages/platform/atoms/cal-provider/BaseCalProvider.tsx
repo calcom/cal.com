@@ -1,7 +1,21 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import type { i18nProps } from "cal-provider/CalProvider";
+import type {
+  translationKeys,
+  CalProviderLanguagesType,
+  enTranslationKeys,
+  frTranslationKeys,
+  ptBrTranslationKeys,
+  deTranslationKeys,
+  esTranslationKeys,
+  nlTranslationKeys,
+} from "cal-provider/languages";
+import { EN } from "cal-provider/languages";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useCallback } from "react";
 
+import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
 import { IconSprites } from "@calcom/ui";
 import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
@@ -18,19 +32,18 @@ import { useTimezone } from "../hooks/useTimezone";
 import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
-import { EN } from "./CalProvider";
-import type {
-  CalProviderProps,
-  CalProviderLanguagesType,
-  translationKeys,
-  enTranslationKeys,
-  frTranslationKeys,
-  ptBrTranslationKeys,
-  deTranslationKeys,
-  esTranslationKeys,
-  nlTranslationKeys,
-} from "./CalProvider";
 
+export type CalProviderProps = {
+  children?: ReactNode;
+  clientId: string;
+  accessToken?: string;
+  options: { refreshUrl?: string; apiUrl: string; readingDirection?: "ltr" | "rtl" };
+  autoUpdateTimezone?: boolean;
+  onTimezoneChange?: () => void;
+  version?: API_VERSIONS_ENUM;
+  organizationId?: number;
+  isEmbed?: boolean;
+} & i18nProps;
 export function BaseCalProvider({
   clientId,
   accessToken,
