@@ -218,7 +218,7 @@ export const BookEventForm = ({
                   ? isPaidEvent
                     ? t("pay_and_book")
                     : t("confirm")
-                  : t("verify_email_email_button")}
+                  : t("verify_email_button")}
               </Button>
             </>
           )}
