@@ -466,7 +466,7 @@ export class BookingsController_2024_04_15 {
     isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const clone = { ...req };
-    const userId = await this.getOwnerId(req);
+    const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
