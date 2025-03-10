@@ -23,8 +23,8 @@ import {
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { UpdateEventTypeReturn } from "@calcom/platform-libraries";
 import { ConnectedApps } from "@calcom/platform-libraries";
+import type { UpdateEventTypeReturn } from "@calcom/platform-libraries/event-types";
 import { ApiResponse } from "@calcom/platform-types";
 
 /*
@@ -81,7 +81,7 @@ export class AtomsController {
   ): Promise<ApiResponse<unknown>> {
     const { teamId } = queryParams;
 
-    const app = await this.eventTypesService.getEventTypesAppIntegration(appSlug, user.id, user.name, teamId);
+    const app = await this.eventTypesService.getEventTypesAppIntegration(appSlug, user, teamId);
 
     return {
       status: SUCCESS_STATUS,
@@ -124,7 +124,11 @@ export class AtomsController {
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeReturn
   ): Promise<ApiResponse<UpdateEventTypeReturn>> {
-    const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
+    const eventType = await this.eventTypesService.updateEventType(
+      eventTypeId,
+      { ...body, id: eventTypeId },
+      user
+    );
     return {
       status: SUCCESS_STATUS,
       data: eventType,
@@ -140,7 +144,12 @@ export class AtomsController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Body() body: UpdateEventTypeReturn
   ): Promise<ApiResponse<UpdateEventTypeReturn>> {
-    const eventType = await this.eventTypesService.updateTeamEventType(eventTypeId, body, user, teamId);
+    const eventType = await this.eventTypesService.updateTeamEventType(
+      eventTypeId,
+      { ...body, id: eventTypeId },
+      user,
+      teamId
+    );
     return {
       status: SUCCESS_STATUS,
       data: eventType,
