@@ -24,7 +24,6 @@ import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooki
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
@@ -45,7 +44,6 @@ import {
   getAllDelegationCredentialsForUserByAppType,
   checkIfSuccessfullyConfiguredInWorkspace,
 } from "@calcom/lib/delegationCredential/server";
-import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -55,7 +53,6 @@ import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
-import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
   createNewUsersConnectToOrgIfExists,
   sendSignupToOrganizationEmail,
@@ -91,21 +88,8 @@ export type UpdateScheduleOutputType = Awaited<
   >
 >;
 
-export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
-export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
-export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
-export { createHandler as createEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/create.handler";
-export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
-
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
-export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
-export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
-export type { EventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
-export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
-
-export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
-export { getPublicEvent };
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
 const handleNewBooking = newBookingMethods.default;
@@ -116,15 +100,13 @@ export { handleInstantMeeting };
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
 
-export { getAvailableSlots };
-export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
-export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
+
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
@@ -151,63 +133,15 @@ export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezones
 
 export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
-export type { TUpdateInputSchema as TUpdateEventTypeInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/update.schema";
 export { createNewUsersConnectToOrgIfExists, sendSignupToOrganizationEmail };
 
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
+export { userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-
-export {
-  // note(Lauris): Api to internal
-  transformBookingFieldsApiToInternal,
-  transformLocationsApiToInternal,
-  transformTeamLocationsApiToInternal,
-  transformIntervalLimitsApiToInternal,
-  transformFutureBookingLimitsApiToInternal,
-  transformRecurrenceApiToInternal,
-  transformBookerLayoutsApiToInternal,
-  transformConfirmationPolicyApiToInternal,
-  transformEventColorsApiToInternal,
-  transformSeatsApiToInternal,
-  // note(Lauris): Internal to api
-  transformBookingFieldsInternalToApi,
-  transformLocationsInternalToApi,
-  transformIntervalLimitsInternalToApi,
-  transformFutureBookingLimitsInternalToApi,
-  transformRecurrenceInternalToApi,
-  transformBookerLayoutsInternalToApi,
-  transformRequiresConfirmationInternalToApi,
-  transformEventTypeColorsInternalToApi,
-  transformSeatsInternalToApi,
-  // note(Lauris): schemas
-  InternalLocationsSchema,
-  InternalLocationSchema,
-  BookingFieldsSchema,
-  BookingFieldSchema,
-  // note(Lauris): constants
-  systemBeforeFieldName,
-  systemBeforeFieldEmail,
-  systemBeforeFieldLocation,
-  systemAfterFieldRescheduleReason,
-  systemAfterFieldTitle,
-  systemAfterFieldNotes,
-  systemAfterFieldGuests,
-} from "@calcom/lib/event-types/transformers";
-
-export type {
-  SystemField,
-  CustomField,
-  NameSystemField,
-  EmailSystemField,
-  InternalLocation,
-} from "@calcom/lib/event-types/transformers";
-
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
@@ -218,8 +152,6 @@ export { CalendarService };
 export { getCalendar };
 
 export { getTranslation };
-
-export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
 export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
@@ -268,7 +200,6 @@ export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
 export { handleDeleteCredential };
-export { getBulkEventTypes };
 
 export { getBookingFieldsWithSystemFields };
 
