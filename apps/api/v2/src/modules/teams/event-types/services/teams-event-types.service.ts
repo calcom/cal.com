@@ -12,7 +12,6 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -110,26 +109,10 @@ export class TeamsEventTypesService {
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     await this.validateEventTypeExists(teamId, eventTypeId);
     const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
-    const { metadata, ...rest } = body;
-    const { bookerLayouts, ...restMetaData } = metadata ?? {};
-    const layouts = bookerLayouts
-      ? {
-          bookerLayouts: {
-            defaultLayout: bookerLayouts.defaultLayout as unknown as BookerLayouts,
-            enabledLayouts: bookerLayouts.enabledLayouts as unknown as BookerLayouts[],
-          },
-        }
-      : {};
     await updateEventType({
       input: {
         id: eventTypeId,
-        metadata: metadata
-          ? {
-              ...restMetaData,
-              ...layouts,
-            }
-          : {},
-        ...rest,
+        ...body,
       },
       ctx: {
         user: eventTypeUser,
