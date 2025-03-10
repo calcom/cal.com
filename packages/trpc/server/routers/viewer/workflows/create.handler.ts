@@ -66,12 +66,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    const renderedEmailTemplate = emailReminderTemplate(
-      true,
-      ctx.user.locale,
-      WorkflowActions.EMAIL_ATTENDEE,
-      getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat)
-    );
+    const renderedEmailTemplate = emailReminderTemplate({
+      isEditingMode: true,
+      locale: ctx.user.locale,
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+    });
 
     await ctx.prisma.workflowStep.create({
       data: {

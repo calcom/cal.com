@@ -464,17 +464,27 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
   return remindersToDelete;
 }
 
-export async function scheduleWorkflowNotifications(
-  activeOn: number[],
-  isOrg: boolean,
-  workflowSteps: Partial<WorkflowStep>[],
-  time: number | null,
-  timeUnit: TimeUnit | null,
-  trigger: WorkflowTriggerEvents,
-  userId: number,
-  teamId: number | null,
-  alreadyScheduledActiveOnIds?: number[]
-) {
+export async function scheduleWorkflowNotifications({
+  activeOn,
+  isOrg,
+  workflowSteps,
+  time,
+  timeUnit,
+  trigger,
+  userId,
+  teamId,
+  alreadyScheduledActiveOnIds,
+}: {
+  activeOn: number[];
+  isOrg: boolean;
+  workflowSteps: Partial<WorkflowStep>[];
+  time: number | null;
+  timeUnit: TimeUnit | null;
+  trigger: WorkflowTriggerEvents;
+  userId: number;
+  teamId: number | null;
+  alreadyScheduledActiveOnIds?: number[];
+}) {
   const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
@@ -860,7 +870,12 @@ export function getEmailTemplateText(
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(params.timeFormat);
 
-  let { emailBody, emailSubject } = emailReminderTemplate(true, locale, action, timeFormat);
+  let { emailBody, emailSubject } = emailReminderTemplate({
+    isEditingMode: true,
+    locale,
+    action,
+    timeFormat,
+  });
 
   if (template === WorkflowTemplates.RATING) {
     const ratingTemplate = emailRatingTemplate({
