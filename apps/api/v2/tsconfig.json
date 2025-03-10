@@ -19,6 +19,7 @@
       "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],
       "@calcom/platform-utils": ["../../../packages/platform/utils/index.ts"],
       "@calcom/platform-enums": ["../../../packages/platform/enums/index.ts"],
+      "@calcom/platform-libraries/event-types": ["../../../packages/platform/libraries/event-types.ts"],
       "@calcom/platform-libraries/slots": ["../../../packages/platform/libraries/slots.ts"]
     },
     "incremental": true,
