@@ -20,6 +20,7 @@ export default function PlatformPlans() {
     <div>
       <Shell
         backPath
+        withoutSeo={true}
         isPlatformUser={true}
         heading={
           <h1 className="mx-2 mt-4 text-center text-xl md:text-2xl">

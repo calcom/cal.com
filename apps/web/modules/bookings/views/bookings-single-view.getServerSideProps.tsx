@@ -46,7 +46,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   );
 
   const ssr = await ssrInit(context);
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
@@ -163,10 +163,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const userId = session?.user?.id;
-  const isLoggedInUserHost =
-    userId &&
-    (eventType.users.some((user) => user.id === userId) ||
-      eventType.hosts.some(({ user }) => user.id === userId));
+
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      bookingInfo?.user?.id === userId ||
+      eventType.users.some(
+        (user) =>
+          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
+      ) ||
+      eventType.hosts.some(
+        ({ user }) =>
+          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
+      )
+    );
+  };
+
+  const isLoggedInUserHost = checkIfUserIsHost(userId);
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses
@@ -179,6 +193,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
+
+  async function getInternalNotePresets(teamId: number | null) {
+    if (!teamId || !isLoggedInUserHost) return [];
+    return await prisma.internalNotePreset.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+        name: true,
+        cancellationReason: true,
+      },
+    });
+  }
+
+  const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
+
   return {
     props: {
       orgSlug: currentOrgDomain,
@@ -195,6 +226,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userTimeFormat,
       requiresLoginToUpdate,
       rescheduledToUid,
+      isLoggedInUserHost,
+      internalNotePresets: internalNotes,
     },
   };
 }

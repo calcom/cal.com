@@ -44,6 +44,12 @@ class Attendee {
   @IsBoolean()
   @Expose()
   absent!: boolean;
+
+  @ApiPropertyOptional({ type: String, example: "+1234567890" })
+  @IsString()
+  @Expose()
+  @IsOptional()
+  phoneNumber?: string;
 }
 
 export class SeatedAttendee extends Attendee {
@@ -83,6 +89,11 @@ class BookingHost {
   @IsString()
   @Expose()
   name!: string;
+
+  @ApiProperty({ type: String, example: "jane100@example.com" })
+  @IsString()
+  @Expose()
+  email!: string;
 
   @ApiProperty({ type: String, example: "jane100" })
   @IsString()
@@ -145,11 +156,23 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   cancellationReason?: string;
 
+  @ApiPropertyOptional({ type: String, example: "canceller@example.com" })
+  @IsEmail()
+  @IsOptional()
+  @Expose()
+  cancelledByEmail?: string;
+
   @ApiPropertyOptional({ type: String, example: "User rescheduled the event" })
   @IsString()
   @IsOptional()
   @Expose()
   reschedulingReason?: string;
+
+  @ApiPropertyOptional({ type: String, example: "rescheduler@example.com" })
+  @IsEmail()
+  @IsOptional()
+  @Expose()
+  rescheduledByEmail?: string;
 
   @ApiPropertyOptional({ type: String, example: "previous_uid_123" })
   @IsString()
@@ -213,6 +236,11 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   createdAt!: string;
 
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  updatedAt!: string | null;
+
   @ApiPropertyOptional({
     type: Object,
     example: { key: "value" },
@@ -221,6 +249,12 @@ class BaseBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   metadata?: Record<string, string>;
+
+  @ApiPropertyOptional({ type: Number, example: 4 })
+  @IsInt()
+  @IsOptional()
+  @Expose()
+  rating?: number;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {

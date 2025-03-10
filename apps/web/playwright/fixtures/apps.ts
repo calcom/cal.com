@@ -18,6 +18,8 @@ export function createAppsFixture(page: Page) {
     installAnalyticsAppSkipConfigure: async (app: string) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
       await page.getByTestId("install-app-button").click();
+      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
+      await page.reload();
       await page.click('[data-testid="install-app-button-personal"]');
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       await page.click('[data-testid="set-up-later"]');
@@ -25,6 +27,8 @@ export function createAppsFixture(page: Page) {
     installAnalyticsApp: async (app: string, eventTypeIds: number[]) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
       (await page.waitForSelector('[data-testid="install-app-button"]')).click();
+      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
+      await page.reload();
 
       await page.click('[data-testid="install-app-button-personal"]');
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);

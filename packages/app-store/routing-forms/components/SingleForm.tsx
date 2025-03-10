@@ -7,12 +7,11 @@ import { Controller, useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import cn from "@calcom/lib/classNames";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
@@ -28,7 +27,6 @@ import {
   DialogHeader,
   DropdownMenuSeparator,
   Form,
-  Meta,
   SettingsToggle,
   showToast,
   TextAreaField,
@@ -36,14 +34,19 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+
+import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { findMatchingRoute } from "../lib/processRoute";
 import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
+import type { NewFormDialogState } from "./FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
+import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
@@ -78,7 +81,7 @@ const Actions = ({
         <VerticalDivider />
       </div>
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
-        <Tooltip content={t("preview")}>
+        <Tooltip sideOffset={4} content={t("preview")} side="bottom">
           <FormAction
             routingForm={form}
             color="secondary"
@@ -98,9 +101,9 @@ const Actions = ({
           type="button"
           StartIcon="link"
           tooltip={t("copy_link_to_form")}
+          tooltipSide="bottom"
         />
-
-        <Tooltip content={t("download_responses")}>
+        <Tooltip sideOffset={4} content={t("download_responses")} side="bottom">
           <FormAction
             data-testid="download-responses"
             routingForm={form}
@@ -118,6 +121,7 @@ const Actions = ({
           variant="icon"
           StartIcon="code"
           tooltip={t("embed")}
+          tooltipSide="bottom"
         />
         <DropdownMenuSeparator />
         <FormAction
@@ -129,6 +133,7 @@ const Actions = ({
           color="secondary"
           type="button"
           tooltip={t("delete")}
+          tooltipSide="bottom"
         />
         {typeformApp?.isInstalled ? (
           <FormActionsDropdown>
@@ -139,7 +144,7 @@ const Actions = ({
               color="minimal"
               type="button"
               StartIcon="link">
-              {t("Copy Typeform Redirect Url")}
+              {t("copy_redirect_url")}
             </FormAction>
           </FormActionsDropdown>
         ) : null}
@@ -365,7 +370,7 @@ const TeamMembersMatchResult = ({
           <div data-testid="chosen-route">
             {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
           </div>
-          <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+          <div data-testid="attribute-logic-matched" className={classNames(hasMainWarnings && "text-error")}>
             {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
             {hasMainWarnings && (
               <Alert
@@ -377,7 +382,7 @@ const TeamMembersMatchResult = ({
           </div>
           <div
             data-testid="attribute-logic-fallback-matched"
-            className={cn(hasFallbackWarnings && "text-error")}>
+            className={classNames(hasFallbackWarnings && "text-error")}>
             {t("attribute_logic_fallback_matched")}:{" "}
             <span className="font-semibold">{renderFallbackLogicStatus()}</span>
             {hasFallbackWarnings && (
@@ -439,10 +444,12 @@ type UptoDateForm = Brand<
 
 export const TestForm = ({
   form,
+  supportsTeamMembersMatchingLogic,
   showAllData = true,
   renderFooter,
 }: {
   form: UptoDateForm | RoutingForm;
+  supportsTeamMembersMatchingLogic: boolean;
   showAllData?: boolean;
   renderFooter?: (onClose: () => void) => React.ReactNode;
 }) => {
@@ -451,7 +458,6 @@ export const TestForm = ({
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
   const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
-  const isTeamForm = !!form.teamId;
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
 
   const resetMembersMatchResult = () => {
@@ -500,7 +506,7 @@ export const TestForm = ({
 
     if (!route) return;
 
-    if (isTeamForm) {
+    if (supportsTeamMembersMatchingLogic) {
       findTeamMembersMatchingAttributeLogicMutation.mutate({
         formId: form.id,
         response,
@@ -524,7 +530,7 @@ export const TestForm = ({
     };
 
     const renderTeamMembersMatchResult = (showAllData: boolean, isPending: boolean) => {
-      if (!isTeamForm) return null;
+      if (!supportsTeamMembersMatchingLogic) return null;
       if (isPending) return <div>Loading...</div>;
 
       return (
@@ -587,7 +593,7 @@ export const TestForm = ({
               <span className="text-default underline">
                 <a
                   target="_blank"
-                  className={cn(
+                  className={classNames(
                     findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
                   )}
                   href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
@@ -645,7 +651,7 @@ export const TestFormDialog = ({
   setIsTestPreviewOpen: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
-
+  const isSubTeamForm = !!form.team?.parentId;
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
       <DialogContent size="md" enableOverflow>
@@ -653,6 +659,7 @@ export const TestFormDialog = ({
         <div>
           <TestForm
             form={form}
+            supportsTeamMembersMatchingLogic={isSubTeamForm}
             renderFooter={(onClose) => (
               <DialogFooter>
                 <DialogClose
@@ -679,9 +686,10 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-
+  const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
@@ -750,8 +758,10 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             ...data,
           });
         }}>
-        <FormActionsProvider appUrl={appUrl}>
-          <Meta title={form.name} description={form.description || ""} />
+        <FormActionsProvider
+          appUrl={appUrl}
+          newFormDialogState={newFormDialogState}
+          setNewFormDialogState={setNewFormDialogState}>
           <ShellMain
             heading={
               <div className="flex">
@@ -764,7 +774,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               </div>
             }
             subtitle={form.description || ""}
-            backPath={`/${appUrl}/forms`}
+            backPath={`${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
@@ -791,6 +801,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
+                          data-testid="routing-form-select-members"
                           teamId={form.teamId}
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
@@ -944,7 +955,12 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   )}
                 </div>
                 <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                  <RoutingNavBar appUrl={appUrl} form={form} />
+                  <RoutingNavBar
+                    appUrl={appUrl}
+                    form={form}
+                    hookForm={hookForm}
+                    setShowInfoLostDialog={setShowInfoLostDialog}
+                  />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
               </div>
@@ -952,6 +968,13 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           </ShellMain>
         </FormActionsProvider>
       </Form>
+      {showInfoLostDialog && (
+        <InfoLostWarningDialog
+          goToRoute={`${appUrl}/route-builder/${form?.id}`}
+          isOpenInfoLostDialog={showInfoLostDialog}
+          setIsOpenInfoLostDialog={setShowInfoLostDialog}
+        />
+      )}
       <TestFormDialog
         form={uptoDateForm}
         isTestPreviewOpen={isTestPreviewOpen}

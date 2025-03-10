@@ -7,7 +7,7 @@ import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { userSelect } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { Booking } from "./createBooking";
 import type {
@@ -55,7 +55,7 @@ export interface IEventTypePaymentCredentialType {
 
 export type IsFixedAwareUser = User & {
   isFixed: boolean;
-  credentials: CredentialPayload[];
+  credentials: CredentialForCalendarService[];
   organization?: { slug: string };
   priority?: number;
   weight?: number;

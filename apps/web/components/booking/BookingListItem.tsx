@@ -9,9 +9,8 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
-import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -38,6 +37,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuPortal,
   Icon,
   MeetingTimeInTimezones,
   showToast,
@@ -45,6 +45,7 @@ import {
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
@@ -68,6 +69,7 @@ type BookingItemProps = BookingItem & {
     userTimeFormat: number | null | undefined;
     userEmail: string | undefined;
   };
+  isToday: boolean;
 };
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -118,6 +120,28 @@ function BookingListItem(booking: BookingItemProps) {
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
+
+  const attendeeList = booking.attendees.map((attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      id: attendee.id,
+      noShow: attendee.noShow || false,
+      phoneNumber: attendee.phoneNumber,
+    };
+  });
+
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+    onSuccess: async (data) => {
+      showToast(data.message, "success");
+      // Invalidate and refetch the bookings query to update the UI
+      await utils.viewer.bookings.invalidate();
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -144,6 +168,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
+  const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -215,7 +240,7 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const editBookingActions: ActionType[] = [
-    ...(isBookingInPast
+    ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
       ? []
       : [
           {
@@ -236,7 +261,7 @@ function BookingListItem(booking: BookingItemProps) {
             },
           },
         ]),
-    ...(isBookingReroutable(parsedBooking)
+    ...(isBookingFromRoutingForm
       ? [
           {
             id: "reroute",
@@ -256,14 +281,18 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: "map-pin" as const,
     },
-    {
-      id: "add_members",
-      label: t("additional_guests"),
-      onClick: () => {
-        setIsOpenAddGuestsDialog(true);
-      },
-      icon: "user-plus" as const,
-    },
+    ...(booking.eventType?.disableGuests
+      ? []
+      : [
+          {
+            id: "add_members",
+            label: t("additional_guests"),
+            onClick: () => {
+              setIsOpenAddGuestsDialog(true);
+            },
+            icon: "user-plus" as const,
+          },
+        ]),
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -280,11 +309,22 @@ function BookingListItem(booking: BookingItemProps) {
   if (isBookingInPast || isOngoing) {
     editBookingActions.push({
       id: "no_show",
-      label: t("mark_as_no_show"),
+      label:
+        attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
       onClick: () => {
+        // If there's only one attendee, mark them as no-show directly without showing the dialog
+        if (attendeeList.length === 1) {
+          const attendee = attendeeList[0];
+          noShowMutation.mutate({
+            bookingUid: booking.uid,
+            attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+          });
+          return;
+        }
+
         setIsNoShowDialogOpen(true);
       },
-      icon: "eye-off" as const,
+      icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : ("eye-off" as const),
     });
   }
 
@@ -420,15 +460,6 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
-  });
 
   return (
     <>
@@ -443,6 +474,7 @@ function BookingListItem(booking: BookingItemProps) {
           setIsOpenDialog={setIsOpenReassignDialog}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
+          bookingFromRoutingForm={isBookingFromRoutingForm}
         />
       )}
       <EditLocationDialog
@@ -511,9 +543,12 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <tr data-testid="booking-item" className="hover:bg-muted group transition ">
+      <div
+        data-testid="booking-item"
+        data-today={String(booking.isToday)}
+        className="hover:bg-muted group w-full">
         <div className="flex flex-col sm:flex-row">
-          <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
             <div className="flex h-full items-center">
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
@@ -562,8 +597,10 @@ function BookingListItem(booking: BookingItemProps) {
                 </div>
               </Link>
             </div>
-          </td>
-          <td data-testid="title-and-attendees" className={`w-full px-4${isRejected ? " line-through" : ""}`}>
+          </div>
+          <div
+            data-testid="title-and-attendees"
+            className={`w-full px-4${isRejected ? " line-through" : ""}`}>
             <Link href={bookingLink}>
               {/* Time and Badges for mobile */}
               <div className="w-full pb-2 pt-4 sm:hidden">
@@ -648,8 +685,8 @@ function BookingListItem(booking: BookingItemProps) {
                 )}
               </div>
             </Link>
-          </td>
-          <td className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+          </div>
+          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isUpcoming && !isCancelled ? (
               <>
                 {isPending && <TableActions actions={pendingActions} />}
@@ -674,7 +711,7 @@ function BookingListItem(booking: BookingItemProps) {
                   <TableActions actions={chargeCardActions} />
                 </div>
               )}
-          </td>
+          </div>
         </div>
         <BookingItemBadges
           booking={booking}
@@ -683,9 +720,9 @@ function BookingListItem(booking: BookingItemProps) {
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
         />
-      </tr>
+      </div>
 
-      {isBookingReroutable(parsedBooking) && (
+      {isBookingFromRoutingForm && (
         <RerouteDialog
           isOpenDialog={rerouteDialogIsOpen}
           setIsOpenDialog={setRerouteDialogIsOpen}
@@ -712,7 +749,7 @@ const BookingItemBadges = ({
   const { t } = useLocale();
 
   return (
-    <div className="hidden h-9 flex-row pb-4 pl-6 sm:flex">
+    <div className="hidden h-9 flex-row items-center pb-4 pl-6 sm:flex">
       {isPending && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
@@ -736,7 +773,7 @@ const BookingItemBadges = ({
         </Badge>
       ) : null}
       {recurringDates !== undefined && (
-        <div className="text-muted mt-2 text-sm">
+        <div className="text-muted -mt-1 text-sm">
           <RecurringBookingsTooltip
             userTimeFormat={userTimeFormat}
             userTimeZone={userTimeZone}
@@ -901,71 +938,73 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
-            <s>
+            <>
               {name || email} <Icon name="eye-off" className="inline h-4" />
-            </s>
+            </>
           ) : (
             <>{name || email}</>
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        {!isSmsCalEmail(email) && (
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          {!isSmsCalEmail(email) && (
+            <DropdownMenuItem className="focus:outline-none">
+              <DropdownItem
+                StartIcon="mail"
+                href={`mailto:${email}`}
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  e.stopPropagation();
+                }}>
+                <a href={`mailto:${email}`}>{t("email")}</a>
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem className="focus:outline-none">
             <DropdownItem
-              StartIcon="mail"
-              href={`mailto:${email}`}
+              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
               onClick={(e) => {
+                e.preventDefault();
+                const isEmailCopied = isSmsCalEmail(email);
+                copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
                 setOpenDropdown(false);
-                e.stopPropagation();
+                showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
               }}>
-              <a href={`mailto:${email}`}>{t("email")}</a>
+              {!isCopied ? t("copy") : t("copied")}
             </DropdownItem>
           </DropdownMenuItem>
-        )}
 
-        <DropdownMenuItem className="focus:outline-none">
-          <DropdownItem
-            StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-            onClick={(e) => {
-              e.preventDefault();
-              const isEmailCopied = isSmsCalEmail(email);
-              copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
-              setOpenDropdown(false);
-              showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
-            }}>
-            {!isCopied ? t("copy") : t("copied")}
-          </DropdownItem>
-        </DropdownMenuItem>
-
-        {isBookingInPast && (
-          <DropdownMenuItem className="focus:outline-none">
-            {noShow ? (
-              <DropdownItem
-                data-testid="unmark-no-show"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                }}
-                StartIcon="eye">
-                {t("unmark_as_no_show")}
-              </DropdownItem>
-            ) : (
-              <DropdownItem
-                data-testid="mark-no-show"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                }}
-                StartIcon="eye-off">
-                {t("mark_as_no_show")}
-              </DropdownItem>
-            )}
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
+          {isBookingInPast && (
+            <DropdownMenuItem className="focus:outline-none">
+              {noShow ? (
+                <DropdownItem
+                  data-testid="unmark-no-show"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenDropdown(false);
+                    toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
+                  }}
+                  StartIcon="eye">
+                  {t("unmark_as_no_show")}
+                </DropdownItem>
+              ) : (
+                <DropdownItem
+                  data-testid="mark-no-show"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenDropdown(false);
+                    toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
+                  }}
+                  StartIcon="eye-off">
+                  {t("mark_as_no_show")}
+                </DropdownItem>
+              )}
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };
@@ -1251,11 +1290,9 @@ const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: Assig
   const badgeTitle = assignmentReasonBadgeTitleMap(assignmentReason.reasonEnum);
   return (
     <Tooltip content={<p>{assignmentReason.reasonString}</p>}>
-      <div className="-mt-1">
-        <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-          {t(badgeTitle)}
-        </Badge>
-      </div>
+      <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+        {t(badgeTitle)}
+      </Badge>
     </Tooltip>
   );
 };

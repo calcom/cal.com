@@ -4,7 +4,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { MembershipRole } from "@calcom/prisma/client";
 
-export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext) => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
   // Check if organizations are enabled
@@ -15,7 +15,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
   }
 
   // Check if logged in user has an organization assigned
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session?.user.profile?.organizationId) {
     return {

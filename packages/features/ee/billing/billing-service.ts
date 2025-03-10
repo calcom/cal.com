@@ -7,4 +7,5 @@ export interface BillingService {
     subscriptionItemId: string;
     membershipCount: number;
   }): Promise<void>;
+  checkIfTeamHasActivePlan(subscriptionId: string): Promise<boolean>;
 }

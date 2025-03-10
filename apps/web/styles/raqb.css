@@ -11,18 +11,18 @@
 /* hide connectors */
 .cal-query-builder .group-or-rule::before,
 .cal-query-builder .group-or-rule::after {
-  /* !important to ensure that styles added by react-query-awesome-builder are overriden */
+  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
   content: unset !important;
 }
 
 .cal-query-builder .group--children {
-  /* !important to ensure that styles added by react-query-awesome-builder are overriden */
+  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
   padding-left: 0 !important;
 }
 
 /* Hide "and" for between numbers */
 .cal-query-builder .widget--sep {
-  /* !important to ensure that styles added by react-query-awesome-builder are overriden */
+  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
   display: none !important;
 }
 
@@ -61,7 +61,7 @@
   display: flex;
   align-items: center;
   margin-right: 8px;
-  /* !important to ensure that styles added by react-query-awesome-builder are overriden */
+  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
   opacity: 1 !important;
 }
 

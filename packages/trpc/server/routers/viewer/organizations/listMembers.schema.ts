@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ZFilterValue } from "@calcom/features/data-table";
+import { ZFilterValue } from "@calcom/features/data-table/lib/types";
 
 const expandableColumns = z.enum(["attributes"]);
 
@@ -15,6 +15,7 @@ export const ZListMembersSchema = z.object({
   searchTerm: z.string().optional(),
   expand: z.array(expandableColumns).optional(),
   filters: z.array(ZListMembersFilter).optional(),
+  oAuthClientId: z.string().optional(),
 });
 
 export type TListMembersSchema = z.infer<typeof ZListMembersSchema>;

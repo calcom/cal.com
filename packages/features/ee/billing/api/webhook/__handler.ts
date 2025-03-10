@@ -58,6 +58,6 @@ export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextAp
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe events.
   if (!handler) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
-  // @ts-expect-error - we know the handler is defined and accpets the data type
+  // @ts-expect-error - we know the handler is defined and accepts the data type
   return await handler(event.data);
 };

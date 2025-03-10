@@ -1,21 +1,20 @@
 "use client";
 
-import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import type { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
-import type { LocationObject } from "@calcom/core/location";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { LocationObject } from "@calcom/lib/location";
 import type { Team } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
@@ -226,12 +225,6 @@ const OnboardingPage = ({
       key={pathname}
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
       data-testid="onboarding">
-      <Head>
-        <title>
-          {t("install")} {appMetadata?.name ?? ""}
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>

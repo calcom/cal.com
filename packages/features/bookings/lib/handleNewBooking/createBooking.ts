@@ -7,6 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
@@ -51,6 +52,7 @@ type CreateBookingParams = {
   };
   evt: CalendarEvent;
   originalRescheduledBooking: OriginalRescheduledBooking;
+  creationSource?: CreationSource;
 };
 
 function updateEventDetails(
@@ -85,6 +87,7 @@ export async function createBooking({
   routingFormResponseId,
   reroutingFormResponses,
   rescheduledBy,
+  creationSource,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) {
   updateEventDetails(evt, originalRescheduledBooking, input.changedOrganizer);
   const associatedBookingForFormResponse = routingFormResponseId
@@ -101,6 +104,7 @@ export async function createBooking({
     input,
     evt,
     originalRescheduledBooking,
+    creationSource,
   });
 
   return await saveBooking(
@@ -211,6 +215,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     routingFormResponseId,
     reroutingFormResponses,
     rescheduledBy,
+    creationSource,
   } = params;
 
   const attendeesData = getAttendeesData(evt);
@@ -258,6 +263,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     routedFromRoutingFormReponse: routingFormResponseId
       ? { connect: { id: routingFormResponseId } }
       : undefined,
+    creationSource,
   };
 
   if (reqBody.recurringEventId) {
