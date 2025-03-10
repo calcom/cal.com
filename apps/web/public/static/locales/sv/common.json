@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Det finns redan en omvänd vidarebefordran mellan dessa användare.",
   "previous_ooo_empty_title": "Ingen tidigare frånvaro hittad",
   "previous": "Föregående",
+  "trial_mode": "Provperiod",
+  "inactive_team_plan": "Inaktiv teamplan",
+  "inactive_team_plan_description": "Din teamplan är inaktiv. Kontrollera din prenumeration eller kontakta kundsupport",
+  "limited_access_trial_mode": "Begränsad åtkomst under provperioden. Funktionen tillgänglig efter att provperioden avslutas.",
+  "uid": "UID",
+  "link": "Länk",
+  "tip_username_plus": "Tips: Du kan lägga till ett '+' mellan användarnamn: cal.com/anna+brian för att skapa ett dynamiskt gruppmöte",
+  "user_has_no_team_yet": "Du har inget team ännu",
+  "no_team_members": "Du har inga teammedlemmar ännu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Dagoeneko alderantzizko birbideratze bat dago erabiltzaile hauen artean.",
   "previous_ooo_empty_title": "Ez da aurreko OOOrik aurkitu",
   "previous": "Aurrekoa",
+  "trial_mode": "Proba modua",
+  "inactive_team_plan": "Talde plan inaktiboa",
+  "inactive_team_plan_description": "Zure talde plana inaktiboa da. Egiaztatu zure harpidetza edo jarri harremanetan bezeroen laguntzarekin",
+  "limited_access_trial_mode": "Sarbide mugatua proba aldian. Eginbidea proba amaitu ondoren eskuragarri.",
+  "uid": "UID",
+  "link": "Esteka",
+  "tip_username_plus": "Aholkua: '+' bat gehi dezakezu erabiltzaile-izenen artean: cal.com/anna+brian talde bilera dinamiko bat sortzeko",
+  "user_has_no_team_yet": "Oraindik ez duzu talderik",
+  "no_team_members": "Oraindik ez dituzu taldekiderik",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

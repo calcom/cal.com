@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Već postoji obrnuto preusmeravanje između ovih korisnika.",
   "previous_ooo_empty_title": "Nije pronađeno prethodno OOO",
   "previous": "Prethodno",
+  "trial_mode": "Probni režim",
+  "inactive_team_plan": "Neaktivan plan za tim",
+  "inactive_team_plan_description": "Vaš plan za tim je neaktivan. Proverite vašu pretplatu ili se obratite korisničkoj podršci",
+  "limited_access_trial_mode": "Ograničen pristup tokom probnog perioda. Funkcija dostupna nakon završetka probnog perioda.",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Savet: Možete dodati '+' između korisničkih imena: cal.com/ana+boris da napravite dinamički grupni sastanak",
+  "user_has_no_team_yet": "Još uvek nemate tim",
+  "no_team_members": "Još uvek nemate članove tima",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Există deja o redirecționare inversă între acești utilizatori.",
   "previous_ooo_empty_title": "Nu s-a găsit niciun OOO anterior",
   "previous": "Anterior",
+  "trial_mode": "Mod de probă",
+  "inactive_team_plan": "Plan de echipă inactiv",
+  "inactive_team_plan_description": "Planul dvs. de echipă este inactiv. Verificați-vă abonamentul sau contactați serviciul de asistență pentru clienți",
+  "limited_access_trial_mode": "Acces limitat în timpul perioadei de probă. Funcționalitatea va fi disponibilă după încheierea perioadei de probă.",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Sfat: Puteți adăuga un '+' între numele de utilizator: cal.com/anna+brian pentru a crea o întâlnire de grup dinamică",
+  "user_has_no_team_yet": "Nu aveți încă o echipă",
+  "no_team_members": "Nu aveți încă membri în echipă",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
