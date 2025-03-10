@@ -6,7 +6,7 @@ import type EventManager from "@calcom/lib/EventManager";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
+import type { createLoggerWithEventDetails } from "../../../createLoggerWithEventDetails";
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";

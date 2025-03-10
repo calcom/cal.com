@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 
 import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -10,7 +10,6 @@ import { TRPCError } from "@trpc/server";
 import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { FormResponse } from "../types/types";
-import type { ZFormByResponseIdInputSchema } from "./_router";
 
 type GetResponseWithFormFieldsOptions = {
   ctx: {
@@ -18,6 +17,10 @@ type GetResponseWithFormFieldsOptions = {
   };
   input: z.infer<typeof ZFormByResponseIdInputSchema>;
 };
+
+export const ZFormByResponseIdInputSchema = z.object({
+  formResponseId: z.number(),
+});
 
 async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithFormFieldsOptions) {
   const { user } = ctx;

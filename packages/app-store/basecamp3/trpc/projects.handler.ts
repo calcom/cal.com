@@ -5,7 +5,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import type { BasecampToken } from "../lib/CalendarService";
+import type { BasecampToken } from "../lib/BasecampToken";
 import { refreshAccessToken } from "../lib/helpers";
 
 interface ProjectsHandlerOptions {

@@ -2,7 +2,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import type { BasecampToken } from "./CalendarService";
+import type { BasecampToken } from "./BasecampToken";
 import { getBasecampKeys } from "./getBasecampKeys";
 
 export const refreshAccessToken = async (credential: CredentialPayload) => {

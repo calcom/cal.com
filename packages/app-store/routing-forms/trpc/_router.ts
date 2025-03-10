@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
@@ -8,6 +8,7 @@ import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
+import { ZFormByResponseIdInputSchema } from "./getResponseWithFormFields.handler";
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
 import { ZSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
@@ -45,10 +46,6 @@ const getHandler = async <
 
   return UNSTABLE_HANDLER_CACHE[nameInCache] as unknown as T["default"];
 };
-
-export const ZFormByResponseIdInputSchema = z.object({
-  formResponseId: z.number(),
-});
 
 export type TFormQueryInputSchema = z.infer<typeof ZFormQueryInputSchema>;
 
