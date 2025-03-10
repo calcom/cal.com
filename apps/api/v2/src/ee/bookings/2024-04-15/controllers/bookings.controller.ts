@@ -14,8 +14,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -101,7 +103,8 @@ export class BookingsController_2024_04_15 {
     private readonly billingService: BillingService,
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly platformBookingsService: PlatformBookingsService,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   @Get("/")
@@ -352,7 +355,7 @@ export class BookingsController_2024_04_15 {
   }
 
   private async getOwnerIdRescheduledBooking(
-    req: Request,
+    request: Request,
     platformClientId?: string
   ): Promise<number | undefined> {
     if (

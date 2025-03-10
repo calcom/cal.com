@@ -442,7 +442,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           };
 
           return request(app.getHttpServer())
-            .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/reschedule`)
+            .post(`/v2/bookings/${emailsEnabledSetup.rescheduledBookingUid}/reschedule`)
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
@@ -451,8 +451,9 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               if (responseDataIsBooking(responseBody.data)) {
                 expect(responseBody.data.status).toEqual("pending");
-                expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-                expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+                expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+                expect(OrganizerRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+
                 expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
                 expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
                 emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
