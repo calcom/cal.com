@@ -1,71 +1,44 @@
-import app_Basecamp3 from "@calcom/app-store/basecamp3/trpc-router";
-import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
-import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
-import { featureFlagRouter } from "@calcom/features/flags/server/router";
-import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
+import { experimental_lazy } from "@trpc/server";
 
 import { mergeRouters, router } from "../../trpc";
-import { loggedInViewerRouter } from "../loggedInViewer/_router";
-import { publicViewerRouter } from "../publicViewer/_router";
-import { timezonesRouter } from "../publicViewer/timezones/_router";
-import { adminRouter } from "./admin/_router";
-import { apiKeysRouter } from "./apiKeys/_router";
-import { appsRouter } from "./apps/_router";
-import { attributesRouter } from "./attributes/_router";
-import { authRouter } from "./auth/_router";
-import { availabilityRouter } from "./availability/_router";
-import { bookingsRouter } from "./bookings/_router";
-import { delegationCredentialRouter } from "./delegationCredential/_router";
-import { deploymentSetupRouter } from "./deploymentSetup/_router";
-import { dsyncRouter } from "./dsync/_router";
-import { eventTypesRouter } from "./eventTypes/_router";
-import { googleWorkspaceRouter } from "./googleWorkspace/_router";
-import { highPerfRouter } from "./highPerf/_router";
-import { oAuthRouter } from "./oAuth/_router";
-import { viewerOrganizationsRouter } from "./organizations/_router";
-import { paymentsRouter } from "./payments/_router";
-import { routingFormsRouter } from "./routing-forms/_router";
-import { slotsRouter } from "./slots/_router";
-import { ssoRouter } from "./sso/_router";
-import { viewerTeamsRouter } from "./teams/_router";
-import { webhookRouter } from "./webhook/_router";
-import { workflowsRouter } from "./workflows/_router";
+
+loggedInViewerRouter = experimental_lazy(() => import("../loggedInViewer/_router"));
 
 export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
 
   router({
     loggedInViewerRouter,
-    public: publicViewerRouter,
-    auth: authRouter,
-    deploymentSetup: deploymentSetupRouter,
-    bookings: bookingsRouter,
-    eventTypes: eventTypesRouter,
-    availability: availabilityRouter,
-    teams: viewerTeamsRouter,
-    timezones: timezonesRouter,
-    organizations: viewerOrganizationsRouter,
-    delegationCredential: delegationCredentialRouter,
-    webhook: webhookRouter,
-    apiKeys: apiKeysRouter,
-    slots: slotsRouter,
-    workflows: workflowsRouter,
-    saml: ssoRouter,
-    dsync: dsyncRouter,
-    insights: insightsRouter,
-    payments: paymentsRouter,
+    public: experimental_lazy(() => import("../publicViewer/_router")),
+    auth: experimental_lazy(() => import("./auth/_router")),
+    deploymentSetup: experimental_lazy(() => import("./deploymentSetup/_router")),
+    bookings: experimental_lazy(() => import("./bookings/_router")),
+    eventTypes: experimental_lazy(() => import("./eventTypes/_router")),
+    availability: experimental_lazy(() => import("./availability/_router")),
+    teams: experimental_lazy(() => import("./teams/_router")),
+    timezones: experimental_lazy(() => import("../publicViewer/timezones/_router")),
+    organizations: experimental_lazy(() => import("./organizations/_router")),
+    delegationCredential: experimental_lazy(() => import("./delegationCredential/_router")),
+    webhook: experimental_lazy(() => import("./webhook/_router")),
+    apiKeys: experimental_lazy(() => import("./apiKeys/_router")),
+    slots: experimental_lazy(() => import("./slots/_router")),
+    workflows: experimental_lazy(() => import("./workflows/_router")),
+    saml: experimental_lazy(() => import("./sso/_router")),
+    dsync: experimental_lazy(() => import("./dsync/_router")),
+    insights: experimental_lazy(() => import("@calcom/features/insights/server/trpc-router")),
+    payments: experimental_lazy(() => import("./payments/_router")),
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
-    appRoutingForms: app_RoutingForms,
-    appBasecamp3: app_Basecamp3,
-    features: featureFlagRouter,
-    appsRouter,
-    users: userAdminRouter,
-    oAuth: oAuthRouter,
-    googleWorkspace: googleWorkspaceRouter,
-    admin: adminRouter,
-    attributes: attributesRouter,
-    highPerf: highPerfRouter,
-    routingForms: routingFormsRouter,
+    appRoutingForms: experimental_lazy(() => import("@calcom/app-store/routing-forms/trpc-router")),
+    appBasecamp3: experimental_lazy(() => import("@calcom/app-store/basecamp3/trpc-router")),
+    features: experimental_lazy(() => import("@calcom/features/flags/server/router")),
+    appsRouter: experimental_lazy(() => import("./apps/_router")),
+    users: experimental_lazy(() => import("@calcom/features/ee/users/server/trpc-router")),
+    oAuth: experimental_lazy(() => import("./oAuth/_router")),
+    googleWorkspace: experimental_lazy(() => import("./googleWorkspace/_router")),
+    admin: experimental_lazy(() => import("./admin/_router")),
+    attributes: experimental_lazy(() => import("./attributes/_router")),
+    highPerf: experimental_lazy(() => import("./highPerf/_router")),
+    routingForms: experimental_lazy(() => import("./routing-forms/_router")),
   })
 );
