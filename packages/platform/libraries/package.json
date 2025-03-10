@@ -1,10 +1,10 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "9.9.9",
-  "type": "module",
+  "version": "0.0.0",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "type": "module",
   "files": [
     "dist"
   ],
