@@ -1,5 +1,4 @@
-import type { SearchParams } from "app/_types";
-import { type Params } from "app/_types";
+import type { MixedParams, SearchParams } from "app/_types";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
@@ -26,7 +25,7 @@ const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
   return createProxifiedObject(cookiesObject);
 };
 
-export function decodeParams(params: Params): Params {
+export function decodeParams(params: MixedParams): MixedParams {
   return Object.entries(params).reduce((acc, [key, value]) => {
     // Handle array values
     if (Array.isArray(value)) {
@@ -42,7 +41,7 @@ export function decodeParams(params: Params): Params {
     }
 
     return acc;
-  }, {} as Params);
+  }, {} as MixedParams);
 }
 
 export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
@@ -52,7 +51,7 @@ export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRe
 export const buildLegacyCtx = (
   headers: ReadonlyHeaders,
   cookies: ReadonlyRequestCookies,
-  params: Params,
+  params: MixedParams,
   searchParams: SearchParams
 ) => {
   return {

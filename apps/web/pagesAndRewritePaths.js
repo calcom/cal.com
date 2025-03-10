@@ -4,7 +4,7 @@ const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 // Pages found here are excluded from redirects in beforeFiles in next.config.js
 let pages = (exports.pages = glob
   .sync(
-    "{pages,app,app/(booking-page-wrapper),app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}",
+    "{app,app/[lang],app/[lang]/(booking-page-wrapper),app/[lang]/(use-page-wrapper),app/[lang]/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}",
     {
       cwd: __dirname,
     }
@@ -12,7 +12,7 @@ let pages = (exports.pages = glob
   .map((filename) =>
     filename
       .replace(
-        /^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|app\/\(booking-page-wrapper\)|pages|app)\//,
+        /^(app\/\[lang\]\/\(use-page-wrapper\)\/\(main-nav\)|app\/\[lang\]\/\(use-page-wrapper\)|app\/\[lang\]\/\(booking-page-wrapper\)|app\/\[lang\]|app)\//,
         ""
       )
       .replace(/(\.tsx|\.js|\.ts)/, "")

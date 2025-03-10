@@ -224,13 +224,11 @@ export const generateMetadata = async () => {
   const headersList = headers();
   const pathname = headersList.get("x-pathname") ?? "";
   const isInsights = pathname?.startsWith("/insights");
+  const t = await getTranslate(headersList.get("x-locale") ?? "en");
 
   const metadata = await _generateMetadata(
-    (t) =>
-      isInsights
-        ? t("feature_currently_disabled") ?? "Feature is currently disabled"
-        : t("404_page_not_found"),
-    (t) => t("404_page_not_found")
+    isInsights ? t("feature_currently_disabled") ?? "Feature is currently disabled" : t("404_page_not_found"),
+    t("404_page_not_found")
   );
   return {
     ...metadata,
@@ -242,9 +240,10 @@ export const generateMetadata = async () => {
 };
 
 const ServerPage = async () => {
-  const t = await getTranslate();
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
+  const t = await getTranslate(h.get("x-locale") ?? "en");
+
   return (
     <PageWrapper requiresLicense={false} nonce={nonce}>
       <NotFound t={t} headers={h} />

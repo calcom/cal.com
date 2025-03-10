@@ -1,5 +1,9 @@
-export type Params = {
-  [param: string]: string | string[] | undefined;
+type StringParams = {
+  [param: string]: string;
+};
+
+export type MixedParams = {
+  [param: string]: string | string[];
 };
 
 export type SearchParams = {
@@ -7,8 +11,12 @@ export type SearchParams = {
 };
 
 export type PageProps = {
-  params: Params;
+  params: StringParams;
   searchParams: SearchParams;
 };
 
-export type LayoutProps = { params: Params; children: React.ReactElement };
+export type LayoutProps = { params: StringParams; children: React.ReactElement };
+export type TFunction = (
+  key: string,
+  options?: Record<string, string | number> // Interpolation variables
+) => string;
