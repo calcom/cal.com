@@ -28,7 +28,7 @@ test.afterEach(async ({ users }) => {
 // used as a multiplier for duration limits
 const EVENT_LENGTH = 30;
 
-// limits used when testing each limit seperately
+// limits used when testing each limit separately
 const BOOKING_LIMITS_SINGLE = {
   PER_DAY: 2,
   PER_WEEK: 2,
