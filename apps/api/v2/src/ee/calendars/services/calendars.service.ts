@@ -19,9 +19,8 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/platform-libraries";
 import {
-  // getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
+  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
   getBusyCalendarTimes,
 } from "@calcom/platform-libraries/calendars";
 import { Calendar } from "@calcom/platform-types";
