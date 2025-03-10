@@ -271,9 +271,6 @@ const nextConfig = {
       fs: false,
       // ignore module resolve errors caused by the server component bundler
       "pg-native": false,
-      "superagent-proxy": false,
-      "deasync": false,
-      "http-cookie-agent":false
     };
 
     /**
