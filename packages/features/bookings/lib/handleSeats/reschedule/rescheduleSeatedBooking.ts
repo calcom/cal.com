@@ -7,7 +7,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
 
-import type { createLoggerWithEventDetails } from "../../handleNewBooking";
+import type { createLoggerWithEventDetails } from "../../handleNewBooking/logger";
 import type {
   HandleSeatsResultBooking,
   SeatedBooking,
