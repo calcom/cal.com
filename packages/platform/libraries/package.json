@@ -1,6 +1,6 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "0.0.0",
+  "version": "0.0.139",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,5 +27,24 @@
     "vite": "^5.0.12",
     "vite-plugin-dts": "^3.7.2",
     "vite-plugin-environment": "^1.1.3"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./slots": {
+      "import": "./dist/slots.js",
+      "require": "./dist/slots.cjs",
+      "types": "./dist/slots.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "slots": [
+        "dist/slots.d.ts"
+      ]
+    }
   }
 }
