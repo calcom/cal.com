@@ -12,7 +12,7 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { VerticalTabItemProps } from "@calcom/ui";
 
-import type { PlatformTabs } from "../wrappers/EventTypePlatformWrapper";
+import type { PlatformTabs } from "../../event-types/wrappers/types";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;
