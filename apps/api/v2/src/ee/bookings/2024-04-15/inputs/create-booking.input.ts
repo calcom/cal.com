@@ -13,6 +13,8 @@ import {
   Validate,
 } from "class-validator";
 
+import { RESCHEDULED_BY_DOCS } from "@calcom/platform-types";
+
 class Location {
   @IsString()
   @ApiProperty()
@@ -77,7 +79,7 @@ export class CreateBookingInput_2024_04_15 {
   rescheduleUid?: string;
 
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: RESCHEDULED_BY_DOCS })
   @Validate((value: string) => !value || isEmail(value), {
     message: "Invalid rescheduledBy email format",
   })
