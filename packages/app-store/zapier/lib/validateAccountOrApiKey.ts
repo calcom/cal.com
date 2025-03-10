@@ -8,7 +8,8 @@ export async function validateAccountOrApiKey(req: NextApiRequest, requiredScope
   const apiKey = req.query.apiKey as string;
 
   if (!apiKey) {
-    const authorizedAccount = await isAuthorized(req, requiredScopes);
+    const token = req.headers.authorization?.split(" ")[1] || "";
+    const authorizedAccount = await isAuthorized(token, requiredScopes);
     if (!authorizedAccount) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
     return { account: authorizedAccount, appApiKey: undefined };
   }
