@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Вече съществува обратно пренасочване между тези потребители.",
   "previous_ooo_empty_title": "Не са намерени предишни OOO",
   "previous": "Предишен",
+  "uid": "UID",
+  "link": "Линк",
+  "tip_username_plus": "Съвет: Можеш да добавиш '+' между потребителските имена: cal.com/anna+brian, за да създадеш динамична групова среща",
+  "user_has_no_team_yet": "Все още нямаш екип",
+  "no_team_members": "Все още нямаш членове в екипа",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
