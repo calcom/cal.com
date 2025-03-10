@@ -1,6 +1,6 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "0.0.0",
+  "version": "9.9.9",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,6 +11,7 @@
   "scripts": {
     "build": "yarn vite build",
     "build:watch": "yarn vite build --watch",
+    "watch-lru-fix": "watch -n 1 'sed -i'' -e \"s/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g\" ./dist/index.cjs'",
     "build:dev": "yarn vite build && sed -i'' -e 's/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g' ./dist/index.cjs",
     "local": "node scripts/local.js && rm -rf dist && yarn build:dev && cd ../../.. && yarn",
     "publish": "yarn && node scripts/prepublish.js && rm -rf dist && yarn build && npm publish --access public",

@@ -207,7 +207,8 @@ export type {
   InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+export { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
@@ -282,3 +283,4 @@ export { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
+export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
