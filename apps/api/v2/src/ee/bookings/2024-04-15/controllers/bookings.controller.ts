@@ -422,7 +422,7 @@ export class BookingsController_2024_04_15 {
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const requestId = req.get("X-Request-Id");
     const clone = { ...req };
-    const userId = clone.body.rescheduledUid
+    const userId = clone.body.rescheduleUid
       ? await this.getOwnerIdRescheduledBooking(req, oAuthClientId)
       : await this.getOwnerId(req);
     const oAuthParams = oAuthClientId
