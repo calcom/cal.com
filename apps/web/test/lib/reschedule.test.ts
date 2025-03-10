@@ -14,7 +14,6 @@ import { describe, it, expect, vi } from "vitest";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 
-// Add this mock for client-side i18n
 vi.mock("next-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -22,36 +21,45 @@ vi.mock("next-i18next", () => ({
   }),
 }));
 
-// Update server-side i18n mock to handle async
 vi.mock("@calcom/lib/server/i18n", () => {
   const t = (key: string) => key;
   return {
-    getTranslation: () => ({
-      t,
-      language: "en",
-      exists: (key: string) => !!key,
-      dir: () => "ltr",
-      // Handle both direct function and object destructuring patterns
-      getFixedT: () => t,
-    }),
+    getTranslation: () =>
+      Promise.resolve({
+        t,
+        language: "en",
+        exists: (key: string) => !!key,
+        dir: () => "ltr",
+        getFixedT: () => t,
+      }),
     t,
     initI18n: vi.fn().mockResolvedValue(undefined),
   };
 });
 
-// Add mock for localize utilities
 vi.mock("@calcom/lib/server/i18n/utils", () => ({
   localize: (value: string) => value,
 }));
 
-// Add this mock to handle the core event.ts usage
-vi.mock("@calcom/core/event", () => ({
-  getEventName: (eventNameObj: { eventName: string; t: (key: string) => string }, attendeeName: string) => {
-    return eventNameObj.eventName;
-  },
-}));
+vi.mock("@calcom/lib/event", () => {
+  return {
+    getEventName: (eventNameObj: { eventName: string; t: (key: string) => string }, attendeeName: string) => {
+      return eventNameObj.eventName;
+    },
+    nameObjectSchema: {
+      parse: () => ({ firstName: "Test", lastName: "User" }),
+    },
+    parseName: (name: string | object) => {
+      if (typeof name === "string") return name;
+      return "Test User";
+    },
+    getIntroEventDescription: () => "Test description",
+    getLocationValueForDB: () => "Test location",
+    getTranslatedLocation: () => "Test location",
+    EventNameObjectType: {},
+  };
+});
 
-// Replace the CalEventParser mocks with this single comprehensive mock
 vi.mock("@calcom/lib/CalEventParser", async (importOriginal) => {
   const actual = (await importOriginal()) as typeof import("@calcom/lib/CalEventParser");
   return {
@@ -65,12 +73,78 @@ vi.mock("@calcom/lib/CalEventParser", async (importOriginal) => {
   };
 });
 
-// Add explicit mock for email template utilities
 vi.mock("@calcom/emails/email-manager", () => ({
   sendRescheduledEmailsAndSMS: vi.fn().mockImplementation(async () => {
     return { rescheduled: true };
   }),
 }));
+
+vi.mock("@calcom/app-store", () => {
+  return {
+    getEventTypeAppData: () => Promise.resolve(null),
+    getLocationOptionsForSelect: () => Promise.resolve([]),
+    getAppFromSlug: () => ({
+      locationOption: {
+        value: "integrations:daily",
+        label: "Daily",
+      },
+    }),
+    getAppFromLocationValue: () => ({
+      locationOption: {
+        value: "integrations:daily",
+        label: "Daily",
+      },
+    }),
+  };
+});
+
+vi.mock("@calcom/lib/videoClient", () => {
+  return {
+    getVideoAdapters: () => ({
+      daily: {
+        createMeeting: () => Promise.resolve({ id: "test-meeting-id", password: "test-password" }),
+        updateMeeting: () => Promise.resolve({}),
+      },
+    }),
+    updateMeeting: () => Promise.resolve({}),
+  };
+});
+
+vi.mock("@calcom/lib/EventManager", () => {
+  const EventManagerMock = function () {
+    return {
+      create: () =>
+        Promise.resolve({
+          type: "success",
+          createdEvent: { id: "123" },
+          uid: "test-uid",
+          originalEvent: { id: "original-123" },
+        }),
+      reschedule: () =>
+        Promise.resolve({
+          responses: [],
+          referencesToCreate: [],
+          results: [
+            {
+              type: "google_calendar",
+              success: true,
+              updatedEvent: {
+                iCalUID: "test-ical-uid",
+                id: "event-123",
+              },
+            },
+          ],
+        }),
+      delete: () => Promise.resolve({ success: true }),
+      updateCalendarAdditionalInfo: () => Promise.resolve(undefined),
+    };
+  };
+
+  return {
+    EventManager: EventManagerMock,
+    default: EventManagerMock,
+  };
+});
 
 describe("Reschedule Tests - Booker Calendar Conflicts", () => {
   it("Should prevent rescheduling when booker has calendar conflict", async () => {
