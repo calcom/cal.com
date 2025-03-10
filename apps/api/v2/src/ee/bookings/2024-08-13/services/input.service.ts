@@ -19,7 +19,7 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { EventTypeMetaDataSchema } from "@calcom/platform-libraries";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -442,7 +442,8 @@ export class InputBookingsService_2024_08_13 {
           return keyData?.userId;
         } else {
           // Access Token
-          return this.oAuthFlowService.getOwnerId(bearerToken);
+          const ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
+          return ownerId;
         }
       }
     } catch (err) {
