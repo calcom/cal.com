@@ -30,6 +30,7 @@ export class BaseConfirmationPolicy_2024_06_14 {
   @IsEnum(ConfirmationPolicyEnum)
   @ApiProperty({
     description: "The policy that determines when confirmation is required",
+    enum: [ConfirmationPolicyEnum.ALWAYS, ConfirmationPolicyEnum.TIME],
     example: ConfirmationPolicyEnum.ALWAYS,
   })
   type!: ConfirmationPolicyEnum;
