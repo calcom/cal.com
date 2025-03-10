@@ -1,14 +1,22 @@
 import { ProgressBar } from "@tremor/react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TextField, Label } from "@calcom/ui";
+import { Button, TextField, Label, InputError } from "@calcom/ui";
 
 export default function BillingCredits() {
   const { t } = useLocale();
   const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<{ quantity: number }>({ defaultValues: { quantity: 50 } });
 
   const params = useParamsWithFallback();
   //if this is given we are on the teams billing page
@@ -32,6 +40,9 @@ export default function BillingCredits() {
     return <></>;
   }
 
+  const onSubmit = (data: { quantity: number }) => {
+    buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
+  };
   const teamCreditsPercentageUsed = creditsData.teamCredits
     ? (creditsData.teamCredits.totalRemainingMonthlyCredits / creditsData.teamCredits.totalMonthlyCredits) *
       100
@@ -78,33 +89,35 @@ export default function BillingCredits() {
           <div className="-mx-6 mb-6 mt-6">
             <hr className="border-subtle mb-3 mt-3" />
           </div>
-          <div className="flex">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex">
             <div className="mr-auto">
               <div className="mb-2 font-semibold">{t("buy_additional_credits")}</div>
               <div className="flex flex-col">
                 <TextField
                   required
                   type="number"
+                  {...register("quantity", {
+                    required: t("This field is required"),
+                    min: { value: 50, message: t("Minimum 50 credits") },
+                    valueAsNumber: true,
+                  })}
+                  label=""
                   containerClassName="w-60"
-                  label={t("buy_credits")}
-                  defaultValue={0}
+                  onChange={(e) => setValue("quantity", Number(e.target.value))}
                   addOnSuffix={<>{t("credits")}</>}
-                  min={1}
                 />
+                {errors.quantity && <InputError message={errors.quantity.message} />}
+                {/* Show error message */}
               </div>
             </div>
 
             {/* disable button if 0 credits*/}
-            <div className="mt-4">
-              <Button
-                color="primary"
-                target="_blank"
-                EndIcon="external-link"
-                onClick={() => buyCreditsMutation.mutate({ quantity: 100 })}>
+            <div className="mb-1 mt-auto">
+              <Button color="primary" target="_blank" EndIcon="external-link" type="submit">
                 {t("buy_credits")}
               </Button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>
