@@ -1,5 +1,3 @@
-import type { UseCreateBookingInput } from "hooks/bookings/useCreateBooking";
-
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
@@ -8,6 +6,8 @@ import type {
   ApiSuccessResponseWithoutData,
 } from "@calcom/platform-types";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+
+import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
 
 export type BookerPlatformWrapperAtomProps = Omit<
   BookerProps,

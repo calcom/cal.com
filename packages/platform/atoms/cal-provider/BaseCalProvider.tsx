@@ -1,16 +1,4 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { i18nProps } from "cal-provider/CalProvider";
-import type {
-  translationKeys,
-  CalProviderLanguagesType,
-  enTranslationKeys,
-  frTranslationKeys,
-  ptBrTranslationKeys,
-  deTranslationKeys,
-  esTranslationKeys,
-  nlTranslationKeys,
-} from "cal-provider/languages";
-import { EN } from "cal-provider/languages";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useCallback } from "react";
@@ -32,6 +20,18 @@ import { useTimezone } from "../hooks/useTimezone";
 import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
+import type { i18nProps } from "./CalProvider";
+import type {
+  translationKeys,
+  CalProviderLanguagesType,
+  enTranslationKeys,
+  frTranslationKeys,
+  ptBrTranslationKeys,
+  deTranslationKeys,
+  esTranslationKeys,
+  nlTranslationKeys,
+} from "./cal-provider/languages";
+import { EN } from "./cal-provider/languages";
 
 export type CalProviderProps = {
   children?: ReactNode;

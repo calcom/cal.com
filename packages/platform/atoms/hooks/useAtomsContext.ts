@@ -1,8 +1,8 @@
 "use client";
 
-import type { CalProviderLanguagesType, translationKeys } from "cal-provider/languages";
 import { createContext, useContext } from "react";
 
+import type { CalProviderLanguagesType, translationKeys } from "../cal-provider/languages";
 import type http from "../lib/http";
 
 export interface IAtomsContextOptions {

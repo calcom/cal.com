@@ -1,6 +1,13 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
+
+import { VERSION_2024_06_14 } from "@calcom/platform-constants";
+
+import http from "../lib/http";
+import type { CalProviderProps } from "./BaseCalProvider";
+import { BaseCalProvider } from "./BaseCalProvider";
 import type {
   frTranslationKeys,
   enTranslationKeys,
@@ -9,14 +16,7 @@ import type {
   esTranslationKeys,
   nlTranslationKeys,
   translationKeys,
-} from "cal-provider/languages";
-import { useEffect } from "react";
-
-import { VERSION_2024_06_14 } from "@calcom/platform-constants";
-
-import http from "../lib/http";
-import type { CalProviderProps } from "./BaseCalProvider";
-import { BaseCalProvider } from "./BaseCalProvider";
+} from "./languages";
 
 const queryClient = new QueryClient();
 
