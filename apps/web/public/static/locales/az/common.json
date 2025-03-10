@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Bu istifadəçilər arasında artıq əks yönləndirmə mövcuddur.",
   "previous_ooo_empty_title": "Əvvəlki OOO tapılmadı",
   "previous": "Əvvəlki",
+  "trial_mode": "Sınaq rejimi",
+  "inactive_team_plan": "Qeyri-aktiv komanda planı",
+  "inactive_team_plan_description": "Komanda planınız qeyri-aktivdir. Abunəliyinizi yoxlayın və ya müştəri dəstəyi ilə əlaqə saxlayın",
+  "limited_access_trial_mode": "Sınaq müddətində məhdud giriş. Xüsusiyyət sınaq müddəti bitdikdən sonra əlçatan olacaq.",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Məsləhət: İstifadəçi adları arasında '+' işarəsi əlavə edə bilərsiniz: cal.com/anna+brian dinamik qrup görüşü yaratmaq üçün",
+  "user_has_no_team_yet": "Hələ komandanız yoxdur",
+  "no_team_members": "Hələ komanda üzvləriniz yoxdur",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

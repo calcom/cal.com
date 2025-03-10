@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Bu kullanıcılar arasında zaten ters yönde bir yönlendirme var.",
   "previous_ooo_empty_title": "Önceki OOO bulunamadı",
   "previous": "Önceki",
+  "trial_mode": "Deneme modu",
+  "inactive_team_plan": "Aktif olmayan ekip planı",
+  "inactive_team_plan_description": "Ekip planınız aktif değil. Aboneliğinizi kontrol edin veya müşteri desteğiyle iletişime geçin",
+  "limited_access_trial_mode": "Deneme süresi boyunca sınırlı erişim. Özellik deneme süresi bitiminden sonra kullanılabilir.",
+  "uid": "UID",
+  "link": "Bağlantı",
+  "tip_username_plus": "İpucu: Dinamik bir grup toplantısı oluşturmak için kullanıcı adları arasına '+' ekleyebilirsiniz: cal.com/anna+brian",
+  "user_has_no_team_yet": "Henüz bir ekibiniz yok",
+  "no_team_members": "Henüz ekip üyeniz yok",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

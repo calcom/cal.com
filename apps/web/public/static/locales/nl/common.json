@@ -2981,5 +2981,14 @@
   "ooo_team_redirect_infinite_not_allowed": "Er is al een omgekeerde doorverwijzing tussen deze gebruikers.",
   "previous_ooo_empty_title": "Geen eerdere OOO gevonden",
   "previous": "Vorige",
+  "trial_mode": "Proefmodus",
+  "inactive_team_plan": "Inactief teamabonnement",
+  "inactive_team_plan_description": "Uw teamabonnement is inactief. Controleer uw abonnement of neem contact op met de klantenondersteuning",
+  "limited_access_trial_mode": "Beperkte toegang tijdens proefperiode. Functie beschikbaar na afloop van de proefperiode.",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Tip: U kunt een '+' tussen gebruikersnamen plaatsen: cal.com/anna+brian om een dynamische groepsbijeenkomst te maken",
+  "user_has_no_team_yet": "U heeft nog geen team",
+  "no_team_members": "U heeft nog geen teamleden",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
