@@ -47,11 +47,13 @@ export const roundRobinReassignment = async ({
   orgId,
   emailsEnabled = true,
   platformClientParams,
+  teamMemberEmail,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  teamMemberEmail?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -116,6 +118,19 @@ export const roundRobinReassignment = async ({
       }
     }
   })();
+
+  if (teamMemberEmail) {
+    const specificHost = eventType.hosts.find((host) => host.user.email === teamMemberEmail);
+    if (specificHost) {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          userId: specificHost.user.id,
+        },
+      });
+      return;
+    }
+  }
 
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
