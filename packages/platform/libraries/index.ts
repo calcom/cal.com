@@ -1,7 +1,4 @@
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { CalendarService } from "@calcom/app-store/applecalendar/lib";
-import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
@@ -30,7 +27,6 @@ import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
-import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import {
   getFirstDelegationConferencingCredentialAppLocation,
   getFirstDelegationConferencingCredential,
@@ -50,7 +46,6 @@ import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
@@ -120,13 +115,12 @@ export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
+// this is the reason why api v2 fails
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
-export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
-export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
 export {
   transformWorkingHoursForAtom,
@@ -212,11 +206,6 @@ export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
-export { symmetricEncrypt, symmetricDecrypt };
-export { CalendarService };
-
-export { getCalendar };
-
 export { getTranslation };
 
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
@@ -226,7 +215,6 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
-export { IcsFeedCalendarService };
 export { validateCustomEventName } from "@calcom/lib/event";
 export { getEnabledAppsFromCredentials };
 export type { App };
@@ -238,7 +226,7 @@ export type { TDependencyData };
 export type { CredentialPayload };
 
 export { getAppFromSlug };
-export { credentialForCalendarServiceSelect };
+
 export { MembershipRole };
 
 export { paymentDataSelect };
@@ -278,7 +266,6 @@ export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 
 export { addDelegationCredential };
 
-export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";

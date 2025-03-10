@@ -19,10 +19,11 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
+import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/platform-libraries";
 import {
-  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
+  // getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
   getBusyCalendarTimes,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/calendars";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -88,7 +89,6 @@ export class CalendarsService {
         dateTo,
         composedSelectedCalendars
       );
-      // @ts-expect-error Element implicitly has any type
       const calendarBusyTimesConverted = calendarBusyTimes.map((busyTime) => {
         const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
         const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);

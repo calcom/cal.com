@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries/calendars";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";

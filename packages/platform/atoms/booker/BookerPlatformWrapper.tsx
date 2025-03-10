@@ -14,8 +14,8 @@ import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { BookingResponse } from "@calcom/platform-libraries";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries/calendars";
 import type {
   ApiErrorResponse,
   ApiSuccessResponse,
