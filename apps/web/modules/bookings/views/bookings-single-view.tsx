@@ -163,6 +163,7 @@ export default function Success(props: PageProps) {
     searchParams?.get("rescheduledBy") ??
     searchParams?.get("cancelledBy") ??
     session?.user?.email ??
+    (bookingInfo.responses?.email as string) ??
     undefined;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
