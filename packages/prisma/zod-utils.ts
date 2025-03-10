@@ -659,6 +659,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   allowReschedulingPastBookings: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
+  language: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
