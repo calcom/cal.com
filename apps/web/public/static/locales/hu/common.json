@@ -2981,5 +2981,10 @@
   "ooo_team_redirect_infinite_not_allowed": "Már létezik fordított átirányítás ezen felhasználók között.",
   "previous_ooo_empty_title": "Nem található korábbi Irodán Kívül",
   "previous": "Előző",
+  "uid": "UID",
+  "link": "Link",
+  "tip_username_plus": "Tipp: Használhatsz '+' jelet a felhasználónevek között: cal.com/anna+brian, hogy dinamikus csoportos találkozót hozz létre",
+  "user_has_no_team_yet": "Még nincs csapatod",
+  "no_team_members": "Még nincsenek csapattagjaid",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
