@@ -156,8 +156,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       },
     });
 
-    console.log("asap user", user);
-
     const userSchedule: CreateScheduleInput_2024_04_15 = {
       name: `confirm-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
