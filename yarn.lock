@@ -32843,7 +32843,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-  "pkg-dir@npm:^3.0.0":
+"pkg-dir@npm:^3.0.0":
   version: 3.0.0
   resolution: "pkg-dir@npm:3.0.0"
   dependencies:
