@@ -29,6 +29,11 @@
     "vite-plugin-environment": "^1.1.3"
   },
   "exports": {
+    "./event-types": {
+      "import": "./dist/event-types.js",
+      "require": "./dist/event-types.cjs",
+      "types": "./dist/event-types.d.ts"
+    },
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
@@ -42,6 +47,9 @@
   },
   "typesVersions": {
     "*": {
+      "event-types": [
+        "dist/event-types.d.ts"
+      ],
       "slots": [
         "dist/slots.d.ts"
       ]
