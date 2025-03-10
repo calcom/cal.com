@@ -23,9 +23,36 @@
   "devDependencies": {
     "@types/node": "^20.3.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^4.9.4",
+    "typescript": "^5.8.2",
     "vite": "^5.0.12",
     "vite-plugin-dts": "^3.7.2",
     "vite-plugin-environment": "^1.1.3"
+  },
+  "exports": {
+    "./event-types": {
+      "import": "./dist/event-types.js",
+      "require": "./dist/event-types.cjs",
+      "types": "./dist/event-types.d.ts"
+    },
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./slots": {
+      "import": "./dist/slots.js",
+      "require": "./dist/slots.cjs",
+      "types": "./dist/slots.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "event-types": [
+        "dist/event-types.d.ts"
+      ],
+      "slots": [
+        "dist/slots.d.ts"
+      ]
+    }
   }
 }
