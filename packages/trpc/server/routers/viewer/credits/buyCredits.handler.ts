@@ -16,11 +16,19 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
 
   const redirect_uri = `${WEBAPP_URL}/settings/billing`;
 
+  let { teamId } = input;
+
+  teamId = ctx.user.organizationId ?? teamId;
+
   const session = await stripe.checkout.sessions.create({
     line_items: [{ price: process.env.STRIPE_CREDITS_PRICE_ID, quantity }],
     mode: "payment",
+    client_reference_id: ctx.user.id.toString(),
     success_url: redirect_uri,
     cancel_url: redirect_uri,
+    metadata: {
+      teamId: teamId?.toString() ?? null,
+    },
   });
 
   return { sessionUrl: session.url };

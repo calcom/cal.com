@@ -11,6 +11,7 @@ export default defaultHandler({
         "payment_intent.succeeded": () => import("./_payment_intent.succeeded"),
         // "customer.subscription.updated": () => import("./_customer.subscription.deleted"),
         "customer.subscription.deleted": () => import("./_customer.subscription.deleted"),
+        "checkout.session.completed": () => import("./_checkout.session.completed"),
       })
     ),
   }),
