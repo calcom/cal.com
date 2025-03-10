@@ -17,7 +17,7 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getAvailableSlots } from "@calcom/platform-libraries";
+import { getAvailableSlots } from "@calcom/platform-libraries/slots";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
 
