@@ -1,5 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
+import dayjs from "@calcom/dayjs";
 import type EventManager from "@calcom/lib/EventManager";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { getBusyTimes } from "@calcom/lib/getBusyTimes";
+import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
 import type {
@@ -31,6 +37,57 @@ const ownerRescheduleSeatedBooking = async (
         language: { translate: tAttendees, locale: attendee.locale ?? "en" },
       };
     }) ?? [];
+
+  // Check booker availability if they already use Cal dot com
+  if (originalRescheduledBooking?.attendees.length) {
+    const bookerEmail = originalRescheduledBooking.attendees[0].email;
+    const bookerUser = await prisma.user.findUnique({
+      where: { email: bookerEmail },
+      select: {
+        id: true,
+        credentials: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            user: { select: { email: true } },
+          },
+        },
+        selectedCalendars: true,
+        timeZone: true,
+      },
+    });
+
+    if (bookerUser) {
+      const startTime = dayjs(evt.startTime);
+      const endTime = dayjs(evt.endTime);
+
+      // Get booker's busy times for the new slot
+      const busyTimes = await getBusyTimes({
+        credentials: buildNonDelegationCredentials(bookerUser.credentials),
+        selectedCalendars: bookerUser.selectedCalendars,
+        userId: bookerUser.id,
+        userEmail: bookerEmail,
+        username: bookerEmail.split("@")[0],
+        bypassBusyCalendarTimes: false,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+      });
+
+      // Check if the new time slot conflicts with booker's availability
+      const hasConflict = busyTimes.some((busy: EventBusyDetails) => {
+        const busyStart = dayjs(busy.start);
+        const busyEnd = dayjs(busy.end);
+        return (
+          startTime.isBetween(busyStart, busyEnd, null, "[]") ||
+          endTime.isBetween(busyStart, busyEnd, null, "[]") ||
+          (startTime.isBefore(busyStart) && endTime.isAfter(busyEnd))
+        );
+      });
+
+      if (hasConflict) {
+        throw new Error("Selected time conflicts with attendee's existing commitments");
+      }
+    }
+  }
 
   // If there is no booking during the new time slot then update the current booking to the new date
   if (!newTimeSlotBooking) {
