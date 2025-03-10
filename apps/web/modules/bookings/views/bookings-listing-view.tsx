@@ -392,8 +392,9 @@ function BookingsContent({ status }: BookingsProps) {
                 paginationMode="infinite"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} />
+                    <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
                     <DataTableFilters.ActiveFilters table={table} />
+                    <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
                     <DataTableFilters.ClearFiltersButton />
                   </>
                 }
