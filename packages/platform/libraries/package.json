@@ -39,5 +39,12 @@
       "require": "./dist/calendars.cjs",
       "types": "./dist/calendars.d.ts"
     }
+  },
+  "typesVersions": {
+    "*": {
+      "calendars": [
+        "dist/calendars.d.ts"
+      ]
+    }
   }
 }
