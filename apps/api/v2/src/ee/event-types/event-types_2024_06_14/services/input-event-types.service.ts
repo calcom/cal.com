@@ -322,13 +322,12 @@ export class InputEventTypesService_2024_06_14 {
       requiresConfirmationDb = eventTypeDb?.requiresConfirmation ?? false;
     }
 
-    const seatsPerTimeSlotFinal = seatsPerTimeSlot !== undefined ? seatsPerTimeSlot : seatsPerTimeSlotDb;
-    const seatsEnabledFinal = seatsPerTimeSlotFinal != null && seatsPerTimeSlotFinal > 0;
+    const seatsPerTimeSlotFinal = !!seatsPerTimeSlot ? seatsPerTimeSlot : seatsPerTimeSlotDb;
+    const seatsEnabledFinal = !!seatsPerTimeSlotFinal && seatsPerTimeSlotFinal > 0;
 
     const locationsFinal = locations !== undefined ? locations : locationsDb;
     const requiresConfirmationFinal =
       requiresConfirmation !== undefined ? requiresConfirmation : requiresConfirmationDb;
-
     this.validateSeatsSingleLocationRule(seatsEnabledFinal, locationsFinal);
     this.validateSeatsRequiresConfirmationFalseRule(seatsEnabledFinal, requiresConfirmationFinal);
     this.validateMultipleLocationsSeatsDisabledRule(locationsFinal, seatsEnabledFinal);
