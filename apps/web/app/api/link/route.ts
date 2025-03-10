@@ -104,5 +104,5 @@ async function handler(request: NextRequest) {
 
   return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
 }
-const getHandler = defaultResponderForAppDir(handler);
-export { getHandler as GET };
+
+export const GET = defaultResponderForAppDir(handler);
