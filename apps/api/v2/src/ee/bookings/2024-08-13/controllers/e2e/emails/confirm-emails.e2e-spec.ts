@@ -424,8 +424,8 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               if (responseDataIsBooking(responseBody.data)) {
                 expect(responseBody.data.status).toEqual("accepted");
-                expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-                expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+                expect(AttendeeRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
+                expect(OrganizerRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
 
                 expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
                 expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
