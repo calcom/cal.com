@@ -151,7 +151,7 @@ export const EventSetupTab = (
                   formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
                 }}
                 disabled={!orgId}
-                tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+                tooltip={!orgId ? t("upgrade_to_enterprise") : undefined}
               />
             </div>
           )}

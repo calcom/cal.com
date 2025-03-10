@@ -20,7 +20,7 @@ import {
   showToast,
   Switch,
   TextArea,
-  UpgradeTeamsBadge,
+  UpgradeBadge,
   Label,
   Input,
 } from "@calcom/ui";
@@ -364,7 +364,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 />
                 {!hasTeamPlan && (
                   <div className="mx-2" data-testid="upgrade-team-badge">
-                    <UpgradeTeamsBadge />
+                    <UpgradeBadge />
                   </div>
                 )}
               </div>
