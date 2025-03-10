@@ -911,6 +911,97 @@ export const insightsRouter = router({
         emailMd5: md5(user?.email),
         count: booking._count.id,
       }));
+      return result;
+    }),
+  membersWithMostCancellations: userBelongsToTeamProcedure
+    .input(rawDataInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate, eventTypeId, memberUserId, userId, isAll } = input;
+      if (userId && userId !== ctx.user.id) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const { whereCondition } = await buildBaseWhereCondition({
+        teamId,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: userId ?? undefined,
+        isAll: isAll ?? false,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
+      });
+
+      let userWhere: Prisma.UserWhereInput = {};
+
+      // If teamId is provided, only include users who are members of the team
+      if (teamId) {
+        userWhere = {
+          teams: {
+            some: {
+              teamId,
+            },
+          },
+        };
+      }
+
+      // Get users with cancellations
+      const usersWithCancellations = await ctx.insightsDb.booking.groupBy({
+        by: ["userId"],
+        where: {
+          // Explicitly cast whereCondition to BookingWhereInput to avoid type mismatch
+          ...(whereCondition as unknown as Prisma.BookingWhereInput),
+          createdAt: {
+            gte: dayjs(startDate).toDate(),
+            lte: dayjs(endDate).toDate(),
+          },
+          status: BookingStatus.CANCELLED,
+          userId: {
+            not: null,
+          },
+        },
+        _count: {
+          status: true,
+        },
+        orderBy: {
+          _count: {
+            status: "desc",
+          },
+        },
+        take: 5,
+      });
+
+      // Get user details for these users
+      const userIds = usersWithCancellations.map((u) => u.userId).filter(Boolean) as number[];
+
+      const users = await ctx.insightsDb.user.findMany({
+        where: {
+          id: {
+            in: userIds,
+          },
+          ...userWhere,
+        },
+        select: userSelect,
+      });
+
+      // Build the final result with user details and cancellation counts
+      const result = usersWithCancellations
+        .map((booking) => {
+          const user = users.find((u) => u.id === booking.userId);
+          return {
+            userId: booking.userId as number,
+            user: {
+              ...user,
+              email: "", // Don't expose email for privacy
+              avatarUrl: user?.avatarUrl || "",
+              name: user?.name || "",
+            },
+            count: booking._count.status,
+          };
+        })
+        .sort((a, b) => b.count - a.count);
 
       return result;
     }),
