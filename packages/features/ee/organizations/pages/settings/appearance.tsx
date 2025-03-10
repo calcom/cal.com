@@ -195,7 +195,6 @@ const OrgAppearanceView = ({
 
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
-  const { t } = useLocale();
   const session = useSession();
   const orgRole = session?.data?.user?.org?.role;
   const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
@@ -210,7 +209,7 @@ const OrgAppearanceViewWrapper = () => {
   );
 
   if (isPending) {
-    return <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_org_description")} />;
+    return <AppearanceSkeletonLoader />;
   }
 
   if (!currentOrg) return null;

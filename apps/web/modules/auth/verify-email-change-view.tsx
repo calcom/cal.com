@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import React from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -34,7 +34,7 @@ function VerifyEmailChange(props: PageProps) {
         showToast(t("verify_email_change_failure_toast"), "error");
       }
     }
-    // We only need this to run on inital mount. These props can't and won't change due to it being fetched serveside.
+    // We only need this to run on initial mount. These props can't and won't change due to it being fetched serverside.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

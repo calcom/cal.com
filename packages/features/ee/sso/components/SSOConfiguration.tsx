@@ -4,12 +4,11 @@ import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
 import SAMLConnection from "@calcom/features/ee/sso/components/SAMLConnection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, Alert, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Alert, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -25,17 +24,12 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   const { data: connection, isPending, error } = trpc.viewer.saml.get.useQuery({ teamId });
 
   if (isPending) {
-    return <SkeletonLoader title={t("sso_configuration")} description={t("sso_configuration_description")} />;
+    return <SkeletonLoader />;
   }
 
   if (error) {
     return (
       <>
-        <Meta
-          title={t("sso_configuration")}
-          description={t("sso_configuration_description")}
-          borderInShellHeader={true}
-        />
         <Alert severity="warning" message={t(error.message)} className="mt-4" />
       </>
     );

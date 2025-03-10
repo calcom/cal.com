@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
-import {
-  SelectedCalendarsSettingsWebWrapper,
-  DestinationCalendarSettingsWebWrapper,
-} from "@calcom/atoms/monorepo";
+import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
+import { SelectedCalendarsSettingsWebWrapper } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -109,12 +107,14 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                 {heading && (
                   <>
                     <DestinationCalendarSettingsWebWrapper />
-                    <SelectedCalendarsSettingsWebWrapper
-                      onChanged={onChanged}
-                      fromOnboarding={fromOnboarding}
-                      destinationCalendarId={data.destinationCalendar?.externalId}
-                      isPending={mutation.isPending}
-                    />
+                    <Suspense fallback={<SkeletonLoader />}>
+                      <SelectedCalendarsSettingsWebWrapper
+                        onChanged={onChanged}
+                        fromOnboarding={fromOnboarding}
+                        destinationCalendarId={data.destinationCalendar?.externalId}
+                        isPending={mutation.isPending}
+                      />
+                    </Suspense>
                   </>
                 )}
               </>

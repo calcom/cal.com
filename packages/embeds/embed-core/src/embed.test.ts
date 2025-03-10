@@ -31,8 +31,6 @@ describe("Cal", () => {
     CalClass = (await import("./embed")).Cal;
   });
 
-
-
   describe("createIframe", () => {
     describe("params handling with forwardQueryParams feature enabled", () => {
       beforeEach(() => {
@@ -126,7 +124,7 @@ describe("Cal", () => {
         expect(iframe.src).toContain("duration=30");
         expect(iframe.src).toContain("email=test%40example.com");
       });
-      
+
       it("should respect forwardQueryParams setting to disable sending page query params but still send the ones in the config", () => {
         mockSearchParams("?param1=value");
 

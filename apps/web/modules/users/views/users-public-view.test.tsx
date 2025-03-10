@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, it, vi } from "vitest";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -71,33 +71,6 @@ describe("UserPage Component", () => {
     });
 
     render(<UserPage {...mockData.props} />);
-
-    const expectedDescription = mockData.props.markdownStrippedBio;
-    const expectedTitle = expectedDescription;
-    expect(HeadSeo).toHaveBeenCalledWith(
-      {
-        origin: `${mockData.props.entity.orgSlug}.cal.local`,
-        title: `${mockData.props.profile.name}`,
-        description: expectedDescription,
-        meeting: {
-          profile: {
-            name: mockData.props.profile.name,
-            image: mockData.props.users[0].avatarUrl,
-          },
-          title: expectedTitle,
-          users: [
-            {
-              name: mockData.props.users[0].name,
-              username: mockData.props.users[0].username,
-            },
-          ],
-        },
-        nextSeoProps: {
-          nofollow: !mockData.props.profile.allowSEOIndexing,
-          noindex: !mockData.props.profile.allowSEOIndexing,
-        },
-      },
-      {}
-    );
+    expect(HeadSeo).not.toHaveBeenCalled();
   });
 });

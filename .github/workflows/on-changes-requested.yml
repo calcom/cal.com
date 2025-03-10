@@ -15,7 +15,7 @@ jobs:
             printf '{
               "pr_number": ${{ github.event.pull_request.number }}
             }' >> context.json
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: context.json
           path: ./

@@ -62,7 +62,7 @@ export function EditUserSheet({
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent className="bg-muted">
+      <SheetContent className="bg-default">
         {!isPending && loadedUser ? (
           <>
             {!editMode ? (
@@ -71,12 +71,7 @@ export function EditUserSheet({
                   <div className="border-sublte bg-default w-full rounded-xl border p-4">
                     <OrganizationBanner />
                     <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
-                      <Avatar
-                        asChild
-                        size="lg"
-                        alt={`${loadedUser?.name} avatar`}
-                        imageSrc={loadedUser.avatarUrl}
-                      />
+                      <Avatar asChild size="lg" alt={`${loadedUser?.name} avatar`} imageSrc={avatarURL} />
                     </div>
                     <h2 className="text-emphasis font-sans text-2xl font-semibold">
                       {loadedUser?.name || "Nameless User"}

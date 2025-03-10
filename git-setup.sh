@@ -2,7 +2,7 @@
 # If no project name is given
 if [ $# -eq 0 ]; then
   # Display usage and stop
-  echo "Usage: git-setup.sh <console,website,platform>"
+  echo "Usage: git-setup.sh <console,website>"
   exit 1
 fi
 # Get remote url to support either https or ssh

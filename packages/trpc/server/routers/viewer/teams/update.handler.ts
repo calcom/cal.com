@@ -1,14 +1,14 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { validateIntervalLimitOrder } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -116,7 +116,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (!parentTeam?.slug) {
-      throw new Error(`Parent team wth slug: ${parentTeam?.slug} not found`);
+      throw new Error(`Parent team with slug: ${parentTeam?.slug} not found`);
     }
 
     const orgUrlPrefix = getOrgFullOrigin(parentTeam.slug);

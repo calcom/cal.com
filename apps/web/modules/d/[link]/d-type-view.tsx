@@ -1,8 +1,7 @@
 "use client";
 
-import { Booker } from "@calcom/atoms/monorepo";
+import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
@@ -20,13 +19,6 @@ export default function Type({
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={booking?.uid}
-        hideBranding={isBrandingHidden}
-        entity={entity}
-      />
       <Booker
         username={user}
         eventSlug={slug}
@@ -41,5 +33,3 @@ export default function Type({
     </main>
   );
 }
-
-Type.isBookingPage = true;

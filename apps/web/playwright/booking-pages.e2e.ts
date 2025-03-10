@@ -7,12 +7,13 @@ import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test, todo } from "./lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  confirmBooking,
   confirmReschedule,
+  expectSlotNotAllowedToBook,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -55,15 +56,49 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
   // Verify that there is correct URL that would generate the awesome OG image
   expect(ogImage).toContain(
-    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage?type=meeting&title=30%20min"
+    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D30%2Bmin"
   );
   // Verify Organizer Name in the URL
-  expect(ogImage).toContain("meetingProfileName=Test%20User");
+  expect(ogImage).toContain("meetingProfileName%3DTest%2BUser");
 });
 
 todo("check SSR and OG - Team Event Type");
 
-testBothFutureAndLegacyRoutes.describe("free user", () => {
+test.describe("user with a special character in the username", () => {
+  test("/[user] page shouldn't 404", async ({ page, users }) => {
+    const user = await users.create({ username: "franz-janßen" });
+    const response = await page.goto(`/${user.username}`);
+    expect(response?.status()).not.toBe(404);
+  });
+
+  test("/[user]/[type] page shouldn't 404", async ({ page, users }) => {
+    const user = await users.create({ username: "franz-janßen" });
+    const response = await page.goto(`/${user.username}/30-min`);
+    expect(response?.status()).not.toBe(404);
+  });
+
+  test("Should not throw 500 when redirecting user to his/her only event-type page even if username contains special characters", async ({
+    page,
+    users,
+  }) => {
+    const benny = await users.create({
+      username: "ßenny", // ß is a special character
+      eventTypes: [
+        {
+          title: "15 min",
+          slug: "15-min",
+          length: 15,
+        },
+      ],
+      overrideDefaultEventTypes: true,
+    });
+    // This redirects to /[user]/[type] because this user has only 1 event-type
+    const response = await page.goto(`/${benny.username}`);
+    expect(response?.status()).not.toBe(500);
+  });
+});
+
+test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
     await page.goto(`/${free.username}`);
@@ -92,14 +127,11 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
 
     await page.goto(bookingUrl);
 
-    // book same time spot again
-    await bookTimeSlot(page);
-
-    await page.locator("[data-testid=booking-fail]").waitFor({ state: "visible" });
+    await expectSlotNotAllowedToBook(page);
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("pro user", () => {
+test.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
@@ -176,6 +208,8 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
     });
+
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
@@ -206,6 +240,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
     });
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
@@ -258,7 +293,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     // go back to the booking page to re-book.
     await page.goto(pageUrl);
 
-    await bookTimeSlot(page);
+    await bookTimeSlot(page, { expectedStatusCode: 409 });
     await expect(page.getByText("Could not book the meeting.")).toBeVisible();
   });
 
@@ -275,7 +310,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.locator('[data-testid="add-another-guest"]').click();
     await page.locator('input[type="email"]').nth(2).fill(additionalGuests[1]);
 
-    await page.locator('[data-testid="confirm-book-button"]').click();
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -285,23 +320,24 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await Promise.all(promises);
   });
 
-  test("Time slots should be reserved when selected", async ({ context, page }) => {
+  test("Time slots should be reserved when selected", async ({ context, page, browser }) => {
     const initialUrl = page.url();
     await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
-    const pageTwo = await context.newPage();
-    await pageTwo.goto(initialUrl);
-    await pageTwo.waitForURL(initialUrl);
-    await pageTwo.locator('[data-testid="event-type-link"]').first().click();
+    const newContext = await browser.newContext();
+    const pageTwoInNewContext = await newContext.newPage();
+    await pageTwoInNewContext.goto(initialUrl);
+    await pageTwoInNewContext.waitForURL(initialUrl);
+    await pageTwoInNewContext.locator('[data-testid="event-type-link"]').first().click();
 
-    await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
-    await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+    await pageTwoInNewContext.locator('[data-testid="incrementMonth"]').waitFor();
+    await pageTwoInNewContext.click('[data-testid="incrementMonth"]');
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
     // 9:30 should be the first available time slot
-    await pageTwo.locator('[data-testid="time"]').nth(0).waitFor();
-    const firstSlotAvailable = pageTwo.locator('[data-testid="time"]').nth(0);
+    await pageTwoInNewContext.locator('[data-testid="time"]').nth(0).waitFor();
+    const firstSlotAvailable = pageTwoInNewContext.locator('[data-testid="time"]').nth(0);
     // Find text inside the element
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:30");
@@ -343,7 +379,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("prefill", () => {
+test.describe("prefill", () => {
   test("logged in", async ({ page, users }) => {
     const prefill = await users.create({ name: "Prefill User" });
     await prefill.apiLogin();
@@ -398,9 +434,26 @@ testBothFutureAndLegacyRoutes.describe("prefill", () => {
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
     });
   });
+
+  test("skip confirm step if all fields are prefilled from query params", async ({ page }) => {
+    await page.goto("/pro/30min");
+    const url = new URL(page.url());
+    url.searchParams.set("name", testName);
+    url.searchParams.set("email", testEmail);
+    url.searchParams.set("guests", "guest1@example.com");
+    url.searchParams.set("guests", "guest2@example.com");
+    url.searchParams.set("notes", "This is an additional note");
+    await page.goto(url.toString());
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await expect(page.locator('[data-testid="skip-confirm-book-button"]')).toBeVisible();
+    await page.click('[data-testid="skip-confirm-book-button"]');
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
 });
 
-testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
+test.describe("Booking on different layouts", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await page.goto(`/${user.username}`);
@@ -421,11 +474,7 @@ testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
     await page.locator('[name="notes"]').fill("Test notes");
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     // expect page to be booking page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -446,18 +495,14 @@ testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
     await page.locator('[name="notes"]').fill("Test notes");
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     // expect page to be booking page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
+test.describe("Booking round robin event", () => {
   test.beforeEach(async ({ page, users }) => {
     const teamMatesObj = [{ name: "teammate-1" }];
 
@@ -480,6 +525,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("Does not book seated round robin host outside availability with date override", async ({
@@ -502,11 +548,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -532,11 +574,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 

@@ -10,7 +10,7 @@ export default function HowToUse() {
       <div className="bg-default m-auto rounded p-10">
         <div className="flex flex-row">
           <div className="mr-5">
-            <img className="w-11" src="/api/app-store/typeform/icon.svg" alt="Zapier Logo" />
+            <img className="w-11" src="/api/app-store/typeform/icon.svg" alt="Typeform Logo" />
           </div>
           <div className="ml-5">
             <div className="text-md text-default">How to route a Typeform with Cal.com Routing</div>

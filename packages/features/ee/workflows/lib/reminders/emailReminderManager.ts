@@ -160,7 +160,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true`,
+      cancelReason: evt.cancellationReason,
       rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}`,
+      rescheduleReason: evt.rescheduleReason,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
       noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
       attendeeTimezone: evt.attendees[0].timeZone,
@@ -185,18 +187,22 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   } else if (template === WorkflowTemplates.REMINDER) {
     emailContent = emailReminderTemplate(
       false,
+      evt.organizer.language.locale,
       action,
       evt.organizer.timeFormat,
       startTime,
       endTime,
       evt.title,
       timeZone,
+      evt.location || "",
+      bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
       attendeeName,
       name
     );
   } else if (template === WorkflowTemplates.RATING) {
     emailContent = emailRatingTemplate({
       isEditingMode: true,
+      locale: evt.organizer.language.locale,
       action,
       timeFormat: evt.organizer.timeFormat,
       startTime,

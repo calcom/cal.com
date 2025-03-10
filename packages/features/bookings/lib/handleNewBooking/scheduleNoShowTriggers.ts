@@ -1,3 +1,4 @@
+import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -7,16 +8,32 @@ type ScheduleNoShowTriggersArgs = {
   booking: {
     startTime: Date;
     id: number;
+    location: string | null;
   };
   triggerForUser?: number | true | null;
   organizerUser: { id: number | null };
   eventTypeId: number | null;
   teamId?: number | null;
   orgId?: number | null;
+  oAuthClientId?: string | null;
+  isDryRun?: boolean;
 };
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
-  const { booking, triggerForUser, organizerUser, eventTypeId, teamId, orgId } = args;
+  const {
+    booking,
+    triggerForUser,
+    organizerUser,
+    eventTypeId,
+    teamId,
+    orgId,
+    oAuthClientId,
+    isDryRun = false,
+  } = args;
+
+  const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
+
+  if (isDryRun || !isCalVideoLocation) return;
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];
@@ -27,6 +44,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     teamId,
     orgId,
+    oAuthClientId,
   });
 
   noShowPromises.push(
@@ -56,6 +74,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
     teamId,
     orgId,
+    oAuthClientId,
   });
 
   noShowPromises.push(

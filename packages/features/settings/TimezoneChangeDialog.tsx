@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
@@ -22,8 +23,7 @@ const TimezoneChangeDialogContent = () => {
 
   const utils = trpc.useUtils();
 
-  const browserTimezone = dayjs.tz.guess() || "Europe/London";
-  const formattedCurrentTz = browserTimezone.replace("_", " ");
+  const formattedCurrentTz = CURRENT_TIMEZONE.replace("_", " ");
 
   const onMutationSuccess = async () => {
     showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
@@ -42,7 +42,7 @@ const TimezoneChangeDialogContent = () => {
 
   const updateTimezone = () => {
     mutation.mutate({
-      timeZone: browserTimezone,
+      timeZone: CURRENT_TIMEZONE,
     });
   };
 
@@ -77,8 +77,10 @@ export function useOpenTimezoneDialog() {
     if (!user?.timeZone || status !== "authenticated" || userSession?.user?.impersonatedBy) {
       return;
     }
-    const browserTimezone = dayjs.tz.guess() || "Europe/London";
-    if (dayjs.tz(undefined, browserTimezone).utcOffset() !== dayjs.tz(undefined, user.timeZone).utcOffset()) {
+
+    if (
+      dayjs.tz(undefined, CURRENT_TIMEZONE).utcOffset() !== dayjs.tz(undefined, user.timeZone).utcOffset()
+    ) {
       setShowDialog(true);
     }
   }, [user?.timeZone, status, userSession?.user?.impersonatedBy]);

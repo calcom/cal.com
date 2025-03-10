@@ -56,6 +56,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
+import { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -1549,6 +1550,86 @@ describe("handleNewBooking", () => {
       );
     });
 
+    describe("Creation source tests", () => {
+      test(
+        `should create a booking with creation source as WEBAPP`,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getZoomAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: getMockRequestDataForBooking({
+              data: {
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                },
+                creationSource: CreationSource.WEBAPP,
+              },
+            }),
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [
+                  {
+                    type: BookingLocations.ZoomVideo,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["zoomvideo"]],
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "zoomvideo",
+          });
+          await createBookingScenario(scenarioData);
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              creationSource: CreationSource.WEBAPP,
+            })
+          );
+        },
+        timeout
+      );
+    });
+
     describe(
       "Availability Check during booking",
       () => {
@@ -1712,6 +1793,267 @@ describe("handleNewBooking", () => {
           },
           timeout
         );
+
+        test(
+          `should allow a booking even if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time but useEventLevelSelectedCalendars is false and SelectedCalendar is for an event`,
+          async () => {
+            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const organizerId = 101;
+            const eventTypeId = 1;
+            const useEventLevelSelectedCalendars = false;
+            const booker = getBooker({
+              email: "booker@example.com",
+              name: "Booker",
+            });
+
+            const organizer = getOrganizer({
+              name: "Organizer",
+              email: "organizer@example.com",
+              id: organizerId,
+              schedules: [TestData.schedules.IstWorkHours],
+              credentials: [getGoogleCalendarCredential()],
+              selectedCalendars: [{ ...TestData.selectedCalendars.google, eventTypeId }],
+            });
+
+            const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+            await createBookingScenario(
+              getScenarioData({
+                eventTypes: [
+                  {
+                    id: eventTypeId,
+                    slotInterval: 30,
+                    length: 30,
+                    useEventLevelSelectedCalendars,
+                    users: [
+                      {
+                        id: 101,
+                      },
+                    ],
+                  },
+                ],
+                organizer,
+                apps: [TestData.apps["google-calendar"]],
+              })
+            );
+
+            const _calendarMock = mockCalendar("googlecalendar", {
+              create: {
+                uid: "MOCK_ID",
+                iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              },
+              busySlots: [
+                {
+                  start: `${plus1DateString}T05:00:00.000Z`,
+                  end: `${plus1DateString}T05:15:00.000Z`,
+                },
+              ],
+            });
+
+            const mockBookingData = getMockRequestDataForBooking({
+              data: {
+                start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+                end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                  location: { optionValue: "", value: "New York" },
+                },
+              },
+            });
+
+            const { req } = createMockNextJsRequest({
+              method: "POST",
+              body: mockBookingData,
+            });
+
+            const createdBooking = await handleNewBooking(req);
+            expectBookingToBeInDatabase({
+              description: "",
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              status: BookingStatus.ACCEPTED,
+            });
+          },
+          timeout
+        );
+
+        describe("Event level selected calendars - useEventLevelSelectedCalendars:true", () => {
+          test(
+            `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time as chosen in the event type`,
+            async () => {
+              const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking"))
+                .default;
+              const organizerId = 101;
+              const eventTypeId = 1;
+              const useEventLevelSelectedCalendars = true;
+              const booker = getBooker({
+                email: "booker@example.com",
+                name: "Booker",
+              });
+
+              const organizer = getOrganizer({
+                name: "Organizer",
+                email: "organizer@example.com",
+                id: organizerId,
+                schedules: [TestData.schedules.IstWorkHours],
+                credentials: [getGoogleCalendarCredential()],
+                selectedCalendars: [{ ...TestData.selectedCalendars.google, eventTypeId }],
+              });
+
+              const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+              await createBookingScenario(
+                getScenarioData({
+                  eventTypes: [
+                    {
+                      id: eventTypeId,
+                      slotInterval: 30,
+                      length: 30,
+                      useEventLevelSelectedCalendars,
+                      users: [
+                        {
+                          id: 101,
+                        },
+                      ],
+                    },
+                  ],
+                  organizer,
+                  apps: [TestData.apps["google-calendar"]],
+                })
+              );
+
+              const _calendarMock = mockCalendar("googlecalendar", {
+                create: {
+                  uid: "MOCK_ID",
+                  iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+                },
+                busySlots: [
+                  {
+                    start: `${plus1DateString}T05:00:00.000Z`,
+                    end: `${plus1DateString}T05:15:00.000Z`,
+                  },
+                ],
+              });
+
+              const mockBookingData = getMockRequestDataForBooking({
+                data: {
+                  start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+                  end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
+                  eventTypeId: 1,
+                  responses: {
+                    email: booker.email,
+                    name: booker.name,
+                    location: { optionValue: "", value: "New York" },
+                  },
+                },
+              });
+
+              const { req } = createMockNextJsRequest({
+                method: "POST",
+                body: mockBookingData,
+              });
+
+              await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
+                ErrorCode.NoAvailableUsersFound
+              );
+            },
+            timeout
+          );
+
+          test(
+            `should allow a booking even if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time and useEventLevelSelectedCalendars is true but the selectedCalendar is of different eventType`,
+            async () => {
+              const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking"))
+                .default;
+              const organizerId = 101;
+              const eventTypeId = 1;
+              const anotherEventTypeId = 2;
+
+              const useEventLevelSelectedCalendars = true;
+              const booker = getBooker({
+                email: "booker@example.com",
+                name: "Booker",
+              });
+
+              const organizer = getOrganizer({
+                name: "Organizer",
+                email: "organizer@example.com",
+                id: organizerId,
+                schedules: [TestData.schedules.IstWorkHours],
+                credentials: [getGoogleCalendarCredential()],
+                selectedCalendars: [
+                  { ...TestData.selectedCalendars.google, eventTypeId: anotherEventTypeId },
+                ],
+              });
+
+              const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+              await createBookingScenario(
+                getScenarioData({
+                  eventTypes: [
+                    {
+                      id: eventTypeId,
+                      slotInterval: 30,
+                      length: 30,
+                      useEventLevelSelectedCalendars,
+                      users: [
+                        {
+                          id: 101,
+                        },
+                      ],
+                    },
+                  ],
+                  organizer,
+                  apps: [TestData.apps["google-calendar"]],
+                })
+              );
+
+              const _calendarMock = mockCalendar("googlecalendar", {
+                create: {
+                  uid: "MOCK_ID",
+                  iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+                },
+                busySlots: [
+                  {
+                    start: `${plus1DateString}T05:00:00.000Z`,
+                    end: `${plus1DateString}T05:15:00.000Z`,
+                  },
+                ],
+              });
+
+              const mockBookingData = getMockRequestDataForBooking({
+                data: {
+                  start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+                  end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
+                  eventTypeId: 1,
+                  responses: {
+                    email: booker.email,
+                    name: booker.name,
+                    location: { optionValue: "", value: "New York" },
+                  },
+                },
+              });
+
+              const { req } = createMockNextJsRequest({
+                method: "POST",
+                body: mockBookingData,
+              });
+
+              const createdBooking = await handleNewBooking(req);
+              expectBookingToBeInDatabase({
+                description: "",
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                uid: createdBooking.uid!,
+                eventTypeId: mockBookingData.eventTypeId,
+                status: BookingStatus.ACCEPTED,
+              });
+            },
+            timeout
+          );
+        });
       },
       timeout
     );

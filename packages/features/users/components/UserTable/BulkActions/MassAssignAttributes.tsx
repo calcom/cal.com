@@ -1,9 +1,8 @@
 import type { Table } from "@tanstack/react-table";
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import classNames from "@calcom/lib/classNames";
+import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
@@ -24,12 +23,13 @@ import {
   PopoverTrigger,
   showToast,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import type { UserTableUser } from "../types";
 
 interface Props {
   table: Table<UserTableUser>;
-  filters: ColumnFiltersState;
+  filters: ColumnFilter[];
 }
 
 type Attribute = _Attribute & { options: AttributeOption[] };
@@ -249,10 +249,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
           limit: 10,
           searchTerm: "",
           expand: ["attributes"],
-          filters: filters.map((filter) => ({
-            id: filter.id,
-            value: filter.value as string[],
-          })),
+          filters,
         },
         // @ts-expect-error i really dont know how to type this
         (oldData) => {
@@ -282,6 +279,9 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     attributeId: value.attributeId,
                     value: value.value,
                     slug: value.slug,
+                    contains: value.contains,
+                    isGroup: value.isGroup,
+                    weight: 100,
                   }));
                   newAttributes.push(...newAttributeValues);
                 } else {
@@ -291,6 +291,9 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                     attributeId: foundAttributeInCache?.id ?? "-1",
                     value: selectedAttributeOptions[0],
                     slug: slugify(selectedAttributeOptions[0]),
+                    contains: [],
+                    isGroup: false,
+                    weight: 100,
                   });
                 }
 
@@ -312,6 +315,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
 
       setSelectedAttribute(undefined);
       setSelectedAttributeOptions([]);
+      utils.viewer.organizations.listMembers.invalidate();
       showToast(success.message, "success");
     },
     onError: (error) => {
@@ -329,7 +333,9 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
         }
       }}>
       <PopoverTrigger asChild>
-        <Button StartIcon="map-pin">{t("add_attributes")}</Button>
+        <DataTableSelectionBar.Button icon="tags" color="secondary">
+          {t("add_attributes")}
+        </DataTableSelectionBar.Button>
       </PopoverTrigger>
       {/* We dont really use shadows much - but its needed here  */}
       <PopoverContent className="p-0 shadow-md" align="start" sideOffset={12}>

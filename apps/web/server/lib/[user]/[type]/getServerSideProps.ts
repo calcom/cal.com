@@ -17,10 +17,24 @@ import { RedirectType } from "@calcom/prisma/client";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 type Props = {
-  eventData: Pick<
-    NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-    "id" | "length" | "metadata" | "entity"
-  >;
+  eventData: Omit<
+    Pick<
+      NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
+      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "subsetOfUsers" | "hidden"
+    >,
+    "profile" | "subsetOfUsers"
+  > & {
+    profile: {
+      image: string | undefined;
+      name: string | null;
+      username: string | null;
+    };
+    users: {
+      username: string;
+      name: string;
+    }[];
+  };
+
   booking?: GetBookingType;
   rescheduleUid: string | null;
   bookingUid: string | null;
@@ -85,7 +99,7 @@ async function processSeatedEvent({
 }
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
 
@@ -143,6 +157,17 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         ...eventData.metadata,
         multipleDuration: [15, 30, 45, 60, 90],
       },
+      profile: {
+        image: eventData.profile.image,
+        name: eventData.profile.name ?? null,
+        username: eventData.profile.username ?? null,
+      },
+      title: eventData.title,
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
+      hidden: eventData.hidden,
     },
     user: usernames.join("+"),
     slug,
@@ -170,7 +195,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 }
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
@@ -231,6 +256,17 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       entity: eventData.entity,
       length: eventData.length,
       metadata: eventData.metadata,
+      profile: {
+        image: eventData.profile.image,
+        name: eventData.profile.name ?? null,
+        username: eventData.profile.username ?? null,
+      },
+      title: eventData.title,
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
+      hidden: eventData.hidden,
     },
     user: username,
     slug,

@@ -9,10 +9,10 @@ import type z from "zod";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -72,6 +72,7 @@ export default function RequiresConfirmationController({
   );
 
   const requiresConfirmationWillBlockSlot = formMethods.getValues("requiresConfirmationWillBlockSlot");
+  const requiresConfirmationForFreeEmail = formMethods.getValues("requiresConfirmationForFreeEmail");
 
   return (
     <div className="block items-start sm:flex">
@@ -163,7 +164,7 @@ export default function RequiresConfirmationController({
                                 defaults="When booked with less than <time></time> notice"
                                 components={{
                                   time: (
-                                    <div className="mx-2 inline-flex">
+                                    <div className="mx-2 inline-flex items-center">
                                       <Input
                                         type="number"
                                         min={1}
@@ -183,7 +184,7 @@ export default function RequiresConfirmationController({
                                           );
                                         }}
                                         className={classNames(
-                                          "border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                          "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
                                           customClassNames?.conditionalConfirmationRadio?.timeInput
                                         )}
                                         defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
@@ -200,7 +201,9 @@ export default function RequiresConfirmationController({
                                           className={
                                             customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
                                           }
-                                          innerClassNames={{ control: "rounded-l-none bg-subtle" }}
+                                          innerClassNames={{
+                                            control: "rounded-l-none max-h-4 px-3 bg-subtle",
+                                          }}
                                           onChange={(opt) => {
                                             setRequiresConfirmationSetup({
                                               time:
@@ -237,6 +240,21 @@ export default function RequiresConfirmationController({
                           onChange={(e) => {
                             // We set should dirty to properly detect when we can submit the form
                             formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                        <CheckboxField
+                          checked={requiresConfirmationForFreeEmail}
+                          descriptionAsLabel
+                          description={t("require_confirmation_for_free_email")}
+                          className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                          descriptionClassName={
+                            customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                          }
+                          onChange={(e) => {
+                            // We set should dirty to properly detect when we can submit the form
+                            formMethods.setValue("requiresConfirmationForFreeEmail", e.target.checked, {
                               shouldDirty: true,
                             });
                           }}

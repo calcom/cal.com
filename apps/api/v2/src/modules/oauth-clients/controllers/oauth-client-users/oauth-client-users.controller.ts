@@ -85,14 +85,11 @@ export class OAuthClientUsersController {
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
+    if (!client) {
+      throw new NotFoundException(`OAuth Client with ID ${oAuthClientId} not found`);
+    }
 
-    const isPlatformManaged = true;
-    const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
-      oAuthClientId,
-      body,
-      isPlatformManaged,
-      client?.organizationId
-    );
+    const { user, tokens } = await this.oAuthClientUsersService.createOAuthClientUser(client, body);
 
     return {
       status: SUCCESS_STATUS,
@@ -162,7 +159,11 @@ export class OAuthClientUsersController {
 
   @Post("/:userId/force-refresh")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Force refresh tokens" })
+  @ApiOperation({
+    summary: "Force refresh tokens",
+    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.
+    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have \`calAccessToken\` and \`calRefreshToken\` columns.`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
     @Param("userId") userId: number,
@@ -209,6 +210,7 @@ export class OAuthClientUsersController {
       timeFormat: user.timeFormat,
       defaultScheduleId: user.defaultScheduleId,
       locale: user.locale as Locales,
+      avatarUrl: user.avatarUrl,
     };
   }
 }

@@ -5,11 +5,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
+import { buildBooking } from "@calcom/lib/test/builder";
 import {
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
-} from "@calcom/core/videoClient";
-import { buildBooking } from "@calcom/lib/test/builder";
+} from "@calcom/lib/videoClient";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
@@ -19,7 +19,7 @@ import handler from "../../../../../../pages/api/bookings/[id]/transcripts/[reco
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-vi.mock("@calcom/core/videoClient", () => {
+vi.mock("@calcom/lib/videoClient", () => {
   return {
     getTranscriptsAccessLinkFromRecordingId: vi.fn(),
     checkIfRoomNameMatchesInRecording: vi.fn(),

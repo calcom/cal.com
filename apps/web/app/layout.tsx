@@ -7,9 +7,14 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { prepareRootMetadata } from "@lib/metadata";
 
+import { ssrInit } from "@server/lib/ssr";
+
 import "../styles/globals.css";
+import { SpeculationRules } from "./SpeculationRules";
+import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -20,15 +25,7 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: false,
-      follow: false,
-    },
-  });
+export const generateMetadata = () => prepareRootMetadata();
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
@@ -62,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
+  const ssr = await ssrInit(buildLegacyCtx(h, cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -74,6 +72,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
             }}
@@ -85,10 +84,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        <IconSprites />
       </head>
       <body
-        className="dark:bg-darkgray-50 bg-subtle antialiased"
+        className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed
             ? {
@@ -101,16 +99,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        <IconSprites />
         {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
             }}
           />
         )}
-        {children}
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
+        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
       </body>
     </html>
   );

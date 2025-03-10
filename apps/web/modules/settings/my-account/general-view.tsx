@@ -4,8 +4,8 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
 import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -21,9 +21,9 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TimezoneSelect,
   SettingsToggle,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 
@@ -250,7 +250,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
           ) : (
             <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
               <Label>{t("travel_schedule")}</Label>
-              <div className="dark:bg-darkgray-100 border-subtle mt-4 rounded-md border bg-white text-sm">
+              <div className="border-subtle bg-default mt-4 rounded-md border text-sm">
                 {watchedTzSchedules.map((schedule, index) => {
                   return (
                     <div
@@ -343,7 +343,12 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         </div>
 
         <SectionBottomActions align="end">
-          <Button loading={isUpdateBtnLoading} disabled={isDisabled} color="primary" type="submit">
+          <Button
+            loading={isUpdateBtnLoading}
+            disabled={isDisabled}
+            color="primary"
+            type="submit"
+            data-testid="general-submit-button">
             <>{t("update")}</>
           </Button>
         </SectionBottomActions>

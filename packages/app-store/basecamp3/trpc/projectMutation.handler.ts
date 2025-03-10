@@ -1,7 +1,8 @@
 import type { PrismaClient } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { BasecampToken } from "../lib/CalendarService";
@@ -58,5 +59,5 @@ export const projectMutationHandler = async ({ ctx, input }: ProjectMutationHand
     data: { key: { ...credentialKey, projectId: Number(projectId), scheduleId } },
   });
 
-  return { messsage: "Updated project successfully" };
+  return { message: "Updated project successfully" };
 };

@@ -14,6 +14,7 @@ import SectionBottomActions from "@calcom/features/settings/SectionBottomActions
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -56,7 +57,7 @@ type FormValues = {
   calVideoLogo: string | null;
 };
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
@@ -100,7 +101,7 @@ const OrgProfileView = () => {
   );
 
   if (isPending || !orgBranding || !currentOrganisation) {
-    return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
+    return <SkeletonLoader />;
   }
 
   const isOrgAdminOrOwner =
@@ -144,7 +145,10 @@ const OrgProfileView = () => {
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
                     className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: md.render(currentOrganisation.bio || "") }}
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{
+                      __html: markdownToSafeHTML(currentOrganisation.bio || ""),
+                    }}
                   />
                 </>
               )}

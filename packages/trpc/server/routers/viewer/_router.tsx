@@ -15,6 +15,7 @@ import { attributesRouter } from "./attributes/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
+import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
@@ -44,6 +45,7 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     timezones: timezonesRouter,
     organizations: viewerOrganizationsRouter,
+    delegationCredential: delegationCredentialRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
     slots: slotsRouter,

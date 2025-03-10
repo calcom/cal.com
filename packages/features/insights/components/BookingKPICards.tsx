@@ -4,29 +4,22 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 
-import { useFilterContext } from "../context/provider";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { CardInsights } from "./Card";
 import { KPICard } from "./KPICard";
 
 export const BookingKPICards = () => {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
-
-  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId, isAll, initialConfig } =
-    filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-  const [startDate, endDate] = dateRange;
-
-  const { selectedTeamId: teamId } = filter;
+  const { startDate, endDate, teamId, userId, isAll, memberUserId, eventTypeId } = useInsightsParameters();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.eventsByStatus.useQuery(
     {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate,
+      endDate,
       teamId,
-      eventTypeId: selectedEventTypeId ?? undefined,
-      memberUserId: selectedMemberUserId ?? undefined,
-      userId: selectedUserId ?? undefined,
+      eventTypeId,
+      memberUserId,
+      userId,
       isAll,
     },
     {
@@ -34,13 +27,20 @@ export const BookingKPICards = () => {
       trpc: {
         context: { skipBatch: true },
       },
-      enabled: initialConfigIsReady,
     }
   );
 
   const categories: {
     title: string;
-    index: "created" | "completed" | "rescheduled" | "cancelled" | "no_show" | "rating" | "csat";
+    index:
+      | "created"
+      | "completed"
+      | "rescheduled"
+      | "cancelled"
+      | "no_show"
+      | "rating"
+      | "csat"
+      | "no_show_guest";
   }[] = [
     {
       title: t("events_created"),
@@ -67,6 +67,10 @@ export const BookingKPICards = () => {
       index: "no_show",
     },
     {
+      title: t("event_no_show_guest"),
+      index: "no_show_guest",
+    },
+    {
       title: t("csat_score"),
       index: "csat",
     },
@@ -76,7 +80,7 @@ export const BookingKPICards = () => {
     return <LoadingKPICards categories={categories} />;
   }
 
-  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
+  if (!isSuccess || !data) return null;
 
   return (
     <>

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,
@@ -53,11 +54,25 @@ export const generateTeamCheckoutSession = async ({
   teamSlug: string;
   userId: number;
 }) => {
-  const customer = await getStripeCustomerIdFromUserId(userId);
+  const [customer, dubCustomer] = await Promise.all([
+    getStripeCustomerIdFromUserId(userId),
+    getDubCustomer(userId.toString()),
+  ]);
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
-    allow_promotion_codes: true,
+    ...(dubCustomer?.discount?.couponId
+      ? {
+          discounts: [
+            {
+              coupon:
+                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                  ? dubCustomer.discount.couponTestId
+                  : dubCustomer.discount.couponId,
+            },
+          ],
+        }
+      : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
@@ -76,7 +91,7 @@ export const generateTeamCheckoutSession = async ({
       enabled: IS_PRODUCTION,
     },
     subscription_data: {
-      trial_period_days: 30, // Add a 30-day trial
+      trial_period_days: 14, // Add a 14-day trial
     },
     metadata: {
       teamName,

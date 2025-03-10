@@ -4,29 +4,20 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
-import { Avatar, EmptyScreen, Meta, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Avatar, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 
-const SkeletonLoader = ({
-  title,
-  description,
-  borderInShellHeader,
-}: {
-  title: string;
-  description: string;
-  borderInShellHeader: boolean;
-}) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={borderInShellHeader} />
       <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -45,55 +36,19 @@ const WebhooksView = () => {
   });
 
   if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-      />
-    );
+    return <SkeletonLoader />;
   }
 
   return (
-    <>
+    <SettingsHeader
+      title={t("webhooks")}
+      description={t("add_webhook_description", { appName: APP_NAME })}
+      CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
+      borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
       <div>
         <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
       </div>
-    </>
-  );
-};
-
-export const WebhooksViewAppDir = () => {
-  const { t } = useLocale();
-  const session = useSession();
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-
-  const { data, isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
-    enabled: session.status === "authenticated",
-  });
-
-  if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-      />
-    );
-  }
-
-  return (
-    <>
-      <SettingsHeader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : <></>}
-        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
-        <div>
-          <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
-        </div>
-      </SettingsHeader>
-    </>
+    </SettingsHeader>
   );
 };
 

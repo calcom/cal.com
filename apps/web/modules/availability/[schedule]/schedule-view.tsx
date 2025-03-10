@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AvailabilitySettings } from "@calcom/atoms/monorepo";
+import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -50,10 +50,14 @@ export const AvailabilitySettingsWebWrapper = ({
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
   const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
         eventTypeIds,
+        selectedDefaultScheduleId: scheduleData?.id,
       },
       {
         onSuccess: () => {
@@ -63,6 +67,10 @@ export const AvailabilitySettingsWebWrapper = ({
         },
       }
     );
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
   };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
@@ -142,6 +150,9 @@ export const AvailabilitySettingsWebWrapper = ({
         setIsOpen: setIsBulkUpdateModalOpen,
         save: bulkUpdateFunction,
         isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
+        eventTypes: eventTypesQueryData?.eventTypes,
+        isEventTypesFetching,
+        handleBulkEditDialogToggle: handleBulkEditDialogToggle,
       }}
     />
   );
