@@ -1,20 +1,28 @@
-import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
-import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
+import type { NextApiRequest } from "next";
 
-import appConfig from "../config.json";
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 
-const handler: AppDeclarativeHandler = {
-  appType: appConfig.type,
-  variant: appConfig.variant,
-  slug: appConfig.slug,
-  supportsMultipleInstalls: false,
-  handlerType: "add",
-  redirect: {
-    newTab: true,
-    url: "https://example.com/link",
-  },
-  createCredential: ({ appType, user, slug, teamId }) =>
-    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
-};
+async function handler(req: NextApiRequest) {
+  await prisma.user.findFirstOrThrow({
+    where: {
+      id: req.session?.user?.id,
+    },
+    select: {
+      id: true,
+    },
+  });
 
-export default handler;
+  const { client_id } = await getAppKeysFromSlug("slack");
+  if (!client_id) throw new Error("Slack client_id missing.");
+
+  const url = `https://slack.com/oauth/v2/authorize?client_id=${client_id}&redirect_uri=${WEBAPP_URL}/api/integrations/slack/callback`;
+  return { url };
+}
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(handler) }),
+});
