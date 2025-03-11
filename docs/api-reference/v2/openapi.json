@@ -8196,7 +8196,6 @@
           "type": {
             "type": "string",
             "description": "The policy that determines when confirmation is required",
-            "enum": ["always", "time"],
             "example": "always"
           },
           "noticeThreshold": {
@@ -8206,13 +8205,9 @@
                 "$ref": "#/components/schemas/NoticeThreshold_2024_06_14"
               }
             ]
-          },
-          "blockUnconfirmedBookingsInBooker": {
-            "type": "boolean",
-            "description": "Unconfirmed bookings still block calendar slots."
           }
         },
-        "required": ["type", "blockUnconfirmedBookingsInBooker"]
+        "required": ["type"]
       },
       "Seats_2024_06_14": {
         "type": "object",
