@@ -90,9 +90,9 @@ describe("OAuth Client Users Endpoints", () => {
     const platformAdminEmail = `oauth-client-users-admin-${randomString()}@api.com`;
     let platformAdmin: User;
 
-    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
+    const userEmail = `oauth-client-users-user-${randomString(5)}@api.com`;
     const userTimeZone = "Europe/Rome";
-    const userEmailTwo = `oauth-client-users-user-2-${randomString()}@api.com`;
+    const userEmailTwo = `oauth-client-users-user-2-${randomString(5)}@api.com`;
     const userTimeZoneTwo = "Europe/Rome";
     let postResponseDataTwo: CreateManagedUserOutput["data"];
 
@@ -471,6 +471,17 @@ describe("OAuth Client Users Endpoints", () => {
       expect(userOne?.name).toEqual(postResponseData.user.name);
     });
 
+    it(`should error /GET if managed user email is invalid`, async () => {
+      const invalidEmail = "invalid-email";
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${invalidEmail}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(400);
+
+      expect(response.body?.error?.message).toEqual(`Invalid email ${invalidEmail}`);
+    });
+
     it(`/GET: managed users by oAuth emails`, async () => {
       const response = await request(app.getHttpServer())
         // note(Lauris): we use encodeURIComponent because email stored on our side includes "+" which without encoding becomes an empty space.
@@ -587,7 +598,7 @@ describe("OAuth Client Users Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let postResponseData: CreateManagedUserOutput["data"];
 
-    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
+    const userEmail = `oauth-client-users-user-${randomString(5)}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
