@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 
 const log = logger.getSubLogger({ prefix: ["[parseRequestData]"] });
 
-export async function parseUrlFormData(req: NextRequest): Promise<Record<string, any>> {
+export async function parseUrlFormData(req: NextRequest): Promise<Record<string, unknown>> {
   try {
     // Read raw text body (because Next.js does NOT parse x-www-form-urlencoded automatically)
     const rawBody = await req.text();
@@ -16,7 +16,7 @@ export async function parseUrlFormData(req: NextRequest): Promise<Record<string,
   }
 }
 
-export async function parseMultiFormData(req: NextRequest): Promise<Record<string, any>> {
+export async function parseMultiFormData(req: NextRequest): Promise<Record<string, unknown>> {
   try {
     const formData = await req.formData();
     return Object.fromEntries(formData.entries());
@@ -26,7 +26,7 @@ export async function parseMultiFormData(req: NextRequest): Promise<Record<strin
   }
 }
 
-export async function parseRequestData(req: NextRequest): Promise<Record<string, any>> {
+export async function parseRequestData(req: NextRequest): Promise<Record<string, unknown>> {
   const contentType = req.headers.get("content-type") ?? "application/json";
   if (contentType.includes("application/json")) {
     try {
