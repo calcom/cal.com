@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "تم تعطيل إشعارات المتصفح",
   "browser_notifications_denied": "تم رفض إشعارات المتصفح",
   "please_allow_notifications": "يرجى السماح بالإشعارات من المطالبة",
+  "push_notifications": "الإشعارات الفورية",
+  "push_notifications_description": "استلم إشعارات فورية عندما يقوم الحاجز بتقديم حجز اجتماع فوري.",
   "browser_notifications_not_supported": "متصفحك لا يدعم إشعارات الدفع. إذا كنت مستخدمًا لمتصفح Brave، فقم بتمكين خيار `استخدام خدمات Google للرسائل الفورية` على brave://settings/?search=push+messaging",
   "email": "البريد الإلكتروني",
   "email_placeholder": "name@example.com",

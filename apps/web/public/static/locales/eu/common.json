@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Nabigatzailearen jakinarazpenak desaktibatuta",
   "browser_notifications_denied": "Nabigatzailearen jakinarazpenak ukatuak",
   "please_allow_notifications": "Mesedez, onartu jakinarazpenak leihoan",
+  "push_notifications": "Push jakinarazpenak",
+  "push_notifications_description": "Jaso push jakinarazpenak erreserbatzaileak berehalako bilera-erreserba egiten duenean.",
   "browser_notifications_not_supported": "Zure nabigatzaileak ez ditu Push jakinarazpenak onartzen. Brave erabiltzailea bazara, gaitu `Use Google services for push messaging` aukera brave://settings/?search=push+messaging helbidean",
   "email": "Emaila",
   "email_placeholder": "izena@adibidea.eus",

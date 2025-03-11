@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Browsermeldingen uitgeschakeld",
   "browser_notifications_denied": "Browsermeldingen geweigerd",
   "please_allow_notifications": "Sta meldingen toe via de prompt",
+  "push_notifications": "Pushmeldingen",
+  "push_notifications_description": "Ontvang pushmeldingen wanneer een boeker een directe afspraak boekt.",
   "browser_notifications_not_supported": "Je browser ondersteunt geen pushmeldingen. Als je Brave gebruikt, schakel dan de optie `Google-services gebruiken voor pushberichten` in op brave://settings/?search=push+messaging",
   "email": "E-mailadres",
   "email_placeholder": "jjansen@voorbeeld.nl",

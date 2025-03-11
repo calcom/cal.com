@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Уведомления браузера отключены",
   "browser_notifications_denied": "Уведомления браузера отклонены",
   "please_allow_notifications": "Пожалуйста, разрешите уведомления в появившемся окне",
+  "push_notifications": "Push-уведомления",
+  "push_notifications_description": "Получайте push-уведомления, когда пользователь отправляет запрос на мгновенное бронирование встречи.",
   "browser_notifications_not_supported": "Ваш браузер не поддерживает Push-уведомления. Если вы используете Brave, включите опцию `Использовать сервисы Google для push-уведомлений` на странице brave://settings/?search=push+messaging",
   "email": "Адрес электронной почты",
   "email_placeholder": "jdoe@example.com",

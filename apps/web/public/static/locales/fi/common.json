@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Selainilmoitukset poistettu käytöstä",
   "browser_notifications_denied": "Selainilmoitukset estetty",
   "please_allow_notifications": "Salli ilmoitukset kehotteesta",
+  "push_notifications": "Push-ilmoitukset",
+  "push_notifications_description": "Vastaanota push-ilmoituksia, kun varaaja tekee pikavarauksen.",
   "browser_notifications_not_supported": "Selaimesi ei tue push-ilmoituksia. Jos käytät Brave-selainta, ota käyttöön 'Käytä Googlen palveluita push-viestintään' -asetus osoitteessa brave://settings/?search=push+messaging",
   "email": "Sähköposti",
   "email_placeholder": "jdoe@example.com",

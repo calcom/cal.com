@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Powiadomienia przeglądarki wyłączone",
   "browser_notifications_denied": "Powiadomienia przeglądarki odrzucone",
   "please_allow_notifications": "Proszę zezwolić na powiadomienia w wyskakującym okienku",
+  "push_notifications": "Powiadomienia push",
+  "push_notifications_description": "Otrzymuj powiadomienia push, gdy rezerwujący zgłasza natychmiastową rezerwację spotkania.",
   "browser_notifications_not_supported": "Twoja przeglądarka nie obsługuje powiadomień Push. Jeśli używasz przeglądarki Brave, włącz opcję `Używaj usług Google do przesyłania wiadomości push` w brave://settings/?search=push+messaging",
   "email": "E-mail",
   "email_placeholder": "jkowalski@przyklad.com",

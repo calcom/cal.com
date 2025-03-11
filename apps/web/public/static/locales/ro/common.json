@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Notificările browserului sunt dezactivate",
   "browser_notifications_denied": "Notificările browserului au fost refuzate",
   "please_allow_notifications": "Te rugăm să permiți notificările din prompt",
+  "push_notifications": "Notificări push",
+  "push_notifications_description": "Primește notificări push când un utilizator face o rezervare instantanee pentru o întâlnire.",
   "browser_notifications_not_supported": "Browserul tău nu suportă notificările push. Dacă folosești Brave, activează opțiunea `Use Google services for push messaging` la brave://settings/?search=push+messaging",
   "email": "E-mail",
   "email_placeholder": "jdoe@exemplu.com",

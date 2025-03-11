@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Οι ειδοποιήσεις του browser απενεργοποιήθηκαν",
   "browser_notifications_denied": "Οι ειδοποιήσεις του browser απορρίφθηκαν",
   "please_allow_notifications": "Παρακαλώ επιτρέψτε τις ειδοποιήσεις από το αναδυόμενο παράθυρο",
+  "push_notifications": "Ειδοποιήσεις push",
+  "push_notifications_description": "Λάβετε ειδοποιήσεις push όταν ο χρήστης υποβάλλει άμεση κράτηση συνάντησης.",
   "browser_notifications_not_supported": "Ο browser σας δεν υποστηρίζει Push Notifications. Αν είστε χρήστης του Brave, ενεργοποιήστε την επιλογή `Use Google services for push messaging` στο brave://settings/?search=push+messaging",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",

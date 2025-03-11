@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Notifikácie prehliadača sú vypnuté",
   "browser_notifications_denied": "Notifikácie prehliadača sú odmietnuté",
   "please_allow_notifications": "Prosím, povoľte notifikácie z výzvy",
+  "push_notifications": "Push notifikácie",
+  "push_notifications_description": "Dostávajte push notifikácie, keď rezervujúci odošle okamžitú rezerváciu stretnutia.",
   "browser_notifications_not_supported": "Váš prehliadač nepodporuje push notifikácie. Ak používate Brave, povolte možnosť `Použiť služby Google pre push správy` na brave://settings/?search=push+messaging",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",

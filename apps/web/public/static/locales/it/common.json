@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Notifiche del browser disattivate",
   "browser_notifications_denied": "Notifiche del browser negate",
   "please_allow_notifications": "Consenti le notifiche dal prompt",
+  "push_notifications": "Notifiche push",
+  "push_notifications_description": "Ricevi notifiche push quando un utente invia una prenotazione immediata di un incontro.",
   "browser_notifications_not_supported": "Il tuo browser non supporta le notifiche push. Se usi Brave, abilita l'opzione `Usa i servizi di Google per la messaggistica push` su brave://settings/?search=push+messaging",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",
