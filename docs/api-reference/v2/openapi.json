@@ -8206,6 +8206,10 @@
                 "$ref": "#/components/schemas/NoticeThreshold_2024_06_14"
               }
             ]
+          },
+          "blockUnconfirmedBookingsInBooker": {
+            "type": "boolean",
+            "description": "Unconfirmed bookings still block calendar slots."
           }
         },
         "required": ["type", "blockUnconfirmedBookingsInBooker"]
