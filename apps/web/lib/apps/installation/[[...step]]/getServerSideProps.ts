@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { z } from "zod";
@@ -78,7 +78,7 @@ const getAppBySlug = async (appSlug: string) => {
 };
 
 const getEventTypes = async (userId: number, teamIds?: number[]) => {
-  const eventTypeSelect: Prisma.EventTypeSelect = {
+  const eventTypeSelect= Prisma.validator<Prisma.EventTypeSelect>()({
     id: true,
     description: true,
     durationLimits: true,
@@ -99,7 +99,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     userId: true,
     destinationCalendar: true,
     bookingFields: true,
-  };
+  });
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {
