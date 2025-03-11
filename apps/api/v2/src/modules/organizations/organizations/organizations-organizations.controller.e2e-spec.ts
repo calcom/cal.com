@@ -193,10 +193,24 @@ describe("Organizations Organizations Endpoints", () => {
         expect(membership?.role ?? "").toEqual("OWNER");
         expect(membership?.accepted).toEqual(true);
         // note(Lauris): test that auth user who made request to create managed organization has profile in it
-        const profile = await profilesRepositoryFixture.findByOrgIdUserId(managedOrg.id, managerOrgAdmin.id);
-        expect(profile).toBeDefined();
-        expect(profile?.id).toBeDefined();
-        expect(profile?.username).toEqual(managerOrgAdmin.username);
+        const managedOrgProfile = await profilesRepositoryFixture.findByOrgIdUserId(
+          managedOrg.id,
+          managerOrgAdmin.id
+        );
+        expect(managedOrgProfile).toBeDefined();
+        expect(managedOrgProfile?.id).toBeDefined();
+        expect(managedOrgProfile?.username).toEqual(managerOrgAdmin.username);
+        // note(Lauris): test that auth user who made request to create managed organization has profile in it
+        const managerOrgProfile = await profilesRepositoryFixture.findByOrgIdUserId(
+          managerOrg.id,
+          managerOrgAdmin.id
+        );
+        expect(managerOrgProfile).toBeDefined();
+        expect(managerOrgProfile?.id).toBeDefined();
+        expect(managerOrgProfile?.username).toEqual(managerOrgAdmin.username);
+        // note(Lauris): test that auth user who made request to create managed organization has movedToProfileId pointing to manager org
+        const user = await userRepositoryFixture.get(managerOrgAdmin.id);
+        expect(user?.movedToProfileId).toEqual(managerOrgProfile?.id);
         // note(Lauris): check that platform billing is setup correctly for manager and managed orgs
         const managerOrgBilling = await platformBillingRepositoryFixture.get(managerOrg.id);
         expect(managerOrgBilling).toBeDefined();

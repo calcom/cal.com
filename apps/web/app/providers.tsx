@@ -5,6 +5,8 @@ import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
 import CacheProvider from "react-inlinesvg/provider";
 
+import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
+
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import PlainChat from "@lib/plain/dynamicProvider";
 
@@ -20,7 +22,9 @@ export function Providers({ children, dehydratedState }: ProvidersProps) {
       <TrpcProvider dehydratedState={dehydratedState}>
         {!isBookingPage ? <PlainChat /> : null}
         {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-        <CacheProvider>{children}</CacheProvider>
+        <CacheProvider>
+          <WebPushProvider>{children}</WebPushProvider>
+        </CacheProvider>
       </TrpcProvider>
     </SessionProvider>
   );

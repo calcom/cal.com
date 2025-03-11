@@ -6,7 +6,7 @@ import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
-import { AttributeType } from "@calcom/prisma/enums";
+import { AttributeType, RRResetInterval } from "@calcom/prisma/enums";
 
 import { getLuckyUser, prepareQueuesAndAttributesData } from "./getLuckyUser";
 
@@ -65,7 +65,7 @@ it("can find lucky user with maximize availability", async () => {
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -118,7 +118,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -175,7 +175,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -237,7 +237,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -328,12 +328,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("can find lucky user if hosts have different weights", async () => {
@@ -426,12 +436,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.DAY },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, daily interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-20T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("can find lucky user with weights and adjusted weights", async () => {
@@ -524,12 +544,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.DAY },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, daily interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-20T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("applies calibration when user had OOO entries this month", async () => {
@@ -609,12 +639,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]); // user[1] has one more bookings, but user[0] has calibration 2
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("applies calibration when user had full day calendar events this month", async () => {
@@ -706,12 +746,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]); // user[1] has one more booking, but user[0] has calibration 2
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
@@ -791,7 +841,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -816,12 +866,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 });
 
@@ -950,7 +1010,11 @@ describe("attribute weights and virtual queues", () => {
     });
 
     const queuesAndAttributesData = await prepareQueuesAndAttributesData({
-      eventType: { id: 1, isRRWeightsEnabled: true, team: { parentId: 1 } },
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: true,
+        team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
+      },
       routingFormResponse,
       allRRHosts: [
         {
@@ -1190,11 +1254,21 @@ describe("attribute weights and virtual queues", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { parentId: 1 },
+          team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
         },
         allRRHosts,
         routingFormResponse,
       })
     ).resolves.toStrictEqual(users[1]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, daily interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-20T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 });
