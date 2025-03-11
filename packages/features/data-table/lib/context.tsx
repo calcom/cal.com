@@ -1,11 +1,11 @@
 "use client";
 
-import type { SortingState, OnChangeFn } from "@tanstack/react-table";
-import { useQueryState, parseAsArrayOf, parseAsJson } from "nuqs";
+import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
+import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
 import { createContext, useCallback } from "react";
 import { z } from "zod";
 
-import { type FilterValue, ZFilterValue, ZSorting } from "./types";
+import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./types";
 
 const ZActiveFilter = z.object({
   f: z.string(),
@@ -23,19 +23,47 @@ export type DataTableContextType = {
 
   sorting: SortingState;
   setSorting: OnChangeFn<SortingState>;
+
+  columnVisibility: VisibilityState;
+  setColumnVisibility: OnChangeFn<VisibilityState>;
+
+  pageIndex: number;
+  pageSize: number;
+  setPageIndex: (pageIndex: number) => void;
+  setPageSize: (pageSize: number) => void;
+
+  offset: number;
+  limit: number;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
-export function DataTableProvider({ children }: { children: React.ReactNode }) {
+const DEFAULT_ACTIVE_FILTERS: ActiveFilter[] = [];
+const DEFAULT_SORTING: SortingState = [];
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+const DEFAULT_PAGE_SIZE = 10;
+
+interface DataTableProviderProps {
+  children: React.ReactNode;
+  defaultPageSize?: number;
+}
+
+export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZE }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
-    parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault([])
+    parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
   );
   const [sorting, setSorting] = useQueryState(
     "sorting",
-    parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault([])
+    parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault(DEFAULT_SORTING)
   );
+  const [columnVisibility, setColumnVisibility] = useQueryState<VisibilityState>(
+    "cols",
+    parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
+  );
+
+  const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
+  const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
@@ -71,6 +99,14 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
     [setActiveFilters]
   );
 
+  const setPageSizeAndGoToFirstPage = useCallback(
+    (newPageSize: number) => {
+      setPageSize(newPageSize);
+      setPageIndex(0);
+    },
+    [setPageSize, setPageIndex]
+  );
+
   return (
     <DataTableContext.Provider
       value={{
@@ -81,6 +117,14 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
         removeFilter,
         sorting,
         setSorting,
+        columnVisibility,
+        setColumnVisibility,
+        pageIndex,
+        pageSize,
+        setPageIndex,
+        setPageSize: setPageSizeAndGoToFirstPage,
+        limit: pageSize,
+        offset: pageIndex * pageSize,
       }}>
       {children}
     </DataTableContext.Provider>

@@ -35,7 +35,7 @@ export default async function IconsPage() {
           <IconGrid
             title="Filled Icons"
             icons={icons}
-            rootClassName="bg-darkgray-100 text-gray-50"
+            rootClassName="bg-inverted text-inverted"
             iconClassName="fill-blue-500"
           />
         </div>

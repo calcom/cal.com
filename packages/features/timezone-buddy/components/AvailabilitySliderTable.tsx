@@ -8,10 +8,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -95,6 +95,8 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       {
         id: "member",
         accessorFn: (data) => data.username,
+        enableHiding: false,
+        enableSorting: false,
         header: "Member",
         size: 200,
         cell: ({ row }) => {
@@ -127,6 +129,8 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         id: "timezone",
         accessorFn: (data) => data.timeZone,
         header: "Timezone",
+        enableHiding: false,
+        enableSorting: false,
         size: 160,
         cell: ({ row }) => {
           const { timeZone } = row.original;
@@ -152,6 +156,8 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         meta: {
           autoWidth: true,
         },
+        enableHiding: false,
+        enableSorting: false,
         header: () => {
           return (
             <div className="flex items-center space-x-2">
@@ -186,7 +192,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as SliderUser[];
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -195,12 +201,12 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
         //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalRowCount) {
           fetchNextPage();
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching, totalFetched, totalRowCount]
   );
 
   useEffect(() => {

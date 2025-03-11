@@ -221,18 +221,34 @@ describe("handleNewBooking", () => {
         });
 
         // Using .endOf("day") here to ensure our date doesn't change when we set the time zone
-        const startDateTimeOrganizerTz = dayjs(plus1DateString)
+        let startDateTimeOrganizerTz = dayjs(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .hour(23)
           .minute(0)
           .second(0);
 
-        const endDateTimeOrganizerTz = dayjs(plus1DateString)
+        let endDateTimeOrganizerTz = dayjs(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .startOf("day")
           .add(1, "day");
+
+        const endUtcOffset = Math.abs(endDateTimeOrganizerTz.utcOffset());
+        const startUtcOffset = Math.abs(startDateTimeOrganizerTz.utcOffset());
+        //on DST transition day the utc offsets are unequal
+        if (startUtcOffset !== endUtcOffset) {
+          if (endUtcOffset > startUtcOffset) {
+            // -5:00 to -4:00 transition
+            endDateTimeOrganizerTz = endDateTimeOrganizerTz.subtract(
+              endUtcOffset - startUtcOffset,
+              "minutes"
+            );
+          } else {
+            // -4:00 to -5:00 transition
+            startDateTimeOrganizerTz = startDateTimeOrganizerTz.add(startUtcOffset - endUtcOffset, "minutes");
+          }
+        }
 
         const overrideSchedule = {
           name: "11:00PM to 11:59PM in New York",

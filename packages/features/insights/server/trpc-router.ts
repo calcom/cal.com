@@ -71,7 +71,22 @@ const buildBaseWhereCondition = async ({
         id: true,
       },
     });
-    if (teamsFromOrg.length === 0) return { whereCondition, isEmptyResponse: true };
+
+    if (teamsFromOrg.length === 0) {
+      return {
+        whereCondition: {
+          ...whereCondition,
+          OR: [
+            ...(whereCondition.OR ?? []),
+            {
+              teamId: ctx.userOrganizationId,
+              isTeamBooking: true,
+            },
+          ],
+        },
+        isEmptyResponse: true,
+      };
+    }
 
     const teamConditional = {
       id: {
@@ -987,17 +1002,13 @@ export const insightsRouter = router({
   userList: authedProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable(),
+        teamId: z.number().optional(),
         isAll: z.boolean().nullable(),
       })
     )
     .query(async ({ ctx, input }) => {
       const user = ctx.user;
       const { teamId, isAll } = input;
-
-      if (!teamId) {
-        return [];
-      }
 
       if (isAll && user.organizationId && user.organization.isOrgAdmin) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
@@ -1014,6 +1025,10 @@ export const insightsRouter = router({
           distinct: ["userId"],
         });
         return usersInTeam.map((membership) => membership.user);
+      }
+
+      if (!teamId) {
+        return [];
       }
 
       const membership = await ctx.insightsDb.membership.findFirst({
@@ -1576,42 +1591,29 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { userId, teamId, isAll } = input;
       return await RoutingEventsInsights.getRoutingFormsForFilters({
-        userId,
+        userId: ctx.user.id,
         teamId,
         isAll,
         organizationId: ctx.user.organizationId ?? undefined,
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        bookingStatus: bookingStatusSchema,
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
-      })
-    )
+    .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate } = input;
-
-      const stats = await RoutingEventsInsights.getRoutingFormStats({
-        teamId: input.teamId ?? null,
-        startDate,
-        endDate,
-        isAll: input.isAll ?? false,
+      return await RoutingEventsInsights.getRoutingFormStats({
+        teamId: input.teamId,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId ?? null,
-        userId: input.userId ?? null,
-        memberUserId: input.memberUserId ?? null,
-        bookingStatus: input.bookingStatus ?? null,
-        fieldFilter: input.fieldFilter ?? null,
+        routingFormId: input.routingFormId,
+        cursor: input.cursor,
+        userId: ctx.user.id,
+        memberUserIds: input.memberUserIds,
+        limit: input.limit,
+        columnFilters: input.columnFilters,
+        sorting: input.sorting,
       });
-
-      return stats;
     }),
   routingFormResponses: userBelongsToTeamProcedure
     .input(routingFormResponsesInputSchema)
@@ -1624,7 +1626,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId,
+        userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
         limit: input.limit,
         columnFilters: input.columnFilters,
@@ -1642,7 +1644,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId,
+        userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
         limit: input.limit ?? BATCH_SIZE,
         columnFilters: input.columnFilters,
@@ -1661,6 +1663,7 @@ export const insightsRouter = router({
     .query(async ({ input, ctx }) => {
       const options = await RoutingEventsInsights.getRoutingFormFieldOptions({
         ...input,
+        userId: ctx.user.id,
         organizationId: ctx.user.organizationId ?? null,
       });
       return options;
@@ -1677,6 +1680,7 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getFailedBookingsByRoutingFormGroup({
         ...input,
+        userId: ctx.user.id,
         organizationId: ctx.user.organizationId ?? null,
       });
     }),
@@ -1691,7 +1695,7 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const headers = await RoutingEventsInsights.getRoutingFormHeaders({
-        userId: input.userId ?? null,
+        userId: ctx.user.id,
         teamId: input.teamId ?? null,
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
@@ -1699,66 +1703,6 @@ export const insightsRouter = router({
       });
 
       return headers || [];
-    }),
-  rawRoutingData: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        bookingStatus: bookingStatusSchema,
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
-        cursor: z.number().optional(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const {
-        teamId,
-        startDate,
-        endDate,
-        userId,
-        memberUserId,
-        isAll,
-        routingFormId,
-        bookingStatus,
-        fieldFilter,
-        cursor,
-      } = input;
-
-      if (!teamId && !userId) {
-        return { data: [], hasMore: false, nextCursor: null };
-      }
-
-      try {
-        const csvData = await RoutingEventsInsights.getRawData({
-          teamId,
-          startDate,
-          endDate,
-          userId,
-          memberUserId,
-          isAll: isAll ?? false,
-          organizationId: ctx.user.organizationId,
-          routingFormId,
-          bookingStatus,
-          fieldFilter,
-          take: BATCH_SIZE,
-          skip: cursor || 0,
-        });
-
-        const hasMore = csvData.length === BATCH_SIZE;
-        const nextCursor = hasMore ? (cursor || 0) + BATCH_SIZE : null;
-
-        return {
-          data: csvData,
-          hasMore,
-          nextCursor,
-        };
-      } catch (e) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
     }),
   routedToPerPeriod: userBelongsToTeamProcedure
     .input(
@@ -1780,7 +1724,7 @@ export const insightsRouter = router({
         input;
 
       return await RoutingEventsInsights.routedToPerPeriod({
-        userId: userId ?? null,
+        userId: ctx.user.id,
         teamId: teamId ?? null,
         startDate,
         endDate,
@@ -1806,7 +1750,7 @@ export const insightsRouter = router({
       const { startDate, endDate } = input;
       try {
         const csvData = await RoutingEventsInsights.routedToPerPeriodCsv({
-          userId: input.userId ?? null,
+          userId: ctx.user.id,
           teamId: input.teamId ?? null,
           startDate,
           endDate,

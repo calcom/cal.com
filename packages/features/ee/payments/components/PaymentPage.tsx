@@ -2,7 +2,6 @@
 
 import classNames from "classnames";
 import dynamic from "next/dynamic";
-import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
@@ -11,11 +10,12 @@ import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { APP_NAME, WEBSITE_URL, CURRENT_TIMEZONE } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import type { PaymentPageProps } from "../pages/payment";
@@ -88,12 +88,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
   return (
     <div className="h-screen">
-      <Head>
-        <title>
-          {t("payment")} | {eventName} | {APP_NAME}
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <main className="mx-auto max-w-3xl py-24">
         <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">

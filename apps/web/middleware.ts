@@ -1,15 +1,12 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-import { csp } from "@lib/csp";
-
-import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+import { csp } from "./lib/csp";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
@@ -19,7 +16,44 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
+// Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
+export const POST_METHODS_ALLOWED_APP_ROUTES = ["/settings/my-account/general"];
+
+export function checkPostMethod(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+  if (
+    ![...POST_METHODS_ALLOWED_API_ROUTES, ...POST_METHODS_ALLOWED_APP_ROUTES].some((route) =>
+      pathname.startsWith(route)
+    ) &&
+    req.method === "POST"
+  ) {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
+  return null;
+}
+
+export function checkStaticFiles(pathname: string) {
+  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
+  // Skip Next.js internal paths (_next) and static assets
+  if (pathname.startsWith("/_next") || hasFileExtension) {
+    return NextResponse.next();
+  }
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
+
+  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
+  if (isStaticFile) return isStaticFile;
+
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
@@ -73,13 +107,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  if (url.pathname.startsWith("/future/auth/logout")) {
-    cookies().set("next-auth.session-token", "", {
-      path: "/",
-      expires: new Date(0),
-    });
-  }
-
   requestHeaders.set("x-pathname", url.pathname);
 
   const locale = await getLocale(req);
@@ -91,6 +118,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       headers: requestHeaders,
     },
   });
+
+  if (url.pathname.startsWith("/auth/logout")) {
+    res.cookies.delete("next-auth.session-token");
+  }
 
   return responseWithHeaders({ url, res, req });
 };
@@ -158,31 +189,11 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/login",
-    "/auth/error",
-    "/auth/signin",
-    "/auth/oauth2/authorize",
-    "/auth/platform/authorize",
-    "/auth/verify-email",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
+    "/apps/:path*",
+    "/auth/:path*",
     "/event-types/:path*",
-    "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
-    "/apps/:slug/",
-    "/future/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/future/apps/:slug/setup/",
-    "/apps/categories/",
-    "/future/apps/categories/",
-    "/apps/categories/:category/",
-    "/future/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
@@ -191,14 +202,17 @@ export const config = {
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/payment/:path*",
     "/routing-forms/:path*",
     "/team/:path*",
     "/org/:path*",
+    "/:user/:type/",
+    "/:user/",
   ],
 };
 
 export default collectEvents({
-  middleware: abTestMiddlewareFactory(middleware),
+  middleware,
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,

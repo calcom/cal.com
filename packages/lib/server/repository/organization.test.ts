@@ -2,20 +2,76 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+import type { Prisma } from "@calcom/prisma/client";
+
 import { OrganizationRepository } from "./organization";
 
 vi.mock("./teamUtils", () => ({
   getParsedTeam: (org: any) => org,
 }));
 
-describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () => {
-  beforeEach(async () => {
-    vi.resetAllMocks();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    await prismock.reset();
+async function createOrganization(
+  data: Prisma.TeamCreateInput & {
+    organizationSettings: {
+      create: Prisma.OrganizationSettingsCreateWithoutOrganizationInput;
+    };
+  }
+) {
+  return await prismock.team.create({
+    data: {
+      isOrganization: true,
+      ...data,
+    },
   });
+}
 
+async function createReviewedOrganization({
+  name = "Test Org",
+  orgAutoAcceptEmail,
+}: {
+  name: string;
+  orgAutoAcceptEmail: string;
+}) {
+  return await createOrganization({
+    name,
+    organizationSettings: {
+      create: {
+        orgAutoAcceptEmail,
+        isOrganizationVerified: true,
+        isAdminReviewed: true,
+      },
+    },
+  });
+}
+
+async function createTeam({
+  name = "Test Team",
+  orgAutoAcceptEmail,
+}: {
+  name: string;
+  orgAutoAcceptEmail: string;
+}) {
+  return await prismock.team.create({
+    data: {
+      name,
+      isOrganization: false,
+      organizationSettings: {
+        create: {
+          orgAutoAcceptEmail,
+        },
+      },
+    },
+  });
+}
+
+beforeEach(async () => {
+  vi.resetAllMocks();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await prismock.reset();
+});
+
+describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () => {
   it("should return null if no organization matches the email domain", async () => {
     const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
@@ -67,44 +123,31 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
   });
 });
 
-async function createReviewedOrganization({
-  name = "Test Org",
-  orgAutoAcceptEmail,
-}: {
-  name: string;
-  orgAutoAcceptEmail: string;
-}) {
-  return await prismock.team.create({
-    data: {
-      name,
-      isOrganization: true,
-      organizationSettings: {
-        create: {
-          orgAutoAcceptEmail,
-          isOrganizationVerified: true,
-          isAdminReviewed: true,
-        },
-      },
-    },
-  });
-}
+describe("Organization.getVerifiedOrganizationByAutoAcceptEmailDomain", () => {
+  it("should return organization when domain matches and organization is verified", async () => {
+    const verifiedOrganization = await createOrganization({
+      name: "Test Org",
+      organizationSettings: { create: { orgAutoAcceptEmail: "cal.com", isOrganizationVerified: true } },
+    });
 
-async function createTeam({
-  name = "Test Team",
-  orgAutoAcceptEmail,
-}: {
-  name: string;
-  orgAutoAcceptEmail: string;
-}) {
-  return await prismock.team.create({
-    data: {
-      name,
-      isOrganization: false,
+    const result = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
+
+    expect(result).toEqual({
+      id: verifiedOrganization.id,
       organizationSettings: {
-        create: {
-          orgAutoAcceptEmail,
-        },
+        orgAutoAcceptEmail: "cal.com",
       },
-    },
+    });
   });
-}
+
+  it("should not return organization when organization is not verified", async () => {
+    await createOrganization({
+      name: "Test Org",
+      organizationSettings: { create: { orgAutoAcceptEmail: "cal.com", isOrganizationVerified: false } },
+    });
+
+    const result = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
+
+    expect(result).toEqual(null);
+  });
+});

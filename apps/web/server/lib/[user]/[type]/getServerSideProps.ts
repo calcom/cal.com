@@ -20,9 +20,9 @@ type Props = {
   eventData: Omit<
     Pick<
       NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
+      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "subsetOfUsers" | "hidden"
     >,
-    "profile" | "users"
+    "profile" | "subsetOfUsers"
   > & {
     profile: {
       image: string | undefined;
@@ -99,7 +99,7 @@ async function processSeatedEvent({
 }
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
 
@@ -163,7 +163,10 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
       hidden: eventData.hidden,
     },
     user: usernames.join("+"),
@@ -192,7 +195,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 }
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
@@ -259,7 +262,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
       hidden: eventData.hidden,
     },
     user: username,

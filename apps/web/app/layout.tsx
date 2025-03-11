@@ -6,10 +6,15 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
+import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { prepareRootMetadata } from "@lib/metadata";
 
+import { ssrInit } from "@server/lib/ssr";
+
 import "../styles/globals.css";
+import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
@@ -55,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
+  const ssr = await ssrInit(buildLegacyCtx(h, cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -73,46 +79,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <script
-          nonce={nonce}
-          id="headScript"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.calNewLocale = "${locale}";
-              (function applyTheme() {
-                try {
-                  const appTheme = localStorage.getItem('app-theme');
-                  if (!appTheme) return;
-
-                  let bookingTheme, username;
-                  for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('booking-theme:')) {
-                      bookingTheme = localStorage.getItem(key);
-                      username = key.split("booking-theme:")[1];
-                      break;
-                    }
-                  }
-
-                  const onReady = () => {
-                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
-
-                    if (document.body) {
-                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
-                    } else {
-                      requestAnimationFrame(onReady);
-                    }
-                  };
-
-                  requestAnimationFrame(onReady);
-                } catch (e) {
-                  console.error('Error applying theme:', e);
-                }
-              })();
-            `,
-          }}
-        />
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
@@ -121,7 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}</style>
       </head>
       <body
-        className="dark:bg-darkgray-50 bg-subtle antialiased"
+        className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed
             ? {
@@ -145,7 +111,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <Providers>{children}</Providers>
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
+        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        {!isEmbed && <NotificationSoundHandler />}
+        <NotificationSoundHandler />
       </body>
     </html>
   );

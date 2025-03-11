@@ -46,7 +46,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   );
 
   const ssr = await ssrInit(context);
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
@@ -194,7 +194,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
-  async function getInternalNotePresets(teamId: number) {
+  async function getInternalNotePresets(teamId: number | null) {
+    if (!teamId || !isLoggedInUserHost) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -206,6 +207,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
   }
+
+  const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
 
   return {
     props: {
@@ -224,7 +227,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
-      internalNotePresets: eventType?.team?.id ? await getInternalNotePresets(eventType.team.id) : [],
+      internalNotePresets: internalNotes,
     },
   };
 }

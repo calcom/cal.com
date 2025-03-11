@@ -15,7 +15,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithoutApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -116,7 +116,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
           })
       )
     ),
-    metadata: eventType.metadata ? eventTypeMetaDataSchemaWithoutApps.parse(eventType.metadata) : null,
+    metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
     children: await Promise.all(
       (eventType.children || []).map(async (c) => ({
         ...c,

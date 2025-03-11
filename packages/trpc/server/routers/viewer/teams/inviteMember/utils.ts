@@ -20,6 +20,7 @@ import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -274,6 +275,7 @@ export async function createNewUsersConnectToOrgIfExists({
   weekStart,
   timeZone,
   language,
+  creationSource,
 }: {
   invitations: Invitation[];
   isOrg: boolean;
@@ -286,6 +288,7 @@ export async function createNewUsersConnectToOrgIfExists({
   weekStart?: string;
   timeZone?: string;
   language: string;
+  creationSource: CreationSource;
 }) {
   // fail if we have invalid emails
   invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
@@ -323,6 +326,7 @@ export async function createNewUsersConnectToOrgIfExists({
             timeFormat,
             weekStart,
             timeZone,
+            creationSource,
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
             ...(orgId
               ? {
@@ -911,6 +915,7 @@ export async function handleNewUsersInvites({
   isOrg,
   autoAcceptEmailDomain,
   inviter,
+  creationSource,
 }: {
   invitationsForNewUsers: Invitation[];
   teamId: number;
@@ -922,6 +927,7 @@ export async function handleNewUsersInvites({
     name: string | null;
   };
   isOrg: boolean;
+  creationSource: CreationSource;
 }) {
   const translation = await getTranslation(language, "common");
 
@@ -933,6 +939,7 @@ export async function handleNewUsersInvites({
     autoAcceptEmailDomain: autoAcceptEmailDomain,
     parentId: team.parentId,
     language,
+    creationSource,
   });
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {

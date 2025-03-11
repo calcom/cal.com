@@ -22,6 +22,7 @@ import type {
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
+  InputTeamLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -41,6 +42,7 @@ import {
   transformEventColorsApiToInternal,
   transformBookerLayoutsApiToInternal,
   transformConfirmationPolicyApiToInternal,
+  transformTeamLocationsApiToInternal,
 } from "./index";
 
 describe("transformLocationsApiToInternal", () => {
@@ -107,6 +109,20 @@ describe("transformLocationsApiToInternal", () => {
     ];
 
     const result = transformLocationsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform OrganizersDefaultApp", () => {
+    const input: InputTeamLocation_2024_06_14[] = [
+      {
+        type: "organizersDefaultApp",
+      },
+    ];
+
+    const expectedOutput = [{ type: "conferencing" }];
+
+    const result = transformTeamLocationsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });

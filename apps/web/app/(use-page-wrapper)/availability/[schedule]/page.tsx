@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
 
-// import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
+// import { cookies, headers } from "next/headers";
+// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 
 // import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
@@ -47,7 +49,7 @@ const Page = async ({ params }: PageProps) => {
   }
   // const scheduleId = Number(params.schedule);
 
-  // const session = await getServerSessionForAppDir();
+  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   // const userId = session?.user?.id;
   // if (!userId) {
   //   notFound();

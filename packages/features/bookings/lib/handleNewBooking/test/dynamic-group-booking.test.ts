@@ -137,7 +137,7 @@ describe("handleNewBooking", () => {
       timeout
     );
 
-    describe("Availablity Check During Booking", () => {
+    describe("Availability Check During Booking", () => {
       test(
         `should fail a booking if there is already a conflicting booking in the first user's selectedCalendars`,
         async () => {
