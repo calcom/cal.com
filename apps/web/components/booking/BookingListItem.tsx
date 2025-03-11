@@ -132,10 +132,10 @@ function BookingListItem(booking: BookingItemProps) {
   });
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       showToast(data.message, "success");
       // Invalidate and refetch the bookings query to update the UI
-      await utils.viewer.bookings.invalidate();
+      utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
