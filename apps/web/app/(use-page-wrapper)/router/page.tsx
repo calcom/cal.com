@@ -38,6 +38,6 @@ export async function generateMetadata({ params, searchParams }: _PageProps) {
   const result = await getCachedRoutingFormData(legacyCtx);
 
   return {
-    title: `${result.props?.form?.name} | Cal.com Forms`,
+    title: `${result.props?.form.name} | Cal.com Forms`,
   };
 }
