@@ -90,7 +90,7 @@ export default function RecurringEventController({
               description={t("recurring_event_description")}
               checked={recurringEventState !== null}
               data-testid="recurring-event-check"
-              disabled={isSeatsOffered}
+              disabled={recurringEventState == null && isSeatsOffered}
               tooltip={isSeatsOffered ? t("seats_doesnt_support_recurring") : undefined}
               onCheckedChange={(e) => {
                 if (!e) {

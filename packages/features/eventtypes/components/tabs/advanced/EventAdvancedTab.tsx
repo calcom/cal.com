@@ -795,7 +795,7 @@ export const EventAdvancedTab = ({
               {...seatsLocked}
               description={t("offer_seats_description")}
               checked={value}
-              disabled={noShowFeeEnabled || multiLocation || isRecurringEvent}
+              disabled={noShowFeeEnabled || multiLocation || (!seatsEnabled && isRecurringEvent)}
               tooltip={
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
