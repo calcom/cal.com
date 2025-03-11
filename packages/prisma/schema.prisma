@@ -1031,6 +1031,7 @@ model App_RoutingForms_Form {
   /// @zod.custom(imports.RoutingFormSettings)
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
+  deduplicateResponses     Boolean                                     @default(false)
 
   @@index([userId])
   @@index([disabled])
@@ -1042,7 +1043,10 @@ model App_RoutingForms_FormResponse {
   form               App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId             String
   response           Json
+  responseHash       String?               
   createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  lastSubmittedAt    DateTime?
   routedToBookingUid String?               @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
   routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
@@ -1051,6 +1055,7 @@ model App_RoutingForms_FormResponse {
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  @@index([responseHash])
 }
 
 view RoutingFormResponse {

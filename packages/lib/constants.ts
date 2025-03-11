@@ -219,3 +219,6 @@ export const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
 ];
 export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",") || [];
+
+// Number of days to consider a form response as duplicate
+export const DUPLICATE_RESPONSE_PERIOD_DAYS = 30;

@@ -8,7 +8,12 @@ import PageWrapper from "@components/PageWrapper";
 
 import { getServerSideProps } from "../../server/lib/router/getServerSideProps";
 
-export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
+export default function Router({
+  form,
+  message,
+  isDuplicateResponse,
+}: inferSSRProps<typeof getServerSideProps>) {
+  console.log("isDuplicateResponse", isDuplicateResponse);
   return (
     <>
       <Head>

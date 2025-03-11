@@ -91,6 +91,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   const serializableForm = await getSerializableForm({
     form: enrichFormWithMigrationData(formWithUserProfile),
   });
+
   timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
   const response: FormResponse = {};
@@ -118,6 +119,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
+  let isDuplicateResponse = false;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -129,6 +131,10 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
+    isDuplicateResponse = result.isDuplicate || false;
+    if (isDuplicateResponse) {
+      log.debug(`Processing duplicate response for form ${formId}`);
+    }
     timeTaken = {
       ...timeTaken,
       ...result.timeTaken,
@@ -140,6 +146,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
           ...pageProps,
           form: serializableForm,
           message: e.message,
+          isDuplicateResponse,
         },
       };
     }
@@ -155,6 +162,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
         ...pageProps,
         form: serializableForm,
         message: decidedAction.value,
+        isDuplicateResponse,
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
@@ -164,6 +172,11 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       serializableForm.fields
     );
 
+    const forwardParams = {
+      ...paramsToBeForwardedAsIs,
+      "cal.action": "eventTypeRedirectUrl",
+    };
+
     return {
       redirect: {
         destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
@@ -172,15 +185,14 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
           allURLSearchParams: getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
-            searchParams: new URLSearchParams(
-              stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
-            ),
+            searchParams: new URLSearchParams(stringify(forwardParams)),
             teamMembersMatchingAttributeLogic,
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
+            isDuplicateResponse,
           }),
           isEmbed: pageProps.isEmbed,
         }),
@@ -188,9 +200,14 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       },
     };
   } else if (decidedAction.type === "externalRedirectUrl") {
+    const queryParams = {
+      ...context.query,
+      "cal.action": "externalRedirectUrl",
+    };
+
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
+        destination: `${decidedAction.value}?${stringify(queryParams)}`,
         permanent: false,
       },
     };
@@ -202,6 +219,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       ...pageProps,
       form: serializableForm,
       message: "Unhandled type of action",
+      isDuplicateResponse,
     },
   };
 };

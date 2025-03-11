@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { DUPLICATE_RESPONSE_PERIOD_DAYS } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
@@ -13,6 +14,7 @@ import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/ro
 import { TRPCError } from "@trpc/server";
 
 import isRouter from "../lib/isRouter";
+import { generateResponseHash } from "../lib/utils";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
 
@@ -29,6 +31,28 @@ export type Form = SerializableForm<
 >;
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
+
+async function findDuplicateResponseInLastNDays({
+  formId,
+  responseHash,
+  days,
+}: {
+  formId: string;
+  responseHash: string;
+  days: number;
+}) {
+  const nDaysAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  return prisma.app_RoutingForms_FormResponse.findFirst({
+    where: {
+      formId,
+      responseHash,
+      createdAt: {
+        gte: nDaysAgo,
+      },
+    },
+  });
+}
 
 export const handleResponse = async ({
   response,
@@ -59,7 +83,8 @@ export const handleResponse = async ({
       fields: form.fields,
     };
 
-    const missingFields = serializableFormWithFields.fields
+    const formFields = serializableFormWithFields.fields;
+    const missingFields = formFields
       .filter((field) => !(field.required ? response[field.id]?.value : true))
       .map((f) => f.label);
 
@@ -69,7 +94,7 @@ export const handleResponse = async ({
         message: `Missing required fields ${missingFields.join(", ")}`,
       });
     }
-    const invalidFields = serializableFormWithFields.fields
+    const invalidFields = formFields
       .filter((field) => {
         const fieldValue = response[field.id]?.value;
         // The field isn't required at this point. Validate only if it's set
@@ -164,15 +189,76 @@ export const handleResponse = async ({
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
 
+    if (isPreview) {
+      moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
+      // Create a mock response for dry run
+      const mockFormResponse = {
+        id: 0,
+        formId: form.id,
+        response,
+        chosenRouteId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      return {
+        isPreview: !!isPreview,
+        isDuplicate: false,
+        formResponse: mockFormResponse,
+        teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+        attributeRoutingConfig: chosenRoute
+          ? "attributeRoutingConfig" in chosenRoute
+            ? chosenRoute.attributeRoutingConfig
+            : null
+          : null,
+        timeTaken,
+      };
+    }
+
     let dbFormResponse;
-    if (!isPreview) {
+
+    let duplicateResponse = null;
+
+    const responseHash = generateResponseHash({ response, fields: form.fields });
+
+    if (form.deduplicateResponses) {
+      duplicateResponse = await findDuplicateResponseInLastNDays({
+        formId: form.id,
+        responseHash: responseHash,
+        days: DUPLICATE_RESPONSE_PERIOD_DAYS,
+      });
+    }
+
+    if (duplicateResponse) {
+      moduleLogger.info(`Duplicate form response detected for form ${form.id}`);
+
+      // We can make updates to the existing response till it is connected to a successful booking
+      if (!duplicateResponse.routedToBookingUid) {
+        await prisma.app_RoutingForms_FormResponse.update({
+          where: { id: duplicateResponse.id },
+          data: {
+            chosenRouteId,
+            lastSubmittedAt: new Date(),
+          },
+        });
+      } else {
+        moduleLogger.info(
+          `Duplicate form response detected for form ${form.id} with response id ${duplicateResponse.id} but it is connected to a booking. Not updating the record.`
+        );
+      }
+
+      dbFormResponse = duplicateResponse;
+    } else {
+      // If not a duplicate, create a new response
       dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
         data: {
           // TODO: Why do we not save formFillerId available in the input?
           // formFillerId,
           formId: form.id,
           response: response,
+          responseHash: responseHash,
           chosenRouteId,
+          lastSubmittedAt: new Date(),
         },
       });
 
@@ -182,21 +268,11 @@ export const handleResponse = async ({
         dbFormResponse.id,
         chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
       );
-    } else {
-      moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
-      // Create a mock response for dry run
-      dbFormResponse = {
-        id: 0,
-        formId: form.id,
-        response,
-        chosenRouteId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
     }
 
     return {
       isPreview: !!isPreview,
+      isDuplicate: !!duplicateResponse,
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
       attributeRoutingConfig: chosenRoute
