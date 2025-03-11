@@ -55,5 +55,5 @@ export const routingFormStatsInputSchema = z.object({
 export const routingFormResponsesInputSchema = z.object({
   ...routingFormStatsInputSchema.shape,
   offset: z.number().optional(),
-  limit: z.number().optional(),
+  limit: z.number().max(100).optional(),
 }) satisfies z.ZodType<RoutingFormResponsesInput>;
