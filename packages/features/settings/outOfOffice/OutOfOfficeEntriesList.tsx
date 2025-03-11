@@ -73,7 +73,7 @@ export const OutOfOfficeEntriesList = () => {
     refetch();
   }, [deletedEntry, selectedTab, refetch]);
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
@@ -127,7 +127,7 @@ export const OutOfOfficeEntriesList = () => {
     }
     columns.push({
       id: "outOfOffice",
-      header: `${t("out_of_office")} (${totalDBRowCount})`,
+      header: `${t("out_of_office")} (${totalRowCount})`,
       size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
       cell: ({ row }) => {
         const item = row.original;
@@ -261,7 +261,7 @@ export const OutOfOfficeEntriesList = () => {
     (containerRefElement?: HTMLDivElement | null) => {
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        if (scrollHeight - scrollTop - clientHeight < 100 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 100 && !isFetching && totalFetched < totalRowCount) {
           fetchNextPage();
         }
         if (isFetching) {
@@ -271,7 +271,7 @@ export const OutOfOfficeEntriesList = () => {
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching, totalFetched, totalRowCount]
   );
 
   const table = useReactTable({

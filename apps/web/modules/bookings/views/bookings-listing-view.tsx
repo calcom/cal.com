@@ -128,8 +128,10 @@ function BookingsContent({ status }: BookingsProps) {
         userIds,
         attendeeName,
         attendeeEmail,
-        afterStartDate: dateRange?.startDate ?? undefined,
-        beforeEndDate: dateRange?.endDate ?? undefined,
+        afterStartDate: dateRange?.startDate
+          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+          : undefined,
+        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
       },
     },
     {
@@ -387,10 +389,12 @@ function BookingsContent({ status }: BookingsProps) {
                 fetchNextPage={query.fetchNextPage}
                 isFetching={query.isFetching}
                 variant="compact"
+                paginationMode="infinite"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} />
+                    <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
                     <DataTableFilters.ActiveFilters table={table} />
+                    <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
                     <DataTableFilters.ClearFiltersButton />
                   </>
                 }
