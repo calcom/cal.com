@@ -49,7 +49,7 @@ const getDownloadLinkOfCalVideo = async (recordingId: string) => {
   return downloadLink;
 };
 
-async function postHandler(request: NextRequest) {
+export async function postHandler(request: NextRequest) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
   }
