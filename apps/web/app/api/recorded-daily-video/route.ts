@@ -1,3 +1,4 @@
+import { parseRequestData } from "app/api/parseRequestData";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
   }
 
-  const body = await request.json();
+  const body = await parseRequestData(request);
 
   if (testRequestSchema.safeParse(body).success) {
     return NextResponse.json({ message: "Test request successful" });
