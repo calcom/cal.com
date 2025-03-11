@@ -1,4 +1,5 @@
-import type { NextApiResponse } from "next";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -11,12 +12,14 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
+import type { CustomNextApiHandler } from "@calcom/lib/server/username";
+import { usernameHandler } from "@calcom/lib/server/username";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {
@@ -27,7 +30,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
-async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+const handler: CustomNextApiHandler = async (body, usernameStatus) => {
   const {
     email: _email,
     password,
@@ -38,18 +41,18 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       password: true,
       token: true,
     })
-    .parse(req.body);
+    .parse(body);
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
 
   log.debug("handler", { email: _email });
 
-  let username: string | null = req.usernameStatus.requestedUserName;
+  let username: string | null = usernameStatus.requestedUserName;
   let checkoutSessionId: string | null = null;
 
   // Check for premium username
-  if (req.usernameStatus.statusCode === 418) {
-    return res.status(req.usernameStatus.statusCode).json(req.usernameStatus.json);
+  if (usernameStatus.statusCode === 418) {
+    return NextResponse.json(usernameStatus.json, { status: 418 });
   }
 
   // Validate the user
@@ -107,7 +110,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const returnUrl = `${WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=/auth/verify?sessionId={CHECKOUT_SESSION_ID}`;
 
   // Pro username, must be purchased
-  if (req.usernameStatus.statusCode === 402) {
+  if (usernameStatus.statusCode === 402) {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customer.id,
@@ -208,20 +211,20 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     }
     sendEmailVerification({
       email,
-      language: await getLocaleFromRequest(req),
+      language: await getLocaleFromRequest(buildLegacyRequest(headers(), cookies())),
       username: username || "",
     });
   }
 
   if (checkoutSessionId) {
     console.log("Created user but missing payment", checkoutSessionId);
-    return res.status(402).json({
-      message: "Created user but missing payment",
-      checkoutSessionId,
-    });
+    return NextResponse.json(
+      { message: "Created user but missing payment", checkoutSessionId },
+      { status: 402 }
+    );
   }
 
-  return res.status(201).json({ message: "Created user", stripeCustomerId: customer.id });
-}
+  return NextResponse.json({ message: "Created user", stripeCustomerId: customer.id }, { status: 201 });
+};
 
 export default usernameHandler(handler);
