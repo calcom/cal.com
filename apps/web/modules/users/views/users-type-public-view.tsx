@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
-import { getUtmTrackingParameters } from "@lib/booking/getUtmTrackingParameters";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
@@ -44,7 +43,6 @@ function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBa
           searchParams?.get("duration"),
           eventData.length
         )}
-        tracking={getUtmTrackingParameters(searchParams)}
       />
     </main>
   );

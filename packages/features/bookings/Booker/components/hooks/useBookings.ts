@@ -384,7 +384,6 @@ export const useBookings = ({
     bookingForm,
     hashedLink,
     metadata,
-    tracking,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,

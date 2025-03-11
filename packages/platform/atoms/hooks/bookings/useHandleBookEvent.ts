@@ -1,8 +1,9 @@
+import { useSearchParams } from "next/navigation";
+
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import type { Tracking } from "@calcom/features/bookings/Booker/types";
 import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -11,6 +12,7 @@ import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import { showToast } from "@calcom/ui";
 
+import { getUtmTrackingParameters } from "../../lib/getUtmTrackingParameters";
 import type { UseCreateBookingInput } from "./useCreateBooking";
 
 type Callbacks = { onSuccess?: () => void; onError?: (err: any) => void };
@@ -29,7 +31,6 @@ type UseHandleBookingProps = {
   handleRecBooking: (input: BookingCreateBody[], callbacks?: Callbacks) => void;
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
-  tracking?: Tracking;
 };
 
 export const useHandleBookEvent = ({
@@ -42,7 +43,6 @@ export const useHandleBookEvent = ({
   handleRecBooking,
   locationUrl,
   routingFormSearchParams,
-  tracking,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -65,6 +65,7 @@ export const useHandleBookEvent = ({
     const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
   };
+  const searchParams = useSearchParams();
 
   const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
@@ -111,6 +112,8 @@ export const useHandleBookEvent = ({
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
       };
+
+      const tracking = getUtmTrackingParameters(searchParams);
 
       if (isInstantMeeting) {
         handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);

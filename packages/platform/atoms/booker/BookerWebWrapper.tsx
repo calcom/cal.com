@@ -152,7 +152,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     bookingForm: bookerForm.bookingForm,
     metadata: metadata ?? {},
     teamMemberEmail: props.teamMemberEmail,
-    tracking: props.tracking,
   });
 
   const verifyCode = useVerifyCode({
