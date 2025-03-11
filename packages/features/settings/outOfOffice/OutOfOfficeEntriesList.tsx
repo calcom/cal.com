@@ -337,6 +337,7 @@ function OutOfOfficeEntriesListContent() {
         isFetching={isFetching}
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
+        paginationMode="infinite"
         ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
         ToolbarRight={
           <>
