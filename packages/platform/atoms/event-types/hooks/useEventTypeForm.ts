@@ -298,7 +298,7 @@ export const useEventTypeForm = ({
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
-    if (seatsPerTimeSlot > 0 && recurringEvent !== null) {
+    if ((seatsPerTimeSlot ?? 0) > 0 && recurringEvent !== null) {
       throw new Error(t("recurring_event_seats_error"));
     }
 
