@@ -126,6 +126,8 @@ function getEventTypeUrlsForTheChosenRoute({
     attributeRoutingConfig: chosenRoute.attributeRoutingConfig ?? null,
     rescheduleUid: booking.uid,
     reroutingFormResponses,
+    // Rerouting action is taken by organizer and happens for a connected booking only, so it is fine to hardcode it to false here
+    isDuplicateResponse: false,
   });
 
   const eventFullSlug = substituteVariables(chosenRoute.action.value, currentResponse, formFields);

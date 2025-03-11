@@ -19,6 +19,7 @@ class VirtualQueuesInsights {
       disabled: boolean;
       settings: JsonField | null;
       updatedById: number | null;
+      deduplicateResponses: boolean;
     };
 
     const formsRedirectingToWeightedRR: RoutingFormType[] = await prisma.$queryRaw<RoutingFormType[]>`

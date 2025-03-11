@@ -26,6 +26,7 @@ type GetUrlSearchParamsToForwardOptions = {
   reroutingFormResponses?: FormResponseValueOnly;
   teamId?: number | null;
   orgId?: number | null;
+  isDuplicateResponse: boolean;
 };
 
 export function getUrlSearchParamsToForward({
@@ -38,6 +39,7 @@ export function getUrlSearchParamsToForward({
   reroutingFormResponses,
   teamId,
   orgId,
+  isDuplicateResponse,
 }: GetUrlSearchParamsToForwardOptions) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
@@ -118,6 +120,7 @@ export function getUrlSearchParamsToForward({
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
       : null),
+    ...(isDuplicateResponse ? { ["cal.isDuplicateResponse"]: "1" } : null),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();
@@ -142,6 +145,7 @@ export function getUrlSearchParamsToForwardForReroute({
   attributeRoutingConfig,
   rescheduleUid,
   reroutingFormResponses,
+  isDuplicateResponse,
 }: GetUrlSearchParamsToForwardOptions & {
   rescheduleUid: string;
   reroutingFormResponses: FormResponseValueOnly;
@@ -156,6 +160,7 @@ export function getUrlSearchParamsToForwardForReroute({
     teamMembersMatchingAttributeLogic,
     attributeRoutingConfig,
     reroutingFormResponses,
+    isDuplicateResponse,
   });
 }
 
@@ -179,5 +184,7 @@ export function getUrlSearchParamsToForwardForTestPreview({
     // There is no form response being stored in test preview
     formResponseId: null,
     searchParams,
+    // Testing would normally have duplicates, so we we could just set it to false
+    isDuplicateResponse: false,
   });
 }
