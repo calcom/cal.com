@@ -35,6 +35,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "conferencing", href: "/settings/my-account/conferencing" },
         { name: "appearance", href: "/settings/my-account/appearance" },
         { name: "out_of_office", href: "/settings/my-account/out-of-office" },
+        { name: "push_notifications", href: "/settings/my-account/push-notifications" },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],

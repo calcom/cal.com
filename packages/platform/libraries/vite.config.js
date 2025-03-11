@@ -19,6 +19,7 @@ export default defineConfig({
       entry: {
         index: resolve(__dirname, "./index.ts"),
         "event-types": resolve(__dirname, "./event-types.ts"),
+        "app-store": resolve(__dirname, "./app-store.ts"),
         slots: resolve(__dirname, "./slots.ts"),
       },
       name: "calcom-lib",
