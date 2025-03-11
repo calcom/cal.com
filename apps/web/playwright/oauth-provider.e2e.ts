@@ -58,7 +58,7 @@ test.describe("OAuth Provider", () => {
     });
 
     const tokenData = await tokenResponse.json();
-    console.log(tokenData);
+
     // test if token is valid
     const meResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
       method: "POST",
