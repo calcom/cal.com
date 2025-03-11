@@ -174,7 +174,7 @@ jobs:
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
-  e2e-routing-form:
+  e2e-routing-forms:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
