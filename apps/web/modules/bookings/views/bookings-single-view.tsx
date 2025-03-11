@@ -27,7 +27,7 @@ import {
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
-import { APP_NAME, CURRENT_TIMEZONE } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -44,6 +44,7 @@ import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
