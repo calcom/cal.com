@@ -18,17 +18,10 @@ import type {
   PaymentAppData,
   OriginalRescheduledBooking,
   LoadedUsers,
+  Tracking,
 } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
-
-type Tracking = {
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
-};
 
 type CreateBookingParams = {
   uid: short.SUUID;

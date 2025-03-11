@@ -65,6 +65,13 @@ export type IsFixedAwareUser = User & {
 
 export type NewBookingEventType = DefaultEvent | getEventTypeResponse;
 
+export type Tracking = {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+};
 export type {
   AwaitedBookingData,
   RescheduleReason,
