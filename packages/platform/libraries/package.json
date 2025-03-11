@@ -44,6 +44,11 @@
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
+    "./emails": {
+      "import": "./dist/emails.js",
+      "require": "./dist/emails.cjs",
+      "types": "./dist/emails.d.ts"
+    },
     "./slots": {
       "import": "./dist/slots.js",
       "require": "./dist/slots.cjs",
@@ -57,6 +62,9 @@
       ],
       "slots": [
         "dist/slots.d.ts"
+      ],
+      "emails": [
+        "dist/emails.d.ts"
       ],
       "app-store": [
         "dist/app-store.d.ts"

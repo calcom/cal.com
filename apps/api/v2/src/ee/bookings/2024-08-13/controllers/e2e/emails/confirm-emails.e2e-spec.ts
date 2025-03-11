@@ -34,7 +34,7 @@ import {
   AttendeeRequestEmail,
   OrganizerRequestEmail,
   AttendeeDeclinedEmail,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/emails";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,

@@ -2295,7 +2295,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.143"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.144"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -2931,7 +2931,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     bcryptjs: ^2.4.3
-    dub: ^0.55.1
+    dub: ^0.59.1
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
@@ -3341,13 +3341,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.143":
-  version: 0.0.143
-  resolution: "@calcom/platform-libraries@npm:0.0.143"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.144":
+  version: 0.0.144
+  resolution: "@calcom/platform-libraries@npm:0.0.144"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 4fc720af57b82bcf7dca7df7d86efa7e8a65342036d0ae67b18c14f68007750c63ff234cd0d2ee2439c346beb3656c3c965c9d2ccb9d6dd0e99427223f6e1806
+  checksum: 2b4ac2ca7bf343baf34106fdc68cece3fac9e9281112d05fb3a1ba1cd3c6357b4d1db9f844588908535fccc093ece36f295f4889ad868b3848030b9f3000b0d8
   languageName: node
   linkType: hard
 
@@ -20289,12 +20289,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dub@npm:^0.55.1":
-  version: 0.55.1
-  resolution: "dub@npm:0.55.1"
+"dub@npm:^0.59.1":
+  version: 0.59.1
+  resolution: "dub@npm:0.59.1"
   peerDependencies:
+    "@modelcontextprotocol/sdk": ^1.5.0
     zod: ">= 3"
-  checksum: 57ee31901267107de0261c1a4963df7978ff915fe2544ef0a5c3e051f6731a42162d3ff521e88cce21f790edd155dc5388d3bb44e2f0d0d0bda9ece2b6cdadb5
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  bin:
+    mcp: bin/mcp-server.js
+  checksum: e7186f2c7af1fabba7b2dc2f2565e5b6a9883d10bbd31ef1615b5cf2cf62243de3d55a992baa02dc5327a113c2fd363c3d2291871585014abd13788b9d20afd1
   languageName: node
   linkType: hard
 
