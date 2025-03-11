@@ -204,7 +204,7 @@ jobs:
   merge-reports:
     name: Merge reports
     if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-routing-forms]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
@@ -237,7 +237,7 @@ jobs:
         e2e-api-v2,
         e2e-embed,
         e2e-embed-react,
-        e2e-app-store,
+        e2e-routing-forms,
       ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
