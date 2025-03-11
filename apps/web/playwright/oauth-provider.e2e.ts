@@ -43,7 +43,7 @@ test.describe("OAuth Provider", () => {
     const code = url.searchParams.get("code");
 
     // request token with authorization code
-    const tokenForm = new FormData();
+    const tokenForm = new URLSearchParams();
     tokenForm.append("code", code ?? "");
     tokenForm.append("client_id", client.clientId);
     tokenForm.append("client_secret", client.orginalSecret);
@@ -58,7 +58,7 @@ test.describe("OAuth Provider", () => {
     });
 
     const tokenData = await tokenResponse.json();
-
+    console.log(tokenData);
     // test if token is valid
     const meResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
       method: "POST",
@@ -74,7 +74,7 @@ test.describe("OAuth Provider", () => {
     expect(meData.username.startsWith("test user")).toBe(true);
 
     // request new token with refresh token
-    const refreshTokenForm = new FormData();
+    const refreshTokenForm = new URLSearchParams();
     refreshTokenForm.append("refresh_token", tokenData.refresh_token);
     refreshTokenForm.append("client_id", client.clientId);
     refreshTokenForm.append("client_secret", client.orginalSecret);
@@ -126,7 +126,7 @@ test.describe("OAuth Provider", () => {
     const code = url.searchParams.get("code");
 
     // request token with authorization code
-    const tokenForm = new FormData();
+    const tokenForm = new URLSearchParams();
     tokenForm.append("code", code ?? "");
     tokenForm.append("client_id", client.clientId);
     tokenForm.append("client_secret", client.orginalSecret);
@@ -157,7 +157,7 @@ test.describe("OAuth Provider", () => {
     expect(meData.username).toEqual(`user-id-${user.id}'s Team`);
 
     // request new token with refresh token
-    const refreshTokenForm = new FormData();
+    const refreshTokenForm = new URLSearchParams();
     refreshTokenForm.append("refresh_token", tokenData.refresh_token);
     refreshTokenForm.append("client_id", client.clientId);
     refreshTokenForm.append("client_secret", client.orginalSecret);
