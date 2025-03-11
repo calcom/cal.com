@@ -106,6 +106,6 @@ async function deleteHandler(req: NextRequest) {
   return NextResponse.json({ message: "Calendar Selection Saved" });
 }
 
-export const POST = defaultResponderForAppDir(deleteHandler);
-export const DELETE = defaultResponderForAppDir(postHandler);
+export const POST = defaultResponderForAppDir(postHandler);
+export const DELETE = defaultResponderForAppDir(deleteHandler);
 export const GET = defaultResponderForAppDir(getHandler);
