@@ -42,6 +42,7 @@ export function getMockRequestDataForBooking({
     eventTypeId: number;
     user?: string;
     creationSource?: CreationSource;
+    tracking?: Tracking;
   } & CommonPropsMockRequestData;
 }) {
   return {
