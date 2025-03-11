@@ -1,6 +1,11 @@
 // Generates summary and action items from a meeting transcript download link (.vtt file)
 export const generateSummary = async (transcriptUrl: string) => {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      console.warn("OPENAI_API_KEY is not set, skipping summary generation");
+      return "";
+    }
+
     const transcriptResponse = await fetch(transcriptUrl);
     const vttContent = await transcriptResponse.text();
 
