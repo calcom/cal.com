@@ -42,10 +42,7 @@ import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
-import {
-  createNewUsersConnectToOrgIfExists,
-  sendSignupToOrganizationEmail,
-} from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
+import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { App } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -122,7 +119,7 @@ export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezones
 
 export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
-export { createNewUsersConnectToOrgIfExists, sendSignupToOrganizationEmail };
+export { createNewUsersConnectToOrgIfExists };
 
 export { getAllUserBookings };
 export { getBookingInfo };

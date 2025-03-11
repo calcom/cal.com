@@ -9,6 +9,7 @@ import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassig
 import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
 import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
+import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { AttendeeScheduledEmail };
 
@@ -31,3 +32,5 @@ export { AttendeeUpdatedEmail };
 export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
+
+export { sendSignupToOrganizationEmail };
