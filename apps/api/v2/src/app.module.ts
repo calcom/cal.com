@@ -1,5 +1,5 @@
 import appConfig from "@/config/app";
-import { CustomThrottlerGuard } from "@/lib/throttler-guard";
+import { CustomThrottlerGuard } from "@/lib/throttler/throttler-guard";
 import { AppLoggerMiddleware } from "@/middleware/app.logger.middleware";
 import { RedirectsMiddleware } from "@/middleware/app.redirects.middleware";
 import { RewriterMiddleware } from "@/middleware/app.rewrites.middleware";
@@ -10,6 +10,7 @@ import { RequestIdMiddleware } from "@/middleware/request-ids/request-id.middlew
 import { AuthModule } from "@/modules/auth/auth.module";
 import { EndpointsModule } from "@/modules/endpoints.module";
 import { JwtModule } from "@/modules/jwt/jwt.module";
+import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
@@ -58,6 +59,7 @@ import { AppController } from "./app.controller";
     EndpointsModule,
     AuthModule,
     JwtModule,
+    OAuthClientModule,
   ],
   controllers: [AppController],
   providers: [
