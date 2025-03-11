@@ -29,6 +29,11 @@
     "vite-plugin-environment": "^1.1.3"
   },
   "exports": {
+    "./app-store": {
+      "import": "./dist/app-store.js",
+      "require": "./dist/app-store.cjs",
+      "types": "./dist/app-store.d.ts"
+    },
     "./event-types": {
       "import": "./dist/event-types.js",
       "require": "./dist/event-types.cjs",
@@ -59,7 +64,10 @@
         "dist/slots.d.ts"
       ],
       "emails": [
-        "dist/slots.d.ts"
+        "dist/emails.d.ts"
+      ],
+      "app-store": [
+        "dist/app-store.d.ts"
       ]
     }
   }
