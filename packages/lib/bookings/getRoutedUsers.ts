@@ -2,10 +2,11 @@ import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { RRResetInterval } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { enrichHostsWithDwdCredentials } from "../domainWideDelegation/server";
+import { enrichHostsWithDelegationCredentials } from "../delegationCredential/server";
 import getOrgIdFromMemberOrTeamId from "../getOrgIdFromMemberOrTeamId";
 
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
@@ -80,7 +81,7 @@ export type EventType = {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: AttributesQueryValue | null | undefined;
-  team: { id: number; parentId: number | null } | null;
+  team: { id: number; parentId: number | null; rrResetInterval: RRResetInterval | null } | null;
 };
 
 export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<User>>({
@@ -118,7 +119,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
   }
 }
 type BaseUserWithCredentialPayload = BaseUser & { credentials: CredentialPayload[] };
-export async function getNormalizedHostsWithDwdCredentials<
+export async function getNormalizedHostsWithDelegationCredentials<
   User extends BaseUserWithCredentialPayload,
   Host extends BaseHost<User>
 >({
@@ -132,28 +133,28 @@ export async function getNormalizedHostsWithDwdCredentials<
   };
 }) {
   if (eventType.hosts?.length && eventType.schedulingType) {
-    const hostsWithoutDwd = eventType.hosts.map((host) => ({
+    const hostsWithoutDelegationCredential = eventType.hosts.map((host) => ({
       isFixed: host.isFixed,
       user: host.user,
       priority: host.priority,
       weight: host.weight,
       createdAt: host.createdAt,
     }));
-    const firstHost = hostsWithoutDwd[0];
+    const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
       memberId: firstHost?.user?.id ?? null,
       teamId: eventType.teamId,
     });
-    const hostsEnrichedWithDwd = await enrichHostsWithDwdCredentials({
+    const hostsEnrichedWithDelegationCredential = await enrichHostsWithDelegationCredentials({
       orgId: firstUserOrgId ?? null,
-      hosts: hostsWithoutDwd ?? null,
+      hosts: hostsWithoutDelegationCredential ?? null,
     });
     return {
-      hosts: hostsEnrichedWithDwd,
+      hosts: hostsEnrichedWithDelegationCredential,
       fallbackHosts: null,
     };
   } else {
-    const hostsWithoutDwd = eventType.users.map((user) => {
+    const hostsWithoutDelegationCredential = eventType.users.map((user) => {
       return {
         isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
         email: user.email,
@@ -161,18 +162,18 @@ export async function getNormalizedHostsWithDwdCredentials<
         createdAt: null,
       };
     });
-    const firstHost = hostsWithoutDwd[0];
+    const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
       memberId: firstHost?.user?.id ?? null,
       teamId: eventType.teamId,
     });
-    const hostsEnrichedWithDwd = await enrichHostsWithDwdCredentials({
+    const hostsEnrichedWithDelegationCredential = await enrichHostsWithDelegationCredentials({
       orgId: firstUserOrgId ?? null,
-      hosts: hostsWithoutDwd ?? null,
+      hosts: hostsWithoutDelegationCredential ?? null,
     });
     return {
       hosts: null,
-      fallbackHosts: hostsEnrichedWithDwd,
+      fallbackHosts: hostsEnrichedWithDelegationCredential,
     };
   }
 }

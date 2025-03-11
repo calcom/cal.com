@@ -6,9 +6,9 @@ import { localize } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-// a test to logout requires both a succesfull login as logout, to prevent
+// a test to logout requires both a successful login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
-test.describe("user can login & logout succesfully", async () => {
+test.describe("user can login & logout successfully", async () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });

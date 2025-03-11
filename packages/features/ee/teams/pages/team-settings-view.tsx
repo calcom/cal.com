@@ -7,17 +7,18 @@ import { useForm, Controller } from "react-hook-form";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { validateIntervalLimitOrder } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
+import RoundRobinResetInterval from "../components/RoundRobinResetInterval";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
@@ -171,6 +172,7 @@ const TeamSettingsViewWrapper = () => {
     <>
       <BookingLimitsView team={team} />
       <InternalNotePresetsView team={team} />
+      <RoundRobinResetInterval team={team} />
     </>
   );
 };

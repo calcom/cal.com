@@ -38,11 +38,11 @@ export const DestinationCalendarSettingsPlatformWrapper = ({
         value={calendars.data.destinationCalendar.externalId}
         hidePlaceholder
         hideAdvancedText
-        onChange={async ({ externalId, integration, domainWideDelegationCredentialId }) => {
+        onChange={async ({ externalId, integration, delegationCredentialId }) => {
           await updateDestinationCalendars({
             integration,
             externalId,
-            domainWideDelegationCredentialId,
+            delegationCredentialId,
           });
         }}
         isPending={isUpdatingCalendar}
