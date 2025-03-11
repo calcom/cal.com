@@ -1217,6 +1217,7 @@ async function handler(
         evt,
         originalRescheduledBooking,
         creationSource: req.body.creationSource,
+        tracking: reqBody.tracking,
       });
 
       if (booking?.userId) {
