@@ -294,7 +294,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
 
   return (
     <>
-      <DataTableWrapper
+      <DataTableWrapper<PlatformManagedUserTableUser>
         testId="managed-user-list-data-table"
         table={table}
         isPending={isPending}

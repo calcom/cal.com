@@ -125,7 +125,7 @@ export function RoutingFormResponsesTable() {
   return (
     <>
       <div className="flex-1">
-        <DataTableWrapper
+        <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
           hasNextPage={hasNextPage}

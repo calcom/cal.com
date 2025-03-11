@@ -547,7 +547,7 @@ function UserListTableContent() {
 
   return (
     <>
-      <DataTableWrapper
+      <DataTableWrapper<UserTableUser>
         testId="user-list-data-table"
         table={table}
         isPending={isPending}

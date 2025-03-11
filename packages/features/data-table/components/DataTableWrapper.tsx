@@ -14,12 +14,16 @@ import type { DataTablePropsFromWrapper } from "./DataTable";
 import { DataTable } from "./DataTable";
 import { DataTablePagination } from "./DataTablePagination";
 
-type BaseDataTableWrapperProps<TData> = Omit<DataTablePropsFromWrapper<TData>, "paginationMode"> & {
+type BaseDataTableWrapperProps<TData> = Omit<
+  DataTablePropsFromWrapper<TData>,
+  "paginationMode" | "tableContainerRef"
+> & {
   totalRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
+  tableContainerRef?: React.RefObject<HTMLDivElement>;
 };
 
 type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {

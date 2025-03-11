@@ -333,7 +333,7 @@ export const OutOfOfficeEntriesList = () => {
       ) : (
         <div>
           <DataTable
-            hideHeader={selectedTab === OutOfOfficeTab.MINE}
+            rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
             table={table}
             tableContainerRef={tableContainerRef}
             isPending={isPending}
