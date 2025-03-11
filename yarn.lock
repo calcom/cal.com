@@ -3551,6 +3551,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/slack@workspace:packages/app-store/slack":
+  version: 0.0.0-use.local
+  resolution: "@calcom/slack@workspace:packages/app-store/slack"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/stripepayment@workspace:packages/app-store/stripepayment":
   version: 0.0.0-use.local
   resolution: "@calcom/stripepayment@workspace:packages/app-store/stripepayment"
