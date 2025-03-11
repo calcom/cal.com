@@ -76,12 +76,6 @@ vi.mock("@calcom/lib/videoClient", () => {
   };
 });
 
-vi.mock("app/api/parseRequestData", () => {
-  return {
-    parseRequestData: vi.fn(),
-  };
-});
-
 const BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD = {
   version: "1.1.0",
   type: "batch-processor.job-finished",
