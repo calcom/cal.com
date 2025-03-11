@@ -1,14 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum } from "class-validator";
+import { IsEnum, IsString } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export class CalendarLink {
+  @IsString()
   @ApiProperty({
     description: "The label of the calendar link",
   })
   label!: string;
 
+  @IsString()
   @ApiProperty({
     description: "The link to the calendar",
   })
