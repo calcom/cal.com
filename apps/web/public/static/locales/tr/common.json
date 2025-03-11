@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Tarayıcı Bildirimleri Kapalı",
   "browser_notifications_denied": "Tarayıcı Bildirimlerine İzin Verilmedi",
   "please_allow_notifications": "Lütfen istemden bildirimlere izin verin",
+  "push_notifications": "Anlık bildirimler",
+  "push_notifications_description": "Rezervasyon yapan kişi anında toplantı rezervasyonu yaptığında anlık bildirimler alın.",
   "browser_notifications_not_supported": "Tarayıcınız Anlık Bildirimleri desteklemiyor. Brave kullanıcısıysanız, brave://settings/?search=push+messaging adresinde 'Push mesajlaşma için Google hizmetlerini kullan' seçeneğini etkinleştirin.",
   "email": "E-posta",
   "email_placeholder": "derya@example.com",

@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Nettleservarsler deaktivert",
   "browser_notifications_denied": "Nettleservarsler avslått",
   "please_allow_notifications": "Vennligst tillat varsler fra prompten",
+  "push_notifications": "Push-varsler",
+  "push_notifications_description": "Motta push-varsler når en booker sender inn en umiddelbar møtebooking.",
   "browser_notifications_not_supported": "Nettleseren din støtter ikke Push-varsler. Hvis du bruker Brave, aktiver `Bruk Google-tjenester for push-meldinger`-alternativet på brave://settings/?search=push+messaging",
   "email": "E-post",
   "email_placeholder": "ola.nordman@eksempel.no",

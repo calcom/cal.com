@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Brauzer bildirişləri söndürülüb",
   "browser_notifications_denied": "Brauzer bildirişlərinə icazə verilməyib",
   "please_allow_notifications": "Zəhmət olmasa, bildirişlərə icazə verin",
+  "push_notifications": "Push bildirişləri",
+  "push_notifications_description": "Rezervasiya edən şəxs ani görüş rezervasiyası etdikdə push bildirişləri alın.",
   "browser_notifications_not_supported": "Brauzeriniz Push Bildirişlərini dəstəkləmir. Əgər Brave istifadəçisisinizsə, brave://settings/?search=push+messaging səhifəsində `Push mesajlaşma üçün Google xidmətlərindən istifadə et` seçimini aktivləşdirin.",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",

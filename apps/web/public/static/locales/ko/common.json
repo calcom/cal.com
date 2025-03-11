@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "브라우저 알림이 꺼졌습니다",
   "browser_notifications_denied": "브라우저 알림이 거부되었습니다",
   "please_allow_notifications": "알림을 허용해 주세요",
+  "push_notifications": "푸시 알림",
+  "push_notifications_description": "예약자가 즉시 회의 예약을 제출할 때 푸시 알림을 받습니다.",
   "browser_notifications_not_supported": "사용 중인 브라우저는 푸시 알림을 지원하지 않습니다. Brave 브라우저를 사용 중이라면 brave://settings/?search=push+messaging에서 '푸시 메시징에 Google 서비스 사용' 옵션을 활성화하세요.",
   "email": "이메일",
   "email_placeholder": "jdoe@example.com",

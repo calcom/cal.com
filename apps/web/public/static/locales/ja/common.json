@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "ブラウザ通知が無効になりました",
   "browser_notifications_denied": "ブラウザ通知が拒否されました",
   "please_allow_notifications": "プロンプトから通知を許可してください",
+  "push_notifications": "プッシュ通知",
+  "push_notifications_description": "予約者が即時ミーティング予約を送信した際にプッシュ通知を受け取ります。",
   "browser_notifications_not_supported": "お使いのブラウザはプッシュ通知をサポートしていません。Braveを使用している場合は、brave://settings/?search=push+messagingで「プッシュメッセージングにGoogleサービスを使用する」オプションを有効にしてください。",
   "email": "Eメールアドレス",
   "email_placeholder": "jdoe@example.com",

@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Notificações do navegador desativadas",
   "browser_notifications_denied": "Notificações do navegador negadas",
   "please_allow_notifications": "Por favor, permita notificações no prompt",
+  "push_notifications": "Notificações push",
+  "push_notifications_description": "Receba notificações push quando o agendador submeter uma reserva de reunião instantânea.",
   "browser_notifications_not_supported": "O seu navegador não suporta notificações push. Se for utilizador do Brave, ative a opção `Usar serviços do Google para mensagens push` em brave://settings/?search=push+messaging",
   "email": "Email",
   "email_placeholder": "nome@exemplo.com",

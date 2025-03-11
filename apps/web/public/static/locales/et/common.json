@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Brauseri teavitused on välja lülitatud",
   "browser_notifications_denied": "Brauseri teavitused on keelatud",
   "please_allow_notifications": "Palun luba teavitused hüpikaknast",
+  "push_notifications": "Tõuketeavitused",
+  "push_notifications_description": "Saa tõuketeavitusi, kui broneerija esitab kiire koosoleku broneeringu.",
   "browser_notifications_not_supported": "Sinu brauser ei toeta tõuketeavitusi. Kui kasutad Brave'i, luba valik 'Kasuta Google'i teenuseid tõuketeavituste jaoks' aadressil brave://settings/?search=push+messaging",
   "email": "E-post",
   "email_placeholder": "jdoe@example.com",

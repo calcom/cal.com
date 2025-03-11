@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Notificacions del navegador desactivades",
   "browser_notifications_denied": "Notificacions del navegador denegades",
   "please_allow_notifications": "Si us plau, permet les notificacions quan se't demanin",
+  "push_notifications": "Notificacions push",
+  "push_notifications_description": "Rep notificacions push quan el reservant envia una reserva de reunió instantània.",
   "browser_notifications_not_supported": "El teu navegador no admet les notificacions push. Si ets usuari de Brave, activa l'opció 'Utilitza els serveis de Google per a missatges push' a brave://settings/?search=push+messaging",
   "email": "Correu electrònic",
   "email_placeholder": "jdoe@example.com",

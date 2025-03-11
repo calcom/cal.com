@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Browsernotifikationer deaktiveret",
   "browser_notifications_denied": "Browsernotifikationer nægtet",
   "please_allow_notifications": "Tillad venligst notifikationer fra prompten",
+  "push_notifications": "Push-notifikationer",
+  "push_notifications_description": "Modtag push-notifikationer, når en booker indsender en øjeblikkelig mødebooking.",
   "browser_notifications_not_supported": "Din browser understøtter ikke push-notifikationer. Hvis du bruger Brave, skal du aktivere `Brug Google-tjenester til push-beskeder` i brave://settings/?search=push+messaging",
   "email": "E-mail",
   "email_placeholder": "jdoe@example.com",

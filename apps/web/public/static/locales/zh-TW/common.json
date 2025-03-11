@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "瀏覽器通知已關閉",
   "browser_notifications_denied": "瀏覽器通知被拒絕",
   "please_allow_notifications": "請允許提示中的通知",
+  "push_notifications": "推送通知",
+  "push_notifications_description": "當預訂者提交即時會議預訂時接收推送通知。",
   "browser_notifications_not_supported": "您的瀏覽器不支援推送通知。如果您是 Brave 使用者，請在 brave://settings/?search=push+messaging 中啟用「使用 Google 服務進行推送消息」選項",
   "email": "電子郵件",
   "email_placeholder": "jdoe@example.com",
