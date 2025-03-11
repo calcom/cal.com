@@ -12,13 +12,12 @@ import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-
 import dayjs from "@calcom/dayjs";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
-import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
+import type { TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import type {
   RoutingFormResponsesInput,
-  RoutingFormResponsesInputBase,
+  RoutingFormStatsInput,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import type { BookingStatus } from "@calcom/prisma/enums";
 
 import { type ResponseValue, ZResponse } from "../lib/types";
 
@@ -30,17 +29,8 @@ type RoutingFormInsightsTeamFilter = {
   routingFormId?: string | null;
 };
 
-type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
-  startDate?: string;
-  endDate?: string;
-  memberUserId?: number | null;
-  searchQuery?: string | null;
-  bookingStatus?: BookingStatus | "NO_BOOKING" | null;
-  fieldFilter?: {
-    fieldId: string;
-    optionId: string;
-  } | null;
-  columnFilters: ColumnFilter[];
+type RoutingFormStatsFilter = RoutingFormStatsInput & {
+  organizationId: number | null;
 };
 
 type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
@@ -121,7 +111,7 @@ class RoutingEventsInsights {
     memberUserIds,
     columnFilters,
     sorting,
-  }: RoutingFormResponsesInputBase) {
+  }: RoutingFormStatsFilter) {
     const whereClause = await this.getWhereClauseForRoutingFormResponses({
       teamId,
       startDate,
@@ -197,7 +187,7 @@ class RoutingEventsInsights {
     userId,
     memberUserIds,
     columnFilters,
-  }: RoutingFormResponsesInputBase) {
+  }: RoutingFormResponsesFilter) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
       teamId,

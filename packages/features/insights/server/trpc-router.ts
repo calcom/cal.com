@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import {
   rawDataInputSchema,
   routingFormResponsesInputSchema,
-  routingFormResponsesInputBaseSchema,
+  routingFormStatsInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -1575,7 +1575,7 @@ export const insightsRouter = router({
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
-    .input(routingFormResponsesInputBaseSchema)
+    .input(routingFormStatsInputSchema)
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getRoutingFormStats({
         teamId: input.teamId,
