@@ -58,6 +58,7 @@ const getBookingSuccessfulEventPayload = (booking: {
   eventTypeId?: number | null;
   status?: BookingStatus;
   paymentRequired: boolean;
+  videoCallUrl?: string;
   uid?: string;
   isRecurring: boolean;
 }) => {
@@ -70,6 +71,7 @@ const getBookingSuccessfulEventPayload = (booking: {
     status: booking.status,
     paymentRequired: booking.paymentRequired,
     isRecurring: booking.isRecurring,
+    videoCallUrl: booking.videoCallUrl,
   };
 };
 

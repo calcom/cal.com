@@ -1838,6 +1838,7 @@ async function handler(
         ...booking.user,
         email: null,
       },
+      videoCallUrl: metadata?.videoCallUrl,
     };
 
     return {
@@ -2029,6 +2030,7 @@ async function handler(
       email: null,
     },
     paymentRequired: false,
+    videoCallUrl: metadata?.videoCallUrl,
   };
 
   return {
