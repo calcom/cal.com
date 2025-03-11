@@ -1845,7 +1845,6 @@ describe("Event types Endpoints", () => {
       await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
-        await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
       } catch (e) {
         // Event type might have been deleted by the test
       }

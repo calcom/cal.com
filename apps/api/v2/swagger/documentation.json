@@ -16040,7 +16040,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number"
+            "type": "object"
           },
           "integration": {
             "type": "string"
