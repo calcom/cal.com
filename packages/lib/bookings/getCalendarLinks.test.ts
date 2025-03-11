@@ -29,10 +29,31 @@ describe("getCalendarLinks", () => {
   const mockDayjsEndTime = dayjs(mockEndTime);
 
   // Mock translation function
-  const mockT = (key: string) => key as unknown as TFunction;
+  const mockT = ((key: string) => key) as TFunction;
 
   // Mock createEvent implementation
   const mockIcsValue = "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR";
+
+  // Baseline mock objects that can be reused across tests
+  const baseMockBooking = {
+    startTime: mockStartTime,
+    endTime: mockEndTime,
+    location: "Test Location",
+    title: "Test Title",
+    responses: {},
+    metadata: {},
+  };
+
+  const baseMockEventType = {
+    recurringEvent: {},
+    description: "Test Description",
+    eventName: "Test Event",
+    isDynamic: false,
+    length: 60,
+    team: null,
+    users: [{ name: "Test User" }],
+    title: "Test Title",
+  };
 
   beforeEach(() => {
     // Reset mocks before each test
@@ -47,30 +68,43 @@ describe("getCalendarLinks", () => {
     vi.clearAllMocks();
   });
 
-  describe("buildICalLink", () => {
+  it("should return all calendar links", async () => {
+    const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
+
+    expect(result).toHaveLength(4);
+    expect(result.map((link) => link.id)).toEqual(
+      expect.arrayContaining([
+        CalendarLinkType.GOOGLE_CALENDAR,
+        CalendarLinkType.MICROSOFT_OFFICE,
+        CalendarLinkType.MICROSOFT_OUTLOOK,
+        CalendarLinkType.ICS,
+      ])
+    );
+  });
+
+  it("should use videoCallUrl from metadata when available", async () => {
+    const videoCallUrl = "https://zoom.com/test";
+    const booking = {
+      ...baseMockBooking,
+      metadata: { videoCallUrl },
+    };
+
+    const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
+
+    // Check that all links contain the videoCallUrl
+    const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
+    const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
+    const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
+
+    expect(googleLink?.link).toContain(encodeURIComponent(videoCallUrl));
+    expect(office365Link?.link).toContain(encodeURIComponent(videoCallUrl));
+    expect(outlookLink?.link).toContain(encodeURIComponent(videoCallUrl));
+  });
+
+  describe("verify ics link", () => {
     it("should generate a valid ICS link", async () => {
       // The test will indirectly test buildICalLink through getCalendarLinks
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
       const icsLink = result.find((link) => link.id === "ics");
 
       expect(icsLink).toBeDefined();
@@ -79,33 +113,16 @@ describe("getCalendarLinks", () => {
       expect(createEvent).toHaveBeenCalled();
       expect(createEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          description: eventType.description,
+          description: baseMockEventType.description,
         })
       );
     });
 
     it("should handle null location and description", async () => {
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
+      const booking = { ...baseMockBooking, location: "" };
+      const eventType = { ...baseMockEventType, description: "" };
 
-      const eventType = {
-        recurringEvent: {},
-        description: "",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking, eventType, t: mockT });
       const icsLink = result.find((link) => link.id === "ics");
 
       expect(icsLink).toBeDefined();
@@ -121,30 +138,10 @@ describe("getCalendarLinks", () => {
       // Mock createEvent to return an error
       (createEvent as jest.Mock).mockReturnValue({ error: new Error("ICS generation failed") });
 
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
       // Mock console.error to avoid test output noise
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
       const icsLink = result.find((link) => link.id === "ics");
 
       expect(icsLink).toBeDefined();
@@ -154,7 +151,7 @@ describe("getCalendarLinks", () => {
       // Verify createEvent was called with the correct description
       expect(createEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          description: eventType.description,
+          description: baseMockEventType.description,
         })
       );
 
@@ -162,29 +159,9 @@ describe("getCalendarLinks", () => {
     });
   });
 
-  describe("buildGoogleCalendarLink", () => {
+  describe("verify google calendar link", () => {
     it("should generate a valid Google Calendar link", async () => {
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
       const googleLink = result.find((link) => link.id === "googleCalendar");
 
       expect(googleLink).toBeDefined();
@@ -195,31 +172,16 @@ describe("getCalendarLinks", () => {
           .utc()
           .format("YYYYMMDDTHHmmss[Z]")}`
       );
-      expect(googleLink?.link).toContain(`details=${encodeURIComponent(eventType.description)}`);
+      expect(googleLink?.link).toContain(`details=${encodeURIComponent(baseMockEventType.description)}`);
     });
 
     it("should include location when provided", async () => {
       const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
+        ...baseMockBooking,
         metadata: { videoCallUrl: "https://zoom.com/test" },
       };
 
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
       const googleLink = result.find((link) => link.id === "googleCalendar");
 
       expect(googleLink).toBeDefined();
@@ -236,30 +198,15 @@ describe("getCalendarLinks", () => {
 
       (parseRecurringEvent as jest.Mock).mockReturnValue(mockRecurringRule);
 
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
       const eventType = {
+        ...baseMockEventType,
         recurringEvent: { count: 5, freq: 2, interval: 1 },
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
       };
 
       const mockRRuleString = "FREQ=WEEKLY;INTERVAL=1;COUNT=5";
       vi.spyOn(RRule.prototype, "toString").mockReturnValue(mockRRuleString);
 
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking: baseMockBooking, eventType, t: mockT });
       const googleLink = result.find((link) => link.id === "googleCalendar");
 
       expect(googleLink).toBeDefined();
@@ -268,26 +215,19 @@ describe("getCalendarLinks", () => {
 
     it("should handle special characters in event name and description", async () => {
       const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
+        ...baseMockBooking,
         location: "Test & Location",
         title: "Test & Title",
-        responses: {},
-        metadata: {},
       };
 
       const eventType = {
-        recurringEvent: {},
+        ...baseMockEventType,
         description: "Test & Description with <special> characters",
         eventName: "Test & Event with <special> characters",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
         title: "Test & Title",
       };
 
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking, eventType, t: mockT });
       const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
       const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
       const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
@@ -305,29 +245,9 @@ describe("getCalendarLinks", () => {
     });
   });
 
-  describe("buildMicrosoftOfficeLink", () => {
+  describe("verify microsoft office link", () => {
     it("should generate a valid Office 365 link", async () => {
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
       const microsoftOfficeLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
 
       expect(microsoftOfficeLink).toBeDefined();
@@ -339,26 +259,11 @@ describe("getCalendarLinks", () => {
 
     it("should include location when provided", async () => {
       const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
+        ...baseMockBooking,
         metadata: { videoCallUrl: "https://zoom.com/test" },
       };
 
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
       const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
 
       expect(office365Link).toBeDefined();
@@ -366,29 +271,9 @@ describe("getCalendarLinks", () => {
     });
   });
 
-  describe("buildOutlookLink", () => {
+  describe("verify outlook link", () => {
     it("should generate a valid Outlook link", async () => {
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
       const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
 
       expect(outlookLink).toBeDefined();
@@ -400,26 +285,11 @@ describe("getCalendarLinks", () => {
 
     it("should include location when provided", async () => {
       const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
+        ...baseMockBooking,
         metadata: { videoCallUrl: "https://zoom.com/test" },
       };
 
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
       const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
 
       expect(outlookLink).toBeDefined();
@@ -429,26 +299,16 @@ describe("getCalendarLinks", () => {
     it("should handle custom title from dynamic event", async () => {
       const customTitle = "Custom Dynamic Title";
       const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
+        ...baseMockBooking,
         responses: { title: customTitle, name: "Test Attendee" },
-        metadata: {},
       };
 
       const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
+        ...baseMockEventType,
         isDynamic: true, // This makes it use the custom title
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
       };
 
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking, eventType, t: mockT });
 
       // Check Google Calendar link
       const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
@@ -464,27 +324,12 @@ describe("getCalendarLinks", () => {
     });
 
     it("should handle team events", async () => {
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
       const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
+        ...baseMockEventType,
         team: { name: "Test Team" },
-        users: [{ name: "Test User" }],
-        title: "Test Title",
       };
 
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
+      const result = getCalendarLinks({ booking: baseMockBooking, eventType, t: mockT });
 
       // The event should use the team name in the event
       expect(result).toHaveLength(4);
@@ -503,76 +348,6 @@ describe("getCalendarLinks", () => {
           description: eventType.description,
         })
       );
-    });
-  });
-
-  describe("getCalendarLinks", () => {
-    it("should return all calendar links", async () => {
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: {},
-      };
-
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
-
-      expect(result).toHaveLength(4);
-      expect(result.map((link) => link.id)).toEqual(
-        expect.arrayContaining([
-          CalendarLinkType.GOOGLE_CALENDAR,
-          CalendarLinkType.MICROSOFT_OFFICE,
-          CalendarLinkType.MICROSOFT_OUTLOOK,
-          CalendarLinkType.ICS,
-        ])
-      );
-    });
-
-    it("should use videoCallUrl from metadata when available", async () => {
-      const videoCallUrl = "https://zoom.com/test";
-      const booking = {
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        location: "Test Location",
-        title: "Test Title",
-        responses: {},
-        metadata: { videoCallUrl },
-      };
-
-      const eventType = {
-        recurringEvent: {},
-        description: "Test Description",
-        eventName: "Test Event",
-        isDynamic: false,
-        length: 60,
-        team: null,
-        users: [{ name: "Test User" }],
-        title: "Test Title",
-      };
-
-      const result = await getCalendarLinks({ booking, eventType, t: mockT });
-
-      // Check that all links contain the videoCallUrl
-      const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
-      const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
-      const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
-
-      expect(googleLink?.link).toContain(encodeURIComponent(videoCallUrl));
-      expect(office365Link?.link).toContain(encodeURIComponent(videoCallUrl));
-      expect(outlookLink?.link).toContain(encodeURIComponent(videoCallUrl));
     });
   });
 });

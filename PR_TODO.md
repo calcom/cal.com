@@ -4,5 +4,6 @@
 
 - Testing
 - [ ] Verify Google Calendar, Ics, Office 365 - Compare with Production
-    - [x] Event Description, Booking title, Booking location, Start time, End time - All correct?
+    - [x] Event Description, Booking title, Booking location, Start time, End time - All correct
     - [ ] Recurring event?
+    - [ ] Dynamic Group booking?
