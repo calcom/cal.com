@@ -1,4 +1,4 @@
-import { parseRequestData } from "app/api/parseRequestData";
+import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -8,8 +8,7 @@ import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClie
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 export async function POST(req: NextRequest) {
-  const { code, client_id, client_secret, grant_type, redirect_uri } = await parseRequestData(req);
-
+  const { code, client_id, client_secret, grant_type, redirect_uri } = await parseUrlFormData(req);
   if (grant_type !== "authorization_code") {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
