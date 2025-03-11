@@ -65,6 +65,7 @@
     "tdd": "vitest watch",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
     "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
+    "e2e:routing-forms": "QUICK=true yarn playwright test --project=@calcom/routing-forms",
     "e2e:embed": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/embed-core",
     "e2e:embed-react": "QUICK=true yarn playwright test --project=@calcom/embed-react",
     "test-e2e": "yarn db-seed && yarn e2e",
@@ -83,7 +84,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
-    "@playwright/test": "^1.45.3",
+    "@playwright/test": "^1.51.0",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
