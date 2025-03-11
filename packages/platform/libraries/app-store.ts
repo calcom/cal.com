@@ -6,8 +6,6 @@ import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegati
 export type { TDependencyData } from "@calcom/app-store/_appRegistry";
 
 export type { CredentialOwner } from "@calcom/app-store/types";
-// not used
-export { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 export { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
 export { getAppFromSlug } from "@calcom/app-store/utils";
 export type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
