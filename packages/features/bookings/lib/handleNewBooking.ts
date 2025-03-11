@@ -1838,6 +1838,9 @@ async function handler(
         ...booking.user,
         email: null,
       },
+      videoCallUrl: metadata?.videoCallUrl,
+      // Ensure seatReferenceUid is properly typed as string | null
+      seatReferenceUid: evt.attendeeSeatId,
     };
 
     return {
@@ -1848,7 +1851,6 @@ async function handler(
       paymentUid: payment?.uid,
       paymentId: payment?.id,
       isDryRun,
-      videoCallUrl: metadata?.videoCallUrl,
       ...(isDryRun ? { troubleshooterData } : {}),
     };
   }
