@@ -7,12 +7,7 @@ import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClie
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-  const code = formData.get("code")?.toString();
-  const client_id = formData.get("client_id")?.toString();
-  const client_secret = formData.get("client_secret")?.toString();
-  const grant_type = formData.get("grant_type")?.toString();
-  const redirect_uri = formData.get("redirect_uri")?.toString();
+  const { code, client_id, client_secret, grant_type, redirect_uri } = await req.json();
 
   if (!client_id || !client_secret) {
     return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });
