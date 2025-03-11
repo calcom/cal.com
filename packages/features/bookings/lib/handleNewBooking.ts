@@ -1838,7 +1838,9 @@ async function handler(
         ...booking.user,
         email: null,
       },
-      videoCallUrl: metadata?.videoCallUrl,
+      videoCallUrl,
+      // Ensure seatReferenceUid is properly typed as string | null
+      seatReferenceUid: evt.attendeeSeatId,
     };
 
     return {
