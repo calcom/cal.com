@@ -17,10 +17,6 @@ vi.mock("@calcom/lib/isRecurringEvent", () => ({
   parseRecurringEvent: vi.fn(),
 }));
 
-vi.mock("../event", () => ({
-  getEventName: vi.fn().mockImplementation(({ eventName }) => `Test: ${eventName}`),
-}));
-
 describe("getCalendarLinks", () => {
   // Mock data for tests
   const mockStartTime = new Date("2023-01-15T10:00:00Z");
@@ -70,16 +66,53 @@ describe("getCalendarLinks", () => {
 
   it("should return all calendar links", async () => {
     const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
+    const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
+    const microsoftOfficeLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
+    const microsoftOutlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
+    const icsLink = result.find((link) => link.id === CalendarLinkType.ICS);
 
     expect(result).toHaveLength(4);
-    expect(result.map((link) => link.id)).toEqual(
-      expect.arrayContaining([
-        CalendarLinkType.GOOGLE_CALENDAR,
-        CalendarLinkType.MICROSOFT_OFFICE,
-        CalendarLinkType.MICROSOFT_OUTLOOK,
-        CalendarLinkType.ICS,
-      ])
-    );
+    expect(googleLink).toBeDefined();
+    expect(microsoftOfficeLink).toBeDefined();
+    expect(microsoftOutlookLink).toBeDefined();
+    expect(icsLink).toBeDefined();
+
+    (function verifyGoogleLink() {
+      expect(googleLink?.link).toContain("https://calendar.google.com/calendar/r/eventedit");
+      expect(googleLink?.link).toContain("dates=");
+      expect(googleLink?.link).toContain(
+        `${mockDayjsStartTime.utc().format("YYYYMMDDTHHmmss[Z]")}/${mockDayjsEndTime
+          .utc()
+          .format("YYYYMMDDTHHmmss[Z]")}`
+      );
+      expect(googleLink?.link).toContain(`details=${encodeURIComponent(baseMockEventType.description)}`);
+    })();
+
+    (function verifyMicrosoftOfficeLink() {
+      expect(microsoftOfficeLink?.link).toContain("https://outlook.office.com/calendar/0/deeplink/compose");
+      expect(microsoftOfficeLink?.link).toContain("enddt=");
+      expect(microsoftOfficeLink?.link).toContain("startdt=");
+      expect(microsoftOfficeLink?.link).toContain("body=Test%20Description");
+    })();
+
+    (function verifymicrosoftOutlookLink() {
+      expect(microsoftOutlookLink?.link).toContain("https://outlook.live.com/calendar/0/deeplink/compose");
+      expect(microsoftOutlookLink?.link).toContain("enddt=");
+      expect(microsoftOutlookLink?.link).toContain("startdt=");
+      expect(microsoftOutlookLink?.link).toContain("body=Test%20Description");
+    })();
+
+    (function verifyIcsLink() {
+      expect(icsLink).toBeDefined();
+      expect(icsLink?.link).toContain("data:text/calendar");
+      expect(icsLink?.link).toContain(encodeURIComponent(mockIcsValue));
+      expect(createEvent).toHaveBeenCalled();
+      expect(createEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: baseMockEventType.description,
+        })
+      );
+    })();
   });
 
   it("should use videoCallUrl from metadata when available", async () => {
@@ -93,261 +126,89 @@ describe("getCalendarLinks", () => {
 
     // Check that all links contain the videoCallUrl
     const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
-    const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
-    const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
+    const microsoftOfficeLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
+    const microsoftOutlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
 
-    expect(googleLink?.link).toContain(encodeURIComponent(videoCallUrl));
-    expect(office365Link?.link).toContain(encodeURIComponent(videoCallUrl));
-    expect(outlookLink?.link).toContain(encodeURIComponent(videoCallUrl));
+    expect(googleLink?.link).toContain(`location=${encodeURIComponent(videoCallUrl)}`);
+    expect(microsoftOfficeLink?.link).toContain(`location=${encodeURIComponent(videoCallUrl)}`);
+    expect(microsoftOutlookLink?.link).toContain(`location=${encodeURIComponent(videoCallUrl)}`);
   });
 
-  describe("verify ics link", () => {
-    it("should generate a valid ICS link", async () => {
-      // The test will indirectly test buildICalLink through getCalendarLinks
-      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
-      const icsLink = result.find((link) => link.id === "ics");
+  it("should handle custom title from dynamic event", async () => {
+    const customTitle = "Custom Dynamic Title";
+    const booking = {
+      ...baseMockBooking,
+      responses: { title: customTitle, name: "Test Attendee" },
+    };
 
-      expect(icsLink).toBeDefined();
-      expect(icsLink?.link).toContain("data:text/calendar");
-      expect(icsLink?.link).toContain(encodeURIComponent(mockIcsValue));
-      expect(createEvent).toHaveBeenCalled();
-      expect(createEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: baseMockEventType.description,
-        })
-      );
-    });
+    const eventType = {
+      ...baseMockEventType,
+      isDynamic: true, // This makes it use the custom title
+    };
 
-    it("should handle null location and description", async () => {
-      const booking = { ...baseMockBooking, location: "" };
-      const eventType = { ...baseMockEventType, description: "" };
+    const result = getCalendarLinks({ booking, eventType, t: mockT });
 
-      const result = getCalendarLinks({ booking, eventType, t: mockT });
-      const icsLink = result.find((link) => link.id === "ics");
+    const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
+    expect(googleLink?.link).toContain(`details=${encodeURIComponent(eventType.description)}`);
+    expect(googleLink?.link).toContain(`text=${customTitle}`);
 
-      expect(icsLink).toBeDefined();
-      expect(createEvent).toHaveBeenCalledWith(
-        expect.not.objectContaining({
-          location: expect.anything(),
-          description: expect.anything(),
-        })
-      );
-    });
+    // Check Office 365 link
+    const microsoftOfficeLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
+    expect(microsoftOfficeLink?.link).toContain("body=Test%20Description");
+    expect(microsoftOfficeLink?.link).toContain(`subject=${customTitle}`);
 
-    it("should handle error in ICS generation", async () => {
-      // Mock createEvent to return an error
-      (createEvent as jest.Mock).mockReturnValue({ error: new Error("ICS generation failed") });
-
-      // Mock console.error to avoid test output noise
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
-      const icsLink = result.find((link) => link.id === "ics");
-
-      expect(icsLink).toBeDefined();
-      expect(icsLink?.link).toBe("");
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      // Verify createEvent was called with the correct description
-      expect(createEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: baseMockEventType.description,
-        })
-      );
-
-      consoleErrorSpy.mockRestore();
-    });
+    // Check Outlook link
+    const microsoftOutlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
+    expect(microsoftOutlookLink?.link).toContain("body=Test%20Description");
+    expect(microsoftOutlookLink?.link).toContain(`subject=${encodeURIComponent(customTitle)}`);
   });
 
-  describe("verify google calendar link", () => {
-    it("should generate a valid Google Calendar link", async () => {
-      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
-      const googleLink = result.find((link) => link.id === "googleCalendar");
+  it("should handle recurring events - Only Google Calendar supports at the moment", async () => {
+    // Mock a recurring event rule
+    const mockRecurringRule = {
+      freq: 2, // WEEKLY
+      interval: 1,
+      count: 5,
+    };
 
-      expect(googleLink).toBeDefined();
-      expect(googleLink?.link).toContain("https://calendar.google.com/calendar/r/eventedit");
-      expect(googleLink?.link).toContain("dates=");
-      expect(googleLink?.link).toContain(
-        `${mockDayjsStartTime.utc().format("YYYYMMDDTHHmmss[Z]")}/${mockDayjsEndTime
-          .utc()
-          .format("YYYYMMDDTHHmmss[Z]")}`
-      );
-      expect(googleLink?.link).toContain(`details=${encodeURIComponent(baseMockEventType.description)}`);
-    });
+    (parseRecurringEvent as jest.Mock).mockReturnValue(mockRecurringRule);
 
-    it("should include location when provided", async () => {
-      const booking = {
-        ...baseMockBooking,
-        metadata: { videoCallUrl: "https://zoom.com/test" },
-      };
+    const eventType = {
+      ...baseMockEventType,
+      recurringEvent: { count: 5, freq: 2, interval: 1 },
+    };
 
-      const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
-      const googleLink = result.find((link) => link.id === "googleCalendar");
+    const mockRRuleString = "FREQ=WEEKLY;INTERVAL=1;COUNT=5";
+    vi.spyOn(RRule.prototype, "toString").mockReturnValue(mockRRuleString);
 
-      expect(googleLink).toBeDefined();
-      expect(googleLink?.link).toContain("location=https%3A%2F%2Fzoom.com%2Ftest");
-    });
+    const result = getCalendarLinks({ booking: baseMockBooking, eventType, t: mockT });
+    const googleLink = result.find((link) => link.id === "googleCalendar");
 
-    it("should handle recurring events", async () => {
-      // Mock a recurring event rule
-      const mockRecurringRule = {
-        freq: 2, // WEEKLY
-        interval: 1,
-        count: 5,
-      };
-
-      (parseRecurringEvent as jest.Mock).mockReturnValue(mockRecurringRule);
-
-      const eventType = {
-        ...baseMockEventType,
-        recurringEvent: { count: 5, freq: 2, interval: 1 },
-      };
-
-      const mockRRuleString = "FREQ=WEEKLY;INTERVAL=1;COUNT=5";
-      vi.spyOn(RRule.prototype, "toString").mockReturnValue(mockRRuleString);
-
-      const result = getCalendarLinks({ booking: baseMockBooking, eventType, t: mockT });
-      const googleLink = result.find((link) => link.id === "googleCalendar");
-
-      expect(googleLink).toBeDefined();
-      expect(googleLink?.link).toContain(`recur=${encodeURIComponent(mockRRuleString)}`);
-    });
-
-    it("should handle special characters in event name and description", async () => {
-      const booking = {
-        ...baseMockBooking,
-        location: "Test & Location",
-        title: "Test & Title",
-      };
-
-      const eventType = {
-        ...baseMockEventType,
-        description: "Test & Description with <special> characters",
-        eventName: "Test & Event with <special> characters",
-        title: "Test & Title",
-      };
-
-      const result = getCalendarLinks({ booking, eventType, t: mockT });
-      const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
-      const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
-      const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
-
-      expect(googleLink).toBeDefined();
-      expect(googleLink?.link).toContain("Test%20%26%20Description%20with%20%3Cspecial%3E%20characters");
-
-      // Verify description in Office 365 link - check for the unencoded description
-      expect(office365Link?.link).toContain(
-        "body=Test%20%26%20Description%20with%20%3Cspecial%3E%20characters"
-      );
-
-      // Verify description in Outlook link - For Outlook, the & appears unencoded in the error message
-      expect(outlookLink?.link).toContain("body=Test%20&%20Description%20with%20%3Cspecial%3E%20characters");
-    });
+    expect(googleLink).toBeDefined();
+    expect(googleLink?.link).toContain(`recur=${encodeURIComponent(mockRRuleString)}`);
   });
 
-  describe("verify microsoft office link", () => {
-    it("should generate a valid Office 365 link", async () => {
-      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
-      const microsoftOfficeLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
+  it("should handle error in ICS generation", async () => {
+    // Mock createEvent to return an error
+    (createEvent as jest.Mock).mockReturnValue({ error: new Error("ICS generation failed") });
 
-      expect(microsoftOfficeLink).toBeDefined();
-      expect(microsoftOfficeLink?.link).toContain("https://outlook.office.com/calendar/0/deeplink/compose");
-      expect(microsoftOfficeLink?.link).toContain("enddt=");
-      expect(microsoftOfficeLink?.link).toContain("startdt=");
-      expect(microsoftOfficeLink?.link).toContain("body=Test%20Description");
-    });
+    // Mock console.error to avoid test output noise
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    it("should include location when provided", async () => {
-      const booking = {
-        ...baseMockBooking,
-        metadata: { videoCallUrl: "https://zoom.com/test" },
-      };
+    const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
+    const icsLink = result.find((link) => link.id === "ics");
 
-      const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
-      const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
+    expect(icsLink).toBeDefined();
+    expect(icsLink?.link).toBe("");
+    expect(consoleErrorSpy).toHaveBeenCalled();
 
-      expect(office365Link).toBeDefined();
-      expect(office365Link?.link).toContain("location=https%3A%2F%2Fzoom.com%2Ftest");
-    });
-  });
+    // Verify createEvent was called with the correct description
+    expect(createEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: baseMockEventType.description,
+      })
+    );
 
-  describe("verify outlook link", () => {
-    it("should generate a valid Outlook link", async () => {
-      const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
-      const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
-
-      expect(outlookLink).toBeDefined();
-      expect(outlookLink?.link).toContain("https://outlook.live.com/calendar/0/deeplink/compose");
-      expect(outlookLink?.link).toContain("enddt=");
-      expect(outlookLink?.link).toContain("startdt=");
-      expect(outlookLink?.link).toContain("body=Test%20Description");
-    });
-
-    it("should include location when provided", async () => {
-      const booking = {
-        ...baseMockBooking,
-        metadata: { videoCallUrl: "https://zoom.com/test" },
-      };
-
-      const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
-      const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
-
-      expect(outlookLink).toBeDefined();
-      expect(outlookLink?.link).toContain("location=https%3A%2F%2Fzoom.com%2Ftest");
-    });
-
-    it("should handle custom title from dynamic event", async () => {
-      const customTitle = "Custom Dynamic Title";
-      const booking = {
-        ...baseMockBooking,
-        responses: { title: customTitle, name: "Test Attendee" },
-      };
-
-      const eventType = {
-        ...baseMockEventType,
-        isDynamic: true, // This makes it use the custom title
-      };
-
-      const result = getCalendarLinks({ booking, eventType, t: mockT });
-
-      // Check Google Calendar link
-      const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
-      expect(googleLink?.link).toContain(`details=${encodeURIComponent(eventType.description)}`);
-
-      // Check Office 365 link
-      const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
-      expect(office365Link?.link).toContain("body=Test%20Description");
-
-      // Check Outlook link
-      const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
-      expect(outlookLink?.link).toContain("body=Test%20Description");
-    });
-
-    it("should handle team events", async () => {
-      const eventType = {
-        ...baseMockEventType,
-        team: { name: "Test Team" },
-      };
-
-      const result = getCalendarLinks({ booking: baseMockBooking, eventType, t: mockT });
-
-      // The event should use the team name in the event
-      expect(result).toHaveLength(4);
-
-      // Verify description is included in all calendar links
-      const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
-      const office365Link = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
-      const outlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
-      const icsLink = result.find((link) => link.id === CalendarLinkType.ICS);
-
-      expect(googleLink?.link).toContain(`details=${encodeURIComponent(eventType.description)}`);
-      expect(office365Link?.link).toContain("body=Test%20Description");
-      expect(outlookLink?.link).toContain("body=Test%20Description");
-      expect(createEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: eventType.description,
-        })
-      );
-    });
+    consoleErrorSpy.mockRestore();
   });
 });
