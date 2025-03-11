@@ -1,5 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseRequestData } from "app/api/parseRequestData";
+import { parseUrlFormData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -10,7 +10,7 @@ async function handler(req: NextRequest) {
   const { oauthController } = await jackson();
 
   const { redirect_url } = await oauthController.samlResponse(
-    (await parseRequestData(req)) as SAMLResponsePayload
+    (await parseUrlFormData(req)) as SAMLResponsePayload
   );
 
   if (redirect_url) {
