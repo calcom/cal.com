@@ -13,11 +13,19 @@ type AvailabilityRouterHandlerCache = {
 };
 
 const UNSTABLE_HANDLER_CACHE: AvailabilityRouterHandlerCache = {};
+const QUERY_TO_HANDLER_MAP = {
+  list: "./list.handler",
+  user: "./user.handler",
+  listTeam: "./team/listTeamAvailability.handler",
+  calendarOverlay: "./calendarOverlay.handler",
+};
+const handlerContext = require.context("./", false, /\.handler$/);
 
 export const availabilityRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.list) {
-      UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
+      UNSTABLE_HANDLER_CACHE.list = await handlerContext(QUERY_TO_HANDLER_MAP[ctx.req.query.trpc])
+        .listHandler;
     }
 
     // Unreachable code but required for type safety
@@ -32,7 +40,8 @@ export const availabilityRouter = router({
 
   user: authedProcedure.input(ZUserInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.user) {
-      UNSTABLE_HANDLER_CACHE.user = await import("./user.handler").then((mod) => mod.userHandler);
+      UNSTABLE_HANDLER_CACHE.user = await handlerContext(QUERY_TO_HANDLER_MAP[ctx.req.query.trpc])
+        .userHandler;
     }
 
     // Unreachable code but required for type safety
@@ -47,9 +56,9 @@ export const availabilityRouter = router({
   }),
   listTeam: authedProcedure.input(ZListTeamAvailaiblityScheme).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.listTeamAvailability) {
-      UNSTABLE_HANDLER_CACHE.listTeamAvailability = await import("./team/listTeamAvailability.handler").then(
-        (mod) => mod.listTeamAvailabilityHandler
-      );
+      UNSTABLE_HANDLER_CACHE.listTeamAvailability = await handlerContext(
+        QUERY_TO_HANDLER_MAP[ctx.req.query.trpc]
+      ).listTeamAvailabilityHandler;
     }
 
     // Unreachable code but required for type safety
@@ -65,9 +74,8 @@ export const availabilityRouter = router({
   schedule: scheduleRouter,
   calendarOverlay: authedProcedure.input(ZCalendarOverlayInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
-      UNSTABLE_HANDLER_CACHE.calendarOverlay = await import("./calendarOverlay.handler").then(
-        (mod) => mod.calendarOverlayHandler
-      );
+      UNSTABLE_HANDLER_CACHE.calendarOverlay = await handlerContext(QUERY_TO_HANDLER_MAP[ctx.req.query.trpc])
+        .calendarOverlayHandler;
     }
 
     // Unreachable code but required for type safety
