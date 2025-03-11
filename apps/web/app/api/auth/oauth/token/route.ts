@@ -9,10 +9,6 @@ import type { OAuthTokenPayload } from "@calcom/types/oauth";
 export async function POST(req: NextRequest) {
   const { code, client_id, client_secret, grant_type, redirect_uri } = await req.json();
 
-  if (!client_id || !client_secret) {
-    return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });
-  }
-
   if (grant_type !== "authorization_code") {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
