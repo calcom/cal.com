@@ -98,7 +98,7 @@ function OutOfOfficeEntriesListContent() {
     refetch();
   }, [deletedEntry, selectedTab, refetch]);
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
@@ -170,7 +170,7 @@ function OutOfOfficeEntriesListContent() {
         : []),
       columnHelper.display({
         id: "outOfOffice",
-        header: `${t("out_of_office")} (${totalDBRowCount})`,
+        header: `${t("out_of_office")} (${totalRowCount})`,
         size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
         cell: ({ row }) => {
           const item = row.original;
@@ -335,7 +335,7 @@ function OutOfOfficeEntriesListContent() {
         hasNextPage={hasNextPage}
         fetchNextPage={fetchNextPage}
         isFetching={isFetching}
-        totalDBRowCount={totalDBRowCount}
+        totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
         ToolbarRight={

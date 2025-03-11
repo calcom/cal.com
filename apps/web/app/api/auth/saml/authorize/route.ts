@@ -1,8 +1,8 @@
-import type { OAuthReq } from "@boxyhq/saml-jackson";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import type { OAuthReq } from "@calcom/features/ee/sso/lib/jackson";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import type { HttpError } from "@calcom/lib/http-error";
 
