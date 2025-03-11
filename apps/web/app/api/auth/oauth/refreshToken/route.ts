@@ -1,4 +1,4 @@
-import { parseRequestData } from "app/api/parseRequestData";
+import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -8,7 +8,7 @@ import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClie
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 export async function POST(req: NextRequest) {
-  const { client_id, client_secret, grant_type } = await parseRequestData(req);
+  const { client_id, client_secret, grant_type } = await parseUrlFormData(req);
 
   if (!client_id || !client_secret) {
     return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });

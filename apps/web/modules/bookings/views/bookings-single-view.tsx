@@ -322,12 +322,12 @@ export default function Success(props: PageProps) {
       const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
       const host = bookingInfo.user.name || bookingInfo.user.email;
       if (isHost) {
-        return t(`${titlePrefix}emailed_host_and_attendees${titleSuffix}`, {
+        return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           user: attendee,
         });
       }
       if (isAttendee) {
-        return t(`${titlePrefix}emailed_host_and_attendees${titleSuffix}`, {
+        return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           user: host,
         });
       }
@@ -336,7 +336,7 @@ export default function Success(props: PageProps) {
         attendee,
       });
     }
-    return t(`emailed_host_and_attendees${titleSuffix}`);
+    return t(`emailed_host_and_attendee${titleSuffix}`);
   }
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
