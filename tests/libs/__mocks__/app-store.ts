@@ -6,12 +6,10 @@ import type * as VideoAdaptersMap from "../../../packages/app-store/conferencing
 import type * as CrmServicesMap from "../../../packages/app-store/crm.services.generated";
 import type * as PaymentAppsMap from "../../../packages/app-store/payment.apps.generated";
 
-vi.mock("../calendar.services.generated", () => calendarServicesMapMock);
-vi.mock("../crm.services.generated", () => crmServicesMapMock);
-vi.mock("../app-store/conferencing.videoAdapters.generated", () => videoAdaptersMapMock);
+vi.mock("@calcom/app-store/calendar.services.generated", () => calendarServicesMapMock);
+vi.mock("@calcom/app-store/crm.services.generated", () => crmServicesMapMock);
+vi.mock("@calcom/app-store/conferencing.videoAdapters.generated", () => videoAdaptersMapMock);
 vi.mock("@calcom/app-store/payment.apps.generated", () => paymentAppMapMock);
-vi.mock("../../app-store/payment.apps.generated", () => paymentAppMapMock);
-vi.mock("../app-store/payment.apps.generated", () => paymentAppMapMock);
 
 beforeEach(() => {
   mockReset(calendarServicesMapMock);
