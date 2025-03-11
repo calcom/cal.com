@@ -1,5 +1,9 @@
 import type { NextRequest } from "next/server";
 
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["[parseRequestData]"] });
+
 export async function parseRequestData(req: NextRequest): Promise<Record<string, any>> {
   const contentType = req.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
@@ -21,6 +25,6 @@ export async function parseRequestData(req: NextRequest): Promise<Record<string,
       throw new Error(`Invalid Form Data: ${e}`);
     }
   }
-
+  log.error(`Unsupported content type: ${contentType} from path ${req.nextUrl}`);
   throw new Error(`Unsupported content type: ${contentType}`);
 }
