@@ -192,7 +192,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as SliderUser[];
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -201,12 +201,12 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
         //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalRowCount) {
           fetchNextPage();
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching, totalFetched, totalRowCount]
   );
 
   useEffect(() => {
