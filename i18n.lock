@@ -496,6 +496,8 @@ checksums:
     browser_notifications_turned_off: f9ff8b96ea57c00e90d761af4f3494c3
     browser_notifications_denied: 82aae055de0e798655fa07f96d426717
     please_allow_notifications: 1ff79d465b45be45108352f8422cdb84
+    push_notifications: e771f23130f9aab4f3e2e99acacf5d5a
+    push_notifications_description: 405bef88b5ba902815aa310ddfa6c81b
     browser_notifications_not_supported: 3cdb7e333c9bfcf703047d66deab825e
     email: e7f34943a0c2fb849db1839ff6ef5cb5
     email_placeholder: 06962d9f03dcdbd4fa1b876f240054e8
@@ -2965,6 +2967,8 @@ checksums:
     limited_access_trial_mode: c501618906970336bf51e5d715efed8d
     uid: 379cc5edfadebfc2d792e341bf7a190b
     link: 60f0aa33e70ca6df3b6659802b16f433
+    rows_per_page: c95a0b385cad1e73b95619fe92a61cb6
+    pagination_status: cd211731460d6ae349ac8a8898313be3
     tip_username_plus: d3279ca90f8abdd965844998dd29bebc
     user_has_no_team_yet: a8d58d1e2b62cfb97b61afd1b72385c4
     no_team_members: a8329bca21c7026eb28cde53c0d2911a
