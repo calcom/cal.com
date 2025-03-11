@@ -260,7 +260,13 @@ export class CalendarEventBuilder {
 
   build(): CalendarEvent {
     // Validate required fields
-    if (!this.event.startTime || !this.event.endTime || !this.event.type) {
+    if (
+      !this.event.startTime ||
+      !this.event.endTime ||
+      !this.event.type ||
+      !this.event.bookerUrl ||
+      !this.event.title
+    ) {
       throw new Error("Missing required fields for calendar event");
     }
 
