@@ -184,7 +184,7 @@ class BaseUpdateEventTypeInput {
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, person booking this event't cant add guests via their emails.",
+    description: "If true, person booking this event can't add guests via their emails.",
   })
   disableGuests?: boolean;
 
@@ -208,7 +208,7 @@ class BaseUpdateEventTypeInput {
   @IsInt()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "Time spaces that can be pre-pended before an event to give more time before it.",
+    description: "Time spaces that can be prepended before an event to give more time before it.",
   })
   beforeEventBuffer?: number;
 
