@@ -9,22 +9,18 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 
-import {
-  getEnabledAppsFromCredentials,
-  getAppFromSlug,
-  MembershipRole,
-  getClientSecretFromPayment,
-  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
-} from "@calcom/platform-libraries";
+import { MembershipRole, getClientSecretFromPayment } from "@calcom/platform-libraries";
+import type { TeamQuery } from "@calcom/platform-libraries";
+import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/platform-libraries/app-store";
+import { getEnabledAppsFromCredentials, getAppFromSlug } from "@calcom/platform-libraries/app-store";
 import type {
   App,
+  TDependencyData,
+  CredentialOwner,
+  CredentialPayload,
   CredentialDataWithTeamName,
   LocationOption,
-  TeamQuery,
-  CredentialOwner,
-  TDependencyData,
-  CredentialPayload,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/app-store";
 import {
   getBulkEventTypes,
   getEventTypeById,
