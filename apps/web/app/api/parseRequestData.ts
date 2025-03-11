@@ -47,5 +47,5 @@ export async function parseRequestData(req: NextRequest): Promise<Record<string,
   }
 
   log.error(`Unsupported content type: ${contentType} from path ${req.nextUrl}`);
-  throw new HttpError({ statusCode: 400, message: "Bad Request (Unsupported Content Type)" });
+  throw new HttpError({ statusCode: 415, message: `Unsupported Content-Type. Expected ${contentType}` });
 }
