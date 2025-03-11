@@ -1,3 +1,4 @@
+import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -15,9 +16,9 @@ const passwordResetRequestSchema = z.object({
 });
 
 async function handler(req: NextRequest) {
-  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(
-    await req.json()
-  );
+  const body = await parseRequestData(req);
+
+  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(body);
   // rate-limited there is a low, very low chance that a password request stays valid long enough
   // to brute force 3.8126967e+40 options.
   const maybeRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
