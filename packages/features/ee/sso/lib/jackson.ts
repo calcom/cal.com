@@ -6,13 +6,14 @@ import type {
   IDirectorySyncController,
   OAuthTokenReq,
   OAuthReq,
+  SAMLResponsePayload,
 } from "@boxyhq/saml-jackson";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { clientSecretVerifier, oidcPath, samlAudience, samlDatabaseUrl, samlPath } from "./saml";
 
-export type { OAuthTokenReq, OAuthReq };
+export type { OAuthTokenReq, OAuthReq, SAMLResponsePayload };
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
 const opts: JacksonOption = {
