@@ -68,7 +68,7 @@ function perf<ReturnValue>(fn: () => ReturnValue): [ReturnValue, number | null] 
 }
 
 function getErrorsFromImmutableTree(tree: ImmutableTree) {
-  const validatedQueryValue = QbUtils.getTree(tree, true, false);
+  const validatedQueryValue = QbUtils.getTree(tree);
   if (!raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue)) {
     return [];
   }

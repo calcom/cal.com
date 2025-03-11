@@ -1,6 +1,6 @@
 "use client";
 
-import { Utils as QbUtils, type JsonTree } from "@react-awesome-query-builder/core";
+import { Utils as QbUtils, type OldJsonTree } from "@react-awesome-query-builder/core";
 
 import { safeStringify } from "@calcom/lib/safeStringify";
 
@@ -19,7 +19,7 @@ export const evaluateRaqbLogic = (
     data,
     beStrictWithEmptyLogic = false,
   }: {
-    queryValue: JsonTree;
+    queryValue: OldJsonTree;
     queryBuilderConfig: any;
     data: Record<string, unknown>;
     beStrictWithEmptyLogic?: boolean;
@@ -34,7 +34,7 @@ export const evaluateRaqbLogic = (
   }
 ): RaqbLogicResult => {
   const state = {
-    tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), queryBuilderConfig),
+    tree: QbUtils.checkTree(QbUtils.loadTree(queryValue, true, false), queryBuilderConfig),
     config: queryBuilderConfig,
   };
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);

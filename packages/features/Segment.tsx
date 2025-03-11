@@ -68,7 +68,7 @@ function SegmentWithAttributes({
   );
 
   function onChange(immutableTree: ImmutableTree) {
-    const jsonTree = QbUtils.getTree(immutableTree, true, false) as AttributesQueryValue;
+    const jsonTree = QbUtils.getTree(immutableTree) as AttributesQueryValue;
 
     // IMPORTANT: RAQB calls onChange even without explicit user action. It just identifies if the props have changed or not. isEqual ensures that we don't end up having infinite re-renders.
     if (!isEqual(jsonTree, queryValue)) {

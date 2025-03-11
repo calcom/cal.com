@@ -791,6 +791,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
       await (async function liveMode() {
         const result = await runInMode({ mode: "live" });
+        console.log(result);
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
         expect(result.mainAttributeLogicBuildingWarnings).toEqual([

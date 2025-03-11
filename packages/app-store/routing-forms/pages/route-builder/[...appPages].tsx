@@ -246,7 +246,7 @@ const WeightedAttributesSelector = ({
 
   if (eventTypeRedirectUrlSelectedOption?.isRRWeightsEnabled) {
     const validatedQueryValue = route.attributesQueryBuilderState?.tree
-      ? QbUtils.getTree(route.attributesQueryBuilderState.tree, true, false)
+      ? QbUtils.getTree(route.attributesQueryBuilderState.tree)
       : null;
 
     if (
@@ -385,7 +385,7 @@ const Route = ({
     immutableTree: ImmutableTree,
     config: FormFieldsQueryBuilderConfigWithRaqbFields
   ) => {
-    const jsonTree = QbUtils.getTree(immutableTree, true, false) as LocalRoute["queryValue"];
+    const jsonTree = QbUtils.getTree(immutableTree) as LocalRoute["queryValue"];
     setRoute(route.id, {
       formFieldsQueryBuilderState: { tree: immutableTree, config: config },
       queryValue: jsonTree,
@@ -403,7 +403,7 @@ const Route = ({
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
-    const jsonTree = QbUtils.getTree(immutableTree, true, false);
+    const jsonTree = QbUtils.getTree(immutableTree);
     const attributeIdForWeights = isRouter(route) ? null : route.attributeIdForWeights;
     const _isValidAttributeIdForWeights =
       attributeIdForWeights && isValidAttributeIdForWeights({ attributeIdForWeights, jsonTree });
@@ -424,7 +424,7 @@ const Route = ({
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
-    const jsonTree = QbUtils.getTree(immutableTree, true, false);
+    const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
       fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
       fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,

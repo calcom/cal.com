@@ -228,7 +228,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   const [query, setQuery] = useState(getInitialQuery(config));
   const [jsonLogicQuery, setJsonLogicQuery] = useState<JsonLogicResult | null>(null);
   const onChange = (immutableTree: ImmutableTree, config: FormFieldsQueryBuilderConfigWithRaqbFields) => {
-    const jsonTree = QbUtils.getTree(immutableTree, true, false);
+    const jsonTree = QbUtils.getTree(immutableTree);
     setQuery(() => {
       const newValue = {
         state: { tree: immutableTree, config: config },

@@ -80,6 +80,11 @@ function getSettingsWithoutRenderFns() {
     showErrorMessage: true,
     // Disable groups
     maxNesting: 1,
+    jsonLogic: {
+      groupVarKey: "var",
+      altVarKey: "var",
+      lockedOp: "locked",
+    },
   };
 }
 
