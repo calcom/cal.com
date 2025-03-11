@@ -1,4 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -7,9 +8,10 @@ import type { SAMLResponsePayload } from "@calcom/features/ee/sso/lib/jackson";
 
 async function handler(req: NextRequest) {
   const { oauthController } = await jackson();
-  const formData = await req.formData();
-  const formDataObj = Object.fromEntries(formData.entries());
-  const { redirect_url } = await oauthController.samlResponse(formDataObj as unknown as SAMLResponsePayload);
+
+  const { redirect_url } = await oauthController.samlResponse(
+    (await parseRequestData(req)) as SAMLResponsePayload
+  );
 
   if (redirect_url) {
     return NextResponse.redirect(redirect_url, 302);
