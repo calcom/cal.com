@@ -23,7 +23,7 @@ import {
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ConnectedApps } from "@calcom/platform-libraries";
+import { ConnectedApps } from "@calcom/platform-libraries/app-store";
 import type { UpdateEventTypeReturn } from "@calcom/platform-libraries/event-types";
 import { ApiResponse } from "@calcom/platform-types";
 
