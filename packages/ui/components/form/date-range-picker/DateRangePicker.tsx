@@ -4,7 +4,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import * as React from "react";
 
-import { classNames as cn } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../../button";
 import { Calendar } from "./Calendar";
@@ -16,6 +16,8 @@ type DatePickerWithRangeProps = {
   minDate?: Date | null;
   maxDate?: Date;
   withoutPopover?: boolean;
+  "data-testid"?: string;
+  strictlyBottom?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -26,6 +28,8 @@ export function DatePickerWithRange({
   onDatesChange,
   disabled,
   withoutPopover,
+  "data-testid": testId,
+  strictlyBottom,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
     if (dates?.endDate) {
@@ -50,6 +54,7 @@ export function DatePickerWithRange({
       onDayClick={(day) => handleDayClick(day)}
       numberOfMonths={1}
       disabled={disabled}
+      data-testid={testId}
     />
   );
 
@@ -58,14 +63,14 @@ export function DatePickerWithRange({
   }
 
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={classNames("grid gap-2", className)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <Button
             data-testid="date-range"
             color="secondary"
             EndIcon="calendar"
-            className={cn("justify-between text-left font-normal", !dates && "text-subtle")}>
+            className={classNames("justify-between text-left font-normal", !dates && "text-subtle")}>
             {dates?.startDate ? (
               dates?.endDate ? (
                 <>
@@ -82,7 +87,9 @@ export function DatePickerWithRange({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
-          sideOffset={4}>
+          sideOffset={4}
+          side={strictlyBottom ? "bottom" : undefined}
+          avoidCollisions={!strictlyBottom}>
           {calendar}
         </Popover.Content>
       </Popover.Root>

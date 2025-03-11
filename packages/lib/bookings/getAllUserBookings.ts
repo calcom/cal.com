@@ -1,3 +1,4 @@
+import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -23,8 +24,8 @@ type GetOptions = {
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
-    attendeeEmail?: string;
-    attendeeName?: string;
+    attendeeEmail?: string | TextFilterValue;
+    attendeeName?: string | TextFilterValue;
   };
   sort?: SortOptions;
 };

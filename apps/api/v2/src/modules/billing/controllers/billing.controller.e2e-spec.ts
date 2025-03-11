@@ -141,7 +141,6 @@ describe("Platform Billing Controller (e2e)", () => {
           },
         } as unknown as Stripe)
     );
-
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
       .expect(200)

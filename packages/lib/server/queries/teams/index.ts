@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { parseBookingLimit } from "@calcom/lib";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -313,6 +313,7 @@ export async function getTeamWithoutMembers(args: {
       isPrivate: true,
       metadata: true,
       bookingLimits: true,
+      rrResetInterval: true,
       includeManagedEventsInLimits: true,
       parent: {
         select: {

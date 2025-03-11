@@ -8,7 +8,7 @@ import "react-phone-number-input/style.css";
 import type { OptionProps } from "react-select";
 import { components } from "react-select";
 
-import { classNames } from "@calcom/lib";
+import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,7 +36,6 @@ import {
   Icon,
   Input,
   Label,
-  PhoneInput,
   Select,
   showToast,
   TextArea,
@@ -44,6 +43,7 @@ import {
   Tooltip,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import {
   getWhatsappTemplateForAction,
@@ -629,7 +629,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}
@@ -782,7 +782,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <>
                         <div className="mt-3 flex">
                           <TextField
-                            className="rounded-r-none border-r-transparent"
+                            className="h-[36px] rounded-r-none border-r-transparent"
                             placeholder="Verification code"
                             disabled={props.readOnly}
                             value={verificationCode}

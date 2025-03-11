@@ -45,15 +45,16 @@ This guide explains the settings you need to use to configure SAML with your Ide
 
 **Assertion Encryption:** Unencrypted
 
+**Name ID Format:** EmailAddress
+
+**Application username:** email
+
 **Mapping Attributes / Attribute Statements:**
 
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier -> id
-
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress -> email
-
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname -> firstName
-
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname -> lastName
+| Name      | Name Format | Value          |
+|:----------|:------------|:---------------|
+| firstName | Basic       | user.firstName |
+| lastName  | Basic       | user.lastName  |
 
 ### Setting up OIDC login
 

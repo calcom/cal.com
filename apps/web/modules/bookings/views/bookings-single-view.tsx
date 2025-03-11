@@ -15,8 +15,6 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import type { nameObjectSchema } from "@calcom/core/event";
-import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
@@ -36,6 +34,8 @@ import {
   formatToLocalizedTime,
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
+import type { nameObjectSchema } from "@calcom/lib/event";
+import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -321,12 +321,12 @@ export default function Success(props: PageProps) {
       const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
       const host = bookingInfo.user.name || bookingInfo.user.email;
       if (isHost) {
-        return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
+        return t(`${titlePrefix}emailed_host_and_attendees${titleSuffix}`, {
           user: attendee,
         });
       }
       if (isAttendee) {
-        return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
+        return t(`${titlePrefix}emailed_host_and_attendees${titleSuffix}`, {
           user: host,
         });
       }
@@ -335,7 +335,7 @@ export default function Success(props: PageProps) {
         attendee,
       });
     }
-    return t(`emailed_you_and_attendees${titleSuffix}`);
+    return t(`emailed_host_and_attendees${titleSuffix}`);
   }
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
