@@ -26,10 +26,8 @@
     "next-env.d.ts",
     "../../packages/trpc/types/router.d.ts",
     "../../packages/types/*.d.ts",
-    "../../packages/types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
     "../../packages/features/bookings/lib/getBookingInfo.ts",
     "../../packages/features/bookings/lib/getUserBooking.ts",
     "../../packages/features/Segment.tsx"
