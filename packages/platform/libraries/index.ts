@@ -20,20 +20,6 @@ import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
-import {
-  getFirstDelegationConferencingCredentialAppLocation,
-  getFirstDelegationConferencingCredential,
-  getDelegationCredentialOrRegularCredential,
-  getDelegationCredentialOrFindRegularCredential,
-  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
-  enrichUserWithDelegationCredentialsWithoutOrgId,
-  enrichHostsWithDelegationCredentials,
-  enrichUsersWithDelegationCredentials,
-  buildAllCredentials,
-  getAllDelegationCredentialsForUserByAppSlug,
-  getAllDelegationCredentialsForUserByAppType,
-  checkIfSuccessfullyConfiguredInWorkspace,
-} from "@calcom/lib/delegationCredential/server";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -42,28 +28,12 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
-import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
 import {
   createNewUsersConnectToOrgIfExists,
   sendSignupToOrganizationEmail,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-
-export {
-  getFirstDelegationConferencingCredentialAppLocation,
-  getFirstDelegationConferencingCredential,
-  getDelegationCredentialOrRegularCredential,
-  getDelegationCredentialOrFindRegularCredential,
-  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
-  enrichUserWithDelegationCredentialsWithoutOrgId,
-  enrichHostsWithDelegationCredentials,
-  enrichUsersWithDelegationCredentials,
-  buildAllCredentials,
-  getAllDelegationCredentialsForUserByAppSlug,
-  getAllDelegationCredentialsForUserByAppType,
-  checkIfSuccessfullyConfiguredInWorkspace,
-};
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
@@ -176,9 +146,6 @@ export { getRoutedUrl };
 
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 
-export { addDelegationCredential };
-
 export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";

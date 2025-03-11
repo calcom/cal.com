@@ -1,6 +1,7 @@
 import getApps from "@calcom/app-store/utils";
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
+import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
 
 export type { TDependencyData } from "@calcom/app-store/_appRegistry";
 
@@ -28,3 +29,8 @@ export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export type { AppsStatus } from "@calcom/types/Calendar";
 
 export type { CredentialPayload } from "@calcom/types/Credential";
+
+export { addDelegationCredential };
+
+export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
