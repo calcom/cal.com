@@ -449,6 +449,7 @@ model Team {
   /// @zod.custom(imports.teamMetadataSchema)
   metadata               Json?
   theme                  String?
+  rrResetInterval        RRResetInterval?        @default(MONTH)
   brandColor             String?
   darkBrandColor         String?
   verifiedNumbers        VerifiedNumber[]
@@ -1357,6 +1358,11 @@ enum FeatureType {
   OPERATIONAL
   KILL_SWITCH
   PERMISSION
+}
+
+enum RRResetInterval {
+  MONTH
+  DAY
 }
 
 model SelectedSlots {

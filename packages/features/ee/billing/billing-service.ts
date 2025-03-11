@@ -1,3 +1,5 @@
+import type Stripe from "stripe";
+
 export interface BillingService {
   checkoutSessionIsPaid(paymentId: string): Promise<boolean>;
   handleSubscriptionCancel(subscriptionId: string): Promise<void>;
@@ -39,5 +41,5 @@ export interface BillingService {
     productId: string;
     metadata?: Record<string, string | number>;
   }): Promise<{ priceId: string }>;
-  checkIfTeamHasActivePlan(subscriptionId: string): Promise<boolean>;
+  getSubscriptionStatus(subscriptionId: string): Promise<Stripe.Subscription.Status | null>;
 }

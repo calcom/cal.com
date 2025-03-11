@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.0.13",
+  "version": "5.0.14",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -24,7 +24,6 @@
     "stripe:listen": "stripe listen --forward-to http://localhost:3000/api/stripe/webhook"
   },
   "engines": {
-    "node": "18",
     "yarn": "3.4.1"
   },
   "dependencies": {
