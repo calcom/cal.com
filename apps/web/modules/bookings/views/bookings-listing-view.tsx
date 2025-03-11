@@ -120,8 +120,8 @@ function BookingsContent({ status }: BookingsProps) {
   const { limit, offset } = useDataTable();
 
   const query = trpc.viewer.bookings.get.useQuery({
-    take: limit,
-    skip: offset,
+    limit,
+    offset,
     filters: {
       status,
       eventTypeIds,

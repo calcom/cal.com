@@ -29,8 +29,8 @@ const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
   // for orderBy, but we don't use a unique column in our orderBy
-  const take = input.take;
-  const skip = input.skip;
+  const take = input.limit;
+  const skip = input.offset;
   const { prisma, user } = ctx;
   const defaultStatus = "upcoming";
   const bookingListingByStatus = [input.filters.status || defaultStatus];

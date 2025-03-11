@@ -15,8 +15,8 @@ export const ZGetInputSchema = z.object({
     afterUpdatedDate: z.string().optional(),
     beforeUpdatedDate: z.string().optional(),
   }),
-  take: z.number().min(1).max(100).optional(),
-  skip: z.number().default(0).optional(),
+  limit: z.number().min(1).max(100).optional(),
+  offset: z.number().default(0).optional(),
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
