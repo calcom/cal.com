@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 
 const log = logger.getSubLogger({ prefix: ["[parseRequestData]"] });
@@ -12,7 +13,7 @@ export async function parseUrlFormData(req: NextRequest): Promise<Record<string,
     return Object.fromEntries(params);
   } catch (e) {
     log.error(`Invalid Url Form Data: ${e} from path ${req.nextUrl}`);
-    throw new Error(`Invalid Url Form Data: ${e}`);
+    throw new HttpError({ statusCode: 400, message: "Bad Request (Invalid Url Form Data)" });
   }
 }
 
@@ -22,7 +23,7 @@ export async function parseMultiFormData(req: NextRequest): Promise<Record<strin
     return Object.fromEntries(formData.entries());
   } catch (e) {
     log.error(`Invalid Multi Form Data: ${e} from path ${req.nextUrl}`);
-    throw new Error(`Invalid Multi Form Data: ${e}`);
+    throw new HttpError({ statusCode: 400, message: "Bad Request (Invalid Multi Form Data)" });
   }
 }
 
@@ -33,7 +34,7 @@ export async function parseRequestData(req: NextRequest): Promise<Record<string,
       return await req.json();
     } catch (e) {
       log.error(`Invalid JSON: ${e} from path ${req.nextUrl}`);
-      throw new Error(`Invalid JSON: ${e}`);
+      throw new HttpError({ statusCode: 400, message: "Bad Request (Invalid JSON)" });
     }
   }
 
@@ -46,5 +47,5 @@ export async function parseRequestData(req: NextRequest): Promise<Record<string,
   }
 
   log.error(`Unsupported content type: ${contentType} from path ${req.nextUrl}`);
-  throw new Error(`Unsupported content type: ${contentType}`);
+  throw new HttpError({ statusCode: 400, message: "Bad Request (Unsupported Content Type)" });
 }
