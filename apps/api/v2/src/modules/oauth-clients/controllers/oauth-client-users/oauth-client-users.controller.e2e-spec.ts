@@ -260,7 +260,9 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+      expect(responseBody.data.user.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+      );
       expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
       expect(responseBody.data.user.name).toEqual(requestBody.name);
       expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
