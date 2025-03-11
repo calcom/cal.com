@@ -8,6 +8,11 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": [".", "../types/next-auth.d.ts", "../types/tanstack-table.d.ts"],
+  "include": [
+    ".",
+    "../types/next-auth.d.ts",
+    "../types/next-i18next.config.d.ts",
+    "../types/tanstack-table.d.ts"
+  ],
   "exclude": ["dist", "build", "**/node_modules/**", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
 }
