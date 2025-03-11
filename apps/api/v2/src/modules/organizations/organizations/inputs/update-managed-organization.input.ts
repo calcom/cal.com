@@ -1,5 +1,11 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, Length } from "class-validator";
+import { IsObject, IsOptional, IsString, Length } from "class-validator";
+
+import {
+  Metadata,
+  METADATA_DOCS,
+  ValidateMetadata,
+} from "@calcom/platform-types/bookings/2024-08-13/inputs/validators/validate-metadata";
 
 export class UpdateOrganizationInput {
   @IsString()
@@ -8,8 +14,13 @@ export class UpdateOrganizationInput {
   @ApiPropertyOptional({ description: "Name of the organization", example: "CalTeam" })
   readonly name?: string;
 
+  @ApiPropertyOptional({
+    type: Object,
+    description: METADATA_DOCS,
+    example: { key: "value" },
+  })
+  @IsObject()
   @IsOptional()
-  @IsString()
-  @ApiPropertyOptional()
-  readonly metadata?: string;
+  @ValidateMetadata()
+  metadata?: Metadata;
 }
