@@ -48,9 +48,9 @@ import EventManager from "@calcom/lib/EventManager";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import {
-  enrichHostsWithDwdCredentials,
-  getFirstDwdConferencingCredentialAppLocation,
-} from "@calcom/lib/domainWideDelegation/server";
+  enrichHostsWithDelegationCredentials,
+  getFirstDelegationConferencingCredentialAppLocation,
+} from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName } from "@calcom/lib/event";
@@ -690,7 +690,7 @@ async function handler(
           // find a lucky user that is not already in the luckyUsers array
           availableUsers: freeUsers,
           allRRHosts: (
-            await enrichHostsWithDwdCredentials({
+            await enrichHostsWithDelegationCredentials({
               orgId: firstUserOrgId ?? null,
               hosts: eventTypeWithUsers.hosts,
             })
@@ -809,7 +809,7 @@ async function handler(
     }
   }
 
-  const organizationDefaultLocation = getFirstDwdConferencingCredentialAppLocation({
+  const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
     credentials: firstUser.credentials,
   });
 
@@ -884,6 +884,9 @@ async function handler(
         conferenceCredentialId: undefined,
       }
     : getLocationValueForDB(locationBodyString, eventType.locations);
+
+  log.info("locationBodyString", locationBodyString);
+  log.info("event type locations", eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamDestinationCalendars: DestinationCalendar[] = [];
@@ -1835,6 +1838,9 @@ async function handler(
         ...booking.user,
         email: null,
       },
+      videoCallUrl: metadata?.videoCallUrl,
+      // Ensure seatReferenceUid is properly typed as string | null
+      seatReferenceUid: evt.attendeeSeatId,
     };
 
     return {
@@ -2035,6 +2041,7 @@ async function handler(
     ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
+    videoCallUrl: metadata?.videoCallUrl,
   };
 }
 

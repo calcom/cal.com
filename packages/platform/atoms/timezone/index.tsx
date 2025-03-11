@@ -1,5 +1,5 @@
-import type { TimezoneSelectProps } from "@calcom/ui";
-import { TimezoneSelectComponent } from "@calcom/ui";
+import { TimezoneSelectComponent as TimezoneSelect } from "@calcom/features/components/timezone-select";
+import type { TimezoneSelectProps } from "@calcom/features/components/timezone-select";
 
 import useGetCityTimezones from "../hooks/useGetCityTimezones";
 
@@ -7,7 +7,7 @@ export function Timezone(props: TimezoneSelectProps) {
   const { isLoading, data } = useGetCityTimezones();
 
   return (
-    <TimezoneSelectComponent
+    <TimezoneSelect
       {...props}
       data={
         Array.isArray(data)
