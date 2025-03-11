@@ -391,8 +391,9 @@ function BookingsContent({ status }: BookingsProps) {
                 variant="compact"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} />
+                    <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
                     <DataTableFilters.ActiveFilters table={table} />
+                    <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
                     <DataTableFilters.ClearFiltersButton />
                   </>
                 }
