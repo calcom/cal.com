@@ -45,6 +45,11 @@
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
+    "./schedules": {
+      "import": "./dist/schedules.js",
+      "require": "./dist/schedules.cjs",
+      "types": "./dist/schedules.d.ts"
+    },
     "./emails": {
       "import": "./dist/emails.js",
       "require": "./dist/emails.cjs",
@@ -69,6 +74,9 @@
       ],
       "app-store": [
         "dist/app-store.d.ts"
+      ],
+      "schedules": [
+        "dist/schedules.d.ts"
       ]
     }
   }
