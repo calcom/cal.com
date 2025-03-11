@@ -9,7 +9,7 @@ export async function parseUrlFormData(req: NextRequest): Promise<Record<string,
     // Read raw text body (because Next.js does NOT parse x-www-form-urlencoded automatically)
     const rawBody = await req.text();
     const params = new URLSearchParams(rawBody);
-    return Object.fromEntries(params.entries());
+    return Object.fromEntries(params);
   } catch (e) {
     log.error(`Invalid Url Form Data: ${e} from path ${req.nextUrl}`);
     throw new Error(`Invalid Url Form Data: ${e}`);
