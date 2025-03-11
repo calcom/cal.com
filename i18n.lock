@@ -496,6 +496,8 @@ checksums:
     browser_notifications_turned_off: f9ff8b96ea57c00e90d761af4f3494c3
     browser_notifications_denied: 82aae055de0e798655fa07f96d426717
     please_allow_notifications: 1ff79d465b45be45108352f8422cdb84
+    push_notifications: e771f23130f9aab4f3e2e99acacf5d5a
+    push_notifications_description: 405bef88b5ba902815aa310ddfa6c81b
     browser_notifications_not_supported: 3cdb7e333c9bfcf703047d66deab825e
     email: e7f34943a0c2fb849db1839ff6ef5cb5
     email_placeholder: 06962d9f03dcdbd4fa1b876f240054e8

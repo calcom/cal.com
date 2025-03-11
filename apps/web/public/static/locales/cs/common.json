@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Oznámení v prohlížeči vypnuta",
   "browser_notifications_denied": "Oznámení v prohlížeči odmítnuta",
   "please_allow_notifications": "Prosím, povolte oznámení v zobrazeném dialogu",
+  "push_notifications": "Push oznámení",
+  "push_notifications_description": "Přijímejte push oznámení, když rezervující odešle okamžitou rezervaci schůzky.",
   "browser_notifications_not_supported": "Váš prohlížeč nepodporuje Push oznámení. Pokud používáte Brave, povolte možnost `Používat služby Google pro zasílání push zpráv` na adrese brave://settings/?search=push+messaging",
   "email": "E-mailová adresa",
   "email_placeholder": "vas@email.cz",

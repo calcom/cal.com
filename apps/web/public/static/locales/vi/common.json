@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Thông báo trình duyệt đã tắt",
   "browser_notifications_denied": "Thông báo trình duyệt bị từ chối",
   "please_allow_notifications": "Vui lòng cho phép thông báo từ lời nhắc",
+  "push_notifications": "Thông báo đẩy",
+  "push_notifications_description": "Nhận thông báo đẩy khi người đặt lịch gửi yêu cầu đặt cuộc họp ngay lập tức.",
   "browser_notifications_not_supported": "Trình duyệt của bạn không hỗ trợ Thông báo Đẩy. Nếu bạn sử dụng Brave, hãy bật tùy chọn `Sử dụng dịch vụ Google cho tin nhắn đẩy` tại brave://settings/?search=push+messaging",
   "email": "Email",
   "email_placeholder": "nvana@vidu.com",

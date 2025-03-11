@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "התראות דפדפן מושבתות",
   "browser_notifications_denied": "התראות דפדפן נדחו",
   "please_allow_notifications": "אנא אפשר התראות מההודעה הקופצת",
+  "push_notifications": "התראות דחיפה",
+  "push_notifications_description": "קבל התראות דחיפה כאשר המזמין שולח הזמנת פגישה מיידית.",
   "browser_notifications_not_supported": "הדפדפן שלך לא תומך בהתראות דחיפה. אם אתה משתמש ב-Brave, הפעל את האפשרות `השתמש בשירותי Google להודעות דחיפה` בכתובת brave://settings/?search=push+messaging",
   "email": "דוא\"ל",
   "email_placeholder": "iisraeli@example.com",

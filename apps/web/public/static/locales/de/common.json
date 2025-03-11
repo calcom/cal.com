@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Browser-Benachrichtigungen deaktiviert",
   "browser_notifications_denied": "Browser-Benachrichtigungen verweigert",
   "please_allow_notifications": "Bitte erlauben Sie Benachrichtigungen in der Abfrage",
+  "push_notifications": "Push-Benachrichtigungen",
+  "push_notifications_description": "Erhalten Sie Push-Benachrichtigungen, wenn ein Bucher eine sofortige Terminbuchung vornimmt.",
   "browser_notifications_not_supported": "Ihr Browser unterstützt keine Push-Benachrichtigungen. Wenn Sie Brave-Nutzer sind, aktivieren Sie die Option 'Google-Dienste für Push-Nachrichten verwenden' unter brave://settings/?search=push+messaging",
   "email": "E-Mail",
   "email_placeholder": "max@example.com",

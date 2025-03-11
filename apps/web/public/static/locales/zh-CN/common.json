@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "浏览器通知已关闭",
   "browser_notifications_denied": "浏览器通知已拒绝",
   "please_allow_notifications": "请在提示中允许通知",
+  "push_notifications": "推送通知",
+  "push_notifications_description": "当预订者提交即时会议预订时接收推送通知。",
   "browser_notifications_not_supported": "您的浏览器不支持推送通知。如果您使用的是Brave浏览器，请在brave://settings/?search=push+messaging中启用“使用Google服务进行推送消息”选项",
   "email": "邮箱地址",
   "email_placeholder": "jdoe@example.com",

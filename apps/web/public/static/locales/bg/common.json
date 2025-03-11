@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Известията в браузъра са изключени",
   "browser_notifications_denied": "Известията в браузъра са отказани",
   "please_allow_notifications": "Моля, разрешете известията от подканата",
+  "push_notifications": "Push известия",
+  "push_notifications_description": "Получавайте push известия, когато резервиращият подаде заявка за моментална среща.",
   "browser_notifications_not_supported": "Вашият браузър не поддържа Push известия. Ако сте потребител на Brave, активирайте опцията 'Use Google services for push messaging' на brave://settings/?search=push+messaging",
   "email": "Имейл",
   "email_placeholder": "jdoe@example.com",

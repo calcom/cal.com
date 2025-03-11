@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Сповіщення браузера вимкнено",
   "browser_notifications_denied": "Сповіщення браузера відхилено",
   "please_allow_notifications": "Будь ласка, дозвольте сповіщення у спливаючому вікні",
+  "push_notifications": "Push-сповіщення",
+  "push_notifications_description": "Отримуйте push-сповіщення, коли замовник подає миттєве бронювання зустрічі.",
   "browser_notifications_not_supported": "Ваш браузер не підтримує Push-сповіщення. Якщо ви користувач Brave, увімкніть опцію `Використовувати сервіси Google для push-повідомлень` на brave://settings/?search=push+messaging",
   "email": "Ел. адреса",
   "email_placeholder": "vpetrenko@zrazok.com",

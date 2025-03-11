@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Webbläsaraviseringar inaktiverade",
   "browser_notifications_denied": "Webbläsaraviseringar nekade",
   "please_allow_notifications": "Vänligen tillåt aviseringar från prompten",
+  "push_notifications": "Push-aviseringar",
+  "push_notifications_description": "Ta emot push-aviseringar när en bokare skickar in en omedelbar mötesbokning.",
   "browser_notifications_not_supported": "Din webbläsare stöder inte push-aviseringar. Om du använder Brave, aktivera alternativet `Använd Google-tjänster för push-meddelanden` på brave://settings/?search=push+messaging",
   "email": "E-post",
   "email_placeholder": "jdoe@exempel.se",

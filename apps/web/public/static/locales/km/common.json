@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "ការជូនដំណឹងតាមកម្មវិធីរុករកត្រូវបានបិទ",
   "browser_notifications_denied": "ការជូនដំណឹងតាមកម្មវិធីរុករកត្រូវបានបដិសេធ",
   "please_allow_notifications": "សូមអនុញ្ញាតឱ្យមានការជូនដំណឹងពីការជំរុញ",
+  "push_notifications": "ការជូនដំណឹងតាមការជំរុញ",
+  "push_notifications_description": "ទទួលបានការជូនដំណឹងតាមការជំរុញនៅពេលអ្នកកក់ដាក់ស្នើការកក់កិច្ចប្រជុំភ្លាមៗ។",
   "browser_notifications_not_supported": "កម្មវិធីរុករករបស់អ្នកមិនគាំទ្រការជូនដំណឹងតាមការជំរុញទេ។ ប្រសិនបើអ្នកប្រើប្រាស់កម្មវិធី Brave សូមបើកជម្រើស `Use Google services for push messaging` នៅលើ brave://settings/?search=push+messaging",
   "email": "អ៊ីមែល",
   "email_placeholder": "jdoe@example.com",

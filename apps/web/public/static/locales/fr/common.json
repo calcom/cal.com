@@ -494,6 +494,8 @@
   "browser_notifications_turned_off": "Notifications du navigateur désactivées",
   "browser_notifications_denied": "Notifications du navigateur refusées",
   "please_allow_notifications": "Veuillez autoriser les notifications dans l'invite",
+  "push_notifications": "Notifications push",
+  "push_notifications_description": "Recevez des notifications push lorsqu'un utilisateur soumet une réservation de réunion instantanée.",
   "browser_notifications_not_supported": "Votre navigateur ne prend pas en charge les notifications push. Si vous utilisez Brave, activez l'option 'Utiliser les services Google pour la messagerie push' dans brave://settings/?search=push+messaging",
   "email": "E-mail",
   "email_placeholder": "jdoe@exemple.com",
