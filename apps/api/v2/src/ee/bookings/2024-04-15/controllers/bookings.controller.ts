@@ -346,7 +346,8 @@ export class BookingsController_2024_04_15 {
           return keyData?.userId;
         } else {
           // Access Token
-          return this.oAuthFlowService.getOwnerId(bearerToken);
+          const ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
+          return ownerId;
         }
       }
     } catch (err) {
