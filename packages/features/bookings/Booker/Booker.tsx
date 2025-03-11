@@ -595,8 +595,14 @@ const BookingLanguageProvider = ({ locale, children }: { locale: string; childre
     const setupI18n = async () => {
       const i18nInstance = i18n.createInstance();
 
+      const resources = data.i18n._nextI18Next?.initialI18nStore;
+
+      if (!resources) {
+        return;
+      }
+
       await i18nInstance.use(initReactI18next).init({
-        resources: data.i18n._nextI18Next.initialI18nStore as Resource,
+        resources: resources as Resource,
         lng: locale,
         fallbackLng: "en",
         ns: ["common"],
