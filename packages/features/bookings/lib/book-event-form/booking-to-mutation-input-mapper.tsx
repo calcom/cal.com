@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import type { Tracking } from "@calcom/features/bookings/Booker/types";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
@@ -99,7 +100,8 @@ export const mapBookingToMutationInput = ({
 // Other than that it forwards the mapping to mapBookingToMutationInput.
 export const mapRecurringBookingToMutationInput = (
   booking: BookingOptions,
-  recurringCount: number
+  recurringCount: number,
+  tracking: Tracking
 ): RecurringBookingCreateBody[] => {
   const recurringEventId = uuidv4();
   const [, recurringDates] = parseRecurringDates(
@@ -124,5 +126,6 @@ export const mapRecurringBookingToMutationInput = (
     recurringEventId,
     schedulingType: booking.event.schedulingType || undefined,
     recurringCount: recurringDates.length,
+    tracking,
   }));
 };

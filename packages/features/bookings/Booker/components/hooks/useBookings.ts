@@ -7,6 +7,7 @@ import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEv
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import type { Tracking } from "@calcom/features/bookings/Booker/types";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -49,6 +50,7 @@ export interface IUseBookings {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
   teamMemberEmail?: string | null;
+  tracking?: Tracking;
 }
 
 const getBookingSuccessfulEventPayload = (booking: {
@@ -103,7 +105,14 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
-export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
+export const useBookings = ({
+  event,
+  hashedLink,
+  bookingForm,
+  metadata,
+  teamMemberEmail,
+  tracking,
+}: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const eventTypeId = useBookerStore((state) => state.eventId);
@@ -375,6 +384,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     bookingForm,
     hashedLink,
     metadata,
+    tracking,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,

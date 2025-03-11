@@ -1,8 +1,11 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
+import { getUtmTrackingParameters } from "@lib/booking/getUtmTrackingParameters";
 import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
 export default function Type({
@@ -17,6 +20,8 @@ export default function Type({
   hashedLink,
   durationConfig,
 }: PageProps) {
+  const searchParams = useSearchParams();
+
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <Booker
@@ -29,6 +34,7 @@ export default function Type({
         duration={duration}
         hashedLink={hashedLink}
         durationConfig={durationConfig}
+        tracking={getUtmTrackingParameters(searchParams)}
       />
     </main>
   );

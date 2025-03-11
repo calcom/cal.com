@@ -2,6 +2,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import type { Tracking } from "@calcom/features/bookings/Booker/types";
 import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -28,6 +29,7 @@ type UseHandleBookingProps = {
   handleRecBooking: (input: BookingCreateBody[], callbacks?: Callbacks) => void;
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
+  tracking?: Tracking;
 };
 
 export const useHandleBookEvent = ({
@@ -40,6 +42,7 @@ export const useHandleBookEvent = ({
   handleRecBooking,
   locationUrl,
   routingFormSearchParams,
+  tracking,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -112,9 +115,12 @@ export const useHandleBookEvent = ({
       if (isInstantMeeting) {
         handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
-        handleRecBooking(mapRecurringBookingToMutationInput(bookingInput, recurringEventCount), callbacks);
+        handleRecBooking(
+          mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
+          callbacks
+        );
       } else {
-        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl }, callbacks);
+        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});

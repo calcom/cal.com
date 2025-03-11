@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
+import { getUtmTrackingParameters } from "@lib/booking/getUtmTrackingParameters";
 import type { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -59,6 +60,7 @@ function Type({
         teamMemberEmail={teamMemberEmail}
         crmOwnerRecordType={crmOwnerRecordType}
         crmAppSlug={crmAppSlug}
+        tracking={getUtmTrackingParameters(searchParams)}
       />
     </main>
   );
