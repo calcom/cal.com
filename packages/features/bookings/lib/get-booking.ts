@@ -16,6 +16,10 @@ type BookingSelect = {
     };
   };
   location: true;
+  attendeeCanReschedule: true;
+  attendeeRescheduleMinimumNotice: true;
+  attendeeCanCancel: true;
+  attendeeCancelMinimumNotice: true;
 };
 
 // Backward Compatibility for booking created before we had managed booking questions
@@ -73,6 +77,10 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
           id: true,
         },
       },
+      attendeeCanReschedule: true,
+      attendeeRescheduleMinimumNotice: true,
+      attendeeCanCancel: true,
+      attendeeCancelMinimumNotice: true,
     },
   });
 

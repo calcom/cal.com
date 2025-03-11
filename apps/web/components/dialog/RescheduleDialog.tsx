@@ -18,12 +18,14 @@ interface IRescheduleDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   bookingUId: string;
+  attendeeCanReschedule: boolean;
+  attendeeRescheduleMinimumNotice: number;
 }
 
 export const RescheduleDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
+  const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId, attendeeCanReschedule, attendeeRescheduleMinimumNotice } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
 
   const { mutate: rescheduleApi, isPending } = trpc.viewer.bookings.requestReschedule.useMutation({
@@ -38,6 +40,8 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
     },
   });
 
+  const canReschedule = attendeeCanReschedule && attendeeRescheduleMinimumNotice > 0;
+
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow>
@@ -48,17 +52,21 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
           <div className="w-full pt-1">
             <DialogHeader title={t("send_reschedule_request")} />
             <p className="text-subtle text-sm">{t("reschedule_modal_description")}</p>
-            <p className="text-emphasis mb-2 mt-6 text-sm font-bold">
-              {t("reason_for_reschedule_request")}
-              <span className="text-subtle font-normal"> (Optional)</span>
-            </p>
-            <TextArea
-              data-testid="reschedule_reason"
-              name={t("reason_for_reschedule")}
-              value={rescheduleReason}
-              onChange={(e) => setRescheduleReason(e.target.value)}
-              className="mb-5 sm:mb-6"
-            />
+            {canReschedule && (
+              <>
+                <p className="text-emphasis mb-2 mt-6 text-sm font-bold">
+                  {t("reason_for_reschedule_request")}
+                  <span className="text-subtle font-normal"> (Optional)</span>
+                </p>
+                <TextArea
+                  data-testid="reschedule_reason"
+                  name={t("reason_for_reschedule")}
+                  value={rescheduleReason}
+                  onChange={(e) => setRescheduleReason(e.target.value)}
+                  className="mb-5 sm:mb-6"
+                />
+              </>
+            )}
           </div>
         </div>
         <DialogFooter showDivider className="mt-8">
@@ -67,7 +75,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
           </Button>
           <Button
             data-testid="send_request"
-            disabled={isPending}
+            disabled={isPending || !canReschedule}
             onClick={() => {
               rescheduleApi({
                 bookingId,
