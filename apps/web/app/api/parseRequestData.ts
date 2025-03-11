@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 const log = logger.getSubLogger({ prefix: ["[parseRequestData]"] });
 
 export async function parseRequestData(req: NextRequest): Promise<Record<string, any>> {
-  const contentType = req.headers.get("content-type") || "application/json";
+  const contentType = req.headers.get("content-type") ?? "application/json";
   if (contentType.includes("application/json")) {
     try {
       return await req.json();
