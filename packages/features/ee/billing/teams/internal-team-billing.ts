@@ -161,4 +161,10 @@ export class InternalTeamBilling implements TeamBilling {
       paymentRequired: false,
     };
   }
+  /** Returns the subscription status (active, past_due, trialing, ...) */
+  async getSubscriptionStatus() {
+    const { subscriptionId } = this.team.metadata;
+    if (!subscriptionId) return null;
+    return await billing.getSubscriptionStatus(subscriptionId);
+  }
 }

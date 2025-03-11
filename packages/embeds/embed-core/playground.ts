@@ -31,9 +31,6 @@ const only = searchParams.get("only");
 const colorScheme = searchParams.get("color-scheme");
 const prerender = searchParams.get("prerender");
 
-// @ts-expect-error We haven't defined ENABLE_FUTURE_ROUTES as it is a playground specific variable.
-window.ENABLE_FUTURE_ROUTES = searchParams.get("future-routes") === "true";
-
 if (colorScheme) {
   document.documentElement.style.colorScheme = colorScheme;
 }
@@ -63,7 +60,6 @@ if (only === "all" || only === "ns:default") {
       },
       name: "John",
       email: "johndoe@gmail.com",
-      notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
       theme: "dark",
       "flag.coep": "true",
@@ -454,7 +450,6 @@ if (only === "all" || only == "ns:floatingButton") {
       "flag.coep": "true",
       name: "John",
       email: "johndoe@gmail.com",
-      notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
       ...(theme ? { theme } : {}),
     },

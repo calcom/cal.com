@@ -4,9 +4,9 @@ import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
-import cx from "@calcom/lib/classNames";
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
 import { Button } from "@calcom/ui";
+import cx from "@calcom/ui/classNames";
 
 export type ColorPickerProps = {
   defaultValue: string;

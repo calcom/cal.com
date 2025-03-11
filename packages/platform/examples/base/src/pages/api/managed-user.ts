@@ -169,6 +169,7 @@ async function createMembership(orgId: number, teamId: number, userId: number) {
       body: JSON.stringify({
         userId,
         accepted: true,
+        role: "ADMIN",
       }),
     }
   );

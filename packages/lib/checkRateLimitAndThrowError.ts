@@ -1,6 +1,7 @@
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";
@@ -24,6 +25,7 @@ export async function checkRateLimitAndThrowError({
       message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
     });
   }
+  return response;
 }
 
 export async function checkSMSRateLimit({

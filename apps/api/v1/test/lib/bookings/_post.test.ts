@@ -12,6 +12,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 import handler from "../../../pages/api/bookings/_post";
 
@@ -219,6 +220,34 @@ describe.skipIf(true)("POST /api/bookings", () => {
           where: { uid: createdBooking.uid },
         });
         expect(previousBooking?.status).toBe("cancelled");
+      });
+
+      test("Creates source as api_v1", async () => {
+        const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+          method: "POST",
+          body: {
+            name: "test",
+            start: dayjs().format(),
+            end: dayjs().add(1, "day").format(),
+            eventTypeId: 2,
+            email: "test@example.com",
+            location: "Cal.com Video",
+            timeZone: "America/Montevideo",
+            language: "en",
+            customInputs: [],
+            metadata: {},
+            userId: 4,
+          },
+          prisma,
+        });
+
+        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType());
+        prismaMock.booking.findMany.mockResolvedValue([]);
+
+        await handler(req, res);
+        createdBooking = JSON.parse(res._getData());
+        expect(createdBooking.creationSource).toEqual(CreationSource.API_V1);
+        expect(prismaMock.booking.create).toHaveBeenCalledTimes(1);
       });
     });
 

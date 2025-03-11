@@ -14,7 +14,7 @@ test.describe("Org", () => {
     test("Org User(Rick) Page should be embeddable", async ({ page }) => {
       const response = await page.goto("https://i.cal.com/team-rick/embed");
       expect(response?.status()).toBe(200);
-      await expect(page.locator("text=Rick in i.cal.com")).toBeVisible();
+      await expect(page.locator("text=Used by Checkly")).toBeVisible();
       await expectPageToBeRenderedWithEmbedSsr(page);
     });
 
@@ -58,10 +58,10 @@ test.describe("Org", () => {
       expect(response?.status()).toBe(200);
       expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Group Meeting");
 
-      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[0].name);
-      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[1].name);
-      // 2 users and 1 for the organization(2+1)
-      expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
+      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(
+        "Join us for a meeting with multiple people"
+      );
+      expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(2);
     });
   });
 
@@ -75,7 +75,9 @@ test.describe("Org", () => {
 
   test.describe("Browse the Engineering Team", async () => {
     test("By User Navigation", async ({ page }) => {
-      await page.goto("https://i.cal.com");
+      const response = await page.goto("https://i.cal.com");
+      await page.waitForLoadState("networkidle");
+      expect(response?.status()).toBe(200);
       await page.click('text="Engineering"');
       await expect(page.locator("text=Cal.com Engineering")).toBeVisible();
     });

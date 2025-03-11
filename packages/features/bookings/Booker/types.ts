@@ -118,6 +118,8 @@ export type WrappedBookerPropsMain = {
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
+  isBookingDryRun?: boolean;
+  renderCaptcha?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
@@ -137,6 +139,7 @@ export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
+  bookerWrapper?: string;
   bookerContainer?: string;
   eventMetaCustomClassNames?: {
     eventMetaContainer?: string;

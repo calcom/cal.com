@@ -64,6 +64,7 @@ type UserPageProps = {
     | "hidden"
     | "lockTimeZoneToggleOnBookingPage"
     | "requiresConfirmation"
+    | "canSendCalVideoTranscriptionEmails"
     | "requiresBookerEmailVerification"
     | "price"
     | "currency"
@@ -105,7 +106,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
 
   if (isDynamicGroup) {
-    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    const destinationUrl = encodeURI(`/${usernameList.join("+")}/dynamic`);
+
+    // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
+    // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
     const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
     const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
@@ -162,7 +166,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     return {
       redirect: {
         permanent: false,
-        destination: `${urlDestination}?${urlQuery}`,
+        destination: `${encodeURI(urlDestination)}?${urlQuery}`,
       },
     };
   }

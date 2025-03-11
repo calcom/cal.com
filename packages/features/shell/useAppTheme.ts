@@ -1,3 +1,5 @@
+"use client";
+
 import getBrandColours from "@calcom/lib/getBrandColours";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";

@@ -95,6 +95,8 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       {
         id: "member",
         accessorFn: (data) => data.username,
+        enableHiding: false,
+        enableSorting: false,
         header: "Member",
         size: 200,
         cell: ({ row }) => {
@@ -127,6 +129,8 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         id: "timezone",
         accessorFn: (data) => data.timeZone,
         header: "Timezone",
+        enableHiding: false,
+        enableSorting: false,
         size: 160,
         cell: ({ row }) => {
           const { timeZone } = row.original;
@@ -152,6 +156,8 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         meta: {
           autoWidth: true,
         },
+        enableHiding: false,
+        enableSorting: false,
         header: () => {
           return (
             <div className="flex items-center space-x-2">

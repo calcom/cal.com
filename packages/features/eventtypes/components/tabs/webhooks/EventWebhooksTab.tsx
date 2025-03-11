@@ -115,7 +115,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
               <>
                 {(isManagedEventType || isChildrenManagedEventType) && (
                   <Alert
-                    severity={webhooksDisableProps.isLocked ? "neutral" : "green"}
+                    severity={webhooksDisableProps.isLocked ? "neutral" : "info"}
                     className="mb-2"
                     title={
                       <Trans

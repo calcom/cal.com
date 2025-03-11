@@ -1,11 +1,6 @@
 import type { ParsedUrlQuery } from "querystring";
 import { z } from "zod";
 
-import type { RouterOutputs } from "@calcom/trpc/react";
-
-export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
-export type IEventTypeFilter = IEventTypesFilters[0];
-
 // Take array as a string and return zod array
 const queryStringArray = z
   .string()

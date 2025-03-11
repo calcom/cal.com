@@ -1,7 +1,8 @@
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import type { PrismaClient } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TResponseInputSchema } from "./response.schema";
 
@@ -13,7 +14,7 @@ interface ResponseHandlerOptions {
 }
 export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
   const { prisma } = ctx;
-  const { formId, response, formFillerId, chosenRouteId = null } = input;
+  const { formId, response, formFillerId, chosenRouteId = null, isPreview = false } = input;
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
@@ -43,7 +44,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     form,
   });
 
-  return handleResponse({ response, form: serializableForm, formFillerId, chosenRouteId });
+  return handleResponse({ response, form: serializableForm, formFillerId, chosenRouteId, isPreview });
 };
 
 export default responseHandler;

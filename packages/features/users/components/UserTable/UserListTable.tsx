@@ -19,9 +19,10 @@ import {
   isMultiSelectFilterValue,
   singleSelectFilter,
   multiSelectFilter,
+  ColumnFilterType,
+  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
   downloadAsCsv,
@@ -32,6 +33,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, Checkbox, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -184,12 +186,12 @@ function UserListTableContent() {
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
           const isMultiSelect = attribute.type === "MULTI_SELECT";
           const filterType = isNumber
-            ? "number"
+            ? ColumnFilterType.NUMBER
             : isText
-            ? "text"
+            ? ColumnFilterType.TEXT
             : isSingleSelect
-            ? "single_select"
-            : "multi_select";
+            ? ColumnFilterType.SINGLE_SELECT
+            : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -265,11 +267,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 30,
-        meta: {
-          sticky: {
-            position: "left",
-          },
-        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -293,12 +290,7 @@ function UserListTableContent() {
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: () => {
-          return `Members`;
-        },
-        meta: {
-          sticky: { position: "left", gap: 24 },
-        },
+        header: "Members",
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -411,9 +403,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 80,
-        meta: {
-          sticky: { position: "right" },
-        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
@@ -447,17 +436,19 @@ function UserListTableContent() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
-    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        left: ["select", "member"],
+        right: ["actions"],
+      },
     },
     defaultColumn: {
       size: 150,
     },
     state: {
-      columnFilters,
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
@@ -468,13 +459,28 @@ function UserListTableContent() {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
-            return new Map(facetedTeamValues.roles.map((role) => [role, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.roles.map((role) => ({
+                label: role,
+                value: role,
+              }))
+            );
           case "teams":
-            return new Map(facetedTeamValues.teams.map((team) => [team.name, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.teams.map((team) => ({
+                label: team.name,
+                value: team.name,
+              }))
+            );
           default:
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
-              return new Map(attribute?.options.map(({ value }) => [value, 1]) ?? []);
+              return convertFacetedValuesToMap(
+                attribute?.options.map(({ value }) => ({
+                  label: value,
+                  value,
+                })) ?? []
+              );
             }
             return new Map();
         }
@@ -549,11 +555,13 @@ function UserListTableContent() {
         isFetching={isFetching}
         totalDBRowCount={totalDBRowCount}
         ToolbarLeft={
-          <DataTableToolbar.SearchBar
-            table={table}
-            onSearch={(value) => setDebouncedSearchTerm(value)}
-            className="sm:max-w-64 max-w-full"
-          />
+          <>
+            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
+            <DataTableFilters.ActiveFilters table={table} />
+            <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+            <DataTableFilters.ClearFiltersButton />
+          </>
         }
         ToolbarRight={
           <>
@@ -566,14 +574,12 @@ function UserListTableContent() {
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                className="rounded-md"
                 onClick={() =>
                   dispatch({
                     type: "INVITE_MEMBER",
@@ -588,18 +594,18 @@ function UserListTableContent() {
             )}
           </>
         }>
-        <div className="flex gap-2 justify-self-start">
-          <DataTableFilters.ActiveFilters table={table} />
-        </div>
-
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
-            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+          <DataTableSelectionBar.Root
+            className="justify-center"
+            style={{
+              width: "max-content",
+            }}>
+            <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {!isPlatformUser ? (
@@ -607,6 +613,7 @@ function UserListTableContent() {
                 <TeamListBulkAction table={table} />
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
+                    color="secondary"
                     onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
                     icon="handshake">
                     {t("group_meeting")}

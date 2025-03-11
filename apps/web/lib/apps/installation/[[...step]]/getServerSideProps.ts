@@ -5,12 +5,12 @@ import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
-import type { LocationObject } from "@calcom/core/location";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import type { LocationObject } from "@calcom/lib/location";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -88,6 +88,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     position: true,
     recurringEvent: true,
     requiresConfirmation: true,
+    canSendCalVideoTranscriptionEmails: true,
     team: { select: { slug: true } },
     schedulingType: true,
     teamId: true,
@@ -199,7 +200,7 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res, query, params } = context;
+  const { req, query, params } = context;
   let eventTypeGroups: TEventTypeGroup[] | null = null;
   let isOrg = false;
   const stepsEnum = z.enum(STEPS);
@@ -207,7 +208,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const parsedStepParam = z.coerce.string().parse(params?.step);
   const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
   const _ = stepsEnum.parse(parsedStepParam);
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
   const locale = await getLocale(context.req);
   const app = await getAppBySlug(parsedAppSlug);

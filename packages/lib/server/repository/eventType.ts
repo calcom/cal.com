@@ -441,6 +441,17 @@ export class EventTypeRepository {
     });
   }
 
+  static async findTitleById({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        title: true,
+      },
+    });
+  }
+
   static async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
@@ -477,6 +488,7 @@ export class EventTypeRepository {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
+      canSendCalVideoTranscriptionEmails: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
@@ -501,6 +513,7 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      allowReschedulingPastBookings: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
@@ -728,6 +741,7 @@ export class EventTypeRepository {
         team: {
           select: {
             parentId: true,
+            rrResetInterval: true,
           },
         },
       },
@@ -784,12 +798,14 @@ export class EventTypeRepository {
         periodStartDate: true,
         periodEndDate: true,
         onlyShowFirstAvailableSlot: true,
+        allowReschedulingPastBookings: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,
         metadata: true,
         assignRRMembersUsingSegment: true,
         rrSegmentQueryValue: true,
+        isRRWeightsEnabled: true,
         maxLeadThreshold: true,
         useEventLevelSelectedCalendars: true,
         team: {
@@ -798,6 +814,7 @@ export class EventTypeRepository {
             bookingLimits: true,
             includeManagedEventsInLimits: true,
             parentId: true,
+            rrResetInterval: true,
           },
         },
         parent: {
@@ -837,6 +854,8 @@ export class EventTypeRepository {
           select: {
             isFixed: true,
             createdAt: true,
+            weight: true,
+            priority: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },
