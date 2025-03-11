@@ -57,13 +57,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { authed_user, access_token } = data;
     const slackUserId = authed_user.id;
-    const slackAccessToken = access_token;
+    const slackUserBotToken = access_token;
 
     await createDefaultInstallation({
       appType: appConfig.type,
       user: req.session.user,
       slug: appConfig.slug,
-      key: { slackUserId, slackAccessToken },
+      key: { slackUserId, slackUserBotToken },
     });
 
     res.status(200).json({ message: "Slack account connected successfully!" });
