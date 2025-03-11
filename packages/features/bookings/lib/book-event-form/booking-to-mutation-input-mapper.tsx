@@ -101,7 +101,7 @@ export const mapBookingToMutationInput = ({
 export const mapRecurringBookingToMutationInput = (
   booking: BookingOptions,
   recurringCount: number,
-  tracking: Tracking
+  tracking?: Tracking
 ): RecurringBookingCreateBody[] => {
   const recurringEventId = uuidv4();
   const [, recurringDates] = parseRecurringDates(
