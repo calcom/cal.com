@@ -1,4 +1,4 @@
-import type { Settings } from "react-awesome-query-builder";
+import type { Settings } from "@react-awesome-query-builder/core";
 import { describe, it, vi, expect } from "vitest";
 
 import {

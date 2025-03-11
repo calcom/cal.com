@@ -1,7 +1,7 @@
+import type { ImmutableTree, JsonLogicResult, JsonTree } from "@react-awesome-query-builder/core";
+import type { Config } from "@react-awesome-query-builder/ui";
+import { Utils as QbUtils } from "@react-awesome-query-builder/ui";
 import async from "async";
-import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder/lib";
-import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
@@ -68,7 +68,7 @@ function perf<ReturnValue>(fn: () => ReturnValue): [ReturnValue, number | null] 
 }
 
 function getErrorsFromImmutableTree(tree: ImmutableTree) {
-  const validatedQueryValue = QbUtils.getTree(tree);
+  const validatedQueryValue = QbUtils.getTree(tree, true, false);
   if (!raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue)) {
     return [];
   }

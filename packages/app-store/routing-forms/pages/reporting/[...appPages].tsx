@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useCallback, useRef, useState, useEffect } from "react";
 import type {
   BuilderProps,
   Config,
   ImmutableTree,
   JsonLogicResult,
   JsonTree,
-} from "react-awesome-query-builder";
-import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
+import { Builder, Query, Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 
 import { downloadAsCsv, sanitizeValue } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -228,7 +228,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   const [query, setQuery] = useState(getInitialQuery(config));
   const [jsonLogicQuery, setJsonLogicQuery] = useState<JsonLogicResult | null>(null);
   const onChange = (immutableTree: ImmutableTree, config: FormFieldsQueryBuilderConfigWithRaqbFields) => {
-    const jsonTree = QbUtils.getTree(immutableTree);
+    const jsonTree = QbUtils.getTree(immutableTree, true, false);
     setQuery(() => {
       const newValue = {
         state: { tree: immutableTree, config: config },

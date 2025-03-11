@@ -2,11 +2,11 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Prisma } from "@prisma/client";
+import type { JsonTree } from "@react-awesome-query-builder/core";
+import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { ImmutableTree, BuilderProps, Config } from "@react-awesome-query-builder/ui";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 
@@ -246,7 +246,7 @@ const WeightedAttributesSelector = ({
 
   if (eventTypeRedirectUrlSelectedOption?.isRRWeightsEnabled) {
     const validatedQueryValue = route.attributesQueryBuilderState?.tree
-      ? QbUtils.getTree(route.attributesQueryBuilderState.tree)
+      ? QbUtils.getTree(route.attributesQueryBuilderState.tree, true, false)
       : null;
 
     if (
@@ -385,7 +385,7 @@ const Route = ({
     immutableTree: ImmutableTree,
     config: FormFieldsQueryBuilderConfigWithRaqbFields
   ) => {
-    const jsonTree = QbUtils.getTree(immutableTree) as LocalRoute["queryValue"];
+    const jsonTree = QbUtils.getTree(immutableTree, true, false) as LocalRoute["queryValue"];
     setRoute(route.id, {
       formFieldsQueryBuilderState: { tree: immutableTree, config: config },
       queryValue: jsonTree,
@@ -403,7 +403,7 @@ const Route = ({
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
-    const jsonTree = QbUtils.getTree(immutableTree);
+    const jsonTree = QbUtils.getTree(immutableTree, true, false);
     const attributeIdForWeights = isRouter(route) ? null : route.attributeIdForWeights;
     const _isValidAttributeIdForWeights =
       attributeIdForWeights && isValidAttributeIdForWeights({ attributeIdForWeights, jsonTree });
@@ -424,7 +424,7 @@ const Route = ({
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
-    const jsonTree = QbUtils.getTree(immutableTree);
+    const jsonTree = QbUtils.getTree(immutableTree, true, false);
     setRoute(route.id, {
       fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
       fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Utils as QbUtils, type JsonTree } from "react-awesome-query-builder";
+import { Utils as QbUtils, type JsonTree } from "@react-awesome-query-builder/core";
 
 import { safeStringify } from "@calcom/lib/safeStringify";
 
