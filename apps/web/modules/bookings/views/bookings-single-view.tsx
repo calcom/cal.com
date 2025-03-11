@@ -161,6 +161,7 @@ export default function Success(props: PageProps) {
     t,
   });
 
+  // TODO: We could transform the JSX to just iterate over calendarLinks and render a link for each type
   const icsLink = calendarLinks.find((link) => link.id === CalendarLinkType.ICS)?.link;
   const microsoftOfficeLink = calendarLinks.find(
     (link) => link.id === CalendarLinkType.MICROSOFT_OFFICE

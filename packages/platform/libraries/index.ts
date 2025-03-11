@@ -79,14 +79,6 @@ export { handleCancelBooking };
 
 export { userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export type {
-  SystemField,
-  CustomField,
-  NameSystemField,
-  EmailSystemField,
-  InternalLocation,
-} from "@calcom/lib/event-types/transformers";
-
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
