@@ -10,7 +10,7 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
-import type { Tracking } from "@calcom/features/bookings/Booker/types";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
