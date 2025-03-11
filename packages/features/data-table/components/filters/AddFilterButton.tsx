@@ -17,16 +17,25 @@ import {
   CommandEmpty,
   CommandItem,
   Icon,
+  Tooltip,
 } from "@calcom/ui";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 
 export interface AddFilterButtonProps<TData> {
   table: Table<TData>;
+  variant?: "base" | "sm";
+  hideWhenFilterApplied?: boolean;
+  showWhenFilterApplied?: boolean;
 }
 
 function AddFilterButtonComponent<TData>(
-  { table }: AddFilterButtonProps<TData>,
+  {
+    table,
+    variant = "base",
+    hideWhenFilterApplied = false,
+    showWhenFilterApplied = false,
+  }: AddFilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
@@ -43,19 +52,39 @@ function AddFilterButtonComponent<TData>(
     [activeFilters, setActiveFilters]
   );
 
+  if (hideWhenFilterApplied && activeFilters?.length > 0) {
+    return null;
+  }
+
+  if (showWhenFilterApplied && activeFilters?.length === 0) {
+    return null;
+  }
+
   return (
     <div className="flex items-center space-x-2">
       <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            ref={ref}
-            color="secondary"
-            data-testid="add-filter-button"
-            StartIcon="sliders-horizontal"
-            className="h-full">
-            {t("filter")}
-          </Button>
-        </PopoverTrigger>
+        {variant === "base" && (
+          <PopoverTrigger asChild>
+            <Button
+              ref={ref}
+              color="secondary"
+              data-testid="add-filter-button"
+              StartIcon="sliders-horizontal"
+              className="h-full">
+              {t("filter")}
+            </Button>
+          </PopoverTrigger>
+        )}
+        {variant === "sm" && (
+          <Tooltip content={t("add_filter")}>
+            <PopoverTrigger asChild>
+              <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
+                <span className="sr-only">{t("filter")}</span>
+                <Icon name="plus" />
+              </Button>
+            </PopoverTrigger>
+          </Tooltip>
+        )}
         <PopoverContent className="w-[200px] p-0" align="start">
           <Command>
             <CommandInput placeholder={t("search")} />
