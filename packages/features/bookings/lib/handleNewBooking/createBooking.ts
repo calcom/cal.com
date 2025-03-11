@@ -4,7 +4,6 @@ import type { z } from "zod";
 
 import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { Tracking } from "@calcom/features/bookings/Booker/types";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -22,6 +21,14 @@ import type {
 } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
+
+type Tracking = {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+};
 
 type CreateBookingParams = {
   uid: short.SUUID;

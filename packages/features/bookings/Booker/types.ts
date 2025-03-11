@@ -93,16 +93,7 @@ export interface BookerProps {
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;
-  tracking?: Tracking;
 }
-
-export type Tracking = {
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
-};
 
 export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
