@@ -1,21 +1,17 @@
+import { parseRequestData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    res.status(405).json({ message: "Invalid method" });
-    return;
-  }
-
-  const { code, client_id, client_secret, grant_type, redirect_uri } = req.body;
+export async function POST(req: NextRequest) {
+  const { code, client_id, client_secret, grant_type, redirect_uri } = await parseRequestData(req);
 
   if (grant_type !== "authorization_code") {
-    res.status(400).json({ message: "grant_type invalid" });
-    return;
+    return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
 
   const [hashedSecret] = generateSecret(client_secret);
@@ -31,8 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!client || client.redirectUri !== redirect_uri) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const accessCode = await prisma.accessCode.findFirst({
@@ -45,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  //delete all expired accessCodes + the one that is used here
+  // Delete all expired accessCodes + the one that is used here
   await prisma.accessCode.deleteMany({
     where: {
       OR: [
@@ -63,8 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!accessCode) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
@@ -93,5 +87,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     expiresIn: 30 * 24 * 60 * 60, // 30 days
   });
 
-  res.status(200).json({ access_token, refresh_token });
+  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }

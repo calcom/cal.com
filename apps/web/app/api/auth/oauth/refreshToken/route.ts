@@ -1,23 +1,21 @@
+import { parseRequestData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    res.status(405).json({ message: "Invalid method" });
-    return;
+export async function POST(req: NextRequest) {
+  const { client_id, client_secret, grant_type } = await parseRequestData(req);
+
+  if (!client_id || !client_secret) {
+    return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });
   }
 
-  const refreshToken = req.headers.authorization?.split(" ")[1] || "";
-
-  const { client_id, client_secret, grant_type } = req.body;
-
   if (grant_type !== "refresh_token") {
-    res.status(400).json({ message: "grant type invalid" });
-    return;
+    return NextResponse.json({ message: "grant type invalid" }, { status: 400 });
   }
 
   const [hashedSecret] = generateSecret(client_secret);
@@ -33,8 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!client) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
@@ -42,15 +39,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let decodedRefreshToken: OAuthTokenPayload;
 
   try {
+    const refreshToken = req.headers.get("authorization")?.split(" ")[1] || "";
     decodedRefreshToken = jwt.verify(refreshToken, secretKey) as OAuthTokenPayload;
   } catch {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const payload: OAuthTokenPayload = {
@@ -65,5 +61,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     expiresIn: 1800, // 30 min
   });
 
-  res.status(200).json({ access_token });
+  return NextResponse.json({ access_token }, { status: 200 });
 }
