@@ -22,12 +22,6 @@ vi.mock("@calcom/prisma", () => ({
     },
   },
 }));
-vi.mock("@sentry/nextjs", () => ({
-  captureException: vi.fn(),
-  captureMessage: vi.fn(),
-  setUser: vi.fn(),
-  setTag: vi.fn(),
-}));
 
 describe("autoLock", () => {
   const mockRedis = {
@@ -45,13 +39,11 @@ describe("autoLock", () => {
     // Mock environment variables
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
     process.env.UPSTASH_REDIS_REST_URL = "test-url";
-    process.env.NEXT_PUBLIC_SENTRY_DSN = "sentry-dsn";
   });
 
   afterEach(() => {
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
     delete process.env.UPSTASH_REDIS_REST_URL;
-    delete process.env.NEXT_PUBLIC_SENTRY_DSN;
   });
 
   describe("handleAutoLock", () => {
