@@ -1,3 +1,5 @@
+"use client";
+
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import i18n from "i18next";
 import type { Resource } from "i18next";
