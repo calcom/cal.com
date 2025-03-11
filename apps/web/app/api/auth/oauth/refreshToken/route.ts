@@ -7,7 +7,15 @@ import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClie
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 export async function POST(req: NextRequest) {
-  const { client_id, client_secret, grant_type } = await req.json();
+  const formData = await req.formData();
+
+  const client_id = formData.get("client_id")?.toString();
+  const client_secret = formData.get("client_secret")?.toString();
+  const grant_type = formData.get("grant_type")?.toString();
+
+  if (!client_id || !client_secret) {
+    return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });
+  }
 
   if (grant_type !== "refresh_token") {
     return NextResponse.json({ message: "grant type invalid" }, { status: 400 });
