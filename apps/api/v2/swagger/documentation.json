@@ -4260,6 +4260,47 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/calendar-links": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getCalendarLinks",
+        "summary": "Get 'Add to Calendar' links for a booking",
+        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarLinksOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -17802,6 +17843,44 @@
             "description": "Reason for declining a booking that requires a confirmation"
           }
         }
+      },
+      "CalendarLink": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "The label of the calendar link"
+          },
+          "link": {
+            "type": "string",
+            "description": "The link to the calendar"
+          }
+        },
+        "required": [
+          "label",
+          "link"
+        ]
+      },
+      "CalendarLinksOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object",
+            "description": "The status of the request, always 'success' for successful responses",
+            "example": "success"
+          },
+          "data": {
+            "description": "Calendar links for the booking",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarLink"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateTeamMembershipInput": {
         "type": "object",
