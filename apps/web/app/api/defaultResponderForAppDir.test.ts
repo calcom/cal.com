@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -19,12 +19,11 @@ vi.mock("next/server", () => ({
 
 describe("defaultResponderForAppDir", () => {
   it("should return a JSON response when handler resolves with a result", async () => {
-    const f = vi.fn().mockResolvedValue({ success: true });
+    const f = vi.fn().mockResolvedValue(NextResponse.json({ success: true }));
     const req = { method: "GET", url: "/api/test" } as unknown as NextRequest;
     const params = {};
 
     const response = await defaultResponderForAppDir(f)(req, { params });
-    console.log(response);
     const json = await response.json();
 
     expect(response.status).toBe(200);
