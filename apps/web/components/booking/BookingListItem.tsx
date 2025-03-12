@@ -937,13 +937,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           data-testid="guest"
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
-          {noShow ? (
-            <>
-              {name || email} <Icon name="eye-off" className="inline h-4" />
-            </>
-          ) : (
-            <>{name || email}</>
-          )}
+          {name || email} <Icon name={noShow ? "eye-off" : "eye"} className="inline h-4" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
