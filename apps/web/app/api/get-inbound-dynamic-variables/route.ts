@@ -1,5 +1,7 @@
+/* eslint-disable @calcom/eslint/deprecated-imports */
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
+import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import timeZone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -7,7 +9,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
 import { ZGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import type { TGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
