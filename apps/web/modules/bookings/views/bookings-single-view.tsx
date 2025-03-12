@@ -332,8 +332,8 @@ export default function Success(props: PageProps) {
         });
       }
       return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-        host,
-        attendee,
+        host: host,
+        attendee: attendee,
       });
     }
     return t(`emailed_host_and_attendees${titleSuffix}`);
