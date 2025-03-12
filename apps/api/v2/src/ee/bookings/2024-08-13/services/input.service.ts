@@ -7,6 +7,8 @@ import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { defaultBookingResponses } from "@/lib/safe-parse/default-responses-booking";
+import { safeParse } from "@/lib/safe-parse/safe-parse";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -41,7 +43,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
+import { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -567,13 +569,29 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
     }
 
-    const bookingResponses = bookingResponsesSchema.parse(booking.responses);
-    const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
+    const bookingResponses = safeParse(
+      bookingResponsesSchema,
+      booking.responses,
+      defaultBookingResponses,
+      false
+    );
+    const bookingResponsesMissing =
+      bookingResponses.name === defaultBookingResponses.name &&
+      bookingResponses.email === defaultBookingResponses.email;
+
+    const attendee = bookingResponsesMissing
+      ? booking.attendees[0]
+      : booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
       throw new NotFoundException(
         `Attendee with e-mail ${bookingResponses.email} for booking with uid=${bookingUid} not found`
       );
+    }
+
+    if (bookingResponsesMissing) {
+      bookingResponses.name = attendee.name;
+      bookingResponses.email = attendee.email;
     }
 
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
