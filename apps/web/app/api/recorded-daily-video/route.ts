@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -48,7 +49,7 @@ const getDownloadLinkOfCalVideo = async (recordingId: string) => {
   return downloadLink;
 };
 
-export async function POST(request: NextRequest) {
+export async function postHandler(request: NextRequest) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
   }
@@ -225,3 +226,5 @@ export async function POST(request: NextRequest) {
     }
   }
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

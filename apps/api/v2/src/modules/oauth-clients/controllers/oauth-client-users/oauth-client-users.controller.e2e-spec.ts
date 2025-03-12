@@ -7,6 +7,7 @@ import { Locales } from "@/lib/enums/locales";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
@@ -218,7 +219,9 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+      expect(responseBody.data.user.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+      );
       expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
       expect(responseBody.data.user.name).toEqual(requestBody.name);
       expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
@@ -257,7 +260,9 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+      expect(responseBody.data.user.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+      );
       expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
       expect(responseBody.data.user.name).toEqual(requestBody.name);
       expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
@@ -297,7 +302,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.user.email).toEqual(
-        getOAuthUserEmail(oAuthClientEventTypesDisabled.id, requestBody.email)
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClientEventTypesDisabled.id, requestBody.email)
       );
       expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
       expect(responseBody.data.user.name).toEqual(requestBody.name);
@@ -518,7 +523,9 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userEmail));
+      expect(responseBody.data.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, userEmail)
+      );
     });
 
     it(`/PUT/:id`, async () => {
@@ -536,7 +543,9 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userUpdatedEmail));
+      expect(responseBody.data.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, userUpdatedEmail)
+      );
       expect(responseBody.data.locale).toEqual(Locales.PT_BR);
     });
 
@@ -547,13 +556,6 @@ describe("OAuth Client Users Endpoints", () => {
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
     });
-
-    function getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
-      const [username, emailDomain] = userEmail.split("@");
-      const email = `${username}+${oAuthClientId}@${emailDomain}`;
-
-      return email;
-    }
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
