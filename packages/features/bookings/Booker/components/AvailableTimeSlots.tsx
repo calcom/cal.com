@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
@@ -69,7 +68,7 @@ export const AvailableTimeSlots = ({
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
-  const isPlatform = useIsPlatform();
+
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
@@ -130,7 +129,7 @@ export const AvailableTimeSlots = ({
         schedule?.invalidate();
       }
       setTentativeSelectedTimeslots([]);
-      setSelectedTimeslot(time, isPlatform);
+      setSelectedTimeslot(time);
       if (seatsPerTimeSlot) {
         setSeatedEventData({
           seatsPerTimeSlot,
@@ -154,7 +153,6 @@ export const AvailableTimeSlots = ({
       unavailableTimeSlots,
       schedule,
       setTentativeSelectedTimeslots,
-      isPlatform,
     ]
   );
 

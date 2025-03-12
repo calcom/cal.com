@@ -1,6 +1,5 @@
 import { shallow } from "zustand/shallow";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { default as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
@@ -33,7 +32,6 @@ export const DatePicker = ({
   scrollToTimeSlots?: () => void;
 }) => {
   const { i18n } = useLocale();
-  const isPlatform = useIsPlatform();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
@@ -43,8 +41,8 @@ export const DatePicker = ({
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const onMonthChange = (date: Dayjs) => {
-    setMonth(date.format("YYYY-MM"), isPlatform);
-    setSelectedDate(date.format("YYYY-MM-DD"), isPlatform);
+    setMonth(date.format("YYYY-MM"));
+    setSelectedDate(date.format("YYYY-MM-DD"));
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 
@@ -80,7 +78,7 @@ export const DatePicker = ({
       className={classNames?.datePickerContainer}
       isPending={schedule.isPending}
       onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
-        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams || isPlatform);
+        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}

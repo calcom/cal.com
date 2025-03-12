@@ -86,7 +86,7 @@ export const BookerPlatformWrapper = (
   }, [props.username]);
 
   useEffect(() => {
-    setSelectedDuration(props.duration ?? null, true);
+    setSelectedDuration(props.duration ?? null);
   }, [props.duration]);
 
   useEffect(() => {
@@ -166,7 +166,7 @@ export const BookerPlatformWrapper = (
     org: props.entity?.orgSlug,
     username,
     bookingData,
-    omitUpdatingParams: true,
+    isPlatform: true,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -411,11 +411,11 @@ export const BookerPlatformWrapper = (
     return () => {
       slots.handleRemoveSlot();
       setBookerState("loading");
-      setSelectedDate(null, true);
-      setSelectedTimeslot(null, true);
-      setSelectedDuration(null, true);
+      setSelectedDate(null);
+      setSelectedTimeslot(null);
+      setSelectedDuration(null);
       setOrg(null);
-      setSelectedMonth(null, true);
+      setSelectedMonth(null);
       if (props.rescheduleUid) {
         // clean booking data from cache
         queryClient.removeQueries({

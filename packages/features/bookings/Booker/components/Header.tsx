@@ -31,7 +31,6 @@ export function Header({
   renderOverlay?: () => JSX.Element | null;
 }) {
   const { t, i18n } = useLocale();
-  const isPlatform = useIsPlatform();
   const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
@@ -48,9 +47,9 @@ export function Header({
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
       if (layout === newLayout || !newLayout) return;
-      setLayout(newLayout as BookerLayout, isPlatform);
+      setLayout(newLayout as BookerLayout);
     },
-    [setLayout, layout, isPlatform]
+    [setLayout, layout]
   );
 
   if (isMobile || !enabledLayouts) return null;
@@ -113,9 +112,7 @@ export function Header({
             color="minimal"
             StartIcon="chevron-left"
             aria-label="Previous Day"
-            onClick={() =>
-              addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays, isPlatform)
-            }
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />
           <Button
             className="group rtl:mr-1 rtl:rotate-180"
@@ -123,15 +120,13 @@ export function Header({
             color="minimal"
             StartIcon="chevron-right"
             aria-label="Next Day"
-            onClick={() =>
-              addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays, isPlatform)
-            }
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays)}
           />
           {selectedDateMin3DaysDifference && (
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
-              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"), isPlatform)}>
+              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
               {t("today")}
             </Button>
           )}

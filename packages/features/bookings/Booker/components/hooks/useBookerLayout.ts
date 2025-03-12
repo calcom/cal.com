@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -17,7 +16,6 @@ import { getQueryParam } from "../../utils/query-param";
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 
 export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined | null) => {
-  const isPlatform = useIsPlatform();
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -40,11 +38,11 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
 
   useEffect(() => {
     if (isMobile && layout !== "mobile") {
-      setLayout("mobile", isPlatform);
+      setLayout("mobile");
     } else if (!isMobile && layout === "mobile") {
-      setLayout(defaultLayout, isPlatform);
+      setLayout(defaultLayout);
     }
-  }, [isMobile, setLayout, layout, defaultLayout, isPlatform]);
+  }, [isMobile, setLayout, layout, defaultLayout]);
   //setting layout from query param
   useEffect(() => {
     const layout = getQueryParam("layout") as BookerLayouts;
@@ -56,9 +54,9 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
       layout !== _layout
     ) {
       const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
-      validLayout && setLayout(validLayout, isPlatform);
+      validLayout && setLayout(validLayout);
     }
-  }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile, isPlatform]);
+  }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile]);
 
   // In Embed, a Dialog doesn't look good, we disable it intentionally for the layouts that support showing Form without Dialog(i.e. no-dialog Form)
   const shouldShowFormInDialogMap: Record<BookerLayout, boolean> = {

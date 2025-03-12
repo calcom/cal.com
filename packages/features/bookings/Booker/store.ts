@@ -36,7 +36,7 @@ type StoreInitializeType = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
-  omitUpdatingParams?: boolean;
+  isPlatform?: boolean;
 };
 
 type SeatedEventData = {
@@ -64,7 +64,7 @@ export type BookerStore = {
    * Current month being viewed. Format is YYYY-MM.
    */
   month: string | null;
-  setMonth: (month: string | null, omitUpdatingParams?: boolean) => void;
+  setMonth: (month: string | null) => void;
   /**
    * Current state of the booking process
    * the user is currently in. See enum for possible values.
@@ -76,13 +76,13 @@ export type BookerStore = {
    * this value tracks the current layout.
    */
   layout: BookerLayout;
-  setLayout: (layout: BookerLayout, omitUpdatingParams?: boolean) => void;
+  setLayout: (layout: BookerLayout) => void;
   /**
    * Date selected by user (exact day). Format is YYYY-MM-DD.
    */
   selectedDate: string | null;
   setSelectedDate: (date: string | null, omitUpdatingParams?: boolean) => void;
-  addToSelectedDate: (days: number, omitUpdatingParams?: boolean) => void;
+  addToSelectedDate: (days: number) => void;
   /**
    * Multiple Selected Dates and Times
    */
@@ -96,13 +96,13 @@ export type BookerStore = {
    * Selected event duration in minutes.
    */
   selectedDuration: number | null;
-  setSelectedDuration: (duration: number | null, omitUpdatingParams?: boolean) => void;
+  setSelectedDuration: (duration: number | null) => void;
   /**
    * Selected timeslot user has chosen. This is a date string
    * containing both the date + time.
    */
   selectedTimeslot: string | null;
-  setSelectedTimeslot: (timeslot: string | null, omitUpdatingParams?: boolean) => void;
+  setSelectedTimeslot: (timeslot: string | null) => void;
   tentativeSelectedTimeslots: string[];
   setTentativeSelectedTimeslots: (slots: string[]) => void;
   /**
@@ -162,6 +162,7 @@ export type BookerStore = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  isPlatform?: boolean;
 };
 
 /**
@@ -175,13 +176,13 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
   layout: BookerLayouts.MONTH_VIEW,
-  setLayout: (layout: BookerLayout, omitUpdatingParams = false) => {
+  setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
     if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
-    if (!omitUpdatingParams) {
+    if (!get().isPlatform) {
       updateQueryParam("layout", layout);
     }
     return set({ layout });
@@ -197,14 +198,14 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     const currentSelection = dayjs(get().selectedDate);
     const newSelection = dayjs(selectedDate);
     set({ selectedDate });
-    if (!omitUpdatingParams) {
+    if (!omitUpdatingParams && !get().isPlatform) {
       updateQueryParam("date", selectedDate ?? "");
     }
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      if (!omitUpdatingParams) {
+      if (!get().isPlatform) {
         updateQueryParam("month", newSelection.format("YYYY-MM"));
       }
     }
@@ -213,7 +214,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedDatesAndTimes: (selectedDatesAndTimes) => {
     set({ selectedDatesAndTimes });
   },
-  addToSelectedDate: (days: number, omitUpdatingParams = false) => {
+  addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
     let newSelection = currentSelection.add(days, "day");
 
@@ -226,13 +227,13 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
 
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      if (!omitUpdatingParams) {
+      if (!get().isPlatform) {
         updateQueryParam("month", newSelection.format("YYYY-MM"));
       }
     }
 
     set({ selectedDate: newSelectionFormatted });
-    if (!omitUpdatingParams) {
+    if (!get().isPlatform) {
       updateQueryParam("date", newSelectionFormatted);
     }
   },
@@ -250,16 +251,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       ? dayjs(getQueryParam("date")).format("YYYY-MM")
       : null) ||
     dayjs().format("YYYY-MM"),
-  setMonth: (month: string | null, omitUpdatingParams = false) => {
+  setMonth: (month: string | null) => {
     if (!month) {
       removeQueryParam("month");
       return;
     }
     set({ month, selectedTimeslot: null });
-    if (!omitUpdatingParams) {
+    if (!get().isPlatform) {
       updateQueryParam("month", month ?? "");
     }
-    get().setSelectedDate(null, omitUpdatingParams);
+    get().setSelectedDate(null);
   },
   dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
   setDayCount: (dayCount: number | null) => {
@@ -272,9 +273,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     bookingUid: undefined,
     showAvailableSeatsCount: true,
   },
-  setSeatedEventData: (seatedEventData: SeatedEventData, omitUpdatingParams = false) => {
+  setSeatedEventData: (seatedEventData: SeatedEventData) => {
     set({ seatedEventData });
-    if (!omitUpdatingParams) {
+    if (!get().isPlatform) {
       updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
     }
   },
@@ -303,7 +304,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
-    omitUpdatingParams = false,
+    isPlatform = false,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -343,6 +344,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      isPlatform,
     });
 
     if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -366,7 +368,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         "minutes"
       );
       set({ selectedDuration: originalBookingLength });
-      if (!omitUpdatingParams) {
+      if (!isPlatform) {
         updateQueryParam("duration", originalBookingLength ?? "");
       }
     }
@@ -383,7 +385,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         isInstantMeeting,
       });
 
-      if (!omitUpdatingParams) {
+      if (!isPlatform) {
         updateQueryParam("month", month);
         updateQueryParam("date", selectedDate ?? "");
         updateQueryParam("slot", selectedTimeslot ?? "", false);
@@ -393,9 +395,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   durationConfig: null,
   selectedDuration: null,
-  setSelectedDuration: (selectedDuration: number | null, omitUpdatingParams = false) => {
+  setSelectedDuration: (selectedDuration: number | null) => {
     set({ selectedDuration });
-    if (!omitUpdatingParams) {
+    if (!get().isPlatform) {
       updateQueryParam("duration", selectedDuration ?? "");
     }
   },
@@ -414,9 +416,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setTentativeSelectedTimeslots: (tentativeSelectedTimeslots: string[]) => {
     set({ tentativeSelectedTimeslots });
   },
-  setSelectedTimeslot: (selectedTimeslot: string | null, omitUpdatingParams = false) => {
+  setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
-    if (!omitUpdatingParams) {
+    if (!get().isPlatform) {
       updateQueryParam("slot", selectedTimeslot ?? "", false);
     }
   },
@@ -428,6 +430,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setOrg: (org: string | null | undefined) => {
     set({ org });
   },
+  isPlatform: false,
 }));
 
 export const useInitializeBookerStore = ({
@@ -448,7 +451,7 @@ export const useInitializeBookerStore = ({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
-  omitUpdatingParams,
+  isPlatform = false,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -470,7 +473,7 @@ export const useInitializeBookerStore = ({
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
-      omitUpdatingParams,
+      isPlatform,
     });
   }, [
     initializeStore,
@@ -491,6 +494,6 @@ export const useInitializeBookerStore = ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
-    omitUpdatingParams,
+    isPlatform,
   ]);
 };

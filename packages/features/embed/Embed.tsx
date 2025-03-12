@@ -8,7 +8,6 @@ import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { shallow } from "zustand/shallow";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
@@ -246,7 +245,6 @@ const EmailEmbed = ({
   userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const isPlatform = useIsPlatform();
   const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
   const timezone = chooseTimezone({
     timezoneFromBookerStore,
@@ -310,7 +308,7 @@ const EmailEmbed = ({
         } else {
           const updatedDatesAndTimesForEvent = { ...selectedDatesAndTimesForEvent };
           delete updatedDatesAndTimesForEvent[selectedDate as string];
-          setSelectedTimeslot(null, isPlatform);
+          setSelectedTimeslot(null);
           setSelectedDatesAndTimes({
             ...selectedDatesAndTimes,
             [eventType.slug]: updatedDatesAndTimesForEvent,
@@ -337,7 +335,7 @@ const EmailEmbed = ({
       });
     }
 
-    setSelectedTimeslot(time, isPlatform);
+    setSelectedTimeslot(time);
   };
 
   const slots = useSlotsForDate(selectedDate, schedule?.data?.slots);
@@ -364,11 +362,11 @@ const EmailEmbed = ({
             <DatePicker
               isPending={schedule.isPending}
               onChange={(date: Dayjs | null) => {
-                setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), isPlatform);
+                setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
               onMonthChange={(date: Dayjs) => {
-                setMonth(date.format("YYYY-MM"), isPlatform);
-                setSelectedDate(date.format("YYYY-MM-DD"), isPlatform);
+                setMonth(date.format("YYYY-MM"));
+                setSelectedDate(date.format("YYYY-MM-DD"));
               }}
               includedDates={nonEmptyScheduleDays}
               locale={i18n.language}

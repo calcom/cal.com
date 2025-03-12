@@ -1,6 +1,5 @@
 import { useMemo, useEffect } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -27,7 +26,6 @@ export const LargeCalendar = ({
   };
 }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
-  const isPlatform = useIsPlatform();
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
@@ -90,7 +88,7 @@ export const LargeCalendar = ({
         events={overlayEventsForDate}
         startDate={startDate}
         endDate={endDate}
-        onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString(), isPlatform)}
+        onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
