@@ -120,7 +120,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
                 : { username: props.calUsername })}
               hostsLimit={3}
-              selectedDate="2025-03-25"
+              selectedDate={new Date("2025-03-25")}
             />
           </>
         )}
