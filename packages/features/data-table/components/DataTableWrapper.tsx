@@ -142,15 +142,13 @@ export function DataTableWrapper<TData>({
                   fetchMoreOnBottomReached(e.target as HTMLDivElement)
               : undefined
           }>
-          {totalRowCount && (
-            <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-              <DataTablePagination<TData>
-                table={table}
-                totalRowCount={totalRowCount}
-                paginationMode={paginationMode}
-              />
-            </div>
-          )}
+          <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+            <DataTablePagination<TData>
+              table={table}
+              totalRowCount={totalRowCount}
+              paginationMode={paginationMode}
+            />
+          </div>
         </DataTable>
       )}
     </>

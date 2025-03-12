@@ -8,7 +8,7 @@ import { useDataTable } from "../hooks";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
-  totalRowCount: number;
+  totalRowCount?: number;
   paginationMode?: "infinite" | "standard";
 }
 
@@ -18,6 +18,9 @@ export function DataTablePagination<TData>({
   paginationMode = "infinite",
 }: DataTablePaginationProps<TData>) {
   const { pageIndex, pageSize, setPageIndex, setPageSize } = useDataTable();
+  if (!totalRowCount) {
+    return null;
+  }
 
   if (paginationMode === "infinite") {
     const loadedCount = table.getFilteredRowModel().rows.length;
@@ -40,6 +43,7 @@ export function DataTablePagination<TData>({
       />
     );
   } else {
+    console.log("💡 here3");
     return null;
   }
 }
