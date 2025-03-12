@@ -135,7 +135,7 @@ test.describe("Organization", () => {
     await test.step("Basic info", async () => {
       // Check required fields
       await page.locator("button[type=submit]").click();
-      await expect(page.locator(".text-red-700")).toHaveCount(3);
+      await expect(page.getByTestId("field-error")).toHaveCount(3);
 
       // Happy path
       await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
@@ -152,12 +152,12 @@ test.describe("Organization", () => {
 
     await test.step("About the organization", async () => {
       // Choosing an avatar
-      await page.locator('button:text("Upload")').click();
+      await page.getByTestId("open-upload-avatar-dialog").click();
       const fileChooserPromise = page.waitForEvent("filechooser");
       await page.getByText("Choose a file...").click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.locator('button:text("Save")').click();
+      await page.getByTestId("upload-avatar").click();
 
       // About text
       await page.locator('textarea[name="about"]').fill("This is a testing org");
@@ -177,7 +177,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -202,7 +202,7 @@ test.describe("Organization", () => {
       await page.locator('input[name="teams.0.name"]').fill("Marketing");
 
       // Adding another team
-      await page.locator('button:text("Add a team")').click();
+      await page.getByTestId("add_a_team").click();
       await page.locator('input[name="teams.1.name"]').fill("Sales");
 
       // Finishing the creation wizard
@@ -269,7 +269,7 @@ test.describe("Organization", () => {
     await test.step("Basic info", async () => {
       // Check required fields
       await page.locator("button[type=submit]").click();
-      await expect(page.locator(".text-red-700")).toHaveCount(3);
+      await expect(page.getByTestId("field-error")).toHaveCount(3);
 
       // Happy path
       await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
@@ -307,7 +307,7 @@ test.describe("Organization", () => {
     await page.goto("/settings/organizations/new");
 
     await test.step("Basic info", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
       expect(await page.locator("input[name=slug]").inputValue()).toBe("example");
 
@@ -319,12 +319,12 @@ test.describe("Organization", () => {
 
     await test.step("About the organization", async () => {
       // Choosing an avatar
-      await page.locator('button:text("Upload")').click();
+      await page.getByTestId("open-upload-avatar-dialog").click();
       const fileChooserPromise = page.waitForEvent("filechooser");
       await page.getByText("Choose a file...").click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.locator('button:text("Save")').click();
+      await page.getByTestId("upload-avatar").click();
 
       // About text
       await page.locator('textarea[name="about"]').fill("This is a testing org");
@@ -344,7 +344,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -369,7 +369,7 @@ test.describe("Organization", () => {
       await page.locator('input[name="teams.0.name"]').fill("Marketing");
 
       // Adding another team
-      await page.locator('button:text("Add a team")').click();
+      await page.getByTestId("add_a_team").click();
       await page.locator('input[name="teams.1.name"]').fill("Sales");
 
       // Finishing the creation wizard
@@ -430,7 +430,7 @@ test.describe("Organization", () => {
     await page.goto("/teams");
 
     await test.step("Has org self serve banner", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       const selfServeButtonLocator = await page.getByTestId("setup_your_org_action_button");
       await expect(selfServeButtonLocator).toBeVisible();
 
@@ -439,7 +439,7 @@ test.describe("Organization", () => {
     });
 
     await test.step("Basic info", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       const slugLocator = await page.locator("input[name=slug]");
       expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
       expect(await slugLocator.inputValue()).toBe("example");
@@ -451,12 +451,12 @@ test.describe("Organization", () => {
 
     await test.step("About the organization", async () => {
       // Choosing an avatar
-      await page.locator('button:text("Upload")').click();
+      await page.getByTestId("open-upload-avatar-dialog").click();
       const fileChooserPromise = page.waitForEvent("filechooser");
       await page.getByText("Choose a file...").click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.locator('button:text("Save")').click();
+      await page.getByTestId("upload-avatar").click();
 
       // About text
       await page.locator('textarea[name="about"]').fill("This is a testing org");
@@ -476,7 +476,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -511,7 +511,7 @@ test.describe("Organization", () => {
       await page.locator('input[name="teams.0.name"]').fill("Marketing");
 
       // Adding another team
-      await page.locator('button:text("Add a team")').click();
+      await page.getByTestId("new-team-dialog-button").click();
       await page.locator('input[name="teams.1.name"]').fill("Sales");
 
       // Finishing the creation wizard
@@ -561,11 +561,11 @@ async function fillAndSubmitFirstStepAsAdmin(
   orgSlug: string
 ) {
   await page.locator("input[name=orgOwnerEmail]").fill(targetOrgEmail);
-  // Since we are admin fill in this infomation instead of deriving it
+  // Since we are admin fill in this information instead of deriving it
   await page.locator("input[name=name]").fill(orgName);
   await page.locator("input[name=slug]").fill(orgSlug);
 
-  // Fill in seat infomation
+  // Fill in seat information
   await page.locator("input[name=seats]").fill("30");
   await page.locator("input[name=pricePerSeat]").fill("30");
 

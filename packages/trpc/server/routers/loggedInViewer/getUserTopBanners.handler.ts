@@ -1,4 +1,5 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -23,7 +24,8 @@ const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
     select: credentialForCalendarServiceSelect,
   });
 
-  const calendarCredentials = getCalendarCredentials(userCredentials);
+  // TODO: Call top buildNonDelegationCredentials here can be avoided by moving credential prisma query to repository.
+  const calendarCredentials = getCalendarCredentials(buildNonDelegationCredentials(userCredentials));
 
   const { connectedCalendars } = await getConnectedCalendars(
     calendarCredentials,

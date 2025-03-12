@@ -1,7 +1,7 @@
 import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
-  transformLocationsApiToInternal,
+  transformTeamLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
@@ -37,7 +37,8 @@ import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatform
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
-  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
+  limitHosts = false
 ) {
   const {
     lengthInMinutes,
@@ -70,6 +71,25 @@ export function transformApiEventTypeForAtom(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
   const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+  const usersTransformed = users.map((user) => ({
+    ...user,
+    metadata: undefined,
+    bookerUrl: getBookerBaseUrlSync(null),
+    profile: {
+      username: user.username || "",
+      name: user.name,
+      weekStart: user.weekStart,
+      image: "",
+      brandColor: user.brandColor,
+      darkBrandColor: user.darkBrandColor,
+      theme: null,
+      organization: null,
+      id: user.id,
+      organizationId: null,
+      userId: user.id,
+      upId: `usr-${user.id}`,
+    },
+  }));
 
   return {
     ...rest,
@@ -106,25 +126,9 @@ export function transformApiEventTypeForAtom(
           logoUrl: undefined,
         },
     hosts: [],
-    users: users.map((user) => ({
-      ...user,
-      metadata: undefined,
-      bookerUrl: getBookerBaseUrlSync(null),
-      profile: {
-        username: user.username || "",
-        name: user.name,
-        weekStart: user.weekStart,
-        image: "",
-        brandColor: user.brandColor,
-        darkBrandColor: user.darkBrandColor,
-        theme: null,
-        organization: null,
-        id: user.id,
-        organizationId: null,
-        userId: user.id,
-        upId: `usr-${user.id}`,
-      },
-    })),
+    subsetOfHosts: [],
+    users: !limitHosts ? usersTransformed : undefined,
+    subsetOfUsers: usersTransformed,
     bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
     durationLimits: bookingLimitsDuration
       ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
@@ -153,7 +157,8 @@ export function transformApiEventTypeForAtom(
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
-  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
+  limitHosts = false
 ) {
   const {
     lengthInMinutes,
@@ -187,6 +192,40 @@ export function transformApiTeamEventTypeForAtom(
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
+
+  const hostTransformed = hosts.map((host) => ({
+    user: {
+      id: host.userId,
+      avatarUrl: null,
+      name: host.name,
+      username: "",
+      metadata: {},
+      darkBrandColor: null,
+      brandColor: null,
+      theme: null,
+      weekStart: "Sunday",
+    },
+  }));
+
+  const usersTransformed = hosts.map((host) => ({
+    ...host,
+    metadata: undefined,
+    bookerUrl: getBookerBaseUrlSync(null),
+    profile: {
+      username: "",
+      name: host.name,
+      weekStart: "Sunday",
+      image: "",
+      brandColor: null,
+      darkBrandColor: null,
+      theme: null,
+      organization: null,
+      id: host.userId,
+      organizationId: null,
+      userId: host.userId,
+      upId: `usr-${host.userId}`,
+    },
+  }));
 
   return {
     ...rest,
@@ -223,38 +262,10 @@ export function transformApiTeamEventTypeForAtom(
           name: team?.name,
           logoUrl: team?.logoUrl,
         },
-    hosts: hosts.map((host) => ({
-      user: {
-        id: host.userId,
-        avatarUrl: null,
-        name: host.name,
-        username: "",
-        metadata: {},
-        darkBrandColor: null,
-        brandColor: null,
-        theme: null,
-        weekStart: "Sunday",
-      },
-    })),
-    users: hosts.map((host) => ({
-      ...host,
-      metadata: undefined,
-      bookerUrl: getBookerBaseUrlSync(null),
-      profile: {
-        username: "",
-        name: host.name,
-        weekStart: "Sunday",
-        image: "",
-        brandColor: null,
-        darkBrandColor: null,
-        theme: null,
-        organization: null,
-        id: host.userId,
-        organizationId: null,
-        userId: host.userId,
-        upId: `usr-${host.userId}`,
-      },
-    })),
+    hosts: !limitHosts ? hostTransformed : undefined,
+    subsetOfHosts: hostTransformed,
+    users: !limitHosts ? usersTransformed : undefined,
+    subsetOfUsers: usersTransformed,
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
     bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
     durationLimits: bookingLimitsDuration
@@ -288,20 +299,20 @@ function isDefaultEvent(eventSlug: string) {
 }
 
 function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
-  const transformed = transformLocationsApiToInternal(
+  const transformed = transformTeamLocationsApiToInternal(
     locations.filter((location) => isAtomSupportedLocation(location))
   );
 
   const withPrivateHidden = transformed.map((location) => {
-    const { displayLocationPublicly, type } = location;
+    const { type } = location;
 
     switch (type) {
       case "inPerson":
-        return displayLocationPublicly ? location : { ...location, address: "" };
+        return location?.displayLocationPublicly ? location : { ...location, address: "" };
       case "link":
-        return displayLocationPublicly ? location : { ...location, link: "" };
+        return location?.displayLocationPublicly ? location : { ...location, link: "" };
       case "userPhone":
-        return displayLocationPublicly
+        return location?.displayLocationPublicly
           ? location
           : {
               ...location,
@@ -318,7 +329,7 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
 function isAtomSupportedLocation(
   location: EventTypeOutput_2024_06_14["locations"][number]
 ): location is InputLocation_2024_06_14 {
-  const supportedIntegrations = ["cal-video", "google-meet"];
+  const supportedIntegrations = ["cal-video", "google-meet", "office365-video", "zoom"];
 
   return (
     location.type === "address" ||
@@ -327,6 +338,7 @@ function isAtomSupportedLocation(
     location.type === "phone" ||
     location.type === "attendeePhone" ||
     location.type === "attendeeDefined" ||
+    location.type === "organizersDefaultApp" ||
     (location.type === "integration" && supportedIntegrations.includes(location.integration))
   );
 }

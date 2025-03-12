@@ -7,6 +7,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@calcom/atoms": "*",
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
@@ -15,6 +16,7 @@
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.10.9",
     "@vercel/functions": "^1.4.0",
+    "class-variance-authority": "^0.7.1",
     "framer-motion": "^10.12.8",
     "lexical": "^0.9.0",
     "react-select": "^5.7.0",

@@ -1,18 +1,12 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
-import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import {
-  WEBSITE_PRIVACY_POLICY_URL,
-  WEBSITE_TERMS_URL,
-  CLOUDFLARE_SITE_ID,
-  CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
-} from "@calcom/lib/constants";
+import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
@@ -22,8 +16,6 @@ import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
-
-const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
 type BookEventFormProps = {
   onCancel?: () => void;
@@ -37,7 +29,8 @@ type BookEventFormProps = {
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
-  renderCaptcha?: boolean;
+  isTimeslotUnavailable: boolean;
+  shouldRenderCaptcha?: boolean;
 };
 
 export const BookEventForm = ({
@@ -54,7 +47,8 @@ export const BookEventForm = ({
   extraOptions,
   isVerificationCodeSending,
   isPlatform = false,
-  renderCaptcha,
+  isTimeslotUnavailable,
+  shouldRenderCaptcha,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -70,13 +64,6 @@ export const BookEventForm = ({
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-
-  // Cloudflare Turnstile Captcha
-  const shouldRenderCaptcha =
-    !process.env.NEXT_PUBLIC_IS_E2E &&
-    renderCaptcha &&
-    CLOUDFLARE_SITE_ID &&
-    CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1";
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -128,7 +115,7 @@ export const BookEventForm = ({
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
         />
-        {(errors.hasFormErrors || errors.hasDataErrors) && (
+        {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}
@@ -138,16 +125,23 @@ export const BookEventForm = ({
               message={getError(errors.formErrors, errors.dataErrors, t, responseVercelIdHeader)}
             />
           </div>
-        )}
-        {/* Cloudflare Turnstile Captcha */}
-        {shouldRenderCaptcha ? (
-          <TurnstileCaptcha
-            appearance="interaction-only"
-            onVerify={(token) => {
-              bookingForm.setValue("cfToken", token);
-            }}
-          />
+        ) : isTimeslotUnavailable ? (
+          <div data-testid="slot-not-allowed-to-book">
+            <Alert
+              severity="info"
+              title={t("unavailable_timeslot_title")}
+              message={
+                <Trans i18nKey="timeslot_unavailable_book_a_new_time">
+                  The selected time slot is no longer available.{" "}
+                  <button type="button" className="underline" onClick={onCancel}>
+                    Please select a new time
+                  </button>
+                </Trans>
+              }
+            />
+          </div>
         ) : null}
+
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
             <Trans
@@ -209,7 +203,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={!!shouldRenderCaptcha && !watchedCfToken}
+                disabled={(!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
@@ -224,7 +218,7 @@ export const BookEventForm = ({
                   ? isPaidEvent
                     ? t("pay_and_book")
                     : t("confirm")
-                  : t("verify_email_email_button")}
+                  : t("verify_email_button")}
               </Button>
             </>
           )}

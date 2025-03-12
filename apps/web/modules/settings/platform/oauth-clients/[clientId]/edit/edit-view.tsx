@@ -9,26 +9,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
 
-import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
+import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClient";
+import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useUpdateOAuthClient";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
-
-import {
-  hasAppsReadPermission,
-  hasAppsWritePermission,
-  hasBookingReadPermission,
-  hasBookingWritePermission,
-  hasEventTypeReadPermission,
-  hasEventTypeWritePermission,
-  hasProfileReadPermission,
-  hasProfileWritePermission,
-  hasScheduleReadPermission,
-  hasScheduleWritePermission,
-} from "../../../../../../../../packages/platform/utils/permissions";
 
 export default function EditOAuthClient() {
   const { t } = useLocale();
@@ -72,6 +59,7 @@ export default function EditOAuthClient() {
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
+      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
     });
   };
 
@@ -98,20 +86,21 @@ export default function EditOAuthClient() {
                 defaultValues={{
                   name: data?.name ?? "",
                   areEmailsEnabled: data.areEmailsEnabled ?? false,
+                  areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
                   redirectUris: data?.redirectUris?.map((uri) => ({ uri })) ?? [{ uri: "" }],
                   bookingRedirectUri: data?.bookingRedirectUri ?? "",
                   bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",
                   bookingRescheduleRedirectUri: data?.bookingRescheduleRedirectUri ?? "",
-                  appsRead: hasAppsReadPermission(data?.permissions),
-                  appsWrite: hasAppsWritePermission(data?.permissions),
-                  bookingRead: hasBookingReadPermission(data?.permissions),
-                  bookingWrite: hasBookingWritePermission(data?.permissions),
-                  eventTypeRead: hasEventTypeReadPermission(data?.permissions),
-                  eventTypeWrite: hasEventTypeWritePermission(data?.permissions),
-                  profileRead: hasProfileReadPermission(data?.permissions),
-                  profileWrite: hasProfileWritePermission(data?.permissions),
-                  scheduleRead: hasScheduleReadPermission(data?.permissions),
-                  scheduleWrite: hasScheduleWritePermission(data?.permissions),
+                  appsRead: data?.permissions.includes("APPS_READ"),
+                  appsWrite: data?.permissions.includes("APPS_WRITE"),
+                  bookingRead: data?.permissions.includes("BOOKING_READ"),
+                  bookingWrite: data?.permissions.includes("BOOKING_WRITE"),
+                  eventTypeRead: data?.permissions.includes("EVENT_TYPE_READ"),
+                  eventTypeWrite: data?.permissions.includes("EVENT_TYPE_WRITE"),
+                  profileRead: data?.permissions.includes("PROFILE_READ"),
+                  profileWrite: data?.permissions.includes("PROFILE_WRITE"),
+                  scheduleRead: data?.permissions.includes("SCHEDULE_READ"),
+                  scheduleWrite: data?.permissions.includes("SCHEDULE_WRITE"),
                 }}
                 onSubmit={onSubmit}
                 isPending={isUpdating}
@@ -127,12 +116,7 @@ export default function EditOAuthClient() {
 
   return (
     <div>
-      <Shell
-        withoutSeo={true}
-        isPlatformUser={true}
-        hideHeadingOnMobile
-        withoutMain={false}
-        SidebarContainer={<></>}>
+      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

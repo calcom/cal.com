@@ -3,7 +3,6 @@ import { useMemo, useEffect, useCallback, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
@@ -11,22 +10,16 @@ import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/u
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
-import type { BookingResponse } from "@calcom/platform-libraries";
-import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  ApiSuccessResponseWithoutData,
-} from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import {
   transformApiEventTypeForAtom,
   transformApiTeamEventTypeForAtom,
 } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
-import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
 import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
@@ -44,59 +37,23 @@ import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
 import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
-
-export type BookerPlatformWrapperAtomProps = Omit<
-  BookerProps,
-  "username" | "entity" | "isTeamEvent" | "teamId"
-> & {
-  rescheduleUid?: string;
-  rescheduledBy?: string;
-  bookingUid?: string;
-  entity?: BookerProps["entity"];
-  // values for the booking form and booking fields
-  defaultFormValues?: {
-    firstName?: string;
-    lastName?: string;
-    guests?: string[];
-    name?: string;
-    email?: string;
-    notes?: string;
-    rescheduleReason?: string;
-  } & Record<string, string | string[]>;
-  handleCreateBooking?: (input: UseCreateBookingInput) => void;
-  onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
-  onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
-  onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
-  onCreateRecurringBookingError?: (data: ApiErrorResponse | Error) => void;
-  onCreateInstantBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
-  onCreateInstantBookingError?: (data: ApiErrorResponse | Error) => void;
-  onReserveSlotSuccess?: (data: ApiSuccessResponse<string>) => void;
-  onReserveSlotError?: (data: ApiErrorResponse) => void;
-  onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
-  onDeleteSlotError?: (data: ApiErrorResponse) => void;
-  locationUrl?: string;
-  view?: VIEW_TYPE;
-  metadata?: Record<string, string>;
-  bannerUrl?: string;
-};
-
-type VIEW_TYPE = keyof typeof BookerLayouts;
-
-export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
-  username: string | string[];
-  isTeamEvent?: false;
-};
-
-export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
-  username?: string | string[];
-  isTeamEvent: true;
-  teamId: number;
-};
+import type {
+  BookerPlatformWrapperAtomPropsForIndividual,
+  BookerPlatformWrapperAtomPropsForTeam,
+} from "./types";
 
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW", bannerUrl } = props;
+  const {
+    view = "MONTH_VIEW",
+    bannerUrl,
+    routingFormSearchParams,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
+    preventEventTypeRedirect,
+  } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -146,7 +103,7 @@ export const BookerPlatformWrapper = (
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamEventTypeData,
-  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent);
+  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, props.hostsLimit);
 
   const event = useMemo(() => {
     if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
@@ -156,7 +113,12 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.defaultFormValues)
+            ? transformApiTeamEventTypeForAtom(
+                teamEventTypeData[0],
+                props.entity,
+                props.defaultFormValues,
+                !!props.hostsLimit
+              )
             : undefined,
       };
     }
@@ -167,7 +129,7 @@ export const BookerPlatformWrapper = (
       isPending,
       data:
         data && data.length > 0
-          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues)
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues, !!props.hostsLimit)
           : undefined,
     };
   }, [
@@ -182,6 +144,7 @@ export const BookerPlatformWrapper = (
     isTeamPending,
     isTeamSuccess,
     isTeamError,
+    props.hostsLimit,
   ]);
 
   if (isDynamic && props.duration && event.data) {
@@ -193,6 +156,9 @@ export const BookerPlatformWrapper = (
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
     eventId: event.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
@@ -259,6 +225,31 @@ export const BookerPlatformWrapper = (
     selectedDate,
   });
 
+  const [routingParams, setRoutingParams] = useState<{
+    routedTeamMemberIds?: number[];
+    shouldServeCache?: boolean;
+    skipContactOwner?: boolean;
+    isBookingDryRun?: boolean;
+  }>({});
+
+  useEffect(() => {
+    const searchParams = routingFormSearchParams
+      ? new URLSearchParams(routingFormSearchParams)
+      : new URLSearchParams(window.location.search);
+
+    const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
+    const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
+
+    const _cacheParam = searchParams?.get("cal.cache");
+    const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+    const isBookingDryRun = searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true";
+    setRoutingParams({
+      ...(skipContactOwner ? { skipContactOwner } : {}),
+      ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
+      ...(shouldServeCache ? { shouldServeCache } : {}),
+      ...(isBookingDryRun ? { isBookingDryRun } : {}),
+    });
+  }, [routingFormSearchParams]);
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
@@ -267,6 +258,7 @@ export const BookerPlatformWrapper = (
     timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
+    teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
           isTeamEvent: props.isTeamEvent,
@@ -281,6 +273,7 @@ export const BookerPlatformWrapper = (
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
+    ...routingParams,
   });
 
   const bookerForm = useBookingForm({
@@ -302,10 +295,13 @@ export const BookerPlatformWrapper = (
     isError: isCreateBookingError,
   } = useCreateBooking({
     onSuccess: (data) => {
+      if (data?.data?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
 
-      if (!!event.data?.successRedirectUrl) {
+      if (!preventEventTypeRedirect && !!event.data?.successRedirectUrl) {
         window.location.href = event.data.successRedirectUrl;
       }
     },
@@ -319,6 +315,9 @@ export const BookerPlatformWrapper = (
     isError: isCreateRecBookingError,
   } = useCreateRecurringBooking({
     onSuccess: (data) => {
+      if (data?.data?.[0]?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
 
@@ -346,6 +345,7 @@ export const BookerPlatformWrapper = (
     onReserveSlotError: props.onReserveSlotError,
     onDeleteSlotSuccess: props.onDeleteSlotSuccess,
     onDeleteSlotError: props.onDeleteSlotError,
+    isBookingDryRun: routingParams?.isBookingDryRun,
   });
 
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
@@ -383,6 +383,7 @@ export const BookerPlatformWrapper = (
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
+    routingFormSearchParams,
   });
 
   const onOverlaySwitchStateChange = useCallback(
@@ -430,6 +431,9 @@ export const BookerPlatformWrapper = (
   return (
     <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
+        teamMemberEmail={teamMemberEmail}
+        crmAppSlug={crmAppSlug}
+        crmOwnerRecordType={crmOwnerRecordType}
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
         username={username}
@@ -442,7 +446,7 @@ export const BookerPlatformWrapper = (
           }
         }
         rescheduleUid={props.rescheduleUid ?? null}
-        rescheduledBy={null}
+        rescheduledBy={props.rescheduledBy}
         bookingUid={props.bookingUid ?? null}
         isRedirect={false}
         fromUserNameRedirected=""
@@ -462,8 +466,8 @@ export const BookerPlatformWrapper = (
         onOverlaySwitchStateChange={onOverlaySwitchStateChange}
         extraOptions={extraOptions ?? {}}
         bookings={{
-          handleBookEvent: () => {
-            handleBookEvent();
+          handleBookEvent: (timeSlot?: string) => {
+            handleBookEvent(timeSlot);
             return;
           },
           expiryTime: undefined,
@@ -514,6 +518,7 @@ export const BookerPlatformWrapper = (
         verifyCode={undefined}
         isPlatform
         hasValidLicense={true}
+        isBookingDryRun={routingParams?.isBookingDryRun}
       />
     </AtomsWrapper>
   );

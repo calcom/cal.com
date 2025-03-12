@@ -6,9 +6,9 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
-import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
+import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
+import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
+import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { CreateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/create-team-event-type.output";
 import { DeleteTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/delete-team-event-type.output";
 import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-team-event-type.output";
@@ -137,10 +137,14 @@ export class TeamsEventTypesController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
   ): Promise<GetTeamEventTypesOutput> {
-    const { eventSlug } = queryParams;
+    const { eventSlug, hostsLimit } = queryParams;
 
     if (eventSlug) {
-      const eventType = await this.teamsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
+      const eventType = await this.teamsEventTypesService.getTeamEventTypeBySlug(
+        teamId,
+        eventSlug,
+        hostsLimit
+      );
 
       return {
         status: SUCCESS_STATUS,

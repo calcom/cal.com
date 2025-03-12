@@ -2,14 +2,13 @@
 
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
-import type { Table as ReactTableType, Header } from "@tanstack/react-table";
-import { useVirtualizer, type Virtualizer } from "@tanstack/react-virtual";
+import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
+import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   TableNew,
@@ -26,11 +25,12 @@ import {
   CommandItem,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";
 
-export type DataTableProps<TData, TValue> = {
+export type DataTableProps<TData> = {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
@@ -46,9 +46,10 @@ export type DataTableProps<TData, TValue> = {
   enableColumnResizing?: boolean;
   className?: string;
   containerClassName?: string;
+  paginationMode?: "infinite" | "standard";
 };
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData>({
   table,
   tableContainerRef,
   isPending,
@@ -63,19 +64,18 @@ export function DataTable<TData, TValue>({
   bodyTestId,
   className,
   containerClassName,
+  paginationMode = "infinite",
   ...rest
-}: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
+}: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
   const pathname = usePathname() as string | null;
   const identifier = _identifier ?? pathname ?? undefined;
 
   const { rows } = table.getRowModel();
 
-  // https://stackblitz.com/github/tanstack/table/tree/main/examples/react/virtualized-infinite-scrolling
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 100,
     getScrollElement: () => tableContainerRef.current,
-    // measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
@@ -83,8 +83,10 @@ export function DataTable<TData, TValue>({
     overscan: 10,
   });
 
+  const virtualItemsCount = rowVirtualizer.getVirtualItems().length;
+
   useEffect(() => {
-    if (rowVirtualizer.getVirtualItems().length >= rows.length && tableContainerRef.current) {
+    if (paginationMode === "infinite" && virtualItemsCount >= rows.length && tableContainerRef.current) {
       const target = tableContainerRef.current;
       // Right after the last row is rendered, tableContainer's scrollHeight is
       // temporarily larger than the actual height of the table, so we need to
@@ -94,7 +96,7 @@ export function DataTable<TData, TValue>({
         onScroll?.({ target });
       }, 100);
     }
-  }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
+  }, [virtualItemsCount, rows.length, tableContainerRef.current, paginationMode, onScroll]);
 
   const columnSizingVars = useColumnSizingVars({ table });
 
@@ -114,34 +116,47 @@ export function DataTable<TData, TValue>({
         ...rest.style,
       }}
       data-testid={testId ?? "data-table"}>
+      {/*
+        Invalidate left & right properties for <= sm screen size,
+        because we pin columns only for >= sm screen sizes.
+      */}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .data-table th,
+          .data-table td {
+            left: initial !important;
+            right: initial !important;
+          }
+        }
+      `}</style>
       <div
         ref={tableContainerRef}
         onScroll={onScroll}
         className={classNames(
-          "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
+          "relative overflow-auto",
           "scrollbar-thin border-subtle relative rounded-md border",
+          paginationMode === "infinite" && "h-[80dvh]", // Set a fixed height for the container
           containerClassName
         )}
         style={{ gridArea: "body" }}>
         <TableNew
-          className="grid border-0"
+          className="data-table grid border-0"
           style={{
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
           {!hideHeader && (
             <TableHeader className="sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
                 <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
-                  {headerGroup.headers.map((header) => {
+                  {headerGroup.headers.map((header: Header<TData, unknown>) => {
                     const { column } = header;
-                    const meta = column.columnDef.meta;
                     return (
                       <TableHead
                         key={header.id}
                         style={{
                           ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                          ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
+                          ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
                           width: `var(--header-${kebabCase(header?.id)}-size)`,
                         }}
                         className={classNames(
@@ -155,10 +170,11 @@ export function DataTable<TData, TValue>({
                             onMouseDown={header.getResizeHandler()}
                             onTouchStart={header.getResizeHandler()}
                             className={classNames(
-                              "bg-inverted absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
+                              "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-[0.1] hover:opacity-50",
                               header.column.getIsResizing() && "!opacity-75"
-                            )}
-                          />
+                            )}>
+                            <div className="bg-inverted mx-auto h-full w-[1px]" />
+                          </div>
                         )}
                       </TableHead>
                     );
@@ -177,6 +193,7 @@ export function DataTable<TData, TValue>({
               variant={variant}
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
+              paginationMode={paginationMode}
             />
           ) : (
             <DataTableBody
@@ -187,6 +204,7 @@ export function DataTable<TData, TValue>({
               variant={variant}
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
+              paginationMode={paginationMode}
             />
           )}
         </TableNew>
@@ -205,7 +223,8 @@ const MemoizedTableBody = memo(
     prev.testId === next.testId &&
     prev.variant === next.variant &&
     prev.isPending === next.isPending &&
-    prev.onRowMouseclick === next.onRowMouseclick
+    prev.onRowMouseclick === next.onRowMouseclick &&
+    prev.paginationMode === next.paginationMode
 ) as typeof DataTableBody;
 
 type DataTableBodyProps<TData> = {
@@ -216,6 +235,12 @@ type DataTableBodyProps<TData> = {
   variant?: "default" | "compact";
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
+  paginationMode?: "infinite" | "standard";
+};
+
+type RowToRender<TData> = {
+  row: Row<TData>;
+  virtualItem?: VirtualItem;
 };
 
 function DataTableBody<TData>({
@@ -226,61 +251,75 @@ function DataTableBody<TData>({
   variant,
   isPending,
   onRowMouseclick,
-}: DataTableBodyProps<TData>) {
-  const virtualRows = rowVirtualizer.getVirtualItems();
-  return (
-    <TableBody
-      className="relative grid"
-      data-testid={testId}
-      style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-      {virtualRows && !isPending ? (
-        virtualRows.map((virtualRow) => {
-          const row = rows[virtualRow.index] as Row<TData>;
-          return (
-            <TableRow
-              ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-              key={row.id}
-              data-index={virtualRow.index} //needed for dynamic row height measurement
-              data-state={row.getIsSelected() && "selected"}
-              onClick={() => onRowMouseclick && onRowMouseclick(row)}
-              style={{
-                display: "flex",
-                position: "absolute",
-                transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                width: "100%",
-              }}
-              className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
-              {row.getVisibleCells().map((cell) => {
-                const column = cell.column;
-                const meta = column?.columnDef.meta;
-                return (
-                  <TableCell
-                    key={cell.id}
-                    style={{
-                      ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                      ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
-                      width: `var(--col-${kebabCase(cell.column.id)}-size)`,
-                    }}
-                    className={classNames(
-                      "flex shrink-0 items-center overflow-hidden",
-                      variant === "compact" && "p-0",
-                      column.getIsPinned() &&
-                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
-                    )}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          );
-        })
-      ) : (
+  paginationMode,
+}: DataTableBodyProps<TData> & { paginationMode?: "infinite" | "standard" }) {
+  const { t } = useLocale();
+  const virtualItems = rowVirtualizer.getVirtualItems();
+  const tableHeight = paginationMode === "infinite" ? rowVirtualizer.getTotalSize() : "auto";
+
+  const rowsToRender = useMemo<RowToRender<TData>[]>(
+    () =>
+      paginationMode === "infinite"
+        ? virtualItems.map((virtualItem) => ({
+            row: rows[virtualItem.index] as Row<TData>,
+            virtualItem,
+          }))
+        : rows.map((row) => ({ row })),
+    [paginationMode, virtualItems, rows]
+  );
+
+  if (!isPending && rowsToRender.length === 0) {
+    return (
+      <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
         <TableRow>
           <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
-            No results.
+            {t("no_results")}
           </TableCell>
         </TableRow>
-      )}
+      </TableBody>
+    );
+  }
+
+  return (
+    <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
+      {rowsToRender.map(({ row, virtualItem }) => (
+        <TableRow
+          ref={virtualItem ? (node) => rowVirtualizer.measureElement(node) : undefined}
+          key={row.id}
+          data-index={virtualItem?.index} //needed for dynamic row height measurement
+          data-state={row.getIsSelected() && "selected"}
+          onClick={() => onRowMouseclick && onRowMouseclick(row)}
+          style={{
+            display: "flex",
+            ...(virtualItem && {
+              position: "absolute",
+              transform: `translateY(${virtualItem.start}px)`,
+              width: "100%",
+            }),
+          }}
+          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
+          {row.getVisibleCells().map((cell) => {
+            const column = cell.column;
+            return (
+              <TableCell
+                key={cell.id}
+                style={{
+                  ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                  ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
+                  width: `var(--col-${kebabCase(cell.column.id)}-size)`,
+                }}
+                className={classNames(
+                  "flex shrink-0 items-center overflow-hidden",
+                  variant === "compact" && "p-0",
+                  column.getIsPinned() &&
+                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                )}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableCell>
+            );
+          })}
+        </TableRow>
+      ))}
     </TableBody>
   );
 }
@@ -289,12 +328,19 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
   const [open, setOpen] = useState(false);
   const { t } = useLocale();
 
-  if (!header.column.getCanSort() && !header.column.getCanHide()) {
-    return (
-      <div className="-ml-2 px-2 py-1">
-        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-      </div>
-    );
+  const canHide = header.column.getCanHide();
+  const canSort = header.column.getCanSort();
+
+  if (!canSort && !canHide) {
+    if (typeof header.column.columnDef.header === "string") {
+      return (
+        <div className="truncate px-2 py-1" title={header.column.columnDef.header}>
+          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+        </div>
+      );
+    } else {
+      return header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext());
+    }
   }
 
   return (
@@ -303,20 +349,32 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
         <button
           type="button"
           className={classNames(
-            "group -ml-2 flex items-center gap-2 rounded-md px-2 py-1",
+            "group mr-1 flex w-full items-center gap-2 rounded-md px-2 py-1",
             open && "bg-muted"
           )}>
-          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+          <div
+            className="truncate"
+            title={
+              typeof header.column.columnDef.header === "string" ? header.column.columnDef.header : undefined
+            }>
+            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+          </div>
+          {header.column.getIsSorted() === "asc" && <Icon name="arrow-up" className="h-4 w-4 shrink-0" />}
+          {header.column.getIsSorted() === "desc" && <Icon name="arrow-down" className="h-4 w-4 shrink-0" />}
+          <div className="grow" />
           <Icon
             name="chevrons-up-down"
-            className={classNames("text-subtle h-4 w-4", !open && "opacity-0 group-hover:opacity-100")}
+            className={classNames(
+              "text-subtle h-4 w-4 shrink-0",
+              !open && "opacity-0 group-hover:opacity-100"
+            )}
           />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-32 p-0">
         <Command>
           <CommandList>
-            {header.column.getCanSort() && (
+            {canSort && (
               <>
                 <CommandItem
                   className="flex cursor-pointer items-center gap-2 px-3 py-2"
@@ -348,7 +406,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
                 </CommandItem>
               </>
             )}
-            {header.column.getCanHide() && (
+            {canHide && (
               <CommandItem
                 className="flex cursor-pointer items-center gap-2 px-3 py-2"
                 onSelect={() => {

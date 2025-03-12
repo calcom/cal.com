@@ -8,7 +8,7 @@ import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { storeHuddle01Credential } from "../utils/storage";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   const state = decodeOAuthState(req);
 

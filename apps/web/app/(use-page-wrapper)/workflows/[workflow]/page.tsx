@@ -37,8 +37,6 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
   );
 };
 
-export const generateStaticParams = () => [];
-
 const Page = async ({ params }: PageProps) => {
   // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   // const user = session?.user;
@@ -65,13 +63,10 @@ const Page = async ({ params }: PageProps) => {
 
   return (
     <LegacyPage
-    //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
+      workflow={parsed.data.workflow}
+      //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
     />
   );
 };
 
 export default Page;
-export const dynamic = "force-static";
-// generate segments on demand
-export const dynamicParams = true;
-export const revalidate = 10;

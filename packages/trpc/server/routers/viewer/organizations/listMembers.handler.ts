@@ -1,4 +1,5 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -74,7 +75,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     };
   }
 
-  const { cursor, limit } = input;
+  const { limit, offset } = input;
 
   const getTotalMembers = await prisma.membership.count({
     where: {
@@ -122,7 +123,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         break;
       // We assume that if the filter is not one of the above, it must be an attribute filter
       default:
-        if (filter.value.type === "multi_select" && isAllString(filter.value.data)) {
+        if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
           const attributeOptionValues: string[] = [];
           filter.value.data.forEach((filterValueItem) => {
             attributeOptionValues.push(filterValueItem);
@@ -163,6 +164,12 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         select: {
           id: true,
           username: true,
+          profiles: {
+            select: {
+              organizationId: true,
+              username: true,
+            },
+          },
           email: true,
           avatarUrl: true,
           timeZone: true,
@@ -183,18 +190,12 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         },
       },
     },
-    cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1, // We take +1 as itll be used for the next cursor
+    skip: offset,
+    take: limit,
     orderBy: {
       id: "asc",
     },
   });
-
-  let nextCursor: typeof cursor | undefined = undefined;
-  if (teamMembers && teamMembers.length > limit) {
-    const nextItem = teamMembers.pop();
-    nextCursor = nextItem?.id;
-  }
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
@@ -229,7 +230,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
       return {
         id: user.id,
-        username: user.username,
+        username: user.profiles[0]?.username || user.username,
         email: user.email,
         profile: user.profile,
         timeZone: user.timeZone,
@@ -254,7 +255,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               name: team.team.name,
               slug: team.team.slug,
             };
-          }),
+          })
+          .filter((team): team is NonNullable<typeof team> => team !== undefined),
         attributes,
       };
     }) || []
@@ -262,7 +264,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   return {
     rows: members || [],
-    nextCursor,
     meta: {
       totalRowCount: getTotalMembers || 0,
     },

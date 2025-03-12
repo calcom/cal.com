@@ -15,11 +15,13 @@ interface InternalNotePresetsSelectProps {
       label: string;
     } | null
   ) => void;
+  setCancellationReason: (reason: string) => void;
 }
 
 const InternalNotePresetsSelect = ({
   internalNotePresets,
   onPresetSelect,
+  setCancellationReason,
 }: InternalNotePresetsSelectProps) => {
   const { t } = useLocale();
   const [showOtherInput, setShowOtherInput] = useState(false);
@@ -31,6 +33,7 @@ const InternalNotePresetsSelect = ({
   const handleSelectChange = (option: { value: number | string; label: string } | null) => {
     if (option?.value === "other") {
       setShowOtherInput(true);
+      setCancellationReason("");
     } else {
       setShowOtherInput(false);
       onPresetSelect && onPresetSelect(option);
@@ -136,10 +139,11 @@ export default function CancelBooking(props: Props) {
       )}
       {!error && (
         <div className="mt-5 sm:mt-6">
-          {props.isHost && teamId && (
+          {props.isHost && props.internalNotePresets.length > 0 && (
             <>
               <InternalNotePresetsSelect
                 internalNotePresets={props.internalNotePresets}
+                setCancellationReason={setCancellationReason}
                 onPresetSelect={(option) => {
                   if (!option) return;
 
@@ -188,7 +192,10 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={props.isHost && !cancellationReason}
+                disabled={
+                  props.isHost &&
+                  (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
+                }
                 onClick={async () => {
                   setLoading(true);
 

@@ -1,7 +1,7 @@
 import type { SchedulingType } from "@prisma/client";
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
-import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
+import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
@@ -15,7 +15,7 @@ export type BookerEventQuery = {
 };
 
 type BookerEventUser = Pick<
-  PublicEvent["users"][number],
+  PublicEvent["subsetOfUsers"][number],
   "name" | "username" | "avatarUrl" | "weekStart" | "profile"
 > & {
   metadata?: undefined;
@@ -47,14 +47,17 @@ export type BookerEvent = Pick<
   | "description"
   | "forwardParamsSuccessRedirect"
   | "successRedirectUrl"
-  | "hosts"
+  | "subsetOfHosts"
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
   | "instantMeetingParameters"
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
-> & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
+> & {
+  subsetOfUsers: BookerEventUser[];
+  showInstantEventConnectNowModal: boolean;
+} & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 
@@ -65,7 +68,7 @@ export enum EventDetailBlocks {
   DURATION,
   LOCATION,
   REQUIRES_CONFIRMATION,
-  // Includes input to select # of occurences.
+  // Includes input to select # of occurrences.
   OCCURENCES,
   PRICE,
 }

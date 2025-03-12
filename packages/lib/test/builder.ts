@@ -100,6 +100,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     userId: null,
     teamId: null,
     requiresBookerEmailVerification: false,
+    canSendCalVideoTranscriptionEmails: true,
     useEventTypeDestinationCalendarEmail: false,
     eventName: faker.lorem.words(),
     timeZone: null,
@@ -146,6 +147,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     rrSegmentQueryValue: null,
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
+    allowReschedulingPastBookings: false,
     ...eventType,
   };
 };

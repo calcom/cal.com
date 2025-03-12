@@ -93,7 +93,17 @@ describe("generate Csv for Org Users Table", () => {
       {
         ...mockUser,
         teams: [{ id: 1, name: "Team1", slug: "team1" }],
-        attributes: [{ id: "1", attributeId: "attr1", value: "value1", slug: "slug1", contains: [] }],
+        attributes: [
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+        ],
       },
     ];
 
@@ -117,8 +127,24 @@ describe("generate Csv for Org Users Table", () => {
         ...mockUser,
         teams: [{ id: 1, name: "Team1", slug: "team1" }],
         attributes: [
-          { id: "1", attributeId: "attr1", value: "value1", slug: "slug1", contains: [] },
-          { id: "2", attributeId: "attr1", value: "value2", slug: "slug1", contains: [] },
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+          {
+            id: "2",
+            attributeId: "attr1",
+            value: "value2",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
         ],
       },
     ];
@@ -168,7 +194,17 @@ describe("generate Csv for Org Users Table", () => {
       {
         ...mockUser,
         teams: [{ id: 1, name: "Team,1", slug: "team1" }],
-        attributes: [{ id: "1", attributeId: "attr1", value: "value,1", slug: "slug1", contains: [] }],
+        attributes: [
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value,1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+        ],
       },
     ];
 
