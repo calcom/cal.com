@@ -2,8 +2,6 @@ import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import appStore from "..";
-
 interface CalendarApp {
   lib: {
     CalendarService: CalendarClass;
@@ -36,7 +34,10 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
+  const appStore = await import("../index.ts");
+  console.log("--------------appStore", appStore);
+  const calendarAppImportFn = async () =>
+    await import(appStore[calendarType.split("_").join("") as keyof typeof appStore]);
 
   if (!calendarAppImportFn) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
@@ -44,6 +45,7 @@ export const getCalendar = async (
   }
 
   const calendarApp = await calendarAppImportFn();
+  console.log("----------------calendarApp", calendarApp);
 
   if (!isCalendarService(calendarApp)) {
     log.warn(`calendar of type ${calendarType} is not implemented`);

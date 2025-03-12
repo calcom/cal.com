@@ -15,13 +15,15 @@ const handlePaymentRefund = async (
     } | null;
   }
 ) => {
-  const paymentApp = (await appStore[
-    paymentAppCredentials?.app?.dirName as keyof typeof appStore
-  ]?.()) as PaymentApp;
-  if (!paymentApp?.lib?.PaymentService) {
+  if (!appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore]) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
   }
+
+  const paymentApp = (await import(
+    appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore]
+  )) as PaymentApp;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const PaymentService = paymentApp.lib.PaymentService as any;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;

@@ -9,7 +9,6 @@ export const getCrm = async (credential: CredentialPayload, appOptions: any) => 
   const { type: crmType } = credential;
 
   const crmName = crmType.split("_")[0];
-
   const crmServiceImportFn = await CrmServiceMap[crmName as keyof typeof CrmServiceMap];
 
   if (!crmServiceImportFn) {
