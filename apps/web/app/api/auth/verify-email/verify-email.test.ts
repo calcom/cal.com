@@ -10,6 +10,11 @@ import { moveUserToMatchingOrg } from "./route";
 
 vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler");
 vi.mock("@calcom/lib/server/repository/organization");
+vi.mock("app/api/defaultResponderForAppDir", () => {
+  return {
+    defaultResponderForAppDir: vi.fn(),
+  };
+});
 
 describe("moveUserToMatchingOrg", () => {
   const email = "test@example.com";
