@@ -1,4 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -44,7 +45,7 @@ const getEventTypeIdFromRetellLLM = (
 };
 
 async function handler(req: NextRequest) {
-  const body = await req.json();
+  const body = await parseRequestData(req);
   const response = schema.safeParse(body);
 
   if (!response.success) {
