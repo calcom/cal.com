@@ -4,6 +4,7 @@ import type {
   ApiSuccessResponse,
   ApiErrorResponse,
   ApiSuccessResponseWithoutData,
+  RoutingFormSearchParams,
 } from "@calcom/platform-types";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -48,3 +49,16 @@ export type BookerPlatformWrapperAtomProps = Omit<
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
+
+export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
+  username: string | string[];
+  isTeamEvent?: false;
+  routingFormSearchParams?: RoutingFormSearchParams;
+};
+
+export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
+  username?: string | string[];
+  isTeamEvent: true;
+  teamId: number;
+  routingFormSearchParams?: RoutingFormSearchParams;
+};
