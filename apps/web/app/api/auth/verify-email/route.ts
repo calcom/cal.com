@@ -188,4 +188,4 @@ export async function cleanUpVerificationTokens(id: number) {
   });
 }
 
-export const GET = defaultResponderForAppDir(handler);
+export const POST = defaultResponderForAppDir(handler);
