@@ -310,12 +310,14 @@ export default function Success(props: PageProps) {
       const host = bookingInfo.user.name || bookingInfo.user.email;
       if (isHost) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-          user: attendee,
+          host,
+          attendee,
         });
       }
       if (isAttendee) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-          user: host,
+          host,
+          attendee,
         });
       }
       return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
