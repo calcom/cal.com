@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -41,7 +42,7 @@ const getEventTypeIdFromRetellLLM = (
   return { eventTypeId: undefined, timezone: undefined };
 };
 
-export async function POST(req: NextRequest) {
+async function handler(req: NextRequest) {
   const body = await req.json();
   const response = schema.safeParse(body);
 
@@ -109,3 +110,5 @@ export async function POST(req: NextRequest) {
       : undefined,
   });
 }
+
+export const POST = defaultResponderForAppDir(handler);
