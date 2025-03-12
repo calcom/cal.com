@@ -92,7 +92,6 @@ export const apiHandlers = {
   "general-app-settings": import("./templates/general-app-settings/api"),
   "link-as-an-app": import("./templates/link-as-an-app/api"),
   twipla: import("./twipla/api"),
-  typeform: import("./typeform/api"),
   umami: import("./umami/api"),
   vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),

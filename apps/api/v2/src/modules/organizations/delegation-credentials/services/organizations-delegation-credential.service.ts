@@ -9,11 +9,11 @@ import { DelegationCredentialOutput } from "@/modules/organizations/delegation-c
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { User } from "@prisma/client";
 
+import { encryptServiceAccountKey } from "@calcom/platform-libraries";
 import {
   addDelegationCredential,
   toggleDelegationCredentialEnabled,
-  encryptServiceAccountKey,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class OrganizationsDelegationCredentialService {
