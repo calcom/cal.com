@@ -59,6 +59,4 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ message: "First admin user created successfully." });
 }
 
-const postHandler = defaultResponderForAppDir(handler);
-
-export { postHandler as POST };
+export const POST = defaultResponderForAppDir(handler);

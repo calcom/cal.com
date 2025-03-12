@@ -106,7 +106,7 @@ export class OAuthClientUsersService {
     const { offset, limit, emails } = queryParams;
 
     const oAuthEmails = emails?.map((email) =>
-      email.includes(oAuthClientId) ? email : this.getOAuthUserEmail(oAuthClientId, email)
+      email.includes(oAuthClientId) ? email : OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, email)
     );
 
     const managedUsers = await this.userRepository.findManagedUsersByOAuthClientIdAndEmails(
