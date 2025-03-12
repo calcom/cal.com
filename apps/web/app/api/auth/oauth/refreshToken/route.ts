@@ -1,3 +1,5 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -6,8 +8,12 @@ import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
-export async function POST(req: NextRequest) {
-  const { client_id, client_secret, grant_type } = await req.json();
+async function handler(req: NextRequest) {
+  const { client_id, client_secret, grant_type } = await parseUrlFormData(req);
+
+  if (!client_id || !client_secret) {
+    return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });
+  }
 
   if (grant_type !== "refresh_token") {
     return NextResponse.json({ message: "grant type invalid" }, { status: 400 });
@@ -58,3 +64,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ access_token }, { status: 200 });
 }
+
+export const POST = defaultResponderForAppDir(handler);
