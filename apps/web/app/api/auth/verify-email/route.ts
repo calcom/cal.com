@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
@@ -41,7 +42,7 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
   });
 }
 
-export async function GET(req: NextRequest) {
+async function handler(req: NextRequest) {
   const { token } = verifySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
 
   const foundToken = await prisma.verificationToken.findFirst({
@@ -179,9 +180,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function cleanUpVerificationTokens(id: number) {
+  // Delete token from DB after it has been used
   await prisma.verificationToken.delete({
     where: {
       id,
     },
   });
 }
+
+export const GET = defaultResponderForAppDir(handler);

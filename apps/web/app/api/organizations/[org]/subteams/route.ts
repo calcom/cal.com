@@ -35,6 +35,4 @@ async function handler(req: NextRequest, { params }: { params: Params }) {
   return NextResponse.json({ slugs: org.children.map((ch) => ch.slug) });
 }
 
-const getHandler = defaultResponderForAppDir(handler);
-
-export { getHandler as GET };
+export const GET = defaultResponderForAppDir(handler);

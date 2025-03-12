@@ -55,6 +55,7 @@ const handleCalendarsToUnwatch = async () => {
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { eventTypeIds, credentialId, id }]) => {
         if (!credentialId) {
+          // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
           console.log("no credentialId for SelecedCalendar: ", id);
           return;
@@ -76,6 +77,7 @@ const handleCalendarsToWatch = async () => {
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
         if (!credentialId) {
+          // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
           console.log("no credentialId for SelecedCalendar: ", id);
           return;
@@ -89,6 +91,7 @@ const handleCalendarsToWatch = async () => {
   return result;
 };
 
+// This cron is used to activate and renew calendar subscriptions
 const handler = defaultResponderForAppDir(async (request: NextRequest) => {
   validateRequest(request);
   await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);
@@ -99,4 +102,4 @@ const handler = defaultResponderForAppDir(async (request: NextRequest) => {
   });
 });
 
-export { handler as GET };
+export const GET = handler;
