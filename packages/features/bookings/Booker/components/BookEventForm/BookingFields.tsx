@@ -6,7 +6,10 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
@@ -17,18 +20,26 @@ export const BookingFields = ({
   rescheduleUid,
   isDynamicGroupBooking,
   bookingData,
+  isPaidEvent,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
+  isPaidEvent?: boolean;
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+
+  const getPriceFormattedLabel = (label: string, price: number) =>
+    `${label} (${Intl.NumberFormat("en", {
+      style: "currency",
+      currency: "USD",
+    }).format(price)})`;
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -134,8 +145,50 @@ export const BookingFields = ({
           });
         }
 
+        // Add price display for custom inputs with prices
+        let fieldWithPrice = field;
+
+        if (isPaidEvent) {
+          // Handle number fields and boolean (single checkbox) fields
+          if (fieldTypesConfigMap[field.type]?.supportsPricing && field.label && field.price) {
+            const price = typeof field.price === "string" ? parseFloat(field.price) : field.price;
+            const label = getPriceFormattedLabel(field.label, price);
+            fieldWithPrice = {
+              ...field,
+              label,
+              ...(fieldsThatSupportLabelAsSafeHtml.includes(field.type) && field.labelAsSafeHtml
+                ? { labelAsSafeHtml: markdownToSafeHTML(label) }
+                : { labelAsSafeHtml: undefined }),
+            };
+          }
+
+          // Handle fields with option-level prices (select, multiselect, and checkbox group)
+          if (fieldTypesConfigMap[field.type]?.optionsSupportPricing && field.options) {
+            fieldWithPrice = {
+              ...field,
+              options: field.options.map((opt) => {
+                const option = opt as { value: string; label: string; price?: number };
+                const optionPrice = option.price;
+
+                // Only add price to label if there's a price
+                if (!optionPrice) return option;
+
+                return {
+                  ...option,
+                  label: getPriceFormattedLabel(option.label, optionPrice),
+                };
+              }),
+            };
+          }
+        }
+
         return (
-          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <FormBuilderField
+            className="mb-4"
+            field={{ ...fieldWithPrice, hidden }}
+            readOnly={readOnly}
+            key={index}
+          />
         );
       })}
     </div>

@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useState, Suspense, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -36,6 +36,7 @@ import cx from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, APP_NAME } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -519,6 +520,16 @@ export const EventAdvancedTab = ({
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
 
+  const isPaidEvent = useMemo(() => {
+    const _eventType = {
+      ...eventType,
+      ...formMethods.getValues(),
+    };
+    if (!_eventType?.price) return false;
+    const paymentAppData = getPaymentAppData(_eventType);
+    return _eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+  }, [eventType, formMethods]);
+
   return (
     <div className="flex flex-col space-y-4">
       {!isPlatform && (
@@ -565,6 +576,7 @@ export const EventAdvancedTab = ({
             // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
             return field.name === "location" ? true : field.required;
           }}
+          showPriceField={isPaidEvent}
         />
       </div>
       <RequiresConfirmationController
