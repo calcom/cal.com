@@ -89,7 +89,7 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid start date");
     }
 
-    const metadata = eventTypeMetadataSchema.parse(eventType);
+    const metadata = eventTypeMetadataSchema.parse(eventType.metadata);
     if (
       input.slotDuration &&
       metadata.multipleDuration &&
@@ -214,7 +214,7 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid start date");
     }
 
-    const metadata = eventTypeMetadataSchema.parse(eventType);
+    const metadata = eventTypeMetadataSchema.parse(eventType.metadata);
     if (
       input.slotDuration &&
       metadata.multipleDuration &&
