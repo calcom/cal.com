@@ -431,6 +431,7 @@ export class InputBookingsService_2024_08_13 {
           ...(inputBooking.bookingFieldsResponses || {}),
           name: inputBooking.attendee.name,
           email: attendeeEmail,
+          attendeePhoneNumber: inputBooking.attendee.phoneNumber,
           guests,
           location,
         },

@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -31,6 +32,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
@@ -65,6 +67,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
     const team1EventTypeSlug = `team-bookings-event-type-${randomString()}`;
     const team2EventTypeSlug = `team-bookings-event-type-${randomString()}`;
     const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomString()}`;
+
+    const phoneNumber = "+919876543210";
+    let phoneBasedBookingUid: string;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -413,7 +418,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           eventTypeId: phoneOnlyEventTypeId,
           attendee: {
             name: "alice",
-            phoneNumber: "+919876543210",
+            phoneNumber,
             timeZone: "Europe/Madrid",
             language: "es",
           },
@@ -453,6 +458,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(data.meetingUrl).toEqual(body.meetingUrl);
               expect(data.absentHost).toEqual(false);
+              phoneBasedBookingUid = data.uid;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -615,6 +621,38 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.length).toEqual(3);
             expect(data.find((booking) => booking.eventTypeId === team1EventTypeId)).toBeDefined();
             expect(data.find((booking) => booking.eventTypeId === team2EventTypeId)).toBeDefined();
+          });
+      });
+    });
+
+    describe("reschedule", () => {
+      it("should should reschedule phone based booking", async () => {
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2035, 0, 8, 14, 0, 0)).toISOString(),
+          reschedulingReason: "Flying to mars that day",
+        };
+
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${phoneBasedBookingUid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const afterCreate = new Date();
+            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.reschedulingReason).toEqual(body.reschedulingReason);
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 8, 14, 15, 0)).toISOString());
+            expect(data.rescheduledFromUid).toEqual(phoneBasedBookingUid);
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.attendees[0].phoneNumber).toEqual(phoneNumber);
+            expect(data.bookingFieldsResponses.attendeePhoneNumber).toEqual(phoneNumber);
           });
       });
     });

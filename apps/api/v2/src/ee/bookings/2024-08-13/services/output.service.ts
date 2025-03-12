@@ -26,7 +26,8 @@ import { Booking, BookingSeat } from "@calcom/prisma/client";
 
 export const bookingResponsesSchema = z
   .object({
-    email: z.string(),
+    email: z.string().optional(),
+    attendeePhoneNumber: z.string().optional(),
     name: z.union([
       z.string(),
       z.object({
@@ -38,13 +39,23 @@ export const bookingResponsesSchema = z
     rescheduleReason: z.string().optional(),
   })
   .passthrough()
+  .refine(
+    (data) => {
+      return Boolean(data.email) || Boolean(data.attendeePhoneNumber);
+    },
+    {
+      message: "Either email or attendeePhoneNumber must be provided",
+      path: ["email", "attendeePhoneNumber"],
+    }
+  )
   .describe("BookingResponses");
 
 export const seatedBookingDataSchema = z
   .object({
     responses: z
       .object({
-        email: z.string(),
+        email: z.string().optional(),
+        attendeePhoneNumber: z.string().optional(),
         name: z.union([
           z.string(),
           z.object({
@@ -53,7 +64,16 @@ export const seatedBookingDataSchema = z
           }),
         ]),
       })
-      .passthrough(),
+      .passthrough()
+      .refine(
+        (data) => {
+          return Boolean(data.email) || Boolean(data.attendeePhoneNumber);
+        },
+        {
+          message: "Either email or attendeePhoneNumber must be provided",
+          path: ["email", "attendeePhoneNumber"],
+        }
+      ),
   })
   .passthrough()
   .describe("SeatedBookingData");
