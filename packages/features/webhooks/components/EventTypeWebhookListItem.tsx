@@ -2,7 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar
+  Avatar,
   Badge,
   Button,
   Dropdown,
@@ -27,10 +27,10 @@ type WebhookProps = {
   eventTypeId: number | null;
   teamId: number | null;
   eventT: {
-    id: number,
+    id: number;
     avatarUrl: string | null;
-    title: string
-  }
+    title: string;
+  };
 };
 
 export default function EventTypeWebhookListItem(props: {
@@ -88,7 +88,7 @@ export default function EventTypeWebhookListItem(props: {
               imageSrc={webhook.eventT.avatarUrl}
               size="sm"
               alt={webhook.eventT.title}
-              className="mr-2"
+              className="ml-2"
             />
           )}
           <Tooltip content={webhook.subscriberUrl}>
