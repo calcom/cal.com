@@ -20,6 +20,4 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ message: "No redirect URL provided" }, { status: 400 });
 }
 
-const postHandler = defaultResponderForAppDir(handler);
-
-export { postHandler as POST };
+export const POST = defaultResponderForAppDir(handler);

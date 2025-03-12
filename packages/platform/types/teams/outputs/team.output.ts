@@ -2,7 +2,7 @@ import { ApiProperty as DocsProperty, ApiPropertyOptional } from "@nestjs/swagge
 import { Expose, Transform } from "class-transformer";
 import { IsBoolean, IsInt, IsObject, IsOptional, IsString, IsUrl, Length } from "class-validator";
 
-import type { Metadata } from "@calcom/platform-types/bookings/2024-08-13/inputs/validators/validate-metadata";
+import type { Metadata } from "../../bookings/2024-08-13/inputs/validators/validate-metadata";
 
 export class TeamOutputDto {
   @IsInt()
