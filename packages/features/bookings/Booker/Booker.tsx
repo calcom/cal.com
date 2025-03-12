@@ -204,8 +204,8 @@ const BookerComponent = ({
   const slot = getQueryParam("slot");
 
   useEffect(() => {
-    setSelectedTimeslot(slot || null);
-  }, [slot, setSelectedTimeslot]);
+    setSelectedTimeslot(slot || null, isPlatform);
+  }, [slot, setSelectedTimeslot, isPlatform]);
 
   const onSubmit = (timeSlot?: string) => {
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
@@ -217,7 +217,7 @@ const BookerComponent = ({
         key={key}
         shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
-          setSelectedTimeslot(null);
+          setSelectedTimeslot(null, isPlatform);
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
           if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
             // Ensures that user has latest available slots when they want to re-choose from the slots
@@ -557,7 +557,7 @@ const BookerComponent = ({
       </>
 
       <BookFormAsModal
-        onCancel={() => setSelectedTimeslot(null)}
+        onCancel={() => setSelectedTimeslot(null, isPlatform)}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
         {EventBooker}
       </BookFormAsModal>

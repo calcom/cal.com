@@ -36,6 +36,7 @@ type StoreInitializeType = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  omitUpdatingParams?: boolean;
 };
 
 type SeatedEventData = {
@@ -63,7 +64,7 @@ export type BookerStore = {
    * Current month being viewed. Format is YYYY-MM.
    */
   month: string | null;
-  setMonth: (month: string | null) => void;
+  setMonth: (month: string | null, omitUpdatingParams?: boolean) => void;
   /**
    * Current state of the booking process
    * the user is currently in. See enum for possible values.
@@ -75,13 +76,13 @@ export type BookerStore = {
    * this value tracks the current layout.
    */
   layout: BookerLayout;
-  setLayout: (layout: BookerLayout) => void;
+  setLayout: (layout: BookerLayout, omitUpdatingParams?: boolean) => void;
   /**
    * Date selected by user (exact day). Format is YYYY-MM-DD.
    */
   selectedDate: string | null;
   setSelectedDate: (date: string | null, omitUpdatingParams?: boolean) => void;
-  addToSelectedDate: (days: number) => void;
+  addToSelectedDate: (days: number, omitUpdatingParams?: boolean) => void;
   /**
    * Multiple Selected Dates and Times
    */
@@ -95,13 +96,13 @@ export type BookerStore = {
    * Selected event duration in minutes.
    */
   selectedDuration: number | null;
-  setSelectedDuration: (duration: number | null) => void;
+  setSelectedDuration: (duration: number | null, omitUpdatingParams?: boolean) => void;
   /**
    * Selected timeslot user has chosen. This is a date string
    * containing both the date + time.
    */
   selectedTimeslot: string | null;
-  setSelectedTimeslot: (timeslot: string | null) => void;
+  setSelectedTimeslot: (timeslot: string | null, omitUpdatingParams?: boolean) => void;
   tentativeSelectedTimeslots: string[];
   setTentativeSelectedTimeslots: (slots: string[]) => void;
   /**
@@ -148,7 +149,7 @@ export type BookerStore = {
    */
   isTeamEvent: boolean;
   seatedEventData: SeatedEventData;
-  setSeatedEventData: (seatedEventData: SeatedEventData) => void;
+  setSeatedEventData: (seatedEventData: SeatedEventData, setSeatedEventData?: boolean) => void;
 
   isInstantMeeting?: boolean;
 
@@ -174,13 +175,15 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
   layout: BookerLayouts.MONTH_VIEW,
-  setLayout: (layout: BookerLayout) => {
+  setLayout: (layout: BookerLayout, omitUpdatingParams = false) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
     if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
-    updateQueryParam("layout", layout);
+    if (!omitUpdatingParams) {
+      updateQueryParam("layout", layout);
+    }
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
@@ -210,7 +213,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedDatesAndTimes: (selectedDatesAndTimes) => {
     set({ selectedDatesAndTimes });
   },
-  addToSelectedDate: (days: number) => {
+  addToSelectedDate: (days: number, omitUpdatingParams = false) => {
     const currentSelection = dayjs(get().selectedDate);
     let newSelection = currentSelection.add(days, "day");
 
@@ -223,11 +226,15 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
 
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      updateQueryParam("month", newSelection.format("YYYY-MM"));
+      if (!omitUpdatingParams) {
+        updateQueryParam("month", newSelection.format("YYYY-MM"));
+      }
     }
 
     set({ selectedDate: newSelectionFormatted });
-    updateQueryParam("date", newSelectionFormatted);
+    if (!omitUpdatingParams) {
+      updateQueryParam("date", newSelectionFormatted);
+    }
   },
   username: null,
   eventSlug: null,
@@ -243,14 +250,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       ? dayjs(getQueryParam("date")).format("YYYY-MM")
       : null) ||
     dayjs().format("YYYY-MM"),
-  setMonth: (month: string | null) => {
+  setMonth: (month: string | null, omitUpdatingParams = false) => {
     if (!month) {
       removeQueryParam("month");
       return;
     }
     set({ month, selectedTimeslot: null });
-    updateQueryParam("month", month ?? "");
-    get().setSelectedDate(null);
+    if (!omitUpdatingParams) {
+      updateQueryParam("month", month ?? "");
+    }
+    get().setSelectedDate(null, omitUpdatingParams);
   },
   dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
   setDayCount: (dayCount: number | null) => {
@@ -263,11 +272,14 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     bookingUid: undefined,
     showAvailableSeatsCount: true,
   },
-  setSeatedEventData: (seatedEventData: SeatedEventData) => {
+  setSeatedEventData: (seatedEventData: SeatedEventData, omitUpdatingParams = false) => {
     set({ seatedEventData });
-    updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
+    if (!omitUpdatingParams) {
+      updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
+    }
   },
   // This is different from timeZone in timePreferencesStore, because timeZone in timePreferencesStore is the preferred timezone of the booker,
+  // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
   // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
   timezone: getQueryParam("cal.tz") ?? null,
   setTimezone: (timezone: string | null) => {
@@ -291,6 +303,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    omitUpdatingParams = false,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -353,7 +366,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         "minutes"
       );
       set({ selectedDuration: originalBookingLength });
-      updateQueryParam("duration", originalBookingLength ?? "");
+      if (!omitUpdatingParams) {
+        updateQueryParam("duration", originalBookingLength ?? "");
+      }
     }
     if (month) set({ month });
 
@@ -367,17 +382,22 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         selectedTimeslot,
         isInstantMeeting,
       });
-      updateQueryParam("month", month);
-      updateQueryParam("date", selectedDate ?? "");
-      updateQueryParam("slot", selectedTimeslot ?? "", false);
+
+      if (!omitUpdatingParams) {
+        updateQueryParam("month", month);
+        updateQueryParam("date", selectedDate ?? "");
+        updateQueryParam("slot", selectedTimeslot ?? "", false);
+      }
     }
     //removeQueryParam("layout");
   },
   durationConfig: null,
   selectedDuration: null,
-  setSelectedDuration: (selectedDuration: number | null) => {
+  setSelectedDuration: (selectedDuration: number | null, omitUpdatingParams = false) => {
     set({ selectedDuration });
-    updateQueryParam("duration", selectedDuration ?? "");
+    if (!omitUpdatingParams) {
+      updateQueryParam("duration", selectedDuration ?? "");
+    }
   },
   setBookingData: (bookingData: GetBookingType | null | undefined) => {
     set({ bookingData: bookingData ?? null });
@@ -394,9 +414,11 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setTentativeSelectedTimeslots: (tentativeSelectedTimeslots: string[]) => {
     set({ tentativeSelectedTimeslots });
   },
-  setSelectedTimeslot: (selectedTimeslot: string | null) => {
+  setSelectedTimeslot: (selectedTimeslot: string | null, omitUpdatingParams = false) => {
     set({ selectedTimeslot });
-    updateQueryParam("slot", selectedTimeslot ?? "", false);
+    if (!omitUpdatingParams) {
+      updateQueryParam("slot", selectedTimeslot ?? "", false);
+    }
   },
   formValues: {},
   setFormValues: (formValues: Record<string, any>) => {
@@ -426,6 +448,7 @@ export const useInitializeBookerStore = ({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  omitUpdatingParams,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -447,6 +470,7 @@ export const useInitializeBookerStore = ({
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      omitUpdatingParams,
     });
   }, [
     initializeStore,
@@ -467,5 +491,6 @@ export const useInitializeBookerStore = ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    omitUpdatingParams,
   ]);
 };

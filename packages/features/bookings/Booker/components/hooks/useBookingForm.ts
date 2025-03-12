@@ -23,6 +23,7 @@ export interface IUseBookingForm {
     name: string | null;
   };
   lastBookingResponse?: Record<string, string>;
+  selectedDate?: string;
 }
 
 export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
@@ -36,6 +37,7 @@ export const useBookingForm = ({
   extraOptions,
   prefillFormParams,
   lastBookingResponse,
+  selectedDate,
 }: IUseBookingForm) => {
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -75,6 +77,7 @@ export const useBookingForm = ({
     extraOptions,
     prefillFormParams,
     lastBookingResponse,
+    selectedDate,
   });
 
   const bookingForm = useForm<BookingFormValues>({

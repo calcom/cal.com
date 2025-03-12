@@ -22,6 +22,7 @@ type UseInitialFormValuesProps = {
     name: string | null;
   };
   lastBookingResponse?: Record<string, string>;
+  selectedDate?: string;
 };
 
 // Add this stable hash function
@@ -63,6 +64,7 @@ export function useInitialFormValues({
   extraOptions,
   prefillFormParams,
   lastBookingResponse,
+  selectedDate,
 }: UseInitialFormValuesProps) {
   const stableHashExtraOptions = getStableHash(extraOptions);
 
@@ -102,6 +104,7 @@ export function useInitialFormValues({
         // `guest` because we need to support legacy URL with `guest` query param support
         // `guests` because the `name` of the corresponding bookingField is `guests`
         guests: prefillFormParams.guests,
+        date: selectedDate,
       });
       const parsedLastBookingResponse = z.record(z.any()).nullish().parse(lastBookingResponse);
 

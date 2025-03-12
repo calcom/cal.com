@@ -86,7 +86,7 @@ export const BookerPlatformWrapper = (
   }, [props.username]);
 
   useEffect(() => {
-    setSelectedDuration(props.duration ?? null);
+    setSelectedDuration(props.duration ?? null, true);
   }, [props.duration]);
 
   useEffect(() => {
@@ -166,6 +166,7 @@ export const BookerPlatformWrapper = (
     org: props.entity?.orgSlug,
     username,
     bookingData,
+    omitUpdatingParams: true,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -397,18 +398,25 @@ export const BookerPlatformWrapper = (
     },
     [setIsOverlayCalendarEnabled]
   );
+  const selectedDateProp = useMemo(
+    () => dayjs(props.selectedDate).format("YYYY-MM-DD"),
+    [props.selectedDate]
+  );
+  useEffect(() => {
+    console.log("selectedDateProp: ", selectedDateProp);
+    setSelectedDate(selectedDateProp, true);
+  }, [selectedDateProp]);
 
   useEffect(() => {
     // reset booker whenever it's unmounted
     return () => {
       slots.handleRemoveSlot();
       setBookerState("loading");
-      setSelectedDate(null);
-      setSelectedTimeslot(null);
-      setSelectedDuration(null);
+      setSelectedDate(null, true);
+      setSelectedTimeslot(null, true);
+      setSelectedDuration(null, true);
       setOrg(null);
-      setSelectedMonth(null);
-      setSelectedDuration(null);
+      setSelectedMonth(null, true);
       if (props.rescheduleUid) {
         // clean booking data from cache
         queryClient.removeQueries({

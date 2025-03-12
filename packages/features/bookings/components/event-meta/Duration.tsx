@@ -70,8 +70,15 @@ export const EventDuration = ({
   useEffect(() => {
     // Only store event duration in url if event has multiple durations.
     if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
-      setSelectedDuration(event.length);
-  }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
+      setSelectedDuration(event.length, isPlatform);
+  }, [
+    selectedDuration,
+    isPlatform,
+    setSelectedDuration,
+    event.metadata?.multipleDuration,
+    event.length,
+    isDynamicEvent,
+  ]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -114,7 +121,7 @@ export const EventDuration = ({
               data-testId={`multiple-choice-${duration}mins`}
               data-active={selectedDuration === duration ? "true" : "false"}
               key={index}
-              onClick={() => setSelectedDuration(duration)}
+              onClick={() => setSelectedDuration(duration, isPlatform)}
               ref={(el) => (itemRefs.current[duration] = el)}
               className={classNames(
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
