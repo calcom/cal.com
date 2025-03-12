@@ -403,7 +403,6 @@ export const BookerPlatformWrapper = (
     [props.selectedDate]
   );
   useEffect(() => {
-    console.log("selectedDateProp: ", selectedDateProp);
     setSelectedDate(selectedDateProp, true);
   }, [selectedDateProp]);
 
