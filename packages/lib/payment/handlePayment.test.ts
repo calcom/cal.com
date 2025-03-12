@@ -1,0 +1,253 @@
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+import { handlePayment } from "./handlePayment";
+
+vi.mock("@calcom/prisma/zod-utils", () => ({
+  eventTypeAppMetadataOptionalSchema: {
+    parse: vi.fn((data) => data),
+  },
+}));
+
+vi.mock("@calcom/app-store", () => ({
+  default: {
+    stripepayment: () =>
+      Promise.resolve({
+        lib: {
+          PaymentService: class MockPaymentService {
+            async create(paymentData: { amount: number; currency: string }) {
+              return {
+                ...paymentData,
+                id: "mock-payment-id",
+                externalId: "mock-external-id",
+                success: true,
+              };
+            }
+
+            async collectCard(paymentData: { amount: number; currency: string }) {
+              return {
+                ...paymentData,
+                id: "mock-payment-id",
+                externalId: "mock-external-id",
+                success: true,
+              };
+            }
+
+            async afterPayment() {
+              return true;
+            }
+          },
+        },
+      }),
+  },
+}));
+
+describe("handlePayment", () => {
+  const mockBooking = {
+    id: 123,
+    userId: 456,
+    startTime: { toISOString: () => "2025-03-12T10:00:00Z" },
+    uid: "test-uid",
+    user: {
+      email: "user@example.com",
+      name: "Test User",
+      timeZone: "UTC",
+      username: "testuser",
+    },
+  };
+
+  const mockEventType = {
+    title: "Test Event",
+    metadata: {
+      apps: {
+        stripepayment: {
+          enabled: true,
+          price: 1000,
+          currency: "USD",
+          paymentOption: "ON_BOOKING",
+        },
+      },
+    },
+  };
+
+  const mockPaymentCredentials = {
+    key: {},
+    appId: "stripepayment" as const,
+    app: {
+      dirName: "stripepayment",
+      categories: ["payment"] as const,
+    },
+  };
+
+  const mockEvent = {
+    title: "Test Event",
+    responses: {},
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should handle payment on dry run", async () => {
+    const result = await handlePayment({
+      evt: mockEvent,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields: [],
+      isDryRun: true,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  it("should calculate total amount with no addons", async () => {
+    const result = await handlePayment({
+      evt: mockEvent,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields: [],
+    });
+
+    expect(result?.amount).toBe(1000);
+    expect(result?.currency).toBe("USD");
+  });
+
+  it("should calculate total amount with number field addon", async () => {
+    const mockEventWithResponse = {
+      ...mockEvent,
+      responses: {
+        quantity: { value: "2" },
+      },
+    };
+
+    const bookingFields = [
+      {
+        name: "quantity",
+        type: "number" as const,
+        price: 5,
+      },
+    ];
+
+    const result = await handlePayment({
+      evt: mockEventWithResponse,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields,
+    });
+
+    expect(result?.amount).toBe(2000); // Base 1000 cents + (2 * $5 * 100 cents)
+  });
+
+  it("should calculate total amount with boolean field addon", async () => {
+    const mockEventWithResponse = {
+      ...mockEvent,
+      responses: {
+        extraService: { value: true },
+      },
+    };
+
+    const bookingFields = [
+      {
+        name: "extraService",
+        type: "boolean" as const,
+        price: 15,
+      },
+    ];
+
+    const result = await handlePayment({
+      evt: mockEventWithResponse,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields,
+    });
+
+    expect(result?.amount).toBe(2500); // Base 1000 cents + ($15 * 100 cents)
+  });
+
+  it("should calculate total amount with select field addon", async () => {
+    const mockEventWithResponse = {
+      ...mockEvent,
+      responses: {
+        package: { value: "premium" },
+      },
+    };
+
+    const bookingFields = [
+      {
+        name: "package",
+        type: "select" as const,
+        options: [
+          { value: "basic", price: 10 },
+          { value: "premium", price: 20 },
+        ],
+      },
+    ];
+
+    const result = await handlePayment({
+      evt: mockEventWithResponse,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields,
+    });
+
+    expect(result?.amount).toBe(3000); // Base 1000 cents + ($20 * 100 cents)
+  });
+
+  it("should calculate total amount with multiple addons", async () => {
+    const mockEventWithResponse = {
+      ...mockEvent,
+      responses: {
+        quantity: { value: "2" },
+        extraService: { value: true },
+        package: { value: "premium" },
+      },
+    };
+
+    const bookingFields = [
+      {
+        name: "quantity",
+        type: "number" as const,
+        price: 5,
+      },
+      {
+        name: "extraService",
+        type: "boolean" as const,
+        price: 15,
+      },
+      {
+        name: "package",
+        type: "select" as const,
+        options: [
+          { value: "basic", price: 10 },
+          { value: "premium", price: 20 },
+        ],
+      },
+    ];
+
+    const result = await handlePayment({
+      evt: mockEventWithResponse,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields,
+    });
+
+    expect(result?.amount).toBe(5500); // Base 1000 cents + (2 * $5 * 100 cents) + ($15 * 100 cents) + ($20 * 100 cents)
+  });
+});

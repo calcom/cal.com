@@ -384,11 +384,12 @@ function Options({
                     onChange={(e) => {
                       // Right now we use label of the option as the value of the option. It allows use to not separately lookup the optionId to know the optionValue
                       // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
-                      value.splice(index, 1, {
+                      const newOptions = [...(value || [])];
+                      newOptions.splice(index, 1, {
                         label: e.target.value,
                         value: e.target.value.trim(),
                       });
-                      onChange(value);
+                      onChange(newOptions);
                     }}
                     readOnly={readOnly}
                     placeholder={`Enter Option ${index + 1}`}
@@ -404,7 +405,7 @@ function Options({
                       onChange={(e) => {
                         const val = e.target.value;
                         const numValue = val === "" ? undefined : Number(val);
-                        const updatedOptions = [...value];
+                        const updatedOptions = [...(value || [])];
                         updatedOptions[index] = {
                           ...option,
                           price: numValue,
@@ -426,7 +427,7 @@ function Options({
                     StartIcon="x"
                     onClick={() => {
                       if (!value) return;
-                      const newOptions = [...value];
+                      const newOptions = [...(value || [])];
                       newOptions.splice(index, 1);
                       onChange(newOptions);
                     }}
@@ -440,8 +441,9 @@ function Options({
           <Button
             color="minimal"
             onClick={() => {
-              value.push({ label: "", value: "", price: 0 });
-              onChange(value);
+              const newOptions = [...(value || [])];
+              newOptions.push({ label: "", value: "", price: 0 });
+              onChange(newOptions);
             }}
             StartIcon="plus">
             Add an Option
