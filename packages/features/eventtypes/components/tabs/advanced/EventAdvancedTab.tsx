@@ -525,9 +525,8 @@ export const EventAdvancedTab = ({
       ...eventType,
       ...formMethods.getValues(),
     };
-    if (!_eventType?.price) return false;
     const paymentAppData = getPaymentAppData(_eventType);
-    return _eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+    return !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventType, formMethods]);
 
   return (
