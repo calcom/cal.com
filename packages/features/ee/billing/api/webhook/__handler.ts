@@ -1,6 +1,5 @@
 /// <reference types="stripe-event-types" />
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
@@ -14,7 +13,7 @@ export type SWHMap = {
 };
 
 export type LazyModule<D> = Promise<{
-  default: (data: D) => unknown | Promise<unknown>;
+  default: (data: D) => unknown | Promise<NextResponse<unknown>>;
 }>;
 
 type SWHandlers = {
@@ -41,23 +40,24 @@ export class HttpCode extends HttpError {
  * })
  * ```
  */
-export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextRequest) => {
-  const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET_BILLING;
-  const sig = req.headers.get("stripe-signature");
-  if (!sig) throw new HttpCode(400, "Missing stripe-signature");
-  if (!STRIPE_WEBHOOK_SECRET) throw new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET");
-  const requestBuffer = await req.text();
-  const event = stripe.webhooks.constructEvent(
-    requestBuffer,
-    sig,
-    STRIPE_WEBHOOK_SECRET
-  ) as Stripe.DiscriminatedEvent;
-  const handlerGetter = handlers[event.type];
-  if (!handlerGetter) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
-  const handler = (await handlerGetter())?.default;
-  // auto catch unsupported Stripe events.
-  if (!handler) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
-  // @ts-expect-error - we know the handler is defined and accepts the data type
-  const result = await handler(event.data);
-  return NextResponse.json({ success: true, result }, { status: 200 });
-};
+export const stripeWebhookHandler =
+  (handlers: SWHandlers) =>
+  async (req: NextRequest): Promise<NextResponse<unknown>> => {
+    const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET_BILLING;
+    const sig = req.headers.get("stripe-signature");
+    if (!sig) throw new HttpCode(400, "Missing stripe-signature");
+    if (!STRIPE_WEBHOOK_SECRET) throw new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET");
+    const requestBuffer = await req.text();
+    const event = stripe.webhooks.constructEvent(
+      requestBuffer,
+      sig,
+      STRIPE_WEBHOOK_SECRET
+    ) as Stripe.DiscriminatedEvent;
+    const handlerGetter = handlers[event.type];
+    if (!handlerGetter) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
+    const handler = (await handlerGetter())?.default;
+    // auto catch unsupported Stripe events.
+    if (!handler) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
+    // @ts-expect-error - we know the handler is defined and accepts the data type
+    return await handler(event.data);
+  };

@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { TeamBilling } from "../../teams";
@@ -13,13 +14,13 @@ const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) =>
     const { teamId } = metadataSchema.parse(subscription.metadata);
     const teamBilling = await TeamBilling.findAndInit(teamId);
     await teamBilling.downgrade();
-    return { success: true };
+    return NextResponse.json({ success: true });
   } catch (error) {
     // If stripe metadata is missing teamId, we attempt to find by sub ID.
     const team = await TeamBilling.repo.findBySubscriptionId(subscription.id);
     const teamBilling = TeamBilling.init(team);
     await teamBilling.downgrade();
-    return { success: true };
+    return NextResponse.json({ success: true });
   }
 };
 
