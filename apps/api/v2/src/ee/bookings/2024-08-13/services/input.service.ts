@@ -9,7 +9,9 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -79,7 +81,8 @@ export class InputBookingsService_2024_08_13 {
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly platformBookingsService: PlatformBookingsService,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createBookingRequest(
@@ -462,7 +465,24 @@ export class InputBookingsService_2024_08_13 {
     );
 
     const newRequest = { ...request };
-    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    let userId: number | undefined = undefined;
+
+    if (
+      oAuthClientParams &&
+      request.body.rescheduledBy &&
+      !request.body.rescheduledBy.includes(oAuthClientParams.platformClientId)
+    ) {
+      request.body.rescheduledBy = OAuthClientUsersService.getOAuthUserEmail(
+        oAuthClientParams.platformClientId,
+        request.body.rescheduledBy
+      );
+    }
+
+    if (request.body.rescheduledBy) {
+      if (request.body.rescheduledBy !== bodyTransformed.responses.email) {
+        userId = (await this.usersRepository.findByEmail(request.body.rescheduledBy))?.id;
+      }
+    }
 
     const location = await this.getRescheduleBookingLocation(bookingUid);
     if (oAuthClientParams) {
