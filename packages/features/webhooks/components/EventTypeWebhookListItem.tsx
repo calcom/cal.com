@@ -2,6 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Avatar
   Badge,
   Button,
   Dropdown,
@@ -25,6 +26,11 @@ type WebhookProps = {
   secret: string | null;
   eventTypeId: number | null;
   teamId: number | null;
+  eventT: {
+    id: number,
+    avatarUrl: string | null;
+    title: string
+  }
 };
 
 export default function EventTypeWebhookListItem(props: {
@@ -36,6 +42,11 @@ export default function EventTypeWebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { webhook } = props;
+
+  const { data: eventType } = trpc.viewer.eventTypes.get.useQuery(
+    { id: webhook.eventTypeId! },
+    { enabled: !!webhook.eventTypeId }
+  );
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
@@ -71,7 +82,15 @@ export default function EventTypeWebhookListItem(props: {
         props.lastItem ? "" : "border-subtle border-b"
       )}>
       <div className="w-full truncate">
-        <div className="flex">
+        <div className="flex-Items">
+          {webhook.eventT?.avatarUrl && (
+            <Avatar
+              imageSrc={webhook.eventT.avatarUrl}
+              size="sm"
+              alt={webhook.eventT.title}
+              className="mr-2"
+            />
+          )}
           <Tooltip content={webhook.subscriberUrl}>
             <p className="text-emphasis max-w-[600px] truncate text-sm font-medium">
               {webhook.subscriberUrl}
