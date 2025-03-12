@@ -1,9 +1,13 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+async function getHandler() {
   return NextResponse.json({ message: "Please don't" }, { status: 400 });
 }
 
-export async function POST() {
+async function postHandler() {
   return NextResponse.json({ message: "Please don't" }, { status: 400 });
 }
+
+export const GET = defaultResponderForAppDir(getHandler);
+export const POST = defaultResponderForAppDir(postHandler);
