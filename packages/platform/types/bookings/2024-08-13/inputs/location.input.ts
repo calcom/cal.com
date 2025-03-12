@@ -12,6 +12,7 @@ export const inputLocations = [
   "attendeeAddress",
   "attendeePhone",
   "attendeeDefined",
+  "organizersDefaultApp",
 ] as const;
 
 export class BookingInputAddressLocation_2024_08_13 {
@@ -86,6 +87,16 @@ export class BookingInputPhoneLocation_2024_08_13 {
   type!: "phone";
 }
 
+export class BookingInputOrganizersDefaultAppLocation_2024_08_13 {
+  @IsIn(inputLocations)
+  @DocsProperty({
+    example: "organizersDefaultApp",
+    description:
+      "only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer.",
+  })
+  type!: "organizersDefaultApp";
+}
+
 export class BookingInputAttendeeAddressLocation_2024_08_13 {
   @IsIn(inputLocations)
   @DocsProperty({
@@ -128,7 +139,8 @@ export type BookingInputLocation_2024_08_13 =
   | BookingInputPhoneLocation_2024_08_13
   | BookingInputAttendeeAddressLocation_2024_08_13
   | BookingInputAttendeePhoneLocation_2024_08_13
-  | BookingInputAttendeeDefinedLocation_2024_08_13;
+  | BookingInputAttendeeDefinedLocation_2024_08_13
+  | BookingInputOrganizersDefaultAppLocation_2024_08_13;
 
 @ValidatorConstraint({ async: true })
 class BookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInterface {
@@ -142,6 +154,7 @@ class BookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInt
     attendeePhone: BookingInputAttendeePhoneLocation_2024_08_13,
     attendeeAddress: BookingInputAttendeeAddressLocation_2024_08_13,
     attendeeDefined: BookingInputAttendeeDefinedLocation_2024_08_13,
+    organizersDefaultApp: BookingInputOrganizersDefaultAppLocation_2024_08_13,
   };
 
   async validate(location: { type: string } | string) {
@@ -160,7 +173,7 @@ class BookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInt
 
     const ClassType = this.classTypeMap[type];
     if (!ClassType) {
-      this.validationMessage = `BookingInputLocationValidator_2024_08_13 - Unsupported booking location type '${type}'. Valid types are address, link, integration, phone, attendeePhone, attendeeAddress, and attendeeDefined.`;
+      this.validationMessage = `BookingInputLocationValidator_2024_08_13 - Unsupported booking location type '${type}'. Valid types are address, link, integration, phone, attendeePhone, attendeeAddress, attendeeDefined and organizersDefaultApp.`;
       return false;
     }
 

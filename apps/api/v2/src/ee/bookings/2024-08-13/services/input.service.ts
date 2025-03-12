@@ -288,6 +288,13 @@ export class InputBookingsService_2024_08_13 {
       };
     }
 
+    if (location.type === "organizersDefaultApp") {
+      return {
+        value: "conferencing",
+        optionValue: "",
+      };
+    }
+
     if (location.type === "attendeePhone") {
       return {
         value: "phone",
