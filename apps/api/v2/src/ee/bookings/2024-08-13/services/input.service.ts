@@ -23,7 +23,10 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
+import {
+  EventTypeMetaDataSchema,
+  apiToInternalintegrationsMapping,
+} from "@calcom/platform-libraries/event-types";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -249,16 +252,13 @@ export class InputBookingsService_2024_08_13 {
       };
     }
 
-    if (location.type === "integration" && location.integration === "google-meet") {
+    if (location.type === "integration") {
+      const integration = apiToInternalintegrationsMapping[location.integration];
+      if (!integration) {
+        throw new BadRequestException(`Invalid integration: ${location.integration}`);
+      }
       return {
-        value: "integrations:google:meet",
-        optionValue: "",
-      };
-    }
-
-    if (location.type === "integration" && location.integration === "cal-video") {
-      return {
-        value: "integrations:daily",
+        value: integration,
         optionValue: "",
       };
     }
@@ -312,7 +312,9 @@ export class InputBookingsService_2024_08_13 {
       };
     }
 
-    throw new BadRequestException(`Booking location with type ${location.type} not valid.`);
+    throw new BadRequestException(
+      `Booking location with type ${(location as BookingInputLocation_2024_08_13).type} not valid.`
+    );
   }
 
   private isBookingLocationWithEventTypeLocations(
