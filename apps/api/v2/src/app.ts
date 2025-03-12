@@ -21,6 +21,7 @@ import {
   X_CAL_PLATFORM_EMBED,
 } from "@calcom/platform-constants";
 
+import { CalendarServiceExceptionFilter } from "./filters/calendar-service-exception.filter";
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
@@ -76,6 +77,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
+  app.useGlobalFilters(new CalendarServiceExceptionFilter());
 
   app.use(cookieParser());
 
