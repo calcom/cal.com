@@ -26,7 +26,7 @@ export class OrganizationsDelegationCredentialService {
     body: CreateDelegationCredentialInput
   ) {
     const delegationCredential = await addDelegationCredential({
-      input: body,
+      input: body as CreateDelegationCredentialInput & { serviceAccountKey: { [key: string]: unknown } },
       ctx: { user: { id: delegatedServiceAccountUser.id, organizationId: orgId } },
     });
     return delegationCredential;
