@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import type { Dayjs } from "@calcom/dayjs";
-import type { ColumnFilter, SortingState } from "@calcom/features/data-table";
+import dayjs from "@calcom/dayjs";
+import type { SortingState } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -9,84 +9,68 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+
 type RoutingData = RouterOutputs["viewer"]["insights"]["routingFormResponsesForDownload"]["data"][number];
 
 type Props = {
-  teamId: number | undefined;
-  userId: number | undefined;
-  memberUserId: number | undefined;
-  routingFormId: string | undefined;
-  isAll: boolean;
-  startDate: Dayjs;
-  endDate: Dayjs;
-  columnFilters: ColumnFilter[];
   sorting: SortingState;
 };
 
-type Batch = {
-  data: RoutingData[];
-  nextCursor: number | undefined;
-};
+const BATCH_SIZE = 100; // Increased batch size for downloads
 
-export const RoutingFormResponsesDownload = ({
-  teamId,
-  userId,
-  memberUserId,
-  routingFormId,
-  isAll,
-  startDate,
-  endDate,
-  columnFilters,
-  sorting,
-}: Props) => {
+export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { t } = useLocale();
+  const { teamId, userId, memberUserIds, routingFormId, isAll, startDate, endDate, columnFilters } =
+    useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const utils = trpc.useUtils();
 
   const fetchBatch = async (
-    cursor: number | undefined = undefined
+    offset: number
   ): Promise<{
     data: RoutingData[];
-    nextCursor: number | undefined;
+    total: number;
   }> => {
-    const { data, nextCursor } = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
+    const result = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
       teamId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate,
+      endDate,
       userId,
-      memberUserId,
-      isAll: isAll ?? false,
+      memberUserIds,
+      isAll: isAll,
       routingFormId,
       columnFilters,
       sorting,
-      cursor,
+      limit: BATCH_SIZE,
+      offset,
     });
-    return {
-      data,
-      nextCursor,
-    };
+    return result;
   };
 
   const handleDownloadClick = async () => {
     try {
       setIsDownloading(true);
       let allData: RoutingData[] = [];
-      let hasMore = true;
-      let cursor: number | undefined = undefined;
+      let offset = 0;
 
-      // Fetch data in batches until there's no more data
-      while (hasMore) {
-        const result: Batch = await fetchBatch(cursor);
+      // Get first batch to get total count
+      const firstBatch = await fetchBatch(0);
+      allData = [...firstBatch.data];
+      const totalRecords = firstBatch.total;
+
+      // Continue fetching remaining batches
+      while (allData.length < totalRecords) {
+        offset += BATCH_SIZE;
+        const result = await fetchBatch(offset);
         allData = [...allData, ...result.data];
-        hasMore = result.nextCursor !== undefined;
-        cursor = result.nextCursor;
       }
 
       if (allData.length > 0) {
-        const filename = `RoutingFormResponses-${startDate.format("YYYY-MM-DD")}-${endDate.format(
-          "YYYY-MM-DD"
-        )}.csv`;
+        const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
+          endDate
+        ).format("YYYY-MM-DD")}.csv`;
         downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
     } catch (error) {

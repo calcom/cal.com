@@ -21,6 +21,18 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
     this.t = attendee.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const attachments = await Promise.all(
+      this.transcriptDownloadLinks.map(async (url, index) => {
+        const response = await fetch(url);
+        const buffer = await response.arrayBuffer();
+        return {
+          filename: `transcript-${index + 1}.vtt`,
+          content: Buffer.from(buffer),
+          contentType: "text/vtt",
+        };
+      })
+    );
+
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
@@ -36,6 +48,7 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
         language: this.t,
         name: this.attendee.name,
       }),
+      attachments,
     };
   }
 

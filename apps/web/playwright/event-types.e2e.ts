@@ -75,6 +75,9 @@ test.describe("Event Types tests", () => {
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
 
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(1000); // waits for 1 second
+
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
       await page.click("[data-testid=recurring-event-check]");
@@ -202,8 +205,9 @@ test.describe("Event Types tests", () => {
         await saveEventType(page);
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
-
-        await page.locator(`[data-fob-field-name="location"] input`).fill("19199999999");
+        const locationInput = page.locator(`[data-fob-field-name="location"] input`);
+        await locationInput.clear();
+        await locationInput.fill("+19199999999");
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -217,7 +221,8 @@ test.describe("Event Types tests", () => {
         await page.locator(`text="Organizer Phone Number"`).click();
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
-        await page.locator(`input[name="${locationInputName}"]`).fill("19199999999");
+        await page.locator(`input[name="${locationInputName}"]`).clear();
+        await page.locator(`input[name="${locationInputName}"]`).fill("+19199999999");
 
         await saveEventType(page);
         await gotoBookingPage(page);

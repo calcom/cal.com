@@ -15,6 +15,7 @@ export default function Apps({ apps, category }: CategoryDataProps) {
     <>
       <Shell
         isPublic
+        withoutSeo
         backPath="/apps"
         title={t("app_store")}
         description={t("app_store_description")}

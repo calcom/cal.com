@@ -5,6 +5,14 @@ import { FieldTypes, RoutingFormFieldType } from "./FieldTypes";
 import { AttributesInitialConfig, FormFieldsInitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
 
+export const isDynamicOperandField = (value: string) => {
+  return /{field:.*?}/.test(value);
+};
+
+const buildDynamicOperandFieldVariable = (fieldId: string) => {
+  return `{field:${fieldId}}`;
+};
+
 type RaqbConfigFields = Record<
   string,
   {
@@ -135,7 +143,7 @@ export function getQueryBuilderConfigForAttributes({
       const valueOfFieldOptions = (() => {
         const formFieldsOptions = dynamicOperandFields.map((field) => ({
           title: `Value of field '${field.label}'`,
-          value: `{field:${field.id}}`,
+          value: buildDynamicOperandFieldVariable(field.id),
         }));
         return formFieldsOptions;
       })();

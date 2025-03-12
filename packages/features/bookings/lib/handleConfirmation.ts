@@ -1,7 +1,5 @@
 import type { Prisma } from "@prisma/client";
 
-import type { EventManagerUser } from "@calcom/core/EventManager";
-import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import {
@@ -15,6 +13,8 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import type { EventManagerUser } from "@calcom/lib/EventManager";
+import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -67,6 +67,7 @@ export async function handleConfirmation(args: {
     eventTypeId: number | null;
     smsReminderNumber: string | null;
     userId: number | null;
+    location: string | null;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
@@ -441,6 +442,7 @@ export async function handleConfirmation(args: {
       booking: {
         startTime: booking.startTime,
         id: booking.id,
+        location: booking.location,
       },
       triggerForUser,
       organizerUser: { id: booking.userId },

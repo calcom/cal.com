@@ -1,15 +1,12 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-import { csp } from "@lib/csp";
-
-import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+import { csp } from "./lib/csp";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
@@ -19,7 +16,44 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
+// Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
+export const POST_METHODS_ALLOWED_APP_ROUTES = ["/settings/my-account/general"];
+
+export function checkPostMethod(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+  if (
+    ![...POST_METHODS_ALLOWED_API_ROUTES, ...POST_METHODS_ALLOWED_APP_ROUTES].some((route) =>
+      pathname.startsWith(route)
+    ) &&
+    req.method === "POST"
+  ) {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
+  return null;
+}
+
+export function checkStaticFiles(pathname: string) {
+  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
+  // Skip Next.js internal paths (_next) and static assets
+  if (pathname.startsWith("/_next") || hasFileExtension) {
+    return NextResponse.next();
+  }
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
+
+  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
+  if (isStaticFile) return isStaticFile;
+
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
@@ -64,32 +98,13 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   if (url.pathname.startsWith("/apps/installed")) {
-    const returnTo = req.cookies.get("return-to")?.value;
-    if (returnTo !== undefined) {
-      let validPathname = returnTo;
+    const returnTo = req.cookies.get("return-to");
 
-      try {
-        validPathname = new URL(returnTo).pathname;
-      } catch (e) {}
-
-      const nextUrl = url.clone();
-      nextUrl.pathname = validPathname;
-
-      const response = NextResponse.redirect(nextUrl);
-      response.cookies.set("return-to", "", {
-        expires: new Date(0),
-        path: "/",
-      });
-
+    if (returnTo?.value) {
+      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      response.cookies.delete("return-to");
       return response;
     }
-  }
-
-  if (url.pathname.startsWith("/future/auth/logout")) {
-    cookies().set("next-auth.session-token", "", {
-      path: "/",
-      expires: new Date(0),
-    });
   }
 
   requestHeaders.set("x-pathname", url.pathname);
@@ -104,6 +119,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     },
   });
 
+  if (url.pathname.startsWith("/auth/logout")) {
+    res.cookies.delete("next-auth.session-token");
+  }
+
   return responseWithHeaders({ url, res, req });
 };
 
@@ -111,10 +130,9 @@ const routingForms = {
   handleRewrite: (url: URL) => {
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/routing/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
       return NextResponse.rewrite(url);
     }
-    return null;
   },
 };
 
@@ -171,16 +189,11 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
+    "/apps/:path*",
     "/auth/:path*",
-    "/apps/:path*",
     "/event-types/:path*",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/workflows/:path*",
-    "/getting-started/:path*",
-    "/event-types/:path*",
-    "/apps/:path*",
-    "/routing/:path*",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
@@ -190,17 +203,16 @@ export const config = {
     "/availability/:path*",
     "/booking/:path*",
     "/payment/:path*",
-    "/router/:path*",
     "/routing-forms/:path*",
-    "/org/:path*",
     "/team/:path*",
+    "/org/:path*",
     "/:user/:type/",
     "/:user/",
   ],
 };
 
 export default collectEvents({
-  middleware: abTestMiddlewareFactory(middleware),
+  middleware,
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,

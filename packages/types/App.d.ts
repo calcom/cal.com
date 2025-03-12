@@ -116,13 +116,13 @@ export interface App {
   url: string;
   /** Optional documentation website URL */
   docsUrl?: string;
-  /** Wether if the app is verified by Cal.com or not */
+  /** Whether the app is verified by Cal.com or not */
   verified?: boolean;
-  /** Wether the app should appear in the trending section of the app store */
+  /** Whether the app should appear in the trending section of the app store */
   trending?: boolean;
-  /** Rating from 0 to 5, harcoded for now. Should be fetched later on. */
+  /** Rating from 0 to 5, hardcoded for now. Should be fetched later on. */
   rating?: number;
-  /** Number of reviews, harcoded for now. Should be fetched later on. */
+  /** Number of reviews, hardcoded for now. Should be fetched later on. */
   reviews?: number;
   /**
    *  Whether if the app is installed globally or needs user intervention.
@@ -131,7 +131,7 @@ export interface App {
   isGlobal?: boolean;
   /**
    * For apps that are accessible on an alternate URL(which is simpler and shorter), this can be set.
-   * e.g. Routing Forms App is available as /routing-forms in addition to regular /routing.
+   * e.g. Routing Forms App is available as /routing-forms in addition to regular /apps/routing-forms.
    */
   simplePath?: string;
   /** A contact email, mainly to ask for support */
@@ -167,6 +167,12 @@ export interface App {
   createdAt?: string;
   /** Specifies if the App uses an OAuth flow  */
   isOAuth?: boolean;
+  /**
+   * Specifies if the App supports delegation credential
+   */
+  delegationCredential?: {
+    workspacePlatformSlug: string;
+  };
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {

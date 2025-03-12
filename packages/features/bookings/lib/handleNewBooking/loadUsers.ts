@@ -49,7 +49,17 @@ export const loadUsers = async ({
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
 
-    return getRoutedUsersWithContactOwnerAndFixedUsers({ users, routedTeamMemberIds, contactOwnerEmail });
+    const routedUsers = getRoutedUsersWithContactOwnerAndFixedUsers({
+      users,
+      routedTeamMemberIds,
+      contactOwnerEmail,
+    });
+
+    if (routedUsers.length) {
+      return routedUsers;
+    }
+
+    return users;
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -65,7 +75,7 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
   });
   const matchingHosts = await findMatchingHostsWithEventSegment({
     eventType,
-    normalizedHosts: hosts ?? fallbackHosts,
+    hosts: hosts ?? fallbackHosts,
   });
   return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
     ...user,

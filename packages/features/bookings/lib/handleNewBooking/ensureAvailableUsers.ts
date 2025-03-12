@@ -1,12 +1,14 @@
 import type { Logger } from "tslog";
 
-import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
+import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
+import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
@@ -48,7 +50,7 @@ const hasDateRangeForBooking = (
 };
 
 export async function ensureAvailableUsers(
-  eventType: getEventTypeResponse & {
+  eventType: Omit<getEventTypeResponse, "users"> & {
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
@@ -101,6 +103,22 @@ export async function ensureAvailableUsers(
     },
   });
 
+  const piiFreeInputDataForLogging = safeStringify({
+    startDateTimeUtc,
+    endDateTimeUtc,
+    ...{
+      ...input,
+      originalRescheduledBooking: input.originalRescheduledBooking
+        ? {
+            ...input.originalRescheduledBooking,
+            user: input.originalRescheduledBooking?.user
+              ? getPiiFreeUser(input.originalRescheduledBooking.user)
+              : null,
+          }
+        : undefined,
+    },
+  });
+
   usersAvailability.forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
     const user = eventType.users[index];
 
@@ -112,25 +130,14 @@ export async function ensureAvailableUsers(
     if (!dateRanges.length) {
       loggerWithEventDetails.error(
         `User does not have availability at this time.`,
-        safeStringify({
-          startDateTimeUtc,
-          endDateTimeUtc,
-          input,
-        })
+        piiFreeInputDataForLogging
       );
       return;
     }
 
     //check if event time is within the date range
     if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
-      loggerWithEventDetails.error(
-        `No date range for booking.`,
-        safeStringify({
-          startDateTimeUtc,
-          endDateTimeUtc,
-          input,
-        })
-      );
+      loggerWithEventDetails.error(`No date range for booking.`, piiFreeInputDataForLogging);
       return;
     }
 
@@ -149,14 +156,7 @@ export async function ensureAvailableUsers(
   });
 
   if (availableUsers.length === 0) {
-    loggerWithEventDetails.error(
-      `No available users found.`,
-      safeStringify({
-        startDateTimeUtc,
-        endDateTimeUtc,
-        input,
-      })
-    );
+    loggerWithEventDetails.error(`No available users found.`, piiFreeInputDataForLogging);
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   // make sure TypeScript understands availableUsers is at least one.

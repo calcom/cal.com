@@ -10,9 +10,16 @@ export class DestinationCalendarsService {
     private readonly destinationCalendarsRepository: DestinationCalendarsRepository
   ) {}
 
-  async updateDestinationCalendars(integration: string, externalId: string, userId: number) {
+  async updateDestinationCalendars(
+    integration: string,
+    externalId: string,
+    userId: number,
+    delegationCredentialId?: string
+  ) {
+    // note(Lauris): todo remove the log but leaving this now to confirm delegationCredentialId is received
+    console.log("debug: delegationCredentialId", delegationCredentialId);
     const userCalendars = await this.calendarsService.getCalendars(userId);
-    const allCalendars = userCalendars.connectedCalendars
+    const allCalendars: Calendar[] = userCalendars.connectedCalendars
       .map((cal: ConnectedCalendar) => cal.calendars ?? [])
       .flat();
     const credentialId = allCalendars.find(
@@ -20,12 +27,26 @@ export class DestinationCalendarsService {
         cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
     )?.credentialId;
 
-    if (!credentialId) {
+    if (!delegationCredentialId && !credentialId) {
       throw new NotFoundException(`Could not find calendar ${externalId}`);
     }
 
-    const primaryEmail =
-      allCalendars.find((cal: Calendar) => cal.primary && cal.credentialId === credentialId)?.email ?? null;
+    const delegatedCalendar = delegationCredentialId
+      ? allCalendars.find(
+          (cal: Calendar) =>
+            cal.externalId === externalId &&
+            cal.integration === integration &&
+            cal.delegationCredentialId === delegationCredentialId
+        )
+      : undefined;
+
+    if (delegationCredentialId && !delegatedCalendar) {
+      throw new NotFoundException(`Could not find calendar ${externalId}`);
+    }
+
+    const primaryEmail = delegatedCalendar
+      ? (delegatedCalendar.primary && delegatedCalendar?.email) || undefined
+      : allCalendars.find((cal: Calendar) => cal.primary && cal.credentialId === credentialId)?.email;
 
     const {
       integration: updatedCalendarIntegration,
@@ -35,9 +56,10 @@ export class DestinationCalendarsService {
     } = await this.destinationCalendarsRepository.updateCalendar(
       integration,
       externalId,
-      credentialId,
       userId,
-      primaryEmail
+      primaryEmail ?? null,
+      delegatedCalendar ? undefined : credentialId,
+      delegatedCalendar ? delegationCredentialId : undefined
     );
 
     return {

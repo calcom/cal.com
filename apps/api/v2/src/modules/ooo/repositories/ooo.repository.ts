@@ -46,12 +46,19 @@ export class UserOOORepository {
     });
   }
 
-  async getUserOOOPaginated(userId: number, skip: number, take: number) {
+  async getUserOOOPaginated(
+    userId: number,
+    skip: number,
+    take: number,
+    sort?: { sortStart?: "asc" | "desc"; sortEnd?: "asc" | "desc" }
+  ) {
     return this.dbRead.prisma.outOfOfficeEntry.findMany({
       where: { userId },
       skip,
       take,
       include: { reason: true },
+      ...(sort?.sortStart && { orderBy: { start: sort.sortStart } }),
+      ...(sort?.sortEnd && { orderBy: { end: sort.sortEnd } }),
     });
   }
 

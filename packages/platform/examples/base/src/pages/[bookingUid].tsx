@@ -118,7 +118,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   </div>
                 </div>
               )}
-              {!!booking.bookingFieldsResponses?.notes && (
+              {"bookingFieldsResponses" in booking && !!booking.bookingFieldsResponses?.notes && (
                 <div className="flex gap-[70px]">
                   <div className="w-[40px]">
                     <h4>Additional notes</h4>
@@ -140,7 +140,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       className="underline"
                       onClick={() => {
                         router.push(
-                          `/booking?rescheduleUid=${booking?.uid}&eventTypeSlug=${booking?.eventType.slug}`
+                          `/booking?rescheduleUid=${booking?.uid}&eventTypeSlug=${booking?.eventType.slug}&rescheduledBy=${props.calEmail}`
                         );
                       }}>
                       Reschedule

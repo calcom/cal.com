@@ -13,6 +13,10 @@ export class RedisService implements IRedisService {
     return this.redis.get(key);
   }
 
+  async del(key: string): Promise<number> {
+    return this.redis.del(key);
+  }
+
   async set<TData>(key: string, value: TData): Promise<"OK" | TData | null> {
     // Implementation for setting value in Redis
     return this.redis.set(key, value);
