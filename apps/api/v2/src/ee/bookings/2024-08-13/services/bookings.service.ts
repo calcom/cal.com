@@ -564,9 +564,7 @@ export class BookingsService_2024_08_13 {
       throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
     }
 
-    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(
-      booking.eventTypeId
-    );
+    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(booking.eventTypeId);
     if (!eventType) {
       throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
     }
