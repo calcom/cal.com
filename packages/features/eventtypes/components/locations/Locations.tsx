@@ -265,8 +265,9 @@ const Locations: React.FC<LocationsProps> = ({
                 )}
               </div>
 
-              {isCalVideo && !isPlatform && <CalVideoSettings />}
-
+              {isCalVideo && !isPlatform && (
+                <CalVideoSettings calVideoSettings={eventType.calVideoSettings} />
+              )}
 
               {eventLocationType?.supportsCustomLabel && eventLocationType?.type ? (
                 <DefaultLocationSettings

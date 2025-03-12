@@ -245,6 +245,6 @@ export interface CalVideoSettings {
   enableAutomaticRecordingForOrganizer?: boolean;
   disableTranscriptionForGuests?: boolean;
   disableTranscriptionForOrganizer?: boolean;
-  redirectUrlOnExit?: string;
+  redirectUrlOnExit?: string | null;
   enableFlappyBirdGame?: boolean;
 }
