@@ -1,4 +1,5 @@
 import type { DirectorySyncEvent, DirectorySyncRequest } from "@boxyhq/saml-jackson";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -51,23 +52,23 @@ const handleEvents = async (event: DirectorySyncEvent) => {
 };
 
 // This is the handler for the SCIM API requests
-export async function GET(request: NextRequest, { params }: { params: { directory?: string[] } }) {
+async function getHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
   return handleScimRequest(request, "GET", params.directory);
 }
 
-export async function POST(request: NextRequest, { params }: { params: { directory?: string[] } }) {
+async function postHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
   return handleScimRequest(request, "POST", params.directory);
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { directory?: string[] } }) {
+async function putHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
   return handleScimRequest(request, "PUT", params.directory);
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { directory?: string[] } }) {
+async function patchHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
   return handleScimRequest(request, "PATCH", params.directory);
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { directory?: string[] } }) {
+async function deleteHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
   return handleScimRequest(request, "DELETE", params.directory);
 }
 
@@ -139,3 +140,8 @@ async function handleScimRequest(request: NextRequest, method: string, directory
 
   return NextResponse.json(data, { status });
 }
+export const GET = defaultResponderForAppDir(getHandler);
+export const POST = defaultResponderForAppDir(postHandler);
+export const PATCH = defaultResponderForAppDir(patchHandler);
+export const DELETE = defaultResponderForAppDir(deleteHandler);
+export const PUT = defaultResponderForAppDir(putHandler);
