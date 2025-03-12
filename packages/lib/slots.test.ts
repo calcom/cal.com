@@ -357,7 +357,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:09:30, end:17:00
@@ -365,7 +364,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       dateRanges: [{ start: dayjs("2024-09-12T16:30:00.000Z"), end: dayjs("2024-09-13T00:00:00.000Z") }],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
@@ -384,7 +382,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -396,7 +393,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
@@ -412,7 +408,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -424,7 +419,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
@@ -439,7 +433,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -451,7 +444,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
@@ -466,7 +458,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -478,7 +469,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
@@ -493,7 +483,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 30,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -505,7 +494,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 30,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
@@ -526,7 +514,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 30,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -538,7 +525,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 30,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
@@ -558,7 +544,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 20,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -570,7 +555,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 20,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.length).toStrictEqual(13);
@@ -596,7 +580,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 20,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:08:00, end:10:00
@@ -608,7 +591,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       ],
       minimumBookingNotice: 0,
       frequency: 20,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.length).toStrictEqual(12);
@@ -633,14 +615,12 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:09:30, end:17:30
       dateRanges: [{ start: dayjs("2024-09-12T16:30:00.000Z"), end: dayjs("2024-09-13T00:30:00.000Z") }],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.length).toStrictEqual(8);
@@ -661,14 +641,12 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:09:30, end:17:30
       dateRanges: [{ start: dayjs("2024-09-12T16:30:00.000Z"), end: dayjs("2024-09-13T00:30:00.000Z") }],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.length).toStrictEqual(7);
@@ -688,14 +666,12 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:07:45, end:15:30
       dateRanges: [{ start: dayjs("2024-09-12T14:45:00.000Z"), end: dayjs("2024-09-12T22:30:00.000Z") }],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.length).toStrictEqual(7);
@@ -715,14 +691,12 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:07:45, end:15:30
       dateRanges: [{ start: dayjs("2024-09-12T14:45:00.000Z"), end: dayjs("2024-09-12T22:30:00.000Z") }],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.length).toStrictEqual(7);
@@ -742,14 +716,12 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
       // start:09:05, end:12:55
       dateRanges: [{ start: dayjs("2024-09-12T16:05:00.000Z"), end: dayjs("2024-09-12T19:55:00.000Z") }],
       minimumBookingNotice: 0,
       frequency: 60,
-      organizerTimeZone: "Europe/London",
     });
 
     expect(slots.length).toStrictEqual(3);

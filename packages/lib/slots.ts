@@ -187,6 +187,7 @@ const getSlots = ({
   eventLength,
   offsetStart = 0,
   datesOutOfOffice,
+  showOptimizedSlots,
 }: GetSlots): {
   time: Dayjs;
   userIds?: number[];
@@ -204,6 +205,7 @@ const getSlots = ({
     minimumBookingNotice,
     offsetStart,
     datesOutOfOffice,
+    showOptimizedSlots,
   });
 };
 
