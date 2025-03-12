@@ -102,7 +102,7 @@ describe("autoLock", () => {
       });
 
       expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.count", "3");
-      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 3600);
+      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 1800);
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
@@ -254,7 +254,7 @@ describe("autoLock", () => {
       });
 
       expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.count", "1");
-      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 3600);
+      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 1800);
     });
 
     it("should handle Redis errors gracefully", async () => {
