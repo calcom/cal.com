@@ -24,20 +24,16 @@ const useQuickAvailabilityChecks = ({
   eventDuration,
   timeslotsAsISOString,
   slotReservationId,
-  isInstantMeeting,
 }: {
   eventTypeId: number | undefined;
   eventDuration: number;
   timeslotsAsISOString: string[];
   slotReservationId: string | undefined | null;
-  isInstantMeeting: boolean;
 }) => {
   // Maintain a cache to ensure previous state is maintained as the request is fetched
   // It is important because tentatively selecting a new timeslot will cause a new request which is uncached.
   const cachedQuickAvailabilityChecksRef = useRef<QuickAvailabilityCheck[]>([]);
-  const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled({
-    isInstantMeeting,
-  });
+  const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
 
   if (!isQuickAvailabilityCheckFeatureEnabled) {
     return cachedQuickAvailabilityChecksRef.current;
@@ -85,22 +81,16 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | null }) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const searchParams = useCompatSearchParams();
-  const [
-    selectedTimeslot,
-    setSelectedTimeslot,
-    tentativeSelectedTimeslots,
-    setTentativeSelectedTimeslots,
-    isInstantMeeting = false,
-  ] = useBookerStore(
-    (state) => [
-      state.selectedTimeslot,
-      state.setSelectedTimeslot,
-      state.tentativeSelectedTimeslots,
-      state.setTentativeSelectedTimeslots,
-      state.isInstantMeeting,
-    ],
-    shallow
-  );
+  const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
+    useBookerStore(
+      (state) => [
+        state.selectedTimeslot,
+        state.setSelectedTimeslot,
+        state.tentativeSelectedTimeslots,
+        state.setTentativeSelectedTimeslots,
+      ],
+      shallow
+    );
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: {
@@ -135,7 +125,6 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     eventDuration,
     timeslotsAsISOString: allUniqueSelectedTimeslots,
     slotReservationId,
-    isInstantMeeting,
   });
 
   // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
