@@ -3,7 +3,7 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
-import { Booker } from "@calcom/atoms/monorepo";
+import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -47,7 +47,5 @@ function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBa
     </main>
   );
 }
-
-Type.isBookingPage = true;
 
 export default Type;

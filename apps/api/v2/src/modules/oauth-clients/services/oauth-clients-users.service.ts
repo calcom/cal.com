@@ -1,12 +1,12 @@
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
+import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-import { User, CreationSource } from "@prisma/client";
+import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
@@ -16,16 +16,13 @@ export class OAuthClientUsersService {
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly schedulesService: SchedulesService_2024_04_15,
-    private readonly organizationsTeamsService: OrganizationsTeamsService
+    private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
-  async createOauthClientUser(
-    oAuthClientId: string,
-    body: CreateManagedUserInput,
-    isPlatformManaged: boolean,
-    organizationId?: number
-  ) {
+  async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
+    const oAuthClientId = oAuthClient.id;
+    const organizationId = oAuthClient.organizationId;
+
     const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
     if (existingUser) {
       throw new ConflictException(
@@ -35,9 +32,11 @@ export class OAuthClientUsersService {
 
     let user: User;
     if (!organizationId) {
-      throw new BadRequestException("You cannot create a managed user outside of an organization");
+      throw new BadRequestException(
+        "You cannot create a managed user outside of an organization - the OAuth client does not belong to any organization."
+      );
     } else {
-      const email = this.getOAuthUserEmail(oAuthClientId, body.email);
+      const email = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
           invitations: [
@@ -57,7 +56,7 @@ export class OAuthClientUsersService {
               autoAccept: true,
             },
           },
-          isPlatformManaged,
+          isPlatformManaged: true,
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
@@ -79,7 +78,9 @@ export class OAuthClientUsersService {
       user.id
     );
 
-    await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    if (oAuthClient.areDefaultEventTypesEnabled) {
+      await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    }
 
     if (body.timeZone) {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
@@ -97,13 +98,30 @@ export class OAuthClientUsersService {
   }
 
   async getExistingUserByEmail(oAuthClientId: string, email: string) {
-    const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
+    const oAuthEmail = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, email);
     return await this.userRepository.findByEmail(oAuthEmail);
+  }
+
+  async getManagedUsers(oAuthClientId: string, queryParams: GetManagedUsersInput) {
+    const { offset, limit, emails } = queryParams;
+
+    const oAuthEmails = emails?.map((email) =>
+      email.includes(oAuthClientId) ? email : OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, email)
+    );
+
+    const managedUsers = await this.userRepository.findManagedUsersByOAuthClientIdAndEmails(
+      oAuthClientId,
+      offset ?? 0,
+      limit ?? 50,
+      oAuthEmails
+    );
+
+    return managedUsers;
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {
     if (body.email) {
-      const emailWithOAuthId = this.getOAuthUserEmail(oAuthClientId, body.email);
+      const emailWithOAuthId = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
       body.email = emailWithOAuthId;
       const newUsername = slugify(emailWithOAuthId);
       await this.userRepository.updateUsername(userId, newUsername);
@@ -112,7 +130,7 @@ export class OAuthClientUsersService {
     return this.userRepository.update(userId, body);
   }
 
-  getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+  static getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
     const [username, emailDomain] = userEmail.split("@");
     return `${username}+${oAuthClientId}@${emailDomain}`;
   }

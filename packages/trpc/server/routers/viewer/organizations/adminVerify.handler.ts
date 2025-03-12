@@ -34,7 +34,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
   if (!foundOrg)
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "This team isnt a org or doesnt exist",
+      message: "This team isn't an org or doesn't exist",
     });
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];

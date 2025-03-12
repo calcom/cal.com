@@ -15,6 +15,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  Switch,
 } from "@calcom/ui";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
@@ -24,7 +25,6 @@ import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelect
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { Switch } from "../../src/components/ui/switch";
 import { useToast } from "../../src/components/ui/use-toast";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -83,7 +83,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           className="border-subtle mt-4 rounded-lg border"
                           actions={
                             <div className="flex w-32 justify-end">
-                              {allowDelete && (
+                              {allowDelete && !connectedCalendar.delegationCredentialId && (
                                 <PlatformDisconnectIntegration
                                   credentialId={connectedCalendar.credentialId}
                                   trashIcon
@@ -107,6 +107,8 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === destinationCalendarId}
                                     credentialId={cal.credentialId}
+                                    delegationCredentialId={connectedCalendar.delegationCredentialId}
+                                    eventTypeId={null}
                                   />
                                 );
                               })}
@@ -120,17 +122,19 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                         key={`alert-${connectedCalendar.credentialId}`}
                         severity="warning"
                         title={t("something_went_wrong")}
-                        message={<span>{t("calendar_error")}</span>}
+                        message={<span>{connectedCalendar.error?.message || t("calendar_error")}</span>}
                         iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                         actions={
-                          <div className="flex w-32 justify-end">
-                            <PlatformDisconnectIntegration
-                              credentialId={connectedCalendar.credentialId}
-                              trashIcon
-                              buttonProps={{ className: "border border-default" }}
-                              slug={connectedCalendar.integration.slug}
-                            />
-                          </div>
+                          !Boolean(connectedCalendar.delegationCredentialId) && (
+                            <div className="flex w-32 justify-end">
+                              <PlatformDisconnectIntegration
+                                credentialId={connectedCalendar.credentialId}
+                                trashIcon
+                                buttonProps={{ className: "border border-default" }}
+                                slug={connectedCalendar.integration.slug}
+                              />
+                            </div>
+                          )
                         }
                       />
                     );
@@ -216,7 +220,7 @@ const PlatformDisconnectIntegration = (props: {
 };
 
 const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { isChecked, title, credentialId, type, externalId } = props;
+  const { isChecked, title, credentialId, type, externalId, delegationCredentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const { toast } = useToast();
 
@@ -249,9 +253,14 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
     externalId: string;
   }) => {
     if (isOn) {
-      await addSelectedCalendar({ credentialId, integration, externalId });
+      await addSelectedCalendar({ credentialId, integration, externalId, delegationCredentialId });
     } else {
-      await removeSelectedCalendar({ credentialId, integration, externalId });
+      await removeSelectedCalendar({
+        credentialId,
+        integration,
+        externalId,
+        delegationCredentialId,
+      });
     }
   };
 
@@ -289,11 +298,11 @@ const PlatformAdditionalCalendarSelector = ({
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon="plus" color="secondary">
+        <Button StartIcon="plus" color="secondary" className="md:rounded-md">
           {t("add")}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="w-auto">
         <div>
           <div>
             <Connect.GoogleCalendar
@@ -304,7 +313,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Google" })}
               loadingLabel={t("add_calendar_label", { calendar: "Google" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -316,7 +325,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Outlook" })}
               loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -328,7 +337,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
         </div>

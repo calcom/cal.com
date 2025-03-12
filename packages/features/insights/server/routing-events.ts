@@ -10,12 +10,14 @@ import {
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
-import type { RoutingFormResponsesInput } from "@calcom/features/insights/server/raw-data.schema";
+import type { TypedColumnFilter } from "@calcom/features/data-table/lib/types";
+import type {
+  RoutingFormResponsesInput,
+  RoutingFormStatsInput,
+} from "@calcom/features/insights/server/raw-data.schema";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import type { BookingStatus } from "@calcom/prisma/enums";
 
 import { type ResponseValue, ZResponse } from "../lib/types";
 
@@ -27,17 +29,8 @@ type RoutingFormInsightsTeamFilter = {
   routingFormId?: string | null;
 };
 
-type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
-  startDate?: string;
-  endDate?: string;
-  memberUserId?: number | null;
-  searchQuery?: string | null;
-  bookingStatus?: BookingStatus | "NO_BOOKING" | null;
-  fieldFilter?: {
-    fieldId: string;
-    optionId: string;
-  } | null;
-  columnFilters: ColumnFilter[];
+type RoutingFormStatsFilter = RoutingFormStatsInput & {
+  organizationId: number | null;
 };
 
 type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
@@ -114,13 +107,11 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-    cursor,
-    limit,
     userId,
     memberUserIds,
     columnFilters,
     sorting,
-  }: RoutingFormResponsesFilter) {
+  }: RoutingFormStatsFilter) {
     const whereClause = await this.getWhereClauseForRoutingFormResponses({
       teamId,
       startDate,
@@ -128,8 +119,6 @@ class RoutingEventsInsights {
       isAll,
       organizationId,
       routingFormId,
-      cursor,
-      limit,
       userId,
       memberUserIds,
       columnFilters,
@@ -288,8 +277,8 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-    cursor,
     limit,
+    offset,
     userId,
     memberUserIds,
     columnFilters,
@@ -302,8 +291,6 @@ class RoutingEventsInsights {
       isAll,
       organizationId,
       routingFormId,
-      cursor,
-      limit,
       userId,
       memberUserIds,
       columnFilters,
@@ -336,16 +323,14 @@ class RoutingEventsInsights {
       },
       where: whereClause,
       orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
-      take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
-      cursor: cursor ? { id: cursor } : undefined,
+      take: limit,
+      skip: offset,
     });
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    const hasNextPage = responses.length > (limit ?? 0);
-    const responsesToReturn = responses.slice(0, limit ? limit : responses.length);
     type Response = Omit<
-      (typeof responsesToReturn)[number],
+      (typeof responses)[number],
       "response" | "responseLowercase" | "bookingAttendees"
     > & {
       response: Record<string, ResponseValue>;
@@ -355,8 +340,7 @@ class RoutingEventsInsights {
 
     return {
       total: totalResponses,
-      data: responsesToReturn as Response[],
-      nextCursor: hasNextPage ? responsesToReturn[responsesToReturn.length - 1].id : undefined,
+      data: responses as Response[],
     };
   }
 
@@ -367,8 +351,8 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-    cursor,
     limit,
+    offset,
     userId,
     memberUserIds,
     columnFilters,
@@ -388,10 +372,10 @@ class RoutingEventsInsights {
       isAll,
       organizationId,
       routingFormId,
-      cursor,
       userId,
       memberUserIds,
       limit,
+      offset,
       columnFilters,
       sorting,
     });
@@ -444,7 +428,7 @@ class RoutingEventsInsights {
 
     return {
       data: dataWithFlatResponse,
-      nextCursor: data.nextCursor,
+      total: data.total,
     };
   }
 
@@ -493,12 +477,12 @@ class RoutingEventsInsights {
 
     const teamConditions = [];
 
-    // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+    // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
     if (formsWhereCondition.teamId?.in) {
-      // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+      // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
     }
-    // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+    // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
@@ -510,7 +494,7 @@ class RoutingEventsInsights {
       ? Prisma.sql`AND ${Prisma.raw(teamConditions.join(" AND "))}`
       : Prisma.sql``;
 
-    // If youre at this point wondering what this does. This groups the responses by form and field and counts the number of responses for each option that don't have a booking.
+    // If you're at this point wondering what this does. This groups the responses by form and field and counts the number of responses for each option that don't have a booking.
     const result = await prisma.$queryRaw<
       {
         formId: string;
@@ -717,12 +701,12 @@ class RoutingEventsInsights {
 
     const teamConditions = [];
 
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
     }
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
@@ -972,12 +956,12 @@ class RoutingEventsInsights {
 
     const teamConditions = [];
 
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
     }
-    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
