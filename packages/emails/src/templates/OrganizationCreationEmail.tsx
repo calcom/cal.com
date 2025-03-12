@@ -1,5 +1,3 @@
-import { Trans } from "next-i18next";
-
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { OrganizationCreation } from "../../templates/organization-creation-email";
@@ -49,30 +47,19 @@ export const OrganizationCreationEmail = (
           lineHeightStep: "24px",
         }}>
         {isNewUser ? (
-          <Trans>
+          <div>
             Enjoy your new organization link: <a href={`${newLink}`}>{newLinkWithoutProtocol}</a>
-          </Trans>
+          </div>
         ) : (
-          <Trans i18nKey="email|existing_user_added_link_changed">
-            Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
-            <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links
-            still work and redirect appropriately.
-            <br />
-            <br />
-            Please note: All of your personal event types have been moved into the <strong>
-              {teamName}
-            </strong>{" "}
-            organisation, which may also include potential personal link.
-            <br />
-            <br />
-            Please log in and make sure you have no private events on your new organisational account.
-            <br />
-            <br />
-            For personal events we recommend creating a new account with a personal email address.
-            <br />
-            <br />
-            Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-          </Trans>
+          <div>
+            {props.language("email|existing_user_added_link_changed", {
+              prevLink: prevLink ?? "",
+              prevLinkWithoutProtocol,
+              newLink: newLink ?? "",
+              newLinkWithoutProtocol,
+              teamName,
+            })}
+          </div>
         )}
       </p>
 
