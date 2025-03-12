@@ -5,8 +5,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { sendDailyVideoRecordingEmails } from "@calcom/emails";
-import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
+import {
+  sendDailyVideoRecordingEmails,
+  sendDailyVideoTranscriptEmails,
+} from "@calcom/emails/daily-video-emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
