@@ -1,22 +1,15 @@
-/* eslint-disable @calcom/eslint/deprecated-imports */
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseRequestData } from "app/api/parseRequestData";
-import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import timeZone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { ZGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import type { TGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-dayjs.extend(timeZone);
-dayjs.extend(utc);
 dayjs.extend(advancedFormat);
 
 const schema = z.object({
@@ -49,27 +42,23 @@ const getEventTypeIdFromRetellLLM = (
   return { eventTypeId: undefined, timezone: undefined };
 };
 
-async function handler(req: NextRequest) {
-  const body = await parseRequestData(req);
-  const response = schema.safeParse(body);
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const response = schema.safeParse(req.body);
 
   if (!response.success) {
-    return NextResponse.json(
-      {
-        message: "Invalid Payload",
-      },
-      { status: 400 }
-    );
+    return res.status(400).send({
+      message: "Invalid Payload",
+    });
   }
 
-  const parsedBody = response.data;
+  const body = response.data;
 
-  const retellLLM = await fetcher(`/get-retell-llm/${parsedBody.llm_id}`).then(ZGetRetellLLMSchema.parse);
+  const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(ZGetRetellLLMSchema.parse);
 
   const { eventTypeId, timezone } = getEventTypeIdFromRetellLLM(retellLLM);
 
   if (!eventTypeId || !timezone)
-    return NextResponse.json({ message: "eventTypeId or Timezone not found" }, { status: 404 });
+    return res.status(404).json({ message: "eventTypeId or Timezone not found" });
 
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -90,7 +79,7 @@ async function handler(req: NextRequest) {
     },
   });
 
-  if (!eventType) return NextResponse.json({ message: "eventType not found id" }, { status: 404 });
+  if (!eventType) return res.status(404).json({ message: "eventType not found id" });
 
   const now = dayjs();
 
@@ -111,11 +100,13 @@ async function handler(req: NextRequest) {
   const firstAvailableDate = Object.keys(availableSlots.slots)[0];
   const firstSlot = availableSlots?.slots?.[firstAvailableDate]?.[0]?.time;
 
-  return NextResponse.json({
+  return res.status(200).json({
     next_available: firstSlot
       ? dayjs.utc(firstSlot).tz(timezone).format(`dddd [the] Do [at] h:mma [${timezone} timezone]`)
       : undefined,
   });
 }
 
-export const POST = defaultResponderForAppDir(handler);
+export default defaultHandler({
+  POST: Promise.resolve({ default: handler }),
+});
