@@ -1,3 +1,4 @@
+// It's ensured that this file does not import any client-side code
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent } from "@calcom/types/Calendar";
