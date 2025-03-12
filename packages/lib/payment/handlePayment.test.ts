@@ -59,7 +59,7 @@ describe("handlePayment", () => {
     title: "Test Event",
     metadata: {
       apps: {
-        stripepayment: {
+        stripe: {
           enabled: true,
           price: 1000,
           currency: "USD",
@@ -71,7 +71,7 @@ describe("handlePayment", () => {
 
   const mockPaymentCredentials = {
     key: {},
-    appId: "stripepayment" as const,
+    appId: "stripe" as const,
     app: {
       dirName: "stripepayment",
       categories: ["payment"] as const,
