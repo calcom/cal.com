@@ -43,7 +43,6 @@ export function DataTablePagination<TData>({
       />
     );
   } else {
-    console.log("💡 here3");
     return null;
   }
 }
