@@ -1,6 +1,8 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import timeZone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
@@ -12,6 +14,8 @@ import { fetcher } from "@calcom/lib/retellAIFetcher";
 import prisma from "@calcom/prisma";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
+dayjs.extend(timeZone);
+dayjs.extend(utc);
 dayjs.extend(advancedFormat);
 
 const schema = z.object({
