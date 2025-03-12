@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import queue from "queue";
 
 import dayjs from "@calcom/dayjs";
@@ -35,14 +36,10 @@ const getOuraSleepScore = async (user_id: string, bedtime_start: Date) => {
 /**
  * This is will generate a user token for a client_user_id`
  * @param req
- * @param res
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextRequest) {
   try {
-    if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
-    }
-    const sig = req.headers["svix-signature"];
+    const sig = req.headers.get("svix-signature");
     if (!sig) {
       throw new HttpCode({ statusCode: 400, message: "Missing svix-signature" });
     }
@@ -50,13 +47,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const vitalClient = await initVitalClient();
 
     if (!vitalClient || !vitalEnv)
-      return res.status(400).json({ message: "Missing vital client, try calling `initVitalClient`" });
+      return NextResponse.json(
+        { message: "Missing vital client, try calling `initVitalClient`" },
+        { status: 400 }
+      );
 
-    const payload = JSON.stringify(req.body);
+    const body = await req.json();
+    const payload = JSON.stringify(body);
 
     const event: EventType = vitalClient.Webhooks.constructWebhookEvent(
       payload,
-      req.headers as Record<string, string>,
+      Object.fromEntries(req.headers.entries()),
       vitalEnv.webhook_secret as string
     ) as EventType;
 
@@ -75,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           });
           if (!credential) {
-            return res.status(404).json({ message: "Missing vital credential" });
+            return NextResponse.json({ message: "Missing vital credential" }, { status: 404 });
           }
 
           // Getting total hours of sleep seconds/60/60 = hours
@@ -96,13 +97,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             minimumSleepTime = vitalSettings.sleepValue as number;
             parameterFilter = vitalSettings.parameter as string;
           } else {
-            res.status(404).json({ message: "Vital configuration not found for user" });
-            return;
+            return NextResponse.json({ message: "Vital configuration not found for user" }, { status: 404 });
           }
 
           if (!event.data.hasOwnProperty(parameterFilter)) {
-            res.status(500).json({ message: "Selected param not available" });
-            return;
+            return NextResponse.json({ message: "Selected param not available" }, { status: 500 });
           }
           const totalHoursSleep = Number(event.data[parameterFilter]) / 60 / 60;
 
@@ -153,14 +152,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         logger.error("Failed to get sleep score");
       }
     }
-    return res.status(200).json({ body: req.body });
+    return NextResponse.json({ body });
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(err.statusCode ?? 500).send({
-      message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
-    });
-    return;
+    return NextResponse.json(
+      {
+        message: err.message,
+        stack: IS_PRODUCTION ? undefined : err.stack,
+      },
+      { status: err.statusCode ?? 500 }
+    );
   }
 }
