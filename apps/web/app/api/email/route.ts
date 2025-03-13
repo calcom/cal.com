@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { NextResponse } from "next/server";
 
 import { renderEmail } from "@calcom/emails";
@@ -7,7 +8,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 /**
  * This API endpoint is used for development purposes to preview email templates
  */
-export async function GET() {
+async function getHandler() {
   // Only allow in development mode
   if (IS_PRODUCTION) {
     return new NextResponse("Only for development purposes", {
@@ -73,3 +74,5 @@ export async function GET() {
 
   return response;
 }
+
+export const GET = defaultResponderForAppDir(getHandler);
