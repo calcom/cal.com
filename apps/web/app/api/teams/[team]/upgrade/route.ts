@@ -1,3 +1,4 @@
+import type { Params } from "app/_types";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -20,7 +21,7 @@ const querySchema = z.object({
   session_id: z.string().min(1),
 });
 
-async function getHandler(req: NextRequest, { params }: { params: Promise<{ team: string }> }) {
+async function getHandler(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const { team: id, session_id } = querySchema.parse({
