@@ -308,19 +308,14 @@ export default function Success(props: PageProps) {
       const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
       const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
       const host = bookingInfo.user.name || bookingInfo.user.email;
-      if (isHost) {
-        return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-          host,
-          attendee,
+
+      if (isHost || isAttendee) {
+        return t(`round_robin_emailed_you_and_attendees${titleSuffix}`, {
+          user: isHost ? attendee : host,
         });
       }
-      if (isAttendee) {
-        return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-          host,
-          attendee,
-        });
-      }
-      return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
+
+      return t(`round_robin_emailed_host_and_attendee${titleSuffix}`, {
         host,
         attendee,
       });
