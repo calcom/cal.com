@@ -72,6 +72,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDryRunSuccess?: () => void;
   hostsLimit?: number;
   preventEventTypeRedirect?: boolean;
+  allowUpdatingUrlParams?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;

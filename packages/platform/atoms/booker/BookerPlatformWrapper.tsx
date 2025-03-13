@@ -57,6 +57,7 @@ export const BookerPlatformWrapper = (
     crmOwnerRecordType,
     preventEventTypeRedirect,
     onBookerStateChange,
+    allowUpdatingUrlParams = false,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -213,6 +214,7 @@ export const BookerPlatformWrapper = (
     username,
     bookingData,
     isPlatform: true,
+    allowUpdatingUrlParams,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
