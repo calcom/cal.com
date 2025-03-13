@@ -18,6 +18,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const { data: teams } = useTeams();
   const { isLoading: isLoadingTeamEvents, data: teamEventTypes } = useTeamEventTypes(teams?.[0]?.id || 0);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
+  const rescheduledBy = (router.query.rescheduledBy as string) ?? "";
   const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
 
   return (
@@ -125,6 +126,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && rescheduleUid && eventTypeSlugQueryParam && (
           <Booker
             rescheduleUid={rescheduleUid}
+            rescheduledBy={rescheduledBy}
             eventSlug={eventTypeSlugQueryParam}
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {

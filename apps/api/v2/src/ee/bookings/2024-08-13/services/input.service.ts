@@ -5,21 +5,28 @@ import {
 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { CreationSource } from "@prisma/client";
+import { isURL, isPhoneNumber } from "class-validator";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
+import {
+  EventTypeMetaDataSchema,
+  apiToInternalintegrationsMapping,
+} from "@calcom/platform-libraries/event-types";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -33,7 +40,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
+import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -75,7 +83,9 @@ export class InputBookingsService_2024_08_13 {
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly bookingSeatRepository: BookingSeatRepository,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
+    private readonly platformBookingsService: PlatformBookingsService,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createBookingRequest(
@@ -88,23 +98,21 @@ export class InputBookingsService_2024_08_13 {
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
 
-    const location = request.body.location || request.body.meetingUrl;
-    this.logger.log(`createBookingRequest_2024_04_15`, {
+    this.logger.log(`createBookingRequest_2024_08_13`, {
       requestId: request.get("X-Request-Id"),
       ownerId: userId,
-      location,
       oAuthClientParams,
     });
 
     if (oAuthClientParams) {
-      Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
+      Object.assign(newRequest, { userId, ...oAuthClientParams });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
         creationSource: CreationSource.API_V2,
       };
     } else {
-      Object.assign(newRequest, { userId, platformBookingLocation: location });
+      Object.assign(newRequest, { userId });
       newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
     }
 
@@ -140,6 +148,10 @@ export class InputBookingsService_2024_08_13 {
           )
         : inputBooking.attendee.email;
 
+    const inputLocation = inputBooking.location || inputBooking.meetingUrl;
+    this.isBookingLocationWithEventTypeLocations(inputLocation, eventType);
+    const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
+
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -156,6 +168,7 @@ export class InputBookingsService_2024_08_13 {
         email: attendeeEmail ?? "",
         attendeePhoneNumber: inputBooking.attendee.phoneNumber,
         guests,
+        location,
       },
     };
   }
@@ -193,17 +206,14 @@ export class InputBookingsService_2024_08_13 {
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
 
-    const location = request.body.location || request.body.meetingUrl;
-
     if (oAuthClientParams) {
       Object.assign(newRequest, {
         userId,
         ...oAuthClientParams,
-        platformBookingLocation: location,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
       });
     } else {
-      Object.assign(newRequest, { userId, platformBookingLocation: location });
+      Object.assign(newRequest, { userId });
     }
 
     newRequest.body = bodyTransformed.map((event) => ({
@@ -212,6 +222,144 @@ export class InputBookingsService_2024_08_13 {
     }));
 
     return newRequest as unknown as BookingRequest;
+  }
+
+  transformLocation(location: string | BookingInputLocation_2024_08_13): {
+    value: string;
+    optionValue: string;
+  } {
+    if (typeof location === "string") {
+      // note(Lauris): this is for backwards compatibility because before switching to booking location objects
+      // we only received a string. If someone is complaining that their location is not displaying as a URL
+      // or whatever check that they are not providing a string for bookign location but one of the input objects.
+      if (isURL(location, { require_protocol: false }) || location.startsWith("www.")) {
+        return {
+          value: "link",
+          optionValue: location,
+        };
+      }
+
+      if (isPhoneNumber(location)) {
+        return {
+          value: "phone",
+          optionValue: location,
+        };
+      }
+
+      return {
+        value: "somewhereElse",
+        optionValue: location,
+      };
+    }
+
+    if (location.type === "integration") {
+      const integration = apiToInternalintegrationsMapping[location.integration];
+      if (!integration) {
+        throw new BadRequestException(`Invalid integration: ${location.integration}`);
+      }
+      return {
+        value: integration,
+        optionValue: "",
+      };
+    }
+
+    if (location.type === "address") {
+      return {
+        value: "inPerson",
+        optionValue: "",
+      };
+    }
+
+    if (location.type === "attendeeAddress") {
+      return {
+        value: "attendeeInPerson",
+        optionValue: location.address,
+      };
+    }
+
+    if (location.type === "link") {
+      return {
+        value: "link",
+        optionValue: "",
+      };
+    }
+
+    if (location.type === "phone") {
+      return {
+        value: "userPhone",
+        optionValue: "",
+      };
+    }
+
+    if (location.type === "organizersDefaultApp") {
+      return {
+        value: "conferencing",
+        optionValue: "",
+      };
+    }
+
+    if (location.type === "attendeePhone") {
+      return {
+        value: "phone",
+        optionValue: location.phone,
+      };
+    }
+
+    if (location.type === "attendeeDefined") {
+      return {
+        value: "somewhereElse",
+        optionValue: location.location,
+      };
+    }
+
+    throw new BadRequestException(
+      `Booking location with type ${(location as BookingInputLocation_2024_08_13).type} not valid.`
+    );
+  }
+
+  private isBookingLocationWithEventTypeLocations(
+    inputBookingLocation: undefined | string | BookingInputLocation_2024_08_13,
+    dbEventType: EventType
+  ) {
+    if (!inputBookingLocation || typeof inputBookingLocation === "string") {
+      // note(Lauris): for backwards compatibility because we had string locations before so let them pass.
+      return true;
+    }
+
+    const eventTypeLocations = this.outputEventTypesService.transformLocations(dbEventType.locations);
+    const allowedLocationTypes = eventTypeLocations.map((location) => location.type);
+
+    const isAllowed = allowedLocationTypes.includes(inputBookingLocation.type);
+    if (!isAllowed) {
+      throw new BadRequestException(
+        `Booking location with type ${inputBookingLocation.type} not valid for event type with id=${
+          dbEventType.id
+        }. The event type has following location types: ${allowedLocationTypes.join(
+          ", "
+        )}, and only these types are allowed for booking location.`
+      );
+    }
+
+    if (inputBookingLocation.type === "integration" && "integration" in inputBookingLocation) {
+      const allowedIntegrations = eventTypeLocations
+        .filter((location) => location.type === "integration")
+        .map((location) => location.integration);
+
+      const isAllowedIntegration = allowedIntegrations.includes(inputBookingLocation.integration);
+      if (!isAllowedIntegration) {
+        throw new BadRequestException(
+          `Booking location with integration ${
+            inputBookingLocation.integration
+          } not valid for event type with id=${
+            dbEventType.id
+          }. The event type has following integrations: ${allowedIntegrations.join(
+            ", "
+          )}, and only these integrations are allowed for booking location.`
+        );
+      }
+    }
+
+    return true;
   }
 
   async transformInputCreateRecurringBooking(
@@ -259,6 +407,10 @@ export class InputBookingsService_2024_08_13 {
           )
         : inputBooking.attendee.email;
 
+    const inputLocation = inputBooking.location || inputBooking.meetingUrl;
+    this.isBookingLocationWithEventTypeLocations(inputLocation, eventType);
+    const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
+
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: eventType.length });
 
@@ -278,6 +430,7 @@ export class InputBookingsService_2024_08_13 {
           name: inputBooking.attendee.name,
           email: attendeeEmail,
           guests,
+          location,
         },
         schedulingType: eventType.schedulingType,
       });
@@ -314,7 +467,24 @@ export class InputBookingsService_2024_08_13 {
     );
 
     const newRequest = { ...request };
-    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    let userId: number | undefined = undefined;
+
+    if (
+      oAuthClientParams &&
+      request.body.rescheduledBy &&
+      !request.body.rescheduledBy.includes(oAuthClientParams.platformClientId)
+    ) {
+      request.body.rescheduledBy = OAuthClientUsersService.getOAuthUserEmail(
+        oAuthClientParams.platformClientId,
+        request.body.rescheduledBy
+      );
+    }
+
+    if (request.body.rescheduledBy) {
+      if (request.body.rescheduledBy !== bodyTransformed.responses.email) {
+        userId = (await this.usersRepository.findByEmail(request.body.rescheduledBy))?.id;
+      }
+    }
 
     const location = await this.getRescheduleBookingLocation(bookingUid);
     if (oAuthClientParams) {

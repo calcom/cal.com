@@ -389,10 +389,12 @@ function BookingsContent({ status }: BookingsProps) {
                 fetchNextPage={query.fetchNextPage}
                 isFetching={query.isFetching}
                 variant="compact"
+                paginationMode="infinite"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} />
+                    <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
                     <DataTableFilters.ActiveFilters table={table} />
+                    <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
                     <DataTableFilters.ClearFiltersButton />
                   </>
                 }
