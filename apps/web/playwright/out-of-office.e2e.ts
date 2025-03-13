@@ -765,9 +765,10 @@ test.describe("Out of office", () => {
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
         await page.locator('[data-testid="add-filter-button"]').click();
-        await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeEntriesList?batch=1", {
-          action: () => page.locator('[data-testid="add-filter-item-dateRange"]').click(),
-        });
+        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+        await page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
         await page.locator('[data-testid="add-filter-button"]').click();
 
         //1 OOO record should be visible for member3, end=currentDate-4days
@@ -780,9 +781,10 @@ test.describe("Out of office", () => {
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
         await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
-        await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeEntriesList?batch=1", {
-          action: () => page.locator(`[data-testid="date-range-options-t"]`).click(),
-        });
+        await page.locator(`[data-testid="date-range-options-t"]`).click();
+        await page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
         await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
 
         //2 OOO records should be visible end=currentDate-4days, end=currentDate-12days
