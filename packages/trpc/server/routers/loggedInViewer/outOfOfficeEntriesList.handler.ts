@@ -16,7 +16,14 @@ type GetOptions = {
 
 export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
   const t = await getTranslation(ctx.user.locale, "common");
-  const { cursor, limit, fetchTeamMembersEntries, searchTerm } = input;
+  const {
+    cursor,
+    limit,
+    fetchTeamMembersEntries,
+    searchTerm,
+    endDateFilterStartRange,
+    endDateFilterEndRange,
+  } = input;
   let fetchOOOEntriesForIds = [ctx.user.id];
   let reportingUserIds = [0];
 
@@ -76,7 +83,8 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       in: fetchOOOEntriesForIds,
     },
     end: {
-      gte: new Date().toISOString(),
+      gte: endDateFilterStartRange ?? new Date().toISOString(),
+      lte: endDateFilterEndRange,
     },
     ...(searchTerm
       ? {
