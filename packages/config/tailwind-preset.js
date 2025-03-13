@@ -13,7 +13,7 @@ module.exports = {
     "../../packages/app-store/!(node_modules)/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/!(node_modules)/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx}",
-    "../../packages/platform/!(node_modules)/atoms/**/*.{js,ts,jsx,tsx}",
+    "../../packages/platform/atoms/!(node_modules)/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
