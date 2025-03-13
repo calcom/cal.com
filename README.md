@@ -172,24 +172,25 @@ yarn dx
 ```
 
 #### Development tip
+1. Add `export NODE_OPTIONS=“--max-old-space-size=16384”` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
 
-Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
-Where {level} can be one of the following:
+2. Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
+   Where {level} can be one of the following:
 
-`0` for silly \
-`1` for trace \
-`2` for debug \
-`3` for info \
-`4` for warn \
-`5` for error \
-`6` for fatal
+   `0` for silly \
+   `1` for trace \
+   `2` for debug \
+   `3` for info \
+   `4` for warn \
+   `5` for error \
+   `6` for fatal
 
-When you set `NEXT_PUBLIC_LOGGER_LEVEL={level}` in your .env file, it enables logging at that level and higher. Here's how it works:
+   When you set `NEXT_PUBLIC_LOGGER_LEVEL={level}` in your .env file, it enables logging at that level and higher. Here's how it works:
 
-The logger will include all logs that are at the specified level or higher. For example: \
+   The logger will include all logs that are at the specified level or higher. For example: \
 
-- If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
-- If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
+   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
+   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
 
 ```sh
 echo 'NEXT_PUBLIC_LOGGER_LEVEL=3' >> .env
@@ -484,6 +485,15 @@ Don't code but still want to contribute? Join our [Discussions](https://github.c
 ## Enabling Content Security Policy
 
 - Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for unsafe-inline in style-src . If you have some custom changes in your instance, you might have to make some code change to make your instance CSP compatible. Right now it enables strict CSP only on login page and on other SSR pages it is enabled in Report only mode to detect possible issues. On, SSG pages it is still not supported.
+
+## Single Org Mode
+If you want to have booker.yourcompany.com to be the domain used for both dashboard(e.g. https://booker.yourcompany.com/event-types) and booking pages(e.g. https://booker.yourcompany.com/john.joe/15min).
+- Set the `NEXT_PUBLIC_SINGLE_ORG_SLUG` environment variable to the slug of the organization you want to use. `NEXT_PUBLIC_SINGLE_ORG_SLUG=booker`
+- Set the `NEXT_PUBLIC_WEBAPP_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXT_PUBLIC_WEBAPP_URL=https://booker.yourcompany.com`.
+- Set the `NEXT_PUBLIC_WEBSITE_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXT_PUBLIC_WEBSITE_URL=https://booker.yourcompany.com`.
+- Set the `NEXTAUTH_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXTAUTH_URL=https://booker.yourcompany.com`.
+
+Note: It causes root to serve the dashboard and not the organization profile page which shows all bookable users in the organization.
 
 ## Integrations
 

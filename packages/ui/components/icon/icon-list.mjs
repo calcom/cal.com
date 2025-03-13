@@ -118,6 +118,7 @@ export const lucideIconList = new Set([
   "smartphone",
   "sparkles",
   "square-check",
+  "split",
   "star",
   "sun",
   "sunrise",
@@ -141,4 +142,7 @@ export const lucideIconList = new Set([
   "zap",
   "waypoints",
   "chevrons-down-up",
+  "chevrons-up-down",
+  "sliders-horizontal",
+  "calendar-range",
 ]);

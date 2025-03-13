@@ -51,10 +51,10 @@ const CreateNewTeamPage = () => {
     />
   );
 };
-export const LayoutWrapper = (page: React.ReactElement) => {
+export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <WizardLayout currentStep={1} maxSteps={3}>
-      {page}
+      {children}
     </WizardLayout>
   );
 };

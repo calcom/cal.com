@@ -4,6 +4,7 @@ import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -21,15 +22,18 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
   CAL_API_VERSION_HEADER,
   SUCCESS_STATUS,
+  VERSION_2024_06_14,
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
 import {
+  CreateEventTypeInput_2024_06_14,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
@@ -58,12 +62,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `user-bookings-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = "peer-coding";
+    const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
+    const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
 
     let createdBooking: BookingOutput_2024_08_13;
     let rescheduledBooking: BookingOutput_2024_08_13;
@@ -91,12 +96,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `user-bookings-organization-${randomString()}`,
+        isOrganization: true,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
-        username: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
+        username: userEmail,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
@@ -105,13 +113,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `user-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
+
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: eventTypeSlug, length: 60 },
+        {
+          title: `user-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: eventTypeSlug,
+          length: 60,
+        },
         user.id
       );
       eventTypeId = event.id;
@@ -120,7 +133,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
           title: "peer coding recurring",
-          slug: "peer-coding-recurring",
+          slug: recurringEventTypeSlug,
           length: 60,
           recurringEvent: { freq: 2, count: 3, interval: 1 },
         },
@@ -137,7 +150,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
         endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
         title: "peer coding lets goo",
-        uid: "booking-in-the-past",
+        uid: `booking-in-the-past-${randomString()}`,
         eventType: {
           connect: {
             id: eventTypeId,
@@ -158,6 +171,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone: "Europe/Rome",
           },
         },
+        rating: 10,
       });
 
       app = moduleRef.createNestApplication();
@@ -316,6 +330,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a booking", async () => {
+        const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
           eventTypeId,
@@ -325,13 +340,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone: "Europe/Rome",
             language: "it",
           },
-          location: "https://meet.google.com/abc-def-ghi",
+          location: googleMeetUrl,
           bookingFieldsResponses: {
             customField: "customValue",
           },
           metadata: {
             userId: "100",
           },
+          guests: ["bob@gmail.com"],
         };
 
         const beforeCreate = new Date();
@@ -353,6 +369,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.uid).toBeDefined();
               expect(data.hosts[0].id).toEqual(user.id);
               expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
@@ -376,18 +393,30 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: body.attendee.name,
                 email: body.attendee.email,
                 ...body.bookingFieldsResponses,
+                guests: body.guests,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               });
+              expect(data.guests).toEqual(body.guests);
 
               // Check createdAt date is between the time of the request and after the request
               const createdAtDate = new Date(data.createdAt);
               expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
               expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
+              // Check updatedAt date is between the time of the request and after the request
+              expect(data.updatedAt).toBeDefined();
+              const updatedAtDate = data.updatedAt ? new Date(data.updatedAt) : null;
+              expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
               expect(data.metadata).toEqual(body.metadata);
               createdBooking = data;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -515,6 +544,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.uid).toEqual(createdBooking.uid);
               expect(data.hosts[0].id).toEqual(user.id);
               expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual(createdBooking.status);
               expect(data.start).toEqual(createdBooking.start);
               expect(data.end).toEqual(createdBooking.end);
@@ -524,6 +554,30 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.location).toEqual(createdBooking.location);
               expect(data.absentHost).toEqual(createdBooking.absentHost);
               expect(data.createdAt).toEqual(createdBooking.createdAt);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should should get a booking with rating", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${bookingInThePast.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toEqual(bookingInThePast.id);
+              expect(data.uid).toEqual(bookingInThePast.uid);
+              expect(data.rating).toEqual(bookingInThePast.rating);
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibily recurring bookings"
@@ -549,6 +603,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toEqual(createdRecurringBooking[0].id);
               expect(data.uid).toEqual(createdRecurringBooking[0].uid);
               expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual(createdRecurringBooking[0].status);
               expect(data.start).toEqual(createdRecurringBooking[0].start);
               expect(data.end).toEqual(createdRecurringBooking[0].end);
@@ -560,7 +616,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -853,7 +909,63 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should should get bookings by before specified end time", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?afterStart=${createdRecurringBooking[0].start}`)
+          .get(`/v2/bookings?beforeEnd=${createdRecurringBooking[0].end}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(3);
+          });
+      });
+
+      it("should should get bookings after specified update time", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?afterUpdatedAt=${createdRecurringBooking[1].updatedAt}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+          });
+      });
+
+      it("should should get bookings before specified update time", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?beforeUpdatedAt=${createdRecurringBooking[0].updatedAt}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(3);
+          });
+      });
+
+      it("should should get bookings in update range", async () => {
+        return request(app.getHttpServer())
+          .get(
+            `/v2/bookings?afterUpdatedAt=${createdRecurringBooking[0].updatedAt}&beforeUpdatedAt=${createdRecurringBooking[2].updatedAt}`
+          )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -988,6 +1100,46 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data[1].start).toEqual(createdBooking.start);
           });
       });
+
+      it("should should sort bookings by updated in descending order", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=desc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+            expect(data[0].updatedAt).toEqual(createdBooking.updatedAt);
+            expect(data[1].updatedAt).toEqual(bookingInThePast.updatedAt?.toISOString());
+          });
+      });
+
+      it("should should sort bookings by updated in ascending order", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=asc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+            expect(data[0].updatedAt).toEqual(bookingInThePast.updatedAt?.toISOString());
+            expect(data[1].updatedAt).toEqual(createdBooking.updatedAt);
+          });
+      });
     });
 
     describe("reschedule bookings", () => {
@@ -1018,6 +1170,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(createdBooking.status);
             expect(data.duration).toEqual(createdBooking.duration);
             expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
@@ -1075,6 +1229,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(createdRecurringBooking[0].status);
             expect(data.start).toEqual(body.start);
             expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 9, 15, 0, 0)).toISOString());
@@ -1155,6 +1311,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
@@ -1187,6 +1345,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
@@ -1225,6 +1385,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual("cancelled");
             expect(data.cancellationReason).toEqual(body.cancellationReason);
             expect(data.start).toEqual(rescheduledBooking.start);
@@ -1279,6 +1441,453 @@ describe("Bookings Endpoints 2024-08-13", () => {
               );
             }
           });
+      });
+    });
+
+    describe("who cancelled and rescheduled a booking", () => {
+      it("should return who cancelled a booking", async () => {
+        const cancelledByEmail = `user-bookings-canceller-${randomString()}@canceller.com`;
+        const cancelledBooking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${eventTypeId}`,
+          title: "booking title",
+          startTime: "2050-09-05T11:00:00.000Z",
+          endTime: "2050-09-05T12:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "CANCELLED",
+          cancelledBy: cancelledByEmail,
+          metadata: {},
+          responses: {
+            name: "tester",
+            email: "tester@example.com",
+            guests: [],
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        });
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${cancelledBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            await bookingsRepositoryFixture.deleteById(cancelledBooking.id);
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.uid).toEqual(cancelledBooking.uid);
+              expect(data.cancelledByEmail).toEqual(cancelledByEmail);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should return who rescheduled a booking", async () => {
+        const rescheduledByEmail = `user-bookings-rescheduler-${randomString()}@rescheduler.com`;
+        const rescheduledBooking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${eventTypeId}`,
+          title: "booking title",
+          startTime: "2050-09-05T11:00:00.000Z",
+          endTime: "2050-09-05T12:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "CANCELLED",
+          rescheduledBy: rescheduledByEmail,
+          metadata: {},
+          responses: {
+            name: "tester",
+            email: "tester@example.com",
+            guests: [],
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        });
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${rescheduledBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            await bookingsRepositoryFixture.deleteById(rescheduledBooking.id);
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.uid).toEqual(rescheduledBooking.uid);
+              expect(data.rescheduledByEmail).toEqual(rescheduledByEmail);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+    });
+
+    describe("booking location", () => {
+      const address = "123 Main St";
+      const link = "https://cal.com/join/123456";
+      const phone = "+37121999999";
+
+      let eventTypeWithAllLocationsId: number;
+      it("can create event type with all locations except google meet", async () => {
+        const eventTypeBody: CreateEventTypeInput_2024_06_14 = {
+          title: "book using any location",
+          slug: "book-using-any-location",
+          lengthInMinutes: 15,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+            {
+              type: "address",
+              address,
+              public: true,
+            },
+            {
+              type: "link",
+              link,
+              public: true,
+            },
+            {
+              type: "phone",
+              phone,
+              public: true,
+            },
+            {
+              type: "attendeeAddress",
+            },
+            {
+              type: "attendeePhone",
+            },
+            {
+              type: "attendeeDefined",
+            },
+          ],
+        };
+
+        const eventTypeResponse = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(eventTypeBody)
+          .expect(201);
+        const eventTypeResponseBody: CreateEventTypeOutput_2024_06_14 = eventTypeResponse.body;
+        const createdEventType = eventTypeResponseBody.data;
+        expect(createdEventType).toHaveProperty("id");
+        expect(createdEventType.locations).toHaveLength(7);
+        expect(createdEventType.locations).toEqual(createdEventType.locations);
+        eventTypeWithAllLocationsId = createdEventType.id;
+      });
+
+      it("can book with cal video location", async () => {
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "integration",
+            integration: "cal-video",
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+
+        if (responseDataIsBooking(createdBooking)) {
+          expect(
+            createdBooking.location?.startsWith("http") || createdBooking.location === "integrations:daily"
+          ).toEqual(true);
+          await bookingsRepositoryFixture.deleteById(createdBooking.id);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
+
+      it("can book with address location", async () => {
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "address",
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+
+        if (responseDataIsBooking(createdBooking)) {
+          expect(createdBooking.location).toEqual(address);
+          await bookingsRepositoryFixture.deleteById(createdBooking.id);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
+
+      it("can book with link location", async () => {
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "link",
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+
+        if (responseDataIsBooking(createdBooking)) {
+          expect(createdBooking.location).toEqual(link);
+          await bookingsRepositoryFixture.deleteById(createdBooking.id);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
+
+      it("can book with link location", async () => {
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "phone",
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+
+        if (responseDataIsBooking(createdBooking)) {
+          expect(createdBooking.location).toEqual(phone);
+          await bookingsRepositoryFixture.deleteById(createdBooking.id);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
+
+      it("can book with attendeeAddress location", async () => {
+        const attendeeAddress = "123 Example St, City, Valhalla";
+
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "attendeeAddress",
+            address: attendeeAddress,
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+
+        if (responseDataIsBooking(createdBooking)) {
+          expect(createdBooking.location).toEqual(attendeeAddress);
+          await bookingsRepositoryFixture.deleteById(createdBooking.id);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
+
+      xit("can book with attendeeAddress location", async () => {
+        const attendeePhone = "+37120993151";
+
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "attendeePhone",
+            phone: attendeePhone,
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+
+        if (responseDataIsBooking(createdBooking)) {
+          expect(createdBooking.location).toEqual(attendeePhone);
+          await bookingsRepositoryFixture.deleteById(createdBooking.id);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
+
+      it("can book with attendeeDefined location", async () => {
+        const attendeeDefinedLocation = "namek 100";
+
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "attendeeDefined",
+            location: attendeeDefinedLocation,
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+
+        if (responseDataIsBooking(createdBooking)) {
+          expect(createdBooking.location).toEqual(attendeeDefinedLocation);
+          await bookingsRepositoryFixture.deleteById(createdBooking.id);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
+
+      it("can't book with not location that is not in event type", async () => {
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "integration",
+            integration: "google-meet",
+          },
+        };
+
+        await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+      });
+
+      it("can't book with invalid location type", async () => {
+        const bookingBody = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "blablabala",
+          },
+        };
+
+        await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
       });
     });
 

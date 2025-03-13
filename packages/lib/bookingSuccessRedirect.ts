@@ -43,6 +43,13 @@ type ResultType = {
   attendeeLastName?: string | null;
 };
 
+export function getSafe<T>(obj: unknown, path: (string | number)[]): T | undefined {
+  return path.reduce(
+    (acc, key) => (typeof acc === "object" && acc !== null ? (acc as any)[key] : undefined),
+    obj
+  ) as T | undefined;
+}
+
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   const redirectQueryParamKeys: BookingResponseKey[] = [
     "title",
@@ -54,13 +61,6 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "user",
     "responses",
   ];
-
-  function getSafe<T>(obj: unknown, path: (string | number)[]): T | undefined {
-    return path.reduce(
-      (acc, key) => (typeof acc === "object" && acc !== null ? (acc as any)[key] : undefined),
-      obj
-    ) as T | undefined;
-  }
 
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
   function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
@@ -120,18 +120,21 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     };
   }
 
-  const result = (Object.keys(booking) as BookingResponseKey[])
+  const bookingParams = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
-    .reduce<ResultType>((obj, key) => {
-      if (key === "responses") return extractResponseDetails(booking, obj);
-      if (key === "user") return extractUserDetails(booking, obj);
-      if (key === "attendees") return extractAttendeesAndGuests(booking, obj);
-      return { ...obj, [key]: booking[key] };
-    }, {});
+    .reduce<ResultType>(
+      (obj, key) => {
+        if (key === "responses") return extractResponseDetails(booking, obj);
+        if (key === "user") return extractUserDetails(booking, obj);
+        if (key === "attendees") return extractAttendeesAndGuests(booking, obj);
+        return { ...obj, [key]: booking[key] };
+      },
+      { uid: booking.uid }
+    );
 
   const queryCompatibleParams: Record<string, string | boolean | null | undefined> = {
     ...Object.fromEntries(
-      Object.entries(result).map(([key, value]) => {
+      Object.entries(bookingParams).map(([key, value]) => {
         if (Array.isArray(value)) {
           return [key, value.join(", ")];
         }
@@ -142,10 +145,10 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
         return [key, value];
       })
     ),
-    hostName: result.hostName?.join(", "),
-    attendeeName: result.attendeeName || undefined,
-    hostStartTime: result.hostStartTime || undefined,
-    attendeeStartTime: result.attendeeStartTime || undefined,
+    hostName: bookingParams.hostName?.join(", "),
+    attendeeName: bookingParams.attendeeName || undefined,
+    hostStartTime: bookingParams.hostStartTime || undefined,
+    attendeeStartTime: bookingParams.attendeeStartTime || undefined,
   };
 
   return queryCompatibleParams;
@@ -179,14 +182,17 @@ export const useBookingSuccessRedirect = () => {
         navigateInTopWindow(url.toString());
         return;
       }
+
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
+
       const newSearchParams = getNewSearchParams({
         query: {
           ...query,
           ...bookingExtraParams,
         },
-        searchParams: searchParams ?? undefined,
+        searchParams: new URLSearchParams(searchParams.toString()),
       });
+
       newSearchParams.forEach((value, key) => {
         url.searchParams.append(key, value);
       });

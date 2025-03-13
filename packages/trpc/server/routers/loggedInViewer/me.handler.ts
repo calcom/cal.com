@@ -5,8 +5,8 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { intervalLimitsType } from "@calcom/prisma/zod-utils";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { userMetadata, intervalLimitsType } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TMeInputSchema } from "./me.schema";
@@ -95,6 +95,18 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
         organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
+  const isTeamAdminOrOwner =
+    (await prisma.membership.findFirst({
+      where: {
+        userId: user.id,
+        accepted: true,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+      },
+      select: {
+        id: true,
+      },
+    })) !== null;
+
   return {
     id: user.id,
     name: user.name,
@@ -134,5 +146,6 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
+    isTeamAdminOrOwner,
   };
 };

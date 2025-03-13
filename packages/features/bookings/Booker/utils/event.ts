@@ -1,11 +1,10 @@
-import { usePathname } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
-import { useTimePreferences } from "../../lib/timePreferences";
+import { useBookerTime } from "../components/hooks/useBookerTime";
 import { useBookerStore } from "../store";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
@@ -71,7 +70,6 @@ export const useScheduleForEvent = ({
   selectedDate,
   orgSlug,
   teamMemberEmail,
-  fromRedirectOfNonOrgLink,
   isTeamEvent,
 }: {
   prefetchNextMonth?: boolean;
@@ -88,7 +86,7 @@ export const useScheduleForEvent = ({
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
 } = {}) => {
-  const { timezone } = useTimePreferences();
+  const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
@@ -96,8 +94,6 @@ export const useScheduleForEvent = ({
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
-
-  const pathname = usePathname();
 
   const schedule = useSchedule({
     username: usernameFromStore ?? username,
@@ -122,5 +118,6 @@ export const useScheduleForEvent = ({
     isError: schedule?.isError,
     isSuccess: schedule?.isSuccess,
     isLoading: schedule?.isLoading,
+    invalidate: schedule?.invalidate,
   };
 };

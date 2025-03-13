@@ -24,4 +24,22 @@ export class AttributeRepository {
       },
     });
   }
+
+  static async findManyByOrgId({ orgId }: { orgId: number }) {
+    // It should be a faster query because of lesser number of attributes record and index on teamId
+    const result = await prisma.attribute.findMany({
+      where: {
+        teamId: orgId,
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        slug: true,
+        options: true,
+      },
+    });
+
+    return result;
+  }
 }

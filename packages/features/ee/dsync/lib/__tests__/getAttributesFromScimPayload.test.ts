@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import getAttributesFromScimPayload from "../getAttributesFromScimPayload";
 
+const directoryId = "xxx-xxx-xxx-xxx";
 describe("getAttributesFromScimPayload", () => {
   it("should return empty object for unsupported events", () => {
     const event = {
@@ -10,7 +11,7 @@ describe("getAttributesFromScimPayload", () => {
       data: { raw: { schemas: [] } },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({});
   });
 
@@ -28,7 +29,7 @@ describe("getAttributesFromScimPayload", () => {
       },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({
       department: "Engineering",
       title: "Software Engineer",
@@ -48,7 +49,7 @@ describe("getAttributesFromScimPayload", () => {
       },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({
       skills: ["JavaScript", "TypeScript", "React"],
     });
@@ -68,7 +69,7 @@ describe("getAttributesFromScimPayload", () => {
       },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({
       department: "Engineering",
     });
@@ -87,7 +88,7 @@ describe("getAttributesFromScimPayload", () => {
       },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({});
   });
 
@@ -108,7 +109,7 @@ describe("getAttributesFromScimPayload", () => {
       },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({
       department: "Engineering",
       location: "Remote",
@@ -128,13 +129,13 @@ describe("getAttributesFromScimPayload", () => {
       },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({
       department: "Engineering",
     });
   });
 
-  it("should extract from core namespace as well.", () => {
+  it("should extract from core namespace as well ignoring the core attributes as defined in the SCIM spec.", () => {
     const event = {
       event: "user.created",
       data: {
@@ -152,13 +153,14 @@ describe("getAttributesFromScimPayload", () => {
       },
     } as DirectorySyncEvent;
 
-    const result = getAttributesFromScimPayload(event);
+    const result = getAttributesFromScimPayload({ event, directoryId });
     expect(result).toEqual({
-      userName: "kush@acme.com",
-      displayName: "Kush",
       territory: "XANAM",
-      externalId: "00ulb1kpy4EMATtuS5d7",
-      groups: [],
+      // Core Attributes won't be there - It avoids unnecessary warnings about attributes not defined in cal.com
+      // userName: "kush@acme.com",
+      // displayName: "Kush",
+      // externalId: "00ulb1kpy4EMATtuS5d7",
+      // groups: [],
     });
   });
 });

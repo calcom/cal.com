@@ -18,6 +18,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const { data: teams } = useTeams();
   const { isLoading: isLoadingTeamEvents, data: teamEventTypes } = useTeamEventTypes(teams?.[0]?.id || 0);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
+  const rescheduledBy = (router.query.rescheduledBy as string) ?? "";
   const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
 
   return (
@@ -90,6 +91,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <>
             <Booker
+              bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
               eventSlug={eventTypeSlug}
               onCreateBookingSuccess={(data) => {
                 setBookingTitle(data.data.title ?? "");
@@ -117,12 +119,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               {...(isTeamEvent
                 ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
                 : { username: props.calUsername })}
+              hostsLimit={3}
             />
           </>
         )}
         {!bookingTitle && rescheduleUid && eventTypeSlugQueryParam && (
           <Booker
             rescheduleUid={rescheduleUid}
+            rescheduledBy={rescheduledBy}
             eventSlug={eventTypeSlugQueryParam}
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
@@ -130,6 +134,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               router.push(`/${data.data.uid}`);
             }}
             duration={eventTypeDuration}
+            bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
+            hostsLimit={3}
           />
         )}
         {bookingTitle && <p>Booking created: {bookingTitle}</p>}

@@ -43,6 +43,7 @@ export type NewSeatedBookingObject = {
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
   rescheduledBy?: string;
   workflows: Workflow[];
+  isDryRun?: boolean;
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };

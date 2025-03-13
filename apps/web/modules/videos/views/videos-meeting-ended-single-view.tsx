@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, Icon } from "@calcom/ui";
+import { Button, Icon } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
@@ -14,7 +14,6 @@ export default function MeetingUnavailable(props: PageProps) {
 
   return (
     <div>
-      <HeadSeo title={t("meeting_unavailable")} description={t("meeting_unavailable")} />
       <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">

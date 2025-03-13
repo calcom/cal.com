@@ -30,8 +30,9 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       notFound: true,
     };
   }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 1) {
+  const appPages = params.pages.slice(1);
+  const formId = appPages[0];
+  if (!formId || appPages.length > 1) {
     return {
       notFound: true,
     };

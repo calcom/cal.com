@@ -18,41 +18,63 @@ vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
 vi.mock("@calcom/ui", () => ({}));
-
+const orgId = 1001;
 function mockAttributesScenario({
   attributes,
   teamMembersWithAttributeOptionValuePerAttribute,
 }: {
-  attributes: Awaited<ReturnType<typeof getAttributesModule.getAttributesForTeam>>;
+  attributes: {
+    id: string;
+    name: string;
+    type: AttributeType;
+    slug: string;
+    options: {
+      id: string;
+      value: string;
+      slug: string;
+    }[];
+  }[];
   teamMembersWithAttributeOptionValuePerAttribute: {
     userId: number;
     attributes: Record<string, string | string[]>;
   }[];
 }) {
-  vi.mocked(getAttributesModule.getAttributesForTeam).mockResolvedValue(attributes);
-  vi.mocked(getAttributesModule.getTeamMembersWithAttributeOptionValuePerAttribute).mockResolvedValue(
-    teamMembersWithAttributeOptionValuePerAttribute.map((member) => {
-      return {
-        ...member,
-        attributes: Object.fromEntries(
-          Object.entries(member.attributes).map(([attributeId, value]) => {
-            return [
-              attributeId,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-              {
-                attributeOption:
-                  value instanceof Array
-                    ? value.map((value) => ({ value, isGroup: false, contains: [] }))
-                    : { value, isGroup: false, contains: [] },
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                type: attributes.find((attribute) => attribute.id === attributeId)!.type,
-              },
-            ];
-          })
-        ),
-      };
-    })
-  );
+  const commonOptionsProps = {
+    isGroup: false,
+    contains: [],
+  };
+  vi.mocked(getAttributesModule.getAttributesAssignmentData).mockResolvedValue({
+    attributesOfTheOrg: attributes.map((attribute) => ({
+      ...attribute,
+      options: attribute.options.map((option) => ({
+        ...option,
+        ...commonOptionsProps,
+      })),
+    })),
+    attributesAssignedToTeamMembersWithOptions: teamMembersWithAttributeOptionValuePerAttribute.map(
+      (member) => {
+        return {
+          ...member,
+          attributes: Object.fromEntries(
+            Object.entries(member.attributes).map(([attributeId, value]) => {
+              return [
+                attributeId,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                {
+                  attributeOption:
+                    value instanceof Array
+                      ? value.map((value) => ({ value, isGroup: false, contains: [] }))
+                      : { value, isGroup: false, contains: [] },
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  type: attributes.find((attribute) => attribute.id === attributeId)!.type,
+                },
+              ];
+            })
+          ),
+        };
+      }
+    ),
+  });
 }
 
 function mockHugeAttributesOfTypeSingleSelect({
@@ -253,6 +275,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         },
         attributesQueryValue: { type: "group" } as unknown as AttributesQueryValue,
         teamId: 1,
+        orgId,
       },
       {
         enableTroubleshooter: true,
@@ -302,6 +325,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         },
         attributesQueryValue,
         teamId: 1,
+        orgId,
       });
 
     expect(result).toEqual([
@@ -374,6 +398,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       },
       attributesQueryValue: attributesQueryValue,
       teamId: 1,
+      orgId,
     });
 
     expect(result).toEqual([
@@ -438,6 +463,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       },
       attributesQueryValue,
       teamId: 1,
+      orgId,
     });
 
     expect(result).toEqual([
@@ -503,6 +529,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       },
       attributesQueryValue,
       teamId: 1,
+      orgId,
     });
 
     expect(result).toEqual([
@@ -571,6 +598,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       },
       attributesQueryValue,
       teamId: 1,
+      orgId,
     });
 
     expect(result).toEqual([
@@ -596,6 +624,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         attributesQueryValue: failingAttributesQueryValue,
         fallbackAttributesQueryValue: null,
         teamId: 1,
+        orgId,
       });
 
       expect(result).toEqual(null);
@@ -619,6 +648,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         attributesQueryValue: failingAttributesQueryValue,
         fallbackAttributesQueryValue: matchingAttributesQueryValue,
         teamId: 1,
+        orgId,
       });
 
       expect(checkedFallback).toEqual(true);
@@ -647,6 +677,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         attributesQueryValue: failingAttributesQueryValue,
         fallbackAttributesQueryValue: failingAttributesQueryValue,
         teamId: 1,
+        orgId,
       });
 
       expect(checkedFallback).toEqual(true);
@@ -691,6 +722,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             ],
           }),
           teamId: 1,
+          orgId,
         })
       ).rejects.toThrow("Unsupported attribute type");
     });
@@ -750,6 +782,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           },
           attributesQueryValue,
           teamId: 1,
+          orgId,
           isPreview: mode === "preview" ? true : false,
           fallbackAttributesQueryValue: null,
         });
@@ -825,6 +858,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           },
           attributesQueryValue,
           teamId: 1,
+          orgId,
           isPreview: mode === "preview" ? true : false,
         });
         return result;
@@ -871,6 +905,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
               },
               attributesQueryValue,
               teamId: 1,
+              orgId,
             },
             {
               concurrency: 1,
@@ -975,6 +1010,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             },
             attributesQueryValue,
             teamId: 1,
+            orgId,
           },
           {
             enableTroubleshooter: true,

@@ -6,7 +6,8 @@ import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { userSelect } from "@calcom/prisma";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { Booking } from "./createBooking";
 import type {
@@ -23,7 +24,7 @@ import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType, OriginalRescheduledBooking } from "./getOriginalRescheduledBooking";
 import type { LoadedUsers } from "./loadUsers";
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
 
 export type OrganizerUser = LoadedUsers[number] & {
   isFixed?: boolean;
@@ -54,10 +55,12 @@ export interface IEventTypePaymentCredentialType {
 
 export type IsFixedAwareUser = User & {
   isFixed: boolean;
-  credentials: CredentialPayload[];
+  credentials: CredentialForCalendarService[];
   organization?: { slug: string };
   priority?: number;
   weight?: number;
+  userLevelSelectedCalendars: SelectedCalendar[];
+  allSelectedCalendars: SelectedCalendar[];
 };
 
 export type NewBookingEventType = DefaultEvent | getEventTypeResponse;

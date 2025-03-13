@@ -1,4 +1,3 @@
-import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -7,10 +6,16 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
+import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { prepareRootMetadata } from "@lib/metadata";
 
+import { ssrInit } from "@server/lib/ssr";
+
 import "../styles/globals.css";
+import { SpeculationRules } from "./SpeculationRules";
+import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -21,15 +26,7 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: false,
-      follow: false,
-    },
-  });
+export const generateMetadata = () => prepareRootMetadata();
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
@@ -63,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
+  const ssr = await ssrInit(buildLegacyCtx(h, cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -81,55 +79,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <script
-          nonce={nonce}
-          id="headScript"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.calNewLocale = "${locale}";
-              (function applyTheme() {
-                try {
-                  const appTheme = localStorage.getItem('app-theme');
-                  if (!appTheme) return;
-
-                  let bookingTheme, username;
-                  for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('booking-theme:')) {
-                      bookingTheme = localStorage.getItem(key);
-                      username = key.split("booking-theme:")[1];
-                      break;
-                    }
-                  }
-
-                  const onReady = () => {
-                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
-
-                    if (document.body) {
-                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
-                    } else {
-                      requestAnimationFrame(onReady);
-                    }
-                  };
-
-                  requestAnimationFrame(onReady);
-                } catch (e) {
-                  console.error('Error applying theme:', e);
-                }
-              })();
-            `,
-          }}
-        />
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        <IconSprites />
       </head>
       <body
-        className="dark:bg-darkgray-50 bg-subtle antialiased"
+        className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed
             ? {
@@ -142,6 +100,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        <IconSprites />
         {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
           <script
             nonce={nonce}
@@ -152,7 +111,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <TrpcProvider>{children}</TrpcProvider>
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
+        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        {!isEmbed && <NotificationSoundHandler />}
+        <NotificationSoundHandler />
       </body>
     </html>
   );

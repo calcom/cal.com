@@ -3,18 +3,20 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
+import { DailyLocationType } from "@calcom/lib/location";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeAppMetadataSchema, EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type App = {
@@ -151,9 +153,11 @@ const handleDeleteCredential = async ({
     if (credential.app?.categories.includes(AppCategories.crm)) {
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
       const appSlugToDelete = credential.app?.slug;
-
+      const apps = eventTypeAppMetadataOptionalSchema.parse(metadata?.apps);
       if (appSlugToDelete) {
-        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, metadata);
+        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, {
+          apps,
+        });
 
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
@@ -179,7 +183,10 @@ const handleDeleteCredential = async ({
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
       const appSlug = credential.app?.slug;
       if (appSlug) {
-        const appMetadata = removeAppFromEventTypeMetadata(appSlug, metadata);
+        const apps = eventTypeAppMetadataOptionalSchema.parse(metadata?.apps);
+        const appMetadata = removeAppFromEventTypeMetadata(appSlug, {
+          apps,
+        });
 
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
@@ -358,7 +365,7 @@ const handleDeleteCredential = async ({
     } else if (
       appStoreMetadata[credential.app?.slug as keyof typeof appStoreMetadata]?.extendsFeature === "EventType"
     ) {
-      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata);
       const appSlug = credential.app?.slug;
       if (appSlug) {
         await prisma.eventType.update({
@@ -423,7 +430,7 @@ const handleDeleteCredential = async ({
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
     try {
-      const calendar = await getCalendar(credential);
+      const calendar = await getCalendar(buildNonDelegationCredential(credential));
 
       const calendars = await calendar?.listCalendars();
 
@@ -456,7 +463,9 @@ const handleDeleteCredential = async ({
 
 const removeAppFromEventTypeMetadata = (
   appSlugToDelete: string,
-  eventTypeMetadata: z.infer<typeof EventTypeMetaDataSchema>
+  eventTypeMetadata: {
+    apps: z.infer<typeof eventTypeAppMetadataOptionalSchema>;
+  }
 ) => {
   const appMetadata = eventTypeMetadata?.apps
     ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {

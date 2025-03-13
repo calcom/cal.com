@@ -9,8 +9,10 @@ export async function handleWebhookTrigger(args: {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: string;
   webhookData: WebhookPayloadType;
+  isDryRun?: boolean;
 }) {
   try {
+    if (args.isDryRun) return;
     const subscribers = await getWebhooks(args.subscriberOptions);
 
     const promises = subscribers.map((sub) =>

@@ -35,6 +35,18 @@ export class TeamsMembershipsRepository {
       include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
     });
   }
+
+  async findTeamMembershipsByNameAndUser(teamName: string, userId: number) {
+    return this.dbRead.prisma.membership.findFirst({
+      where: {
+        team: {
+          name: teamName,
+        },
+        userId,
+      },
+    });
+  }
+
   async deleteTeamMembershipById(teamId: number, membershipId: number) {
     return this.dbWrite.prisma.membership.delete({
       where: {

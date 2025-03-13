@@ -13,7 +13,8 @@ import {
 } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -80,6 +81,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const gCalService = new GoogleCalendarService({
       ...gcalCredential,
       user: null,
+      delegatedTo: null,
     });
 
     const calendar = new calendar_v3.Calendar({
@@ -113,6 +115,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // also this improves performance for most of the happy-paths.
     try {
       await gCalService.upsertSelectedCalendar({
+        // First install should add a user-level selectedCalendar only.
+        eventTypeId: null,
         externalId: selectedCalendarWhereUnique.externalId,
       });
     } catch (error) {

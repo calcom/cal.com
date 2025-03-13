@@ -21,6 +21,8 @@ describe("DELETE /api/event-types/[id]", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     // Mocking membership.findFirst
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     prismaMock.membership.findFirst.mockImplementation(({ where }) => {
       const { userId, teamId, accepted, role } = where;
       const mockData = [

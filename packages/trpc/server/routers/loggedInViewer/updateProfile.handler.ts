@@ -7,13 +7,13 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
-import { validateIntervalLimitOrder } from "@calcom/lib";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
@@ -140,7 +140,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           emailChangeWaitingForVerification: input.email?.toLocaleLowerCase(),
         };
 
-        // Check to ensure this email isnt in use
+        // Check to ensure this email isn't in use
         // Don't include email in the data payload if we need to verify
         delete data.email;
       }
