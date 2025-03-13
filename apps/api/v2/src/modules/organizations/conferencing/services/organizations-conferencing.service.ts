@@ -23,7 +23,8 @@ import { Injectable } from "@nestjs/common";
 
 import { GOOGLE_MEET } from "@calcom/platform-constants";
 import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
-import { handleDeleteCredential, teamMetadataSchema } from "@calcom/platform-libraries";
+import { teamMetadataSchema } from "@calcom/platform-libraries";
+import { handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class OrganizationsConferencingService {
