@@ -16,7 +16,6 @@ import { OrganizationAttributeOptionService } from "@/modules/organizations/attr
 import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/organizations-conferencing.controller";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsDelegationCredentialModule } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.module";
-import { OrganizationsDwdModule } from "@/modules/organizations/dwd/organizations-dwd.module";
 import { OrganizationsEventTypesController } from "@/modules/organizations/event-types/organizations-event-types.controller";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
@@ -72,7 +71,6 @@ import { forwardRef, Module } from "@nestjs/common";
     TeamsModule,
     forwardRef(() => ConferencingModule),
     forwardRef(() => AuthModule),
-    OrganizationsDwdModule,
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
     OrganizationsTeamsRoutingFormsModule,

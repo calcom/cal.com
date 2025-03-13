@@ -22,9 +22,11 @@ import type {
   LocationOption,
 } from "@calcom/platform-libraries/app-store";
 import {
-  getBulkEventTypes,
   getEventTypeById,
   bulkUpdateEventsToDefaultLocation,
+  bulkUpdateTeamEventsToDefaultLocation,
+  getBulkUserEventTypes,
+  getBulkTeamEventTypes,
 } from "@calcom/platform-libraries/event-types";
 import {
   updateEventType,

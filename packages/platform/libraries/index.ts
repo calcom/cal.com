@@ -18,8 +18,6 @@ import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
-
 export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 
 export { slugify } from "@calcom/lib/slugify";
