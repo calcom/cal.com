@@ -182,4 +182,8 @@ export default class AttioCRMService implements CRM {
   public getAppOptions() {
     return this.appOptions;
   }
+
+  async handleAttendeeNoShow() {
+    console.log("Not implemented");
+  }
 }
