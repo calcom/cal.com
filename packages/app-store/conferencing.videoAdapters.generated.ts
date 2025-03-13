@@ -3,7 +3,6 @@
     Don't modify this file manually.
 **/
 export const ConferencingVideoAdapterMap = {
-  campsite: import("./campsite/lib/VideoApiAdapter"),
   dailyvideo: import("./dailyvideo/lib/VideoApiAdapter"),
   huddle01video: import("./huddle01video/lib/VideoApiAdapter"),
   jelly: import("./jelly/lib/VideoApiAdapter"),
