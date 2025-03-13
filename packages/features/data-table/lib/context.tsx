@@ -3,16 +3,8 @@
 import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
 import { createContext, useCallback } from "react";
-import { z } from "zod";
 
-import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./types";
-
-const ZActiveFilter = z.object({
-  f: z.string(),
-  v: ZFilterValue.optional(),
-});
-
-type ActiveFilter = z.infer<typeof ZActiveFilter>;
+import { type FilterValue, ZSorting, ZColumnVisibility, ZActiveFilter, type ActiveFilter } from "./types";
 
 export type DataTableContextType = {
   activeFilters: ActiveFilter[];

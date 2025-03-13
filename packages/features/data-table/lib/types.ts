@@ -207,3 +207,13 @@ export type FacetedValue = {
   value: string | number;
   section?: string;
 };
+
+export type ActiveFilter = {
+  f: string;
+  v?: FilterValue;
+};
+
+export const ZActiveFilter = z.object({
+  f: z.string(),
+  v: ZFilterValue.optional(),
+}) satisfies z.ZodType<ActiveFilter>;
