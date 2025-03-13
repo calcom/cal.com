@@ -1094,6 +1094,11 @@ view RoutingFormResponse {
   bookingStartTime                 DateTime?
   bookingEndTime                   DateTime?
   createdAt                        DateTime
+  utm_source                       String?
+  utm_medium                       String?
+  utm_campaign                     String?
+  utm_term                         String?
+  utm_content                      String?
 }
 
 model Feedback {
