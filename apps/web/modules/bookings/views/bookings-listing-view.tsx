@@ -143,7 +143,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -156,7 +155,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -169,7 +167,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -182,7 +179,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
@@ -195,7 +191,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
@@ -208,7 +203,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
