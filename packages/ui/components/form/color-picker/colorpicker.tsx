@@ -74,6 +74,7 @@ const ColorPicker = (props: ColorPickerProps) => {
             target="_blank"
             variant="icon"
             rel="noreferrer"
+            aria-label="Reset to default"
             StartIcon="rotate-ccw"
             tooltip="Reset to default"
             onClick={() => {
