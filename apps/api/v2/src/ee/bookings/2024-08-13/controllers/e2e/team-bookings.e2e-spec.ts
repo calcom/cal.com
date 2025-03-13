@@ -68,8 +68,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     const team2EventTypeSlug = `team-bookings-event-type-${randomString()}`;
     const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomString()}`;
 
-    const phoneNumber = "+919876543210";
-    let phoneBasedBookingUid: string;
+    let phoneBasedBooking: BookingOutput_2024_08_13;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -413,6 +412,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a phone based booking", async () => {
+        const phoneNumber = "+919876543210";
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
           eventTypeId: phoneOnlyEventTypeId,
@@ -458,7 +458,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(data.meetingUrl).toEqual(body.meetingUrl);
               expect(data.absentHost).toEqual(false);
-              phoneBasedBookingUid = data.uid;
+              expect(data.bookingFieldsResponses.attendeePhoneNumber).toEqual(phoneNumber);
+              phoneBasedBooking = data;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -633,26 +634,47 @@ describe("Bookings Endpoints 2024-08-13", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/v2/bookings/${phoneBasedBookingUid}/reschedule`)
+          .post(`/v2/bookings/${phoneBasedBooking.uid}/reschedule`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(201)
           .then(async (response) => {
-            const afterCreate = new Date();
             const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            const data: BookingOutput_2024_08_13 = responseBody.data;
-            expect(data.reschedulingReason).toEqual(body.reschedulingReason);
-            expect(data.start).toEqual(body.start);
-            expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 8, 14, 15, 0)).toISOString());
-            expect(data.rescheduledFromUid).toEqual(phoneBasedBookingUid);
-            expect(data.id).toBeDefined();
-            expect(data.uid).toBeDefined();
-            expect(data.attendees[0].phoneNumber).toEqual(phoneNumber);
-            expect(data.bookingFieldsResponses.attendeePhoneNumber).toEqual(phoneNumber);
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 8, 14, 15, 0)).toISOString());
+              expect(data.duration).toEqual(15);
+              expect(data.eventTypeId).toEqual(phoneOnlyEventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: phoneBasedBooking.attendees[0].name,
+                email: phoneBasedBooking.attendees[0].email,
+                phoneNumber: phoneBasedBooking.attendees[0].phoneNumber,
+                timeZone: phoneBasedBooking.attendees[0].timeZone,
+                language: phoneBasedBooking.attendees[0].language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(phoneBasedBooking.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+              expect(data.bookingFieldsResponses.attendeePhoneNumber).toEqual(
+                phoneBasedBooking.bookingFieldsResponses.attendeePhoneNumber
+              );
+              phoneBasedBooking = data;
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
           });
       });
     });
