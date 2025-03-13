@@ -1,33 +1,26 @@
 "use client";
 
-import type { Table as ReactTableType, VisibilityState } from "@tanstack/react-table";
+import type { VisibilityState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 
-import {
-  DataTable,
-  DataTablePagination,
-  useFetchMoreOnBottomReached,
-  useDataTable,
-  useColumnFilters,
-} from "@calcom/features/data-table";
+import { useColumnFilters } from "../hooks/useColumnFilters";
+import { useDataTable } from "../hooks/useDataTable";
+import { useFetchMoreOnBottomReached } from "../hooks/useFetchMoreOnBottomReached";
+import type { DataTablePropsFromWrapper } from "./DataTable";
+import { DataTable } from "./DataTable";
+import { DataTablePagination } from "./DataTablePagination";
 
-type BaseDataTableWrapperProps<TData> = {
-  testId?: string;
-  bodyTestId?: string;
-  table: ReactTableType<TData>;
-  isPending: boolean;
-  hideHeader?: boolean;
-  variant?: "default" | "compact";
+type BaseDataTableWrapperProps<TData> = Omit<
+  DataTablePropsFromWrapper<TData>,
+  "paginationMode" | "tableContainerRef"
+> & {
   totalRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
-  className?: string;
-  containerClassName?: string;
-  children?: React.ReactNode;
   tableContainerRef?: React.RefObject<HTMLDivElement>;
 };
 
@@ -57,13 +50,14 @@ export function DataTableWrapper<TData>({
   isFetching,
   totalRowCount,
   variant,
-  hideHeader,
   ToolbarLeft,
   ToolbarRight,
   EmptyView,
   LoaderView,
   className,
   containerClassName,
+  headerClassName,
+  rowClassName,
   children,
   tableContainerRef: externalRef,
   paginationMode,
@@ -130,10 +124,11 @@ export function DataTableWrapper<TData>({
           tableContainerRef={tableContainerRef}
           isPending={isPending}
           enableColumnResizing={true}
-          hideHeader={hideHeader}
           variant={variant}
           className={className}
           containerClassName={containerClassName}
+          headerClassName={headerClassName}
+          rowClassName={rowClassName}
           paginationMode={paginationMode}
           onScroll={
             paginationMode === "infinite"
@@ -141,15 +136,13 @@ export function DataTableWrapper<TData>({
                   fetchMoreOnBottomReached(e.target as HTMLDivElement)
               : undefined
           }>
-          {totalRowCount && (
-            <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-              <DataTablePagination<TData>
-                table={table}
-                totalRowCount={totalRowCount}
-                paginationMode={paginationMode}
-              />
-            </div>
-          )}
+          <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+            <DataTablePagination<TData>
+              table={table}
+              totalRowCount={totalRowCount}
+              paginationMode={paginationMode}
+            />
+          </div>
         </DataTable>
       )}
     </>
