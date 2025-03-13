@@ -113,7 +113,7 @@ export {
   ConfirmationContent,
 } from "./components/dialog";
 export type { DialogProps, ConfirmationDialogContentProps } from "./components/dialog";
-export { AppListCard } from "./components/app-list-card";
+export { AppListCard } from "./components/app-list-card/AppListCard";
 export { DisconnectIntegrationComponent } from "./components/disconnect-calendar-integration";
 export { CalendarSwitchComponent } from "./components/calendar-switch";
 export { showToast, ErrorToast, SuccessToast, WarningToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
