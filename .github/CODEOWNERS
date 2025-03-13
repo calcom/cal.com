@@ -1,3 +1,4 @@
+/**/package.json @calcom/Foundation
 /apps/api/**/* @calcom/Platform @calcom/Foundation
 /deploy/**/* @calcom/Foundation
 /infra/**/* @calcom/Foundation

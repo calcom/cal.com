@@ -399,6 +399,14 @@ describe("enrichUsersWithDelegationCredentials", () => {
       }))
     );
   });
+
+  it("should return empty array when users is empty", async () => {
+    const result = await enrichUsersWithDelegationCredentials({
+      orgId: 1,
+      users: [],
+    });
+    expect(result).toEqual([]);
+  });
 });
 
 describe("enrichHostsWithDelegationCredentials", () => {
@@ -497,6 +505,14 @@ describe("enrichHostsWithDelegationCredentials", () => {
         },
       }))
     );
+  });
+
+  it("should return empty array when hosts is empty", async () => {
+    const result = await enrichHostsWithDelegationCredentials({
+      orgId: 1,
+      hosts: [],
+    });
+    expect(result).toEqual([]);
   });
 });
 

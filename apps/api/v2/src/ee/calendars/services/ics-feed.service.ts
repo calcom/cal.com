@@ -6,7 +6,8 @@ import { BadRequestException, UnauthorizedException, Logger } from "@nestjs/comm
 import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, ICS_CALENDAR_TYPE, ICS_CALENDAR } from "@calcom/platform-constants";
-import { symmetricEncrypt, IcsFeedCalendarService } from "@calcom/platform-libraries";
+import { symmetricEncrypt } from "@calcom/platform-libraries";
+import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class IcsFeedService implements ICSFeedCalendarApp {
