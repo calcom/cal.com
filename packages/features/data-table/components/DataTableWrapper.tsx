@@ -5,8 +5,6 @@ import type { VisibilityState } from "@tanstack/react-table";
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 
-import classNames from "@calcom/ui/classNames";
-
 import { useColumnFilters } from "../hooks/useColumnFilters";
 import { useDataTable } from "../hooks/useDataTable";
 import { useFetchMoreOnBottomReached } from "../hooks/useFetchMoreOnBottomReached";
@@ -105,7 +103,7 @@ export function DataTableWrapper<TData>({
   return (
     <>
       {(ToolbarLeft || ToolbarRight || children) && (
-        <div className={classNames("grid w-full items-center gap-2 py-4", className)}>
+        <div className="grid w-full items-center gap-2 pb-4">
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-wrap justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
