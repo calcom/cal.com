@@ -593,6 +593,7 @@ export class InputBookingsService_2024_08_13 {
     if (bookingResponsesMissing) {
       bookingResponses.name = attendee.name;
       bookingResponses.email = attendee.email;
+      bookingResponses.attendeePhoneNumber = attendee.phoneNumber || undefined;
     }
 
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
