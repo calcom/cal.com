@@ -4,7 +4,6 @@ const appStore = {
   aroundvideo: createCachedImport(() => import("./around")),
   attio: createCachedImport(() => import("./attio")),
   caldavcalendar: createCachedImport(() => import("./caldavcalendar")),
-  campsiteconferencing: createCachedImport(() => import("./campsite")),
   closecom: createCachedImport(() => import("./closecom")),
   dailyvideo: createCachedImport(() => import("./dailyvideo")),
   googlecalendar: createCachedImport(() => import("./googlecalendar")),

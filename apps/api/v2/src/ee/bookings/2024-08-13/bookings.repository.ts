@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-
+import type { Prisma } from "@prisma/client";
 @Injectable()
 export class BookingsRepository_2024_08_13 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -98,7 +98,7 @@ export class BookingsRepository_2024_08_13 {
   }
 
   async getByUidWithAttendeesAndUserAndEvent(uid: string) {
-    return this.dbRead.prisma.booking.findUnique({
+    const booking = await this.dbRead.prisma.booking.findUnique({
       where: {
         uid,
       },
@@ -108,6 +108,15 @@ export class BookingsRepository_2024_08_13 {
         eventType: true,
       },
     });
+    if (!booking) {
+      return null;
+    }
+
+    return {
+      ...booking,
+      responses: booking.responses as Prisma.JsonObject,
+      metadata: booking.metadata as Prisma.JsonObject | null,
+    };
   }
 
   async getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid: string) {

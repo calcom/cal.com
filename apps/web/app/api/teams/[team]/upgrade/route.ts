@@ -1,3 +1,5 @@
+import type { Params } from "app/_types";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -19,7 +21,7 @@ const querySchema = z.object({
   session_id: z.string().min(1),
 });
 
-export async function GET(req: NextRequest, { params }: { params: { team: string } }) {
+async function getHandler(req: NextRequest, { params }: { params: Params }) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const { team: id, session_id } = querySchema.parse({
@@ -102,3 +104,5 @@ export async function GET(req: NextRequest, { params }: { params: { team: string
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export const GET = defaultResponderForAppDir(getHandler);
