@@ -145,7 +145,8 @@ test.describe("Routing Forms", () => {
       await verifyFieldOptionsInRule(options, page);
     });
 
-    test.describe("F1<-F2 Relationship", () => {
+    // This feature is disable till it is fully supported and tested with Routing Form with Attributes.
+    test.describe.skip("F1<-F2 Relationship", () => {
       test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
         await page.goto(`/routing-forms/forms`);
