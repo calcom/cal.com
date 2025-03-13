@@ -6,7 +6,7 @@ import type { TextComponent } from "../lib";
 /**
  * Check if the url is a valid cal.com url
  * @param url
- * @returns boolean
+ * @returns IsValid
  */
 export async function isValidCalURL(url: string) {
   const regex = new RegExp(`^${WEBAPP_URL}/`, `i`);
@@ -18,7 +18,11 @@ export async function isValidCalURL(url: string) {
     align: "left",
   };
 
-  if (!regex.test(url)) return error;
+  if (!regex.test(url))
+    return {
+      isValid: false,
+      error,
+    };
 
   const urlWithoutCal = url.replace(regex, "");
 
@@ -26,7 +30,11 @@ export async function isValidCalURL(url: string) {
   const usernameOrTeamSlug = urlParts[0];
   const eventTypeSlug = urlParts[1];
 
-  if (!usernameOrTeamSlug || !eventTypeSlug) return error;
+  if (!usernameOrTeamSlug || !eventTypeSlug)
+    return {
+      isValid: false,
+      error,
+    };
 
   // Find all potential users with the given username
   const potentialUsers = await prisma.user.findMany({
@@ -64,11 +72,19 @@ export async function isValidCalURL(url: string) {
   // Check if any team has the matching eventTypeSlug
   const matchingTeam = potentialTeams.find((team) => team.eventTypes.length > 0);
 
-  if (!matchingUser && !matchingTeam) return error;
+  if (!matchingUser && !matchingTeam)
+    return {
+      isValid: false,
+      error,
+    };
 
   const userOrTeam = matchingUser || matchingTeam;
 
-  if (!userOrTeam) return error;
+  if (!userOrTeam)
+    return {
+      isValid: false,
+      error,
+    };
 
   // Retrieve the correct user or team
   const userOrTeamId = userOrTeam.id;
@@ -81,7 +97,13 @@ export async function isValidCalURL(url: string) {
     },
   });
 
-  if (!eventType) return error;
+  if (!eventType)
+    return {
+      isValid: false,
+      error,
+    };
 
-  return true;
+  return {
+    isValid: true,
+  };
 }

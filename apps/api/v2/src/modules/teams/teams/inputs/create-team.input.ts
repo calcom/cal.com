@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsString, IsUrl, Length } from "class-validator";
+import { IsBoolean, IsObject, IsOptional, IsString, IsUrl, Length } from "class-validator";
+
+import { Metadata, METADATA_DOCS, ValidateMetadata } from "@calcom/platform-types";
 
 export class CreateTeamInput {
   @IsString()
@@ -56,10 +58,15 @@ export class CreateTeamInput {
   @ApiPropertyOptional()
   readonly hideBookATeamMember?: boolean;
 
+  @ApiPropertyOptional({
+    type: Object,
+    description: METADATA_DOCS,
+    example: { key: "value" },
+  })
+  @IsObject()
   @IsOptional()
-  @IsString()
-  @ApiPropertyOptional()
-  readonly metadata?: string; // Assuming metadata is a JSON string. Adjust accordingly if it's a nested object.
+  @ValidateMetadata()
+  metadata?: Metadata;
 
   @IsOptional()
   @IsString()

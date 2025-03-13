@@ -4,7 +4,6 @@ import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -19,6 +18,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { createInstantMeetingWithCalVideo } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -143,14 +143,8 @@ const triggerBrowserNotifications = async (args: {
       title: title,
       body: "User is waiting for you to join. Click to Connect",
       url: connectAndJoinUrl,
-      actions: [
-        {
-          action: "connect-action",
-          title: "Connect and join",
-          type: "button",
-          image: "https://cal.com/api/logo?type=icon",
-        },
-      ],
+      type: "INSTANT_MEETING",
+      requireInteraction: false,
     });
   });
 

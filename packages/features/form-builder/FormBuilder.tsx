@@ -6,7 +6,6 @@ import type { z } from "zod";
 import { ZodError } from "zod";
 
 import { getCurrencySymbol } from "@calcom/app-store/_utils/payments/currencyConversions";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
@@ -31,6 +30,7 @@ import {
   Editor,
   Switch,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";

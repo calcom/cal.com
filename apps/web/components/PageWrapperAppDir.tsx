@@ -15,7 +15,6 @@ export type PageWrapperProps = Readonly<{
   children: React.ReactNode;
   requiresLicense: boolean;
   nonce: string | undefined;
-  themeBasis: string | null;
   isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;
