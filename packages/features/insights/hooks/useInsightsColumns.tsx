@@ -6,9 +6,11 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { dataTableFilter, ColumnFilterType } from "@calcom/features/data-table";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import { Badge } from "@calcom/ui";
+import { Badge, Icon } from "@calcom/ui";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -66,6 +68,32 @@ export const useInsightsColumns = ({
         filterFn: (row, id, filterValue) => {
           const cellValue = row.original.bookingUserId;
           return dataTableFilter(cellValue, filterValue);
+        },
+      }),
+      columnHelper.accessor("bookingUid", {
+        id: "bookingUid",
+        header: t("uid"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          const bookingUid = info.getValue();
+          if (!bookingUid) return null;
+          return <CopyButton label={bookingUid} value={bookingUid} />;
+        },
+      }),
+      columnHelper.accessor("bookingUid", {
+        id: "bookingLink",
+        header: t("link"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          const bookingUid = info.getValue();
+          if (!bookingUid) return null;
+          const bookingUrl = `${WEBAPP_URL}/booking/${bookingUid}`;
+          const displayedUrl = bookingUrl.replace(/^https?:\/\//, "");
+          return <CopyButton label={displayedUrl} value={bookingUrl} />;
         },
       }),
       columnHelper.accessor("bookingAttendees", {
@@ -225,3 +253,29 @@ export const useInsightsColumns = ({
     ];
   }, [isHeadersSuccess, headers]);
 };
+
+function CopyButton({ label, value }: { label: string; value: string }) {
+  const { copyToClipboard, isCopied } = useCopy();
+  const { t } = useLocale();
+  return (
+    <button
+      className="flex w-full items-center gap-1 overflow-hidden"
+      title={value}
+      onClick={() => {
+        copyToClipboard(value);
+      }}>
+      {!isCopied && (
+        <>
+          <span className="truncate">{label}</span>
+          <Icon name="clipboard" className="shrink-0" size={14} />
+        </>
+      )}
+      {isCopied && (
+        <>
+          <span className="grow truncate text-left">{t("copied")}</span>
+          <Icon name="check" className="shrink-0" size={14} />
+        </>
+      )}
+    </button>
+  );
+}

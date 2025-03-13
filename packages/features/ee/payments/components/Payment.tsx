@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PaymentOption } from "@calcom/prisma/enums";
@@ -177,6 +178,9 @@ const PaymentForm = (props: Props) => {
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
+        confirmParams: {
+          return_url: `${WEBAPP_URL}/booking/${params.uid}`,
+        },
         redirect: "if_required",
       });
       if (payload.paymentIntent) {

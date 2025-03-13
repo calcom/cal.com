@@ -125,6 +125,7 @@ const commons = {
   fieldTranslations: [],
   maxLeadThreshold: null,
   useEventLevelSelectedCalendars: false,
+  rrResetInterval: null,
   interfaceLanguage: VISITOR_BROWSER_LANGUAGE,
 };
 

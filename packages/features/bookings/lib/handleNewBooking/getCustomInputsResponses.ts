@@ -1,7 +1,7 @@
 import type z from "zod";
 
 import { slugify } from "@calcom/lib/slugify";
-import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
+import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod/custom/booking";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { getEventTypeResponse } from "./types";

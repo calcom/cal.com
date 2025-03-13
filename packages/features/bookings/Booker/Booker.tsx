@@ -7,7 +7,8 @@ import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useIsPlatformBookerEmbed, BookerI18nextProvider } from "@calcom/atoms/monorepo";
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
+import { BookerI18nextProvider } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
