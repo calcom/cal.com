@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
@@ -13,6 +13,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { BookerI18nextProvider } from "@calcom/atoms/booker";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
@@ -26,6 +27,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
@@ -101,7 +103,32 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-export default function Success(props: PageProps) {
+export default function SuccessWrapper(props: PageProps) {
+  const { data: session } = useSession();
+  const eventType = props.eventType;
+  const interfaceLanguage = eventType.interfaceLanguage;
+
+  const locale = useMemo(() => {
+    if (!!interfaceLanguage && interfaceLanguage !== VISITOR_BROWSER_LANGUAGE) {
+      return interfaceLanguage;
+    }
+    return session?.user.locale;
+  }, [props.eventType, session]);
+
+  return (
+    <>
+      {locale && locale !== session?.user.locale ? (
+        <BookerI18nextProvider locale={locale}>
+          <Success {...props} />
+        </BookerI18nextProvider>
+      ) : (
+        <Success {...props} />
+      )}
+    </>
+  );
+}
+
+function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
