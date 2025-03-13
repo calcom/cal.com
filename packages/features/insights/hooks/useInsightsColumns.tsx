@@ -234,6 +234,119 @@ export const useInsightsColumns = ({
           return dataTableFilter(reason, filterValue);
         },
       }),
+      columnHelper.accessor("utm_source", {
+        id: "utm_source",
+        header: t("utm_source"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_source", {
+        id: "utm_source",
+        header: "utm_source",
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_medium", {
+        id: "utm_medium",
+        header: "utm_medium",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_content", {
+        id: "utm_content",
+        header: "utm_content",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_term", {
+        id: "utm_term",
+        header: "utm_term",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_content", {
+        id: "utm_content",
+        header: "utm_content",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_campaign", {
+        id: "utm_campaign",
+        header: "utm_campaign",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("createdAt", {
+        id: "createdAt",
+        header: t("routing_form_insights_submitted_at"),
+        // exclude from "Filters" component
+        // because we already have a DateRangeFilter component
+        enableColumnFilter: false,
+        cell: (info) => (
+          <div className="whitespace-nowrap">
+            <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
+          </div>
+        ),
+        filterFn: (row, id, filterValue) => {
+          const createdAt = row.original.createdAt;
+          return dataTableFilter(createdAt, filterValue);
+        },
+      }),
       columnHelper.accessor("createdAt", {
         id: "createdAt",
         header: t("routing_form_insights_submitted_at"),

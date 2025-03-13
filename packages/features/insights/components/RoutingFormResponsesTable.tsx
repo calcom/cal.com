@@ -100,6 +100,11 @@ export function RoutingFormResponsesTable() {
       columnVisibility: {
         formId: false,
         bookingUserId: false,
+        utm_source: false,
+        utm_medium: false,
+        utm_campaign: false,
+        utm_term: false,
+        utm_content: false,
       },
     },
     getFacetedUniqueValues: getInsightsFacetedUniqueValues,
