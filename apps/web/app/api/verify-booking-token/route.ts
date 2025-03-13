@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import { headers, cookies } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -27,7 +28,7 @@ const querySchema = z.object({
   userId: z.string(),
 });
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const url = new URL(request.url);
   const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const url = new URL(request.url);
   const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
@@ -148,3 +149,6 @@ async function handleBookingAction(
 
   return NextResponse.redirect(`/booking/${booking.uid}`);
 }
+
+export const GET = defaultResponderForAppDir(getHandler);
+export const POST = defaultResponderForAppDir(postHandler);

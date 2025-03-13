@@ -1,14 +1,3 @@
-import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
-import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
-import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
-import AttendeeRescheduledEmail from "@calcom/emails/templates/attendee-rescheduled-email";
-import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
-import AttendeeUpdatedEmail from "@calcom/emails/templates/attendee-updated-email";
-import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
-import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
-import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
-import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
-import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
@@ -27,22 +16,12 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
-import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
-import {
-  createNewUsersConnectToOrgIfExists,
-  sendSignupToOrganizationEmail,
-} from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
+import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
-export { updateScheduleHandler };
-export type UpdateScheduleOutputType = Awaited<
-  ReturnType<
-    typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
-  >
->;
 
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
@@ -63,14 +42,6 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
-export {
-  transformWorkingHoursForAtom,
-  transformAvailabilityForAtom,
-  transformDateOverridesForAtom,
-  transformApiScheduleAvailability,
-  transformApiScheduleOverrides,
-} from "@calcom/lib/schedules/transformers";
-
 export type {
   BookingCreateBody,
   BookingResponse,
@@ -84,8 +55,7 @@ export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezon
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 
 export { TRPCError } from "@trpc/server";
-export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
-export { createNewUsersConnectToOrgIfExists, sendSignupToOrganizationEmail };
+export { createNewUsersConnectToOrgIfExists };
 
 export { getAllUserBookings };
 export { getBookingInfo };
@@ -118,28 +88,6 @@ export { getClientSecretFromPayment };
 
 export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 
-export { AttendeeScheduledEmail };
-
-export { OrganizerScheduledEmail };
-
-export { AttendeeDeclinedEmail };
-
-export { AttendeeCancelledEmail };
-
-export { OrganizerCancelledEmail };
-
-export { OrganizerReassignedEmail };
-
-export { OrganizerRescheduledEmail };
-
-export { AttendeeRescheduledEmail };
-
-export { AttendeeUpdatedEmail };
-
-export { OrganizerRequestEmail };
-
-export { AttendeeRequestEmail };
-
 export { getBookingFieldsWithSystemFields };
 
 export { getRoutedUrl };
@@ -149,3 +97,4 @@ export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
+export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";

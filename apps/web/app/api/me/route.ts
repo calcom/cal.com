@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -8,7 +9,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 let isCold = true;
 
-export async function GET() {
+async function getHandler() {
   const prePrismaDate = performance.now();
   const prisma = (await import("@calcom/prisma")).default;
   const preSessionDate = performance.now();
@@ -48,3 +49,5 @@ export async function GET() {
 
   return response;
 }
+
+export const GET = defaultResponderForAppDir(getHandler);

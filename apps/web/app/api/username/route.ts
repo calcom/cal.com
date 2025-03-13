@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -13,7 +14,7 @@ const bodySchema = z.object({
   orgSlug: z.string().optional(),
 });
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const body = await request.json();
     const { username, orgSlug } = bodySchema.parse(body);
@@ -31,3 +32,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to check username availability" }, { status: 400 });
   }
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

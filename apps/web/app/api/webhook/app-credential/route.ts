@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -16,7 +17,7 @@ const appCredentialWebhookRequestBodySchema = z.object({
   keys: z.string(),
 });
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   if (!APP_CREDENTIAL_SHARING_ENABLED) {
     return NextResponse.json({ message: "Credential sharing is not enabled" }, { status: 403 });
   }
@@ -101,3 +102,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
+
+export const POST = defaultResponderForAppDir(postHandler);
