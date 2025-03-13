@@ -17,6 +17,7 @@ import type {
   RoutingFormResponsesInput,
   RoutingFormStatsInput,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
 import { type ResponseValue, ZResponse } from "../lib/types";
@@ -408,6 +409,8 @@ class RoutingEventsInsights {
       }, {} as Record<string, string | undefined>);
 
       return {
+        "Booking UID": item.bookingUid,
+        "Booking Link": item.bookingUid ? `${WEBAPP_URL}/booking/${item.bookingUid}` : "",
         "Response ID": item.id,
         "Form Name": item.formName,
         "Submitted At": item.createdAt.toISOString(),
