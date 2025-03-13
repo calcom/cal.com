@@ -2952,15 +2952,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/campsite@workspace:packages/app-store/campsite":
-  version: 0.0.0-use.local
-  resolution: "@calcom/campsite@workspace:packages/app-store/campsite"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/chatbase@workspace:packages/app-store/chatbase":
   version: 0.0.0-use.local
   resolution: "@calcom/chatbase@workspace:packages/app-store/chatbase"
