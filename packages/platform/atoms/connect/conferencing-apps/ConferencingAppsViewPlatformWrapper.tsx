@@ -211,13 +211,13 @@ export const ConferencingAppsViewPlatformWrapper = ({
             </DropdownMenuItem>
           )}
 
-          {/* {installedApps && !installedApps?.find((app) => app.slug == OFFICE_365_VIDEO) && ( */}
-          <DropdownMenuItem>
-            <DropdownItem color="secondary" onClick={() => setIsAccountModalOpen(true)}>
-              {t("office_365_video")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          {/* )} */}
+          {installedApps && !installedApps?.find((app) => app.slug == OFFICE_365_VIDEO) && (
+            <DropdownMenuItem>
+              <DropdownItem color="secondary" onClick={() => setIsAccountModalOpen(true)}>
+                {t("office_365_video")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </Dropdown>
     );
