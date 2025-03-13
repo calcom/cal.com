@@ -337,6 +337,24 @@ export async function getBookings({
               },
             ]
           : []),
+        ...(filters?.afterCreatedDate
+          ? [
+              {
+                createdAt: {
+                  gte: dayjs.utc(filters.afterCreatedDate).toDate(),
+                },
+              },
+            ]
+          : []),
+        ...(filters?.beforeCreatedDate
+          ? [
+              {
+                createdAt: {
+                  lte: dayjs.utc(filters.beforeCreatedDate).toDate(),
+                },
+              },
+            ]
+          : []),
       ],
     },
     select: bookingSelect,
