@@ -9,7 +9,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { OriginalRescheduledBooking } from "../../handleNewBooking/types";
+import type { OriginalRescheduledBooking } from "../../handleNewBooking/originalRescheduledBookingUtils";
 
 /* Check if the original booking has no more attendees, if so delete the booking
   and any calendar or video integrations */
