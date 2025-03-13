@@ -57,7 +57,7 @@ export {
   inputStyles,
 } from "./components/form";
 
-export { Slider as RangeSlider } from "./components/form/slider";
+export { RangeSlider } from "./components/form/slider/RangeSlider";
 export { RangeSliderPopover } from "./components/form/slider/RangeSliderPopover";
 
 export {
@@ -159,7 +159,7 @@ export {
   CommandInput,
   CommandSeparator,
   CommandShortcut,
-} from "./components/command";
+} from "./components/command/Command";
 
 export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardPortal } from "./components/hover-card";
 
