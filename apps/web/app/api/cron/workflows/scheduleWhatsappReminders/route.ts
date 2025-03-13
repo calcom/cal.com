@@ -1,3 +1,5 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+
 import { handler } from "@calcom/features/ee/workflows/api/scheduleWhatsappReminders";
 
-export { handler as POST };
+export const POST = defaultResponderForAppDir(handler);

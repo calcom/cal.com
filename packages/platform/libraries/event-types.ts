@@ -43,6 +43,7 @@ export {
   systemAfterFieldTitle,
   systemAfterFieldNotes,
   systemAfterFieldGuests,
+  apiToInternalintegrationsMapping,
 } from "@calcom/lib/event-types/transformers";
 
 export type {
