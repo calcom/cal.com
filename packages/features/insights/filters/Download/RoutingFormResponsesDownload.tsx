@@ -17,10 +17,7 @@ type Props = {
   sorting: SortingState;
 };
 
-type Batch = {
-  data: RoutingData[];
-  nextCursor: number | undefined;
-};
+const BATCH_SIZE = 100; // Increased batch size for downloads
 
 export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { t } = useLocale();
@@ -31,12 +28,12 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const utils = trpc.useUtils();
 
   const fetchBatch = async (
-    cursor: number | undefined = undefined
+    offset: number
   ): Promise<{
     data: RoutingData[];
-    nextCursor: number | undefined;
+    total: number;
   }> => {
-    const { data, nextCursor } = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
+    const result = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
       teamId,
       startDate,
       endDate,
@@ -46,27 +43,28 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       routingFormId,
       columnFilters,
       sorting,
-      cursor,
+      limit: BATCH_SIZE,
+      offset,
     });
-    return {
-      data,
-      nextCursor,
-    };
+    return result;
   };
 
   const handleDownloadClick = async () => {
     try {
       setIsDownloading(true);
       let allData: RoutingData[] = [];
-      let hasMore = true;
-      let cursor: number | undefined = undefined;
+      let offset = 0;
 
-      // Fetch data in batches until there's no more data
-      while (hasMore) {
-        const result: Batch = await fetchBatch(cursor);
+      // Get first batch to get total count
+      const firstBatch = await fetchBatch(0);
+      allData = [...firstBatch.data];
+      const totalRecords = firstBatch.total;
+
+      // Continue fetching remaining batches
+      while (allData.length < totalRecords) {
+        offset += BATCH_SIZE;
+        const result = await fetchBatch(offset);
         allData = [...allData, ...result.data];
-        hasMore = result.nextCursor !== undefined;
-        cursor = result.nextCursor;
       }
 
       if (allData.length > 0) {
