@@ -23,6 +23,7 @@ const useSkipConfirmStep = (
     const checkSkipStep = async () => {
       if (
         !bookingFields ||
+        // If there are multiple locations to select, we can't skip
         bookingFields.some((field) => field.name === "location" && field.type === "radioInput")
       ) {
         setCanSkip(false);
