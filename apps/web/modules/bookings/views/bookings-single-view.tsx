@@ -310,12 +310,18 @@ export default function Success(props: PageProps) {
       const host = bookingInfo.user.name || bookingInfo.user.email;
 
       if (isHost || isAttendee) {
-        return t(`round_robin_emailed_you_and_attendees${titleSuffix}`, {
-          user: isHost ? attendee : host,
-        });
+        if (titlePrefix) {
+          return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
+            user: isHost ? attendee : host,
+          });
+        } else {
+          return t(`round_robin_emailed_you_and_attendees${titleSuffix}`, {
+            user: isHost ? attendee : host,
+          });
+        }
       }
 
-      return t(`round_robin_emailed_host_and_attendee${titleSuffix}`, {
+      return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
         host,
         attendee,
       });
