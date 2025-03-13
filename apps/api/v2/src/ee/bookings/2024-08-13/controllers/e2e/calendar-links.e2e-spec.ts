@@ -150,7 +150,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       expect(response.body.status).toEqual(SUCCESS_STATUS);
       expect(response.body.data).toBeDefined();
-
+      
       const googleCalendarLink = response.body.data.find((item: { id: string }) => item.id === 'googleCalendar').link;
       const microsoftOfficeLink = response.body.data.find((item: { id: string }) => item.id === 'microsoftOffice').link;
       const microsoftOutlookLink = response.body.data.find((item: { id: string }) => item.id === 'microsoftOutlook').link;
