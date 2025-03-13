@@ -8,9 +8,12 @@ import {
   IsOptional,
   IsArray,
   IsObject,
-  IsEmail,
   ValidateNested,
+  isEmail,
+  Validate,
 } from "class-validator";
+
+import { RESCHEDULED_BY_DOCS } from "@calcom/platform-types";
 
 class Location {
   @IsString()
@@ -27,14 +30,17 @@ class Response {
   @ApiProperty()
   name!: string;
 
-  @IsEmail()
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid response email",
+  })
   @ApiProperty()
   email!: string;
 
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @ApiProperty({ type: [String] })
-  guests!: string[];
+  @ApiPropertyOptional({ type: [String] })
+  guests?: string[];
 
   @IsOptional()
   @ValidateNested()
@@ -71,6 +77,13 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   rescheduleUid?: string;
+
+  @IsOptional()
+  @ApiPropertyOptional({ description: RESCHEDULED_BY_DOCS })
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid rescheduledBy email format",
+  })
+  rescheduledBy?: string;
 
   @IsTimeZone()
   @ApiProperty()
@@ -113,8 +126,9 @@ export class CreateBookingInput_2024_04_15 {
   @ApiPropertyOptional()
   seatReferenceUid?: string;
 
-  @Type(() => Response)
   @ApiProperty({ type: Response })
+  @ValidateNested()
+  @Type(() => Response)
   responses!: Response;
 
   @IsString()

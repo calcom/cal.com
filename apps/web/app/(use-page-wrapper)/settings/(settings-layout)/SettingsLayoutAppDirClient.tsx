@@ -10,7 +10,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -21,6 +20,7 @@ import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/pr
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Icon, Skeleton, VerticalTabItem } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -35,6 +35,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "conferencing", href: "/settings/my-account/conferencing" },
         { name: "appearance", href: "/settings/my-account/appearance" },
         { name: "out_of_office", href: "/settings/my-account/out-of-office" },
+        { name: "push_notifications", href: "/settings/my-account/push-notifications" },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
@@ -168,10 +169,10 @@ const organizationAdminKeys = [
   "OAuth Clients",
   "SSO",
   "directory_sync",
-  "domain_wide_delegation",
+  "delegation_credential",
 ];
 
-const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
+const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -202,11 +203,11 @@ const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
           });
         }
 
-        // Add domain-wide-delegation menu item only if feature flag is enabled
-        if (isDwdEnabled) {
+        // Add delegation-credential menu item only if feature flag is enabled
+        if (isDelegationCredentialEnabled) {
           newArray.push({
-            name: "domain_wide_delegation",
-            href: "/settings/organizations/domain-wide-delegation",
+            name: "delegation_credential",
+            href: "/settings/organizations/delegation-credential",
           });
         }
 
@@ -243,7 +244,7 @@ const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDwdEnabled]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
 
   return processTabsMemod;
 };
@@ -440,7 +441,9 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org && !currentOrgProp,
   });
 
-  const tabsWithPermissions = useTabs({ isDwdEnabled: !!_currentOrg?.features?.domainWideDelegation });
+  const tabsWithPermissions = useTabs({
+    isDelegationCredentialEnabled: !!_currentOrg?.features?.delegationCredential,
+  });
 
   const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     enabled: !!session.data?.user?.org && !otherTeamsProp,

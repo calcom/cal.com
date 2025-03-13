@@ -4,7 +4,7 @@ import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { transformTeamLocationsApiToInternal } from "@calcom/platform-libraries";
+import { transformTeamLocationsApiToInternal } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
@@ -12,6 +12,13 @@ import {
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/client";
 
+export type TransformedCreateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>
+>;
+
+export type TransformedUpdateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputUpdateTeamEventType"]>
+>;
 @Injectable()
 export class InputOrganizationsEventTypesService {
   constructor(
@@ -245,7 +252,11 @@ export class InputOrganizationsEventTypesService {
       const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
       const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
       if (invalidHosts.length) {
-        throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
+        throw new NotFoundException(
+          `Invalid hosts: ${invalidHosts
+            .map((host) => host.userId)
+            .join(", ")} are not members of team with id ${teamId}.`
+        );
       }
     }
   }

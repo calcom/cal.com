@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -17,7 +18,7 @@ const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
   credentialId: z.coerce.number(),
-  domainWideDelegationCredentialId: z.string().nullish().default(null),
+  delegationCredentialId: z.string().nullish().default(null),
   eventTypeId: z.coerce.number().nullish(),
 });
 
@@ -65,7 +66,7 @@ async function postHandler(req: NextRequest) {
   const user = await authMiddleware();
 
   const body = await req.json();
-  const { integration, externalId, credentialId, eventTypeId, domainWideDelegationCredentialId } =
+  const { integration, externalId, credentialId, eventTypeId, delegationCredentialId } =
     selectedCalendarSelectSchema.parse(body);
 
   await SelectedCalendarRepository.upsert({
@@ -73,7 +74,7 @@ async function postHandler(req: NextRequest) {
     integration,
     externalId,
     credentialId,
-    domainWideDelegationCredentialId,
+    delegationCredentialId,
     eventTypeId: eventTypeId ?? null,
   });
 
@@ -105,4 +106,6 @@ async function deleteHandler(req: NextRequest) {
   return NextResponse.json({ message: "Calendar Selection Saved" });
 }
 
-export { deleteHandler as DELETE, postHandler as POST, getHandler as GET };
+export const POST = defaultResponderForAppDir(postHandler);
+export const DELETE = defaultResponderForAppDir(deleteHandler);
+export const GET = defaultResponderForAppDir(getHandler);

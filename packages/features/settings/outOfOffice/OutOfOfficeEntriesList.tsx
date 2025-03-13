@@ -37,6 +37,7 @@ interface OutOfOfficeEntry {
   } | null;
   notes: string | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
+  canEditAndDelete: boolean;
 }
 
 export const OutOfOfficeEntriesList = () => {
@@ -60,7 +61,7 @@ export const OutOfOfficeEntriesList = () => {
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
-        searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
+        searchTerm,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -70,12 +71,9 @@ export const OutOfOfficeEntriesList = () => {
 
   useEffect(() => {
     refetch();
-    if (selectedTab === OutOfOfficeTab.MINE) {
-      setSearchTerm("");
-    }
   }, [deletedEntry, selectedTab, refetch]);
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
@@ -129,7 +127,7 @@ export const OutOfOfficeEntriesList = () => {
     }
     columns.push({
       id: "outOfOffice",
-      header: `${t("out_of_office")} (${totalDBRowCount})`,
+      header: `${t("out_of_office")} (${totalRowCount})`,
       size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
       cell: ({ row }) => {
         const item = row.original;
@@ -223,7 +221,7 @@ export const OutOfOfficeEntriesList = () => {
                       };
                       editOutOfOfficeEntry(outOfOfficeEntryData);
                     }}
-                    disabled={isPending || isFetching}
+                    disabled={isPending || isFetching || !item.canEditAndDelete}
                   />
                 </Tooltip>
                 <Tooltip content={t("delete")}>
@@ -232,7 +230,12 @@ export const OutOfOfficeEntriesList = () => {
                     type="button"
                     color="destructive"
                     variant="icon"
-                    disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
+                    disabled={
+                      deleteOutOfOfficeEntryMutation.isPending ||
+                      isPending ||
+                      isFetching ||
+                      !item.canEditAndDelete
+                    }
                     StartIcon="trash-2"
                     data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
                     onClick={() => {
@@ -258,7 +261,7 @@ export const OutOfOfficeEntriesList = () => {
     (containerRefElement?: HTMLDivElement | null) => {
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        if (scrollHeight - scrollTop - clientHeight < 100 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 100 && !isFetching && totalFetched < totalRowCount) {
           fetchNextPage();
         }
         if (isFetching) {
@@ -268,7 +271,7 @@ export const OutOfOfficeEntriesList = () => {
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching, totalFetched, totalRowCount]
   );
 
   const table = useReactTable({
@@ -335,11 +338,9 @@ export const OutOfOfficeEntriesList = () => {
             tableContainerRef={tableContainerRef}
             isPending={isPending}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-            {selectedTab === OutOfOfficeTab.TEAM && (
-              <DataTableToolbar.Root>
-                <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
-              </DataTableToolbar.Root>
-            )}
+            <DataTableToolbar.Root>
+              <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
+            </DataTableToolbar.Root>
           </DataTable>
           {openModal && (
             <CreateOrEditOutOfOfficeEntryModal

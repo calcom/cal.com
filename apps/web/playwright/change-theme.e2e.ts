@@ -79,6 +79,8 @@ test.describe("Change Booking Page Theme Test", () => {
     expect(toast).toBeTruthy();
     //Go to the profile page and check if the theme is dark
     await page.goto(`/${pro.username}`);
+    await page.reload();
+    await page.waitForLoadState("domcontentloaded"); // Fix the race condition
     const htmlClass = await page.getAttribute("html", "class");
     expect(htmlClass).toContain("dark");
   });

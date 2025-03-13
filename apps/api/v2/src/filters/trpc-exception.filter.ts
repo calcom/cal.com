@@ -1,3 +1,4 @@
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
 import { Request } from "express";
 
@@ -46,7 +47,7 @@ export class TRPCExceptionFilter implements ExceptionFilter {
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
       body: request.body,
-      headers: request.headers,
+      headers: filterReqHeaders(request.headers),
       url: request.url,
       method: request.method,
       requestId,

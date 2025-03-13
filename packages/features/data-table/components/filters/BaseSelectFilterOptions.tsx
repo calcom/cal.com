@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Command,
@@ -15,6 +14,7 @@ import {
   buttonClasses,
   Icon,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type {

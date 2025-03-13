@@ -12,21 +12,21 @@ export class DestinationCalendarsRepository {
     userId: number,
     primaryEmail: string | null,
     credentialId?: number,
-    domainWideDelegationCredentialId?: string
+    delegationCredentialId?: string
   ) {
     return await this.dbWrite.prisma.destinationCalendar.upsert({
       update: {
         integration,
         externalId,
         ...(credentialId ? { credentialId } : {}),
-        ...(domainWideDelegationCredentialId ? { domainWideDelegationCredentialId } : {}),
+        ...(delegationCredentialId ? { delegationCredentialId } : {}),
         primaryEmail,
       },
       create: {
         integration,
         externalId,
         ...(credentialId ? { credentialId } : {}),
-        ...(domainWideDelegationCredentialId ? { domainWideDelegationCredentialId } : {}),
+        ...(delegationCredentialId ? { delegationCredentialId } : {}),
         primaryEmail,
         userId,
       },

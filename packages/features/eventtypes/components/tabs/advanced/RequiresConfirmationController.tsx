@@ -9,10 +9,10 @@ import type z from "zod";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -141,7 +141,7 @@ export default function RequiresConfirmationController({
                     {(requiresConfirmationSetup === undefined ||
                       !requiresConfirmationLockedProps.disabled) && (
                       <RadioField
-                        label={t("always_requires_confirmation")}
+                        label={t("always")}
                         disabled={requiresConfirmationLockedProps.disabled}
                         id="always"
                         value="always"

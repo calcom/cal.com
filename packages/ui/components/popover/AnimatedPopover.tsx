@@ -1,7 +1,7 @@
 import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { buttonClasses } from "../button";
 import { Icon } from "../icon";

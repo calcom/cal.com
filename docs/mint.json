@@ -185,6 +185,7 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        "platform/setup",
         "platform/quickstart",
         {
           "group": "Atoms",
@@ -199,6 +200,16 @@
             "platform/atoms/calendar-settings",
             "platform/atoms/payment-form",
             "platform/atoms/conferencing-apps"
+          ]
+        },
+        {
+          "group": "Hooks",
+          "icon": "brackets-curly",
+          "pages": [
+            "platform/bookings-hooks",
+            "platform/event-types-hooks",
+            "platform/calendars-hooks",
+            "platform/user-or-team-related-hooks"
           ]
         },
         {

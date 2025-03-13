@@ -12,16 +12,11 @@ import {
   CONFERENCING_APPS,
   CAL_VIDEO,
   GOOGLE_MEET,
-  SUCCESS_STATUS,
   ZOOM,
   OFFICE_365_VIDEO,
 } from "@calcom/platform-constants";
-import {
-  userMetadata,
-  handleDeleteCredential,
-  getApps,
-  getUsersCredentials,
-} from "@calcom/platform-libraries";
+import { userMetadata, getUsersCredentials } from "@calcom/platform-libraries";
+import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class ConferencingService {
