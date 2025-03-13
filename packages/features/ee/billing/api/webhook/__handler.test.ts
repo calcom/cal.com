@@ -1,15 +1,9 @@
-import { buffer } from "micro";
-import type { NextApiRequest } from "next";
-import { createMocks } from "node-mocks-http";
+import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 
 import { stripeWebhookHandler, HttpCode } from "./__handler";
-
-vi.mock("micro", () => ({
-  buffer: vi.fn(),
-}));
 
 vi.mock("@calcom/app-store/stripepayment/lib/server", () => ({
   default: {
@@ -26,42 +20,41 @@ describe("stripeWebhookHandler", () => {
     vi.stubEnv("STRIPE_WEBHOOK_SECRET_BILLING", STRIPE_WEBHOOK_SECRET_BILLING);
   });
 
-  const mockRequest = (headers: Record<string, string>, body: string): NextApiRequest =>
-    ({
-      headers,
-      body,
-    } as unknown as NextApiRequest);
-
-  it("should throw an error if stripe-signature header is missing", async () => {
-    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+  const createMockRequest = (headers = {}, body = "") => {
+    const req = new NextRequest("https://example.com/api/stripe-webhook", {
       method: "POST",
+      headers: new Headers(headers),
+      body,
     });
 
+    req.text = vi.fn().mockResolvedValue(body);
+
+    return req;
+  };
+
+  it("should throw an error if stripe-signature header is missing", async () => {
+    const req = createMockRequest();
     const handler = stripeWebhookHandler({});
     await expect(handler(req)).rejects.toThrow(new HttpCode(400, "Missing stripe-signature"));
   });
 
   it("should throw an error if STRIPE_WEBHOOK_SECRET_BILLING is missing", async () => {
     vi.stubEnv("STRIPE_WEBHOOK_SECRET_BILLING", "");
-    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "POST",
-      headers: {
-        "stripe-signature": "test_signature",
-      },
+    const req = createMockRequest({
+      "stripe-signature": "test_signature",
     });
     const handler = stripeWebhookHandler({});
     await expect(handler(req)).rejects.toThrow(new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET"));
   });
 
   it("should throw an error if event type is unhandled", async () => {
-    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "POST",
-      headers: {
+    const req = createMockRequest(
+      {
         "stripe-signature": "test_signature",
       },
-    });
-    // const req = mockRequest({ "stripe-signature": "test_signature" }, "test_payload");
-    (buffer as any).mockResolvedValueOnce(Buffer.from("test_payload"));
+      "test_payload"
+    );
+
     (stripe.webhooks.constructEvent as any).mockReturnValueOnce({ type: "unhandled_event" });
 
     const handler = stripeWebhookHandler({});
@@ -71,8 +64,13 @@ describe("stripeWebhookHandler", () => {
   });
 
   it("should call the appropriate handler for a valid event", async () => {
-    const req = mockRequest({ "stripe-signature": "test_signature" }, "test_payload");
-    (buffer as any).mockResolvedValueOnce(Buffer.from("test_payload"));
+    const req = createMockRequest(
+      {
+        "stripe-signature": "test_signature",
+      },
+      "test_payload"
+    );
+
     (stripe.webhooks.constructEvent as any).mockReturnValueOnce({
       type: "payment_intent.succeeded",
       data: "test_data",
