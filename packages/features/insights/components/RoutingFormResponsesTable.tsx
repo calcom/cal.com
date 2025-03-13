@@ -109,9 +109,10 @@ export function RoutingFormResponsesTable() {
   return (
     <>
       <div className="flex-1">
-        <DataTableWrapper
+        <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
+          rowClassName="min-h-14"
           paginationMode="standard"
           totalRowCount={data?.total}
           LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}
