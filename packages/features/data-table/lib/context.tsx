@@ -1,10 +1,17 @@
 "use client";
 
-import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
+import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
 import { createContext, useCallback } from "react";
 
-import { type FilterValue, ZSorting, ZColumnVisibility, ZActiveFilter, type ActiveFilter } from "./types";
+import {
+  type FilterValue,
+  ZSorting,
+  ZColumnVisibility,
+  ZActiveFilter,
+  type ActiveFilter,
+  ZColumnSizing,
+} from "./types";
 
 export type DataTableContextType = {
   activeFilters: ActiveFilter[];
@@ -19,6 +26,9 @@ export type DataTableContextType = {
   columnVisibility: VisibilityState;
   setColumnVisibility: OnChangeFn<VisibilityState>;
 
+  columnSizing: ColumnSizingState;
+  setColumnSizing: OnChangeFn<ColumnSizingState>;
+
   pageIndex: number;
   pageSize: number;
   setPageIndex: (pageIndex: number) => void;
@@ -26,6 +36,9 @@ export type DataTableContextType = {
 
   offset: number;
   limit: number;
+
+  segmentId: number | undefined;
+  setSegmentId: OnChangeFn<number>;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -33,6 +46,7 @@ export const DataTableContext = createContext<DataTableContextType | null>(null)
 const DEFAULT_ACTIVE_FILTERS: ActiveFilter[] = [];
 const DEFAULT_SORTING: SortingState = [];
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
 const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
@@ -53,7 +67,11 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
     "cols",
     parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
   );
-
+  const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>(
+    "widths",
+    parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING)
+  );
+  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
 
@@ -111,12 +129,16 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
         setSorting,
         columnVisibility,
         setColumnVisibility,
+        columnSizing,
+        setColumnSizing,
         pageIndex,
         pageSize,
         setPageIndex,
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
+        segmentId: segmentId === -1 ? undefined : segmentId,
+        setSegmentId,
       }}>
       {children}
     </DataTableContext.Provider>

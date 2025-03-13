@@ -78,7 +78,8 @@ export function DataTableWrapper<TData>({
     isFetching: paginationMode === "infinite" ? isFetching : false,
     enabled: paginationMode === "infinite",
   });
-  const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
+  const { sorting, setSorting, columnVisibility, setColumnVisibility, columnSizing, setColumnSizing } =
+    useDataTable();
   const columnFilters = useColumnFilters();
 
   useEffect(() => {
@@ -92,13 +93,24 @@ export function DataTableWrapper<TData>({
       sorting,
       columnFilters,
       columnVisibility: mergedColumnVisibility,
+      columnSizing,
     }));
     table.setOptions((prev) => ({
       ...prev,
       onSortingChange: setSorting,
       onColumnVisibilityChange: setColumnVisibility,
+      onColumnSizingChange: setColumnSizing,
     }));
-  }, [table, sorting, columnFilters, columnVisibility, setSorting, setColumnVisibility]);
+  }, [
+    table,
+    sorting,
+    columnFilters,
+    columnVisibility,
+    setSorting,
+    setColumnVisibility,
+    columnSizing,
+    setColumnSizing,
+  ]);
 
   let view: "loader" | "empty" | "table" = "table";
   if (isPending && LoaderView) {

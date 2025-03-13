@@ -3,7 +3,7 @@ import type { Header, Table, ColumnSizingState } from "@tanstack/react-table";
 import debounce from "lodash/debounce";
 import { useCallback, useEffect, useRef } from "react";
 
-import { useDebouncedWidth } from "../hooks";
+import { useDebouncedWidth, useDataTable } from "../hooks";
 
 type UsePersistentColumnResizingProps<TData> = {
   enabled: boolean;
@@ -11,24 +11,6 @@ type UsePersistentColumnResizingProps<TData> = {
   identifier?: string;
   tableContainerRef: React.RefObject<HTMLDivElement>;
 };
-
-function getLocalStorageKey(identifier: string) {
-  return `data-table-column-sizing-${identifier}`;
-}
-
-function loadColumnSizing(identifier: string): ColumnSizingState {
-  try {
-    return JSON.parse(localStorage.getItem(getLocalStorageKey(identifier)) || "{}");
-  } catch (error) {
-    return {};
-  }
-}
-
-function saveColumnSizing(identifier: string, columnSizing: ColumnSizingState) {
-  localStorage.setItem(getLocalStorageKey(identifier), JSON.stringify(columnSizing));
-}
-
-const debouncedSaveColumnSizing = debounce(saveColumnSizing, 1000);
 
 function getAdjustedColumnSizing<TData>({
   headers,
@@ -108,6 +90,9 @@ export function usePersistentColumnResizing<TData>({
   const columnSizing = useRef<ColumnSizingState>({});
   const initialColumnSizing = useRef<ColumnSizingState>({});
   const resizedColumns = useRef<Set<string>>(new Set());
+  const { columnSizing: loadedColumnSizing, setColumnSizing: setColumnSizingToContext } = useDataTable();
+
+  const debouncedSaveColumnSizing = debounce(setColumnSizingToContext, 1000);
 
   const adjustColumnSizing = useCallback(
     (updater: ColumnSizingState | ((old: ColumnSizingState) => ColumnSizingState)) => {
@@ -124,10 +109,7 @@ export function usePersistentColumnResizing<TData>({
           currentColumnSizing: newColumnSizing,
           resizedColumns: resizedColumns.current,
         });
-        debouncedSaveColumnSizing(
-          identifier,
-          getPartialColumnSizing(newColumnSizing, resizedColumns.current)
-        );
+        debouncedSaveColumnSizing(getPartialColumnSizing(newColumnSizing, resizedColumns.current));
         columnSizing.current = newColumnSizing;
 
         return {
@@ -136,7 +118,7 @@ export function usePersistentColumnResizing<TData>({
         };
       });
     },
-    [table, identifier, tableContainerRef]
+    [table, identifier, tableContainerRef, debouncedSaveColumnSizing]
   );
 
   const onColumnSizingChange = useCallback(
@@ -173,8 +155,6 @@ export function usePersistentColumnResizing<TData>({
     if (!enabled || !identifier) return;
 
     // loadedColumnSizing is a partial object of explicitly resized columns.
-    const loadedColumnSizing = loadColumnSizing(identifier);
-
     // combine loaded sizes and the default sizes from TanStack Table
     initialColumnSizing.current = table.getFlatHeaders().reduce((acc, header) => {
       acc[header.id] = loadedColumnSizing[header.id] || header.getSize();
