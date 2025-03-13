@@ -149,7 +149,7 @@ export type BookerStore = {
    */
   isTeamEvent: boolean;
   seatedEventData: SeatedEventData;
-  setSeatedEventData: (seatedEventData: SeatedEventData, setSeatedEventData?: boolean) => void;
+  setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 
   isInstantMeeting?: boolean;
 
@@ -205,7 +205,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // Setting month make sure small calendar in fullscreen layouts also updates.
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      if (!get().isPlatform) {
+      if (!omitUpdatingParams && !get().isPlatform) {
         updateQueryParam("month", newSelection.format("YYYY-MM"));
       }
     }
