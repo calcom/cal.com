@@ -21,7 +21,10 @@ const useSkipConfirmStep = (
 
   useEffect(() => {
     const checkSkipStep = async () => {
-      if (!bookingFields) {
+      if (
+        !bookingFields ||
+        bookingFields.some((field) => field.name === "location" && field.type === "radioInput")
+      ) {
         setCanSkip(false);
         return;
       }
