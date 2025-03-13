@@ -20,7 +20,7 @@ export function DataTablePagination<TData>({
   const { pageIndex, pageSize, setPageIndex, setPageSize } = useDataTable();
 
   if (paginationMode === "infinite") {
-    const loadedCount = table.getFilteredRowModel().rows.length;
+    const loadedCount = table.getRowModel().rows.length;
     return (
       <p className="text-subtle text-sm tabular-nums">
         Loaded <span className="text-default font-medium">{loadedCount}</span> of{" "}

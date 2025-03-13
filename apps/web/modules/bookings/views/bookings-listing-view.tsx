@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  createColumnHelper,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -146,7 +140,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -159,7 +152,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -172,7 +164,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -185,7 +176,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
@@ -198,7 +188,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
@@ -211,7 +200,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
@@ -346,7 +334,6 @@ function BookingsContent({ status }: BookingsProps) {
       },
     },
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues,
   });
