@@ -51,6 +51,7 @@ export const EventMeta = ({
   isPrivateLink,
   classNames,
   locale,
+  timeZonesFromProps,
 }: {
   event?: Pick<
     BookerEvent,
@@ -83,6 +84,7 @@ export const EventMeta = ({
     eventMetaTimezoneSelect?: string;
   };
   locale?: string | null;
+  timeZonesFromProps?: string[];
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
@@ -211,6 +213,7 @@ export const EventMeta = ({
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}>
                   <TimezoneSelect
+                    timeZonesFromProps={timeZonesFromProps}
                     menuPosition="absolute"
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{

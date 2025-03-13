@@ -53,6 +53,7 @@ export const BookerPlatformWrapper = (
     crmAppSlug,
     crmOwnerRecordType,
     preventEventTypeRedirect,
+    isBookingDryRun,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -242,7 +243,9 @@ export const BookerPlatformWrapper = (
 
     const _cacheParam = searchParams?.get("cal.cache");
     const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
-    const isBookingDryRun = searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true";
+    const isBookingDryRun =
+      searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
+      searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
@@ -431,6 +434,7 @@ export const BookerPlatformWrapper = (
   return (
     <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
+        timeZonesFromProps={props.timeZones}
         teamMemberEmail={teamMemberEmail}
         crmAppSlug={crmAppSlug}
         crmOwnerRecordType={crmOwnerRecordType}
@@ -518,7 +522,7 @@ export const BookerPlatformWrapper = (
         verifyCode={undefined}
         isPlatform
         hasValidLicense={true}
-        isBookingDryRun={routingParams?.isBookingDryRun}
+        isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
       />
     </AtomsWrapper>
   );

@@ -126,10 +126,12 @@ export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   isPlatform: true;
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
+  timeZonesFromProps?: string[];
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
+  timeZonesFromProps?: string[];
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
