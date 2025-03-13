@@ -1068,6 +1068,104 @@ async function main() {
     ]
   );
 
+  await createTeamAndAddUsers(
+    {
+      name: "Seeded Team (Marketing)",
+      slug: "seeded-team-marketing",
+      eventTypes: {
+        createMany: {
+          data: [
+            {
+              title: "Collective Seeded Team Event",
+              slug: "collective-seeded-team-event",
+              length: 15,
+              schedulingType: "COLLECTIVE",
+            },
+            {
+              title: "Round Robin Seeded Team Event",
+              slug: "round-robin-seeded-team-event",
+              length: 15,
+              schedulingType: "ROUND_ROBIN",
+            },
+          ],
+        },
+      },
+      createdAt: new Date(),
+    },
+    [
+      {
+        id: proUserTeam.id,
+        username: proUserTeam.name || "Unknown",
+      },
+      {
+        id: freeUserTeam.id,
+        username: freeUserTeam.name || "Unknown",
+      },
+      {
+        id: pro2UserTeam.id,
+        username: pro2UserTeam.name || "Unknown",
+        role: "MEMBER",
+      },
+      {
+        id: pro3UserTeam.id,
+        username: pro3UserTeam.name || "Unknown",
+      },
+      {
+        id: pro4UserTeam.id,
+        username: pro4UserTeam.name || "Unknown",
+      },
+    ]
+  );
+
+  await createTeamAndAddUsers(
+    {
+      name: "Seeded Team (Design)",
+      slug: "seeded-team-design",
+      eventTypes: {
+        createMany: {
+          data: [
+            {
+              title: "Collective Seeded Team Event",
+              slug: "collective-seeded-team-event",
+              length: 15,
+              schedulingType: "COLLECTIVE",
+            },
+            {
+              title: "Round Robin Seeded Team Event",
+              slug: "round-robin-seeded-team-event",
+              length: 15,
+              schedulingType: "ROUND_ROBIN",
+            },
+          ],
+        },
+      },
+      createdAt: new Date(),
+    },
+    [
+      {
+        id: proUserTeam.id,
+        username: proUserTeam.name || "Unknown",
+      },
+      {
+        id: freeUserTeam.id,
+        username: freeUserTeam.name || "Unknown",
+      },
+      {
+        id: pro2UserTeam.id,
+        username: pro2UserTeam.name || "Unknown",
+        role: "MEMBER",
+      },
+      {
+        id: pro3UserTeam.id,
+        username: pro3UserTeam.name || "Unknown",
+      },
+      {
+        id: pro4UserTeam.id,
+        username: pro4UserTeam.name || "Unknown",
+      },
+    ]
+  );
+
   await createOrganizationAndAddMembersAndTeams({
     org: {
       orgData: {

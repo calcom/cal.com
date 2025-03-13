@@ -12,7 +12,6 @@ import {
   useDataTable,
   useColumnFilters,
 } from "@calcom/features/data-table";
-import classNames from "@calcom/ui/classNames";
 
 type BaseDataTableWrapperProps<TData> = {
   testId?: string;
@@ -110,7 +109,7 @@ export function DataTableWrapper<TData>({
   return (
     <>
       {(ToolbarLeft || ToolbarRight || children) && (
-        <div className={classNames("grid w-full items-center gap-2 py-4", className)}>
+        <div className="grid w-full items-center gap-2 pb-4">
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-wrap justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
@@ -142,15 +141,13 @@ export function DataTableWrapper<TData>({
                   fetchMoreOnBottomReached(e.target as HTMLDivElement)
               : undefined
           }>
-          {totalRowCount && (
-            <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-              <DataTablePagination<TData>
-                table={table}
-                totalRowCount={totalRowCount}
-                paginationMode={paginationMode}
-              />
-            </div>
-          )}
+          <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+            <DataTablePagination<TData>
+              table={table}
+              totalRowCount={totalRowCount}
+              paginationMode={paginationMode}
+            />
+          </div>
         </DataTable>
       )}
     </>
