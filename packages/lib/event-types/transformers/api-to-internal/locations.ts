@@ -40,7 +40,6 @@ export const apiToInternalintegrationsMapping = {
   "eightxeight-video": "integrations:eightxeight_video",
   "discord-video": "integrations:discord_video",
   "demodesk-video": "integrations:demodesk_video",
-  "campsite-conferencing": "integrations:campsite_conferencing",
   "campfire-video": "integrations:campfire_video",
   "around-video": "integrations:around_video",
 } as const;

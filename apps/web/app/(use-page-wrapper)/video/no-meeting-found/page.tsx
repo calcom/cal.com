@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     (t) => t("no_meeting_found")
   );
 
-export default NoMeetingFound;
+const ServerPage = async () => {
+  return <NoMeetingFound />;
+};
+
+export default ServerPage;
