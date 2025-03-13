@@ -122,6 +122,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -146,6 +147,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
         .get(`/v2/bookings/${booking.uid}/calendar-links`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200);
+
+      const googleCalendarLink = response.body.data.find((item: { id: string }) => item.id === 'googleCalendar').link;
+      const microsoftOfficeLink = response.body.data.find((item: { id: string }) => item.id === 'microsoftOffice').link;
+      const microsoftOutlookLink = response.body.data.find((item: { id: string }) => item.id === 'microsoftOutlook').link;
+      const icsLink = response.body.data.find((item: { id: string }) => item.id === 'ics').link;
 
       expect(response.body.status).toEqual(SUCCESS_STATUS);
       expect(response.body.data).toBeDefined();
