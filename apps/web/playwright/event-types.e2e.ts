@@ -454,9 +454,10 @@ test.describe("Event Types tests", () => {
         await expect(page.locator(`text="Bestätigen"`).nth(0)).toBeVisible();
       });
 
-      await test.step("should be able to book successfully", async () => {
+      await test.step("should be able to book successfully and ensure success page is rendered in Deutsche", async () => {
         await bookTimeSlot(page);
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator(`text="Dieser Termin ist geplant"`).nth(0)).toBeVisible();
       });
     });
 
