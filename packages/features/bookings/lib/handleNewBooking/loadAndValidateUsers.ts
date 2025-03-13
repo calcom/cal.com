@@ -16,8 +16,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";
-import type { NewBookingEventType } from "./types";
 
 type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   isFixed?: boolean;

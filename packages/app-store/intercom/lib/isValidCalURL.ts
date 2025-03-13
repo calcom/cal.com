@@ -1,4 +1,4 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { TextComponent } from "../lib";
@@ -9,11 +9,14 @@ import type { TextComponent } from "../lib";
  * @returns IsValid
  */
 export async function isValidCalURL(url: string) {
-  const regex = new RegExp(`^${WEBAPP_URL}/`, `i`);
+  const regex = new RegExp(
+    `^https://(?:[a-zA-Z0-9-]+\\.)?${CAL_URL.replace("https://", "")}/(team/)?(org/)?`,
+    "i"
+  );
 
   const error: TextComponent = {
     type: "text",
-    text: `This is not a valid ${WEBAPP_URL.replace("https://", "")} link`,
+    text: `This is not a valid ${CAL_URL.replace("https://", "")} link`,
     style: "error",
     align: "left",
   };
@@ -75,7 +78,10 @@ export async function isValidCalURL(url: string) {
   if (!matchingUser && !matchingTeam)
     return {
       isValid: false,
-      error,
+      error: {
+        ...error,
+        text: `${usernameOrTeamSlug} team or user is not valid.`,
+      },
     };
 
   const userOrTeam = matchingUser || matchingTeam;
@@ -100,7 +106,10 @@ export async function isValidCalURL(url: string) {
   if (!eventType)
     return {
       isValid: false,
-      error,
+      error: {
+        ...error,
+        text: `The event ${eventTypeSlug} doesn't exist.`,
+      },
     };
 
   return {
