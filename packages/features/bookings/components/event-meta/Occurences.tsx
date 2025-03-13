@@ -72,7 +72,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
         type="number"
         min="1"
         max={event.recurringEvent.count}
-        defaultValue={occurenceCount || event.recurringEvent.count}
+        defaultValue={occurenceCount || 1}
         data-testid="occurrence-input"
         onChange={(event) => {
           const pattern = /^(?=.*[0-9])\S+$/;
