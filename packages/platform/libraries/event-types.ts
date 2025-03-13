@@ -55,7 +55,11 @@ export type {
   InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
-export { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+export {
+  EventTypeMetaDataSchema,
+  eventTypeBookingFields,
+  eventTypeLocations,
+} from "@calcom/prisma/zod-utils";
 
 export { validateCustomEventName } from "@calcom/lib/event";
 
@@ -64,7 +68,6 @@ export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByVi
 export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
 export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
-export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
