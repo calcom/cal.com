@@ -13,7 +13,6 @@ import basecamp3_config_json from "./basecamp3/config.json";
 import bolna_config_json from "./bolna/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
-import campsite_config_json from "./campsite/config.json";
 import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -119,7 +118,6 @@ export const appStoreMetadata = {
   bolna: bolna_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
-  campsite: campsite_config_json,
   chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
