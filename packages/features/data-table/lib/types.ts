@@ -200,6 +200,10 @@ export const ZSorting = z.object({
   desc: z.boolean(),
 }) satisfies z.ZodType<Sorting>;
 
+export const ZSortingState = z.array(ZSorting);
+
+export const ZColumnSizing = z.record(z.string(), z.number());
+
 export const ZColumnVisibility = z.record(z.string(), z.boolean());
 
 export type FacetedValue = {

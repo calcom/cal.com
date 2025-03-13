@@ -1,33 +1,35 @@
 import { z } from "zod";
 
+import { ZActiveFilter, ZColumnSizing, ZColumnVisibility, ZSortingState } from "./types";
+
 // Base schema for common fields
-const baseFilterSegmentSchema = {
+const baseCreateSchema = {
   name: z.string().min(1),
   tableIdentifier: z.string().min(1),
-  activeFilters: z.any().optional(),
-  sorting: z.any().optional(),
-  columns: z.any().optional(),
-  page: z.number().int().min(1),
-  size: z.number().int().min(1),
+  activeFilters: ZActiveFilter.optional(),
+  sorting: ZSortingState.optional(),
+  columnVisibility: ZColumnVisibility.optional(),
+  columnSizing: ZColumnSizing.optional(),
+  perPage: z.number().int().min(1),
 };
 
 // Schema for team scope - requires teamId
-const teamScopeSchema = z.object({
+const teamCreateSchema = z.object({
   scope: z.literal("TEAM"),
   teamId: z.number().int().positive(),
-  ...baseFilterSegmentSchema,
+  ...baseCreateSchema,
 });
 
 // Schema for user scope - no teamId allowed
-const userScopeSchema = z.object({
+const userCreateSchema = z.object({
   scope: z.literal("USER"),
   teamId: z.undefined(),
-  ...baseFilterSegmentSchema,
+  ...baseCreateSchema,
 });
 
 export const ZCreateFilterSegmentInputSchema = z.discriminatedUnion("scope", [
-  teamScopeSchema,
-  userScopeSchema,
+  teamCreateSchema,
+  userCreateSchema,
 ]);
 
 export type TCreateFilterSegmentInputSchema = z.infer<typeof ZCreateFilterSegmentInputSchema>;

@@ -48,7 +48,7 @@ export const listHandler = async ({
       ],
     },
     orderBy: [
-      { scope: "asc" }, // USER segments first, then TEAM segments
+      { scope: "desc" }, // USER segments first, then TEAM segments
       { createdAt: "desc" }, // Newest first within each scope
     ],
   });
