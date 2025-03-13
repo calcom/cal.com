@@ -443,11 +443,6 @@ class RoutingEventsInsights {
         "Assignment Reason": item.bookingAssignmentReason || "",
         "Routed To Name": item.bookingUserName || "",
         "Routed To Email": item.bookingUserEmail || "",
-        utm_source: item.utm_source || "",
-        utm_medium: item.utm_medium || "",
-        utm_campaign: item.utm_campaign || "",
-        utm_term: item.utm_term || "",
-        utm_content: item.utm_content || "",
         ...mapKeys(fields, (_, key) => startCase(key)),
       };
     });
