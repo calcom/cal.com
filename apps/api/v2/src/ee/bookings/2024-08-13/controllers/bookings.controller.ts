@@ -1,4 +1,5 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
@@ -38,11 +39,15 @@ import { Request } from "express";
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   CancelBookingInput,
+  CancelBookingInput_2024_08_13,
   CancelBookingInputPipe,
+  CancelSeatedBookingInput_2024_08_13,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   RescheduleBookingInput,
+  RescheduleBookingInput_2024_08_13,
   RescheduleBookingInputPipe,
+  RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -98,7 +103,7 @@ export class BookingsController_2024_08_13 {
       ],
     },
     description:
-      "Accepts different types of booking input: CreateBookingInput_2024_08_13, CreateInstantBookingInput_2024_08_13, or CreateRecurringBookingInput_2024_08_13",
+      "Accepts different types of booking input: Create Booking (Option 1), Create Instant Booking (Option 2), or Create Recurring Booking (Option 3)",
   })
   @ApiExtraModels(
     CreateBookingInput_2024_08_13,
@@ -171,9 +176,19 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard)
   @ApiOperation({
     summary: "Reschedule a booking",
-    description:
-      "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
+    description: "Reschedule a booking or seated booking",
   })
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(RescheduleBookingInput_2024_08_13) },
+        { $ref: getSchemaPath(RescheduleSeatedBookingInput_2024_08_13) },
+      ],
+    },
+    description:
+      "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2)",
+  })
+  @ApiExtraModels(RescheduleBookingInput_2024_08_13, RescheduleSeatedBookingInput_2024_08_13)
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
     @Body(new RescheduleBookingInputPipe())
@@ -198,6 +213,17 @@ export class BookingsController_2024_08_13 {
     For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call
     like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
   })
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(CancelBookingInput_2024_08_13) },
+        { $ref: getSchemaPath(CancelSeatedBookingInput_2024_08_13) },
+      ],
+    },
+    description:
+      "Accepts different types of cancel booking input: Cancel Booking (Option 1) or Cancel Seated Booking (Option 2)",
+  })
+  @ApiExtraModels(CancelBookingInput_2024_08_13, CancelSeatedBookingInput_2024_08_13)
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
@@ -333,6 +359,24 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Get("/:bookingUid/calendar-links")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_READ])
+  @ApiOperation({
+    summary: "Get 'Add to Calendar' links for a booking",
+    description:
+      "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
+  })
+  @HttpCode(HttpStatus.OK)
+  async getCalendarLinks(@Param("bookingUid") bookingUid: string): Promise<CalendarLinksOutput_2024_08_13> {
+    const calendarLinks = await this.bookingsService.getCalendarLinks(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: calendarLinks,
     };
   }
 }
