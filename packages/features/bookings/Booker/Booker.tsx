@@ -1,3 +1,5 @@
+"use client";
+
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import i18n from "i18next";
 import type { Resource } from "i18next";
@@ -136,6 +138,7 @@ const BookerComponent = ({
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
+
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
@@ -235,7 +238,7 @@ const BookerComponent = ({
         onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
-        isTimeslotUnavailable={unavailableTimeSlots.includes(selectedTimeslot || "")}
+        isTimeslotUnavailable={!isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "")}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}

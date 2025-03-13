@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.0.13",
+  "version": "5.0.18",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -23,7 +23,6 @@
     "translate-locales": "ts-node scripts/check-missing-translations.ts"
   },
   "engines": {
-    "node": "18",
     "yarn": "3.4.1"
   },
   "dependencies": {
