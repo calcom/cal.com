@@ -15,6 +15,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
+import { language } from "googleapis/build/src/apis/language";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -1895,9 +1896,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
       it("should reschedule", async () => {
         const email = `user-bookings-attendee-${randomString(10)}@gmail.com`;
         const username = `user-bookings-attendee-${randomString(10)}`;
+        const locale = "it";
+        const timeZone = "Europe/Rome";
         const attendee = await userRepositoryFixture.create({
           email,
           username,
+          locale,
+          timeZone,
         });
 
         const booking = await bookingsRepositoryFixture.create({
@@ -1922,7 +1927,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             create: {
               email: email,
               name: username,
-              timeZone: "Europe/Rome",
+              timeZone,
+              locale,
             },
           },
         });
@@ -1955,6 +1961,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual("accepted");
             expect(data.eventTypeId).toEqual(booking.eventTypeId);
+            expect(data.attendees.length).toEqual(1);
+            expect(data.attendees[0]).toEqual({
+              name: attendee.username,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              language: attendee.locale,
+              absent: false,
+            });
             expect(data.bookingFieldsResponses).toEqual({
               name: attendee.username,
               email: attendee.email,
