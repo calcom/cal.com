@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { useMemo, useEffect } from "react";
 
@@ -81,7 +76,6 @@ export function RoutingFormResponsesTable() {
     data: processedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
       size: 150,
@@ -115,9 +109,10 @@ export function RoutingFormResponsesTable() {
   return (
     <>
       <div className="flex-1">
-        <DataTableWrapper
+        <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
+          rowClassName="min-h-14"
           paginationMode="standard"
           totalRowCount={data?.total}
           LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}
