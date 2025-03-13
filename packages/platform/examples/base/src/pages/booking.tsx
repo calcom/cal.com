@@ -101,6 +101,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   router.push(`/${data.data.uid}`);
                 }
               }}
+              onBookerStateChange={(bookerState) => {
+                console.log("Booker state updated:", bookerState);
+                // You can perform any actions based on the updated state here
+              }}
               metadata={{ CustomKey: "CustomValue" }}
               duration={eventTypeDuration}
               customClassNames={{

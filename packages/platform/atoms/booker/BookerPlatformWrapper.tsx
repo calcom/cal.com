@@ -1,5 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useEffect, useCallback, useState } from "react";
+// eslint-disable-next-line no-restricted-imports
+import debounce from "lodash/debounce";
+import { useMemo, useEffect, useCallback, useState, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -40,6 +42,7 @@ import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
+  BookerStoreValues,
 } from "./types";
 
 export const BookerPlatformWrapper = (
@@ -53,6 +56,7 @@ export const BookerPlatformWrapper = (
     crmAppSlug,
     crmOwnerRecordType,
     preventEventTypeRedirect,
+    onBookerStateChange,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -70,6 +74,48 @@ export const BookerPlatformWrapper = (
   const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(
     Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
   );
+  const prevStateRef = useRef<BookerStoreValues | null>(null);
+  const getStateValues = useCallback(
+    (state: ReturnType<typeof useBookerStore.getState>): BookerStoreValues => {
+      return Object.fromEntries(
+        Object.entries(state).filter(([_, value]) => typeof value !== "function")
+      ) as BookerStoreValues;
+    },
+    []
+  );
+  const debouncedStateChange = useMemo(() => {
+    return debounce(
+      (currentStateValues: BookerStoreValues, callback: (values: BookerStoreValues) => void) => {
+        const prevState = prevStateRef.current;
+        const stateChanged = !prevState || JSON.stringify(prevState) !== JSON.stringify(currentStateValues);
+
+        if (stateChanged) {
+          callback(currentStateValues);
+          prevStateRef.current = currentStateValues;
+        }
+      },
+      50
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!onBookerStateChange) return;
+
+    const unsubscribe = useBookerStore.subscribe((state) => {
+      const currentStateValues = getStateValues(state);
+      debouncedStateChange(currentStateValues, onBookerStateChange);
+    });
+
+    // Initial call with current state
+    const initialState = getStateValues(useBookerStore.getState());
+    onBookerStateChange(initialState);
+    prevStateRef.current = initialState;
+
+    return () => {
+      unsubscribe();
+      debouncedStateChange.cancel();
+    };
+  }, [onBookerStateChange, getStateValues, debouncedStateChange]);
 
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
