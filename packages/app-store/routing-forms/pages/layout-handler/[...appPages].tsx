@@ -6,7 +6,7 @@ import { FormProvider, useForm } from "react-hook-form";
 
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 
-import RoutingFormsRoutingConfig from "../app-routing.config";
+import { routingConfig } from "../app-routing.client-config";
 
 const DEFAULT_ROUTE = "forms";
 
@@ -23,7 +23,7 @@ type Component = {
 };
 
 const getComponent = (route: string): Component => {
-  return (RoutingFormsRoutingConfig as unknown as Record<string, Component>)[route];
+  return (routingConfig as unknown as Record<string, Component>)[route];
 };
 
 export default function LayoutHandler(props: { [key: string]: unknown }) {

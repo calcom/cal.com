@@ -3,7 +3,7 @@ import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
-import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.config";
+import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
 import LayoutHandler from "@calcom/app-store/routing-forms/pages/layout-handler/[...appPages]";
 import Shell from "@calcom/features/shell/Shell";
 
