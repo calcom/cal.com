@@ -579,8 +579,8 @@ export const Booker = (props: BookerProps & WrappedBookerProps) => {
     if (!!interfaceLanguage && interfaceLanguage !== VISITOR_BROWSER_LANGUAGE) {
       return interfaceLanguage;
     }
-    return session?.user.locale;
-  }, [props.event, session]);
+    return null;
+  }, [props.event]);
 
   return (
     <LazyMotion strict features={loadFramerFeatures}>

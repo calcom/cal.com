@@ -112,8 +112,8 @@ export default function SuccessWrapper(props: PageProps) {
     if (!!interfaceLanguage && interfaceLanguage !== VISITOR_BROWSER_LANGUAGE) {
       return interfaceLanguage;
     }
-    return session?.user.locale;
-  }, [props.eventType, session]);
+    return null;
+  }, [props.eventType]);
 
   return (
     <>
