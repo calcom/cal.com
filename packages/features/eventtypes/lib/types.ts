@@ -72,7 +72,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
-  interfaceLanguage: string;
+  interfaceLanguage: string | null;
   isInstantEvent: boolean;
   instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
