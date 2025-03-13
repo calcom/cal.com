@@ -520,14 +520,20 @@ export const EventAdvancedTab = ({
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
 
-  const isPaidEvent = useMemo(() => {
+  const formValues = formMethods.watch();
+  const paymentAppData = useMemo(() => {
     const _eventType = {
-      ...eventType,
-      ...formMethods.getValues(),
+      price: 0,
+      currency: "",
+      metadata: formValues.metadata,
     };
-    const paymentAppData = getPaymentAppData(_eventType);
-    return !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
-  }, [eventType, formMethods]);
+    return getPaymentAppData(_eventType);
+  }, [formValues.metadata]);
+
+  const isPaidEvent = useMemo(
+    () => !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0,
+    [paymentAppData]
+  );
 
   return (
     <div className="flex flex-col space-y-4">
@@ -576,6 +582,7 @@ export const EventAdvancedTab = ({
             return field.name === "location" ? true : field.required;
           }}
           showPriceField={isPaidEvent}
+          paymentCurrency={paymentAppData?.currency || "USD"}
         />
       </div>
       <RequiresConfirmationController

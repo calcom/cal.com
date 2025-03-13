@@ -87,13 +87,7 @@ const baseFieldSchema = z.object({
       z.object({
         label: z.string(),
         value: z.string(),
-        price: z
-          .preprocess((val) => {
-            if (val === undefined || val === null || val === "") return undefined;
-            const num = Number(val);
-            return isNaN(num) ? undefined : num;
-          }, z.number().min(0).optional())
-          .optional(),
+        price: z.coerce.number().min(0).optional(),
       })
     )
     .optional(),
@@ -139,13 +133,7 @@ const baseFieldSchema = z.object({
   // Emails that need to be required
   requireEmails: excludeOrRequireEmailSchema.optional(),
   // Price associated with the field which works like addons which users can add to the booking
-  price: z
-    .preprocess((val) => {
-      if (val === undefined || val === null || val === "") return undefined;
-      const num = Number(val);
-      return isNaN(num) ? undefined : num;
-    }, z.number().min(0).optional())
-    .optional(),
+  price: z.coerce.number().min(0).optional(),
 });
 
 export const variantsConfigSchema = z.object({

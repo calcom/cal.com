@@ -1,6 +1,7 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
+import { convertToSmallestCurrencyUnit } from "@calcom/app-store/_utils/payments/currencyConversions";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { Fields } from "@calcom/features/bookings/lib/getBookingFields";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
@@ -52,7 +53,7 @@ const handlePayment = async ({
   bookerEmail: string;
   bookerPhoneNumber?: string | null;
   isDryRun?: boolean;
-  bookingFields: Fields;
+  bookingFields?: Fields;
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
@@ -70,12 +71,13 @@ const handlePayment = async ({
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
   const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
+  const paymentCurrency = apps?.[paymentAppCredentials.appId].currency;
 
   let totalAmount = apps?.[paymentAppCredentials.appId].price || 0;
 
-  if (bookingFields?.length > 0) {
+  if ((bookingFields || [])?.length > 0) {
     let addonsPrice = 0;
-    bookingFields.forEach((field) => {
+    (bookingFields || []).forEach((field) => {
       if (
         fieldTypesConfigMap[field.type]?.supportsPricing ||
         fieldTypesConfigMap[field.type]?.optionsSupportPricing
@@ -101,7 +103,7 @@ const handlePayment = async ({
                 selectedOption = typedInput.options?.find((opt) => {
                   const formattedValue = `${opt.value} (${Intl.NumberFormat("en", {
                     style: "currency",
-                    currency: "USD",
+                    currency: paymentCurrency,
                   }).format(opt.price || 0)})`;
                   return formattedValue === selectedValue;
                 });
@@ -123,12 +125,12 @@ const handlePayment = async ({
       }
     });
 
-    totalAmount += addonsPrice * 100;
+    totalAmount += convertToSmallestCurrencyUnit(addonsPrice, paymentCurrency);
   }
 
   const paymentPriceAndCurrency = {
     amount: totalAmount,
-    currency: apps?.[paymentAppCredentials.appId].currency,
+    currency: paymentCurrency,
   };
 
   let paymentData;

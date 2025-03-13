@@ -74,6 +74,11 @@ export const BookEventForm = ({
     return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventType]);
 
+  const paymentCurrency = useMemo(() => {
+    if (!eventType) return "USD";
+    return getPaymentAppData(eventType)?.currency || "USD";
+  }, [eventType]);
+
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
@@ -115,6 +120,7 @@ export const BookEventForm = ({
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
           isPaidEvent={isPaidEvent}
+          paymentCurrency={paymentCurrency}
         />
         {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">

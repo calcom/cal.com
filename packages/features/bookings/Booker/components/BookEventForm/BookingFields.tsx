@@ -21,6 +21,7 @@ export const BookingFields = ({
   isDynamicGroupBooking,
   bookingData,
   isPaidEvent,
+  paymentCurrency = "USD",
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
@@ -28,6 +29,7 @@ export const BookingFields = ({
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
   isPaidEvent?: boolean;
+  paymentCurrency?: string;
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
@@ -38,7 +40,7 @@ export const BookingFields = ({
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat("en", {
       style: "currency",
-      currency: "USD",
+      currency: paymentCurrency,
     }).format(price)})`;
 
   return (

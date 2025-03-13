@@ -5,6 +5,7 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
+import { getCurrencySymbol } from "@calcom/app-store/_utils/payments/currencyConversions";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -63,6 +64,7 @@ export const FormBuilder = function FormBuilder({
   dataStore,
   shouldConsiderRequired,
   showPriceField,
+  paymentCurrency = "USD",
 }: {
   formProp: string;
   title: string;
@@ -88,6 +90,7 @@ export const FormBuilder = function FormBuilder({
    */
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
   showPriceField?: boolean;
+  paymentCurrency?: string;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -334,6 +337,7 @@ export const FormBuilder = function FormBuilder({
           }}
           shouldConsiderRequired={shouldConsiderRequired}
           showPriceField={showPriceField}
+          paymentCurrency={paymentCurrency}
         />
       )}
     </div>
@@ -348,6 +352,7 @@ function Options({
   className = "",
   readOnly = false,
   showPrice = false,
+  paymentCurrency,
 }: {
   label?: string;
   value: { label: string; value: string; price?: number }[];
@@ -355,6 +360,7 @@ function Options({
   className?: string;
   readOnly?: boolean;
   showPrice?: boolean;
+  paymentCurrency: string;
 }) {
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   if (!value) {
@@ -414,7 +420,7 @@ function Options({
                       }}
                       readOnly={readOnly}
                       placeholder="0"
-                      addOnSuffix="$"
+                      addOnLeading={getCurrencySymbol(paymentCurrency)}
                     />
                   </div>
                 )}
@@ -481,12 +487,14 @@ function FieldEditDialog({
   handleSubmit,
   shouldConsiderRequired,
   showPriceField,
+  paymentCurrency,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
   showPriceField?: boolean;
+  paymentCurrency: string;
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -599,6 +607,7 @@ function FieldEditDialog({
                               value={value}
                               className="mt-6"
                               showPrice={showPriceField && fieldType.optionsSupportPricing}
+                              paymentCurrency={paymentCurrency}
                             />
                           );
                         }}
@@ -660,7 +669,7 @@ function FieldEditDialog({
                         type="number"
                         min={0}
                         placeholder="0"
-                        addOnLeading="$"
+                        addOnLeading={getCurrencySymbol(paymentCurrency)}
                       />
                     )}
 
