@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
@@ -6,7 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export async function GET() {
+async function getHandler() {
   const headersList = headers();
   const cookiesList = cookies();
   const legacyReq = buildLegacyRequest(headersList, cookiesList);
@@ -28,3 +29,5 @@ export async function GET() {
 
   return NextResponse.json({ hash });
 }
+
+export const GET = defaultResponderForAppDir(getHandler);
