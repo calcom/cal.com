@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  createColumnHelper,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -353,7 +347,6 @@ function BookingsContent({ status }: BookingsProps) {
       },
     },
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues,
   });
