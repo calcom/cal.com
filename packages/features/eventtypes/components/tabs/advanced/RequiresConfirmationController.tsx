@@ -141,7 +141,7 @@ export default function RequiresConfirmationController({
                     {(requiresConfirmationSetup === undefined ||
                       !requiresConfirmationLockedProps.disabled) && (
                       <RadioField
-                        label={t("always")}
+                        label={t("always_requires_confirmation")}
                         disabled={requiresConfirmationLockedProps.disabled}
                         id="always"
                         value="always"
