@@ -61,7 +61,7 @@ export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
@@ -77,7 +77,6 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
-export { validateCustomEventName } from "@calcom/lib/event";
 export type { TeamQuery };
 
 export { credentialForCalendarServiceSelect };
