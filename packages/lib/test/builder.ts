@@ -3,7 +3,6 @@ import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@pri
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
-import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
@@ -89,7 +88,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     title: faker.lorem.sentence(),
     slug: faker.lorem.slug(),
     description: faker.lorem.paragraph(),
-    interfaceLanguage: VISITOR_BROWSER_LANGUAGE,
+    interfaceLanguage: null,
     position: 1,
     isInstantEvent: false,
     instantMeetingParameters: [],
