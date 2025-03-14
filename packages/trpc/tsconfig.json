@@ -23,7 +23,7 @@
     "../types/window.d.ts",
     "react"
   ],
-  "exclude": ["**/node_modules/**", "types/router.d.ts"],
+  "exclude": ["**/node_modules/**"],
   "compilerOptions": {
     "isolatedModules": false,
     "noEmit": false,
@@ -32,6 +32,7 @@
     "experimentalDecorators": true,
     "declarationMap": false,
     "resolveJsonModule": true,
-    "outFile": "types/router.d.ts"
+    "declarationDir": "types",
+    "moduleResolution": "node"
   }
 }
