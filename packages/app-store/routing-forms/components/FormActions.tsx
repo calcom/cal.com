@@ -3,6 +3,7 @@ import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
@@ -14,7 +15,6 @@ import type { ButtonProps } from "@calcom/ui";
 import {
   Button,
   ConfirmationDialogContent,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -19,7 +20,6 @@ import {
   Badge,
   Button,
   ButtonGroup,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,

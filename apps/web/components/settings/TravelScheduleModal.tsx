@@ -3,10 +3,10 @@ import type { UseFormSetValue } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogClose,

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DialogFooter, Form, showToast, TextField, Dialog, DialogContent } from "@calcom/ui";
+import { Button, DialogFooter, Form, showToast, TextField, DialogContent } from "@calcom/ui";
 
 type FormValues = {
   clientId: string;

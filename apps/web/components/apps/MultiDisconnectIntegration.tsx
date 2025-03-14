@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -11,7 +12,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownItem,
-  Dialog,
   ConfirmationDialogContent,
   showToast,
 } from "@calcom/ui";
