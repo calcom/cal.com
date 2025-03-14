@@ -1,12 +1,6 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { useMemo, useEffect } from "react";
 
@@ -55,34 +49,25 @@ export function RoutingFormResponsesTable() {
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
-  const { sorting, updateFilter } = useDataTable();
+  const { sorting, limit, offset, updateFilter } = useDataTable();
 
-  const { data, fetchNextPage, isFetching, isPending, hasNextPage, isLoading } =
-    trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
-      {
-        teamId,
-        startDate,
-        endDate,
-        userId,
-        memberUserIds,
-        isAll,
-        routingFormId,
-        columnFilters,
-        sorting,
-        limit: 30,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-        trpc: {
-          context: { skipBatch: true },
-        },
-      }
-    );
+  const { data, isFetching, isPending, isLoading } = trpc.viewer.insights.routingFormResponses.useQuery({
+    teamId,
+    startDate,
+    endDate,
+    userId,
+    memberUserIds,
+    isAll,
+    routingFormId,
+    columnFilters,
+    sorting,
+    limit,
+    offset,
+  });
 
   const processedData = useMemo(() => {
-    if (!isHeadersSuccess) return [];
-    return (data?.pages?.flatMap((page) => page.data) ?? []) as RoutingFormTableRow[];
+    if (!isHeadersSuccess || !data) return [];
+    return data.data as RoutingFormTableRow[];
   }, [data, isHeadersSuccess]);
 
   const columns = useInsightsColumns({ headers, isHeadersSuccess });
@@ -91,7 +76,6 @@ export function RoutingFormResponsesTable() {
     data: processedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
       size: 150,
@@ -118,24 +102,26 @@ export function RoutingFormResponsesTable() {
     }
   }, [table, getInsightsFacetedUniqueValues, routingFormId]);
 
-  if ((isHeadersLoading && !headers) || ((isFetching || isLoading) && !data)) {
+  if (isHeadersLoading && !headers) {
     return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
   }
 
   return (
     <>
       <div className="flex-1">
-        <DataTableWrapper
+        <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
-          hasNextPage={hasNextPage}
-          fetchNextPage={fetchNextPage}
-          isFetching={isFetching}
+          rowClassName="min-h-14"
+          paginationMode="standard"
+          totalRowCount={data?.total}
+          LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}
           ToolbarLeft={
             <>
               <OrgTeamsFilter />
-              <DataTableFilters.AddFilterButton table={table} />
+              <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
               <DataTableFilters.ActiveFilters table={table} />
+              <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
               <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
             </>
           }
