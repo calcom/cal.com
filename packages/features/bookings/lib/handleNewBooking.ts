@@ -1,7 +1,6 @@
 import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
-import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -76,7 +75,6 @@ import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/prisma/zod-utils";
-import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -313,33 +311,48 @@ function buildTroubleshooterData({
   return troubleshooterData;
 }
 
+export type PlatformParams = {
+  platformClientId?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  platformRescheduleUrl?: string;
+  platformBookingLocation?: string;
+};
+
+export type BookingHandlerInput = {
+  bookingData: Record<string, any>;
+  userId?: number;
+
+  // These used to come from headers but now we're passing them as params
+  forcedSlugHeader?: boolean;
+} & PlatformParams;
+
 async function handler(
-  req: NextApiRequest &
-    PlatformClientParams & {
-      userId?: number | undefined;
-    },
+  input: BookingHandlerInput,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
+    bookingData: rawBookingData,
     userId,
     platformClientId,
     platformCancelUrl,
     platformBookingUrl,
     platformRescheduleUrl,
     platformBookingLocation,
-  } = req;
+  } = input;
 
   const eventType = await monitorCallbackAsync(getEventType, {
-    eventTypeId: req.body.eventTypeId,
-    eventTypeSlug: req.body.eventTypeSlug,
+    eventTypeId: rawBookingData.eventTypeId,
+    eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
   const bookingDataSchema = bookingDataSchemaGetter({
-    view: req.body?.rescheduleUid ? "reschedule" : "booking",
+    view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
   });
+
   const bookingData = await getBookingData({
-    req,
+    reqBody: rawBookingData,
     eventType,
     schema: bookingDataSchema,
   });
@@ -540,7 +553,7 @@ async function handler(
         },
       }),
     };
-    if (req.body.allRecurringDates && req.body.isFirstRecurringSlot) {
+    if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
         eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -551,11 +564,12 @@ async function handler(
 
       for (
         let i = 0;
-        i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+        i < input.bookingData.allRecurringDates.length &&
+        i < input.bookingData.numSlotsToCheckForAvailability;
         i++
       ) {
-        const start = req.body.allRecurringDates[i].start;
-        const end = req.body.allRecurringDates[i].end;
+        const start = input.bookingData.allRecurringDates[i].start;
+        const end = input.bookingData.allRecurringDates[i].end;
         if (isTeamEvent) {
           // each fixed user must be available
           for (const key in fixedUsers) {
@@ -588,7 +602,7 @@ async function handler(
       }
     }
 
-    if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
+    if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
       let availableUsers: IsFixedAwareUser[] = [];
       try {
         availableUsers = await ensureAvailableUsers(
@@ -688,16 +702,20 @@ async function handler(
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }
-        if (req.body.isFirstRecurringSlot && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        if (
+          input.bookingData.isFirstRecurringSlot &&
+          eventType.schedulingType === SchedulingType.ROUND_ROBIN
+        ) {
           // for recurring round robin events check if lucky user is available for next slots
           try {
             for (
               let i = 0;
-              i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+              i < input.bookingData.allRecurringDates.length &&
+              i < input.bookingData.numSlotsToCheckForAvailability;
               i++
             ) {
-              const start = req.body.allRecurringDates[i].start;
-              const end = req.body.allRecurringDates[i].end;
+              const start = input.bookingData.allRecurringDates[i].start;
+              const end = input.bookingData.allRecurringDates[i].end;
 
               await ensureAvailableUsers(
                 { ...eventTypeWithUsers, users: [newLuckyUser] },
@@ -736,7 +754,10 @@ async function handler(
         fixedUsers: fixedUserPool.map((u) => u.id),
         luckyUserPool: luckyUserPool.map((u) => u.id),
       };
-    } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    } else if (
+      input.bookingData.allRecurringDates &&
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    ) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
         ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
@@ -1006,9 +1027,9 @@ async function handler(
     oneTimePassword: isConfirmedByDefault ? null : undefined,
   };
 
-  if (req.body.thirdPartyRecurringEventId) {
+  if (input.bookingData.thirdPartyRecurringEventId) {
     evt.existingRecurringEvent = {
-      recurringEventId: req.body.thirdPartyRecurringEventId,
+      recurringEventId: input.bookingData.thirdPartyRecurringEventId,
     };
   }
 
@@ -1097,7 +1118,7 @@ async function handler(
       bookerPhoneNumber,
       tAttendees,
       bookingSeat,
-      reqUserId: req.userId,
+      reqUserId: input.userId,
       rescheduleReason,
       reqBodyUser: reqBody.user,
       noEmail,
@@ -1121,7 +1142,6 @@ async function handler(
     });
 
     if (newBooking) {
-      req.statusCode = 201;
       const bookingResponse = {
         ...newBooking,
         user: {
@@ -1203,7 +1223,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
-        creationSource: req.body.creationSource,
+        creationSource: input.bookingData.creationSource,
       });
 
       if (booking?.userId) {
@@ -1236,9 +1256,9 @@ async function handler(
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
           (attendee) =>
-            attendee.email === req.body.responses.email ||
-            (req.body.responses.attendeePhoneNumber &&
-              attendee.phoneNumber === req.body.responses.attendeePhoneNumber)
+            attendee.email === input.bookingData.responses.email ||
+            (input.bookingData.responses.attendeePhoneNumber &&
+              attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
         );
 
         // Save description to bookingSeat
@@ -1816,7 +1836,6 @@ async function handler(
       isDryRun,
     });
 
-    req.statusCode = 201;
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
     const bookingResponse = {
@@ -1982,7 +2001,9 @@ async function handler(
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
+      isFirstRecurringEvent: input.bookingData.allRecurringDates
+        ? input.bookingData.isFirstRecurringSlot
+        : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
@@ -2006,9 +2027,6 @@ async function handler(
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
-
-  // booking successful
-  req.statusCode = 201;
 
   // TODO: Refactor better so this booking object is not passed
   // all around and instead the individual fields are sent as args.

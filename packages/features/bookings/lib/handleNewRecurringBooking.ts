@@ -33,6 +33,16 @@ export const handleNewRecurringBooking = async (
 
   let luckyUsers = undefined;
 
+  const handleBookingMeta = {
+    userId: req.userId,
+    platformClientId: req.platformClientId,
+    platformRescheduleUrl: req.platformRescheduleUrl,
+    platformCancelUrl: req.platformCancelUrl,
+    platformBookingUrl: req.platformBookingUrl,
+    platformBookingLocation: req.platformBookingLocation,
+    noEmail: req.noEmail,
+  };
+
   if (isRoundRobin) {
     const recurringEventReq: NextApiRequest & { userId?: number } = req;
 
@@ -47,7 +57,10 @@ export const handleNewRecurringBooking = async (
       noEmail: req.noEmail !== undefined ? req.noEmail : false,
     };
 
-    const firstBookingResult = await handleNewBooking(recurringEventReq);
+    const firstBookingResult = await handleNewBooking({
+      bookingData: req.body,
+      ...handleBookingMeta,
+    });
     luckyUsers = firstBookingResult.luckyUsers;
   }
 
@@ -85,8 +98,10 @@ export const handleNewRecurringBooking = async (
       luckyUsers,
     };
 
-    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> =
-      handleNewBooking(recurringEventReq);
+    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking({
+      bookingData: recurringEventReq.body,
+      ...handleBookingMeta,
+    });
 
     const eachRecurringBooking = await promiseEachRecurringBooking;
 
