@@ -43,3 +43,11 @@ export type IsFixedAwareUser = User & {
 };
 
 export type { PaymentAppData };
+
+export type Tracking = {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+};

@@ -2295,7 +2295,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.150"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.151"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3153,7 +3153,6 @@ __metadata:
     next-collect: ^0.2.1
     next-i18next: ^15.4.2
     rrule: ^2.7.1
-    server-only: ^0.0.1
     sonner: ^1.7.4
     tsdav: 2.0.3
     tslog: ^4.9.2
@@ -3334,13 +3333,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.150":
-  version: 0.0.150
-  resolution: "@calcom/platform-libraries@npm:0.0.150"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.151":
+  version: 0.0.151
+  resolution: "@calcom/platform-libraries@npm:0.0.151"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 10aa079cd8b499d6248bf66b342cc60d55b516ba583929cec4b0bd6af32467c1f586638dc987b566f996aca9e4d38a27f0ac2b07e1f0a0446cb03e7b7278fb57
+  checksum: 33b11017c76b63d8fb7bcc363056aebd0d1fdc59d623f308b8497ff49403ecc80faaeba0f990d5bc8f8cea127a555913c471a23eb0151f9f2542ea0459e71d68
   languageName: node
   linkType: hard
 
@@ -17959,9 +17958,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001579":
-  version: 1.0.30001703
-  resolution: "caniuse-lite@npm:1.0.30001703"
-  checksum: f3c19e357df7f5ff480a8a24a61213d1442bf3df9e2f9563a47f4c95e9c08ea7d3c8faa965bc84dcc57c569542584c965b30d552d9b35e421f352c974980de17
+  version: 1.0.30001704
+  resolution: "caniuse-lite@npm:1.0.30001704"
+  checksum: ac8c1b625198c9fdf03f55ef631a0917d29d368ded8e8b2e6a3111cb7433c30b2ef16a6dc44077fb6176e76881a51818d55f24efd04478f5e98b6724b64a8f5c
   languageName: node
   linkType: hard
 
