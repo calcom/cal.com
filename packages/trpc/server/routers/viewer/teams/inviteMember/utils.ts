@@ -6,6 +6,7 @@ import { sendTeamInviteEmail } from "@calcom/emails";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { isEmail } from "@calcom/lib/isEmail";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -26,7 +27,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { isEmail } from "../util";
 import type { TeamWithParent } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
