@@ -14,7 +14,7 @@ import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/reposi
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import type { NewBookingEventType } from "./types";
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
@@ -135,3 +135,8 @@ export const findUsersByUsername = async ({
 };
 
 export type LoadedUsers = Awaited<ReturnType<typeof loadUsers>>;
+
+export type OrganizerUser = LoadedUsers[number] & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+};
