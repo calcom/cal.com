@@ -32,7 +32,7 @@
     "experimentalDecorators": true,
     "declarationMap": false,
     "resolveJsonModule": true,
-    "declarationDir": "types",
+    "declarationDir": "types/server",
     "moduleResolution": "node"
   }
 }
