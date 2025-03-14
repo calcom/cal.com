@@ -3597,10 +3597,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           }
         ],
@@ -3648,10 +3649,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3886,10 +3888,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3927,10 +3930,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3986,10 +3990,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4044,10 +4049,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4103,10 +4109,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4152,10 +4159,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4219,10 +4227,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4268,10 +4277,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4328,10 +4338,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4974,10 +4985,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5023,10 +5035,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5100,10 +5113,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5147,10 +5161,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5204,10 +5219,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5723,10 +5739,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5773,10 +5790,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5815,10 +5833,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5856,10 +5875,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5903,10 +5923,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5960,10 +5981,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -6086,10 +6108,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6266,10 +6289,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           }
         ],
@@ -6308,10 +6332,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6346,10 +6371,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6393,10 +6419,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
