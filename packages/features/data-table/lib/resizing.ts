@@ -1,14 +1,13 @@
 import type { Header, Table, ColumnSizingState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useDebouncedWidth, useDataTable } from "../hooks";
 
 type UsePersistentColumnResizingProps<TData> = {
   enabled: boolean;
   table: Table<TData>;
-  identifier?: string;
   tableContainerRef: React.RefObject<HTMLDivElement>;
 };
 
@@ -83,7 +82,6 @@ function getPartialColumnSizing(columnSizing: ColumnSizingState, columnsToExtrac
 export function usePersistentColumnResizing<TData>({
   enabled,
   table,
-  identifier,
   tableContainerRef,
 }: UsePersistentColumnResizingProps<TData>) {
   const initialized = useRef(false);
@@ -92,14 +90,13 @@ export function usePersistentColumnResizing<TData>({
   const resizedColumns = useRef<Set<string>>(new Set());
   const { columnSizing: loadedColumnSizing, setColumnSizing: setColumnSizingToContext } = useDataTable();
 
-  const debouncedSaveColumnSizing = debounce(setColumnSizingToContext, 1000);
+  const debouncedSaveColumnSizing = useMemo(
+    () => debounce(setColumnSizingToContext, 1000),
+    [setColumnSizingToContext]
+  );
 
   const adjustColumnSizing = useCallback(
     (updater: ColumnSizingState | ((old: ColumnSizingState) => ColumnSizingState)) => {
-      // `!identifier` is checked already in the `useEffect` hook,
-      // but TS doesn't know that, and this won't happen.
-      if (!identifier) return;
-
       table.setState((oldTableState) => {
         let newColumnSizing = typeof updater === "function" ? updater(oldTableState.columnSizing) : updater;
         newColumnSizing = getAdjustedColumnSizing({
@@ -118,7 +115,7 @@ export function usePersistentColumnResizing<TData>({
         };
       });
     },
-    [table, identifier, tableContainerRef, debouncedSaveColumnSizing]
+    [table, tableContainerRef, debouncedSaveColumnSizing]
   );
 
   const onColumnSizingChange = useCallback(
@@ -129,13 +126,13 @@ export function usePersistentColumnResizing<TData>({
       }
       adjustColumnSizing(updater);
     },
-    [identifier, table, adjustColumnSizing]
+    [table, adjustColumnSizing]
   );
 
   const debouncedContainerWidth = useDebouncedWidth(tableContainerRef);
 
   useEffect(() => {
-    if (!enabled || !identifier || !initialized.current) return;
+    if (!enabled || !initialized.current) return;
     const newColumnSizing = getAdjustedColumnSizing({
       headers: table.getFlatHeaders(),
       containerWidth: debouncedContainerWidth,
@@ -152,7 +149,7 @@ export function usePersistentColumnResizing<TData>({
   }, [debouncedContainerWidth, table.getFlatHeaders().length]);
 
   useEffect(() => {
-    if (!enabled || !identifier) return;
+    if (!enabled) return;
 
     // loadedColumnSizing is a partial object of explicitly resized columns.
     // combine loaded sizes and the default sizes from TanStack Table
@@ -175,5 +172,5 @@ export function usePersistentColumnResizing<TData>({
     }));
 
     initialized.current = true;
-  }, [enabled, identifier, table, onColumnSizingChange]);
+  }, [enabled, table, onColumnSizingChange]);
 }

@@ -93,24 +93,13 @@ export function DataTableWrapper<TData>({
       sorting,
       columnFilters,
       columnVisibility: mergedColumnVisibility,
-      columnSizing,
     }));
     table.setOptions((prev) => ({
       ...prev,
       onSortingChange: setSorting,
       onColumnVisibilityChange: setColumnVisibility,
-      onColumnSizingChange: setColumnSizing,
     }));
-  }, [
-    table,
-    sorting,
-    columnFilters,
-    columnVisibility,
-    setSorting,
-    setColumnVisibility,
-    columnSizing,
-    setColumnSizing,
-  ]);
+  }, [table, sorting, columnFilters, columnVisibility, setSorting, setColumnVisibility]);
 
   let view: "loader" | "empty" | "table" = "table";
   if (isPending && LoaderView) {

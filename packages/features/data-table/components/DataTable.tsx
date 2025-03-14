@@ -6,7 +6,6 @@ import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/rea
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
-import { usePathname } from "next/navigation";
 import { useEffect, useState, memo, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -42,7 +41,6 @@ export type DataTableProps<TData> = {
   bodyTestId?: string;
   hideHeader?: boolean;
   children?: React.ReactNode;
-  identifier?: string;
   enableColumnResizing?: boolean;
   className?: string;
   containerClassName?: string;
@@ -58,7 +56,6 @@ export function DataTable<TData>({
   onScroll,
   children,
   hideHeader,
-  identifier: _identifier,
   enableColumnResizing,
   testId,
   bodyTestId,
@@ -67,9 +64,6 @@ export function DataTable<TData>({
   paginationMode = "infinite",
   ...rest
 }: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
-  const pathname = usePathname() as string | null;
-  const identifier = _identifier ?? pathname ?? undefined;
-
   const { rows } = table.getRowModel();
 
   const rowVirtualizer = useVirtualizer({
@@ -101,10 +95,9 @@ export function DataTable<TData>({
   const columnSizingVars = useColumnSizingVars({ table });
 
   usePersistentColumnResizing({
-    enabled: Boolean(enableColumnResizing && identifier),
+    enabled: Boolean(enableColumnResizing),
     table,
     tableContainerRef,
-    identifier,
   });
 
   return (

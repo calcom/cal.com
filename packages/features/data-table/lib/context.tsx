@@ -1,6 +1,7 @@
 "use client";
 
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
 import { createContext, useCallback } from "react";
 
@@ -14,6 +15,8 @@ import {
 } from "./types";
 
 export type DataTableContextType = {
+  tableIdentifier: string;
+
   activeFilters: ActiveFilter[];
   setActiveFilters: (filters: ActiveFilter[]) => void;
   clearAll: (exclude?: string[]) => void;
@@ -50,11 +53,16 @@ const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
 const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
+  tableIdentifier?: string;
   children: React.ReactNode;
   defaultPageSize?: number;
 }
 
-export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZE }: DataTableProviderProps) {
+export function DataTableProvider({
+  tableIdentifier: _tableIdentifier,
+  children,
+  defaultPageSize = DEFAULT_PAGE_SIZE,
+}: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
@@ -74,6 +82,12 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
   const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
+
+  const pathname = usePathname() as string | null;
+  const identifier = _tableIdentifier ?? pathname ?? undefined;
+  if (!identifier) {
+    throw new Error("tableIdentifier is required");
+  }
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
@@ -120,6 +134,7 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
   return (
     <DataTableContext.Provider
       value={{
+        tableIdentifier: identifier,
         activeFilters,
         setActiveFilters,
         clearAll,
