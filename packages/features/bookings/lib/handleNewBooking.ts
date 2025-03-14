@@ -322,6 +322,9 @@ export type PlatformParams = {
 export type BookingHandlerInput = {
   bookingData: Record<string, any>;
   userId?: number;
+
+  // These used to come from headers but now we're passing them as params
+  forcedSlugHeader?: boolean;
 } & PlatformParams;
 
 async function handler(
