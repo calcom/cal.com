@@ -1,3 +1,4 @@
+import { useSchedules } from "@calcom/atoms/hooks/schedules/useSchedules";
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type {
   ApiErrorResponse,
@@ -8,7 +9,6 @@ import type {
 
 import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
 import { useSchedule } from "../../hooks/schedules/useSchedule";
-import { useSchedules } from "../../hooks/schedules/useSchedules";
 import useUpdateSchedule from "../../hooks/schedules/useUpdateSchedule";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
