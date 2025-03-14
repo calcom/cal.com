@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import {
   V2_ENDPOINTS,
   SUCCESS_STATUS,
@@ -10,6 +9,7 @@ import {
 import type { GetScheduleOutput_2024_06_11 } from "@calcom/platform-types";
 
 import http from "../../lib/http";
+import { useAtomsContext } from "../useAtomsContext";
 
 export const QUERY_KEY = "user-schedule";
 

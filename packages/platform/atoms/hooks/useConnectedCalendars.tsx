@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
+import { useAtomsContext } from "./useAtomsContext";
 
 export const QUERY_KEY = "get-connected-calendars";
 export const useConnectedCalendars = (props: { enabled?: boolean }) => {
