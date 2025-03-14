@@ -80,6 +80,9 @@ const getIPAddress = async (url: string): Promise<string> => {
   });
 };
 
+/**
+ * TODO: To be removed. We need to reuse the logic from orgCreationUtils like in intentToCreateOrgHandler
+ */
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const {
     slug,
@@ -119,7 +122,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
-  const verifiedUser = loggedInUser.completedOnboarding && !!loggedInUser.emailVerified;
 
   // We only allow creating an annual billing period if you are a system admin
   const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
@@ -132,13 +134,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
-    });
-  }
-
-  if (isPlatform && !verifiedUser) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You need to complete onboarding before creating a platform team",
     });
   }
 
@@ -221,6 +216,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
     billingPeriod,
+    logoUrl: null,
+    bio: null,
+    paymentSubscriptionId: null,
   };
 
   // Create a new user and invite them as the owner of the organization

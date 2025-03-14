@@ -29,24 +29,24 @@ const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
   // for orderBy, but we don't use a unique column in our orderBy
-  const take = input.limit ?? 10;
-  const skip = input.cursor ?? 0;
+  const take = input.limit;
+  const skip = input.offset;
   const { prisma, user } = ctx;
   const defaultStatus = "upcoming";
   const bookingListingByStatus = [input.filters.status || defaultStatus];
 
-  const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
+  const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
     ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
     bookingListingByStatus: bookingListingByStatus,
-    take: take,
-    skip: skip,
+    take,
+    skip,
     filters: input.filters,
   });
 
   return {
     bookings,
     recurringInfo,
-    nextCursor,
+    totalCount,
   };
 };
 
@@ -92,6 +92,7 @@ export async function getBookings({
         recurringEvent: true,
         currency: true,
         metadata: true,
+        disableGuests: true,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
@@ -170,188 +171,186 @@ export async function getBookings({
 
   const [
     eventTypeIdsFromTeamIdsFilter,
-    { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter },
+    attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwener,
     userIdsWhereUserIsOrgAdminOrOwener,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
-    getIdsFromUserIdsFilter(prisma, user.email, filters?.userIds),
+    getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
     getUserIdsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
   ]);
 
-  const plainBookings = await prisma.booking.findMany({
-    where: {
-      OR: [
-        {
-          userId: user.id,
+  const whereClause = {
+    OR: [
+      {
+        userId: user.id,
+      },
+      {
+        attendees: {
+          some: {
+            email: user.email,
+          },
         },
-        {
-          attendees: {
-            some: {
+      },
+      {
+        eventTypeId: {
+          in: eventTypeIdsWhereUserIsAdminOrOwener,
+        },
+      },
+      {
+        userId: {
+          in: userIdsWhereUserIsOrgAdminOrOwener,
+        },
+      },
+      {
+        seatsReferences: {
+          some: {
+            attendee: {
               email: user.email,
             },
           },
         },
-        {
-          eventTypeId: {
-            in: eventTypeIdsWhereUserIsAdminOrOwener,
-          },
-        },
-        {
-          userId: {
-            in: userIdsWhereUserIsOrgAdminOrOwener,
-          },
-        },
-        {
-          seatsReferences: {
-            some: {
-              attendee: {
-                email: user.email,
+      },
+    ],
+    AND: [
+      passedBookingsStatusFilter,
+      ...(eventTypeIdsFromTeamIdsFilter
+        ? [
+            {
+              eventTypeId: {
+                in: eventTypeIdsFromTeamIdsFilter,
               },
             },
-          },
-        },
-      ],
-      AND: [
-        passedBookingsStatusFilter,
-        ...(eventTypeIdsFromTeamIdsFilter
-          ? [
-              {
-                eventTypeId: {
-                  in: eventTypeIdsFromTeamIdsFilter,
-                },
-              },
-            ]
-          : []),
-        ...(filters?.userIds && filters.userIds.length > 0 && eventTypeIdsFromUserIdsFilter
-          ? [
-              {
-                OR: [
-                  {
-                    userId: {
-                      in: filters.userIds,
-                    },
+          ]
+        : []),
+      ...(filters?.userIds && filters.userIds.length > 0
+        ? [
+            {
+              OR: [
+                {
+                  userId: {
+                    in: filters.userIds,
                   },
-                  ...(eventTypeIdsFromUserIdsFilter?.length
-                    ? [
-                        {
-                          eventTypeId: {
-                            in: eventTypeIdsFromUserIdsFilter,
-                          },
-                        },
-                      ]
-                    : []),
-                  ...(attendeeEmailsFromUserIdsFilter?.length
-                    ? [
-                        {
-                          attendees: {
-                            some: {
-                              email: {
-                                in: attendeeEmailsFromUserIdsFilter,
-                              },
+                },
+                ...(attendeeEmailsFromUserIdsFilter?.length
+                  ? [
+                      {
+                        attendees: {
+                          some: {
+                            email: {
+                              in: attendeeEmailsFromUserIdsFilter,
                             },
                           },
                         },
-                      ]
-                    : []),
-                ],
-              },
-            ]
-          : []),
-        ...(eventTypeIdsFromEventTypeIdsFilter
-          ? [
-              {
-                eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter },
-              },
-            ]
-          : []),
+                      },
+                    ]
+                  : []),
+              ],
+            },
+          ]
+        : []),
+      ...(eventTypeIdsFromEventTypeIdsFilter
+        ? [
+            {
+              eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter },
+            },
+          ]
+        : []),
 
-        ...(typeof filters?.attendeeEmail === "string"
-          ? [
-              {
-                attendees: { some: { email: filters.attendeeEmail.trim() } },
+      ...(typeof filters?.attendeeEmail === "string"
+        ? [
+            {
+              attendees: { some: { email: filters.attendeeEmail.trim() } },
+            },
+          ]
+        : []),
+      ...(isTextFilterValue(filters?.attendeeEmail)
+        ? [
+            {
+              attendees: {
+                some: makeWhereClause({
+                  columnName: "email",
+                  filterValue: filters.attendeeEmail,
+                }),
               },
-            ]
-          : []),
-        ...(isTextFilterValue(filters?.attendeeEmail)
-          ? [
-              {
-                attendees: {
-                  some: makeWhereClause({
-                    columnName: "email",
-                    filterValue: filters.attendeeEmail,
-                  }),
-                },
-              },
-            ]
-          : []),
+            },
+          ]
+        : []),
 
-        ...(typeof filters?.attendeeName === "string"
-          ? [
-              {
-                attendees: { some: { name: filters.attendeeName.trim() } },
+      ...(typeof filters?.attendeeName === "string"
+        ? [
+            {
+              attendees: { some: { name: filters.attendeeName.trim() } },
+            },
+          ]
+        : []),
+      ...(isTextFilterValue(filters?.attendeeName)
+        ? [
+            {
+              attendees: {
+                some: makeWhereClause({
+                  columnName: "name",
+                  filterValue: filters.attendeeName,
+                }),
               },
-            ]
-          : []),
-        ...(isTextFilterValue(filters?.attendeeName)
-          ? [
-              {
-                attendees: {
-                  some: makeWhereClause({
-                    columnName: "name",
-                    filterValue: filters.attendeeName,
-                  }),
-                },
-              },
-            ]
-          : []),
+            },
+          ]
+        : []),
 
-        ...(filters?.afterStartDate
-          ? [
-              {
-                startTime: {
-                  gte: dayjs.utc(filters.afterStartDate).toDate(),
-                },
+      ...(filters?.afterStartDate
+        ? [
+            {
+              startTime: {
+                gte: dayjs.utc(filters.afterStartDate).toDate(),
               },
-            ]
-          : []),
-        ...(filters?.beforeEndDate
-          ? [
-              {
-                endTime: {
-                  lte: dayjs.utc(filters.beforeEndDate).toDate(),
-                },
+            },
+          ]
+        : []),
+      ...(filters?.beforeEndDate
+        ? [
+            {
+              endTime: {
+                lte: dayjs.utc(filters.beforeEndDate).toDate(),
               },
-            ]
-          : []),
-        ...(filters?.afterUpdatedDate
-          ? [
-              {
-                updatedAt: {
-                  gte: dayjs.utc(filters.afterUpdatedDate).toDate(),
-                },
+            },
+          ]
+        : []),
+      ...(filters?.afterUpdatedDate
+        ? [
+            {
+              updatedAt: {
+                gte: dayjs.utc(filters.afterUpdatedDate).toDate(),
               },
-            ]
-          : []),
-        ...(filters?.beforeUpdatedDate
-          ? [
-              {
-                updatedAt: {
-                  lte: dayjs.utc(filters.beforeUpdatedDate).toDate(),
-                },
+            },
+          ]
+        : []),
+      ...(filters?.beforeUpdatedDate
+        ? [
+            {
+              updatedAt: {
+                lte: dayjs.utc(filters.beforeUpdatedDate).toDate(),
               },
-            ]
-          : []),
-      ],
-    },
-    select: bookingSelect,
-    orderBy,
-    take: take + 1,
-    skip,
-  });
+            },
+          ]
+        : []),
+    ],
+  };
+
+  const [plainBookings, totalCount] = await Promise.all([
+    prisma.booking.findMany({
+      where: whereClause,
+      select: bookingSelect,
+      orderBy,
+      take,
+      skip,
+    }),
+    prisma.booking.count({
+      where: whereClause,
+    }),
+  ]);
 
   const [
     recurringInfoBasic,
@@ -454,7 +453,7 @@ export async function getBookings({
       };
     })
   );
-  return { bookings, recurringInfo };
+  return { bookings, recurringInfo, totalCount };
 }
 
 async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {
@@ -491,71 +490,30 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
   return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
 }
 
-async function getIdsFromUserIdsFilter(prisma: PrismaClient, userEmail: string, userIds?: number[]) {
+async function getAttendeeEmailsFromUserIdsFilter(
+  prisma: PrismaClient,
+  userEmail: string,
+  userIds?: number[]
+) {
   if (!userIds || userIds.length === 0) {
-    return {
-      eventTypeIdsFromUserIdsFilter: undefined,
-      attendeeEmailsFromUserIdsFilter: undefined,
-    };
+    return;
   }
 
-  const [attendeeEmailsFromUserIdsFilter, eventTypeIdsFromHostsFilter, eventTypeIdsFromUsersFilter] =
-    await Promise.all([
-      prisma.user
-        .findMany({
-          where: {
-            id: {
-              in: userIds,
-            },
-          },
-          select: {
-            email: true,
-          },
-        })
-        // Include booking if current user is an attendee, regardless of user ID filter
-        .then((users) => users.map((user) => user.email).concat([userEmail])),
+  const attendeeEmailsFromUserIdsFilter = await prisma.user
+    .findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        email: true,
+      },
+    })
+    // Include booking if current user is an attendee, regardless of user ID filter
+    .then((users) => users.map((user) => user.email).concat([userEmail]));
 
-      prisma.eventType
-        .findMany({
-          where: {
-            hosts: {
-              some: {
-                userId: {
-                  in: userIds,
-                },
-                isFixed: true,
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-
-      prisma.eventType
-        .findMany({
-          where: {
-            users: {
-              some: {
-                id: {
-                  in: userIds,
-                },
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-        .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-    ]);
-
-  const eventTypeIdsFromUserIdsFilter = Array.from(
-    new Set([...eventTypeIdsFromHostsFilter, ...eventTypeIdsFromUsersFilter])
-  );
-
-  return { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter };
+  return attendeeEmailsFromUserIdsFilter;
 }
 
 async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, eventTypeIds?: number[]) {

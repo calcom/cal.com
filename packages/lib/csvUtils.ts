@@ -117,7 +117,7 @@ export const generateCsvRawForMembersTable = (
     const { email, role, teams, username, attributes } = row;
 
     // Create a map of attributeId to array of values
-    const attributeMap = attributes.reduce((acc, attr) => {
+    const attributeMap = (attributes ?? []).reduce((acc, attr) => {
       if (!acc[attr.attributeId]) {
         acc[attr.attributeId] = [];
       }

@@ -1,10 +1,10 @@
 // handles logic related to user clock display using 24h display / timeZone options.
-import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import {
   getIs24hClockFromLocalStorage,
   isBrowserLocale24h,
   setIs24hClockInLocalStorage,
 } from "@calcom/lib/timeFormat";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 
 interface TimeOptions {

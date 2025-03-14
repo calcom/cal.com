@@ -1,4 +1,4 @@
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -7,7 +7,7 @@ import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
-import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
+import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import { showToast } from "@calcom/ui";
 
 import type { UseCreateBookingInput } from "./useCreateBooking";

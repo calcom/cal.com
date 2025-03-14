@@ -7,7 +7,7 @@ export default async function PageWrapperLayout({ children }: { children: React.
   const nonce = h.get("x-nonce") ?? undefined;
 
   return (
-    <PageWrapper requiresLicense={false} nonce={nonce} themeBasis={null}>
+    <PageWrapper requiresLicense={false} nonce={nonce}>
       {children}
     </PageWrapper>
   );

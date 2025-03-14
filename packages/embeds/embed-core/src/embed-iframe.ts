@@ -14,6 +14,7 @@ const enum EMBED_IFRAME_STATE {
   NOT_INITIALIZED,
   INITIALIZED,
 }
+
 /**
  * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
  */
@@ -333,7 +334,13 @@ export const useEmbedType = () => {
 };
 
 function unhideBody() {
-  document.body.style.visibility = "visible";
+  // Ensure that it stays visible and not reverted by React
+  runAsap(() => {
+    if (document.body.style.visibility !== "visible") {
+      document.body.style.visibility = "visible";
+    }
+    unhideBody();
+  });
 }
 
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})

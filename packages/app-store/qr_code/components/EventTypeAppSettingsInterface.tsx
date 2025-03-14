@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextField, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({ eventType, disabled }) => {
   const { t } = useLocale();

@@ -5,10 +5,12 @@ import { useMemo } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { dataTableFilter, ColumnFilterType } from "@calcom/features/data-table";
+import { ColumnFilterType } from "@calcom/features/data-table";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import { Badge } from "@calcom/ui";
+import { Badge, Icon } from "@calcom/ui";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -47,10 +49,6 @@ export const useInsightsColumns = ({
           filter: { type: ColumnFilterType.SINGLE_SELECT },
         },
         cell: () => null,
-        filterFn: (row, id, filterValue) => {
-          const cellValue = row.original.formId;
-          return dataTableFilter(cellValue, filterValue);
-        },
       }),
       columnHelper.accessor("bookingUserId", {
         id: "bookingUserId",
@@ -63,9 +61,31 @@ export const useInsightsColumns = ({
           },
         },
         cell: () => null,
-        filterFn: (row, id, filterValue) => {
-          const cellValue = row.original.bookingUserId;
-          return dataTableFilter(cellValue, filterValue);
+      }),
+      columnHelper.accessor("bookingUid", {
+        id: "bookingUid",
+        header: t("uid"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          const bookingUid = info.getValue();
+          if (!bookingUid) return null;
+          return <CopyButton label={bookingUid} value={bookingUid} />;
+        },
+      }),
+      columnHelper.accessor("bookingUid", {
+        id: "bookingLink",
+        header: t("link"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          const bookingUid = info.getValue();
+          if (!bookingUid) return null;
+          const bookingUrl = `${WEBAPP_URL}/booking/${bookingUid}`;
+          const displayedUrl = bookingUrl.replace(/^https?:\/\//, "");
+          return <CopyButton label={displayedUrl} value={bookingUrl} />;
         },
       }),
       columnHelper.accessor("bookingAttendees", {
@@ -141,10 +161,6 @@ export const useInsightsColumns = ({
           meta: {
             filter: { type: filterType },
           },
-          filterFn: (row, id, filterValue) => {
-            const cellValue = row.original.response[id]?.value;
-            return dataTableFilter(cellValue, filterValue);
-          },
         });
       }) ?? []),
       columnHelper.accessor("bookingStatusOrder", {
@@ -159,15 +175,6 @@ export const useInsightsColumns = ({
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT, icon: "circle" },
         },
-        filterFn: (row, id, filterValue) => {
-          const cellValue = row.original.bookingStatusOrder;
-          return dataTableFilter(cellValue, filterValue);
-        },
-        sortingFn: (rowA, rowB) => {
-          const statusA = rowA.original.bookingStatusOrder ?? 6; // put it at the end if bookingStatusOrder is null
-          const statusB = rowB.original.bookingStatusOrder ?? 6;
-          return statusA - statusB;
-        },
       }),
       columnHelper.accessor("bookingCreatedAt", {
         id: "bookingCreatedAt",
@@ -178,16 +185,6 @@ export const useInsightsColumns = ({
             <BookingAtCell row={info.row.original} rowId={info.row.original.id} />
           </div>
         ),
-        sortingFn: (rowA, rowB) => {
-          const dateA = rowA.original.bookingCreatedAt;
-          const dateB = rowB.original.bookingCreatedAt;
-          if (!dateA && !dateB) return 0;
-          if (!dateA) return -1;
-          if (!dateB) return 1;
-          if (!(dateA instanceof Date) || !(dateB instanceof Date)) return 0;
-
-          return dateA.getTime() - dateB.getTime();
-        },
       }),
       columnHelper.accessor("bookingAssignmentReason", {
         id: "bookingAssignmentReason",
@@ -201,10 +198,6 @@ export const useInsightsColumns = ({
           const assignmentReason = info.getValue();
           return <div className="max-w-[250px]">{assignmentReason}</div>;
         },
-        filterFn: (row, id, filterValue) => {
-          const reason = row.original.bookingAssignmentReason;
-          return dataTableFilter(reason, filterValue);
-        },
       }),
       columnHelper.accessor("createdAt", {
         id: "createdAt",
@@ -217,11 +210,33 @@ export const useInsightsColumns = ({
             <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
           </div>
         ),
-        filterFn: (row, id, filterValue) => {
-          const createdAt = row.original.createdAt;
-          return dataTableFilter(createdAt, filterValue);
-        },
       }),
     ];
   }, [isHeadersSuccess, headers]);
 };
+
+function CopyButton({ label, value }: { label: string; value: string }) {
+  const { copyToClipboard, isCopied } = useCopy();
+  const { t } = useLocale();
+  return (
+    <button
+      className="flex w-full items-center gap-1 overflow-hidden"
+      title={value}
+      onClick={() => {
+        copyToClipboard(value);
+      }}>
+      {!isCopied && (
+        <>
+          <span className="truncate">{label}</span>
+          <Icon name="clipboard" className="shrink-0" size={14} />
+        </>
+      )}
+      {isCopied && (
+        <>
+          <span className="grow truncate text-left">{t("copied")}</span>
+          <Icon name="check" className="shrink-0" size={14} />
+        </>
+      )}
+    </button>
+  );
+}

@@ -146,7 +146,7 @@ const WebhookForm = (props: {
     <Form
       form={formMethods}
       handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-      <div className="border-subtle rounded-t-lg border p-6">
+      <div className="border-subtle border p-6">
         <Controller
           name="subscriberUrl"
           control={formMethods.control}

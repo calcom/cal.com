@@ -75,7 +75,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     };
   }
 
-  const { cursor, limit } = input;
+  const { limit, offset } = input;
 
   const getTotalMembers = await prisma.membership.count({
     where: {
@@ -164,6 +164,12 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         select: {
           id: true,
           username: true,
+          profiles: {
+            select: {
+              organizationId: true,
+              username: true,
+            },
+          },
           email: true,
           avatarUrl: true,
           timeZone: true,
@@ -184,18 +190,12 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         },
       },
     },
-    cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1, // We take +1 as itll be used for the next cursor
+    skip: offset,
+    take: limit,
     orderBy: {
       id: "asc",
     },
   });
-
-  let nextCursor: typeof cursor | undefined = undefined;
-  if (teamMembers && teamMembers.length > limit) {
-    const nextItem = teamMembers.pop();
-    nextCursor = nextItem?.id;
-  }
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
@@ -230,7 +230,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
       return {
         id: user.id,
-        username: user.username,
+        username: user.profiles[0]?.username || user.username,
         email: user.email,
         timeZone: user.timeZone,
         role: membership.role,
@@ -254,7 +254,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               name: team.team.name,
               slug: team.team.slug,
             };
-          }),
+          })
+          .filter((team): team is NonNullable<typeof team> => team !== undefined),
         attributes,
       };
     }) || []
@@ -262,7 +263,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   return {
     rows: members || [],
-    nextCursor,
     meta: {
       totalRowCount: getTotalMembers || 0,
     },

@@ -13,9 +13,6 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import EventManager from "@calcom/core/EventManager";
-import { getEventName } from "@calcom/core/event";
-import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -47,10 +44,16 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import EventManager from "@calcom/lib/EventManager";
+import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import {
+  enrichHostsWithDelegationCredentials,
+  getFirstDelegationConferencingCredentialAppLocation,
+} from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -61,6 +64,7 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -76,6 +80,7 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -86,26 +91,23 @@ import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEv
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
+import type { Booking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
+import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
+import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
+import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type {
-  Booking,
-  BookingType,
-  IEventTypePaymentCredentialType,
-  Invitee,
-  IsFixedAwareUser,
-} from "./handleNewBooking/types";
+import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
@@ -113,14 +115,8 @@ import handleSeats from "./handleSeats/handleSeats";
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
-export const createLoggerWithEventDetails = (
-  eventTypeId: number,
-  reqBodyUser: string | string[] | undefined,
-  eventTypeSlug: string | undefined
-) => {
-  return logger.getSubLogger({
-    prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
-  });
+type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
+  credentials: CredentialForCalendarService[];
 };
 
 function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
@@ -166,36 +162,6 @@ const getEventType = async ({
 type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
-
-/**
- * Adds the contact owner to be the only lucky user
- * @returns
- */
-function buildLuckyUsersWithJustContactOwner({
-  contactOwnerEmail,
-  availableUsers,
-  fixedUserPool,
-}: {
-  contactOwnerEmail: string | null;
-  availableUsers: IsFixedAwareUser[];
-  fixedUserPool: IsFixedAwareUser[];
-}) {
-  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>>["qualifiedRRUsers"] = [];
-  if (!contactOwnerEmail) {
-    return luckyUsers;
-  }
-
-  const isContactOwnerAFixedHostAlready = fixedUserPool.some((user) => user.email === contactOwnerEmail);
-  if (isContactOwnerAFixedHostAlready) {
-    return luckyUsers;
-  }
-
-  const teamMember = availableUsers.find((user) => user.email === contactOwnerEmail);
-  if (teamMember) {
-    luckyUsers.push(teamMember);
-  }
-  return luckyUsers;
-}
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 
@@ -478,11 +444,6 @@ async function handler(
 
   const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
 
-  const isReroutingCase = isRerouting({
-    rescheduleUid: reqBody.rescheduleUid ?? null,
-    routedTeamMemberIds: routedTeamMemberIds ?? null,
-  });
-
   const skipContactOwner = shouldIgnoreContactOwner({
     skipContactOwner: reqBody.skipContactOwner ?? null,
     rescheduleUid: reqBody.rescheduleUid ?? null,
@@ -529,11 +490,13 @@ async function handler(
   // We filter out users but ensure allHostUsers remain same.
   let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
 
-  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
+  const firstUser = users[0];
+
+  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb({
     dynamicUserList,
     users,
-    location
-  );
+    location,
+  });
 
   await monitorCallbackAsync(checkBookingAndDurationLimits, {
     eventType,
@@ -565,11 +528,11 @@ async function handler(
 
   //checks what users are available
   if (isFirstSeat) {
-    const eventTypeWithUsers: getEventTypeResponse & {
-      users: IsFixedAwareUser[];
+    const eventTypeWithUsers: Omit<getEventTypeResponse, "users"> & {
+      users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
-      users: users as IsFixedAwareUser[],
+      users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
           ...eventType.recurringEvent,
@@ -583,7 +546,7 @@ async function handler(
         eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
       const fixedUsers = isTeamEvent
-        ? eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed)
+        ? eventTypeWithUsers.users.filter((user: IsFixedAwareUserWithCredentials) => user.isFixed)
         : [];
 
       for (
@@ -609,6 +572,7 @@ async function handler(
             );
           }
         } else {
+          eventTypeWithUsers.users[0].credentials;
           await ensureAvailableUsers(
             eventTypeWithUsers,
             {
@@ -705,13 +669,19 @@ async function handler(
         // freeUsers is ensured
 
         const userIdsSet = new Set(users.map((user) => user.id));
-
+        const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+          memberId: eventTypeWithUsers.users[0].id ?? null,
+          teamId: eventType.teamId,
+        });
         const newLuckyUser = await getLuckyUser({
           // find a lucky user that is not already in the luckyUsers array
           availableUsers: freeUsers,
-          allRRHosts: eventTypeWithUsers.hosts.filter(
-            (host) => !host.isFixed && userIdsSet.has(host.user.id)
-          ), // users part of virtual queue
+          allRRHosts: (
+            await enrichHostsWithDelegationCredentials({
+              orgId: firstUserOrgId ?? null,
+              hosts: eventTypeWithUsers.hosts,
+            })
+          ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
           eventType,
           routingFormResponse,
         });
@@ -825,6 +795,11 @@ async function handler(
       locationBodyString = OrganizerDefaultConferencingAppType;
     }
   }
+
+  const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
+    credentials: firstUser.credentials,
+  });
+
   // use host default
   if (locationBodyString == OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
@@ -836,6 +811,8 @@ async function handler(
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
           organizerMetadata?.defaultConferencingApp?.appLink;
       }
+    } else if (organizationDefaultLocation) {
+      locationBodyString = organizationDefaultLocation;
     } else {
       locationBodyString = "integrations:daily";
     }
@@ -894,6 +871,9 @@ async function handler(
         conferenceCredentialId: undefined,
       }
     : getLocationValueForDB(locationBodyString, eventType.locations);
+
+  log.info("locationBodyString", locationBodyString);
+  log.info("event type locations", eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamDestinationCalendars: DestinationCalendar[] = [];
@@ -1294,7 +1274,7 @@ async function handler(
         endTime: reqBody.end,
         contactOwnerFromReq,
         contactOwnerEmail,
-        allHostUsers: [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers],
+        allHostUsers: users,
         isManagedEventType,
       });
       booking = dryRunBooking;
@@ -1845,6 +1825,9 @@ async function handler(
         ...booking.user,
         email: null,
       },
+      videoCallUrl: metadata?.videoCallUrl,
+      // Ensure seatReferenceUid is properly typed as string | null
+      seatReferenceUid: evt.attendeeSeatId,
     };
 
     return {
@@ -2045,6 +2028,7 @@ async function handler(
     ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
+    videoCallUrl: metadata?.videoCallUrl,
   };
 }
 
