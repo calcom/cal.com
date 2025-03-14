@@ -13,12 +13,6 @@ import {
   DataTableSelectionBar,
   DataTableFilters,
   useColumnFilters,
-  textFilter,
-  isTextFilterValue,
-  isSingleSelectFilterValue,
-  isMultiSelectFilterValue,
-  singleSelectFilter,
-  multiSelectFilter,
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
@@ -237,18 +231,6 @@ function UserListTableContent() {
                 </div>
               );
             },
-            filterFn: (row, id, filterValue) => {
-              const attributeValues = row.original.attributes?.filter((attr) => attr.attributeId === id);
-
-              if (isTextFilterValue(filterValue)) {
-                return attributeValues?.some((attr) => textFilter(attr.value, filterValue)) ?? false;
-              } else if (isSingleSelectFilterValue(filterValue)) {
-                return singleSelectFilter(attributeValues?.map((attr) => attr.value) ?? [], filterValue);
-              } else if (isMultiSelectFilterValue(filterValue)) {
-                return multiSelectFilter(attributeValues?.map((attr) => attr.value) ?? [], filterValue);
-              }
-              return false;
-            },
           };
         }) ?? [];
       return attributeColumns;
@@ -312,10 +294,6 @@ function UserListTableContent() {
             </div>
           );
         },
-        filterFn: (rows, id, filterValue) => {
-          const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
-        },
       },
       {
         id: "role",
@@ -334,15 +312,6 @@ function UserListTableContent() {
               {role}
             </Badge>
           );
-        },
-        filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
-          }
-
-          // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
         },
       },
       {
@@ -380,10 +349,6 @@ function UserListTableContent() {
               ))}
             </div>
           );
-        },
-        filterFn: (rows, _, filterValue: string[]) => {
-          const teamNames = rows.original.teams.map((team) => team.name);
-          return filterValue.some((value: string) => teamNames.includes(value));
         },
       },
       ...generateAttributeColumns(),
@@ -547,7 +512,7 @@ function UserListTableContent() {
 
   return (
     <>
-      <DataTableWrapper
+      <DataTableWrapper<UserTableUser>
         testId="user-list-data-table"
         table={table}
         isPending={isPending}

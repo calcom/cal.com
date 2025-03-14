@@ -4,7 +4,7 @@ import { checkBookingLimits } from "@calcom/lib/intervalLimits/server/checkBooki
 import { checkDurationLimits } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
 import prisma from "@calcom/prisma";
 
-import type { NewBookingEventType } from "./types";
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 type EventType = Pick<
   NewBookingEventType,
