@@ -1,11 +1,11 @@
+import type { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
 import {
   transformAvailabilityForAtom,
   transformDateOverridesForAtom,
   transformApiScheduleAvailability,
   transformApiScheduleOverrides,
   transformWorkingHoursForAtom,
-} from "@calcom/lib/schedules/transformers";
-import type { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
+} from "@calcom/platform/utils/transformers/schedules";
 import type { User } from "@calcom/prisma/client";
 
 export function transformApiScheduleForAtom(

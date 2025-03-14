@@ -1,6 +1,6 @@
 import {
   transformApiScheduleOverrides,
   transformApiScheduleAvailability,
-} from "@calcom/lib/schedules/transformers/from-api";
+} from "@calcom/platform/utils/transformers/schedules/from-api";
 
 export { transformApiScheduleOverrides, transformApiScheduleAvailability };

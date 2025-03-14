@@ -1,6 +1,6 @@
-//import { transformScheduleToAvailabilityForAtom } from "@calcom/platform-utils/transformers/schedules";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
+import { transformScheduleToAvailabilityForAtom } from "@calcom/platform-utils/transformers/schedules";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -118,7 +118,10 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     },
   });
 
-  const userAvailability = schedule; //transformScheduleToAvailabilityForAtom(schedule);
+  // TODO: Ideally this tRPC router doesn't know about @calcom/platform
+  // since tRPC routers aren't used by Platform
+  // but choosing to not do larger refactor - KAW 2025-03-14
+  const userAvailability = transformScheduleToAvailabilityForAtom(schedule);
 
   return {
     schedule,

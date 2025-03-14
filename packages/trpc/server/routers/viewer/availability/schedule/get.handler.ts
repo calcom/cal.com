@@ -1,13 +1,12 @@
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import {
+  transformAvailabilityForAtom,
+  transformDateOverridesForAtom,
+  transformWorkingHoursForAtom,
+} from "@calcom/platform-utils/transformers/schedules";
 
 import type { TrpcSessionUser } from "../../../../trpc";
 import type { TGetInputSchema } from "./get.schema";
-
-// import {
-//   transformAvailabilityForAtom,
-//   transformDateOverridesForAtom,
-//   transformWorkingHoursForAtom,
-// } from "@calcom/platform-utils";
 
 type GetOptions = {
   ctx: {
@@ -17,7 +16,7 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const schedule = await ScheduleRepository.findDetailedScheduleById({
+  const detailedSchedule = await ScheduleRepository.findDetailedScheduleById({
     scheduleId: input.scheduleId,
     isManagedEventType: input.isManagedEventType,
     userId: ctx.user.id,
@@ -25,10 +24,18 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     defaultScheduleId: ctx.user.defaultScheduleId,
   });
 
+  const scheduleToTransform = {
+    timeZone: detailedSchedule.timeZone,
+    availability: detailedSchedule.schedule,
+  };
+
   return {
-    ...schedule,
-    // workingHours: transformWorkingHoursForAtom(schedule),
-    // availability: transformAvailabilityForAtom(schedule),
-    // dateOverrides: transformDateOverridesForAtom(schedule, schedule.timeZone),
+    ...detailedSchedule,
+    // TODO: Ideally this tRPC router doesn't know about @calcom/platform
+    // since tRPC routers aren't used by Platform
+    // but choosing to not do larger refactor - KAW 2025-03-14
+    workingHours: transformWorkingHoursForAtom(scheduleToTransform),
+    availability: transformAvailabilityForAtom(scheduleToTransform),
+    dateOverrides: transformDateOverridesForAtom(scheduleToTransform, detailedSchedule.timeZone),
   };
 };
