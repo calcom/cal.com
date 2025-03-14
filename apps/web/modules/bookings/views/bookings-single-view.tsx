@@ -26,7 +26,6 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import { BookerI18nextProvider } from "@calcom/lib/bookerI18nextProvider";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -106,14 +105,10 @@ const useBrandColors = ({
 export default function SuccessWrapper(props: PageProps) {
   const { data: session } = useSession();
   const eventType = props.eventType;
-  const interfaceLanguage = eventType.interfaceLanguage;
 
   const locale = useMemo(() => {
-    if (!!interfaceLanguage && interfaceLanguage !== VISITOR_BROWSER_LANGUAGE) {
-      return interfaceLanguage;
-    }
-    return null;
-  }, [props.eventType]);
+    return !!eventType.interfaceLanguage ? eventType.interfaceLanguage : null;
+  }, [props.eventType, session]);
 
   return (
     <>

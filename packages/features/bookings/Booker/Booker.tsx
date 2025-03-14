@@ -11,7 +11,6 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import dayjs from "@calcom/dayjs";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { BookerI18nextProvider } from "@calcom/lib/bookerI18nextProvider";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
@@ -576,11 +575,8 @@ export const Booker = (props: BookerProps & WrappedBookerProps) => {
   const interfaceLanguage = event.data?.interfaceLanguage;
 
   const locale = useMemo(() => {
-    if (!!interfaceLanguage && interfaceLanguage !== VISITOR_BROWSER_LANGUAGE) {
-      return interfaceLanguage;
-    }
-    return null;
-  }, [props.event]);
+    return !!interfaceLanguage ? interfaceLanguage : null;
+  }, [props.event, session]);
 
   return (
     <LazyMotion strict features={loadFramerFeatures}>

@@ -7,7 +7,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
 import Locations from "@calcom/features/eventtypes/components/Locations";
-import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import type {
   EventTypeSetupProps,
   InputClassNames,
@@ -60,6 +59,7 @@ export const EventSetupTab = (
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+  const VISITOR_BROWSER_LANGUAGE = "visitorBrowserLanguage";
   const interfaceLanguageOptions = [
     { label: t("visitors_browser_language"), value: VISITOR_BROWSER_LANGUAGE },
     ...localeOptions,
@@ -180,7 +180,9 @@ export const EventSetupTab = (
                   data-testid="event-interface-language"
                   className="capitalize"
                   options={interfaceLanguageOptions}
-                  onChange={(option) => onChange(option?.value)}
+                  onChange={(option) =>
+                    onChange(option?.value === VISITOR_BROWSER_LANGUAGE ? null : option?.value)
+                  }
                   value={interfaceLanguageOptions.find((option) => option.value === value)}
                 />
               )}
