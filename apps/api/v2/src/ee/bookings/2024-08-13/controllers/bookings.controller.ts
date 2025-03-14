@@ -43,6 +43,8 @@ import {
   GetBookingsOutput_2024_08_13,
   RescheduleBookingInput,
   RescheduleBookingInputPipe,
+  RescheduleBookingInput_2024_08_13,
+  RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -174,6 +176,17 @@ export class BookingsController_2024_08_13 {
     description:
       "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
   })
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(RescheduleBookingInput_2024_08_13) },
+        { $ref: getSchemaPath(RescheduleSeatedBookingInput_2024_08_13) },
+      ],
+    },
+    description:
+      "Accepts different types of reschedule input: RescheduleBookingInput_2024_08_13 or RescheduleSeatedBookingInput_2024_08_13.",
+  })
+  @ApiExtraModels(RescheduleBookingInput_2024_08_13, RescheduleSeatedBookingInput_2024_08_13)
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
     @Body(new RescheduleBookingInputPipe())

@@ -3919,6 +3919,24 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Accepts different types of reschedule input: RescheduleBookingInput_2024_08_13 or RescheduleSeatedBookingInput_2024_08_13.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RescheduleSeatedBookingInput_2024_08_13"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -17630,6 +17648,43 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "RescheduleBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time in ISO 8601 format for the new booking",
+            "example": "2024-08-13T10:00:00Z"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "description": "Reason for rescheduling the booking",
+            "example": "User requested reschedule"
+          }
+        },
+        "required": [
+          "start"
+        ]
+      },
+      "RescheduleSeatedBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time in ISO 8601 format for the new booking",
+            "example": "2024-08-13T10:00:00Z"
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
+            "description": "Uid of the specific seat within booking."
+          }
+        },
+        "required": [
+          "start",
+          "seatUid"
         ]
       },
       "CancelBookingOutput_2024_08_13": {
