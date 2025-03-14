@@ -141,7 +141,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     ...profileData,
-    bookingLimits: intervalLimitsType.unwrap().parse(user.bookingLimits || {}),
+    bookingLimits: intervalLimitsType.parse(user.bookingLimits || {}),
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),

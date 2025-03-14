@@ -103,7 +103,7 @@ const BookingLimitsPage = () => {
   const { data, isPending } = trpc.viewer.me.useQuery();
   if (isPending || !data) return <SkeletonLoader />;
 
-  return <BookingsView bookingLimits={data.bookingLimits} />;
+  return <BookingsView bookingLimits={data.bookingLimits ?? {}} />;
 };
 
 export default BookingLimitsPage;
