@@ -33,7 +33,6 @@ const integrationsApiUnavailable = {
   "eightxeight-video": z.literal("integrations:eightxeight_video"),
   "discord-video": z.literal("integrations:discord_video"),
   "demodesk-video": z.literal("integrations:demodesk_video"),
-  "campsite-conferencing": z.literal("integrations:campsite_conferencing"),
   "campfire-video": z.literal("integrations:campfire_video"),
   "around-video": z.literal("integrations:around_video"),
 };
@@ -73,7 +72,6 @@ const OrganizerIntegrationSchema = z.object({
     integrationsApiToInternalMappingSchema["eightxeight-video"],
     integrationsApiToInternalMappingSchema["discord-video"],
     integrationsApiToInternalMappingSchema["demodesk-video"],
-    integrationsApiToInternalMappingSchema["campsite-conferencing"],
     integrationsApiToInternalMappingSchema["campfire-video"],
     integrationsApiToInternalMappingSchema["around-video"],
   ]),

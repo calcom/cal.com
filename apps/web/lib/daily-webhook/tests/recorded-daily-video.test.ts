@@ -55,7 +55,7 @@ vi.mock("next/server", async () => {
 });
 
 // Now import the handler after mocking
-const { POST: handler } = recordedDailyVideoRoute;
+const { postHandler } = recordedDailyVideoRoute;
 
 beforeAll(() => {
   // Setup env vars
@@ -73,6 +73,12 @@ vi.mock("@calcom/app-store/dailyvideo/lib", () => {
 vi.mock("@calcom/lib/videoClient", () => {
   return {
     getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
+  };
+});
+
+vi.mock("app/api/defaultResponderForAppDir", () => {
+  return {
+    defaultResponderForAppDir: vi.fn(),
   };
 });
 
@@ -273,7 +279,7 @@ describe("Handler: /api/recorded-daily-video", () => {
 
       // Handle the response differently
       try {
-        const response = await handler(nextReq);
+        const response = await postHandler(nextReq);
         // For App Router, we just need to check if the response exists
         expect(response).toBeDefined();
       } catch (error) {
