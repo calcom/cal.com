@@ -29,7 +29,6 @@ import {
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectWorkflowToBeNotTriggered,
@@ -175,12 +174,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -344,12 +340,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -510,12 +503,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -655,12 +645,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -802,12 +789,10 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
 
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -964,12 +949,10 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
 
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -1054,17 +1037,14 @@ describe("handleNewBooking", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                },
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
               },
-            }),
+            },
           });
 
           const scenarioData = getScenarioData({
@@ -1102,7 +1082,9 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "zoomvideo",
           });
           await createBookingScenario(scenarioData);
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
           expect(createdBooking).toEqual(
             expect.objectContaining({
               location: BookingLocations.ZoomVideo,
@@ -1148,17 +1130,14 @@ describe("handleNewBooking", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                },
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
               },
-            }),
+            },
           });
 
           const scenarioData = getScenarioData({
@@ -1189,7 +1168,9 @@ describe("handleNewBooking", () => {
             apps: [TestData.apps["daily-video"]],
           });
           await createBookingScenario(scenarioData);
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
           expect(createdBooking).toEqual(
             expect.objectContaining({
               location: "Seoul",
@@ -1237,17 +1218,14 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                },
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
               },
-            }),
+            },
           });
 
           const scenarioData = getScenarioData({
@@ -1280,7 +1258,9 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "zoomvideo",
           });
           await createBookingScenario(scenarioData);
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
           expect(createdBooking).toEqual(
             expect.objectContaining({
               location: BookingLocations.ZoomVideo,
@@ -1359,20 +1339,20 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "zoomvideo",
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                  location: { optionValue: "", value: BookingLocations.ZoomVideo },
-                },
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.ZoomVideo },
               },
-            }),
+            },
           });
-          const createdBooking = await handleNewBooking(req);
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
 
           const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
@@ -1457,20 +1437,20 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                  location: { optionValue: "", value: BookingLocations.ZoomVideo },
-                },
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.ZoomVideo },
               },
-            }),
+            },
           });
-          const createdBooking = await handleNewBooking(req);
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
 
           expect(createdBooking).toEqual(
             expect.objectContaining({
@@ -1526,7 +1506,7 @@ describe("handleNewBooking", () => {
             })
           );
 
-          const mockBookingData = getMockRequestDataForBooking({
+          const mockedBookingData = getMockRequestDataForBooking({
             data: {
               start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
               end: `${getDate({ dateIncrement: 1 }).dateString}T05:15:00.000Z`,
@@ -1539,12 +1519,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError("Invalid event length");
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockedBookingData,
+              })
+          ).rejects.toThrowError("Invalid event length");
         },
         timeout
       );
@@ -1569,18 +1549,15 @@ describe("handleNewBooking", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                },
-                creationSource: CreationSource.WEBAPP,
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
               },
-            }),
+              creationSource: CreationSource.WEBAPP,
+            },
           });
 
           const scenarioData = getScenarioData({
@@ -1619,7 +1596,9 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "zoomvideo",
           });
           await createBookingScenario(scenarioData);
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
           expect(createdBooking).toEqual(
             expect.objectContaining({
               creationSource: CreationSource.WEBAPP,
@@ -1695,14 +1674,12 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
-            });
-
-            await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-              ErrorCode.NoAvailableUsersFound
-            );
+            await expect(
+              async () =>
+                await handleNewBooking({
+                  bookingData: mockBookingData,
+                })
+            ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
           },
           timeout
         );
@@ -1756,7 +1733,7 @@ describe("handleNewBooking", () => {
               })
             );
 
-            const _calendarMock = mockCalendar("googlecalendar", {
+            mockCalendar("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
                 iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -1782,14 +1759,12 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
-            });
-
-            await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-              ErrorCode.NoAvailableUsersFound
-            );
+            await expect(
+              async () =>
+                await handleNewBooking({
+                  bookingData: mockBookingData,
+                })
+            ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
           },
           timeout
         );
@@ -1863,12 +1838,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
             expectBookingToBeInDatabase({
               description: "",
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1951,14 +1923,12 @@ describe("handleNewBooking", () => {
                 },
               });
 
-              const { req } = createMockNextJsRequest({
-                method: "POST",
-                body: mockBookingData,
-              });
-
-              await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-                ErrorCode.NoAvailableUsersFound
-              );
+              await expect(
+                async () =>
+                  await handleNewBooking({
+                    bookingData: mockBookingData,
+                  })
+              ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
             },
             timeout
           );
@@ -2037,12 +2007,9 @@ describe("handleNewBooking", () => {
                 },
               });
 
-              const { req } = createMockNextJsRequest({
-                method: "POST",
-                body: mockBookingData,
+              const createdBooking = await handleNewBooking({
+                bookingData: mockBookingData,
               });
-
-              const createdBooking = await handleNewBooking(req);
               expectBookingToBeInDatabase({
                 description: "",
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -2140,12 +2107,10 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
 
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -2270,14 +2235,10 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+            userId: organizer.id,
           });
-
-          req.userId = organizer.id;
-
-          const createdBooking = await handleNewBooking(req);
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -2396,12 +2357,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -2533,12 +2491,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -2619,22 +2574,21 @@ describe("handleNewBooking", () => {
 
         mockCalendarToHaveNoBusySlots("googlecalendar");
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: getMockRequestDataForBooking({
-            data: {
-              eventTypeId: 1,
-              responses: {
-                email: booker.email,
-                name: booker.name,
-                location: { optionValue: "", value: BookingLocations.CalVideo },
-              },
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
             },
-          }),
+          },
         });
 
         try {
-          await handleNewBooking(req);
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          });
         } catch (e) {
           expect(e).toBeInstanceOf(MockError);
           expect((e as { message: string }).message).toBe("Error creating Video meeting");
@@ -2677,11 +2631,6 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
         const scenarioData = getScenarioData({
           webhooks: [
             {
@@ -2721,7 +2670,9 @@ describe("handleNewBooking", () => {
         mockCalendarToHaveNoBusySlots("googlecalendar", {});
         await createBookingScenario(scenarioData);
 
-        const createdBooking = await handleNewBooking(req);
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
             email: booker.email,
@@ -2864,11 +2815,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
 
           expect(createdBooking).toEqual(
             expect.objectContaining({
@@ -3022,11 +2971,9 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
 
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
@@ -3173,12 +3120,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
@@ -3237,9 +3181,12 @@ describe("handleNewBooking", () => {
             destinationEmail: organizerDestinationCalendarEmailOnEventType,
           });
 
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-            ErrorCode.NoAvailableUsersFound
-          );
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
         },
         timeout
       );
