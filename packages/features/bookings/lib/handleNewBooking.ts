@@ -699,16 +699,20 @@ async function handler(
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }
-        if (req.body.isFirstRecurringSlot && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        if (
+          input.bookingData.isFirstRecurringSlot &&
+          eventType.schedulingType === SchedulingType.ROUND_ROBIN
+        ) {
           // for recurring round robin events check if lucky user is available for next slots
           try {
             for (
               let i = 0;
-              i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+              i < input.bookingData.allRecurringDates.length &&
+              i < input.bookingData.numSlotsToCheckForAvailability;
               i++
             ) {
-              const start = req.body.allRecurringDates[i].start;
-              const end = req.body.allRecurringDates[i].end;
+              const start = input.bookingData.allRecurringDates[i].start;
+              const end = input.bookingData.allRecurringDates[i].end;
 
               await ensureAvailableUsers(
                 { ...eventTypeWithUsers, users: [newLuckyUser] },
@@ -747,7 +751,10 @@ async function handler(
         fixedUsers: fixedUserPool.map((u) => u.id),
         luckyUserPool: luckyUserPool.map((u) => u.id),
       };
-    } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    } else if (
+      input.bookingData.allRecurringDates &&
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    ) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
         ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
