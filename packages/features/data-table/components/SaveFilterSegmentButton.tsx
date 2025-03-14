@@ -1,7 +1,9 @@
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Button,
   Dialog,
@@ -9,20 +11,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTrigger,
-  Form,
   Input,
   Label,
-  RadioGroup,
-  RadioGroupItem,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   showToast,
 } from "@calcom/ui";
 
 import { useDataTable } from "../hooks";
+
+type FilterSegment = RouterOutputs["viewer"]["filterSegments"]["list"][number];
+type Team = RouterOutputs["viewer"]["teams"]["list"][number];
+type Scope = "TEAM" | "USER";
 
 interface SaveFilterSegmentButtonProps {
   tableIdentifier: string;
@@ -48,16 +47,17 @@ export function SaveFilterSegmentButton({
   const { data: selectedSegment } = trpc.viewer.filterSegments.list.useQuery(
     { tableIdentifier },
     {
-      select: (segments) => segments.find((segment) => segment.id === selectedSegmentId),
+      select: (segments: FilterSegment[]) => segments.find((segment) => segment.id === selectedSegmentId),
     }
   );
 
   const { data: membership } = trpc.viewer.teams.getMembershipbyUser.useQuery(
     {
-      memberId: teams?.[0]?.members[0]?.userId || 0,
+      teamId: teams?.[0]?.id || 0,
+      memberId: teams?.[0]?.members?.[0]?.userId || 0,
     },
     {
-      enabled: !!teams?.[0]?.members[0]?.userId,
+      enabled: !!teams?.[0]?.members?.[0]?.userId,
     }
   );
 
@@ -95,9 +95,13 @@ export function SaveFilterSegmentButton({
     }
   }, [isOpen]);
 
-  const handleSubmit = (values: { name: string }) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+
     const segmentData = {
-      name: values.name,
+      name,
       tableIdentifier,
       activeFilters,
       sorting,
@@ -107,17 +111,19 @@ export function SaveFilterSegmentButton({
     };
 
     if (saveMode === "override" && selectedSegment) {
+      const scope = selectedSegment.scope as Scope;
       updateSegment({
         id: selectedSegment.id,
-        scope: selectedSegment.scope,
-        teamId: selectedSegment.teamId,
+        scope,
+        teamId: selectedSegment.teamId || 0,
         ...segmentData,
       });
     } else {
+      const scope = isTeamSegment ? ("TEAM" as const) : ("USER" as const);
       createSegment({
         ...segmentData,
-        scope: isTeamSegment ? "TEAM" : "USER",
-        teamId: isTeamSegment ? selectedTeamId : undefined,
+        scope,
+        teamId: isTeamSegment && selectedTeamId ? selectedTeamId : 0,
       });
     }
   };
@@ -125,25 +131,36 @@ export function SaveFilterSegmentButton({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">{t("save_segment")}</Button>
+        <Button color="secondary">{t("save_segment")}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader title={t("save_segment")} />
-        <Form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           {selectedSegment ? (
             <div className="mb-4">
-              <RadioGroup
+              <RadioGroup.Root
                 defaultValue="create"
-                onValueChange={(value) => setSaveMode(value as "create" | "override")}>
+                onValueChange={(value: string) => setSaveMode(value as "create" | "override")}
+                className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="override" id="override" />
+                  <RadioGroup.Item
+                    value="override"
+                    id="override"
+                    className="h-4 w-4 rounded-full border border-gray-300 hover:border-gray-400">
+                    <RadioGroup.Indicator className="relative flex h-full w-full items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
+                  </RadioGroup.Item>
                   <Label htmlFor="override">{t("override_segment", { name: selectedSegment.name })}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="create" id="create" />
+                  <RadioGroup.Item
+                    value="create"
+                    id="create"
+                    className="h-4 w-4 rounded-full border border-gray-300 hover:border-gray-400">
+                    <RadioGroup.Indicator className="relative flex h-full w-full items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
+                  </RadioGroup.Item>
                   <Label htmlFor="create">{t("create_new_segment")}</Label>
                 </div>
-              </RadioGroup>
+              </RadioGroup.Root>
             </div>
           ) : null}
 
@@ -169,19 +186,14 @@ export function SaveFilterSegmentButton({
                   <div>
                     <Label>{t("select_team")}</Label>
                     <Select
+                      options={teams.map((team) => ({
+                        value: team.id.toString(),
+                        label: team.name,
+                      }))}
                       value={selectedTeamId?.toString()}
-                      onValueChange={(value) => setSelectedTeamId(parseInt(value))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("select_team")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teams.map((team) => (
-                          <SelectItem key={team.id} value={team.id.toString()}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onValueChange={(value: string) => setSelectedTeamId(parseInt(value))}
+                      placeholder={t("select_team")}
+                    />
                   </div>
                 )}
               </>
@@ -191,7 +203,7 @@ export function SaveFilterSegmentButton({
               <Button type="submit">{t("save")}</Button>
             </DialogFooter>
           </div>
-        </Form>
+        </form>
       </DialogContent>
     </Dialog>
   );
