@@ -574,14 +574,11 @@ export const Booker = (props: BookerProps & WrappedBookerProps) => {
   const event = props.event;
   const interfaceLanguage = event.data?.interfaceLanguage;
 
-  const locale = useMemo(() => {
-    return !!interfaceLanguage ? interfaceLanguage : null;
-  }, [props.event, session]);
-
+  const shouldUseCustomInterfaceLanguage = interfaceLanguage && interfaceLanguage !== session?.user.locale;
   return (
     <LazyMotion strict features={loadFramerFeatures}>
-      {locale && locale !== session?.user.locale ? (
-        <BookerI18nextProvider locale={locale}>
+      {shouldUseCustomInterfaceLanguage ? (
+        <BookerI18nextProvider locale={interfaceLanguage}>
           <BookerComponent {...props} />
         </BookerI18nextProvider>
       ) : (

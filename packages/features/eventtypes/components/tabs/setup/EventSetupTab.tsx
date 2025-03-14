@@ -59,11 +59,8 @@ export const EventSetupTab = (
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
-  const VISITOR_BROWSER_LANGUAGE = "visitorBrowserLanguage";
-  const interfaceLanguageOptions = [
-    { label: t("visitors_browser_language"), value: VISITOR_BROWSER_LANGUAGE },
-    ...localeOptions,
-  ];
+
+  const interfaceLanguageOptions = [{ label: t("visitors_browser_language"), value: "" }, ...localeOptions];
 
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
@@ -174,15 +171,15 @@ export const EventSetupTab = (
             <Controller
               name="interfaceLanguage"
               control={formMethods.control}
-              defaultValue={eventType.interfaceLanguage ?? VISITOR_BROWSER_LANGUAGE}
+              defaultValue={eventType.interfaceLanguage ?? ""}
               render={({ field: { value, onChange } }) => (
                 <Select<{ label: string; value: string }>
                   data-testid="event-interface-language"
                   className="capitalize"
                   options={interfaceLanguageOptions}
-                  onChange={(option) =>
-                    onChange(option?.value === VISITOR_BROWSER_LANGUAGE ? null : option?.value)
-                  }
+                  onChange={(option) => {
+                    onChange(option?.value);
+                  }}
                   value={interfaceLanguageOptions.find((option) => option.value === value)}
                 />
               )}

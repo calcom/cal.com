@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
@@ -104,16 +104,15 @@ const useBrandColors = ({
 
 export default function SuccessWrapper(props: PageProps) {
   const { data: session } = useSession();
-  const eventType = props.eventType;
 
-  const locale = useMemo(() => {
-    return !!eventType.interfaceLanguage ? eventType.interfaceLanguage : null;
-  }, [props.eventType, session]);
+  const interfaceLanguage = props.eventType.interfaceLanguage;
+
+  const shouldUseCustomInterfaceLanguage = interfaceLanguage && interfaceLanguage !== session?.user.locale;
 
   return (
     <>
-      {locale && locale !== session?.user.locale ? (
-        <BookerI18nextProvider locale={locale}>
+      {shouldUseCustomInterfaceLanguage ? (
+        <BookerI18nextProvider locale={interfaceLanguage}>
           <Success {...props} />
         </BookerI18nextProvider>
       ) : (
