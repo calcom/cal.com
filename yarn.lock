@@ -3374,6 +3374,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/platform-utils@workspace:packages/platform/utils"
   dependencies:
+    "@calcom/lib": "*"
     "@calcom/platform-constants": "*"
     "@calcom/platform-types": "*"
     "@types/jest": ^29.5.10
