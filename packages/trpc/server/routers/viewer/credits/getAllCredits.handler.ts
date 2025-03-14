@@ -1,10 +1,8 @@
-import dayjs from "@calcom/dayjs";
-import { getMonthlyCredits } from "@calcom/features/ee/billing/lib/credits";
 import { prisma } from "@calcom/prisma";
-import { CreditType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TGetAllCreditsSchema } from "./getAllCredits.schema";
+import { getAllCreditsForTeam, getAllCreditsForUser } from "./util";
 
 type GetAllCreditsOptions = {
   ctx: {
@@ -15,52 +13,13 @@ type GetAllCreditsOptions = {
 
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
-  const userCreditBalance = await prisma.creditBalance.findUnique({
-    where: {
-      userId: ctx.user.id,
-    },
-    select: {
-      additionalCredits: true,
-    },
-  });
 
-  let userCredits = userCreditBalance ?? undefined;
+  let userCredits = await getAllCreditsForUser(ctx.user.id);
 
   const teamOrOrgId = ctx.user.organizationId ?? teamId;
 
   if (teamOrOrgId) {
-    const teamCreditBalance = await prisma.creditBalance.findUnique({
-      where: {
-        teamId: teamOrOrgId,
-      },
-      select: {
-        additionalCredits: true,
-        expenseLogs: {
-          where: {
-            date: {
-              gte: dayjs().startOf("month").toDate(),
-              lte: new Date(),
-            },
-            creditType: CreditType.MONTHLY,
-          },
-          select: {
-            date: true,
-            credits: true,
-          },
-        },
-      },
-    });
-
-    const totalMonthlyCredits = await getMonthlyCredits(teamOrOrgId);
-
-    const totalMonthlyCreditsUsed =
-      teamCreditBalance?.expenseLogs.reduce((sum, log) => sum + log.credits, 0) || 0;
-
-    const teamCredits = {
-      totalMonthlyCredits,
-      totalRemainingMonthlyCredits: totalMonthlyCredits - totalMonthlyCreditsUsed,
-      additionalCredits: teamCreditBalance?.additionalCredits ?? 0,
-    };
+    const teamCredits = await getAllCreditsForTeam(teamOrOrgId);
     return { teamCredits, userCredits };
   } else {
     // if no teamId and not org member

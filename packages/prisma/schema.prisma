@@ -495,23 +495,24 @@ model Team {
 }
 
 model CreditBalance {
-  id                Int                @id @default(autoincrement())
+  id                String             @id @unique @default(uuid())
   team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId            Int?               @unique
   user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            Int?               @unique
-  additionalCredits Int
+  additionalCredits Int                @default(0)
   expenseLogs       CreditExpenseLog[]
 }
 
 model CreditExpenseLog {
-  id              Int           @id @default(autoincrement())
-  creditBalanceId Int
+  id              String        @id @unique @default(uuid())
+  creditBalanceId String
   creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
   details         String
   credits         Int
   creditType      CreditType
   date            DateTime
+  // maybe add user id here
 }
 
 enum CreditType {
