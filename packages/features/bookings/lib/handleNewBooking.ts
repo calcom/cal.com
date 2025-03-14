@@ -91,26 +91,23 @@ import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEv
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
+import type { Booking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
+import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
+import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
+import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type {
-  Booking,
-  BookingType,
-  IEventTypePaymentCredentialType,
-  Invitee,
-  IsFixedAwareUser,
-} from "./handleNewBooking/types";
+import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
@@ -120,16 +117,6 @@ const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
-};
-
-export const createLoggerWithEventDetails = (
-  eventTypeId: number,
-  reqBodyUser: string | string[] | undefined,
-  eventTypeSlug: string | undefined
-) => {
-  return logger.getSubLogger({
-    prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
-  });
 };
 
 function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
