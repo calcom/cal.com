@@ -7,7 +7,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 

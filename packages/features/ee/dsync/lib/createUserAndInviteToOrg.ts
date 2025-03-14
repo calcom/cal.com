@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";

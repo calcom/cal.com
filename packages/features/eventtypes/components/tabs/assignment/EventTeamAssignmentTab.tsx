@@ -1,4 +1,4 @@
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";

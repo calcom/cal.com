@@ -1,6 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";

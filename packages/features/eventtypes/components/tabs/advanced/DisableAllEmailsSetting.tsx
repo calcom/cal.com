@@ -1,5 +1,5 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
+import { Trans } from "react-i18next";
 import { useState } from "react";
 
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";

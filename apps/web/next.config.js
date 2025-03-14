@@ -5,7 +5,6 @@ const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
-const { i18n } = require("./next-i18next.config");
 const {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
@@ -177,7 +176,7 @@ const orgDomainMatcherConfig = {
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
-  serverExternalPackages: ["next-i18next", 
+  serverExternalPackages: [
     "deasync", "http-cookie-agent", // Dependencies of @ewsjs/xhr
     "rest-facade", "superagent-proxy" // Dependencies of @tryvital/vital-node
   ],

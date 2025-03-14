@@ -1,6 +1,6 @@
 "use client";
 
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 

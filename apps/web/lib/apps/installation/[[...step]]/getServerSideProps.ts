@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -307,7 +306,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      ...(await serverSideTranslations(locale, ["common"])),
       app,
       appMetadata,
       showEventTypesStep,

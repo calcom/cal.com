@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";

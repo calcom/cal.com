@@ -1,5 +1,5 @@
 import type { InferGetServerSidePropsType } from "next";
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";

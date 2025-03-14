@@ -1,4 +1,4 @@
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 

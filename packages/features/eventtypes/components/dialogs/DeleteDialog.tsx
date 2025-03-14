@@ -1,4 +1,4 @@
-import { Trans } from "next-i18next";
+import { Trans } from "react-i18next";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DialogProps } from "@calcom/ui";
