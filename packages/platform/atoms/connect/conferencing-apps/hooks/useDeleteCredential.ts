@@ -10,15 +10,32 @@ export type UseDeleteEventTypeProps = {
   onSuccess?: () => void;
   onError?: (err: Error) => void;
   onSettled?: () => void;
+  teamId?: number;
+  organizationId?: number;
 };
-export const useDeleteCredential = ({ onSuccess, onError, onSettled }: UseDeleteEventTypeProps) => {
+export const useDeleteCredential = ({
+  onSuccess,
+  onError,
+  onSettled,
+  teamId,
+  organizationId,
+}: UseDeleteEventTypeProps) => {
   return useMutation({
     onSuccess,
     onError,
     onSettled,
     mutationFn: (app: App["slug"]) => {
       if (!app) throw new Error("app is required");
-      const pathname = `/conferencing/${app}/disconnect`;
+
+      let pathname = `/conferencing/${app}/disconnect`;
+
+      if (organizationId) {
+        if (teamId) {
+          pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/disconnect`;
+        } else {
+          pathname = `/organizations/${organizationId}/conferencing/${app}/disconnect`;
+        }
+      }
       return http?.delete(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return;

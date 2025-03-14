@@ -82,8 +82,8 @@ export class EventTypesAtomService {
     return eventType;
   }
 
-  async getUserEventTypes(userId: number) {
-    return getBulkEventTypes(userId);
+  async getUserEventTypes(userId: number, teamId?: number) {
+    return getBulkEventTypes(userId, teamId);
   }
 
   async updateTeamEventType(
@@ -340,11 +340,12 @@ export class EventTypesAtomService {
     };
   }
 
-  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[]) {
+  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[], teamId?: number) {
     return bulkUpdateEventsToDefaultLocation({
       eventTypeIds,
       user,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
+      teamId,
     });
   }
 }
