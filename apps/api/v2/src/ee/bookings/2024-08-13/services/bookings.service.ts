@@ -229,7 +229,7 @@ export class BookingsService_2024_08_13 {
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
-      take: queryParams.take ? queryParams.take : 100,
+      take: queryParams.take ?? 100,
       filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
         user,
