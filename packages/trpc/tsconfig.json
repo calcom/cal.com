@@ -21,9 +21,9 @@
     "../types/tanstack-table.d.ts",
     "../types/next.d.ts",
     "../types/window.d.ts",
-    "react"
+    "./server"
   ],
-  "exclude": ["**/node_modules/**"],
+  "exclude": ["**/node_modules/**", "./react", "./server/**/*.test.ts", "./server/**/*.spec.ts"],
   "compilerOptions": {
     "isolatedModules": false,
     "noEmit": false,
