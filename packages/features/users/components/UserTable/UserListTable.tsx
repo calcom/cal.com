@@ -15,6 +15,7 @@ import {
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
+  SaveFilterSegmentButton,
   useDataTable,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -529,6 +530,7 @@ function UserListTableContent() {
         }
         ToolbarRight={
           <>
+            <SaveFilterSegmentButton />
             <DataTableToolbar.CTA
               type="button"
               color="secondary"

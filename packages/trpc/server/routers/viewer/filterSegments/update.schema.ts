@@ -5,7 +5,8 @@ import { ZActiveFilter, ZColumnSizing, ZColumnVisibility, ZSortingState } from "
 // Base schema for common fields that can be updated
 const baseUpdateSchema = {
   name: z.string().min(1).optional(),
-  activeFilters: ZActiveFilter.optional(),
+  tableIdentifier: z.string().min(1).optional(),
+  activeFilters: ZActiveFilter.array().optional(),
   sorting: ZSortingState.optional(),
   columnVisibility: ZColumnVisibility.optional(),
   columnSizing: ZColumnSizing.optional(),
@@ -24,7 +25,6 @@ const teamUpdateSchema = z.object({
 const userUpdateSchema = z.object({
   id: z.number().int().positive(),
   scope: z.literal("USER"),
-  teamId: z.undefined(),
   ...baseUpdateSchema,
 });
 

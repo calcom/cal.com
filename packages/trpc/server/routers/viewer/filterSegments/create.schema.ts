@@ -6,7 +6,7 @@ import { ZActiveFilter, ZColumnSizing, ZColumnVisibility, ZSortingState } from "
 const baseCreateSchema = {
   name: z.string().min(1),
   tableIdentifier: z.string().min(1),
-  activeFilters: ZActiveFilter.optional(),
+  activeFilters: ZActiveFilter.array().optional(),
   sorting: ZSortingState.optional(),
   columnVisibility: ZColumnVisibility.optional(),
   columnSizing: ZColumnSizing.optional(),

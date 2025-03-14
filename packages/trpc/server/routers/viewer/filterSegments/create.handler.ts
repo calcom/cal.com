@@ -17,6 +17,8 @@ export const createHandler = async ({
   const { scope, teamId, ...filterData } = input;
   const userId = ctx.user.id;
 
+  console.log("💡 hello?");
+
   // If scope is TEAM, verify user has admin/owner permissions
   if (scope === "TEAM") {
     if (!teamId) {
