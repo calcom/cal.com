@@ -1,9 +1,12 @@
 on:
   workflow_call:
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+  pull_request:
+    types: [closed]
+
 jobs:
   publish-report:
     runs-on: ubuntu-latest
@@ -27,9 +30,9 @@ jobs:
       - name: Check for workflow reports
         run: |
           if [ -z "$(ls -A $BRANCH_REPORTS_DIR)" ]; then
-            echo "BRANCH_REPORTS_EXIST="false"" >> $GITHUB_ENV
+            echo "BRANCH_REPORTS_EXIST=false" >> $GITHUB_ENV
           else
-            echo "BRANCH_REPORTS_EXIST="true"" >> $GITHUB_ENV
+            echo "BRANCH_REPORTS_EXIST=true" >> $GITHUB_ENV
           fi
       - name: Cleanup old HTML reports
         if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
@@ -96,3 +99,43 @@ jobs:
             <!-- GENERATED-E2E-RESULTS -->
             ## E2E results are ready!
             - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
+
+  cleanup-report:
+    if: ${{ github.event.pull_request.merged == true || github.event.pull_request.state == 'closed' }}
+    runs-on: ubuntu-latest
+    needs: publish-report
+    steps:
+      - name: Checkout GitHub Pages Branch
+        uses: actions/checkout@v4
+        with:
+          repository: calcom/test-results
+          ref: gh-pages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Set Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Check if branch exists before cleanup
+        id: check_branch
+        run: |
+          if git ls-remote --exit-code origin "refs/heads/${{ github.event.pull_request.head.ref }}"; then
+            echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Cleanup HTML reports on PR close/merge
+        if: ${{ env.BRANCH_EXISTS == 'true' }}
+        env:
+          BRANCH_REPORTS_DIR: reports/${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ -d "$BRANCH_REPORTS_DIR" ]; then
+            rm -rf "$BRANCH_REPORTS_DIR"
+            git add .
+            git commit -m "workflow: remove all reports for branch ${{ github.event.pull_request.head.ref }} (PR closed/merged)"
+            git push
+          else
+            echo "No reports found for branch ${{ github.event.pull_request.head.ref }}. Nothing to clean up."
+          fi
