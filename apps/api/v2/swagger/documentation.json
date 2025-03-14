@@ -3597,16 +3597,17 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           }
         ],
         "requestBody": {
           "required": true,
-          "description": "Accepts different types of booking input: CreateBookingInput_2024_08_13, CreateInstantBookingInput_2024_08_13, or CreateRecurringBookingInput_2024_08_13",
+          "description": "Accepts different types of booking input: Create Booking (Option 1), Create Instant Booking (Option 2), or Create Recurring Booking (Option 3)",
           "content": {
             "application/json": {
               "schema": {
@@ -3648,10 +3649,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3886,10 +3888,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3922,15 +3925,16 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
         "summary": "Reschedule a booking",
-        "description": "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
+        "description": "Reschedule a booking or seated booking",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3942,6 +3946,24 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RescheduleSeatedBookingInput_2024_08_13"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -3968,10 +3990,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3983,6 +4006,24 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Accepts different types of cancel booking input: Cancel Booking (Option 1) or Cancel Seated Booking (Option 2)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CancelBookingInput_2024_08_13"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelSeatedBookingInput_2024_08_13"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -4008,10 +4049,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4067,10 +4109,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4116,10 +4159,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4183,10 +4227,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4232,10 +4277,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4292,10 +4338,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4938,10 +4985,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4987,10 +5035,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5064,10 +5113,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5111,10 +5161,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5168,10 +5219,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5640,6 +5692,16 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -5677,10 +5739,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5727,10 +5790,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5769,10 +5833,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5810,10 +5875,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5857,10 +5923,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5914,10 +5981,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -6040,10 +6108,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6220,10 +6289,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           }
         ],
@@ -6262,10 +6332,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6300,10 +6371,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6347,10 +6419,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -9637,7 +9710,6 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campsite-conferencing",
               "campfire-video",
               "around-video"
             ],
@@ -11671,7 +11743,10 @@
             "default": false
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -11810,7 +11885,11 @@
             "type": "boolean"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -11888,7 +11967,11 @@
             "type": "boolean"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -15017,7 +15100,11 @@
             "type": "boolean"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -15129,7 +15216,10 @@
             "default": false
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -15407,7 +15497,11 @@
             "example": "CalTeam"
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           }
         },
         "required": [
@@ -15425,7 +15519,10 @@
             "minLength": 1
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "apiKey": {
             "type": "string"
@@ -15468,7 +15565,10 @@
             "minLength": 1
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           }
         },
         "required": [
@@ -15529,7 +15629,11 @@
             "example": "CalTeam"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           }
         }
       },
@@ -16313,7 +16417,35 @@
             "example": "cal-video",
             "enum": [
               "cal-video",
-              "google-meet"
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video",
+              "around-video"
             ]
           }
         },
@@ -17853,6 +17985,51 @@
           "data"
         ]
       },
+      "RescheduleBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time in ISO 8601 format for the new booking",
+            "example": "2024-08-13T10:00:00Z"
+          },
+          "rescheduledBy": {
+            "type": "string",
+            "description": "Email of the person who is rescheduling the booking - only needed when rescheduling a booking that requires a confirmation.\nIf event type owner email is provided then rescheduled booking will be automatically confirmed. If attendee email or no email is passed then the event type\nowner will have to confirm the rescheduled booking."
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User requested reschedule",
+            "description": "Reason for rescheduling the booking"
+          }
+        },
+        "required": [
+          "start"
+        ]
+      },
+      "RescheduleSeatedBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time in ISO 8601 format for the new booking",
+            "example": "2024-08-13T10:00:00Z"
+          },
+          "rescheduledBy": {
+            "type": "string",
+            "description": "Email of the person who is rescheduling the booking - only needed when rescheduling a booking that requires a confirmation.\nIf event type owner email is provided then rescheduled booking will be automatically confirmed. If attendee email or no email is passed then the event type\nowner will have to confirm the rescheduled booking."
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
+            "description": "Uid of the specific seat within booking."
+          }
+        },
+        "required": [
+          "start",
+          "seatUid"
+        ]
+      },
       "RescheduleBookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -17885,6 +18062,32 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "CancelBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "cancelSubsequentBookings": {
+            "type": "boolean",
+            "description": "For recurring non-seated booking - if true, cancel booking with the bookingUid of the individual recurrence and all recurrences that come after it."
+          }
+        }
+      },
+      "CancelSeatedBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
+            "description": "Uid of the specific seat within booking."
+          }
+        },
+        "required": [
+          "seatUid"
         ]
       },
       "CancelBookingOutput_2024_08_13": {

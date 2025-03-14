@@ -18,8 +18,8 @@ export type DataTableContextType = {
   tableIdentifier: string;
 
   activeFilters: ActiveFilter[];
-  setActiveFilters: (filters: ActiveFilter[]) => void;
   clearAll: (exclude?: string[]) => void;
+  addFilter: (columnId: string) => void;
   updateFilter: (columnId: string, value: FilterValue) => void;
   removeFilter: (columnId: string) => void;
 
@@ -89,8 +89,18 @@ export function DataTableProvider({
     throw new Error("tableIdentifier is required");
   }
 
+  const addFilter = useCallback(
+    (columnId: string) => {
+      if (!activeFilters?.some((filter) => filter.f === columnId)) {
+        setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
+      }
+    },
+    [activeFilters, setActiveFilters]
+  );
+
   const clearAll = useCallback(
     (exclude?: string[]) => {
+      setPageIndex(0);
       setActiveFilters((prev) => prev.filter((filter) => exclude?.includes(filter.f)));
     },
     [setActiveFilters]
@@ -98,6 +108,7 @@ export function DataTableProvider({
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
+      setPageIndex(0);
       setActiveFilters((prev) => {
         let added = false;
         const newFilters = prev.map((item) => {
@@ -118,6 +129,7 @@ export function DataTableProvider({
 
   const removeFilter = useCallback(
     (columnId: string) => {
+      setPageIndex(0);
       setActiveFilters((prev) => prev.filter((filter) => filter.f !== columnId));
     },
     [setActiveFilters]
@@ -136,7 +148,7 @@ export function DataTableProvider({
       value={{
         tableIdentifier: identifier,
         activeFilters,
-        setActiveFilters,
+        addFilter,
         clearAll,
         updateFilter,
         removeFilter,

@@ -29,22 +29,27 @@ import classNames from "@calcom/ui/classNames";
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";
 
-export type DataTableProps<TData> = {
+export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
-  onRowMouseclick?: (row: Row<TData>) => void;
-  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
-  tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   testId?: string;
   bodyTestId?: string;
-  hideHeader?: boolean;
   children?: React.ReactNode;
   enableColumnResizing?: boolean;
   className?: string;
   containerClassName?: string;
+  headerClassName?: string;
+  rowClassName?: string;
   paginationMode?: "infinite" | "standard";
+};
+
+export type DataTableProps<TData> = DataTablePropsFromWrapper<TData> & {
+  onRowMouseclick?: (row: Row<TData>) => void;
+  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
+  tableOverlay?: React.ReactNode;
+  enableColumnResizing?: boolean;
 };
 
 export function DataTable<TData>({
@@ -55,12 +60,13 @@ export function DataTable<TData>({
   onRowMouseclick,
   onScroll,
   children,
-  hideHeader,
   enableColumnResizing,
   testId,
   bodyTestId,
   className,
   containerClassName,
+  headerClassName,
+  rowClassName,
   paginationMode = "infinite",
   ...rest
 }: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
@@ -138,44 +144,42 @@ export function DataTable<TData>({
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
-          {!hideHeader && (
-            <TableHeader className="sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
-                <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
-                  {headerGroup.headers.map((header: Header<TData, unknown>) => {
-                    const { column } = header;
-                    return (
-                      <TableHead
-                        key={header.id}
-                        style={{
-                          ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                          ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
-                          width: `var(--header-${kebabCase(header?.id)}-size)`,
-                        }}
-                        className={classNames(
-                          "relative flex shrink-0 items-center",
-                          "bg-subtle",
-                          column.getIsPinned() && "top-0 z-20 sm:sticky"
-                        )}>
-                        <TableHeadLabel header={header} />
-                        {Boolean(enableColumnResizing) && header.column.getCanResize() && (
-                          <div
-                            onMouseDown={header.getResizeHandler()}
-                            onTouchStart={header.getResizeHandler()}
-                            className={classNames(
-                              "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-[0.1] hover:opacity-50",
-                              header.column.getIsResizing() && "!opacity-75"
-                            )}>
-                            <div className="bg-inverted mx-auto h-full w-[1px]" />
-                          </div>
-                        )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-          )}
+          <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
+            {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
+              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
+                {headerGroup.headers.map((header: Header<TData, unknown>) => {
+                  const { column } = header;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                        ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
+                        width: `var(--header-${kebabCase(header?.id)}-size)`,
+                      }}
+                      className={classNames(
+                        "relative flex shrink-0 items-center",
+                        "bg-subtle",
+                        column.getIsPinned() && "top-0 z-20 sm:sticky"
+                      )}>
+                      <TableHeadLabel header={header} />
+                      {Boolean(enableColumnResizing) && header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={classNames(
+                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-[0.1] hover:opacity-50",
+                            header.column.getIsResizing() && "!opacity-75"
+                          )}>
+                          <div className="bg-inverted mx-auto h-full w-[1px]" />
+                        </div>
+                      )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
           {/* When resizing any column we will render this special memoized version of our table body */}
           {table.getState().columnSizingInfo.isResizingColumn ? (
             <MemoizedTableBody
@@ -187,6 +191,7 @@ export function DataTable<TData>({
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
+              rowClassName={rowClassName}
             />
           ) : (
             <DataTableBody
@@ -198,6 +203,7 @@ export function DataTable<TData>({
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
+              rowClassName={rowClassName}
             />
           )}
         </TableNew>
@@ -217,7 +223,8 @@ const MemoizedTableBody = memo(
     prev.variant === next.variant &&
     prev.isPending === next.isPending &&
     prev.onRowMouseclick === next.onRowMouseclick &&
-    prev.paginationMode === next.paginationMode
+    prev.paginationMode === next.paginationMode &&
+    prev.rowClassName === next.rowClassName
 ) as typeof DataTableBody;
 
 type DataTableBodyProps<TData> = {
@@ -229,6 +236,7 @@ type DataTableBodyProps<TData> = {
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   paginationMode?: "infinite" | "standard";
+  rowClassName?: string;
 };
 
 type RowToRender<TData> = {
@@ -245,6 +253,7 @@ function DataTableBody<TData>({
   isPending,
   onRowMouseclick,
   paginationMode,
+  rowClassName,
 }: DataTableBodyProps<TData> & { paginationMode?: "infinite" | "standard" }) {
   const { t } = useLocale();
   const virtualItems = rowVirtualizer.getVirtualItems();
@@ -290,7 +299,7 @@ function DataTableBody<TData>({
               width: "100%",
             }),
           }}
-          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
+          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
           {row.getVisibleCells().map((cell) => {
             const column = cell.column;
             return (

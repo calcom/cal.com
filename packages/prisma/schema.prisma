@@ -355,32 +355,33 @@ model User {
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
 
   // Used to lock the user account
-  locked                     Boolean                      @default(false)
-  platformOAuthClients       PlatformOAuthClient[]
-  AccessToken                AccessToken[]
-  RefreshToken               RefreshToken[]
-  PlatformAuthorizationToken PlatformAuthorizationToken[]
-  profiles                   Profile[]
-  movedToProfileId           Int?
-  movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
-  secondaryEmails            SecondaryEmail[]
-  isPlatformManaged          Boolean                      @default(false)
-  OutOfOfficeReasons         OutOfOfficeReason[]
-  smsLockState               SMSLockState                 @default(UNLOCKED)
-  smsLockReviewedByAdmin     Boolean                      @default(false)
-  NotificationsSubscriptions NotificationsSubscriptions[]
-  referralLinkId             String?
-  features                   UserFeatures[]
-  reassignedBookings         Booking[]                    @relation("reassignByUser")
-  createdAttributeToUsers    AttributeToUser[]            @relation("createdBy")
-  updatedAttributeToUsers    AttributeToUser[]            @relation("updatedBy")
-  createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
-  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
-  createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
-  updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
-  BookingInternalNote        BookingInternalNote[]
-  creationSource             CreationSource?
-  FilterSegment              FilterSegment[]
+  locked                         Boolean                      @default(false)
+  platformOAuthClients           PlatformOAuthClient[]
+  AccessToken                    AccessToken[]
+  RefreshToken                   RefreshToken[]
+  PlatformAuthorizationToken     PlatformAuthorizationToken[]
+  profiles                       Profile[]
+  movedToProfileId               Int?
+  movedToProfile                 Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
+  secondaryEmails                SecondaryEmail[]
+  isPlatformManaged              Boolean                      @default(false)
+  OutOfOfficeReasons             OutOfOfficeReason[]
+  smsLockState                   SMSLockState                 @default(UNLOCKED)
+  smsLockReviewedByAdmin         Boolean                      @default(false)
+  NotificationsSubscriptions     NotificationsSubscriptions[]
+  referralLinkId                 String?
+  features                       UserFeatures[]
+  reassignedBookings             Booking[]                    @relation("reassignByUser")
+  createdAttributeToUsers        AttributeToUser[]            @relation("createdBy")
+  updatedAttributeToUsers        AttributeToUser[]            @relation("updatedBy")
+  createdTranslations            EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
+  updatedTranslations            EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
+  createdWatchlists              Watchlist[]                  @relation("CreatedWatchlists")
+  updatedWatchlists              Watchlist[]                  @relation("UpdatedWatchlists")
+  BookingInternalNote            BookingInternalNote[]
+  creationSource                 CreationSource?
+  createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
+  filterSegments                 FilterSegment[]
 
   @@unique([email])
   @@unique([email, username])
@@ -430,6 +431,8 @@ model Team {
   id                     Int                     @id @default(autoincrement())
   /// @zod.min(1)
   name                   String
+  // It is unique across teams and organizations. We don't have a strong reason for organization and team slug to be conflicting, could be fixed.
+  // Sub-teams could have same slug across different organizations but not within the same organization.
   /// @zod.min(1)
   slug                   String?
   logoUrl                String?
@@ -491,14 +494,15 @@ model Team {
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
-  includeManagedEventsInLimits Boolean              @default(false)
+  includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
+  organizationOnboarding       OrganizationOnboarding?
 
   // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
   // it means that it is an organization managed by another organization.
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
-  FilterSegment        FilterSegment[]
+  filterSegments       FilterSegment[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1896,6 +1900,65 @@ model Watchlist {
   @@index([type, value])
 }
 
+enum BillingPeriod {
+  MONTHLY
+  ANNUALLY
+}
+
+model OrganizationOnboarding {
+  // TODO: Use uuid for id
+  id String @id @default(uuid())
+
+  // User who started the onboarding. It is different from orgOwnerEmail in case Cal.com admin is doing the onboarding for someone else.
+  createdBy   User     @relation("CreatedOrganizationOnboardings", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById Int
+  createdAt   DateTime @default(now())
+
+  // We keep the email only here and don't need to connect it with user because on User deletion, we don't delete the entry here.
+  // It is unique because an email can be the owner of only one organization at a time.
+  orgOwnerEmail String  @unique
+  error         String?
+
+  updatedAt DateTime @updatedAt
+  // TODO: updatedBy to be added when we support marking updatedBy using webhook too, as webhook also updates it
+
+  // Set after organization payment is done and the organization is created
+  organizationId Int?  @unique
+  organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  billingPeriod BillingPeriod
+  pricePerSeat  Float
+  seats         Int
+
+  isPlatform Boolean @default(false)
+
+  // Organization info
+  name               String
+  // We don't keep it unique because we don't want self-serve flows to block a slug if it isn't paid for yet.
+  slug               String
+  logo               String?
+  bio                String?
+  isDomainConfigured Boolean @default(false)
+
+  // Set when payment intent is there.
+  stripeCustomerId         String? @unique
+  // TODO: Can we make it required
+  stripeSubscriptionId     String?
+  stripeSubscriptionItemId String?
+
+  /// @zod.custom(imports.orgOnboardingInvitedMembersSchema)
+  invitedMembers Json @default("[]")
+
+  /// @zod.custom(imports.orgOnboardingTeamsSchema)
+  teams Json @default("[]")
+
+  // Completion status
+  isComplete Boolean @default(false)
+
+  @@index([orgOwnerEmail])
+  @@index([stripeCustomerId])
+}
+
 enum IncompleteBookingActionType {
   SALESFORCE
 }
@@ -1930,29 +1993,25 @@ enum FilterSegmentScope {
 }
 
 model FilterSegment {
-  id              Int                @id @default(autoincrement())
-  name            String
+  id               Int                @id @default(autoincrement())
+  name             String
   // Identifies which data table this segment belongs to (e.g. "organization_members", "team_members", "bookings", etc.)
-  tableIdentifier String
-  scope           FilterSegmentScope
-
+  tableIdentifier  String
+  scope            FilterSegmentScope
   // Filter configuration
   activeFilters    Json?
   sorting          Json?
   columnVisibility Json?
   columnSizing     Json?
   perPage          Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
   // Creator of the segment
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
-
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
   // Team scope - optional, only set when scope is TEAM
-  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId Int?
+  team             Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId           Int?
 
   // For user-scoped segments: scope + userId + tableIdentifier
   @@index([scope, userId, tableIdentifier])
