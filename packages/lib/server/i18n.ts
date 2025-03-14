@@ -10,7 +10,11 @@ async function loadTranslations(locale: string, ns: string) {
     const response = await fetch(url);
     return await response.json();
   } catch (error) {
-    return await (await fetch(`${WEBAPP_URL}/static/locales/en/common.json`)).json();
+    const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`);
+    if (res) {
+      return await res.json();
+    }
+    return {};
   }
 }
 
