@@ -17,7 +17,7 @@ export const getTranslate = async () => {
   // ensure that config.matcher in middleware includes the page you are testing
   const locale =
     headersList.get("x-locale") ?? (await getLocale(buildLegacyRequest(headersList, await cookies())));
-  console.log("EVENT_TYPES", locale);
+
   return await getTranslation(locale ?? "en", "common");
 };
 
