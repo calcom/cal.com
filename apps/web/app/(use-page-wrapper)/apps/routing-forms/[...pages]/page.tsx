@@ -3,17 +3,19 @@ import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
+import { routingFormsComponents } from "@calcom/app-store/routing-forms/pages/app-routing.client-config";
 import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
-import LayoutHandler from "@calcom/app-store/routing-forms/pages/layout-handler/[...appPages]";
 import Shell from "@calcom/features/shell/Shell";
 
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
+import FormProvider from "./FormProvider";
+
 const normalizePages = (pages: string[] | string | undefined) => {
   const normalizedPages = Array.isArray(pages) ? pages : pages?.split("/") ?? [];
   return {
-    mainPage: normalizedPages[0],
+    mainPage: normalizedPages[0] ?? "forms",
     subPages: normalizedPages.slice(1),
   };
 };
@@ -34,20 +36,22 @@ const getData = withAppDirSsr<GetServerSidePropsResult>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
-  const { mainPage, subPages } = normalizePages((await params).pages);
+  const { mainPage } = normalizePages((await params).pages);
 
-  const componentProps = {
-    ...props,
-    pages: subPages,
-  };
+  const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
+  const FinalComponent = () => (
+    <FormProvider>
+      <Component {...props as any} />
+    </FormProvider>
+  );
 
   if (mainPage === "routing-link") {
-    return <LayoutHandler {...componentProps} />;
+    return <FinalComponent />;
   }
 
   return (
     <Shell withoutMain withoutSeo>
-      <LayoutHandler {...componentProps} />
+      <FinalComponent />
     </Shell>
   );
 };

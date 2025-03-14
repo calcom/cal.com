@@ -1,15 +1,8 @@
-import FormEdit from "./form-edit/[...appPages]";
-import Forms from "./forms/[...appPages]";
-import IncompleteBooking from "./incomplete-booking/[...appPages]";
-import Reporting from "./reporting/[...appPages]";
-import RouteBuilder from "./route-builder/[...appPages]";
-import RoutingLink from "./routing-link/[...appPages]";
-
-export const routingConfig = {
-  "form-edit": FormEdit,
-  "route-builder": RouteBuilder,
-  forms: Forms,
-  "routing-link": RoutingLink,
-  reporting: Reporting,
-  "incomplete-booking": IncompleteBooking,
+export const routingFormsComponents = {
+  "form-edit": () => import("./form-edit/[...appPages]").then((mod) => mod.default),
+  "route-builder": () => import("./route-builder/[...appPages]").then((mod) => mod.default),
+  "forms": () => import("./forms/[...appPages]").then((mod) => mod.default),
+  "routing-link": () => import("./routing-link/[...appPages]").then((mod) => mod.default),
+  "reporting": () => import("./reporting/[...appPages]").then((mod) => mod.default),
+  "incomplete-booking": () => import("./incomplete-booking/[...appPages]").then((mod) => mod.default),
 };
