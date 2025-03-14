@@ -1,5 +1,14 @@
 import { defaultEvents } from "@calcom/lib/defaultEvents";
-import type { SystemField } from "@calcom/lib/event-types/transformers";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import type {
+  EmailDefaultFieldOutput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+  InputLocation_2024_06_14,
+  KnownBookingField_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  TeamEventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
+import type { SystemField } from "@calcom/platform-utils/transformers/event-types";
 import {
   transformTeamLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
@@ -13,16 +22,7 @@ import {
   transformEventColorsApiToInternal,
   transformConfirmationPolicyApiToInternal,
   transformFutureBookingLimitsApiToInternal,
-} from "@calcom/lib/event-types/transformers";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import type {
-  EmailDefaultFieldOutput_2024_06_14,
-  EventTypeOutput_2024_06_14,
-  InputLocation_2024_06_14,
-  KnownBookingField_2024_06_14,
-  NameDefaultFieldOutput_2024_06_14,
-  TeamEventTypeOutput_2024_06_14,
-} from "@calcom/platform-types";
+} from "@calcom/platform-utils/transformers/event-types";
 import {
   bookerLayoutOptions,
   BookerLayouts,
