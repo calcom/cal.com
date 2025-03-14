@@ -27,3 +27,14 @@ export type TravelSchedule = {
   endDate: Date | null;
   prevTimeZone: string | null;
 };
+
+export type Availability = {
+  id: number;
+  userId: number | null;
+  eventTypeId: number | null;
+  days: number[];
+  startTime: Date;
+  endTime: Date;
+  date: Date | null;
+  scheduleId: int | null;
+};
