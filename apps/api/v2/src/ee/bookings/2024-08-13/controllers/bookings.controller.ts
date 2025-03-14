@@ -69,9 +69,12 @@ import {
 @DocsTags("Bookings")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to \`2024-08-13\``,
+  description: `Must be set to ${VERSION_2024_08_13}`,
   example: VERSION_2024_08_13,
   required: true,
+  schema: {
+    default: VERSION_2024_08_13,
+  },
 })
 export class BookingsController_2024_08_13 {
   private readonly logger = new Logger("BookingsController_2024_08_13");
