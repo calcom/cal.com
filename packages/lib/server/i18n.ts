@@ -1,4 +1,4 @@
-import i18next from "i18next";
+import { createInstance } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -21,13 +21,12 @@ async function loadTranslations(locale: string, ns: string) {
 export const getTranslation = async (locale: string, ns: string) => {
   const cacheKey = `${locale}-${ns}`;
   if (i18nInstanceCache.has(cacheKey)) {
-    const t = i18nInstanceCache.get(cacheKey).getFixedT(locale, ns);
-    return t;
+    return i18nInstanceCache.get(cacheKey).getFixedT(locale, ns);
   }
 
   const resources = await loadTranslations(locale, ns);
 
-  const _i18n = i18next.createInstance();
+  const _i18n = createInstance();
   _i18n.init({
     lng: locale,
     resources: {
