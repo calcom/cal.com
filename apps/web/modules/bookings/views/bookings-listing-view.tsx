@@ -364,7 +364,7 @@ function BookingsContent({ status }: BookingsProps) {
                 table={table}
                 testId={`${status}-bookings`}
                 bodyTestId="bookings"
-                hideHeader={true}
+                headerClassName="hidden"
                 isPending={query.isPending}
                 totalRowCount={query.data?.totalCount}
                 variant="compact"

@@ -6,9 +6,9 @@ import React, { forwardRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
-import { Tooltip } from "../tooltip";
+import { Icon } from "../icon/Icon";
+import type { IconName } from "../icon/Icon";
+import { Tooltip } from "../tooltip/Tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
