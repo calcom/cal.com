@@ -64,7 +64,7 @@ export default function BillingCredits() {
                 <ProgressBar
                   color="green"
                   percentageValue={teamCreditsPercentageUsed}
-                  label={`${teamCreditsPercentageUsed}%`}
+                  label={`${Math.round(teamCreditsPercentageUsed)}%`}
                 />
                 <div className="text-subtle">
                   <div>Total credits: {creditsData.teamCredits.totalMonthlyCredits} </div>
@@ -77,9 +77,12 @@ export default function BillingCredits() {
           ) : (
             <></>
           )}
-          {creditsData.userCredits && !teamId ? (
+          {/* for user credits before being part of the org */}
+          {creditsData.userCredits.additionalCredits > 0 && !teamId ? (
             <>
-              <Label>Additional credits {creditsData.teamCredits ? "(your user credits)" : ""}</Label>
+              <Label className="mt-4">
+                Additional credits {creditsData.teamCredits ? "(your user credits)" : ""}
+              </Label>
               <div className="mt-2 text-sm">{creditsData.userCredits.additionalCredits}</div>{" "}
             </>
           ) : (
@@ -104,6 +107,7 @@ export default function BillingCredits() {
                   label=""
                   containerClassName="w-60"
                   onChange={(e) => setValue("quantity", Number(e.target.value))}
+                  min={50}
                   addOnSuffix={<>{t("credits")}</>}
                 />
                 {errors.quantity && <InputError message={errors.quantity.message} />}
