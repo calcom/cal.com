@@ -8,6 +8,7 @@ import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
@@ -36,7 +37,6 @@ import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  Dialog,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,

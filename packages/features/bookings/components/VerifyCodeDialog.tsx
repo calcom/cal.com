@@ -2,10 +2,10 @@ import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,

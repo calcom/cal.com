@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,7 +14,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   CheckboxField,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,

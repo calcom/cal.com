@@ -1,18 +1,10 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  SelectField,
-  Form,
-  TextField,
-  DialogFooter,
-  showToast,
-} from "@calcom/ui";
+import { Button, DialogContent, SelectField, Form, TextField, DialogFooter, showToast } from "@calcom/ui";
 
 import { directoryProviders } from "../lib/directoryProviders";
 

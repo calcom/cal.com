@@ -4,6 +4,7 @@ import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
@@ -12,7 +13,6 @@ import {
   InputField,
   Label,
   Input,
-  Dialog,
   ConfirmationDialogContent,
   SettingsToggle,
 } from "@calcom/ui";

@@ -2,10 +2,10 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Alert,
-  Dialog,
   DialogClose,
   DialogContent,
   EmptyScreen,

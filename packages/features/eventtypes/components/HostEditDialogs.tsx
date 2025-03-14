@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
   FormValues,
   Host,
@@ -11,16 +12,7 @@ import type {
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  Button,
-  Label,
-  Select,
-  TextField,
-} from "@calcom/ui";
+import { DialogContent, DialogFooter, DialogClose, Button, Label, Select, TextField } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";

@@ -1,8 +1,9 @@
 import { signIn, useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
+import { Button, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
 
 import type { UserTableAction, UserTableState } from "./types";
 

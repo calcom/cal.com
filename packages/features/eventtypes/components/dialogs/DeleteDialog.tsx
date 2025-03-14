@@ -1,8 +1,9 @@
 import { Trans } from "next-i18next";
 
+import type { DialogProps as ControlledDialogProps } from "@calcom/features/components/controlled-dialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { DialogProps } from "@calcom/ui";
-import { ConfirmationDialogContent, Dialog } from "@calcom/ui";
+import { ConfirmationDialogContent } from "@calcom/ui";
 
 export function DeleteDialog({
   isManagedEvent,
@@ -16,7 +17,7 @@ export function DeleteDialog({
   eventTypeId: number;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
-} & Pick<DialogProps, "open" | "onOpenChange">) {
+} & Pick<ControlledDialogProps, "open" | "onOpenChange">) {
   const { t } = useLocale();
 
   return (

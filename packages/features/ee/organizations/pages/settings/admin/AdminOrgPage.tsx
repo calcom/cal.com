@@ -3,9 +3,10 @@
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
+import { Badge, ConfirmationDialogContent, DropdownActions, showToast, Table } from "@calcom/ui";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 

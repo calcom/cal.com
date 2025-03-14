@@ -1,7 +1,8 @@
 import { Trans } from "react-i18next";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
 
 interface SecondaryEmailConfirmModalProps {
   email: string;

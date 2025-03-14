@@ -1,3 +1,4 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -6,7 +7,6 @@ import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  Dialog,
   DialogTrigger,
   Dropdown,
   DropdownItem,

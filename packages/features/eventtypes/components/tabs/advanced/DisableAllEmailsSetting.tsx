@@ -2,16 +2,9 @@ import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import {
-  SettingsToggle,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  InputField,
-  DialogClose,
-  Button,
-} from "@calcom/ui";
+import { SettingsToggle, DialogContent, DialogFooter, InputField, DialogClose, Button } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {

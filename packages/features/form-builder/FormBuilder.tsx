@@ -5,6 +5,7 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
@@ -14,7 +15,6 @@ import {
   BooleanToggleGroupField,
   Button,
   CheckboxField,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,

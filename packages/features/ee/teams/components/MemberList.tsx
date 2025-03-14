@@ -16,6 +16,7 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   DataTable,
   DataTableProvider,
@@ -40,7 +41,6 @@ import {
   ButtonGroup,
   Checkbox,
   ConfirmationDialogContent,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,
