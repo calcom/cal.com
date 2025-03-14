@@ -199,6 +199,76 @@ export const useInsightsColumns = ({
           return <div className="max-w-[250px]">{assignmentReason}</div>;
         },
       }),
+      columnHelper.accessor("utm_source", {
+        id: "utm_source",
+        header: t("utm_source"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_medium", {
+        id: "utm_medium",
+        header: "utm_medium",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_term", {
+        id: "utm_term",
+        header: "utm_term",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_content", {
+        id: "utm_content",
+        header: "utm_content",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_campaign", {
+        id: "utm_campaign",
+        header: "utm_campaign",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
       columnHelper.accessor("createdAt", {
         id: "createdAt",
         header: t("routing_form_insights_submitted_at"),
