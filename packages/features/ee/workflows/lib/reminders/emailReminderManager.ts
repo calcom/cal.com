@@ -274,7 +274,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
+    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT ||
+    triggerEvent === WorkflowTriggerEvents.BOOKING_REJECTED ||
+    triggerEvent === WorkflowTriggerEvents.BOOKING_REQUESTED
   ) {
     try {
       if (!sendTo) throw new Error("No email addresses provided");
