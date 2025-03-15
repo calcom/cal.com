@@ -84,7 +84,7 @@ export const BookingKPICards = () => {
 
   return (
     <>
-      <Grid numColsSm={2} numColsLg={4} className="gap-x-4 gap-y-4">
+      <Grid numItemsSm={2} numItemsLg={4} className="gap-x-4 gap-y-4">
         {categories.map((item) => (
           <KPICard
             key={item.title}
@@ -102,7 +102,7 @@ export const BookingKPICards = () => {
 const LoadingKPICards = (props: { categories: { title: string; index: string }[] }) => {
   const { categories } = props;
   return (
-    <Grid numColsSm={2} numColsLg={4} className="gap-x-4 gap-y-4">
+    <Grid numItemsSm={2} numItemsLg={4} className="gap-x-4 gap-y-4">
       {categories.map((item) => (
         <CardInsights key={item.title}>
           <SkeletonContainer className="flex w-full flex-col">
