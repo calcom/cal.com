@@ -16,7 +16,7 @@ import type { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
-import { InstallAppButtonMap } from "./apps.browser.generated";
+import { InstallAppButtonMap } from "./apps.browser-install.generated";
 import type { InstallAppButtonProps } from "./types";
 
 export const InstallAppButtonWithoutPlanCheck = (

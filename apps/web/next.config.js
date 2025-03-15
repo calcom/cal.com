@@ -225,6 +225,11 @@ const nextConfig = {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
+    config.ignoreWarnings = [
+      {
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+    ];
     if (isServer) {
       if (process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1") {
         config.devtool = false;
