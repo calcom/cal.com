@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import getRawBody from "raw-body";
+import { headers } from "next/headers";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
-import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -10,11 +9,7 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+import { findPaymentCredentials } from "../lib/findPaymentCredentials";
 
 export async function handlePaypalPaymentSuccess(
   payload: z.infer<typeof eventSchema>,
@@ -65,17 +60,12 @@ export async function handlePaypalPaymentSuccess(
   return await handlePaymentSuccess(payment.id, payment.bookingId);
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextRequest) {
   try {
-    if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
-    }
-
-    const bodyRaw = await getRawBody(req);
-    const headers = req.headers;
+    const bodyRaw = await req.text();
     const bodyAsString = bodyRaw.toString();
 
-    const parseHeaders = webhookHeadersSchema.safeParse(headers);
+    const parseHeaders = webhookHeadersSchema.safeParse(headers());
     if (!parseHeaders.success) {
       console.error(parseHeaders.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
@@ -94,15 +84,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(200).send({
-      message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
-    });
-    return;
+    return NextResponse.json(
+      {
+        message: err.message,
+        stack: IS_PRODUCTION ? undefined : err.stack,
+      },
+      {
+        status: err.statusCode || 500,
+      }
+    );
   }
 
   // Return a response to acknowledge receipt of the event
-  res.status(200).end();
+  return NextResponse.json(
+    {
+      message: "Webhook received",
+    },
+    {
+      status: 200,
+    }
+  );
 }
 
 const resourceSchema = z
@@ -150,51 +151,4 @@ const webhookHeadersSchema = z
 
 type WebHookHeadersType = z.infer<typeof webhookHeadersSchema>;
 
-export const findPaymentCredentials = async (
-  bookingId: number
-): Promise<{ clientId: string; secretKey: string; webhookId: string }> => {
-  try {
-    // @TODO: what about team bookings with paypal?
-    const userFromBooking = await prisma.booking.findFirst({
-      where: {
-        id: bookingId,
-      },
-      select: {
-        id: true,
-        userId: true,
-      },
-    });
-
-    if (!userFromBooking) throw new Error("No user found");
-
-    const credentials = await prisma.credential.findFirst({
-      where: {
-        appId: "paypal",
-        userId: userFromBooking?.userId,
-      },
-      select: {
-        key: true,
-      },
-    });
-    if (!credentials) {
-      throw new Error("No credentials found");
-    }
-    const parsedCredentials = paypalCredentialKeysSchema.safeParse(credentials?.key);
-    if (!parsedCredentials.success) {
-      throw new Error("Credentials malformed");
-    }
-
-    return {
-      clientId: parsedCredentials.data.client_id,
-      secretKey: parsedCredentials.data.secret_key,
-      webhookId: parsedCredentials.data.webhook_id,
-    };
-  } catch (err) {
-    console.error(err);
-    return {
-      clientId: "",
-      secretKey: "",
-      webhookId: "",
-    };
-  }
-};
+export const POST = handler;
