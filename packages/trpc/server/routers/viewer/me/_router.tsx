@@ -16,11 +16,17 @@ export const meRouter = router({
     return handler({ ctx });
   }),
   deleteMe: authedProcedure.input(ZDeleteMeInputSchema).mutation(async ({ ctx, input }) => {
-    return await import("./deleteMe.handler").deleteMeHandler.deleteMe({ ctx, input });
+    const handler = (await import("./deleteMe.handler")).deleteMeHandler;
+    return handler({ ctx, input });
   }),
   deleteMeWithoutPassword: authedProcedure.mutation(async ({ ctx }) => {
-    return await import(
-      "./deleteMeWithoutPassword.handler"
-    ).deleteMeWithoutPasswordHandler.deleteMeWithoutPassword({ ctx });
+    const handler = (await import("./deleteMeWithoutPassword.handler")).deleteMeWithoutPasswordHandler
+      .deleteMeWithoutPassword;
+
+    return handler({ ctx });
+  }),
+  bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./bookingUnconfirmedCount.handler")).bookingUnconfirmedCountHandler;
+    return handler({ ctx });
   }),
 });

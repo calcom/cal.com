@@ -44,7 +44,6 @@ type AppsRouterHandlerCache = {
   submitFeedback?: typeof import("./submitFeedback.handler").submitFeedbackHandler;
   locationOptions?: typeof import("./locationOptions.handler").locationOptionsHandler;
   deleteCredential?: typeof import("./deleteCredential.handler").deleteCredentialHandler;
-  bookingUnconfirmedCount?: typeof import("./bookingUnconfirmedCount.handler").bookingUnconfirmedCountHandler;
   getCalVideoRecordings?: typeof import("./getCalVideoRecordings.handler").getCalVideoRecordingsHandler;
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
@@ -264,21 +263,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.deleteCredential({ ctx, input });
-  }),
-
-  bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.bookingUnconfirmedCount) {
-      UNSTABLE_HANDLER_CACHE.bookingUnconfirmedCount = (
-        await import("./bookingUnconfirmedCount.handler")
-      ).bookingUnconfirmedCountHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.bookingUnconfirmedCount) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.bookingUnconfirmedCount({ ctx });
   }),
 
   getCalVideoRecordings: authedProcedure
