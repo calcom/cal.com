@@ -981,6 +981,64 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
+      describe("createdAt filter", () => {
+        it("should should get bookings after specified createdAt time", async () => {
+          return request(app.getHttpServer())
+            .get(`/v2/bookings?afterCreatedAt=${createdRecurringBooking[1].createdAt}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              const data: (
+                | BookingOutput_2024_08_13
+                | RecurringBookingOutput_2024_08_13
+                | GetSeatedBookingOutput_2024_08_13
+              )[] = responseBody.data;
+              expect(data.length).toEqual(2);
+            });
+        });
+
+        it("should should get bookings before specified createdAt time", async () => {
+          return request(app.getHttpServer())
+            .get(`/v2/bookings?beforeCreatedAt=${createdRecurringBooking[0].createdAt}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              const data: (
+                | BookingOutput_2024_08_13
+                | RecurringBookingOutput_2024_08_13
+                | GetSeatedBookingOutput_2024_08_13
+              )[] = responseBody.data;
+              expect(data.length).toEqual(3);
+            });
+        });
+
+        it("should should get bookings in createdAt range", async () => {
+          return request(app.getHttpServer())
+            .get(
+              `/v2/bookings?afterCreatedAt=${createdRecurringBooking[0].createdAt}&beforeCreatedAt=${createdRecurringBooking[1].createdAt}`
+            )
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              const data: (
+                | BookingOutput_2024_08_13
+                | RecurringBookingOutput_2024_08_13
+                | GetSeatedBookingOutput_2024_08_13
+              )[] = responseBody.data;
+              expect(data.length).toEqual(2);
+            });
+        });
+      });
+
       it("should should sort bookings by start in descending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortStart=desc`)

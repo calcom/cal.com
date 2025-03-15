@@ -952,7 +952,24 @@ const Routes = ({
         };
       }) || [];
 
-  const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
+  // const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const routers: any[] = [];
+  /* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */
+  // const routers = availableRouters.map((r) => {
+  //   // Reset disabled state
+  //   r.isDisabled = false;
+
+  //   // Can't select a form as router that is already a connected form. It avoids cyclic dependency
+  //   if (isConnectedForm(r.value)) {
+  //     r.isDisabled = true;
+  //   }
+  //   // A route that's already used, can't be reselected
+  //   if (routes.find((route) => route.id === r.value)) {
+  //     r.isDisabled = true;
+  //   }
+  //   return r;
+  // });
 
   const routerOptions = (
     [
@@ -969,22 +986,7 @@ const Routes = ({
       description: string | null;
       isDisabled?: boolean;
     }[]
-  ).concat(
-    availableRouters.map((r) => {
-      // Reset disabled state
-      r.isDisabled = false;
-
-      // Can't select a form as router that is already a connected form. It avoids cyclic dependency
-      if (isConnectedForm(r.value)) {
-        r.isDisabled = true;
-      }
-      // A route that's already used, can't be reselected
-      if (routes.find((route) => route.id === r.value)) {
-        r.isDisabled = true;
-      }
-      return r;
-    })
-  );
+  ).concat(routers);
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 

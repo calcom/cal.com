@@ -3,7 +3,7 @@
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
-import { forwardRef, useCallback } from "react";
+import { forwardRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -39,18 +39,9 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const { activeFilters, setActiveFilters } = useDataTable();
+  const { activeFilters, addFilter } = useDataTable();
 
   const filterableColumns = useFilterableColumns(table);
-
-  const handleAddFilter = useCallback(
-    (columnId: string) => {
-      if (!activeFilters?.some((filter) => filter.f === columnId)) {
-        setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
-      }
-    },
-    [activeFilters, setActiveFilters]
-  );
 
   if (hideWhenFilterApplied && activeFilters?.length > 0) {
     return null;
@@ -99,7 +90,7 @@ function AddFilterButtonComponent<TData>(
                 return (
                   <CommandItem
                     key={column.id}
-                    onSelect={() => handleAddFilter(column.id)}
+                    onSelect={() => addFilter(column.id)}
                     className="flex items-center justify-between px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>

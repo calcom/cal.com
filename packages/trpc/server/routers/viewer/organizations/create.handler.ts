@@ -80,6 +80,9 @@ const getIPAddress = async (url: string): Promise<string> => {
   });
 };
 
+/**
+ * TODO: To be removed. We need to reuse the logic from orgCreationUtils like in intentToCreateOrgHandler
+ */
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const {
     slug,
@@ -213,6 +216,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
     billingPeriod,
+    logoUrl: null,
+    bio: null,
+    paymentSubscriptionId: null,
   };
 
   // Create a new user and invite them as the owner of the organization
