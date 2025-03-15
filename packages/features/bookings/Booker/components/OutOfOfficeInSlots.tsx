@@ -46,7 +46,6 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
                 t={t}
                 i18nKey="ooo_slots_returning"
                 values={{ displayName: toUser.displayName }}
-                default="<1>{{ displayName }}</1> can take their meetings while they are away."
                 components={[<strong key="username">username</strong>]}
               />
             </p>
