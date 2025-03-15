@@ -207,6 +207,18 @@ async function handler(req: CustomRequest) {
     }
   }
 
+  // Check if attendeeCanCancel is false or if the cancellation is within the minimum notice period
+  if (
+    !bookingToDelete.eventType?.attendeeCanCancel ||
+    (bookingToDelete.eventType?.attendeeCancelMinimumNotice &&
+      dayjs(bookingToDelete.startTime).subtract(bookingToDelete.eventType.attendeeCancelMinimumNotice, 'day').isBefore(dayjs()))
+  ) {
+    throw new HttpError({
+      statusCode: 403,
+      message: "Cancellation is not allowed for this event type.",
+    });
+  }
+
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
