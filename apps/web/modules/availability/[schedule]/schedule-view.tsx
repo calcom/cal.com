@@ -9,14 +9,37 @@ import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import type { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { showToast } from "@calcom/ui";
 
+type Schedule = {
+  id: number;
+  startTime: Date;
+  endTime: Date;
+  userId: number | null;
+  eventTypeId: number | null;
+  date: Date | null;
+  scheduleId: number | null;
+  days: number[];
+};
+
+type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
+
 type PageProps = {
-  scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+  scheduleFetched?: {
+    name: string;
+    id: number;
+    availability: TimeRange[][];
+    isLastSchedule: boolean;
+    isDefault: boolean;
+    workingHours: WorkingHours[];
+    dateOverrides: { ranges: TimeRange[] }[];
+    timeZone: string;
+    schedule: Availability[];
+  };
   travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
 };
 
