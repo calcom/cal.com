@@ -7,7 +7,6 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Trans } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
@@ -26,6 +25,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, Tooltip } from "@calcom/ui";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -191,7 +191,8 @@ function OutOfOfficeEntriesListContent() {
                       </p>
                       <p className="px-2">
                         {item.toUser?.username ? (
-                          <Trans
+                          <CustomTrans
+                            t={t}
                             i18nKey="ooo_forwarding_to"
                             values={{
                               username: item.toUser?.username,

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { Trans } from "react-i18next";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -17,6 +16,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
@@ -246,14 +246,17 @@ function EventWorkflowsTab(props: Props) {
               severity={workflowsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
-                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
+                <CustomTrans
+                  t={t}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
                   {lockedText[0].toUpperCase()}
                   {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                </Trans>
+                </CustomTrans>
               }
               actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
               message={
-                <Trans
+                <CustomTrans
+                  t={t}
                   i18nKey={`workflows_${lockedText}_${
                     isManagedEventType ? "for_members" : "by_team_admins"
                   }_description`}>
@@ -261,7 +264,7 @@ function EventWorkflowsTab(props: Props) {
                   {workflowsDisableProps.isLocked
                     ? "will be able to see the active workflows but will not be able to edit any workflow settings"
                     : "will be able to see the active workflow and will be able to edit any workflow settings"}
-                </Trans>
+                </CustomTrans>
               }
             />
           )}

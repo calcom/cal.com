@@ -1,6 +1,5 @@
-import { Trans } from "react-i18next";
-
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import type { OrganizationCreation } from "../../templates/organization-creation-email";
 import { V2BaseEmailHtml } from "../components";
@@ -48,11 +47,11 @@ export const OrganizationCreationEmail = (
           lineHeightStep: "24px",
         }}>
         {isNewUser ? (
-          <Trans>
+          <>
             Enjoy your new organization link: <a href={`${newLink}`}>{newLinkWithoutProtocol}</a>
-          </Trans>
+          </>
         ) : (
-          <Trans i18nKey="email|existing_user_added_link_changed">
+          <CustomTrans t={props.language} i18nKey="email|existing_user_added_link_changed">
             Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
             <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links
             still work and redirect appropriately.
@@ -71,7 +70,7 @@ export const OrganizationCreationEmail = (
             <br />
             <br />
             Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-          </Trans>
+          </CustomTrans>
         )}
       </p>
 

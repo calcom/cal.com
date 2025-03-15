@@ -1,4 +1,3 @@
-import { Trans } from "react-i18next";
 import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
@@ -22,6 +21,7 @@ import {
   TextField,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 
@@ -105,7 +105,7 @@ export const PriorityDialog = (
 };
 
 export const weightDescription = (
-  <Trans i18nKey="weights_description">
+  <CustomTrans t={t} i18nKey="weights_description">
     Weights determine how meetings are distributed among hosts.
     <Link
       className="underline underline-offset-2"
@@ -113,7 +113,7 @@ export const weightDescription = (
       href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
       Learn more
     </Link>
-  </Trans>
+  </CustomTrans>
 );
 
 export function sortHosts(

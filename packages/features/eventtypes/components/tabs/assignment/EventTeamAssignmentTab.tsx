@@ -1,4 +1,3 @@
-import { Trans } from "react-i18next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -25,6 +24,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 
@@ -112,7 +112,7 @@ const ChildrenEventTypesList = ({
 };
 
 const FixedHostHelper = (
-  <Trans i18nKey="fixed_host_helper">
+  <CustomTrans t={t} i18nKey="fixed_host_helper">
     Add anyone who needs to attend the event.
     <Link
       className="underline underline-offset-2"
@@ -120,7 +120,7 @@ const FixedHostHelper = (
       href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
       Learn more
     </Link>
-  </Trans>
+  </CustomTrans>
 );
 
 type FixedHostsCustomClassNames = SettingsToggleClassNames & {
