@@ -148,6 +148,33 @@ describe("processWorkingHours", () => {
     vi.useRealTimers();
   });
 
+  it("It has the correct working hours on date of DST start (+ tz)", () => {
+    vi.useFakeTimers().setSystemTime(new Date("2025-03-01T13:26:14.000Z"));
+
+    const item = {
+      days: [0],
+      startTime: new Date(Date.UTC(2023, 5, 12, 15, 0)), // 3 PM
+      endTime: new Date(Date.UTC(2023, 5, 12, 16, 30)), // 4:30 PM
+    };
+
+    const timeZone = "America/Chicago";
+    // Ensure we cover the Sunday DST switch over
+    const dateFrom = dayjs("2025-03-09T00:00:00Z").tz(timeZone); // 2025-03-09T00:00:00 (America/Chicago)
+    const dateTo = dayjs("2025-03-10T00:00:00Z").tz(timeZone); // 2025-03-10T00:00:00 (America/Chicago)
+
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
+
+    expect(results).toStrictEqual([
+      {
+        start: dayjs("2025-03-09T20:00:00.000Z").tz(timeZone),
+        end: dayjs("2025-03-09T21:30:00.000Z").tz(timeZone),
+      },
+    ]);
+
+    vi.setSystemTime(vi.getRealSystemTime());
+    vi.useRealTimers();
+  });
+
   // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
   it.skip("should return the correct working hours in the month were DST ends", () => {
     const item = {
