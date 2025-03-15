@@ -903,32 +903,22 @@ type NoShowProps = {
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
+  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber } = attendeeProps;
   const { t } = useLocale();
 
-  const [noShow, setNoShow] = useState(noShowAttendee);
+  const utils = trpc.useUtils();
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
+      utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
     },
   });
-
-  function toggleNoShow({
-    attendee,
-    bookingUid,
-  }: {
-    attendee: { email: string; noShow: boolean };
-    bookingUid: string;
-  }) {
-    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
-    setNoShow(!noShow);
-  }
 
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
@@ -978,29 +968,16 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
           {isBookingInPast && (
             <DropdownMenuItem className="focus:outline-none">
-              {noShow ? (
-                <DropdownItem
-                  data-testid="unmark-no-show"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                  }}
-                  StartIcon="eye">
-                  {t("unmark_as_no_show")}
-                </DropdownItem>
-              ) : (
-                <DropdownItem
-                  data-testid="mark-no-show"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                  }}
-                  StartIcon="eye-off">
-                  {t("mark_as_no_show")}
-                </DropdownItem>
-              )}
+              <DropdownItem
+                data-testid={noShow ? "unmark-no-show" : "mark-no-show"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setOpenDropdown(false);
+                  noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
+                }}
+                StartIcon={noShow ? "eye" : "eye-off"}>
+                {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
+              </DropdownItem>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
