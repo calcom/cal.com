@@ -1118,6 +1118,7 @@
   "duplicate": "Dupliquer",
   "offer_seats": "Proposer des places",
   "offer_seats_description": "Proposez des places de réservation. Cela désactive automatiquement les réservations d'invités et d'opt-in.",
+  "seats_available_one": "Place disponible",
   "seats_available_other": "Places disponibles",
   "seats_nearly_full": "Places presque toutes occupées",
   "seats_half_full": "Les places partent vite",
