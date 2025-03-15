@@ -1949,6 +1949,95 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
+    describe("rescheduling booking with invalid booking responses", () => {
+      it("should reschedule", async () => {
+        const email = `user-bookings-attendee-${randomString(10)}@gmail.com`;
+        const username = `user-bookings-attendee-${randomString(10)}`;
+        const locale = "it";
+        const timeZone = "Europe/Rome";
+        const attendee = await userRepositoryFixture.create({
+          email,
+          username,
+          locale,
+          timeZone,
+        });
+
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${randomString(10)}`,
+          title: "booking title",
+          startTime: "2060-09-05T11:00:00.000Z",
+          endTime: "2060-09-05T12:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          attendees: {
+            create: {
+              email: email,
+              name: username,
+              timeZone,
+              locale,
+            },
+          },
+        });
+
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2060, 0, 9, 14, 0, 0)).toISOString(),
+          reschedulingReason: "Flying to mars that day",
+        };
+
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${booking.uid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.reschedulingReason).toEqual(body.reschedulingReason);
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(new Date(Date.UTC(2060, 0, 9, 15, 0, 0)).toISOString());
+            expect(data.rescheduledFromUid).toEqual(booking.uid);
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
+            expect(data.status).toEqual("accepted");
+            expect(data.eventTypeId).toEqual(booking.eventTypeId);
+            expect(data.attendees.length).toEqual(1);
+            expect(data.attendees[0]).toEqual({
+              name: attendee.username,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              language: attendee.locale,
+              absent: false,
+            });
+            expect(data.bookingFieldsResponses).toEqual({
+              name: attendee.username,
+              email: attendee.email,
+              rescheduledReason: body.reschedulingReason,
+              guests: [],
+            });
+            await bookingsRepositoryFixture.deleteById(data.id);
+            await userRepositoryFixture.delete(attendee.id);
+          });
+      });
+    });
+
     function responseDataIsRecurranceBooking(data: any): data is RecurringBookingOutput_2024_08_13 {
       return (
         !Array.isArray(data) &&
