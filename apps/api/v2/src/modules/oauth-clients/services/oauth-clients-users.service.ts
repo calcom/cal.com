@@ -123,7 +123,9 @@ export class OAuthClientUsersService {
     if (body.email) {
       const emailWithOAuthId = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
       body.email = emailWithOAuthId;
-      const newUsername = slugify(emailWithOAuthId);
+      const [emailUser, emailDomain] = emailWithOAuthId.split("@");
+      const [domainName, TLD] = emailDomain.split(".");
+      const newUsername = slugify(`${emailUser}-${domainName}-${TLD}`);
       await this.userRepository.updateUsername(userId, newUsername);
     }
 

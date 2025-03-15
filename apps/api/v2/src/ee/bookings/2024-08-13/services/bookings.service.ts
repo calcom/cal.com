@@ -229,8 +229,7 @@ export class BookingsService_2024_08_13 {
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
-      // note(Lauris): we substract -1 because getAllUSerBookings child function adds +1 for some reason
-      take: queryParams.take ? queryParams.take - 1 : 100,
+      take: queryParams.take ?? 100,
       filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
         user,
