@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -112,7 +113,7 @@ const ChildrenEventTypesList = ({
   );
 };
 
-const FixedHostHelper = (
+const FixedHostHelper = ({ t }: { t: TFunction }) => (
   <CustomTrans t={t} i18nKey="fixed_host_helper">
     Add anyone who needs to attend the event.
     <Link
@@ -170,7 +171,7 @@ const FixedHosts = ({
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
               )}>
-              {FixedHostHelper}
+              <FixedHostHelper t={t} />
             </p>
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
@@ -210,7 +211,7 @@ const FixedHosts = ({
           data-testid="fixed-hosts-switch"
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
-          description={FixedHostHelper}
+          description={<FixedHostHelper t={t} />}
           checked={isDisabled && !assignAllTeamMembers}
           hideSwitch={assignAllTeamMembers}
           labelClassName={classNames("text-sm", customClassNames?.label)}

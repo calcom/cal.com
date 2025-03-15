@@ -162,7 +162,6 @@ export default function RequiresConfirmationController({
                               <CustomTrans
                                 t={t}
                                 i18nKey="when_booked_with_less_than_notice"
-                                defaults="When booked with less than <time></time> notice"
                                 components={{
                                   time: (
                                     <div className="mx-2 inline-flex items-center">
