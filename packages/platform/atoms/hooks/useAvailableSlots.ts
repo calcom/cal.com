@@ -2,7 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
-import type { GetAvailableSlotsInput, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type {
+  GetAvailableSlotsInput_2024_04_15,
+  ApiResponse,
+  ApiSuccessResponse,
+} from "@calcom/platform-types";
 
 import http from "../lib/http";
 
@@ -11,7 +15,7 @@ export const QUERY_KEY = "get-available-slots";
 export const useAvailableSlots = ({
   enabled,
   ...rest
-}: GetAvailableSlotsInput & { enabled: boolean; isTeamEvent?: boolean; teamId?: number }) => {
+}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; isTeamEvent?: boolean; teamId?: number }) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
