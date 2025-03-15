@@ -31,6 +31,16 @@ export const viewport = {
   maximumScale: 1.0,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: [
+    {
+      media: "(prefers-color-scheme: light)",
+      color: "#f9fafb",
+    },
+    {
+      media: "(prefers-color-scheme: dark)",
+      color: "#1C1C1C",
+    },
+  ],
 };
 
 export const metadata = {
@@ -59,16 +69,6 @@ export const metadata = {
   other: {
     "application-TileColor": "#ff0000",
   },
-  themeColor: [
-    {
-      media: "(prefers-color-scheme: light)",
-      color: "#f9fafb",
-    },
-    {
-      media: "(prefers-color-scheme: dark)",
-      color: "#1C1C1C",
-    },
-  ],
   twitter: {
     site: "@calcom",
     creator: "@calcom",
