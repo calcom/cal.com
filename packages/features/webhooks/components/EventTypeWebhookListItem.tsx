@@ -13,6 +13,7 @@ import {
   showToast,
   Switch,
   Tooltip,
+  Avatar,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
@@ -25,6 +26,11 @@ type WebhookProps = {
   secret: string | null;
   eventTypeId: number | null;
   teamId: number | null;
+  eventType?: {
+    id: number;
+    title: string;
+    avatarUrl: string | null;
+  };
 };
 
 export default function EventTypeWebhookListItem(props: {
@@ -36,6 +42,11 @@ export default function EventTypeWebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { webhook } = props;
+
+  const { data: eventType } = trpc.viewer.eventTypes.get.useQuery(
+    { id: webhook.eventTypeId! },
+    { enabled: !!webhook.eventTypeId }
+  );
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
@@ -71,7 +82,15 @@ export default function EventTypeWebhookListItem(props: {
         props.lastItem ? "" : "border-subtle border-b"
       )}>
       <div className="w-full truncate">
-        <div className="flex">
+        <div className="flex items-center">
+        {eventType?.avatarUrl && (
+            <Avatar
+              imageSrc={eventType.avatarUrl}
+              alt={eventType.title}
+              size="sm"
+              className="mr-2"
+            />
+          )}
           <Tooltip content={webhook.subscriberUrl}>
             <p className="text-emphasis max-w-[600px] truncate text-sm font-medium">
               {webhook.subscriberUrl}
