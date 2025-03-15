@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -21,9 +20,9 @@ import {
   TextField,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
+import WeightDescription from "./WeightDescription";
 
 interface IDialog {
   isOpenDialog: boolean;
@@ -104,18 +103,6 @@ export const PriorityDialog = (
   );
 };
 
-export const weightDescription = (
-  <CustomTrans t={t} i18nKey="weights_description">
-    Weights determine how meetings are distributed among hosts.
-    <Link
-      className="underline underline-offset-2"
-      target="_blank"
-      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
-      Learn more
-    </Link>
-  </CustomTrans>
-);
-
 export function sortHosts(
   hostA: { priority: number | null; weight: number | null },
   hostB: { priority: number | null; weight: number | null },
@@ -172,7 +159,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title={t("set_weight")} description={weightDescription}>
+      <DialogContent title={t("set_weight")} description={<WeightDescription t={t} />}>
         <div className={classNames("mb-4 mt-2", customClassNames?.container)}>
           <Label className={customClassNames?.label}>
             {t("weight_for_user", { userName: option.label })}

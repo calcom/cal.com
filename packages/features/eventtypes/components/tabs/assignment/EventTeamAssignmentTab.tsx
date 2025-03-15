@@ -11,7 +11,7 @@ import AddMembersWithSwitch, {
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { sortHosts, weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
   FormValues,
   TeamMember,
@@ -27,6 +27,7 @@ import classNames from "@calcom/ui/classNames";
 import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
+import WeightDescription from "../../WeightDescription";
 
 export type EventTeamAssignmentTabCustomClassNames = {
   assignmentType?: {
@@ -331,7 +332,7 @@ const RoundRobinHosts = ({
             render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
               <SettingsToggle
                 title={t("enable_weights")}
-                description={weightDescription}
+                description={<WeightDescription t={t} />}
                 checked={isRRWeightsEnabled}
                 switchContainerClassName={customClassNames?.enableWeights?.container}
                 labelClassName={customClassNames?.enableWeights?.label}
