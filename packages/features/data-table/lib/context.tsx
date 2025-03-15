@@ -1,20 +1,22 @@
 "use client";
 
-import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
+import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
 import { createContext, useCallback } from "react";
-import { z } from "zod";
 
-import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./types";
-
-const ZActiveFilter = z.object({
-  f: z.string(),
-  v: ZFilterValue.optional(),
-});
-
-type ActiveFilter = z.infer<typeof ZActiveFilter>;
+import {
+  type FilterValue,
+  ZSorting,
+  ZColumnVisibility,
+  ZActiveFilter,
+  type ActiveFilter,
+  ZColumnSizing,
+} from "./types";
 
 export type DataTableContextType = {
+  tableIdentifier: string;
+
   activeFilters: ActiveFilter[];
   clearAll: (exclude?: string[]) => void;
   addFilter: (columnId: string) => void;
@@ -27,6 +29,9 @@ export type DataTableContextType = {
   columnVisibility: VisibilityState;
   setColumnVisibility: OnChangeFn<VisibilityState>;
 
+  columnSizing: ColumnSizingState;
+  setColumnSizing: OnChangeFn<ColumnSizingState>;
+
   pageIndex: number;
   pageSize: number;
   setPageIndex: (pageIndex: number) => void;
@@ -34,6 +39,9 @@ export type DataTableContextType = {
 
   offset: number;
   limit: number;
+
+  segmentId: number | undefined;
+  setSegmentId: OnChangeFn<number>;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -41,14 +49,20 @@ export const DataTableContext = createContext<DataTableContextType | null>(null)
 const DEFAULT_ACTIVE_FILTERS: ActiveFilter[] = [];
 const DEFAULT_SORTING: SortingState = [];
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
 const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
+  tableIdentifier?: string;
   children: React.ReactNode;
   defaultPageSize?: number;
 }
 
-export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZE }: DataTableProviderProps) {
+export function DataTableProvider({
+  tableIdentifier: _tableIdentifier,
+  children,
+  defaultPageSize = DEFAULT_PAGE_SIZE,
+}: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
@@ -61,9 +75,19 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
     "cols",
     parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
   );
-
+  const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>(
+    "widths",
+    parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING)
+  );
+  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
+
+  const pathname = usePathname() as string | null;
+  const identifier = _tableIdentifier ?? pathname ?? undefined;
+  if (!identifier) {
+    throw new Error("tableIdentifier is required");
+  }
 
   const addFilter = useCallback(
     (columnId: string) => {
@@ -122,6 +146,7 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
   return (
     <DataTableContext.Provider
       value={{
+        tableIdentifier: identifier,
         activeFilters,
         addFilter,
         clearAll,
@@ -131,12 +156,16 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
         setSorting,
         columnVisibility,
         setColumnVisibility,
+        columnSizing,
+        setColumnSizing,
         pageIndex,
         pageSize,
         setPageIndex,
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
+        segmentId: segmentId === -1 ? undefined : segmentId,
+        setSegmentId,
       }}>
       {children}
     </DataTableContext.Provider>

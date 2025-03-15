@@ -200,6 +200,10 @@ export const ZSorting = z.object({
   desc: z.boolean(),
 }) satisfies z.ZodType<Sorting>;
 
+export const ZSortingState = z.array(ZSorting);
+
+export const ZColumnSizing = z.record(z.string(), z.number());
+
 export const ZColumnVisibility = z.record(z.string(), z.boolean());
 
 export type FacetedValue = {
@@ -207,3 +211,13 @@ export type FacetedValue = {
   value: string | number;
   section?: string;
 };
+
+export type ActiveFilter = {
+  f: string;
+  v?: FilterValue;
+};
+
+export const ZActiveFilter = z.object({
+  f: z.string(),
+  v: ZFilterValue.optional(),
+}) satisfies z.ZodType<ActiveFilter>;
