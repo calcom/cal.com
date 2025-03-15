@@ -1,5 +1,4 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -10,6 +9,7 @@ import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/z
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Label, CheckboxField, Button } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import SectionBottomActions from "./SectionBottomActions";
 
@@ -227,7 +227,7 @@ const BookerLayoutFields = ({
       </div>
       {disableFields && (
         <p className="text-sm">
-          <Trans i18nKey="bookerlayout_override_global_settings">
+          <CustomTrans t={t} i18nKey="bookerlayout_override_global_settings">
             You can manage this for all your event types in Settings {"-> "}
             <Link target="_blank" href="/settings/my-account/appearance" className="underline">
               Appearance
@@ -240,7 +240,7 @@ const BookerLayoutFields = ({
               Override
             </Button>{" "}
             for this event only.
-          </Trans>
+          </CustomTrans>
         </p>
       )}
     </div>

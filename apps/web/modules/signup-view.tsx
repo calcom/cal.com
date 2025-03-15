@@ -3,7 +3,6 @@
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { Trans } from "next-i18next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,12 +33,14 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, PasswordField, TextField, Form, Alert, CheckboxField, Icon, showToast } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -593,7 +594,8 @@ export default function Signup({
                   </Link>
                 </div>
                 <div className="text-subtle">
-                  <Trans
+                  <CustomTrans
+                    t={t}
                     i18nKey="signing_up_terms"
                     components={[
                       <Link

@@ -1,5 +1,4 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
@@ -10,6 +9,7 @@ import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/const
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import { useBookerStore } from "../../store";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -131,12 +131,12 @@ export const BookEventForm = ({
               severity="info"
               title={t("unavailable_timeslot_title")}
               message={
-                <Trans i18nKey="timeslot_unavailable_book_a_new_time">
+                <CustomTrans t={t} i18nKey="timeslot_unavailable_book_a_new_time">
                   The selected time slot is no longer available.{" "}
                   <button type="button" className="underline" onClick={onCancel}>
                     Please select a new time
                   </button>
-                </Trans>
+                </CustomTrans>
               }
             />
           </div>
@@ -144,7 +144,8 @@ export const BookEventForm = ({
 
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
-            <Trans
+            <CustomTrans
+              t={t}
               i18nKey="signing_up_terms"
               components={[
                 <Link

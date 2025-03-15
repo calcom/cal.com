@@ -1,5 +1,4 @@
 import type { Webhook } from "@prisma/client";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -14,6 +13,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -118,17 +118,19 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     severity={webhooksDisableProps.isLocked ? "neutral" : "info"}
                     className="mb-2"
                     title={
-                      <Trans
+                      <CustomTrans
+                        t={t}
                         i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
                         {lockedText[0].toUpperCase()}
                         {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                      </Trans>
+                      </CustomTrans>
                     }
                     actions={
                       <div className="flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
                     }
                     message={
-                      <Trans
+                      <CustomTrans
+                        t={t}
                         i18nKey={`webhooks_${lockedText}_${
                           isManagedEventType ? "for_members" : "by_team_admins"
                         }_description`}>
@@ -136,7 +138,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                         {webhooksDisableProps.isLocked
                           ? "will be able to see the active webhooks but will not be able to edit any webhook settings"
                           : "will be able to see the active webhooks and will be able to edit any webhook settings"}
-                      </Trans>
+                      </CustomTrans>
                     }
                   />
                 )}
@@ -177,14 +179,14 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       </div>
 
                       <p className="text-default text-sm font-normal">
-                        <Trans i18nKey="edit_or_manage_webhooks">
+                        <CustomTrans t={t} i18nKey="edit_or_manage_webhooks">
                           If you wish to edit or manage your web hooks, please head over to &nbsp;
                           <Link
                             className="cursor-pointer font-semibold underline"
                             href="/settings/developer/webhooks">
                             webhooks settings
                           </Link>
-                        </Trans>
+                        </CustomTrans>
                       </p>
                     </div>
                   </>

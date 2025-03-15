@@ -1,5 +1,5 @@
 import type { BookingReference, EventType } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import dayjs from "@calcom/dayjs";

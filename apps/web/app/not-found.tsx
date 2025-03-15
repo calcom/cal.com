@@ -221,7 +221,7 @@ function NotFound({ t, headers }: { t: any; headers: ReadonlyHeaders }) {
 }
 
 export const generateMetadata = async () => {
-  const headersList = headers();
+  const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
   const isInsights = pathname?.startsWith("/insights");
 
@@ -243,7 +243,7 @@ export const generateMetadata = async () => {
 
 const ServerPage = async () => {
   const t = await getTranslate();
-  const h = headers();
+  const h = await headers();
   const nonce = h.get("x-nonce") ?? undefined;
   return (
     <PageWrapper requiresLicense={false} nonce={nonce}>

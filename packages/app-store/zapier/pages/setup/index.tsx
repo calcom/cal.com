@@ -1,4 +1,3 @@
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -7,6 +6,7 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 export interface IZapierSetupProps {
   inviteLink?: string;
@@ -121,13 +121,13 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                     </a>
                   </li>
                 )}
-                <Trans i18nKey="zapier_setup_instructions">
+                <CustomTrans t={t} i18nKey="zapier_setup_instructions">
                   <li>Log into your Zapier account and create a new Zap.</li>
                   <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
                   <li>Choose your account and then enter your Unique API Key.</li>
                   <li>Test your Trigger.</li>
                   <li>You&apos;re set!</li>
-                </Trans>
+                </CustomTrans>
               </ol>
               <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>

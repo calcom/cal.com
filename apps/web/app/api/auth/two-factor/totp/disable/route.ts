@@ -16,7 +16,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });

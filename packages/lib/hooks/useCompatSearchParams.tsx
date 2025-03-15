@@ -1,3 +1,5 @@
+"use client";
+
 import { ReadonlyURLSearchParams, useParams, useSearchParams } from "next/navigation";
 
 export const useCompatSearchParams = () => {

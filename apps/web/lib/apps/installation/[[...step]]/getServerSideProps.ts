@@ -1,6 +1,4 @@
-import { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -13,6 +11,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import type { LocationObject } from "@calcom/lib/location";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 import { STEPS } from "~/apps/installation/[[...step]]/constants";
@@ -307,7 +306,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      ...(await serverSideTranslations(locale, ["common"])),
       app,
       appMetadata,
       showEventTypesStep,

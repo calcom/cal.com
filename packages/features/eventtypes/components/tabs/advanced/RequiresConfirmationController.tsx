@@ -1,6 +1,5 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { UnitTypeLongPlural } from "dayjs";
-import { Trans } from "next-i18next";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -13,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -159,9 +159,9 @@ export default function RequiresConfirmationController({
                           )}
                           label={
                             <>
-                              <Trans
+                              <CustomTrans
+                                t={t}
                                 i18nKey="when_booked_with_less_than_notice"
-                                defaults="When booked with less than <time></time> notice"
                                 components={{
                                   time: (
                                     <div className="mx-2 inline-flex items-center">

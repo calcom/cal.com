@@ -1,3 +1,5 @@
+"use client";
+
 import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -9,7 +11,8 @@ import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/c
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

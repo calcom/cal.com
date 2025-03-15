@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +10,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, EmptyScreen, Alert } from "@calcom/ui";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import { TRPCClientError } from "@trpc/client";
 
@@ -57,12 +57,12 @@ function ConnectAndJoin() {
             <div className="flex flex-col items-center justify-center	gap-4">
               {meetingUrl ? (
                 <div className="text-default flex flex-col items-center gap-2 text-center text-sm font-normal">
-                  <Trans i18nKey="some_other_host_already_accepted_the_meeting">
+                  <CustomTrans t={t} i18nKey="some_other_host_already_accepted_the_meeting">
                     Some other host already accepted the meeting. Do you still want to join?
                     <Link className="inline-block cursor-pointer underline" href={meetingUrl}>
                       Continue to Meeting
                     </Link>
-                  </Trans>
+                  </CustomTrans>
                 </div>
               ) : (
                 <Button

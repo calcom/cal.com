@@ -12,7 +12,7 @@ const paramsSchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: _PageProps) => {
-  const p = paramsSchema.safeParse(params);
+  const p = paramsSchema.safeParse(await params);
 
   if (!p.success) {
     return notFound();
@@ -33,7 +33,7 @@ export const generateMetadata = async ({ params }: _PageProps) => {
 };
 
 async function Page({ params }: _PageProps) {
-  const p = paramsSchema.safeParse(params);
+  const p = paramsSchema.safeParse(await params);
 
   if (!p.success) {
     return notFound();

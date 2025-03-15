@@ -1,4 +1,3 @@
-import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
@@ -6,6 +5,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 interface IOutOfOfficeInSlotsProps {
   date: string;
@@ -42,10 +42,10 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
 
           {fromUser?.displayName && toUser?.displayName && (
             <p className="text-center text-sm">
-              <Trans
+              <CustomTrans
+                t={t}
                 i18nKey="ooo_slots_returning"
                 values={{ displayName: toUser.displayName }}
-                default="<1>{{ displayName }}</1> can take their meetings while they are away."
                 components={[<strong key="username">username</strong>]}
               />
             </p>

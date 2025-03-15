@@ -1,11 +1,11 @@
 "use client";
 
-import { Trans } from "next-i18next";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
@@ -248,7 +248,8 @@ const DeleteOrgDialog = ({
         cancelBtnText={t("cancel")}
         variety="danger"
         onConfirm={onConfirm}>
-        <Trans
+        <CustomTrans
+          t={t}
           i18nKey="admin_delete_organization_description"
           components={{ li: <li />, ul: <ul className="ml-4 mt-5 list-disc space-y-2" /> }}>
           <ul>
@@ -261,7 +262,7 @@ const DeleteOrgDialog = ({
             </li>
             <li>Usernames would be changed to allow them to exist outside the organization</li>
           </ul>
-        </Trans>
+        </CustomTrans>
       </ConfirmationDialogContent>
     </Dialog>
   );

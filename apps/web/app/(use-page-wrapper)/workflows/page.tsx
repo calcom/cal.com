@@ -15,7 +15,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const user = session?.user;
 
   // const filters = getTeamsFiltersFromQuery({ ...searchParams, ...params });

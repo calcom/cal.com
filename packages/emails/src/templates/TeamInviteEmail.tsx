@@ -1,7 +1,7 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import { getSubject, getTypeOfInvite } from "../../templates/team-invite-email";
 import { V2BaseEmailHtml, CallToAction } from "../components";
@@ -157,12 +157,17 @@ export const TeamInviteEmail = (
           <>
             {autoJoinType == "added" ? (
               <>
-                <Trans i18nKey="email_team_invite|content|added_to_org">
+                <CustomTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
                   {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-                </Trans>{" "}
-                <Trans
+                </CustomTrans>{" "}
+                <CustomTrans
+                  t={props.language}
                   i18nKey="email_team_invite|content_addition|existing_user_added"
-                  values={{ prevLink: props.prevLink, newLink: props.newLink, teamName: props.teamName }}>
+                  values={{
+                    prevLink: props.prevLink ?? "",
+                    newLink: props.newLink ?? "",
+                    teamName: props.teamName,
+                  }}>
                   Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
                   <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous
                   links still work and redirect appropriately.
@@ -180,16 +185,21 @@ export const TeamInviteEmail = (
                   <br />
                   Enjoy your new clean link:{" "}
                   <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-                </Trans>
+                </CustomTrans>
               </>
             ) : (
               <>
-                <Trans i18nKey="email_team_invite|content|invited_to_org">
+                <CustomTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
                   {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-                </Trans>{" "}
-                <Trans
+                </CustomTrans>{" "}
+                <CustomTrans
+                  t={props.language}
                   i18nKey="existing_user_added_link_will_change"
-                  values={{ prevLink: props.prevLink, newLink: props.newLink, teamName: props.teamName }}>
+                  values={{
+                    prevLink: props.prevLink ?? "",
+                    newLink: props.newLink ?? "",
+                    teamName: props.teamName,
+                  }}>
                   On accepting the invite, your link will change to your organization domain but don&apos;t
                   worry, all previous links will still work and redirect appropriately.
                   <br />
@@ -199,7 +209,7 @@ export const TeamInviteEmail = (
                   <br />
                   <br />
                   For personal events we recommend creating a new account with a personal email address.
-                </Trans>
+                </CustomTrans>
               </>
             )}
           </>
@@ -208,18 +218,16 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <Trans i18nKey="email_team_invite|content|added_to_org">
+            <CustomTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
               {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-            </Trans>
+            </CustomTrans>
           ) : (
-            <Trans i18nKey="email_team_invite|content|invited_to_org">
+            <CustomTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
               {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-            </Trans>
+            </CustomTrans>
           )}{" "}
-          <Trans>
-            {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
-            without the email tennis.
-          </Trans>
+          {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
+          without the email tennis.
         </>
       );
     }
@@ -228,20 +236,18 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <Trans i18nKey="email_team_invite|content|added_to_subteam">
+            <CustomTrans t={props.language} i18nKey="email_team_invite|content|added_to_subteam">
               {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
               <strong>{parentTeamName}</strong>.
-            </Trans>
+            </CustomTrans>
           ) : (
-            <Trans i18nKey="email_team_invite|content|invited_to_subteam">
+            <CustomTrans t={props.language} i18nKey="email_team_invite|content|invited_to_subteam">
               {invitedBy} has invited you to the team <strong>{teamName}</strong> in their organization{" "}
               <strong>{parentTeamName}</strong>.
-            </Trans>
+            </CustomTrans>
           )}{" "}
-          <Trans>
-            {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
-            without the email tennis.
-          </Trans>
+          {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
+          without the email tennis.
         </>
       );
     }

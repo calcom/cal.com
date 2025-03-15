@@ -7,7 +7,7 @@ import type {
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { Time } from "ical.js";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import type { Frequency } from "rrule";
 import type z from "zod";
 

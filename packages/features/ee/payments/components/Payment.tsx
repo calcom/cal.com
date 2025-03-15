@@ -1,3 +1,5 @@
+"use client";
+
 import type { EventType, Payment } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";

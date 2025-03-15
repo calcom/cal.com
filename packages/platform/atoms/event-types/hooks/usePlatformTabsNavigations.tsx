@@ -2,7 +2,7 @@
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 

@@ -16,7 +16,7 @@ import {
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const { bookingInfo, eventType, recurringBookings, orgSlug } = await getData(
-    buildLegacyCtx(headers(), cookies(), params, searchParams)
+    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
 
@@ -33,7 +33,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
   return <OldPage {...props} />;
 };

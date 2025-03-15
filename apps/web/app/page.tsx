@@ -6,7 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const RedirectPage = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {
     redirect("/auth/login");

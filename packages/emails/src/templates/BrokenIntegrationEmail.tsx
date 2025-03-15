@@ -1,11 +1,9 @@
-"use client";
-
-import type { TFunction } from "next-i18next";
-import { Trans } from "react-i18next";
+import type { TFunction } from "i18next";
 
 import { AppStoreLocationType } from "@calcom/app-store/locations";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import { BaseScheduledEmail } from "./BaseScheduledEmail";
 
@@ -17,7 +15,7 @@ export function getEnumKeyByEnumValue(myEnum: any, enumValue: number | string): 
 
 const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number | null; t: TFunction }) => {
   return (
-    <Trans i18nKey="broken_video_action" t={props.t}>
+    <CustomTrans i18nKey="broken_video_action" t={props.t}>
       We could not add the <span>{props.location}</span> meeting link to your scheduled event. Contact your
       invitees or update your calendar event to add the details. You can either&nbsp;
       <a
@@ -28,7 +26,7 @@ const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number 
       </a>
       &nbsp;or try&nbsp;
       <a href={`${WEBAPP_URL}/apps/installed`}>removing and adding the app again.</a>
-    </Trans>
+    </CustomTrans>
   );
 };
 
@@ -40,12 +38,13 @@ const BrokenCalendarIntegration = (props: {
   const { t } = props;
 
   return (
-    <Trans i18nKey="broken_calendar_action" t={props.t}>
-      We could not update your <span>{props.calendar}</span>.{" "}
-      <a href={`${WEBAPP_URL}/apps/installed`}>
-        Please check your calendar settings or remove and add your calendar again
-      </a>
-    </Trans>
+    <div>
+      {t("broken_calendar_action", {
+        calendar: props.calendar,
+        calendarSettingsLink: `${WEBAPP_URL}/apps/installed`,
+        interpolation: { escapeValue: false },
+      })}
+    </div>
   );
 };
 

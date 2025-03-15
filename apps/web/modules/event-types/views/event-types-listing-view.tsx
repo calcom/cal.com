@@ -1,7 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -57,6 +56,7 @@ import {
   UserAvatarGroup,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -804,7 +804,8 @@ export const InfiniteEventTypeList = ({
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
-            <Trans
+            <CustomTrans
+              t={t}
               i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
               components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
               <ul>
@@ -813,7 +814,7 @@ export const InfiniteEventTypeList = ({
                   Anyone who they&apos;ve shared their link with will no longer be able to book using it.
                 </li>
               </ul>
-            </Trans>
+            </CustomTrans>
           </p>
         </ConfirmationDialogContent>
       </Dialog>

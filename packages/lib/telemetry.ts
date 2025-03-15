@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { CollectOpts, EventHandler } from "next-collect";
-import { useCollector } from "next-collect/client";
 // Importing types so we're not directly importing next/server
 import type { NextRequest, NextResponse } from "next/server";
 
@@ -112,5 +111,3 @@ export const extendEventData = (
     utc_time: new Date().toISOString(),
   };
 };
-
-export const useTelemetry = useCollector;

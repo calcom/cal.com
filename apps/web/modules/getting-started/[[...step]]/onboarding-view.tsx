@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Toaster } from "sonner";

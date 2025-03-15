@@ -1,5 +1,4 @@
 import type { InferGetServerSidePropsType } from "next";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -8,6 +7,7 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
+import CustomTrans from "@calcom/web/components/CustomTrans";
 
 import type { getServerSideProps } from "./_getServerSideProps";
 
@@ -112,7 +112,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
               </>
 
               <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
-                <Trans i18nKey="make_setup_instructions">
+                <CustomTrans t={t} i18nKey="make_setup_instructions">
                   <li>
                     Go to
                     <a href={inviteLink} className="ml-1 mr-1 text-orange-600 underline">
@@ -125,7 +125,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
                   <li>Choose your account and then enter your Unique API Key.</li>
                   <li>Test your Trigger.</li>
                   <li>You&apos;re set!</li>
-                </Trans>
+                </CustomTrans>
               </ol>
               <Link href="/apps/installed/automation?hl=make" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>
