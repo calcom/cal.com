@@ -10,8 +10,15 @@ export default class EventLocationChangedSMS extends SMSManager {
 
   getMessage(attendee: Person) {
     const t = attendee.language.translate;
-    return `${t("event_location_changed")}. \n\n ${t("you_can_view_booking_details_with_this_url", {
-      url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}?changes=true`,
-    })}`;
+
+    const messageText = `${t("event_location_changed")}`;
+
+    const bookingUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}?changes=true`;
+
+    const urlText = t("you_can_view_booking_details_with_this_url", {
+      url: bookingUrl,
+    });
+
+    return `${messageText}\n\n${urlText}`;
   }
 }
