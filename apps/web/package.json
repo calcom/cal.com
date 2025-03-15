@@ -32,7 +32,7 @@
     "@calcom/app-store-cli": "*",
     "@calcom/dayjs": "*",
     "@calcom/embed-core": "workspace:*",
-    "@calcom/embed-react": "workspace:*",
+    "@calcom/embed-react": "1.0.0",
     "@calcom/embed-snippet": "workspace:*",
     "@calcom/features": "*",
     "@calcom/lib": "*",
