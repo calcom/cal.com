@@ -9,7 +9,6 @@ import { IconSprites } from "@calcom/ui";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { prepareRootMetadata } from "@lib/metadata";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -26,7 +25,60 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () => prepareRootMetadata();
+export const viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
+export const metadata = {
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/api/logo?type=apple-touch-icon",
+    other: [
+      {
+        rel: "icon-mask",
+        url: "/safari-pinned-tab.svg",
+        color: "#000000",
+      },
+      {
+        url: "/api/logo?type=favicon-16",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: "/api/logo?type=favicon-32",
+        sizes: "32x32",
+        type: "image/png",
+      },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  other: {
+    "application-TileColor": "#ff0000",
+  },
+  themeColor: [
+    {
+      media: "(prefers-color-scheme: light)",
+      color: "#f9fafb",
+    },
+    {
+      media: "(prefers-color-scheme: dark)",
+      color: "#1C1C1C",
+    },
+  ],
+  twitter: {
+    site: "@calcom",
+    creator: "@calcom",
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
