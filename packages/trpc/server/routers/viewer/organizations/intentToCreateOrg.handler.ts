@@ -10,7 +10,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 
 const log = logger.getSubLogger({ prefix: ["intentToCreateOrgHandler"] });

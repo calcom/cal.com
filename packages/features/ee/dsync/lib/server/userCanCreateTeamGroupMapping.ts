@@ -1,6 +1,6 @@
 import { canAccess } from "@calcom/features/ee/sso/lib/saml";
 import prisma from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 

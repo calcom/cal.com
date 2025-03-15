@@ -10,11 +10,11 @@ import { prisma } from "@calcom/prisma";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
 
-import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
+import type { TrpcSessionUser } from "../../../types";
+import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 
 const log = logger.getSubLogger({ prefix: ["viewer/organizations/createTeams.handler"] });
 type CreateTeamsOptions = {

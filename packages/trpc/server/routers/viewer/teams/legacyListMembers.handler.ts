@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 

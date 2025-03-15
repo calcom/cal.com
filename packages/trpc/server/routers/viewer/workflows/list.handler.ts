@@ -3,7 +3,7 @@ import type { WorkflowType } from "@calcom/features/ee/workflows/components/Work
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
 

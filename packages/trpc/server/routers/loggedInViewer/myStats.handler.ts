@@ -1,7 +1,7 @@
 import type { Session } from "next-auth";
 
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type MyStatsOptions = {
   ctx: {
