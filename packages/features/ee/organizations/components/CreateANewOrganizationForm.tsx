@@ -22,8 +22,8 @@ import { useOnboarding } from "../lib/onboardingStore";
 function extractDomainFromEmail(email: string) {
   let out = "";
   try {
-    const match = email.match(/^(?:.*?:\/\/)?.*?(?<root>[\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
-    out = (match && match.groups?.root) ?? "";
+    const match = email.match(/^(?:.*?:\/\/)?[^\/?#:]*?([\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
+    out = match && match[1] ? match[1] : "";
   } catch (ignore) {}
   return out.split(".")[0];
 }

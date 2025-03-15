@@ -5,8 +5,9 @@ import { getToken } from "next-auth/jwt";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
-// @ts-expect-error no type definitions
-import { i18n } from "@calcom/config/next-i18next.config";
+import i18nNextConfig from "@calcom/config/next-i18next.config";
+
+const { i18n } = i18nNextConfig;
 
 /**
  * This is a slimmed down version of the `getServerSession` function from

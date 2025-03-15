@@ -204,7 +204,7 @@ export const AvailabilityCTA = () => {
   // searchParams with a provided key/value pair
   const createQueryString = useCallback(
     (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams ?? undefined);
+      const params = new URLSearchParams(searchParams.toString());
       params.set(name, value);
 
       return params.toString();
