@@ -436,7 +436,7 @@ const AppearanceView = ({
 };
 
 const AppearancePage = () => {
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
   const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
   if (isPending || isTeamPlanStatusLoading || !user) return <SkeletonLoader />;

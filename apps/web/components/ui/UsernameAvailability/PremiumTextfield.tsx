@@ -64,7 +64,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onErrorMutation,
     readonly: disabled,
   } = props;
-  const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const recentAttemptPaymentStatus = searchParams?.get("recentAttemptPaymentStatus");

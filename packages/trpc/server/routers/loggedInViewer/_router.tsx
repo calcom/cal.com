@@ -7,7 +7,6 @@ import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema"
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
-import { ZDeleteMeInputSchema } from "./deleteMe.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
@@ -17,9 +16,6 @@ import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 import { ZOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
 import { ZOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
-import { me } from "./procedures/me";
-import { myStats } from "./procedures/myStats";
-import { platformMe } from "./procedures/platformMe";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
@@ -34,12 +30,7 @@ const NAMESPACE = "loggedInViewer";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 type AppsRouterHandlerCache = {
-  me?: typeof import("./me.handler").meHandler;
-  myStats?: typeof import("./myStats.handler").myStatsHandler;
-  platformMe?: typeof import("./platformMe.handler").platformMeHandler;
   shouldVerifyEmail?: typeof import("./shouldVerifyEmail.handler").shouldVerifyEmailHandler;
-  deleteMe?: typeof import("./deleteMe.handler").deleteMeHandler;
-  deleteMeWithoutPassword?: typeof import("./deleteMeWithoutPassword.handler").deleteMeWithoutPasswordHandler;
   connectedCalendars?: typeof import("./connectedCalendars.handler").connectedCalendarsHandler;
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
   integrations?: typeof import("./integrations.handler").integrationsHandler;
@@ -75,38 +66,6 @@ type AppsRouterHandlerCache = {
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
 
 export const loggedInViewerRouter = router({
-  me,
-  myStats,
-  platformMe,
-
-  deleteMe: authedProcedure.input(ZDeleteMeInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.deleteMe) {
-      UNSTABLE_HANDLER_CACHE.deleteMe = (await import("./deleteMe.handler")).deleteMeHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.deleteMe) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.deleteMe({ ctx, input });
-  }),
-
-  deleteMeWithoutPassword: authedProcedure.mutation(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.deleteMeWithoutPassword) {
-      UNSTABLE_HANDLER_CACHE.deleteMeWithoutPassword = (
-        await import("./deleteMeWithoutPassword.handler")
-      ).deleteMeWithoutPasswordHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.deleteMeWithoutPassword) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.deleteMeWithoutPassword({ ctx });
-  }),
-
   connectedCalendars: authedProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.connectedCalendars) {
       UNSTABLE_HANDLER_CACHE.connectedCalendars = (

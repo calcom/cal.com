@@ -78,7 +78,7 @@ type GeneralQueryViewProps = {
 const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
   const { t } = useLocale();
 
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
 
   const { data: travelSchedules, isPending: isPendingTravelSchedules } =
     trpc.viewer.getTravelSchedules.useQuery();

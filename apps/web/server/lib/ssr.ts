@@ -7,7 +7,6 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { map } from "@calcom/features/flags/server/procedures/map";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
 import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
@@ -17,38 +16,6 @@ import { router, mergeRouters } from "@calcom/trpc/server/trpc";
 
 import { createServerSideHelpers } from "@trpc/react-query/server";
 
-const loggedInRouter = router({
-  me,
-});
-
-// Temporary workaround for OOM issue, import only procedures that are called on the server side
-const routerSlice = router({
-  viewer: mergeRouters(
-    loggedInRouter,
-    router({
-      features: router({
-        map,
-      }),
-      public: router({
-        session,
-        event,
-      }),
-      teams: router({
-        hasTeamPlan,
-      }),
-      appRoutingForms: router({
-        forms,
-      }),
-      teamsAndUserProfilesQuery: router({
-        teamsAndUserProfilesQuery,
-      }),
-      eventTypes: router({
-        get,
-      }),
-    })
-  ),
-});
-
 /**
  * Initialize server-side rendering tRPC helpers.
  * Provides a method to prefetch tRPC-queries in a `getServerSideProps`-function.
@@ -56,6 +23,41 @@ const routerSlice = router({
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
 export async function ssrInit(context: GetServerSidePropsContext, options?: { noI18nPreload: boolean }) {
+  // const meRouter = router({
+  //   get: authedProcedure.input(TGetInputSchema).query(async ({ ctx, input }) => {
+  //     const handler = (await import("@calcom/trpc/server/routers/viewer/me/get.handler")).meHandler;
+
+  //     return handler({ ctx, input });
+  //   }),
+  // });
+
+  // Temporary workaround for OOM issue, import only procedures that are called on the server side
+  const routerSlice = router({
+    viewer: mergeRouters(
+      //meRouter,
+      router({
+        features: router({
+          map,
+        }),
+        public: router({
+          session,
+          event,
+        }),
+        teams: router({
+          hasTeamPlan,
+        }),
+        appRoutingForms: router({
+          forms,
+        }),
+        teamsAndUserProfilesQuery: router({
+          teamsAndUserProfilesQuery,
+        }),
+        eventTypes: router({
+          get,
+        }),
+      })
+    ),
+  });
   const ctx = await createContext(context);
   const locale = await getLocale(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);

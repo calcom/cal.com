@@ -21,6 +21,7 @@ import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { highPerfRouter } from "./highPerf/_router";
+import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
@@ -35,7 +36,7 @@ export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
 
   router({
-    loggedInViewerRouter,
+    me: meRouter,
     public: publicViewerRouter,
     auth: authRouter,
     deploymentSetup: deploymentSetupRouter,

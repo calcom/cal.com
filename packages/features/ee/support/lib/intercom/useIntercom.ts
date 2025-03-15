@@ -25,7 +25,7 @@ const useIntercomHook = isInterComEnabled
 
 export const useIntercom = () => {
   const hookData = useIntercomHook();
-  const { data } = trpc.viewer.me.useQuery();
+  const { data } = trpc.viewer.me.get.useQuery();
   const { data: statsData } = trpc.viewer.myStats.useQuery(undefined, {
     trpc: {
       context: {
@@ -128,7 +128,7 @@ export const useIntercom = () => {
 
 export const useBootIntercom = () => {
   const { boot } = useIntercom();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
   const { data: statsData } = trpc.viewer.myStats.useQuery(undefined, {
     trpc: {
       context: {
