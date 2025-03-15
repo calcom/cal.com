@@ -5,6 +5,7 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
+import { getCurrencySymbol } from "@calcom/app-store/_utils/payments/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
@@ -62,6 +63,8 @@ export const FormBuilder = function FormBuilder({
   LockedIcon,
   dataStore,
   shouldConsiderRequired,
+  showPriceField,
+  paymentCurrency = "USD",
 }: {
   formProp: string;
   title: string;
@@ -86,6 +89,8 @@ export const FormBuilder = function FormBuilder({
    * e.g. Location field has a default value at backend so API can send no location but formBuilder in UI doesn't allow it.
    */
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
+  showPriceField?: boolean;
+  paymentCurrency?: string;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -331,6 +336,8 @@ export const FormBuilder = function FormBuilder({
             });
           }}
           shouldConsiderRequired={shouldConsiderRequired}
+          showPriceField={showPriceField}
+          paymentCurrency={paymentCurrency}
         />
       )}
     </div>
@@ -344,12 +351,16 @@ function Options({
   onChange = () => {},
   className = "",
   readOnly = false,
+  showPrice = false,
+  paymentCurrency,
 }: {
   label?: string;
-  value: { label: string; value: string }[];
-  onChange?: (value: { label: string; value: string }[]) => void;
+  value: { label: string; value: string; price?: number }[];
+  onChange?: (value: { label: string; value: string; price?: number }[]) => void;
   className?: string;
   readOnly?: boolean;
+  showPrice?: boolean;
+  paymentCurrency: string;
 }) {
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   if (!value) {
@@ -371,22 +382,48 @@ function Options({
         <ul ref={animationRef}>
           {value?.map((option, index) => (
             <li key={index}>
-              <div className="flex items-center">
-                <Input
-                  required
-                  value={option.label}
-                  onChange={(e) => {
-                    // Right now we use label of the option as the value of the option. It allows us to not separately lookup the optionId to know the optionValue
-                    // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
-                    value.splice(index, 1, {
-                      label: e.target.value,
-                      value: e.target.value.trim(),
-                    });
-                    onChange(value);
-                  }}
-                  readOnly={readOnly}
-                  placeholder={`Enter Option ${index + 1}`}
-                />
+              <div className="flex items-center gap-2">
+                <div className="flex-grow">
+                  <Input
+                    required
+                    value={option.label}
+                    onChange={(e) => {
+                      // Right now we use label of the option as the value of the option. It allows use to not separately lookup the optionId to know the optionValue
+                      // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
+                      const newOptions = [...(value || [])];
+                      newOptions.splice(index, 1, {
+                        label: e.target.value,
+                        value: e.target.value.trim(),
+                      });
+                      onChange(newOptions);
+                    }}
+                    readOnly={readOnly}
+                    placeholder={`Enter Option ${index + 1}`}
+                  />
+                </div>
+                {showPrice && (
+                  <div className="w-24">
+                    <InputField
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={option.price}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const numValue = val === "" ? undefined : Number(val);
+                        const updatedOptions = [...(value || [])];
+                        updatedOptions[index] = {
+                          ...option,
+                          price: numValue,
+                        };
+                        onChange(updatedOptions);
+                      }}
+                      readOnly={readOnly}
+                      placeholder="0"
+                      addOnLeading={getCurrencySymbol(paymentCurrency)}
+                    />
+                  </div>
+                )}
                 {value.length > 2 && !readOnly && (
                   <Button
                     type="button"
@@ -395,10 +432,8 @@ function Options({
                     color="minimal"
                     StartIcon="x"
                     onClick={() => {
-                      if (!value) {
-                        return;
-                      }
-                      const newOptions = [...value];
+                      if (!value) return;
+                      const newOptions = [...(value || [])];
                       newOptions.splice(index, 1);
                       onChange(newOptions);
                     }}
@@ -412,8 +447,9 @@ function Options({
           <Button
             color="minimal"
             onClick={() => {
-              value.push({ label: "", value: "" });
-              onChange(value);
+              const newOptions = [...(value || [])];
+              newOptions.push({ label: "", value: "", price: 0 });
+              onChange(newOptions);
             }}
             StartIcon="plus">
             Add an Option
@@ -450,11 +486,15 @@ function FieldEditDialog({
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
+  showPriceField,
+  paymentCurrency,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
+  showPriceField?: boolean;
+  paymentCurrency: string;
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -561,7 +601,15 @@ function FieldEditDialog({
                       <Controller
                         name="options"
                         render={({ field: { value, onChange } }) => {
-                          return <Options onChange={onChange} value={value} className="mt-6" />;
+                          return (
+                            <Options
+                              onChange={onChange}
+                              value={value}
+                              className="mt-6"
+                              showPrice={showPriceField && fieldType.optionsSupportPricing}
+                              paymentCurrency={paymentCurrency}
+                            />
+                          );
                         }}
                       />
                     ) : null}
@@ -609,6 +657,19 @@ function FieldEditDialog({
                         }}
                         label={t("exclude_emails_that_contain")}
                         placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
+
+                    {/* Add price field only for fields that support pricing */}
+                    {showPriceField && fieldType.supportsPricing && (
+                      <InputField
+                        {...fieldForm.register("price")}
+                        containerClassName="mt-6"
+                        label={t("price")}
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        addOnLeading={getCurrencySymbol(paymentCurrency)}
                       />
                     )}
 

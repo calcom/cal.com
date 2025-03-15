@@ -9,6 +9,8 @@ export interface FieldProps {
   fieldType: string;
   identifier: string;
   label: string;
+  price?: number;
+  options?: { label: string; value: string; price?: number }[];
 }
 
 type FormBuilderProps = React.ComponentProps<typeof FormBuilder>;
@@ -22,6 +24,7 @@ export const mockProps: FormBuilderProps = {
   LockedIcon: false,
   dataStore: { options: {} },
 };
+
 export const getLocationBookingField = () => {
   const bookingFields = getBookingFieldsWithSystemFields({
     bookingFields: [],
@@ -158,6 +161,53 @@ export const pageObject = {
         fireEvent.change(dialog.getAllByRole("textbox")[1], { target: { value: label } });
       }
     },
+    fillInPrice: ({ dialog, price }: { dialog: TestingLibraryElement; price: number }) => {
+      // The price input is rendered with an Input component with a $ suffix
+      const priceInput = dialog.getByRole("spinbutton");
+      fireEvent.change(priceInput, { target: { value: price.toString() } });
+    },
+    addOption: ({ dialog }: { dialog: TestingLibraryElement }) => {
+      fireEvent.click(dialog.getByText("Add an Option"));
+    },
+    fillInOption: async ({
+      dialog,
+      index,
+      label,
+      price,
+    }: {
+      dialog: TestingLibraryElement;
+      index: number;
+      label: string;
+      price?: number;
+    }) => {
+      // First click "Add an Option" button if needed
+      if (index > 0) {
+        const addButton = dialog.getByText("Add an Option");
+        fireEvent.click(addButton);
+      }
+
+      await waitFor(() => {
+        const optionInputs = dialog
+          .getAllByRole("textbox")
+          .filter((input: HTMLElement) => !input.id.includes("react-select"));
+        expect(optionInputs.length).toBeGreaterThan(index + 2);
+      });
+
+      const optionInputs = dialog
+        .getAllByRole("textbox")
+        .filter((input: HTMLElement) => !input.id.includes("react-select"));
+      fireEvent.change(optionInputs[index + 2], { target: { value: label } });
+
+      if (price !== undefined) {
+        await waitFor(() => {
+          const priceInputs = dialog.getAllByLabelText(/Price \d+/);
+          expect(priceInputs.length).toBeGreaterThan(index);
+        });
+
+        const priceInputs = dialog.getAllByLabelText(/Price \d+/);
+        fireEvent.change(priceInputs[index], { target: { value: price.toString() } });
+      }
+    },
     close: ({ dialog }: { dialog: TestingLibraryElement }) => {
       fireEvent.click(dialog.getByTestId("dialog-rejection"));
     },
@@ -194,6 +244,25 @@ export const verifier = {
     pageObject.dialog.selectFieldType({ dialog, fieldType: props.fieldType });
     pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: props.identifier });
     pageObject.dialog.fillInFieldLabel({ dialog, label: props.label, fieldType: props.fieldType });
+
+    if (props.price !== undefined) {
+      pageObject.dialog.fillInPrice({ dialog, price: props.price });
+    }
+
+    if (props.options) {
+      for (const [index, option] of props.options.entries()) {
+        if (index > 0) {
+          pageObject.dialog.addOption({ dialog });
+        }
+        pageObject.dialog.fillInOption({
+          dialog,
+          index: index + 1,
+          label: option.label,
+          price: option.price,
+        });
+      }
+    }
+
     pageObject.dialog.saveField({ dialog: getEditDialogForm() });
 
     await waitFor(() => {
@@ -271,5 +340,13 @@ export const expectScenario = {
   toHaveRequiredBadge: ({ identifier }: { identifier: string }) => {
     const field = getFieldInTheList({ identifier });
     expect(field.getByText("required")).not.toBeNull();
+  },
+  toHavePriceField: async ({ identifier }: { identifier: string }) => {
+    const dialog = pageObject.openEditFieldDialog({ identifier });
+    await waitFor(() => {
+      // Find the spinbutton input with $ suffix
+      const priceInput = dialog.getByRole("spinbutton");
+      expect(priceInput).toBeInTheDocument();
+    });
   },
 };
