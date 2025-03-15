@@ -1119,7 +1119,8 @@ checksums:
     duplicate: 27756566785c2b8463e21582c4bb619b
     offer_seats: 397e1d0c97bf4c59d19893c4b5e4701a
     offer_seats_description: 9d6c5062b2f56f01fa08cc094ec0833b
-    seats_available_other: 9c8f657f33007fcae972e3ec4581824b
+    seats_available_one: caec97a07dd26ce5d58cd0f9f7e8863d
+    seats_available_other: bdb3ba6773eaabd65a2aff1bac75dc03
     seats_nearly_full: 7503d4abf1b6b4ccf5825ed773cc2b96
     seats_half_full: 181ea52882ad228e8bcb2d438a8d13c3
     number_of_seats: 4eb4bda10e79f570717bfedc1d2ba229
