@@ -516,6 +516,12 @@ export default function Success(props: PageProps) {
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
+                        {isCancelled && bookingInfo?.cancelledBy && (
+                          <>
+                            <div className="font-medium">{t("cancelled_by")}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">{bookingInfo?.cancelledBy}</div>
+                          </>
+                        )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
                           {isRoundRobin ? bookingInfo.title : eventName}
