@@ -55,6 +55,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     id: true,
     title: true,
     description: true,
+    interfaceLanguage: true,
     eventName: true,
     slug: true,
     isInstantEvent: true,
@@ -512,6 +513,7 @@ export const getPublicEvent = async (
     instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
+    interfaceLanguage: event.interfaceLanguage,
   };
 };
 
