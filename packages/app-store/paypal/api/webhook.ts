@@ -1,5 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import getRawBody from "raw-body";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
@@ -9,12 +8,6 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export async function handlePaypalPaymentSuccess(
   payload: z.infer<typeof eventSchema>,
@@ -65,15 +58,10 @@ export async function handlePaypalPaymentSuccess(
   return await handlePaymentSuccess(payment.id, payment.bookingId);
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextRequest) {
   try {
-    if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
-    }
-
-    const bodyRaw = await getRawBody(req);
-    const headers = req.headers;
-    const bodyAsString = bodyRaw.toString();
+    const headers = Object.fromEntries(req.headers.entries());
+    const bodyAsString = await req.text();
 
     const parseHeaders = webhookHeadersSchema.safeParse(headers);
     if (!parseHeaders.success) {
@@ -94,15 +82,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(200).send({
-      message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
-    });
-    return;
+    return NextResponse.json(
+      {
+        message: err.message,
+        stack: IS_PRODUCTION ? undefined : err.stack,
+      },
+      { status: 200 }
+    );
   }
 
   // Return a response to acknowledge receipt of the event
-  res.status(200).end();
+  return NextResponse.json({}, { status: 200 });
 }
 
 const resourceSchema = z
