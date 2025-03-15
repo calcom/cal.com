@@ -11,10 +11,39 @@ import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInV
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
 import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
 import { router, mergeRouters } from "@calcom/trpc/server/trpc";
 
 import { createServerSideHelpers } from "@trpc/react-query/server";
+
+// Temporary workaround for OOM issue, import only procedures that are called on the server side
+const routerSlice = router({
+  viewer: mergeRouters(
+    meRouter,
+    router({
+      features: router({
+        map,
+      }),
+      public: router({
+        session,
+        event,
+      }),
+      teams: router({
+        hasTeamPlan,
+      }),
+      appRoutingForms: router({
+        forms,
+      }),
+      teamsAndUserProfilesQuery: router({
+        teamsAndUserProfilesQuery,
+      }),
+      eventTypes: router({
+        get,
+      }),
+    })
+  ),
+});
 
 /**
  * Initialize server-side rendering tRPC helpers.
@@ -23,41 +52,6 @@ import { createServerSideHelpers } from "@trpc/react-query/server";
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
 export async function ssrInit(context: GetServerSidePropsContext, options?: { noI18nPreload: boolean }) {
-  // const meRouter = router({
-  //   get: authedProcedure.input(TGetInputSchema).query(async ({ ctx, input }) => {
-  //     const handler = (await import("@calcom/trpc/server/routers/viewer/me/get.handler")).meHandler;
-
-  //     return handler({ ctx, input });
-  //   }),
-  // });
-
-  // Temporary workaround for OOM issue, import only procedures that are called on the server side
-  const routerSlice = router({
-    viewer: mergeRouters(
-      //meRouter,
-      router({
-        features: router({
-          map,
-        }),
-        public: router({
-          session,
-          event,
-        }),
-        teams: router({
-          hasTeamPlan,
-        }),
-        appRoutingForms: router({
-          forms,
-        }),
-        teamsAndUserProfilesQuery: router({
-          teamsAndUserProfilesQuery,
-        }),
-        eventTypes: router({
-          get,
-        }),
-      })
-    ),
-  });
   const ctx = await createContext(context);
   const locale = await getLocale(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
