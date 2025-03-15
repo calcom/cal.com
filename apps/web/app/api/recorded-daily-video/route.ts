@@ -19,6 +19,7 @@ import {
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
+import { generateSummary } from "@calcom/web/lib/daily-webhook/generateSummary";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
 import { getCalendarEvent } from "@calcom/web/lib/daily-webhook/getCalendarEvent";
@@ -170,7 +171,9 @@ export async function postHandler(request: NextRequest) {
         });
 
       const evt = await getCalendarEvent(booking);
-      await sendDailyVideoTranscriptEmails(evt, transcripts);
+      const summaries = await Promise.all(transcripts.map(async (transcript) => generateSummary(transcript)));
+
+      await sendDailyVideoTranscriptEmails(evt, transcripts, summaries);
 
       return NextResponse.json({ message: "Success" });
     } else if (body?.type === "batch-processor.job-finished") {
