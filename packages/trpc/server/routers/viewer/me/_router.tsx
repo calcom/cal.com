@@ -4,15 +4,8 @@ import { ZDeleteMeInputSchema } from "./deleteMe.schema";
 import { get } from "./procedures/get";
 
 export const meRouter = router({
-  get,
-  myStats: authedProcedure.query(async ({ ctx }) => {
-    const handler = (await import("./myStats.handler")).myStatsHandler;
-
-    return handler({ ctx });
-  }),
-  platformMe: authedProcedure.query(async ({ ctx }) => {
-    const handler = (await import("./platformMe.handler")).platformMeHandler;
-
+  bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./bookingUnconfirmedCount.handler")).bookingUnconfirmedCountHandler;
     return handler({ ctx });
   }),
   deleteMe: authedProcedure.input(ZDeleteMeInputSchema).mutation(async ({ ctx, input }) => {
@@ -25,8 +18,17 @@ export const meRouter = router({
 
     return handler({ ctx });
   }),
-  bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
-    const handler = (await import("./bookingUnconfirmedCount.handler")).bookingUnconfirmedCountHandler;
+  get,
+  getUserTopBanners: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./getUserTopBanners.handler")).getUserTopBannersHandler;
+    return handler({ ctx });
+  }),
+  myStats: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./myStats.handler")).myStatsHandler;
+    return handler({ ctx });
+  }),
+  platformMe: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./platformMe.handler")).platformMeHandler;
     return handler({ ctx });
   }),
 });
