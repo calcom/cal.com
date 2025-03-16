@@ -2,15 +2,12 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { importHandler, router } from "../../trpc";
 import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
-import { ZAppByIdInputSchema } from "./appById.schema";
-import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
-import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
@@ -32,9 +29,6 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 type AppsRouterHandlerCache = {
   connectedCalendars?: typeof import("./connectedCalendars.handler").connectedCalendarsHandler;
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
-  integrations?: typeof import("./integrations.handler").integrationsHandler;
-  appById?: typeof import("./appById.handler").appByIdHandler;
-  appCredentialsByType?: typeof import("./appCredentialsByType.handler").appCredentialsByTypeHandler;
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   updateProfile?: typeof import("./updateProfile.handler").updateProfileHandler;
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
@@ -93,49 +87,6 @@ export const loggedInViewerRouter = router({
       }
 
       return UNSTABLE_HANDLER_CACHE.setDestinationCalendar({ ctx, input });
-    }),
-
-  integrations: authedProcedure.input(ZIntegrationsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.integrations) {
-      UNSTABLE_HANDLER_CACHE.integrations = (await import("./integrations.handler")).integrationsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.integrations) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.integrations({ ctx, input });
-  }),
-
-  appById: authedProcedure.input(ZAppByIdInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.appById) {
-      UNSTABLE_HANDLER_CACHE.appById = (await import("./appById.handler")).appByIdHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.appById) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.appById({ ctx, input });
-  }),
-
-  appCredentialsByType: authedProcedure
-    .input(ZAppCredentialsByTypeInputSchema)
-    .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
-        UNSTABLE_HANDLER_CACHE.appCredentialsByType = (
-          await import("./appCredentialsByType.handler")
-        ).appCredentialsByTypeHandler;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.appCredentialsByType({ ctx, input });
     }),
 
   stripeCustomer: authedProcedure.query(async ({ ctx }) => {

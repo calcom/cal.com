@@ -33,7 +33,7 @@ export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?:
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["integrations"];
+  data: RouterOutputs["viewer"]["apps"]["integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
@@ -72,7 +72,7 @@ export const AppList = ({
   const ChildAppCard = ({
     item,
   }: {
-    item: RouterOutputs["viewer"]["integrations"]["items"][number] & {
+    item: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
       credentialOwner?: CredentialOwner;
     };
   }) => {

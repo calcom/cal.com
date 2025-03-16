@@ -1,6 +1,9 @@
 import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZAppByIdInputSchema } from "./appById.schema";
+import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
+import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 import { ZSaveKeysInputSchema } from "./saveKeys.schema";
@@ -9,6 +12,9 @@ import { ZToggleInputSchema } from "./toggle.schema";
 import { ZUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
 
 type AppsRouterHandlerCache = {
+  appById?: typeof import("./appById.handler").appByIdHandler;
+  appCredentialsByType?: typeof import("./appCredentialsByType.handler").appCredentialsByTypeHandler;
+  integrations?: typeof import("./integrations.handler").integrationsHandler;
   listLocal?: typeof import("./listLocal.handler").listLocalHandler;
   toggle?: typeof import("./toggle.handler").toggleHandler;
   saveKeys?: typeof import("./saveKeys.handler").saveKeysHandler;
@@ -22,6 +28,47 @@ type AppsRouterHandlerCache = {
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
 
 export const appsRouter = router({
+  appById: authedProcedure.input(ZAppByIdInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.appById) {
+      UNSTABLE_HANDLER_CACHE.appById = (await import("./appById.handler")).appByIdHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.appById) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.appById({ ctx, input });
+  }),
+
+  appCredentialsByType: authedProcedure
+    .input(ZAppCredentialsByTypeInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
+        UNSTABLE_HANDLER_CACHE.appCredentialsByType = (
+          await import("./appCredentialsByType.handler")
+        ).appCredentialsByTypeHandler;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.appCredentialsByType({ ctx, input });
+    }),
+  integrations: authedProcedure.input(ZIntegrationsInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.integrations) {
+      UNSTABLE_HANDLER_CACHE.integrations = (await import("./integrations.handler")).integrationsHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.integrations) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.integrations({ ctx, input });
+  }),
   listLocal: authedAdminProcedure.input(ZListLocalInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.listLocal) {
       UNSTABLE_HANDLER_CACHE.listLocal = await import("./listLocal.handler").then(

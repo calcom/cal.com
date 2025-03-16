@@ -38,7 +38,7 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const query = trpc.viewer.integrations.useQuery({
+  const query = trpc.viewer.apps.integrations.useQuery({
     variant,
     exclude,
     onlyInstalled: true,
@@ -91,7 +91,7 @@ const IntegrationsContainer = ({
   };
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.integrations.invalidate();
+    utils.viewer.apps.integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
@@ -218,7 +218,7 @@ export default function InstalledApps({ category }: PageProps) {
         onSuccess: () => {
           showToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.integrations.invalidate();
+          utils.viewer.apps.integrations.invalidate();
           utils.viewer.connectedCalendars.invalidate();
         },
         onError: () => {

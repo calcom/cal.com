@@ -53,13 +53,13 @@ const InstalledConferencingApps = ({
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
 
-  const [result] = trpc.viewer.integrations.useSuspenseQuery({
+  const [result] = trpc.viewer.apps.integrations.useSuspenseQuery({
     variant: "conferencing",
     onlyInstalled: true,
   });
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.integrations.invalidate();
+    utils.viewer.apps.integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
@@ -189,7 +189,7 @@ export const ConferencingAppsViewWebWrapper = ({
         onSuccess: () => {
           showToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.integrations.invalidate();
+          utils.viewer.apps.integrations.invalidate();
           utils.viewer.connectedCalendars.invalidate();
         },
         onError: () => {
