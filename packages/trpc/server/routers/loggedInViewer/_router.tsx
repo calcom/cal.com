@@ -30,7 +30,6 @@ const NAMESPACE = "loggedInViewer";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 type AppsRouterHandlerCache = {
-  shouldVerifyEmail?: typeof import("./shouldVerifyEmail.handler").shouldVerifyEmailHandler;
   connectedCalendars?: typeof import("./connectedCalendars.handler").connectedCalendarsHandler;
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
   integrations?: typeof import("./integrations.handler").integrationsHandler;
@@ -329,20 +328,6 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp({ ctx, input });
     }),
-  shouldVerifyEmail: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.shouldVerifyEmail) {
-      UNSTABLE_HANDLER_CACHE.shouldVerifyEmail = (
-        await import("./shouldVerifyEmail.handler")
-      ).shouldVerifyEmailHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.shouldVerifyEmail) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.shouldVerifyEmail({ ctx });
-  }),
   teamsAndUserProfilesQuery,
   connectAndJoin: authedProcedure.input(ZConnectAndJoinInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.connectAndJoin) {

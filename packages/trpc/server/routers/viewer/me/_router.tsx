@@ -31,4 +31,8 @@ export const meRouter = router({
     const handler = (await import("./platformMe.handler")).platformMeHandler;
     return handler({ ctx });
   }),
+  shouldVerifyEmail: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./shouldVerifyEmail.handler")).shouldVerifyEmailHandler;
+    return handler({ ctx });
+  }),
 });
