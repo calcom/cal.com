@@ -199,6 +199,7 @@ export async function getDynamicEventType(
       credentials: {
         select: credentialForCalendarServiceSelect,
       },
+      bookingLimits: true,
     },
   });
   const users = usersWithOldSelectedCalendars.map((user) => withSelectedCalendars(user));

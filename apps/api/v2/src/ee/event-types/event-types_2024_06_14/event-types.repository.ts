@@ -2,6 +2,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
+
 import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
