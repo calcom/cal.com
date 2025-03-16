@@ -10,7 +10,7 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
-import { get as EventTypeGet } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
+import { get as eventTypeGet } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
 import { get as meGet } from "@calcom/trpc/server/routers/viewer/me/procedures/get";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
 import { router } from "@calcom/trpc/server/trpc";
@@ -38,7 +38,7 @@ const routerSlice = router({
       teamsAndUserProfilesQuery,
     }),
     eventTypes: router({
-      get: EventTypeGet,
+      get: eventTypeGet,
     }),
   }),
 });
