@@ -11,15 +11,18 @@ import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInV
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
 import { get as eventTypeGet } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+import { get as meGet } from "@calcom/trpc/server/routers/viewer/me/procedures/get";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
-import { router, mergeRouters } from "@calcom/trpc/server/trpc";
+import { router } from "@calcom/trpc/server/trpc";
 
 import { createServerSideHelpers } from "@trpc/react-query/server";
 
 // Temporary workaround for OOM issue, import only procedures that are called on the server side
 const routerSlice = router({
-  viewer: mergeRouters(meRouter, {
+  viewer: router({
+    me: router({
+      get: meGet,
+    }),
     features: router({
       map,
     }),
