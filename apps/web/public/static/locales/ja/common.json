@@ -1118,6 +1118,7 @@
   "duplicate": "複製",
   "offer_seats": "座席を提供",
   "offer_seats_description": "予約可能な座席を設定します。これにより、ゲストおよびオプトイン予約は自動的に無効化されます。",
+  "seats_available_one": "空席あり",
   "seats_available_other": "空席あり",
   "seats_nearly_full": "座席はほとんど満員です",
   "seats_half_full": "座席がすばやく埋まりつつあります",
