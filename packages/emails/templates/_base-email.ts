@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { serverConfig } from "@calcom/lib/serverConfig";
@@ -56,6 +57,11 @@ export default class BaseEmail {
     if (isSmsCalEmail(to)) {
       console.log(`Skipped Sending Email to faux email: ${to}`);
       return new Promise((r) => r(`Skipped Sending Email to faux email: ${to}`));
+    }
+
+    if (await checkIfEmailIsBlockedInWatchlistController(to)) {
+      console.log(`Skipped Sending Email to blacklisted email: ${to}`);
+      return new Promise((r) => r(`Skipped Sending Email to blacklisted email: ${to}`));
     }
 
     const sanitizedFrom = sanitizeDisplayName(from);
