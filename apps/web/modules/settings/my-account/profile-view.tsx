@@ -511,8 +511,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"];
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();

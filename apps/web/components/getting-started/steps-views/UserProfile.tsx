@@ -56,7 +56,7 @@ const UserProfile = () => {
         console.error(error);
       }
 
-      await utils.viewer.me.refetch();
+      await utils.viewer.me.get.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
       redirectUrl ? router.push(redirectUrl) : router.push("/");

@@ -33,7 +33,7 @@ type ChangePasswordSessionFormValues = {
 };
 
 interface PasswordViewProps {
-  user: RouterOutputs["viewer"]["me"];
+  user: RouterOutputs["viewer"]["me"]["get"];
 }
 
 const SkeletonLoader = () => {
@@ -72,12 +72,12 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       utils.viewer.me.invalidate();
     },
     onMutate: async () => {
-      await utils.viewer.me.cancel();
-      const previousValue = await utils.viewer.me.getData();
+      await utils.viewer.me.get.cancel();
+      const previousValue = await utils.viewer.me.get.getData();
       const previousMetadata = userMetadataSchema.safeParse(previousValue?.metadata);
 
       if (previousValue && sessionTimeout && previousMetadata.success) {
-        utils.viewer.me.setData(undefined, {
+        utils.viewer.me.get.setData(undefined, {
           ...previousValue,
           metadata: { ...previousMetadata?.data, sessionTimeout: sessionTimeout },
         });
@@ -86,7 +86,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     },
     onError: (error, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
+        utils.viewer.me.get.setData(undefined, context.previousValue);
       }
       showToast(`${t("session_timeout_change_error")}, ${error.message}`, "error");
     },

@@ -13,9 +13,7 @@ export const meRouter = router({
     return handler({ ctx, input });
   }),
   deleteMeWithoutPassword: authedProcedure.mutation(async ({ ctx }) => {
-    const handler = (await import("./deleteMeWithoutPassword.handler")).deleteMeWithoutPasswordHandler
-      .deleteMeWithoutPassword;
-
+    const handler = (await import("./deleteMeWithoutPassword.handler")).deleteMeWithoutPasswordHandler;
     return handler({ ctx });
   }),
   get,

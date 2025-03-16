@@ -85,7 +85,7 @@ const AppearanceView = ({
   user,
   hasPaidPlan,
 }: {
-  user: RouterOutputs["viewer"]["me"];
+  user: RouterOutputs["viewer"]["me"]["get"];
   hasPaidPlan: boolean;
 }) => {
   const { t } = useLocale();

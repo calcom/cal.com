@@ -20,8 +20,8 @@ import { createServerSideHelpers } from "@trpc/react-query/server";
 // Temporary workaround for OOM issue, import only procedures that are called on the server side
 const routerSlice = router({
   viewer: mergeRouters(
-    meRouter,
     router({
+      me: meRouter,
       features: router({
         map,
       }),
@@ -78,7 +78,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
     // Provides a better UX to the users who have already upgraded.
     ssr.viewer.teams.hasTeamPlan.prefetch(),
     ssr.viewer.public.session.prefetch(),
-    ssr.viewer.me.prefetch(),
+    ssr.viewer.me.get.prefetch(),
   ]);
 
   return ssr;

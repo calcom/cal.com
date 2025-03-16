@@ -66,7 +66,7 @@ const SkeletonLoader = () => {
 
 interface GeneralViewProps {
   localeProp: string;
-  user: RouterOutputs["viewer"]["me"];
+  user: RouterOutputs["viewer"]["me"]["get"];
   travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
   revalidatePage: GeneralQueryViewProps["revalidatePage"];
 }
