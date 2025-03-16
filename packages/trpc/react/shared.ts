@@ -14,6 +14,7 @@ export const ENDPOINTS = [
   "eventTypes",
   "features",
   "highPerf",
+  "i18n",
   "insights",
   "me",
   "payments",

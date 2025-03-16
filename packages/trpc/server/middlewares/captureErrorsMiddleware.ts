@@ -9,8 +9,8 @@ const captureErrorsMiddleware = middleware(async ({ next }) => {
     if (!cause) {
       return result;
     }
-    const { captureException } = await import("@sentry/nextjs");
-    captureException(cause);
+    //const { captureException } = await import("@sentry/nextjs");
+    //captureException(cause);
     throw redactError(cause);
   }
   return result;
