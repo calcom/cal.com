@@ -14,6 +14,7 @@ test.describe("Forgot password", async () => {
 
     // Got to reset password flow
     await page.goto("/auth/forgot-password");
+    await page.waitForSelector("text=Forgot Password?");
 
     await page.fill('input[name="email"]', `${user.username}@example.com`);
     await page.press('input[name="email"]', "Enter");
