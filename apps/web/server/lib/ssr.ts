@@ -13,7 +13,7 @@ import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/ses
 import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
-import { router, mergeRouters } from "@calcom/trpc/server/trpc";
+import { router } from "@calcom/trpc/server/trpc";
 
 import { createServerSideHelpers } from "@trpc/react-query/server";
 
