@@ -19,7 +19,6 @@ import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
-import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
 
 const NAMESPACE = "loggedInViewer";
@@ -39,8 +38,6 @@ type AppsRouterHandlerCache = {
   deleteCredential?: typeof import("./deleteCredential.handler").deleteCredentialHandler;
   getCalVideoRecordings?: typeof import("./getCalVideoRecordings.handler").getCalVideoRecordingsHandler;
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
-  getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
-  updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   outOfOfficeCreateOrUpdate?: typeof import("./outOfOfficeCreateOrUpdate.handler").outOfOfficeCreateOrUpdate;
@@ -246,38 +243,6 @@ export const loggedInViewerRouter = router({
       }
 
       return UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings({ ctx, input });
-    }),
-
-  getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
-      UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp = (
-        await import("./getUsersDefaultConferencingApp.handler")
-      ).getUsersDefaultConferencingAppHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp({ ctx });
-  }),
-
-  updateUserDefaultConferencingApp: authedProcedure
-    .input(ZUpdateUserDefaultConferencingAppInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp) {
-        UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp = (
-          await import("./updateUserDefaultConferencingApp.handler")
-        ).updateUserDefaultConferencingAppHandler;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp({ ctx, input });
     }),
   teamsAndUserProfilesQuery,
   connectAndJoin: authedProcedure.input(ZConnectAndJoinInputSchema).mutation(async ({ ctx, input }) => {

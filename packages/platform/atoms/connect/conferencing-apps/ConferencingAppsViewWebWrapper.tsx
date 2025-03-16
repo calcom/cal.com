@@ -44,9 +44,9 @@ const InstalledConferencingApps = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
 
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
@@ -63,7 +63,7 @@ const InstalledConferencingApps = ({
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const handleUpdateUserDefaultConferencingApp = ({
@@ -77,7 +77,7 @@ const InstalledConferencingApps = ({
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           onSuccessCallback();
         },
         onError: (error) => {
@@ -95,7 +95,7 @@ const InstalledConferencingApps = ({
       },
       {
         onSuccess: () => {
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           callback();
         },
       }

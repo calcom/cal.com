@@ -36,7 +36,7 @@ interface AppListProps {
   data: RouterOutputs["viewer"]["apps"]["integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
-  defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
+  defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;

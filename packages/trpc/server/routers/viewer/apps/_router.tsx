@@ -10,10 +10,12 @@ import { ZSaveKeysInputSchema } from "./saveKeys.schema";
 import { ZSetDefaultConferencingAppSchema } from "./setDefaultConferencingApp.schema";
 import { ZToggleInputSchema } from "./toggle.schema";
 import { ZUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
+import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 
 type AppsRouterHandlerCache = {
   appById?: typeof import("./appById.handler").appByIdHandler;
   appCredentialsByType?: typeof import("./appCredentialsByType.handler").appCredentialsByTypeHandler;
+  getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   integrations?: typeof import("./integrations.handler").integrationsHandler;
   listLocal?: typeof import("./listLocal.handler").listLocalHandler;
   toggle?: typeof import("./toggle.handler").toggleHandler;
@@ -23,6 +25,7 @@ type AppsRouterHandlerCache = {
   queryForDependencies?: typeof import("./queryForDependencies.handler").queryForDependenciesHandler;
   checkGlobalKeys?: typeof import("./checkGlobalKeys.handler").checkForGlobalKeysHandler;
   setDefaultConferencingApp?: typeof import("./setDefaultConferencingApp.handler").setDefaultConferencingAppHandler;
+  updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -57,6 +60,20 @@ export const appsRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.appCredentialsByType({ ctx, input });
     }),
+  getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
+      UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp = (
+        await import("./getUsersDefaultConferencingApp.handler")
+      ).getUsersDefaultConferencingAppHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp({ ctx });
+  }),
   integrations: authedProcedure.input(ZIntegrationsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.integrations) {
       UNSTABLE_HANDLER_CACHE.integrations = (await import("./integrations.handler")).integrationsHandler;
@@ -211,4 +228,20 @@ export const appsRouter = router({
       input,
     });
   }),
+  updateUserDefaultConferencingApp: authedProcedure
+    .input(ZUpdateUserDefaultConferencingAppInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp) {
+        UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp = (
+          await import("./updateUserDefaultConferencingApp.handler")
+        ).updateUserDefaultConferencingAppHandler;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp({ ctx, input });
+    }),
 });
