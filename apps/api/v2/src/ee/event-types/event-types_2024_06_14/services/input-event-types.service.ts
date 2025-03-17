@@ -37,8 +37,6 @@ import {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
-
 interface ValidationContext {
   eventTypeId?: number;
   seatsPerTimeSlot?: number | null;
@@ -51,7 +49,6 @@ interface ValidationContext {
 export class InputEventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly calendarsService: CalendarsService
   ) {}
 
@@ -128,12 +125,11 @@ export class InputEventTypesService_2024_06_14 {
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
-    const hasMultipleLocations = (locations || defaultLocations).length > 1;
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: this.transformInputLocations(locations || defaultLocations),
-      bookingFields: this.transformInputBookingFields(bookingFields, hasMultipleLocations),
+      bookingFields: this.transformInputBookingFields(bookingFields),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -182,15 +178,12 @@ export class InputEventTypesService_2024_06_14 {
       : {};
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
-    const hasMultipleLocations = !!(locations && locations?.length > 1);
 
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: bookingFields
-        ? this.transformInputBookingFields(bookingFields, hasMultipleLocations)
-        : undefined,
+      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -220,10 +213,7 @@ export class InputEventTypesService_2024_06_14 {
     return transformLocationsApiToInternal(inputLocations);
   }
 
-  transformInputBookingFields(
-    inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
-    hasMultipleLocations: boolean
-  ) {
+  transformInputBookingFields(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]) {
     const internalFields: (SystemField | CustomField)[] = inputBookingFields
       ? transformBookingFieldsApiToInternal(inputBookingFields)
       : [];
