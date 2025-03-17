@@ -16496,6 +16496,19 @@
           "type"
         ]
       },
+      "BookingInputOrganizersDefaultAppLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only available for team event types and the only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer."
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "ValidateBookingLocation_2024_08_13": {
         "type": "object",
         "properties": {}
@@ -16645,6 +16658,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -16735,6 +16751,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -16831,6 +16850,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
