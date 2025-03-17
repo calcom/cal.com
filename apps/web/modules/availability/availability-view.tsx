@@ -27,7 +27,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
 
-  const meQuery = trpc.viewer.me.useQuery();
+  const meQuery = trpc.viewer.me.get.useQuery();
 
   const router = useRouter();
 

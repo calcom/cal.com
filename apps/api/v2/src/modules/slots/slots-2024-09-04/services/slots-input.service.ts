@@ -2,7 +2,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
@@ -88,6 +88,11 @@ export class SlotsInputService_2024_09_04 {
       dateTime = dateTime.set({ hour: 23, minute: 59, second: 59 });
     }
 
-    return dateTime.toISO();
+    const ISOEndTime = dateTime.toISO();
+    if (ISOEndTime === null) {
+      throw new BadRequestException("Invalid end date");
+    }
+
+    return ISOEndTime;
   }
 }

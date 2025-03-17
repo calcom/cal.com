@@ -26,7 +26,5 @@ async function handler(req: NextRequest) {
   return NextResponse.json(result, { status: statusCode });
 }
 
-const deleteHandler = defaultResponderForAppDir(handler);
-const postHandler = defaultResponderForAppDir(handler);
-
-export { deleteHandler as DELETE, postHandler as POST };
+export const DELETE = defaultResponderForAppDir(handler);
+export const POST = defaultResponderForAppDir(handler);

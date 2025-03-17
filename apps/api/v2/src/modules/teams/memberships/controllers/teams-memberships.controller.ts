@@ -31,7 +31,7 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({

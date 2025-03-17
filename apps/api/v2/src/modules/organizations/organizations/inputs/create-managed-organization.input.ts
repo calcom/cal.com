@@ -1,7 +1,8 @@
 import { RefreshApiKeyInput } from "@/modules/api-keys/inputs/refresh-api-key.input";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 import { IsObject, IsOptional, IsString, Length } from "class-validator";
+
+import { Metadata, METADATA_DOCS, ValidateMetadata } from "@calcom/platform-types";
 
 export class CreateOrganizationInput extends RefreshApiKeyInput {
   @IsString()
@@ -9,8 +10,13 @@ export class CreateOrganizationInput extends RefreshApiKeyInput {
   @ApiProperty({ description: "Name of the organization", example: "CalTeam" })
   readonly name!: string;
 
-  @IsOptional()
+  @ApiPropertyOptional({
+    type: Object,
+    description: METADATA_DOCS,
+    example: { key: "value" },
+  })
   @IsObject()
-  @ApiPropertyOptional({ type: Object })
-  readonly metadata?: Record<string, unknown>;
+  @IsOptional()
+  @ValidateMetadata()
+  metadata?: Metadata;
 }

@@ -8,7 +8,7 @@ import { Button } from "@calcom/ui";
 
 export const TeamsCTA = () => {
   const { t } = useLocale();
-  const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   return !user.organizationId || user.organization.isOrgAdmin ? (
     <Button
       data-testid="new-team-btn"

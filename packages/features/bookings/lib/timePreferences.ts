@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
-import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import { TimeFormat, detectBrowserTimeFormat, setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 
 type TimePreferencesStore = {

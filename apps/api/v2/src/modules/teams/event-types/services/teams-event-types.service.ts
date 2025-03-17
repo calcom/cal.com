@@ -1,5 +1,9 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import {
+  TransformedCreateTeamEventTypeInput,
+  TransformedUpdateTeamEventTypeInput,
+} from "@/modules/organizations/event-types/services/input.service";
 import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
@@ -7,8 +11,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
-import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
+import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -25,7 +28,7 @@ export class TeamsEventTypesService {
   async createTeamEventType(
     user: UserWithProfile,
     teamId: number,
-    body: InputTeamEventTransformed_2024_06_14
+    body: TransformedCreateTeamEventTypeInput
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     const eventTypeUser = await this.getUserToCreateTeamEvent(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,6 +65,7 @@ export class TeamsEventTypesService {
       organization: { id: null, isOrgAdmin: false, metadata: {}, requestedSlug: null },
       profile: { id: profileId || null },
       metadata: user.metadata,
+      email: user.email,
     };
   }
 
@@ -100,14 +104,16 @@ export class TeamsEventTypesService {
   async updateTeamEventType(
     eventTypeId: number,
     teamId: number,
-    body: InputTeamEventTransformed_2024_06_14,
+    body: TransformedUpdateTeamEventTypeInput,
     user: UserWithProfile
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     await this.validateEventTypeExists(teamId, eventTypeId);
     const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
-
     await updateEventType({
-      input: { id: eventTypeId, ...body },
+      input: {
+        id: eventTypeId,
+        ...body,
+      },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

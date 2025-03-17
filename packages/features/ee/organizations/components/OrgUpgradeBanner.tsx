@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import { showToast, TopBanner } from "@calcom/ui";
 
 export type OrgUpgradeBannerProps = {
-  data: RouterOutputs["viewer"]["getUserTopBanners"]["orgUpgradeBanner"];
+  data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["orgUpgradeBanner"];
 };
 
 export function OrgUpgradeBanner({ data }: OrgUpgradeBannerProps) {

@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import {
   rawDataInputSchema,
   routingFormResponsesInputSchema,
+  routingFormStatsInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -1574,7 +1575,7 @@ export const insightsRouter = router({
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
-    .input(routingFormResponsesInputSchema)
+    .input(routingFormStatsInputSchema)
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getRoutingFormStats({
         teamId: input.teamId,
@@ -1583,10 +1584,8 @@ export const insightsRouter = router({
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
-        cursor: input.cursor,
         userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
-        limit: input.limit,
         columnFilters: input.columnFilters,
         sorting: input.sorting,
       });
@@ -1601,10 +1600,10 @@ export const insightsRouter = router({
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
-        cursor: input.cursor,
         userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
         limit: input.limit,
+        offset: input.offset,
         columnFilters: input.columnFilters,
         sorting: input.sorting,
       });
@@ -1619,10 +1618,10 @@ export const insightsRouter = router({
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
-        cursor: input.cursor,
         userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
         limit: input.limit ?? BATCH_SIZE,
+        offset: input.offset,
         columnFilters: input.columnFilters,
         sorting: input.sorting,
       });

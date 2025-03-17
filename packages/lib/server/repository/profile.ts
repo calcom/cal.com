@@ -6,11 +6,11 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
-import { UserRepository } from "./user";
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
   name: true,
@@ -64,6 +64,33 @@ export enum LookupTarget {
 export class ProfileRepository {
   static generateProfileUid() {
     return uuidv4();
+  }
+
+  // This is a minimal replication of UserRepository.findById only selecting the data we need here to prevent circular dependency
+  private static async findUserByid({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatarUrl: true,
+        startTime: true,
+        endTime: true,
+        bufferTime: true,
+        metadata: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return {
+      ...user,
+      metadata: userMetadata.parse(user.metadata),
+    };
   }
 
   private static getInheritedDataFromUser({
@@ -321,7 +348,7 @@ export class ProfileRepository {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     log.debug("findByUpId", safeStringify({ upId, lookupTarget }));
     if (lookupTarget.type === LookupTarget.User) {
-      const user = await UserRepository.findById({ id: lookupTarget.id });
+      const user = await this.findUserByid({ id: lookupTarget.id });
       if (!user) {
         return null;
       }

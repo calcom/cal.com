@@ -7,6 +7,8 @@ import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -120,13 +122,25 @@ export class InternalTeamBilling implements TeamBilling {
   async updateQuantity() {
     try {
       await this.getOrgIfNeeded();
+      const { id: teamId, metadata, isOrganization } = this.team;
+
       const { url } = await this.checkIfTeamPaymentRequired();
+      const organizationOnboarding = await OrganizationOnboardingRepository.findByOrganizationId(
+        this.team.id
+      );
+      log.debug("updateQuantity", safeStringify({ url, team: this.team }));
+
       /**
        * If there's no pending checkout URL it means that this team has not been paid.
        * We cannot update the subscription yet, this will be handled on publish/checkout.
+       *
+       * An organization can only be created if it is paid for and updateQuantity is called only when we have an organization.
+       * For some old organizations, it is possible that they aren't paid for yet, but then they wouldn't have been published as well(i.e. slug would be null and are unusable)
+       * So, we can safely assume go forward for organizations.
        **/
-      if (!url) return;
-      const { id: teamId, metadata, isOrganization } = this.team;
+      if (!url && !isOrganization) return;
+
+      // TODO: To be read from organizationOnboarding for Organizations later, but considering the fact that certain old organization won't have onboarding
       const { subscriptionId, subscriptionItemId, orgSeats } = metadata;
       // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
       // We can't go below this quantity for subscription
@@ -161,10 +175,10 @@ export class InternalTeamBilling implements TeamBilling {
       paymentRequired: false,
     };
   }
-  /** Used to check if the current team plan is active */
-  async checkIfTeamHasActivePlan() {
+  /** Returns the subscription status (active, past_due, trialing, ...) */
+  async getSubscriptionStatus() {
     const { subscriptionId } = this.team.metadata;
-    if (!subscriptionId) return false;
-    return await billing.checkIfTeamHasActivePlan(subscriptionId);
+    if (!subscriptionId) return null;
+    return await billing.getSubscriptionStatus(subscriptionId);
   }
 }

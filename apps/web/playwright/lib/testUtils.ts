@@ -429,7 +429,7 @@ export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: strin
 }
 
 /**
- * Within this function's callback if a non-org domain is opened, it is considered an org domain identfied from `orgSlug`
+ * Within this function's callback if a non-org domain is opened, it is considered an org domain identified from `orgSlug`
  */
 export async function doOnOrgDomain(
   { orgSlug, page }: { orgSlug: string | null; page: Page },

@@ -120,6 +120,8 @@ Below is a list of props that can be passed to the booker atom.
 | view         | No       | Specifies the layout of the booker atom into column, week, or month view                                             |
 | metadata        | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`                                                |
 | bannerUrl          | No       | Adds custom banner to the booker atom                                             |
+| onBookerStateChange     | No       | Callback function that is triggered when the state of the booker atom changes.                             |
+| allowUpdatingUrlParams     | No       | Boolean indicating if the URL parameters should be updated, defaults to false.                             |
 
 Along with the props, booker atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
 <p></p>

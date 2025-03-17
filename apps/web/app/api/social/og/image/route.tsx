@@ -39,7 +39,7 @@ const genericSchema = z.object({
 });
 
 async function handler(req: NextRequest) {
-  const { searchParams } = new URL(`${req.url}`);
+  const { searchParams } = req.nextUrl;
   const imageType = searchParams.get("type");
 
   const [calFontData, interFontData, interFontMediumData] = await Promise.all([

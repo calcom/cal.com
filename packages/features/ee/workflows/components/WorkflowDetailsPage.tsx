@@ -18,7 +18,7 @@ import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
-type User = RouterOutputs["viewer"]["me"];
+type User = RouterOutputs["viewer"]["me"]["get"];
 
 interface Props {
   form: UseFormReturn<FormValues>;

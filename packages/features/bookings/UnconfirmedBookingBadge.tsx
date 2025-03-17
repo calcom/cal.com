@@ -6,7 +6,7 @@ import { Badge } from "@calcom/ui";
 
 export default function UnconfirmedBookingBadge() {
   const { t } = useLocale();
-  const { data: unconfirmedBookingCount } = trpc.viewer.bookingUnconfirmedCount.useQuery();
+  const { data: unconfirmedBookingCount } = trpc.viewer.me.bookingUnconfirmedCount.useQuery();
   if (!unconfirmedBookingCount) return null;
   return (
     <Link href="/bookings/unconfirmed">

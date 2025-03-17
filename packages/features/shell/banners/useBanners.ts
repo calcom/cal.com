@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import { type AllBannerProps } from "./LayoutBanner";
 
 const _useBanners = () => {
-  const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: getUserTopBanners, isPending } = trpc.viewer.me.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
   if (isPending || !userSession) return null;

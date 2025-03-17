@@ -12,10 +12,13 @@ import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-
 import dayjs from "@calcom/dayjs";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
-import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { RoutingFormResponsesInput } from "@calcom/features/insights/server/raw-data.schema";
+import type { TypedColumnFilter } from "@calcom/features/data-table/lib/types";
+import type {
+  RoutingFormResponsesInput,
+  RoutingFormStatsInput,
+} from "@calcom/features/insights/server/raw-data.schema";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import type { BookingStatus } from "@calcom/prisma/enums";
 
 import { type ResponseValue, ZResponse } from "../lib/types";
 
@@ -27,17 +30,8 @@ type RoutingFormInsightsTeamFilter = {
   routingFormId?: string | null;
 };
 
-type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
-  startDate?: string;
-  endDate?: string;
-  memberUserId?: number | null;
-  searchQuery?: string | null;
-  bookingStatus?: BookingStatus | "NO_BOOKING" | null;
-  fieldFilter?: {
-    fieldId: string;
-    optionId: string;
-  } | null;
-  columnFilters: ColumnFilter[];
+type RoutingFormStatsFilter = RoutingFormStatsInput & {
+  organizationId: number | null;
 };
 
 type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
@@ -114,13 +108,11 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-    cursor,
-    limit,
     userId,
     memberUserIds,
     columnFilters,
     sorting,
-  }: RoutingFormResponsesFilter) {
+  }: RoutingFormStatsFilter) {
     const whereClause = await this.getWhereClauseForRoutingFormResponses({
       teamId,
       startDate,
@@ -128,8 +120,6 @@ class RoutingEventsInsights {
       isAll,
       organizationId,
       routingFormId,
-      cursor,
-      limit,
       userId,
       memberUserIds,
       columnFilters,
@@ -288,8 +278,8 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-    cursor,
     limit,
+    offset,
     userId,
     memberUserIds,
     columnFilters,
@@ -302,8 +292,6 @@ class RoutingEventsInsights {
       isAll,
       organizationId,
       routingFormId,
-      cursor,
-      limit,
       userId,
       memberUserIds,
       columnFilters,
@@ -333,19 +321,22 @@ class RoutingEventsInsights {
         bookingStartTime: true,
         bookingEndTime: true,
         createdAt: true,
+        utm_source: true,
+        utm_medium: true,
+        utm_campaign: true,
+        utm_term: true,
+        utm_content: true,
       },
       where: whereClause,
       orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
-      take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
-      cursor: cursor ? { id: cursor } : undefined,
+      take: limit,
+      skip: offset,
     });
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    const hasNextPage = responses.length > (limit ?? 0);
-    const responsesToReturn = responses.slice(0, limit ? limit : responses.length);
     type Response = Omit<
-      (typeof responsesToReturn)[number],
+      (typeof responses)[number],
       "response" | "responseLowercase" | "bookingAttendees"
     > & {
       response: Record<string, ResponseValue>;
@@ -355,8 +346,7 @@ class RoutingEventsInsights {
 
     return {
       total: totalResponses,
-      data: responsesToReturn as Response[],
-      nextCursor: hasNextPage ? responsesToReturn[responsesToReturn.length - 1].id : undefined,
+      data: responses as Response[],
     };
   }
 
@@ -367,8 +357,8 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
     routingFormId,
-    cursor,
     limit,
+    offset,
     userId,
     memberUserIds,
     columnFilters,
@@ -388,10 +378,10 @@ class RoutingEventsInsights {
       isAll,
       organizationId,
       routingFormId,
-      cursor,
       userId,
       memberUserIds,
       limit,
+      offset,
       columnFilters,
       sorting,
     });
@@ -424,6 +414,8 @@ class RoutingEventsInsights {
       }, {} as Record<string, string | undefined>);
 
       return {
+        "Booking UID": item.bookingUid,
+        "Booking Link": item.bookingUid ? `${WEBAPP_URL}/booking/${item.bookingUid}` : "",
         "Response ID": item.id,
         "Form Name": item.formName,
         "Submitted At": item.createdAt.toISOString(),
@@ -439,12 +431,17 @@ class RoutingEventsInsights {
         "Routed To Name": item.bookingUserName || "",
         "Routed To Email": item.bookingUserEmail || "",
         ...mapKeys(fields, (_, key) => startCase(key)),
+        utm_source: item.utm_source || "",
+        utm_medium: item.utm_medium || "",
+        utm_campaign: item.utm_campaign || "",
+        utm_term: item.utm_term || "",
+        utm_content: item.utm_content || "",
       };
     });
 
     return {
       data: dataWithFlatResponse,
-      nextCursor: data.nextCursor,
+      total: data.total,
     };
   }
 

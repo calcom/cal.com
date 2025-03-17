@@ -24,7 +24,7 @@ export default function TeamList(props: Props) {
   const utils = trpc.useUtils();
 
   const { t } = useLocale();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
 
   const [hideDropdown, setHideDropdown] = useState(false);
 

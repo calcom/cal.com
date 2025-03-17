@@ -5,7 +5,6 @@ vi.mock("@calcom/ui", async (originalImport) => {
   // Dynamic imports of Components are not supported in Vitest. So, we use the non-lazy version of the components
   return {
     ...original,
-    PhoneInput: original.PhoneInputNonLazy,
     AddressInput: original.AddressInputNonLazy,
   };
 });

@@ -12,7 +12,7 @@ test.describe.configure({ mode: "parallel" });
 
 // TODO: add more backup code tests, e.g. login + disabling 2fa with backup
 
-// a test to logout requires both a succesfull login as logout, to prevent
+// a test to logout requires both a successful login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
 test.describe("2FA Tests", async () => {
   test.afterEach(async ({ users }) => {

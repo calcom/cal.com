@@ -20,7 +20,7 @@ export const isFreshChatEnabled =
   nonEmptySchema.safeParse(host).success && nonEmptySchema.safeParse(token).success;
 
 export default function FreshChatScript() {
-  const { data } = trpc.viewer.me.useQuery();
+  const { data } = trpc.viewer.me.get.useQuery();
   return (
     <Script
       id="fresh-chat-sdk"

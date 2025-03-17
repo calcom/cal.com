@@ -89,7 +89,7 @@ const OnboardingPage = (props: PageProps) => {
   const params = useParamsWithFallback();
 
   const router = useRouter();
-  const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse({

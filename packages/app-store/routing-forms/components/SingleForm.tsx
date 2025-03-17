@@ -8,7 +8,6 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { IS_CALCOM } from "@calcom/lib/constants";
-import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -72,7 +71,6 @@ const Actions = ({
   };
 }) => {
   const { t } = useLocale();
-  const { data: typeformApp } = useApp("typeform");
 
   return (
     <div className="flex items-center">
@@ -135,19 +133,6 @@ const Actions = ({
           tooltip={t("delete")}
           tooltipSide="bottom"
         />
-        {typeformApp?.isInstalled ? (
-          <FormActionsDropdown>
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("copy_redirect_url")}
-            </FormAction>
-          </FormActionsDropdown>
-        ) : null}
       </ButtonGroup>
 
       <div className="flex md:hidden">
@@ -189,17 +174,6 @@ const Actions = ({
             StartIcon="code">
             {t("embed")}
           </FormAction>
-          {typeformApp ? (
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("Copy Typeform Redirect Url")}
-            </FormAction>
-          ) : null}
           <DropdownMenuSeparator className="hidden sm:block" />
           <FormAction
             action="_delete"

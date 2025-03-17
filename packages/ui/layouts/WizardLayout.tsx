@@ -8,7 +8,11 @@ import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, SkeletonText, StepCard, Steps } from "@calcom/ui";
+
+import { Button } from "../components/button/Button";
+import { StepCard } from "../components/card/StepCard";
+import { Steps } from "../components/form/step/Steps";
+import { SkeletonText } from "../components/skeleton/Skeleton";
 
 export function WizardLayout({
   children,

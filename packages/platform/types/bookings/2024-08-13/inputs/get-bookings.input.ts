@@ -157,6 +157,26 @@ export class GetBookingsInput_2024_08_13 {
   @ApiProperty({
     type: String,
     required: false,
+    description: "Filter bookings that have been created after this date string.",
+    example: "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+  })
+  afterCreatedAt?: string;
+
+  @IsOptional()
+  @IsISO8601({ strict: true }, { message: "toDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings that have been created before this date string.",
+    example: "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
+  })
+  beforeCreatedAt?: string;
+
+  @IsOptional()
+  @IsISO8601({ strict: true }, { message: "fromDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
     description: "Filter bookings that have been updated after this date string.",
     example: "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
   })

@@ -42,6 +42,11 @@ export interface DailyVideoCallData {
   url: string;
 }
 
+const isS3StorageEnabled =
+  process.env.CAL_VIDEO_BUCKET_NAME &&
+  process.env.CAL_VIDEO_BUCKET_REGION &&
+  process.env.CAL_VIDEO_ASSUME_ROLE_ARN;
+
 /** @deprecated use metadata on index file */
 export const FAKE_DAILY_CREDENTIAL: CredentialForCalendarService & { invalid: boolean } = {
   id: 0,
@@ -233,6 +238,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       },
     });
 
+    const enableRecording = scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined;
+    const isTranscriptionEnabled = !!hasTeamPlan;
+
     return {
       privacy: "public",
       properties: {
@@ -242,13 +250,32 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_chat: true,
         enable_pip_ui: true,
         exp: exp,
-        enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
-        enable_transcription_storage: !!hasTeamPlan,
-        ...(!!hasTeamPlan && {
+        enable_recording: enableRecording,
+        ...(!!enableRecording &&
+          isS3StorageEnabled && {
+            recordings_bucket: {
+              bucket_name: process.env.CAL_VIDEO_BUCKET_NAME,
+              bucket_region: process.env.CAL_VIDEO_BUCKET_REGION,
+              assume_role_arn: process.env.CAL_VIDEO_ASSUME_ROLE_ARN,
+              allow_api_access: true,
+              allow_streaming_from_bucket: true,
+            },
+          }),
+        enable_transcription_storage: isTranscriptionEnabled,
+        ...(isTranscriptionEnabled && {
           permissions: {
             canAdmin: ["transcription"],
           },
         }),
+        ...(isTranscriptionEnabled &&
+          isS3StorageEnabled && {
+            transcription_bucket: {
+              bucket_name: process.env.CAL_VIDEO_BUCKET_NAME,
+              bucket_region: process.env.CAL_VIDEO_BUCKET_REGION,
+              assume_role_arn: process.env.CAL_VIDEO_ASSUME_ROLE_ARN,
+              allow_api_access: true,
+            },
+          }),
       },
     };
   };
@@ -260,6 +287,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
     const isScalePlanTrue = scalePlan === "true";
 
+    const enableRecording = isScalePlanTrue ? "cloud" : undefined;
+
     const body = {
       privacy: "public",
       properties: {
@@ -269,14 +298,31 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_chat: true,
         enable_pip_ui: true,
         exp: exp,
-        enable_recording: isScalePlanTrue ? "cloud" : undefined,
+        enable_recording: enableRecording,
+        ...(!!enableRecording &&
+          isS3StorageEnabled && {
+            recordings_bucket: {
+              bucket_name: process.env.CAL_VIDEO_BUCKET_NAME,
+              bucket_region: process.env.CAL_VIDEO_BUCKET_REGION,
+              assume_role_arn: process.env.CAL_VIDEO_ASSUME_ROLE_ARN,
+              allow_api_access: true,
+              allow_streaming_from_bucket: true,
+            },
+          }),
         start_video_off: true,
         enable_transcription_storage: isScalePlanTrue,
-        ...(!!isScalePlanTrue && {
-          permissions: {
-            canAdmin: ["transcription"],
-          },
-        }),
+        ...(isScalePlanTrue &&
+          isS3StorageEnabled && {
+            permissions: {
+              canAdmin: ["transcription"],
+            },
+            transcription_bucket: {
+              bucket_name: process.env.CAL_VIDEO_BUCKET_NAME,
+              bucket_region: process.env.CAL_VIDEO_BUCKET_REGION,
+              assume_role_arn: process.env.CAL_VIDEO_ASSUME_ROLE_ARN,
+              allow_api_access: true,
+            },
+          }),
       },
     };
 
