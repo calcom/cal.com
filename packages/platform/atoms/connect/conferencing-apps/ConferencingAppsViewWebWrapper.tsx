@@ -44,26 +44,26 @@ const InstalledConferencingApps = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
 
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
 
-  const [result] = trpc.viewer.integrations.useSuspenseQuery({
+  const [result] = trpc.viewer.apps.integrations.useSuspenseQuery({
     variant: "conferencing",
     onlyInstalled: true,
   });
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.integrations.invalidate();
+    utils.viewer.apps.integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const handleUpdateUserDefaultConferencingApp = ({
@@ -77,7 +77,7 @@ const InstalledConferencingApps = ({
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           onSuccessCallback();
         },
         onError: (error) => {
@@ -95,7 +95,7 @@ const InstalledConferencingApps = ({
       },
       {
         onSuccess: () => {
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           callback();
         },
       }
@@ -189,7 +189,7 @@ export const ConferencingAppsViewWebWrapper = ({
         onSuccess: () => {
           showToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.integrations.invalidate();
+          utils.viewer.apps.integrations.invalidate();
           utils.viewer.connectedCalendars.invalidate();
         },
         onError: () => {

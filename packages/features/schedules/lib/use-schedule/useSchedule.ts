@@ -109,7 +109,7 @@ export const useSchedule = ({
   if (isTeamEvent) {
     schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
   } else {
-    schedule = trpc.viewer.public.slots.getSchedule.useQuery(input, options);
+    schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
   }
   return {
     ...schedule,
@@ -117,7 +117,7 @@ export const useSchedule = ({
      * Invalidates the request and resends it regardless of any other configuration including staleTime
      */
     invalidate: () => {
-      return utils.viewer.public.slots.getSchedule.invalidate(input);
+      return utils.viewer.slots.getSchedule.invalidate(input);
     },
   };
 };

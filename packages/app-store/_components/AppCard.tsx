@@ -24,7 +24,9 @@ export default function AppCard({
   hideSettingsIcon = false,
   hideAppCardOptions = false,
 }: {
-  app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
+  app: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+    credentialOwner?: CredentialOwner;
+  };
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
