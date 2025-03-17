@@ -366,11 +366,15 @@ describe("Event types Endpoints", () => {
         ],
       };
 
-      return request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(400);
+
+      expect(response.body.error.message).toBe(
+        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+      );
     });
 
     it("should create an event type", async () => {

@@ -208,7 +208,13 @@ describe("Organizations Event Types Endpoints", () => {
         ],
       };
 
-      return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(400);
+      const response = await request(app.getHttpServer())
+        .post(`/v2/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(400);
+      expect(response.body.error.message).toBe(
+        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+      );
     });
 
     it("should create a collective team event-type", async () => {
