@@ -536,7 +536,7 @@ describe("SalesforceCRMService", () => {
           });
 
           const result = await service.createContacts([{ name: "New Contact", email: "test@example.com" }]);
-          expect(result).toEqual([{ id: "newContactId", name: "New Contact", email: "test@example.com" }]);
+          expect(result).toEqual([{ id: "newContactId", email: "test@example.com" }]);
         });
         it("attendee has no account", async () => {
           mockAppOptions({
@@ -551,13 +551,14 @@ describe("SalesforceCRMService", () => {
           mockConnection.sobject.mockReturnValue({
             create: vi.fn().mockResolvedValue({
               success: true,
+              id: "newLeadId",
               name: "New Lead",
               email: "test@newlead.com",
             }),
           });
 
           const result = await service.createContacts([{ name: "New Lead", email: "test@newlead.com" }]);
-          expect(result).toEqual([{ name: "New Lead", email: "test@newlead.com" }]);
+          expect(result).toEqual([{ id: "newLeadId", email: "test@newlead.com" }]);
         });
       });
     });
