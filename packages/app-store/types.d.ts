@@ -22,7 +22,7 @@ export type CredentialOwner = {
   readOnly?: boolean;
 };
 
-export type EventTypeAppCardApp = RouterOutputs["viewer"]["integrations"]["items"][number] & {
+export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
   credentialIds?: number[];
 };
