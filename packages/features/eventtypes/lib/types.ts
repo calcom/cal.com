@@ -70,6 +70,7 @@ export type PrivateLinkWithOptions = {
   link: string;
   expiresAt?: Date | null;
   maxUsageCount?: number | null;
+  usageCount?: number;
 };
 
 export type FormValues = {
