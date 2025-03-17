@@ -167,6 +167,50 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(404);
     });
 
+    it("should not be able to create phone-only event type", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Phone coding consultation",
+        slug: "phone-coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+          {
+            type: "organizersDefaultApp",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teamMember1.id,
+          },
+          {
+            userId: teamMember2.id,
+          },
+        ],
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+            hidden: true,
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+            hidden: false,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(400);
+    });
+
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: `teams-event-types-collective-${randomString()}`,
