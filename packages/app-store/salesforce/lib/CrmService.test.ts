@@ -550,13 +550,13 @@ describe("SalesforceCRMService", () => {
           mockConnection.sobject.mockReturnValue({
             create: vi.fn().mockResolvedValue({
               success: true,
-              id: "001",
+              name: "New Lead",
               email: "test@newlead.com",
             }),
           });
 
           const result = await service.createContacts([{ email: "test@newlead.com" }]);
-          expect(result).toEqual([{ id: "001", email: "test@newlead.com" }]);
+          expect(result).toEqual([{ name: "New Lead", email: "test@newlead.com" }]);
         });
       });
     });
