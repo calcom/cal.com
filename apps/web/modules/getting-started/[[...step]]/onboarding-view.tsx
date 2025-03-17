@@ -79,7 +79,14 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
 const stepRouteSchema = z.object({
   step: z
     .array(
-      z.enum(["user-settings", "setup-availability", "user-profile", "connected-calendar", "connected-video"])
+      z.enum([
+        "user-settings",
+        "setup-availability",
+        "user-profile",
+        "connected-calendar",
+        "connected-video",
+        "add-certificate",
+      ])
     )
     .default([INITIAL_STEP]),
   from: z.string().optional(),
@@ -173,7 +180,7 @@ const OnboardingPage = (props: PageProps) => {
                 {currentStep === "setup-availability" && (
                   <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
                 )}
-                {currentStep === "user-profile" && <UserProfile nextStep={() => goToIndex(5)} />}
+                {currentStep === "user-profile" && <UserProfile nextStep={goToNextStep} />}
                 {(currentStep as "add-certificate") === "add-certificate" && <AddCertificate />}
               </Suspense>
             </StepCard>

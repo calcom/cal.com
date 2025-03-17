@@ -1,4 +1,3 @@
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -27,8 +26,6 @@ const UserProfile = ({ nextStep }: UserProfileProps) => {
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
-  const utils = trpc.useUtils();
-  const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
