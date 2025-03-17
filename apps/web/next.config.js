@@ -177,13 +177,14 @@ const orgDomainMatcherConfig = {
 const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   serverExternalPackages: [
-    "deasync", "http-cookie-agent", // Dependencies of @ewsjs/xhr
-    "rest-facade", "superagent-proxy" // Dependencies of @tryvital/vital-node
+    "deasync",
+    "http-cookie-agent", // Dependencies of @ewsjs/xhr
+    "rest-facade",
+    "superagent-proxy", // Dependencies of @tryvital/vital-node
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
-    turbo: {},
   },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
