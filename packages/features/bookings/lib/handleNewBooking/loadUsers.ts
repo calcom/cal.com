@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getRoutedUsersWithContactOwnerAndFixedUsers,
   findMatchingHostsWithEventSegment,
@@ -44,7 +44,12 @@ export const loadUsers = async ({
   contactOwnerEmail: string | null;
 }) => {
   try {
-    const { currentOrgDomain } = orgDomainConfig(req);
+    const { currentOrgDomain } = getOrgDomainConfig({
+      hostname: req.headers.host || "",
+      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      isPlatform: !!req.headers["x-cal-client-id"],
+    });
+
     const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);

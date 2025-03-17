@@ -341,6 +341,8 @@ async function handler(
     platformBookingLocation,
   } = input;
 
+  const isPlatformBooking = !!platformClientId;
+
   const eventType = await monitorCallbackAsync(getEventType, {
     eventTypeId: rawBookingData.eventTypeId,
     eventTypeSlug: rawBookingData.eventTypeSlug,
