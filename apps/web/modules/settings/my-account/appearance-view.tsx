@@ -85,7 +85,7 @@ const AppearanceView = ({
   user,
   hasPaidPlan,
 }: {
-  user: RouterOutputs["viewer"]["me"];
+  user: RouterOutputs["viewer"]["me"]["get"];
   hasPaidPlan: boolean;
 }) => {
   const { t } = useLocale();
@@ -436,7 +436,7 @@ const AppearanceView = ({
 };
 
 const AppearancePage = () => {
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
   const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
   if (isPending || isTeamPlanStatusLoading || !user) return <SkeletonLoader />;
