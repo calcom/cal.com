@@ -1,12 +1,15 @@
+// TODO: This file should not be in packages/lib. Move it higher in the application stack.
 import type { Prisma } from "@prisma/client";
 
-import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
-import getApps from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
+import type { CredentialDataWithTeamName } from "@calcom/app-store/appStoreMetadataRepository";
 import { prisma } from "@calcom/prisma";
 
 import { isDelegationCredential } from "../delegationCredential/clientAndServer";
 
-type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
+type EnabledApp = ReturnType<typeof AppStoreMetadataRepository.prototype.getApps>[number] & {
+  enabled: boolean;
+};
 
 /**
  *
@@ -23,6 +26,7 @@ const getEnabledAppsFromCredentials = async (
     filterOnCredentials?: boolean;
   }
 ) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const { where: _where = {}, filterOnCredentials = false } = options || {};
   const filterOnIds = {
     credentials: {
@@ -71,7 +75,7 @@ const getEnabledAppsFromCredentials = async (
 
   enabledApps = [...enabledApps, ...delegationCredentialSupportedEnabledApps];
 
-  const apps = getApps(credentials, filterOnCredentials);
+  const apps = appStoreMetadataRepository.getApps(credentials, filterOnCredentials);
   const filteredApps = apps.reduce((reducedArray, app) => {
     const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
     if (appDbQuery?.enabled || app.isGlobal) {

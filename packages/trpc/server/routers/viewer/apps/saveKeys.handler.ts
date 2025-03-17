@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 
@@ -20,11 +20,12 @@ type SaveKeysOptions = {
 };
 
 export const saveKeysHandler = async ({ ctx, input }: SaveKeysOptions) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const keysSchema = appKeysSchemas[input.dirName as keyof typeof appKeysSchemas];
   const keys = keysSchema.parse(input.keys);
 
   // Get app name from metadata
-  const localApps = getLocalAppMetadata();
+  const localApps = appStoreMetadataRepository.getLocalAppMetadata();
   const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
 
   if (!appMetadata?.dirName && appMetadata?.categories)

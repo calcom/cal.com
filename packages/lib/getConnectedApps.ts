@@ -1,7 +1,8 @@
+// TODO: This file should not be in packages/lib. Move higher in the application stack.
 import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import type { CredentialOwner } from "@calcom/app-store/types";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -37,6 +38,7 @@ export async function getConnectedApps({
     sortByInstalledFirst,
     appId,
   } = input;
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   let credentials = await getUsersCredentials(user);
   let userTeams: TeamQuery[] = [];
 
@@ -170,7 +172,7 @@ export async function getConnectedApps({
             (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
           );
           // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-          const dependencyName = getAppFromSlug(dependency)?.name;
+          const dependencyName = appStoreMetadataRepository.getAppFromSlug(dependency)?.name;
           return { name: dependencyName, installed: dependencyInstalled };
         });
       }

@@ -1,4 +1,4 @@
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
@@ -18,11 +18,12 @@ type ToggleOptions = {
 };
 
 export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const { prisma } = ctx;
   const { enabled, slug } = input;
 
   // Get app name from metadata
-  const localApps = getLocalAppMetadata();
+  const localApps = appStoreMetadataRepository.getLocalAppMetadata();
   const appMetadata = localApps.find((localApp) => localApp.slug === slug);
 
   if (!appMetadata) {

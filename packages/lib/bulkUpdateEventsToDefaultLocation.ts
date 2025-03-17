@@ -1,5 +1,6 @@
+// TODO: This file should not be in lib. Move it higher in the application stack.
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -24,7 +25,8 @@ export const bulkUpdateEventsToDefaultLocation = async ({
     });
   }
 
-  const foundApp = getAppFromSlug(defaultApp.appSlug);
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
+  const foundApp = appStoreMetadataRepository.getAppFromSlug(defaultApp.appSlug);
   const appType = foundApp?.appData?.location?.type;
   if (!appType) {
     throw new TRPCError({

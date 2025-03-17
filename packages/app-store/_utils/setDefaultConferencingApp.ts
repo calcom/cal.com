@@ -1,13 +1,14 @@
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import prisma from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 const setDefaultConferencingApp = async (userId: number, appSlug: string) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const eventTypes = await getBulkEventTypes(userId);
   const eventTypeIds = eventTypes.eventTypes.map((item) => item.id);
-  const foundApp = getAppFromSlug(appSlug);
+  const foundApp = appStoreMetadataRepository.getAppFromSlug(appSlug);
   const appType = foundApp?.appData?.location?.type;
 
   if (!appType) {

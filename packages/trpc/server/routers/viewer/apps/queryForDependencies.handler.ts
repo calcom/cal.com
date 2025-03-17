@@ -1,4 +1,4 @@
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { getAllDelegationCredentialsForUserByAppSlug } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 
@@ -15,6 +15,7 @@ type QueryForDependenciesOptions = {
 export const queryForDependenciesHandler = async ({ ctx, input }: QueryForDependenciesOptions) => {
   if (!input) return;
 
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const dependencyData: { name: string; slug: string; installed: boolean }[] = [];
 
   await Promise.all(
@@ -33,7 +34,7 @@ export const queryForDependenciesHandler = async ({ ctx, input }: QueryForDepend
       });
       const appInstalled = !!dbCredential || !!delegationCredentials.length;
 
-      const app = getAppFromSlug(dependency);
+      const app = appStoreMetadataRepository.getAppFromSlug(dependency);
 
       dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
     })

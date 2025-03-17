@@ -1,4 +1,4 @@
-import getApps from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
@@ -7,12 +7,11 @@ export type { TDependencyData } from "@calcom/app-store/_appRegistry";
 
 export type { CredentialOwner } from "@calcom/app-store/types";
 export { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
-export { getAppFromSlug } from "@calcom/app-store/utils";
 export type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
 
 export { CalendarService } from "@calcom/app-store/applecalendar/lib";
 
-export { getApps };
+export { AppStoreMetadataRepository };
 
 export { handleDeleteCredential };
 

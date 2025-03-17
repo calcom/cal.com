@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
@@ -209,6 +209,7 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
    */
   loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
 }) {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const organizerMetadata = organizer.metadata;
   const defaultConferencingApp = organizerMetadata?.defaultConferencingApp;
   if (!defaultConferencingApp) {
@@ -217,7 +218,7 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
     );
   }
   const defaultConferencingAppSlug = defaultConferencingApp.appSlug;
-  const app = getAppFromSlug(defaultConferencingAppSlug);
+  const app = appStoreMetadataRepository.getAppFromSlug(defaultConferencingAppSlug);
   if (!app) {
     throw new SystemError(`Default conferencing app ${defaultConferencingAppSlug} not found`);
   }

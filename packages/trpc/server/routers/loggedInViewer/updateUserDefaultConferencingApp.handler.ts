@@ -1,6 +1,6 @@
 import z from "zod";
 
-import getApps from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -21,9 +21,12 @@ export const updateUserDefaultConferencingAppHandler = async ({
   ctx,
   input,
 }: UpdateUserDefaultConferencingAppOptions) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const currentMetadata = userMetadata.parse(ctx.user.metadata);
   const credentials = await getUsersCredentials(ctx.user);
-  const foundApp = getApps(credentials, true).filter((app) => app.slug === input.appSlug)[0];
+  const foundApp = appStoreMetadataRepository
+    .getApps(credentials, true)
+    .filter((app) => app.slug === input.appSlug)[0];
   const appLocation = foundApp?.appData?.location;
 
   if (!foundApp || !appLocation) throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -108,6 +108,7 @@ const checkCanUserAccessConnectedApps = async (
 };
 
 export const getUserConnectedAppsHandler = async ({ ctx, input }: GetUserConnectedAppsOptions) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const { userIds, teamId } = input;
 
   await checkCanUserAccessConnectedApps(ctx.user, teamId, userIds);
@@ -136,7 +137,7 @@ export const getUserConnectedAppsHandler = async ({ ctx, input }: GetUserConnect
         let appData = appDataMap.get(appSlug);
 
         if (!appData) {
-          appData = getAppFromSlug(appSlug);
+          appData = appStoreMetadataRepository.getAppFromSlug(appSlug);
           appDataMap.set(appSlug, appData);
         }
 

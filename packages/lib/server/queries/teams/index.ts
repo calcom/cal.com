@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
@@ -179,6 +179,7 @@ export async function getTeamWithMembers(args: {
 
   if (!teamOrOrg) return null;
 
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const teamOrOrgMemberships = [];
   for (const membership of teamOrOrg.members) {
     teamOrOrgMemberships.push({
@@ -211,7 +212,7 @@ export async function getTeamWithMembers(args: {
             let appData = appDataMap.get(appSlug);
 
             if (!appData) {
-              appData = getAppFromSlug(appSlug);
+              appData = appStoreMetadataRepository.getAppFromSlug(appSlug);
               appDataMap.set(appSlug, appData);
             }
 

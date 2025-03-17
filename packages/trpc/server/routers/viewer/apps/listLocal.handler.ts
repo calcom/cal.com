@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
@@ -17,9 +17,10 @@ type ListLocalOptions = {
 };
 
 export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const { prisma } = ctx;
   const category = input.category;
-  const localApps = getLocalAppMetadata();
+  const localApps = appStoreMetadataRepository.getLocalAppMetadata();
 
   const dbApps = await prisma.app.findMany({
     where: {

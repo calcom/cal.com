@@ -1,4 +1,4 @@
-import getApps from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -14,10 +14,11 @@ type AppByIdOptions = {
 };
 
 export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const { user } = ctx;
   const appId = input.appId;
   const credentials = await getUsersCredentials(user);
-  const apps = getApps(credentials);
+  const apps = appStoreMetadataRepository.getApps(credentials);
   const appFromDb = apps.find((app) => app.slug === appId);
   if (!appFromDb) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find app ${appId}` });

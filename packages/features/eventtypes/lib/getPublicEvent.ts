@@ -1,9 +1,9 @@
 import type { User as UserType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -240,7 +240,8 @@ export const getPublicEvent = async (
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
     if (preferedLocationType?.appSlug) {
-      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+      const appStoreMetadataRepository = new AppStoreMetadataRepository();
+      const foundApp = appStoreMetadataRepository.getAppFromSlug(preferedLocationType.appSlug);
       const appType = foundApp?.appData?.location?.type;
       if (appType) {
         // Replace the location with the preferred location type
