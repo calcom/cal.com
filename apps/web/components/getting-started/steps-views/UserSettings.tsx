@@ -24,7 +24,7 @@ interface IUserSettingsProps {
 
 const UserSettings = (props: IUserSettingsProps) => {
   const { nextStep } = props;
-  const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
   const telemetry = useTelemetry();

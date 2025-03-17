@@ -18,7 +18,7 @@ type FormData = {
 };
 
 const UserProfile = () => {
-  const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
@@ -59,7 +59,7 @@ const UserProfile = () => {
         console.error(error);
       }
 
-      await utils.viewer.me.refetch();
+      await utils.viewer.me.get.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
       redirectUrl ? router.push(redirectUrl) : router.push("/");

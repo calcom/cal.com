@@ -17,7 +17,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const ssr = await ssrInit(context);
 
-  await ssr.viewer.me.prefetch();
+  await ssr.viewer.me.get.prefetch();
 
   const user = await UserRepository.findUserTeams({
     id: session.user.id,

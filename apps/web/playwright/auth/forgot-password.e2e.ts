@@ -18,6 +18,7 @@ test.describe("Forgot password", async () => {
 
     await page.fill('input[name="email"]', `${user.username}@example.com`);
     await page.press('input[name="email"]', "Enter");
+    await page.waitForLoadState("networkidle");
 
     // wait for confirm page.
     await page.waitForSelector("text=Reset link sent");

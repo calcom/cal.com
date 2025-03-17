@@ -174,7 +174,7 @@ const organizationAdminKeys = [
 
 const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   const isOrgAdminOrOwner =
