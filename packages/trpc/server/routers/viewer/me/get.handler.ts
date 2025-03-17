@@ -8,17 +8,17 @@ import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TMeInputSchema } from "./me.schema";
+import type { TGetInputSchema } from "./get.schema";
 
 type MeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     session: Session;
   };
-  input: TMeInputSchema;
+  input: TGetInputSchema;
 };
 
-export const meHandler = async ({ ctx, input }: MeOptions) => {
+export const getHandler = async ({ ctx, input }: MeOptions) => {
   const crypto = await import("crypto");
 
   const { user: sessionUser, session } = ctx;

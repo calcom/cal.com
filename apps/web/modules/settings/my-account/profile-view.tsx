@@ -95,13 +95,13 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.shouldVerifyEmail.invalidate();
+      utils.viewer.me.shouldVerifyEmail.invalidate();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
@@ -187,14 +187,14 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
+  const deleteMeMutation = trpc.viewer.me.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
@@ -511,8 +511,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"];
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
