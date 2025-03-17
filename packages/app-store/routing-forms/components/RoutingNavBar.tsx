@@ -6,7 +6,7 @@ import { HorizontalTabs } from "@calcom/ui";
 
 import { enabledIncompleteBookingApps } from "../lib/enabledIncompleteBookingApps";
 import type { getSerializableForm } from "../lib/getSerializableForm";
-import type { RoutingFormWithResponseCount } from "./SingleForm";
+import type { RoutingFormWithResponseCount } from "../types/types";
 
 export default function RoutingNavBar({
   form,
