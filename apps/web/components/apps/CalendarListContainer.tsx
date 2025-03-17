@@ -31,7 +31,7 @@ type Props = {
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
+  const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (
     <QueryCell
@@ -80,7 +80,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
   const utils = trpc.useUtils();
   const onChanged = () =>
     Promise.allSettled([
-      utils.viewer.integrations.invalidate(
+      utils.viewer.apps.integrations.invalidate(
         { variant: "calendar", onlyInstalled: true },
         {
           exact: true,
@@ -89,7 +89,10 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
       utils.viewer.connectedCalendars.invalidate(),
     ]);
   const query = trpc.viewer.connectedCalendars.useQuery();
-  const installedCalendars = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
+  const installedCalendars = trpc.viewer.apps.integrations.useQuery({
+    variant: "calendar",
+    onlyInstalled: true,
+  });
   const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     onSuccess: () => {
       utils.viewer.connectedCalendars.invalidate();

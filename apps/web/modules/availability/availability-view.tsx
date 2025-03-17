@@ -101,7 +101,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
