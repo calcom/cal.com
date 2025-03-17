@@ -27,9 +27,9 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Icon } from "../../..";
 import { Button } from "../../button";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
+import { Icon } from "../../icon";
 import type { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
@@ -507,11 +507,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           )}
         </>
         {props.variables && (
-          <div className="ml-auto">
+          <div className={`${props.addVariableButtonTop ? "-mt-10" : ""} ml-auto`}>
             <AddVariablesDropdown
               addVariable={addVariable}
               isTextEditor={true}
               variables={props.variables || []}
+              addVariableButtonTop={props.addVariableButtonTop}
             />
           </div>
         )}

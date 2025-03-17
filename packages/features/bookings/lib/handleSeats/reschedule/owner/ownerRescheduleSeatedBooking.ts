@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import type EventManager from "@calcom/core/EventManager";
+import type EventManager from "@calcom/lib/EventManager";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
 import type {
@@ -21,14 +21,16 @@ const ownerRescheduleSeatedBooking = async (
 ) => {
   const { originalRescheduledBooking, tAttendees } = rescheduleSeatedBookingObject;
   const { evt } = rescheduleSeatedBookingObject;
-  evt.attendees = originalRescheduledBooking?.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: { translate: tAttendees, locale: attendee.locale ?? "en" },
-    };
-  });
+
+  evt.attendees =
+    originalRescheduledBooking?.attendees.map((attendee) => {
+      return {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+      };
+    }) ?? [];
 
   // If there is no booking during the new time slot then update the current booking to the new date
   if (!newTimeSlotBooking) {

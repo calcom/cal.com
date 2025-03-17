@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { ZCreateAttributeSchema } from "./create.schema";
+import { getOptionsWithValidContains } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -28,8 +29,8 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   const slug = slugify(input.name);
-  const options = input.options.map((v) => v.value);
-  const optionsWithoutDuplicates = Array.from(new Set(options));
+  const uniqueOptions = getOptionsWithValidContains(input.options);
+
   const typeHasOptions = typesWithOptions.includes(input.type);
 
   let attributes: Attribute;
@@ -39,6 +40,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
         slug,
         name: input.name,
         type: input.type,
+        isLocked: input.isLocked,
         teamId: org.id,
       },
     });
@@ -54,10 +56,11 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   // TEXT/NUMBER don't have options
   if (typeHasOptions) {
     await prisma.attributeOption.createMany({
-      data: optionsWithoutDuplicates.map((value) => ({
+      data: uniqueOptions.map(({ value, isGroup }) => ({
         attributeId: attributes.id,
         value,
         slug: slugify(value),
+        isGroup,
       })),
     });
   }

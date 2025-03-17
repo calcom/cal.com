@@ -6,15 +6,15 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
-import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
@@ -39,6 +39,8 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       token: true,
     })
     .parse(req.body);
+
+  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
 
   log.debug("handler", { email: _email });
 
@@ -108,7 +110,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   if (req.usernameStatus.statusCode === 402) {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
-      payment_method_types: ["card"],
       customer: customer.id,
       line_items: [
         {
@@ -172,8 +173,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         team,
       });
 
-      closeComUpsertTeamUser(team, user, membership.role);
-
       // Accept any child team invites for orgs.
       if (team.parent) {
         await joinAnyChildTeamOnOrgInvite({
@@ -195,11 +194,13 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       data: {
         username,
         email,
+        locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
           stripeCustomerId: customer.id,
           checkoutSessionId,
         },
+        creationSource: CreationSource.WEBAPP,
       },
     });
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
@@ -210,8 +211,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       language: await getLocaleFromRequest(req),
       username: username || "",
     });
-    // Sync Services
-    await syncServicesCreateWebUser(user);
   }
 
   if (checkoutSessionId) {

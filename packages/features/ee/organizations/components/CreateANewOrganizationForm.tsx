@@ -1,3 +1,5 @@
+"use client";
+
 import type { SessionContextValue } from "next-auth/react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -5,15 +7,16 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import classNames from "@calcom/lib/classNames";
 import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert, Button, Form, Label, RadioGroup as RadioArea, TextField, ToggleGroup } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 function extractDomainFromEmail(email: string) {
   let out = "";
@@ -105,7 +108,7 @@ const CreateANewOrganizationFormChild = ({
         handleSubmit={(v) => {
           if (!createOrganizationMutation.isPending) {
             setServerErrorMessage(null);
-            createOrganizationMutation.mutate(v);
+            createOrganizationMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
           }
         }}>
         <div>
@@ -285,7 +288,7 @@ const CreateANewOrganizationFormChild = ({
           </>
         )}
 
-        {/* This radio group does nothing - its just for visuall purposes */}
+        {/* This radio group does nothing - its just for visual purposes */}
         {!isAdmin && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">

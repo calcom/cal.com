@@ -3,7 +3,8 @@ import z from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 const extractAuthToken = (req: NextApiRequest) => {
   const authHeader = req.headers["authorization"];

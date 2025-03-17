@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { checkForEmptyAssignment } from "../../lib/checkForEmptyAssignment";
+import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
 
 describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return true if managed event type has no assigned users", () => {
@@ -8,7 +8,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
       checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: false,
-        hosts: [{ userId: 101, isFixed: false, priority: 2, weight: 100, weightAdjustment: 0 }],
+        hosts: [{ userId: 101, isFixed: false, priority: 2, weight: 100, scheduleId: null }],
         isManagedEventType: true,
       })
     ).toBe(true);
@@ -61,7 +61,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
       checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: false,
-        hosts: [{ userId: 101, isFixed: false, priority: 2, weight: 100, weightAdjustment: 0 }],
+        hosts: [{ userId: 101, isFixed: false, priority: 2, weight: 100, scheduleId: null }],
         isManagedEventType: false,
       })
     ).toBe(false);

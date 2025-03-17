@@ -1,214 +1,187 @@
+import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
+import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
+import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
+import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
+import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/update-event-type.output";
+import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
+import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
-  BadRequestException,
-  Body,
   Controller,
-  Delete,
+  UseGuards,
   Get,
+  Param,
+  Post,
+  Body,
+  NotFoundException,
+  Patch,
   HttpCode,
   HttpStatus,
-  NotFoundException,
-  Param,
-  Patch,
-  Post,
+  Delete,
   Query,
-  UseGuards,
+  ParseIntPipe,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeFutureBookingLimits,
-  transformApiEventTypeIntervalLimits,
-  transformApiEventTypeLocations,
-  transformApiEventTypeRecurrence,
-} from "@calcom/platform-libraries";
-import {
-  CreateEventTypeInput_2024_06_14,
-  GetEventTypesQuery_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
+  GetEventTypesQuery_2024_06_14,
+  CreateEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
-import { SchedulingType } from "@calcom/prisma/enums";
-
-import { supabase } from "../../../../config/supabase";
-import { VERSION_2024_06_14_VALUE } from "../../../../lib/api-versions";
-import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
-import { CreateEventTypeOutput_2024_06_14 } from "../outputs/create-event-type.output";
-import { DeleteEventTypeOutput_2024_06_14 } from "../outputs/delete-event-type.output";
-import { GetEventTypeOutput_2024_06_14 } from "../outputs/get-event-type.output";
-import { GetEventTypesOutput_2024_06_14 } from "../outputs/get-event-types.output";
-import { UpdateEventTypeOutput_2024_06_14 } from "../outputs/update-event-type.output";
 
 @Controller({
   path: "/v2/event-types",
   version: VERSION_2024_06_14_VALUE,
 })
-@DocsTags("Event types")
+@UseGuards(PermissionsGuard)
+@DocsTags("Event Types")
+@ApiHeader({
+  name: "cal-api-version",
+  description: `Must be set to \`2024-06-14\``,
+  required: true,
+})
 export class EventTypesController_2024_06_14 {
+  constructor(
+    private readonly eventTypesService: EventTypesService_2024_06_14,
+    private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
+    private readonly eventTypeResponseTransformPipe: EventTypeResponseTransformPipe
+  ) {}
+
   @Post("/")
+  @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({ summary: "Create an event type" })
   async createEventType(
-    @Body() body: CreateEventTypeInput_2024_06_14
+    @Body() body: CreateEventTypeInput_2024_06_14,
+    @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput_2024_06_14> {
-    const userId = body.userId;
-    const scheduleId = body.scheduleId;
+    const transformedBody = await this.inputEventTypesService.transformAndValidateCreateEventTypeInput(
+      user.id,
+      body
+    );
 
-    if (!userId) throw new BadRequestException("User ID is required.");
-    if (!scheduleId) throw new BadRequestException("Schedule ID is required.");
-
-    const { data: existsWithSlug } = await supabase
-      .from("EventType")
-      .select("id")
-      .eq("slug", body.slug)
-      .eq("userId", userId)
-      .limit(1)
-      .single();
-
-    if (existsWithSlug) throw new BadRequestException("User already has an event type with this slug.");
-
-    const { data: schedule } = await supabase
-      .from("Schedule")
-      .select("id")
-      .eq("id", scheduleId)
-      .eq("userId", userId)
-      .limit(1)
-      .single();
-
-    if (!schedule)
-      throw new BadRequestException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
-
-    const { eventType } = await this.createEventTypeHandler(body);
+    const eventType = await this.eventTypesService.createUserEventType(user, transformedBody);
 
     return {
       status: SUCCESS_STATUS,
-      data: eventType as CreateEventTypeOutput_2024_06_14["data"],
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
   @Get("/:eventTypeId")
+  @Permissions([EVENT_TYPE_READ])
   @UseGuards(ApiAuthGuard)
-  async getEventTypeById(@Param("eventTypeId") eventTypeId: string): Promise<GetEventTypeOutput_2024_06_14> {
-    const { data: eventType } = await supabase
-      .from("EventType")
-      .select("*")
-      .eq("id", eventTypeId)
-      .limit(1)
-      .single();
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({ summary: "Get an event type" })
+  async getEventTypeById(
+    @Param("eventTypeId") eventTypeId: string,
+    @GetUser() user: UserWithProfile
+  ): Promise<GetEventTypeOutput_2024_06_14> {
+    const eventType = await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
 
     if (!eventType) {
-      throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
     return {
       status: SUCCESS_STATUS,
-      data: eventType as any,
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
   @Get("/")
-  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Get all event types" })
   async getEventTypes(
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
-    const { eventSlug, username, usernames } = queryParams;
-    let supabaseQuery = supabase.from("EventType").select("*");
-
-    if (!!username) {
-      const { data: user } = await supabase
-        .from("users")
-        .select("id")
-        .eq("username", username)
-        .limit(1)
-        .single();
-
-      if (!user)
-        return {
-          status: SUCCESS_STATUS,
-          data: [],
-        };
-      supabaseQuery = supabaseQuery.eq("userId", user.id);
-    }
-
-    if (!!usernames) {
-      const { data: users } = await supabase
-        .from("users")
-        .select("id")
-        .in("username", usernames as string[]);
-
-      if (!users)
-        return {
-          status: SUCCESS_STATUS,
-          data: [],
-        };
-
-      const userIds = users.map((user) => user.id);
-
-      supabaseQuery = supabaseQuery.in("userId", userIds as string[]);
-    }
-
-    if (!!eventSlug) supabaseQuery = supabaseQuery.eq("slug", eventSlug);
-
-    const { data: eventTypes, error } = await supabaseQuery;
-
-    if (error)
+    const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
+    const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
       return {
-        status: ERROR_STATUS,
-        data: null,
+        ...eventType,
+        bookingFields: Array.isArray(eventType?.bookingFields)
+          ? eventType?.bookingFields
+              .map((field) => {
+                if ("hidden" in field) {
+                  return field.hidden !== true ? field : null;
+                }
+                return field;
+              })
+              .filter((f) => f)
+          : [],
       };
+    }) as EventTypeOutput_2024_06_14[];
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypes,
+      data: eventTypesWithoutHiddenFields,
     };
   }
 
   @Patch("/:eventTypeId")
+  @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update an event type" })
   async updateEventType(
-    @Param("eventTypeId") eventTypeId: number,
-    @Body() body: UpdateEventTypeInput_2024_06_14
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @Body() body: UpdateEventTypeInput_2024_06_14,
+    @GetUser() user: UserWithProfile
   ): Promise<UpdateEventTypeOutput_2024_06_14> {
-    const { data: eventType } = await supabase
-      .from("EventType")
-      .select("id, slug, title")
-      .eq("id", eventTypeId)
-      .limit(1)
-      .single();
+    const transformedBody = await this.inputEventTypesService.transformAndValidateUpdateEventTypeInput(
+      body,
+      user.id,
+      eventTypeId
+    );
 
-    if (!eventType) {
-      throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
-    }
-
-    const { data: newEventType } = await supabase
-      .from("EventType")
-      .update(body)
-      .eq("id", eventTypeId)
-      .select("*");
+    const eventType = await this.eventTypesService.updateEventType(eventTypeId, transformedBody, user);
 
     return {
       status: SUCCESS_STATUS,
-      data: newEventType as any,
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
   @Delete("/:eventTypeId")
+  @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({ summary: "Delete an event type" })
   async deleteEventType(
-    @Param("eventTypeId") eventTypeId: number
+    @Param("eventTypeId") eventTypeId: number,
+    @GetUser("id") userId: number
   ): Promise<DeleteEventTypeOutput_2024_06_14> {
-    const { data: eventType } = await supabase
-      .from("EventType")
-      .select("id, slug, title, length")
-      .eq("id", eventTypeId)
-      .limit(1)
-      .single();
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
-    }
-
-    await supabase.from("EventType").delete().eq("id", eventTypeId);
+    const eventType = await this.eventTypesService.deleteEventType(eventTypeId, userId);
 
     return {
       status: SUCCESS_STATUS,
@@ -219,126 +192,5 @@ export class EventTypesController_2024_06_14 {
         title: eventType.title,
       },
     };
-  }
-
-  async createEventTypeHandler(body: CreateEventTypeInput_2024_06_14): Promise<any> {
-    const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
-      {
-        type: "integration",
-        integration: "cal-video",
-      },
-    ];
-
-    const {
-      lengthInMinutes,
-      locations,
-      bookingFields,
-      bookingLimitsCount,
-      bookingLimitsDuration,
-      bookingWindow,
-      recurrence,
-      ...rest
-    } = body;
-
-    const eventType = {
-      ...rest,
-      length: lengthInMinutes,
-      locations: transformApiEventTypeLocations(locations || defaultLocations),
-      bookingFields: transformApiEventTypeBookingFields(bookingFields),
-      bookingLimits: bookingLimitsCount ? transformApiEventTypeIntervalLimits(bookingLimitsCount) : undefined,
-      durationLimits: bookingLimitsDuration
-        ? transformApiEventTypeIntervalLimits(bookingLimitsDuration)
-        : undefined,
-      ...transformApiEventTypeFutureBookingLimits(bookingWindow),
-      recurringEvent: recurrence ? transformApiEventTypeRecurrence(recurrence) : undefined,
-    };
-
-    const {
-      userId,
-      schedulingType,
-      teamId,
-      metadata,
-      locations: inputLocations,
-      scheduleId,
-      ...dataRest
-    } = eventType;
-
-    const { data: user } = await supabase.from("users").select("*").eq("id", userId).limit(1).single();
-
-    const isManagedEventType = schedulingType === SchedulingType.MANAGED;
-
-    const data = dataRest as any;
-
-    const formattedDataWithOwner = teamId ? data : { ...data, owner: userId };
-    const formattedDataWithMetadata = metadata
-      ? { ...formattedDataWithOwner, metadata }
-      : formattedDataWithOwner;
-    // Only connecting the current user for non-managed event types and non team event types
-    const formattedDataWithUserId =
-      isManagedEventType || schedulingType
-        ? formattedDataWithMetadata
-        : { ...formattedDataWithMetadata, userId };
-    const formattedDataWithLocations =
-      inputLocations && inputLocations.length !== 0
-        ? { ...formattedDataWithUserId, locations: inputLocations }
-        : formattedDataWithUserId;
-    const formattedDataWithScheduleId = scheduleId
-      ? { ...formattedDataWithLocations, scheduleId }
-      : formattedDataWithLocations;
-
-    if (teamId && schedulingType) {
-      const { data: hasMembership } = await supabase
-        .from("Membership")
-        .select("role")
-        .eq("userId", userId)
-        .eq("teamId", teamId)
-        .eq("accepted", true)
-        .limit(1)
-        .single();
-
-      const isSystemAdmin = user.role === "ADMIN";
-
-      if (!isSystemAdmin && (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role))) {
-        console.warn(`User ${userId} does not have permission to create this new event type`);
-        throw new BadRequestException("UNAUTHORIZED");
-      }
-
-      data.teamId = teamId;
-      data.schedulingType = schedulingType;
-    }
-
-    // If we are in an organization & they are not admin & they are not creating an event on a teamID
-    // Check if evenTypes are locked.
-    if (user.organizationId && !user?.organization?.isOrgAdmin && !teamId) {
-      const { data: orgSettings } = await supabase
-        .from("OrganizationSettings")
-        .select("lockEventTypeCreationForUsers")
-        .eq("organizationId", user.organizationId)
-        .limit(1)
-        .single();
-
-      const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
-      if (orgHasLockedEventTypes) {
-        console.warn(
-          `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`
-        );
-        throw new BadRequestException({ code: "UNAUTHORIZED" });
-      }
-    }
-
-    const profileId = user.movedToProfileId;
-
-    try {
-      const { data: eventType } = await supabase
-        .from("EventType")
-        .insert({ ...formattedDataWithScheduleId, profileId })
-        .select("*")
-        .single();
-
-      return { eventType };
-    } catch (e) {
-      console.warn(e);
-      throw new BadRequestException({ code: "BAD_REQUEST" });
-    }
   }
 }

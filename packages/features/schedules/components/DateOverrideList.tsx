@@ -1,3 +1,5 @@
+import { noop } from "@tanstack/react-table";
+
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -20,6 +22,7 @@ const DateOverrideList = ({
   replace,
   fields,
   weekStart = 0,
+  handleAvailabilityUpdate = noop,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
@@ -30,6 +33,7 @@ const DateOverrideList = ({
   hour12: boolean;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  handleAvailabilityUpdate?: VoidFunction;
 }) => {
   const { t, i18n } = useLocale();
 
@@ -94,6 +98,7 @@ const DateOverrideList = ({
                 // update has very weird side-effects with sorting.
                 replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
                 delete unsortedFieldArrayMap[item.id];
+                handleAvailabilityUpdate();
               }}
               Trigger={
                 <DialogTrigger asChild>
@@ -124,6 +129,7 @@ const DateOverrideList = ({
                 StartIcon="trash-2"
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
+                  handleAvailabilityUpdate();
                 }}
               />
             </Tooltip>

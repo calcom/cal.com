@@ -1,8 +1,7 @@
+import { AppsRepository } from "@/modules/apps/apps.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { google } from "googleapis";
+import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
-
-import { AppsRepository } from "../../apps/apps.repository";
 
 @Injectable()
 export class GCalService {
@@ -22,7 +21,7 @@ export class GCalService {
 
     const { client_id, client_secret } = this.gcalResponseSchema.parse(app.keys);
 
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirectUri);
+    const oAuth2Client = new OAuth2Client(client_id, client_secret, redirectUri);
     return oAuth2Client;
   }
 }

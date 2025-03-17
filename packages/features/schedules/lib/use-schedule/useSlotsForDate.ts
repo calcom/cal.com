@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 
-import type { Slots } from "./types";
+import type { Slots, Slot } from "./types";
 
 /**
- * Get's slots for a specific date from the schedule cache.
+ * Gets slots for a specific date from the schedule cache.
  * @param date Format YYYY-MM-DD
  * @param scheduleCache Instance of useScheduleWithCache
  */
@@ -13,7 +13,7 @@ import type { Slots } from "./types";
 export const useSlotsForDate = (date: string | null, slots?: Slots) => {
   const slotsForDate = useMemo(() => {
     if (!date || typeof slots === "undefined") return [];
-    return slots[date] || [];
+    return slots[date as any] || [];
   }, [date, slots]);
 
   return slotsForDate;
@@ -25,16 +25,32 @@ export const useSlotsForAvailableDates = (
   weekly = true,
   slots?: Slots
 ) => {
-  const nextWeekDay = dayjs().add(7, "day");
+  const [slotsPerDay, setSlotsPerDay] = useState<{ date: string | null; slots: Slots[string] }[]>([]);
 
-  const slotsForDates = useMemo(() => {
-    if (slots === undefined) return [];
+  const toggleConfirmButton = useCallback((selectedSlot: Slot) => {
+    setSlotsPerDay((prevSlotsPerDay) =>
+      prevSlotsPerDay.map(({ date, slots }) => ({
+        date,
+        slots: slots.map((slot) => ({
+          ...slot,
+          showConfirmButton: slot.time === selectedSlot.time ? !selectedSlot?.showConfirmButton : false,
+        })),
+      }))
+    );
+  }, []);
 
-    return dates
+  useEffect(() => {
+    if (slots === undefined) {
+      setSlotsPerDay([]);
+      return;
+    }
+    const nextWeekDay = dayjs().add(7, "day");
+
+    const updatedSlots = dates
       .filter((date) => date !== null)
       .filter((date) => dayjs(date).isBefore(nextWeekDay) || !isTherapy)
       .map((date) => {
-        if (!isTherapy) return { slots: slots[date] || [], date };
+        if (!isTherapy) return { slots: slots[date as any] || [], date };
 
         const nextWeekDay = dayjs(date).add(7, "day").format("YYYY-MM-DD");
         const nextFortnightlyDay = dayjs(date).add(15, "day").format("YYYY-MM-DD");
@@ -45,18 +61,20 @@ export const useSlotsForAvailableDates = (
 
         const filteredSlots =
           nextWeekSlots && nextFortnightlySlots
-            ? slots[date].filter(({ time }) => {
+            ? slots[date as any].filter(({ time }) => {
                 const nextWeekSchedule = dayjs(time).add(7, "day").toISOString();
                 const nextFortnightlySchedule = dayjs(time).add(15, "day").toISOString();
                 return weekly
                   ? nextWeekSlots.includes(nextWeekSchedule)
                   : nextFortnightlySlots.includes(nextFortnightlySchedule);
               })
-            : slots[date];
+            : slots[date as any];
 
         return { slots: filteredSlots || [], date };
       });
-  }, [dates, isTherapy, nextWeekDay, slots, weekly]);
 
-  return slotsForDates;
+    setSlotsPerDay(updatedSlots);
+  }, [dates, isTherapy, slots, weekly]);
+
+  return { slotsPerDay, setSlotsPerDay, toggleConfirmButton } as const;
 };

@@ -6,6 +6,8 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.NEW_EVENT,
   WorkflowTriggerEvents.AFTER_EVENT,
   WorkflowTriggerEvents.RESCHEDULE_EVENT,
+  WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
 ] as const;
 
 export const WORKFLOW_ACTIONS = [
@@ -59,9 +61,20 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "additional_notes",
   "meeting_url",
   "cancel_url",
+  "cancel_reason",
   "reschedule_url",
+  "reschedule_reason",
   "rating_url",
   "no_show_url",
+  "attendee_timezone",
+  "event_start_time_in_attendee_timezone",
+  "event_end_time_in_attendee_timezone",
 ];
 
-export const FORMATTED_DYNAMIC_TEXT_VARIABLES = ["event_date_", "event_time_", "event_end_time_"];
+export const FORMATTED_DYNAMIC_TEXT_VARIABLES = [
+  "event_date_",
+  "event_time_",
+  "event_end_time_",
+  "event_start_time_in_attendee_timezone_",
+  "event_end_time_in_attendee_timezone_",
+];

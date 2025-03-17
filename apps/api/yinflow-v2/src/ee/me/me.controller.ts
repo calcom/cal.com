@@ -1,24 +1,19 @@
-import {
-  Body,
-  Controller,
-  Get,
-  InternalServerErrorException,
-  NotFoundException,
-  Param,
-  Patch,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
+import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-
-import { supabase } from "../../config/supabase";
-import { API_VERSIONS_VALUES } from "../../lib/api-versions";
-import { ApiAuthGuard } from "../../modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "../../modules/auth/guards/permissions/permissions.guard";
-import { UpdateManagedUserInput } from "../../modules/users/inputs/update-managed-user.input";
-import { GetMeOutput } from "./outputs/get-me.output";
-import { UpdateMeOutput } from "./outputs/update-me.output";
+import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { userSchemaResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/me",
@@ -27,40 +22,54 @@ import { UpdateMeOutput } from "./outputs/update-me.output";
 @UseGuards(ApiAuthGuard, PermissionsGuard)
 @DocsTags("Me")
 export class MeController {
-  @Get("/:userId")
-  @UseGuards(ApiAuthGuard)
-  async getMe(@Param("userId") userId: string): Promise<GetMeOutput> {
-    if (!userId) throw new InternalServerErrorException("User Id is required");
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly usersService: UsersService
+  ) {}
 
-    const { data: user } = await supabase.from("users").select("*").eq("id", userId).limit(1).single();
-
-    if (!user) throw new NotFoundException(`User with ID=${userId} does not exist.`);
-
+  @Get("/")
+  @Permissions([PROFILE_READ])
+  @ApiOperation({ summary: "Get my profile" })
+  async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
+    const organization = this.usersService.getUserMainProfile(user)?.organization;
+    const me = userSchemaResponse.parse(
+      organization
+        ? {
+            ...user,
+            organizationId: organization.id,
+            organization: {
+              id: organization.id,
+              isPlatform: organization.isPlatform,
+            },
+          }
+        : user
+    );
     return {
       status: SUCCESS_STATUS,
-      data: user,
+      data: me,
     };
   }
 
-  @Patch("/:userId")
-  @UseGuards(ApiAuthGuard)
+  @Patch("/")
+  @Permissions([PROFILE_WRITE])
+  @ApiOperation({ summary: "Update my profile" })
   async updateMe(
-    @Param("userId") userId: string,
+    @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateManagedUserInput
   ): Promise<UpdateMeOutput> {
-    if (!userId) throw new InternalServerErrorException("User Id is required");
+    const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
+    if (bodySchedule.timeZone && user.defaultScheduleId) {
+      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
+        timeZone: bodySchedule.timeZone,
+      });
+    }
 
-    const { data: user } = await supabase.from("users").select("id").eq("id", userId).limit(1).single();
-
-    if (!user) throw new NotFoundException(`User with ID=${userId} does not exist.`);
-
-    await supabase.from("users").update(bodySchedule).eq("id", userId).select("*");
-
-    const { data: updatedUser } = await supabase.from("users").select("*").eq("id", userId).limit(1).single();
+    const me = userSchemaResponse.parse(updatedUser);
 
     return {
       status: SUCCESS_STATUS,
-      data: updatedUser,
+      data: me,
     };
   }
 }

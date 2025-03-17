@@ -1,22 +1,17 @@
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { ExecutionContext } from "@nestjs/common";
 import { createParamDecorator } from "@nestjs/common";
 
-import { UserWithProfile } from "../../../users/users.repository";
-
-export type GetUserReturnType = UserWithProfile & { isSystemAdmin: boolean };
-
 export const GetUser = createParamDecorator<
-  keyof GetUserReturnType | (keyof GetUserReturnType)[],
+  keyof ApiAuthGuardUser | (keyof ApiAuthGuardUser)[],
   ExecutionContext
 >((data, ctx) => {
   const request = ctx.switchToHttp().getRequest();
-  const user = request.user as GetUserReturnType;
+  const user = request.user as ApiAuthGuardUser;
 
   if (!user) {
     throw new Error("GetUser decorator : User not found");
   }
-
-  user.isSystemAdmin = user.role === "ADMIN";
 
   if (Array.isArray(data)) {
     return data.reduce((prev, curr) => {

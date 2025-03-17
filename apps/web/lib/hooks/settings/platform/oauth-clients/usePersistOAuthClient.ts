@@ -5,9 +5,9 @@ import type {
   ApiResponse,
   CreateOAuthClientInput,
   DeleteOAuthClientInput,
+  PlatformOAuthClientDto,
   SubscribeTeamInput,
 } from "@calcom/platform-types";
-import type { OAuthClient } from "@calcom/prisma/client";
 
 interface IPersistOAuthClient {
   onSuccess?: () => void;
@@ -96,7 +96,7 @@ export const useDeleteOAuthClient = (
     },
   }
 ) => {
-  const mutation = useMutation<ApiResponse<OAuthClient>, unknown, DeleteOAuthClientInput>({
+  const mutation = useMutation<ApiResponse<PlatformOAuthClientDto>, unknown, DeleteOAuthClientInput>({
     mutationFn: (data) => {
       const { id } = data;
       return fetch(`/api/v2/oauth-clients/${id}`, {
@@ -155,6 +155,43 @@ export const useSubscribeTeamToStripe = (
   const mutation = useMutation<ApiResponse<{ action: string; url: string }>, unknown, SubscribeTeamInput>({
     mutationFn: (data) => {
       return fetch(`/api/v2/billing/${teamId}/subscribe`, {
+        method: "post",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((res) => res?.json());
+    },
+    onSuccess: (data) => {
+      if (data.status === SUCCESS_STATUS) {
+        onSuccess?.(data.data?.url);
+      } else {
+        onError?.();
+      }
+    },
+    onError: () => {
+      onError?.();
+    },
+  });
+
+  return mutation;
+};
+
+export const useUpgradeTeamSubscriptionInStripe = (
+  {
+    onSuccess,
+    onError,
+    teamId,
+  }: { teamId?: number | null; onSuccess: (redirectUrl: string) => void; onError: () => void } = {
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  }
+) => {
+  const mutation = useMutation<ApiResponse<{ action: string; url: string }>, unknown, SubscribeTeamInput>({
+    mutationFn: (data) => {
+      return fetch(`/api/v2/billing/${teamId}/upgrade`, {
         method: "post",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify(data),

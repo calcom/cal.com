@@ -13,7 +13,6 @@
     "baseUrl": ".",
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"],
       "@calcom/platform-constants": ["../../../packages/platform/constants/index.ts"],
       "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],
@@ -35,5 +34,5 @@
     "excludeDirectories": ["**/node_modules", "dist"]
   },
   "exclude": ["./dist", "./node_modules", "next-i18next.config.js"],
-  "include": ["./**/*.ts", "../../../packages/types/*.d.ts", "src/modules/supabase"]
+  "include": ["./**/*.ts", "../../../packages/types/*.d.ts"]
 }

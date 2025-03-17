@@ -1,29 +1,29 @@
+import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { stringify } from "querystring";
 import { z } from "zod";
 
 import {
+  SUCCESS_STATUS,
   OFFICE_365_CALENDAR,
   OFFICE_365_CALENDAR_ID,
   OFFICE_365_CALENDAR_TYPE,
-  SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-
-import { getEnv } from "../../../env";
-import { CredentialsRepository } from "../../../modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "../../../modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "../../../modules/tokens/tokens.repository";
-import { OAuthCalendarApp } from "../../calendars/calendars.interface";
-import { CalendarsService } from "../../calendars/services/calendars.service";
 
 @Injectable()
 export class OutlookService implements OAuthCalendarApp {
-  private apiUrl = getEnv("API_URL");
-  private redirectUri = `${this.apiUrl}/calendars/${OFFICE_365_CALENDAR}/save`;
+  private redirectUri = `${this.config.get("api.url")}/calendars/${OFFICE_365_CALENDAR}/save`;
 
   constructor(
+    private readonly config: ConfigService,
     private readonly calendarsService: CalendarsService,
     private readonly credentialRepository: CredentialsRepository,
     private readonly tokensRepository: TokensRepository,
@@ -151,7 +151,7 @@ export class OutlookService implements OAuthCalendarApp {
     redir?: string
   ) {
     // if code is not defined, user denied to authorize office 365 app, just redirect straight away
-    if (!code) {
+    if (!code || code === "undefined") {
       return { url: redir || origin };
     }
 
@@ -168,16 +168,39 @@ export class OutlookService implements OAuthCalendarApp {
     const defaultCalendar = await this.getDefaultCalendar(office365OAuthCredentials.access_token);
 
     if (defaultCalendar?.id) {
-      const credential = await this.credentialRepository.createAppCredential(
+      const alreadyExistingSelectedCalendar = await this.selectedCalendarsRepository.getUserSelectedCalendar(
+        ownerId,
         OFFICE_365_CALENDAR_TYPE,
-        office365OAuthCredentials,
-        ownerId
+        defaultCalendar.id
       );
 
-      await this.selectedCalendarsRepository.createSelectedCalendar(
-        defaultCalendar.id,
-        credential.id,
+      if (alreadyExistingSelectedCalendar) {
+        const isCredentialValid = await this.calendarsService.checkCalendarCredentialValidity(
+          ownerId,
+          alreadyExistingSelectedCalendar.credentialId ?? 0,
+          OFFICE_365_CALENDAR_TYPE
+        );
+
+        // user credential probably got expired in this case
+        if (!isCredentialValid) {
+          await this.calendarsService.createAndLinkCalendarEntry(
+            ownerId,
+            alreadyExistingSelectedCalendar.externalId,
+            office365OAuthCredentials,
+            OFFICE_365_CALENDAR_TYPE,
+            alreadyExistingSelectedCalendar.credentialId
+          );
+        }
+
+        return {
+          url: redir || origin,
+        };
+      }
+
+      await this.calendarsService.createAndLinkCalendarEntry(
         ownerId,
+        defaultCalendar.id,
+        office365OAuthCredentials,
         OFFICE_365_CALENDAR_TYPE
       );
     }

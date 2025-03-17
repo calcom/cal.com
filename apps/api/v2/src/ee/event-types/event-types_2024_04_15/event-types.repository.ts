@@ -78,4 +78,11 @@ export class EventTypesRepository_2024_04_15 {
   async deleteEventType(eventTypeId: number) {
     return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
   }
+
+  async getEventTypeWithDuration(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { length: true },
+    });
+  }
 }

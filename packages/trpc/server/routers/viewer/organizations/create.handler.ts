@@ -89,6 +89,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat,
     isPlatform,
     billingPeriod: billingPeriodRaw,
+    creationSource,
   } = input;
 
   const loggedInUser = await prisma.user.findUnique({
@@ -99,11 +100,15 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       id: true,
       role: true,
       email: true,
+      completedOnboarding: true,
+      emailVerified: true,
       teams: {
         select: {
           team: {
             select: {
               slug: true,
+              isOrganization: true,
+              isPlatform: true,
             },
           },
         },
@@ -129,7 +134,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     });
   }
 
-  if (isNotACompanyEmail(orgOwnerEmail)) {
+  if (isNotACompanyEmail(orgOwnerEmail) && !isPlatform) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Use company email to create an organization" });
   }
 
@@ -159,6 +164,14 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+
+  const hasExistingPlatformOrOrgTeam = loggedInUser?.teams.find((team) => {
+    return team.team.isPlatform || team.team.isOrganization;
+  });
+
+  if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "User is already part of a team" });
+  }
 
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
@@ -209,6 +222,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       owner: {
         email: orgOwnerEmail,
       },
+      creationSource,
     });
 
     orgOwner = data.orgOwner;
@@ -304,9 +318,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       upId: user.profile.upId,
     };
   }
-
-  // Sync Services: Close.com
-  //closeComUpsertOrganizationUser(createTeam, ctx.user, MembershipRole.OWNER);
 };
 
 export default createHandler;

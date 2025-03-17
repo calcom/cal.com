@@ -9,9 +9,12 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
 import {
+  bookTeamEvent,
   bookTimeSlot,
   doOnOrgDomain,
+  expectPageToBeNotFound,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
   testName,
 } from "../lib/testUtils";
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
@@ -27,6 +30,8 @@ function getOrgOrigin(orgSlug: string | null) {
   orgOrigin = orgOrigin.includes(orgSlug) ? orgOrigin : WEBAPP_URL.replace("://", `://${orgSlug}.`);
   return orgOrigin;
 }
+
+test.describe.configure({ mode: "parallel" });
 
 test.describe("Bookings", () => {
   test.afterEach(async ({ orgs, users, page }) => {
@@ -80,6 +85,63 @@ test.describe("Bookings", () => {
       // TODO: Assert whether the user received an email
     });
 
+    test("Can create a booking for Collective EventType with only phone number", async ({
+      page,
+      users,
+      orgs,
+    }) => {
+      const org = await orgs.create({
+        name: "TestOrg",
+      });
+      const teamMatesObj = [
+        { name: "teammate-1" },
+        { name: "teammate-2" },
+        { name: "teammate-3" },
+        { name: "teammate-4" },
+      ];
+
+      const owner = await users.create(
+        {
+          username: "pro-user",
+          name: "pro-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.COLLECTIVE,
+        }
+      );
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+      await owner.apiLogin();
+
+      await markPhoneNumberAsRequiredAndEmailAsOptional(page, teamEvent.id);
+
+      await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async () => {
+          await bookTeamEvent({
+            page,
+            team,
+            event: teamEvent,
+            opts: { attendeePhoneNumber: "+918888888888" },
+          });
+          // All the teammates should be in the booking
+          for (const teammate of teamMatesObj.concat([{ name: owner.name || "" }])) {
+            await expect(page.getByText(teammate.name, { exact: true })).toBeVisible();
+          }
+        }
+      );
+
+      // TODO: Assert whether the user received an email
+    });
+
     test("Can create a booking for Round Robin EventType", async ({ page, users, orgs }) => {
       const org = await orgs.create({
         name: "TestOrg",
@@ -106,6 +168,7 @@ test.describe("Bookings", () => {
 
       const { team } = await owner.getFirstTeamMembership();
       const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
 
@@ -115,7 +178,71 @@ test.describe("Bookings", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj });
+          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj: eventHostsObj });
+
+          // Since all the users have the same leastRecentlyBooked value
+          // Anyone of the teammates could be the Host of the booking.
+          const chosenUser = await page.getByTestId("booking-host-name").textContent();
+          expect(chosenUser).not.toBeNull();
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          expect(teamMatesObj.concat([{ name: owner.name! }]).some(({ name }) => name === chosenUser)).toBe(
+            true
+          );
+        }
+      );
+      // TODO: Assert whether the user received an email
+    });
+
+    test("Can create a booking for Round Robin EventType with both phone number and email required", async ({
+      page,
+      users,
+      orgs,
+    }) => {
+      const org = await orgs.create({
+        name: "TestOrg",
+      });
+      const teamMatesObj = [
+        { name: "teammate-1" },
+        { name: "teammate-2" },
+        { name: "teammate-3" },
+        { name: "teammate-4" },
+      ];
+      const owner = await users.create(
+        {
+          username: "pro-user",
+          name: "pro-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
+      await owner.apiLogin();
+
+      await markPhoneNumberAsRequiredField(page, teamEvent.id);
+
+      await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
+
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async () => {
+          await bookTeamEvent({
+            page,
+            team,
+            event: teamEvent,
+            teamMatesObj: eventHostsObj,
+            opts: { attendeePhoneNumber: "+918888888888" },
+          });
 
           // Since all the users have the same leastRecentlyBooked value
           // Anyone of the teammates could be the Host of the booking.
@@ -262,7 +389,7 @@ test.describe("Bookings", () => {
       });
     });
 
-    test("check SSR and OG ", async ({ page, users, orgs }) => {
+    test("check SSR and OG", async ({ page, users, orgs }) => {
       const name = "Test User";
       const org = await orgs.create({
         name: "TestOrg",
@@ -306,7 +433,7 @@ test.describe("Bookings", () => {
             "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
           );
           // Verify Organizer Name in the URL
-          expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+          expect(ogImage).toContain("meetingProfileName%3DTest%2BUser");
         }
       );
     });
@@ -404,6 +531,7 @@ test.describe("Bookings", () => {
       const { invitedUserEmail } = await inviteExistingUserToOrganization({
         page,
         organizationId: org.id,
+        organizationSlug: org.slug,
         user: userOutsideOrganization,
         usersFixture: users,
       });
@@ -420,8 +548,9 @@ test.describe("Bookings", () => {
       const usernameOutsideOrg = userOutsideOrganization.username;
       // Before invite is accepted the booking page isn't available
       await expectPageToBeNotFound({ page, url: `/${usernameInOrg}` });
-      await userOutsideOrganization.apiLogin();
-      await acceptTeamOrOrgInvite(page);
+      const [newContext, newPage] = await userOutsideOrganization.apiLoginOnNewBrowser(browser);
+      await acceptTeamOrOrgInvite(newPage);
+      await newContext.close();
       await test.step("Book through new link", async () => {
         await doOnOrgDomain(
           {
@@ -480,49 +609,29 @@ async function bookUserEvent({
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }
 
-async function bookTeamEvent({
-  page,
-  team,
-  event,
-  teamMatesObj,
-}: {
-  page: Page;
-  team: {
-    slug: string | null;
-    name: string | null;
-  };
-  event: { slug: string; title: string; schedulingType: SchedulingType | null };
-  teamMatesObj?: { name: string }[];
-}) {
-  // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
-  // So, we are using /team in the URL to access the team booking
-  // There are separate tests to verify that the next.config.js rewrites are working
-  // Also there are additional checkly tests that verify absolute e2e flow. They are in __checks__/organization.spec.ts
-  await page.goto(`/team/${team.slug}/${event.slug}`);
+const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: number) => {
+  // Make phone as required
+  await markPhoneNumberAsRequiredField(page, eventId);
 
-  await selectFirstAvailableTimeSlotNextMonth(page);
-  await bookTimeSlot(page);
-  await expect(page.getByTestId("success-page")).toBeVisible();
+  // Make email as not required
+  await page.locator('[data-testid="field-email"] [data-testid="edit-field-action"]').click();
+  const emailRequiredFiled = await page.locator('[data-testid="field-required"]');
+  await emailRequiredFiled.locator("> :nth-child(2)").click();
+  await page.getByTestId("field-add-save").click();
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
+};
 
-  // The title of the booking
-  if (event.schedulingType === SchedulingType.ROUND_ROBIN) {
-    const bookingTitle = await page.getByTestId("booking-title").textContent();
+const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
+  await page.goto(`/event-types/${eventId}?tabName=advanced`);
 
-    expect(
-      teamMatesObj?.some((teamMate) => {
-        const BookingTitle = `${event.title} between ${teamMate.name} and ${testName}`;
-        return BookingTitle === bookingTitle;
-      })
-    ).toBe(true);
-  } else {
-    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
-    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
-  }
-  // The booker should be in the attendee list
-  await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
-}
-
-async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
-  await page.goto(`${url}`);
-  await expect(page.getByTestId(`404-page`)).toBeVisible();
-}
+  await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
+  await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();
+  const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');
+  await phoneRequiredFiled.locator("> :nth-child(1)").click();
+  await page.getByTestId("field-add-save").click();
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
+};

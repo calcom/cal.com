@@ -1,23 +1,13 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { User } from "@prisma/client";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
+import { UsersRepository } from "@/modules/users/users.repository";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { slugify } from "@calcom/platform-libraries";
-import { MembershipRole } from "@calcom/prisma/enums";
-import {
-  Invitation,
-  getOrgConnectionInfo,
-} from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
-
-import { supabase } from "../../../config/supabase";
-import { EventTypesService_2024_04_15 } from "../../../ee/event-types/event-types_2024_04_15/services/event-types.service";
-import { SchedulesService_2024_04_15 } from "../../../ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { OrganizationsTeamsService } from "../../organizations/services/organizations-teams.service";
-import { TokensRepository } from "../../tokens/tokens.repository";
-import { CreateManagedUserInput } from "../../users/inputs/create-managed-user.input";
-import { UpdateManagedUserInput } from "../../users/inputs/update-managed-user.input";
-import { UsersRepository } from "../../users/users.repository";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
@@ -25,35 +15,36 @@ export class OAuthClientUsersService {
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly schedulesService: SchedulesService_2024_04_15,
-    private readonly organizationsTeamsService: OrganizationsTeamsService
+    private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
-  async createOauthClientUser(
-    oAuthClientId: string,
-    body: CreateManagedUserInput,
-    isPlatformManaged: boolean,
-    organizationId?: number
-  ) {
-    const existsWithEmail = await this.managedUserExistsWithEmail(oAuthClientId, body.email);
-    if (existsWithEmail) {
-      throw new BadRequestException("User with the provided e-mail already exists.");
+  async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
+    const oAuthClientId = oAuthClient.id;
+    const organizationId = oAuthClient.organizationId;
+
+    const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
+    if (existingUser) {
+      throw new ConflictException(
+        `User with the provided e-mail already exists. Existing user ID=${existingUser.id}`
+      );
     }
 
     let user: User;
     if (!organizationId) {
-      throw new BadRequestException("You cannot create a managed user outside of an organization");
+      throw new BadRequestException(
+        "You cannot create a managed user outside of an organization - the OAuth client does not belong to any organization."
+      );
     } else {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
-
       user = (
-        await this.createNewUsersConnectToOrgIfExists({
+        await createNewUsersConnectToOrgIfExists({
           invitations: [
             {
               usernameOrEmail: email,
               role: "MEMBER",
             },
           ],
+          creationSource: CreationSource.API_V2,
           teamId: organizationId,
           isOrg: true,
           parentId: null,
@@ -64,20 +55,21 @@ export class OAuthClientUsersService {
               autoAccept: true,
             },
           },
-          isPlatformManaged,
+          isPlatformManaged: true,
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
         })
       )[0];
-
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
       const updatedUser = await this.userRepository.update(user.id, {
-        name: body.name ?? user.username ?? undefined,
+        name: body.name,
         locale: body.locale,
+        avatarUrl: body.avatarUrl,
       });
-
-      if (updatedUser) user.locale = (updatedUser as any).locale;
+      user.locale = updatedUser.locale;
+      user.name = updatedUser.name;
+      user.avatarUrl = updatedUser.avatarUrl;
     }
 
     const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
@@ -85,20 +77,14 @@ export class OAuthClientUsersService {
       user.id
     );
 
-    await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    if (oAuthClient.areDefaultEventTypesEnabled) {
+      await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    }
 
     if (body.timeZone) {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
       user.defaultScheduleId = defaultSchedule.id;
-
-      return {
-        tokens: null,
-        user: null,
-        message: defaultSchedule,
-      };
     }
-
-    await this.organizationsTeamsService.addUserToPlatformTeamEvents(user.id, organizationId, oAuthClientId);
 
     return {
       user,
@@ -110,10 +96,9 @@ export class OAuthClientUsersService {
     };
   }
 
-  async managedUserExistsWithEmail(oAuthClientId: string, email: string) {
+  async getExistingUserByEmail(oAuthClientId: string, email: string) {
     const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
-    const user = await this.userRepository.findByEmail(oAuthEmail);
-    return !!user;
+    return await this.userRepository.findByEmail(oAuthEmail);
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {
@@ -125,105 +110,6 @@ export class OAuthClientUsersService {
     }
 
     return this.userRepository.update(userId, body);
-  }
-
-  async createNewUsersConnectToOrgIfExists({
-    invitations,
-    isOrg,
-    teamId,
-    parentId,
-    autoAcceptEmailDomain,
-    orgConnectInfoByUsernameOrEmail,
-    isPlatformManaged,
-    timeFormat,
-    weekStart,
-    timeZone,
-  }: {
-    invitations: Invitation[];
-    isOrg: boolean;
-    teamId: number;
-    parentId?: number | null;
-    autoAcceptEmailDomain: string | null;
-    orgConnectInfoByUsernameOrEmail: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
-    isPlatformManaged?: boolean;
-    timeFormat?: number;
-    weekStart?: string;
-    timeZone?: string;
-  }) {
-    // fail if we have invalid emails
-    invitations.forEach((invitation) => isEmail(invitation.usernameOrEmail));
-    // from this point we know usernamesOrEmails contains only emails
-    const createdUsers = [];
-    for (let index = 0; index < invitations.length; index++) {
-      const invitation = invitations[index];
-      // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
-      const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
-      const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
-
-      // An org member can't change username during signup, so we set the username
-      const orgMemberUsername =
-        emailDomain === autoAcceptEmailDomain
-          ? slugify(emailUser)
-          : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
-
-      // As a regular team member is allowed to change username during signup, we don't set any username for him
-      const regularTeamMemberUsername = null;
-
-      const isBecomingAnOrgMember = parentId || isOrg;
-
-      const { data: createdUser } = (await supabase
-        .from("users")
-        .insert({
-          username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
-          email: invitation.usernameOrEmail,
-          verified: true,
-          invitedTo: teamId,
-          isPlatformManaged: !!isPlatformManaged,
-          timeFormat,
-          weekStart,
-          timeZone,
-          organizationId: orgId || null,
-        })
-        .select()
-        .single()) as any;
-
-      const userId = createdUser.id;
-
-      if (orgId) {
-        await supabase.from("Profile").insert([
-          {
-            uid: ProfileRepository.generateProfileUid(),
-            username: orgMemberUsername,
-            organizationId: orgId,
-            userId: userId,
-          },
-        ]);
-      }
-
-      await supabase.from("Membership").insert([
-        {
-          teamId: teamId,
-          role: invitation.role,
-          accepted: autoAccept,
-          userId: userId,
-          disableImpersonation: false,
-        },
-      ]);
-
-      // We also need to create the membership in the parent org if it exists
-      if (parentId) {
-        await supabase.from("Membership").insert({
-          teamId: parentId,
-          userId: createdUser.id,
-          role: MembershipRole.MEMBER,
-          accepted: autoAccept,
-          disableImpersonation: false,
-        });
-      }
-      createdUsers.push(createdUser);
-    }
-
-    return createdUsers;
   }
 
   getOAuthUserEmail(oAuthClientId: string, userEmail: string) {

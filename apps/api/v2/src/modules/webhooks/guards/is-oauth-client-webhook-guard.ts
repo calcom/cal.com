@@ -1,14 +1,14 @@
-import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  ForbiddenException,
-  BadRequestException,
 } from "@nestjs/common";
 import { Request } from "express";
 
@@ -26,7 +26,7 @@ export class IsOAuthClientWebhookGuard implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<Request & { webhook: Webhook; oAuthClient: PlatformOAuthClient }>();
-    const user = request.user as GetUserReturnType;
+    const user = request.user as ApiAuthGuardUser;
     const webhookId = request.params.webhookId;
     const oAuthClientId = request.params.clientId;
     const organizationId = this.usersService.getUserMainOrgId(user);
@@ -39,12 +39,8 @@ export class IsOAuthClientWebhookGuard implements CanActivate {
       throw new BadRequestException("webhookId parameter not specified in the request");
     }
 
-    if (!webhookId) {
+    if (!oAuthClientId) {
       throw new BadRequestException("oAuthClientId parameter not specified in the request");
-    }
-
-    if (!user || !webhookId || !oAuthClientId) {
-      return false;
     }
 
     const oAuthClient = await this.oAuthClientRepository.getOAuthClient(oAuthClientId);

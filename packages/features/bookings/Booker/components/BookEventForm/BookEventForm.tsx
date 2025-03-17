@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { IS_CALCOM, WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 
@@ -28,6 +29,8 @@ type BookEventFormProps = {
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
+  isTimeslotUnavailable: boolean;
+  shouldRenderCaptcha?: boolean;
 };
 
 export const BookEventForm = ({
@@ -62,6 +65,7 @@ export const BookEventForm = ({
   const [nameError, setNameError] = useState(false);
   const [showError, setShowError] = useState(false);
   const [formState, setFormState] = useState("undefined");
+  const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -177,6 +181,28 @@ export const BookEventForm = ({
             />
           </div>
         )}
+
+        {isPlatformBookerEmbed && (
+          <div className="text-subtle my-3 w-full text-xs">
+            {t("proceeding_agreement")}{" "}
+            <Link
+              className="text-emphasis hover:underline"
+              key="terms"
+              href={`${WEBSITE_TERMS_URL}`}
+              target="_blank">
+              {t("terms")}
+            </Link>{" "}
+            {t("and")}{" "}
+            <Link
+              className="text-emphasis hover:underline"
+              key="privacy"
+              href={`${WEBSITE_PRIVACY_POLICY_URL}`}
+              target="_blank">
+              {t("privacy_policy")}
+            </Link>
+            .
+          </div>
+        )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
@@ -189,6 +215,7 @@ export const BookEventForm = ({
                   {t("back")}
                 </Button>
               )}
+
               <Button
                 type="submit"
                 color="primary"

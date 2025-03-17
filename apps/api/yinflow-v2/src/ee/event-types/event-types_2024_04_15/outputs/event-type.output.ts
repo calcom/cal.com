@@ -1,4 +1,18 @@
-import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
+import {
+  CREATE_EVENT_DESCRIPTION_EXAMPLE,
+  CREATE_EVENT_LENGTH_EXAMPLE,
+  CREATE_EVENT_SLUG_EXAMPLE,
+  CREATE_EVENT_TITLE_EXAMPLE,
+} from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { PeriodType } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/period-type";
+import { SchedulingType } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/scheduling-type";
+import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
+import {
+  BookingField_2024_04_15,
+  IntervalLimits_2024_04_15,
+  RecurringEvent_2024_04_15,
+} from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -13,40 +27,25 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import {
-  CREATE_EVENT_DESCRIPTION_EXAMPLE,
-  CREATE_EVENT_LENGTH_EXAMPLE,
-  CREATE_EVENT_SLUG_EXAMPLE,
-  CREATE_EVENT_TITLE_EXAMPLE,
-} from "../inputs/create-event-type.input";
-import { PeriodType } from "../inputs/enums/period-type";
-import { SchedulingType } from "../inputs/enums/scheduling-type";
-import { EventTypeLocation_2024_04_15 } from "../inputs/event-type-location.input";
-import {
-  BookingField_2024_04_15,
-  IntervalLimits_2024_04_15,
-  RecurringEvent_2024_04_15,
-} from "../inputs/update-event-type.input";
-
 export class EventTypeOutput {
   @IsInt()
-  @DocsProperty({ example: 1 })
+  @ApiProperty({ example: 1 })
   id!: number;
 
   @IsInt()
-  @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   length!: number;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
   slug!: string;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
   title!: string;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE, nullable: true })
   description!: string | null;
 
   @IsBoolean()
@@ -56,6 +55,7 @@ export class EventTypeOutput {
   @ValidateNested({ each: true })
   @Type(() => EventTypeLocation_2024_04_15)
   @IsArray()
+  @ApiProperty({ type: [EventTypeLocation_2024_04_15], nullable: true })
   locations!: EventTypeLocation_2024_04_15[] | null;
 
   @IsInt()

@@ -1,11 +1,25 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
-  await page.goto("/routing-forms/forms");
+export async function addForm(
+  page: Page,
+  {
+    name = "Test Form Name",
+    forTeam,
+  }: {
+    name?: string;
+    forTeam?: boolean;
+  } = {}
+) {
+  await page.goto(`/routing-forms/forms`);
   await page.click('[data-testid="new-routing-form"]');
-  // Choose to create the Form for the user(which is the first option) and not the team
-  await page.click('[data-testid="option-0"]');
+
+  if (forTeam) {
+    await page.click('[data-testid="option-team-1"]');
+  } else {
+    await page.click('[data-testid="option-0"]');
+  }
+
   await page.fill("input[name]", name);
   await page.click('[data-testid="add-form"]');
   await page.waitForSelector('[data-testid="add-field"]');
@@ -20,9 +34,10 @@ export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
 export async function addOneFieldAndDescriptionAndSaveForm(
   formId: string,
   page: Page,
-  form: { description?: string; field?: { typeIndex: number; label: string } }
+  form: { name: string; description?: string; field?: { typeIndex: number; label: string } }
 ) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await expect(page.locator('[name="name"]')).toHaveValue(form.name);
   await page.click('[data-testid="add-field"]');
   if (form.description) {
     await page.fill('[data-testid="description"]', form.description);

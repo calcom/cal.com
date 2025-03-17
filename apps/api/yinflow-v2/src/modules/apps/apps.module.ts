@@ -1,13 +1,14 @@
+import { AppsRepository } from "@/modules/apps/apps.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { Module } from "@nestjs/common";
-
-import { AppsRepository } from "../apps/apps.repository";
-import { CredentialsRepository } from "../credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "../selected-calendars/selected-calendars.repository";
-import { TokensModule } from "../tokens/tokens.module";
+import { ConfigService } from "@nestjs/config";
 
 @Module({
-  imports: [TokensModule],
-  providers: [AppsRepository, CredentialsRepository, SelectedCalendarsRepository],
+  imports: [PrismaModule, TokensModule],
+  providers: [AppsRepository, ConfigService, CredentialsRepository, SelectedCalendarsRepository],
   exports: [],
 })
 export class AppsModule {}

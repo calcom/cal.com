@@ -1,0 +1,57 @@
+---
+title: "Google"
+---
+#### Obtaining the Google API Credentials
+
+<Steps>
+    <Step title="Open Google API Console">
+        Go to [Google API Console](https://console.cloud.google.com/apis/dashboard). If you don't have a project in your Google Cloud subscription, create one before proceeding. Under the Dashboard pane, select "Enable APIs and Services".
+    </Step>
+    <Step title="Search for the Google Calendar API">
+        In the search box, type "calendar" and select the Google Calendar API search result.
+    </Step>
+    <Step title="Enable the Google Calendar API">
+        Enable the selected API to proceed.
+    </Step>
+    <Step title="Configure the OAuth Consent Screen">
+        Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) from the side pane. Select the app type (Internal or External) and enter the basic app details on the first page.
+    </Step>
+    <Step title="Add Calendar Scopes">
+        On the Scopes page, select "Add or Remove Scopes". Search for Calendar.event and select the scopes with values `.../auth/calendar.events`, `.../auth/calendar.readonly`, and then click "Update".
+    </Step>
+    <Step title="Add Test Users">
+        On the Test Users page, add the Google account(s) you'll be using. Verify details on the last page to complete the consent screen configuration.
+    </Step>
+    <Step title="Create OAuth Credentials">
+        From the side pane, select [Credentials](https://console.cloud.google.com/apis/credentials) and then "Create Credentials". Choose "OAuth Client ID".
+    </Step>
+    <Step title="Select Web Application as the Application Type">
+        Choose "Web Application" as the Application Type.
+    </Step>
+    <Step title="Add Authorized Redirect URIs">
+        Under Authorized redirect URI's, add the URIs:
+        ```
+        <Cal.com URL>/api/integrations/googlecalendar/callback
+        <Cal.com URL>/api/auth/callback/google
+        ```
+        Replace `<Cal.com URL>` with the URL where your application runs.
+    </Step>
+    <Step title="Download the OAuth Client ID JSON">
+        The key will be created, redirecting you back to the Credentials page. Select the new client ID under "OAuth 2.0 Client IDs", then click "Download JSON". Copy the JSON file contents and paste the entire string into the `.env` and `.env.appStore` files under the `GOOGLE_API_CREDENTIALS` key.
+    </Step>
+    <Step title="Set the Google Integration as Internal">
+        In the `.env` file, set the following environment variable:
+        ```
+        GOOGLE_LOGIN_ENABLED=false
+        ```
+        This will configure the Google integration as an Internal app, restricting login access.
+    </Step>
+</Steps>
+
+### **Adding Google Calendar to Cal.com App Store**
+
+After adding Google credentials, you can now add the Google Calendar App to the app store. Repopulate the App store by running:
+
+<Step title="Repopulate App Store">
+    Run `pnpm db-seed` to update the app store and include the newly added Google Calendar integration.
+</Step>

@@ -274,14 +274,18 @@ describe("handleNewBooking", () => {
 
           const createdBooking = await handleNewBooking(reqFollowingYear);
 
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: "New York",
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: "New York",
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -470,6 +474,101 @@ describe("handleNewBooking", () => {
   );
 
   describe("Buffers", () => {
+    test("should throw error when booking is not respecting buffers with event types that have before and after buffer ", async ({}) => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const { dateString: nextDayDateString } = getDate({ dateIncrement: 1 });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 15,
+              length: 15,
+              beforeEventBuffer: 60,
+              afterEventBuffer: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          bookings: [
+            {
+              eventTypeId: 1,
+              userId: 101,
+              status: BookingStatus.ACCEPTED,
+              startTime: `${nextDayDateString}T07:00:00.000Z`,
+              endTime: `${nextDayDateString}T07:15:00.000Z`,
+            },
+          ],
+          organizer,
+        })
+      );
+
+      // 7:00 - 7:15 busy
+      // 6:00 - 7:00 before event buffer
+      // 5:00 - 6:00 after event buffer
+      const mockBookingBeforeData = getMockRequestDataForBooking({
+        data: {
+          start: `${nextDayDateString}T05:15:00.000Z`,
+          end: `${nextDayDateString}T05:30:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const { req: reqBookingBefore } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingBeforeData,
+      });
+      await expect(async () => await handleNewBooking(reqBookingBefore)).rejects.toThrowError(
+        "no_available_users_found_error"
+      );
+
+      // 7:00 - 7:15 busy
+      // 7:17 - 8:15 after event buffer
+      // 8:15 - 9:15 before event buffer
+      const mockBookingAfterData = getMockRequestDataForBooking({
+        data: {
+          start: `${nextDayDateString}T09:00:00.000Z`,
+          end: `${nextDayDateString}T09:15:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const { req: reqBookingAfter } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingAfterData,
+      });
+      await expect(async () => await handleNewBooking(reqBookingAfter)).rejects.toThrowError(
+        "no_available_users_found_error"
+      );
+    });
+
     test(`should throw error when booking is within a before event buffer of an existing booking
         `, async ({}) => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -673,7 +772,9 @@ describe("handleNewBooking", () => {
       mockCalendarToHaveNoBusySlots("googlecalendar", {});
       await createBookingScenario(scenarioData);
 
-      await expect(() => handleNewBooking(req)).rejects.toThrowError("book a meeting in the past");
+      await expect(() => handleNewBooking(req)).rejects.toThrowError(
+        "Attempting to book a meeting in the past."
+      );
     },
     timeout
   );
@@ -766,7 +867,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        expect(() => handleNewBooking(req)).rejects.toThrowError("cannot be booked at this time");
+        expect(() => handleNewBooking(req)).rejects.toThrowError("booking_time_out_of_bounds_error");
       },
       timeout
     );

@@ -1,72 +1,55 @@
-import { Body, Controller, Delete, Post, Query, UseGuards } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-
-import { CalendarsRepository } from "../../../ee/calendars/calendars.repository";
-import { CalendarsService } from "../../../ee/calendars/services/calendars.service";
-import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
-import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
   SelectedCalendarsInputDto,
   SelectedCalendarsQueryParamsInputDto,
-} from "../../selected-calendars/inputs/selected-calendars.input";
+} from "@/modules/selected-calendars/inputs/selected-calendars.input";
 import {
-  SelectedCalendarOutputDto,
   SelectedCalendarOutputResponseDto,
-} from "../../selected-calendars/outputs/selected-calendars.output";
-import { SelectedCalendarsRepository } from "../../selected-calendars/selected-calendars.repository";
-import { UserWithProfile } from "../../users/users.repository";
+  SelectedCalendarOutputDto,
+} from "@/modules/selected-calendars/outputs/selected-calendars.output";
+import { SelectedCalendarsService } from "@/modules/selected-calendars/services/selected-calendars.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
+import { Body, Controller, Post, UseGuards, Delete, Query } from "@nestjs/common";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/selected-calendars",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Selected-Calendars")
+@DocsTags("Selected Calendars")
 export class SelectedCalendarsController {
-  constructor(
-    private readonly calendarsRepository: CalendarsRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly calendarsService: CalendarsService
-  ) {}
+  constructor(private readonly selectedCalendarsService: SelectedCalendarsService) {}
 
   @Post("/")
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Add a selected calendar" })
   async addSelectedCalendar(
     @Body() input: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId } = input;
-    await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
-
-    const newlyAddedCalendarEntry = await this.selectedCalendarsRepository.addUserSelectedCalendar(
-      user.id,
-      integration,
-      externalId,
-      credentialId
-    );
+    const selectedCalendar = await this.selectedCalendarsService.addSelectedCalendar(user, input);
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(SelectedCalendarOutputDto, newlyAddedCalendarEntry, { strategy: "excludeAll" }),
+      data: plainToClass(SelectedCalendarOutputDto, selectedCalendar, { strategy: "excludeAll" }),
     };
   }
 
   @Delete("/")
   @UseGuards(ApiAuthGuard)
-  async removeSelectedCalendar(
+  @ApiOperation({ summary: "Delete a selected calendar" })
+  async deleteSelectedCalendar(
     @Query() queryParams: SelectedCalendarsQueryParamsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId } = queryParams;
-    await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
-
-    const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(
-      user.id,
-      integration,
-      externalId
+    const removedCalendarEntry = await this.selectedCalendarsService.deleteSelectedCalendar(
+      queryParams,
+      user
     );
 
     return {

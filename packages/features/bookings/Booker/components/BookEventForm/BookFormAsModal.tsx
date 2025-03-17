@@ -1,14 +1,15 @@
 import type { ReactNode } from "react";
 
-import { useEventTypeById, useIsPlatform } from "@calcom/atoms/monorepo";
+import { useEventTypeById } from "@calcom/atoms/hooks/event-types/private/useEventTypeById";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge, Dialog, DialogContent } from "@calcom/ui";
 
 import { getDurationFormatted } from "../../../components/event-meta/Duration";
-import { useTimePreferences } from "../../../lib";
 import { useBookerStore } from "../../store";
 import { FromTime } from "../../utils/dates";
 import { useEvent } from "../../utils/event";
+import { useBookerTime } from "../hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
   const { data } = useEvent();
@@ -44,7 +45,7 @@ export const BookEventFormWrapperComponent = ({
   const { i18n, t } = useLocale();
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const { timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
   if (!selectedTimeslot) {
     return null;
   }

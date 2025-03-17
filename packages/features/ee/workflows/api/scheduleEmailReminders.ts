@@ -3,10 +3,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -18,7 +20,6 @@ import {
   getAllRemindersToDelete,
   getAllUnscheduledReminders,
 } from "../lib/getWorkflowReminders";
-import { getiCalEventAsString } from "../lib/getiCalEventAsString";
 import {
   cancelScheduledEmail,
   deleteScheduledSend,
@@ -204,14 +205,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
             ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
             noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,
+            attendeeTimezone: reminder.booking.attendees[0].timeZone,
+            eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
+              reminder.booking.attendees[0].timeZone
+            ),
+            eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
+              reminder.booking.attendees[0].timeZone
+            ),
           };
           const emailLocale = locale || "en";
+          const brandingDisabled = reminder.booking.eventType?.team
+            ? !!reminder.booking.eventType?.team?.hideBranding
+            : !!reminder.booking.user?.hideBranding;
+
           const emailSubject = customTemplate(
             reminder.workflowStep.emailSubject || "",
             variables,
             emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           ).text;
           emailContent.emailSubject = emailSubject;
           emailContent.emailBody = customTemplate(
@@ -219,7 +231,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             variables,
             emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           ).html;
 
           emailBodyEmpty =
@@ -230,17 +242,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
             ).text.length === 0;
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
+          const brandingDisabled = reminder.booking.eventType?.team
+            ? !!reminder.booking.eventType?.team?.hideBranding
+            : !!reminder.booking.user?.hideBranding;
+
           emailContent = emailReminderTemplate(
             false,
+            reminder.booking.user?.locale || "en",
             reminder.workflowStep.action,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             reminder.booking.startTime.toISOString() || "",
             reminder.booking.endTime.toISOString() || "",
             reminder.booking.eventType?.title || "",
             timeZone || "",
+            reminder.booking.location || "",
+            bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
             attendeeName || "",
             name || "",
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           );
         } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
           const organizerOrganizationProfile = await prisma.profile.findFirst({
@@ -255,6 +274,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           );
           emailContent = emailRatingTemplate({
             isEditingMode: true,
+            locale: reminder.booking.user?.locale || "en",
             action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
@@ -271,6 +291,37 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
 
+          const booking = reminder.booking;
+
+          const t = await getTranslation(booking.user?.locale ?? "en", "common");
+
+          const attendeePromises = [];
+
+          for (const attendee of booking.attendees) {
+            attendeePromises.push(
+              getTranslation(attendee.locale ?? "en", "common").then((tAttendee) => ({
+                ...attendee,
+                language: { locale: attendee.locale ?? "en", translate: tAttendee },
+              }))
+            );
+          }
+
+          const attendees = await Promise.all(attendeePromises);
+
+          const event = {
+            ...booking,
+            startTime: dayjs(booking.startTime).utc().format(),
+            endTime: dayjs(booking.endTime).utc().format(),
+            type: booking.eventType?.slug ?? "",
+            organizer: {
+              name: booking.user?.name ?? "",
+              email: booking.user?.email ?? "",
+              timeZone: booking.user?.timeZone ?? "",
+              language: { translate: t, locale: booking.user?.locale ?? "en" },
+            },
+            attendees,
+          };
+
           sendEmailPromises.push(
             sendSendgridMail(
               {
@@ -283,7 +334,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 attachments: reminder.workflowStep.includeCalendarEvent
                   ? [
                       {
-                        content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
+                        content: Buffer.from(
+                          generateIcsString({ event, status: "CONFIRMED" }) || ""
+                        ).toString("base64"),
                         filename: "event.ics",
                         type: "text/calendar; method=REQUEST",
                         disposition: "attachment",
@@ -323,17 +376,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const emailBodyEmpty = false;
 
+        const brandingDisabled = reminder.booking.eventType?.team
+          ? !!reminder.booking.eventType?.team?.hideBranding
+          : !!reminder.booking.user?.hideBranding;
+
         emailContent = emailReminderTemplate(
           false,
+          reminder.booking.user?.locale || "en",
           WorkflowActions.EMAIL_ATTENDEE,
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           reminder.booking.startTime.toISOString() || "",
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",
           timeZone || "",
+          reminder.booking.location || "",
+          bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
           attendeeName || "",
           name || "",
-          !!reminder.booking.user?.hideBranding
+          brandingDisabled
         );
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();

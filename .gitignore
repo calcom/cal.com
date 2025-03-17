@@ -99,3 +99,4 @@ apps/auth
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+i18n.cache

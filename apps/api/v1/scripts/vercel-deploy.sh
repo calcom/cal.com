@@ -1,7 +1,7 @@
 # github submodule repo addresses without https:// prefix
-BRANCH_TO_CLONE="main"
-SUBMODULE_GITHUB="github.com/yinflowltda/agenda-yinflow/"
-SUBMODULE_PATH=apps/api/v1
+BRANCH_TO_CLONE=""
+SUBMODULE_GITHUB=github.com/calcom/api
+SUBMODULE_PATH=apps/api
 COMMIT=$VERCEL_GIT_COMMIT_SHA
 
 if [ "$VERCEL_GIT_COMMIT_SHA" == "" ]; then
@@ -34,7 +34,7 @@ git config --global advice.detachedHead false
 rm -rf ..?* .[!.]* * || true
 
 # checkout the current commit
-git clone -b $BRANCH_TO_CLONE https://$GITHUB_ACCESS_TOKEN@github.com/yinflowltda/agenda-yinflow.git .
+git clone $BRANCH_TO_CLONE https://$GITHUB_ACCESS_TOKEN@github.com/calcom/cal.com.git .
 
 echo "Cloned"
 
@@ -55,26 +55,12 @@ git checkout $COMMIT                                                          # 
 # move the submodule from tmp to the submodule path
 cd ..                     # go folder up
 rm -rf tmp/.git           # remove .git
-# Remove existing files/directories in $SUBMODULE_PATH that also exist in tmp
-for item in tmp/*; do
-  if [ -e "$SUBMODULE_PATH/$(basename $item)" ]; then
-    rm -rf "$SUBMODULE_PATH/$(basename $item)"
-  fi
-done
-
-# Now move the contents
-mv tmp/* $SUBMODULE_PATH/ # Move the submodule to the submodule path
-
-echo "TMP Moved"
+mv tmp/* $SUBMODULE_PATH/ # move the submodule to the submodule path
 
 # clean up
 rm -rf tmp # remove the tmp folder
 
-echo "TMP Removed"
-
-git diff HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*' ':!/apps/swagger/*' ':!/apps/console/*'
-
-echo "Git Diff Done"
+git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*' ':!/apps/swagger/*' ':!/apps/console/*'
 
 echo "✅ - Build can proceed"
 exit 1

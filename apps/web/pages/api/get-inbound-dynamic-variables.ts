@@ -6,11 +6,11 @@ import dayjs from "@calcom/dayjs";
 import { ZGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import type { TGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-dayjs.extend(advancedFormat);
+dayjs.extend(advancedFormat as any);
 
 const schema = z.object({
   llm_id: z.string(),
@@ -85,7 +85,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const startTime = now.startOf("month").toISOString();
   const endTime = now.add(2, "month").endOf("month").toISOString();
-  const orgSlug = eventType?.team?.parent?.slug ?? undefined;
+  const orgSlug = eventType?.team?.parent?.slug ?? null;
 
   const availableSlots = await getAvailableSlots({
     input: {

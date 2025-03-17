@@ -8,13 +8,16 @@ import http from "../lib/http";
 
 export const QUERY_KEY = "get-calendars-busy-times";
 
-type UseCalendarsBusyTimesProps = CalendarBusyTimesInput & { onError?: () => void; enabled: boolean };
+type UseCalendarsBusyTimesProps = Omit<CalendarBusyTimesInput, "dateFrom" | "dateTo"> & {
+  dateFrom: string | null;
+  dateTo: string | null;
+} & { onError?: () => void; enabled: boolean };
 
 export const useCalendarsBusyTimes = ({ onError, enabled, ...rest }: UseCalendarsBusyTimesProps) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
-      rest?.calendarsToLoad?.toString() ?? "",
+      rest?.calendarsToLoad?.length ?? 0,
       rest.dateFrom ?? "",
       rest.dateTo ?? "",
       rest.loggedInUsersTz,
@@ -32,7 +35,7 @@ export const useCalendarsBusyTimes = ({ onError, enabled, ...rest }: UseCalendar
           throw new Error(res.data.error.message);
         });
     },
-    enabled,
+    enabled: enabled && !!rest.dateFrom && !!rest.dateTo,
   });
   return availableSlots;
 };

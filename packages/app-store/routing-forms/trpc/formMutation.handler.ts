@@ -3,8 +3,9 @@ import { Prisma } from "@prisma/client";
 
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import type { PrismaClient } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import { createFallbackRoute } from "../lib/createFallbackRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -23,6 +24,7 @@ interface FormMutationHandlerOptions {
   };
   input: TFormMutationInputSchema;
 }
+
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
   const { user, prisma } = ctx;
   const { name, id, description, disabled, addFallback, duplicateFrom, shouldConnect } = input;
@@ -33,8 +35,9 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       code: "FORBIDDEN",
     });
   }
-  let { routes: inputRoutes } = input;
-  let { fields: inputFields } = input;
+
+  let { routes: inputRoutes, fields: inputFields } = input;
+
   inputFields = inputFields || [];
   inputRoutes = inputRoutes || [];
   type InputFields = typeof inputFields;
@@ -61,6 +64,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       settings: true,
       teamId: true,
       position: true,
+      updatedById: true,
     },
   });
 
@@ -143,6 +147,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       description,
       settings: settings === null ? Prisma.JsonNull : settings,
       routes: routes === null ? Prisma.JsonNull : routes,
+      updatedById: user.id,
     },
   });
 
@@ -267,6 +272,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
         },
         data: {
           fields: updatedConnectedFormFields,
+          updatedById: user.id,
         },
       });
     }
@@ -306,7 +312,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       });
     }
 
-    if (!canEditEntity(sourceForm, userId)) {
+    if (!(await canEditEntity(sourceForm, userId))) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `Form to duplicate: ${duplicateFrom} not found or you are unauthorized`,

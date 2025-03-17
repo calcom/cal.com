@@ -1,17 +1,5 @@
 import type { Metadata } from "next";
 
-import { APP_NAME } from "@calcom/lib/constants";
-import { truncateOnWord } from "@calcom/lib/text";
-
-type RootMetadataRecipe = Readonly<{
-  twitterCreator: string;
-  twitterSite: string;
-  robots: {
-    index: boolean;
-    follow: boolean;
-  };
-}>;
-
 export type PageMetadataRecipe = Readonly<{
   title: string;
   canonical: string;
@@ -21,9 +9,9 @@ export type PageMetadataRecipe = Readonly<{
   metadataBase: URL;
 }>;
 
-export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
+export const prepareRootMetadata = (): Metadata => ({
   icons: {
-    icon: "/favicon.icon",
+    icon: "/favicon.ico",
     apple: "/api/logo?type=apple-touch-icon",
     other: [
       {
@@ -44,8 +32,13 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
     ],
   },
   manifest: "/site.webmanifest",
-  viewport: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0",
-  robots: recipe.robots,
+  viewport: {
+    width: "device-width",
+    initialScale: 1.0,
+    maximumScale: 1.0,
+    userScalable: false,
+    viewportFit: "cover",
+  },
   other: {
     "application-TileColor": "#ff0000",
   },
@@ -60,29 +53,12 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
     },
   ],
   twitter: {
-    site: recipe.twitterSite,
-    creator: recipe.twitterCreator,
+    site: "@calcom",
+    creator: "@calcom",
     card: "summary_large_image",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
 });
-
-export const preparePageMetadata = (recipe: PageMetadataRecipe): Metadata => {
-  const titleSuffix = `| ${APP_NAME}`;
-  const { description } = recipe;
-  return {
-    title: recipe.title.includes(titleSuffix) ? recipe.title : `${recipe.title} ${titleSuffix}`,
-    description,
-    alternates: {
-      canonical: recipe.canonical,
-    },
-    openGraph: {
-      description: truncateOnWord(description, 158),
-      url: recipe.canonical,
-      type: "website",
-      siteName: recipe.siteName,
-      title: recipe.title,
-      images: [recipe.image],
-    },
-    metadataBase: recipe.metadataBase,
-  };
-};

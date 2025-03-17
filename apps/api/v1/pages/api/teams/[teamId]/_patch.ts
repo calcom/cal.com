@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -123,9 +123,11 @@ export async function patchHandler(req: NextApiRequest) {
   // TODO: Perhaps there is a better fix for this?
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
+    bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
   } = {
     ...data,
     smsLockReviewedByAdmin: false,
+    bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
   const team = await prisma.team.update({ where: { id: teamId }, data: cloneData });

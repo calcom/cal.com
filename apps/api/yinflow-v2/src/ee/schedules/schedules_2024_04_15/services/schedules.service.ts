@@ -1,3 +1,8 @@
+import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { ScheduleOutput } from "@/ee/schedules/schedules_2024_04_15/outputs/schedule.output";
+import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.repository";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
 import { User } from "@prisma/client";
@@ -10,12 +15,6 @@ import {
   transformDateOverridesForClient,
 } from "@calcom/platform-libraries-0.0.2";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
-
-import { UserWithProfile, UsersRepository } from "../../../../modules/users/users.repository";
-import { CreateAvailabilityInput_2024_04_15 } from "../inputs/create-availability.input";
-import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input";
-import { ScheduleOutput } from "../outputs/schedule.output";
-import { SchedulesRepository_2024_04_15 } from "../schedules.repository";
 
 @Injectable()
 export class SchedulesService_2024_04_15 {

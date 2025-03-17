@@ -1,9 +1,9 @@
 import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import type { RouterOutputs } from "@calcom/trpc";
 import { Avatar, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 type TeamInviteFromOrgProps = PropsWithChildren<{
   selectedEmails?: string | string[];
@@ -33,7 +33,7 @@ export default function TeamInviteFromOrg({
         <TextField placeholder="Search..." onChange={(e) => setSearchQuery(e.target.value)} />
       </div>
       <hr className="border-subtle -mx-4 mt-2" />
-      <div className="scrollbar flex max-h-48 min-h-48 flex-col space-y-0.5 overflow-y-scroll pt-2">
+      <div className="scrollbar min-h-48 flex max-h-48 flex-col space-y-0.5 overflow-y-scroll pt-2">
         <>
           {filteredMembers &&
             filteredMembers.map((member) => {

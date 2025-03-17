@@ -7,16 +7,14 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import type { nameObjectSchema } from "@calcom/core/event";
-import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
@@ -37,6 +35,8 @@ import {
   formatToLocalizedTime,
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
+import type { nameObjectSchema } from "@calcom/lib/event";
+import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -287,7 +287,7 @@ export default function Success(props: PageProps) {
     t,
   };
 
-  const giphyAppData = getEventTypeAppData(eventType, "giphy");
+  const giphyAppData = getEventTypeAppData(eventType as any, "giphy");
   const giphyImage = giphyAppData?.thankYouPage;
   const isRoundRobin = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
@@ -471,6 +471,7 @@ export default function Success(props: PageProps) {
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
+  const isHost = props.isLoggedInUserHost;
   const isntAuthenticated = session === null && !(userIsOwner || props.hideBranding);
 
   const { description, rescheduleRoute } = useMemo(() => {
@@ -718,7 +719,7 @@ export default function Success(props: PageProps) {
         </div>
       )}
       <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
-      <BookingPageTagManager eventType={eventType} />
+      <BookingPageTagManager eventType={eventType as any} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           <div
@@ -744,7 +745,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32")}>
+                      className={classNames(isRoundRobin && "min-h-24 min-w-32 relative mx-auto h-24 w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -1033,12 +1034,15 @@ export default function Success(props: PageProps) {
                           profile={{ name: props.profile.name, slug: props.profile.slug }}
                           recurringEvent={eventType.recurringEvent}
                           team={eventType?.team?.name}
-                          setIsCancellationMode={() => setIsCancellationMode(!isCancellationMode)}
+                          teamId={eventType?.team?.id}
+                          setIsCancellationMode={setIsCancellationMode}
                           theme={isSuccessBookingPage ? props.profile.theme : "light"}
                           allRemainingBookings={allRemainingBookings}
                           seatReferenceUid={seatReferenceUid}
                           bookingCancelledEventProps={bookingCancelledEventProps}
                           currentUserEmail={currentUserEmail}
+                          isHost={isHost}
+                          internalNotePresets={props.internalNotePresets}
                         />
                       </>
                     )}
@@ -1326,7 +1330,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle ltr:text-left rtl:text-right"
+                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
                   message={
                     <div>

@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import type { AppsStatus } from "@calcom/types/Calendar";
+import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
 import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking/types";
 
@@ -12,19 +12,22 @@ export type NewSeatedBookingObject = {
   rescheduleUid: string | undefined;
   reqBookingUid: string | undefined;
   eventType: NewBookingEventType;
-  evt: CalendarEvent;
+  evt: Omit<CalendarEvent, "bookerUrl"> & {
+    bookerUrl: string;
+  };
   invitee: Invitee;
   allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
   bookerEmail: string;
+  bookerPhoneNumber?: string | null;
   tAttendees: TFunction;
   bookingSeat: BookingSeat;
   reqUserId: number | undefined;
   rescheduleReason: RescheduleReason;
   reqBodyUser: string | string[] | undefined;
   noEmail: NoEmail;
-  isConfirmedByDefault: IsConfirmedByDefault;
+  isConfirmedByDefault: boolean;
   additionalNotes: AdditionalNotes;
   reqAppsStatus: ReqAppsStatus;
   attendeeLanguage: string | null;
@@ -40,6 +43,7 @@ export type NewSeatedBookingObject = {
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
   rescheduledBy?: string;
   workflows: Workflow[];
+  isDryRun?: boolean;
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };

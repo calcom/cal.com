@@ -151,7 +151,7 @@ export class OutlookService implements OAuthCalendarApp {
     redir?: string
   ) {
     // if code is not defined, user denied to authorize office 365 app, just redirect straight away
-    if (!code) {
+    if (!code || code === "undefined") {
       return { url: redir || origin };
     }
 

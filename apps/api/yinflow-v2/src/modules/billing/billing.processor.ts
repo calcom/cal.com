@@ -1,10 +1,9 @@
+import { BillingRepository } from "@/modules/billing/billing.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { StripeService } from "@/modules/stripe/stripe.service";
 import { Process, Processor } from "@nestjs/bull";
 import { Logger } from "@nestjs/common";
 import { Job } from "bull";
-
-import { BillingRepository } from "../billing/billing.repository";
-import { OrganizationsRepository } from "../organizations/organizations.repository";
-import { StripeService } from "../stripe/stripe.service";
 
 export const INCREMENT_JOB = "increment";
 export const BILLING_QUEUE = "billing";
@@ -47,9 +46,9 @@ export class BillingProcessor {
         return;
       }
 
-      const stripeSubscription = await this.stripeService.stripe.subscriptions.retrieve(
-        billingSubscription.subscriptionId
-      );
+      const stripeSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(billingSubscription.subscriptionId);
       if (!stripeSubscription?.id) {
         this.logger.error(`Failed to retrieve stripe subscription (${billingSubscription.subscriptionId})`, {
           teamId,
@@ -70,7 +69,7 @@ export class BillingProcessor {
         return;
       }
 
-      await this.stripeService.stripe.subscriptionItems.createUsageRecord(meteredItem.id, {
+      await this.stripeService.getStripe().subscriptionItems.createUsageRecord(meteredItem.id, {
         action: "increment",
         quantity: 1,
         timestamp: "now",

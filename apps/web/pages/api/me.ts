@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const prePrismaDate = performance.now();
   const prisma = (await import("@calcom/prisma")).default;
   const preSessionDate = performance.now();
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   if (!session) return res.status(409).json({ message: "Unauthorized" });
   const preUserDate = performance.now();
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });

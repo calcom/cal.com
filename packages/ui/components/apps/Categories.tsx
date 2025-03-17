@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
 import { SkeletonText } from "../skeleton";
 import { Slider } from "./Slider";
 

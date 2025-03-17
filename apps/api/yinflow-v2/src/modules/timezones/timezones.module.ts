@@ -1,10 +1,10 @@
+import { RedisModule } from "@/modules/redis/redis.module";
+import { TimezonesController } from "@/modules/timezones/controllers/timezones.controller";
+import { TimezonesService } from "@/modules/timezones/services/timezones.service";
 import { Module } from "@nestjs/common";
 
-import { TimezonesController } from "../timezones/controllers/timezones.controller";
-import { TimezonesService } from "../timezones/services/timezones.service";
-
 @Module({
-  imports: [],
+  imports: [RedisModule],
   providers: [TimezonesService],
   controllers: [TimezonesController],
   exports: [TimezonesService],

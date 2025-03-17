@@ -1,3 +1,4 @@
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -12,15 +13,24 @@ export interface EventMembersProps {
    * In case of Round Robin type, members aren't shown.
    */
   schedulingType: BookerEvent["schedulingType"];
-  users: BookerEvent["users"];
+  users: BookerEvent["subsetOfUsers"];
   profile: BookerEvent["profile"];
   entity: BookerEvent["entity"];
+  isPrivateLink: boolean;
 }
 
-export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
+export const EventMembers = ({
+  schedulingType,
+  users,
+  profile,
+  entity,
+  isPrivateLink,
+}: EventMembersProps) => {
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
   const isEmbed = useIsEmbed();
+  const isPlatform = useIsPlatform();
+
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
   // In some cases we don't show the user's names, but only show the profile name.
@@ -35,11 +45,12 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
       : [
           {
             // We don't want booker to be able to see the list of other users or teams inside the embed
-            href: isEmbed
-              ? null
-              : entity.teamSlug
-              ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
-              : getBookerBaseUrlSync(entity.orgSlug),
+            href:
+              isEmbed || isPlatform || isPrivateLink
+                ? null
+                : entity.teamSlug
+                ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
+                : getBookerBaseUrlSync(entity.orgSlug),
             image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",
@@ -48,32 +59,33 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
 
   return (
     <div>
-      <div className="grid grid-cols-1 sm:hidden ">
-        <AvatarGroup
-          size="sm"
-          // className="border-muted"
-          items={[
-            ...orgOrTeamAvatarItem,
-            ...shownUsers.map((user) => ({
-              href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
-                user.profile?.username
-              }?redirect=false`,
-              alt: user.name || "",
-              title: user.name || "",
-              image: getUserAvatarUrl(user),
-            })),
-          ]}
-        />
+      <AvatarGroup
+        size="sm"
+        className="border-muted"
+        items={[
+          ...orgOrTeamAvatarItem,
+          ...shownUsers.map((user) => ({
+            href:
+              isPlatform || isPrivateLink
+                ? null
+                : `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
+                    user.profile?.username
+                  }?redirect=false`,
+            alt: user.name || "",
+            title: user.name || "",
+            image: getUserAvatarUrl(user),
+          })),
+        ]}
+      />
 
-        <p className=" custom-mobile-text text-subtle mt-8 text-sm font-semibold">
-          {showOnlyProfileName
-            ? profile.name
-            : shownUsers
-                .map((user) => user.name)
-                .filter((name) => name)
-                .join(", ")}
-        </p>
-      </div>
+      <p className=" custom-mobile-text text-subtle mt-8 text-sm font-semibold">
+        {showOnlyProfileName
+          ? profile.name
+          : shownUsers
+              .map((user) => user.name)
+              .filter((name) => name)
+              .join(", ")}
+      </p>
       <div className="grid hidden grid-cols-1 md:block">
         <AvatarGroup
           size="xl"

@@ -1,3 +1,5 @@
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
@@ -18,31 +20,32 @@ const credentialForCalendarRepositorySelect = Prisma.validator<Prisma.Credential
 
 @Injectable()
 export class CalendarsRepository {
-  // TODO: PrismaReadService
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+
   async getCalendarCredentials(credentialId: number, userId: number) {
-    // return await this.dbRead.prisma.credential.findFirst({
-    //   where: {
-    //     id: credentialId,
-    //     userId,
-    //   },
-    //   select: {
-    //     ...credentialForCalendarRepositorySelect,
-    //     app: {
-    //       select: {
-    //         slug: true,
-    //         categories: true,
-    //         dirName: true,
-    //       },
-    //     },
-    //   },
-    // });
+    return await this.dbRead.prisma.credential.findFirst({
+      where: {
+        id: credentialId,
+        userId,
+      },
+      select: {
+        ...credentialForCalendarRepositorySelect,
+        app: {
+          select: {
+            slug: true,
+            categories: true,
+            dirName: true,
+          },
+        },
+      },
+    });
   }
-  // TODO: PrismaWriteService
+
   async deleteCredentials(credentialId: number) {
-    // return await this.dbWrite.prisma.credential.delete({
-    //   where: {
-    //     id: credentialId,
-    //   },
-    // });
+    return await this.dbWrite.prisma.credential.delete({
+      where: {
+        id: credentialId,
+      },
+    });
   }
 }

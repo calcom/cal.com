@@ -1,7 +1,7 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -72,7 +72,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
-            <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
+            <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
               <div className="text-default">{t("setting_up_zapier")}</div>
 
               <>

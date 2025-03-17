@@ -22,6 +22,7 @@ const recurringEventInputSchema = z.object({
 const hostSchema = _HostModel.pick({
   isFixed: true,
   userId: true,
+  scheduleId: true,
 });
 
 export const childrenSchema = z.object({
@@ -168,6 +169,10 @@ export const schemaEventTypeReadPublic = EventType.pick({
     metadata: jsonSchema.nullable(),
     customInputs: customInputSchema.array().optional(),
     link: z.string().optional(),
+    hashedLink: z
+      .array(z.object({ link: z.string() }))
+      .optional()
+      .default([]),
     bookingFields: eventTypeBookingFields.optional().nullable(),
   })
 );

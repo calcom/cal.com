@@ -1,28 +1,29 @@
 "use client";
 
 import type { App_RoutingForms_Form } from "@prisma/client";
-import { Utils as QbUtils } from "react-awesome-query-builder";
+import type { JsonTree } from "react-awesome-query-builder";
 import type { z } from "zod";
+
+import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 
 import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";
-import { getQueryBuilderConfig } from "./getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";
-import jsonLogic from "./jsonLogicOverrides";
 
-export function processRoute({
+export function findMatchingRoute({
   form,
   response,
 }: {
-  form: SerializableForm<App_RoutingForms_Form>;
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
   response: Record<string, Pick<FormResponse[string], "value">>;
 }) {
-  const queryBuilderConfig = getQueryBuilderConfig(form);
+  const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
   const routes = form.routes || [];
 
-  let decidedAction: Route["action"] | null = null;
+  let chosenRoute: Route | null = null;
 
   const fallbackRoute = routes.find(isFallbackRoute);
 
@@ -41,41 +42,30 @@ export function processRoute({
     // After above flat map, all routes are non router routes.
     .concat([fallbackRoute]) as z.infer<typeof zodNonRouterRoute>[];
 
-  routesWithFallbackInEnd.some((route) => {
+  for (const route of routesWithFallbackInEnd) {
     if (!route) {
-      return false;
-    }
-    const state = {
-      tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), queryBuilderConfig),
-      config: queryBuilderConfig,
-    };
-    const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
-    const logic = jsonLogicQuery.logic;
-    let result = false;
-    const responseValues: Record<string, FormResponse[string]["value"]> = {};
-    for (const [uuid, { value }] of Object.entries(response)) {
-      responseValues[uuid] = value;
+      continue;
     }
 
-    if (logic) {
-      // Leave the logs for debugging of routing form logic test in production
-      console.log("Checking logic with response", logic, responseValues);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = jsonLogic.apply(logic as any, responseValues);
-    } else {
-      // If no logic is provided, then consider it a match
-      result = true;
-    }
-    if (result) {
-      decidedAction = route.action;
-      return true;
-    }
-  });
+    const responseValues: Record<string, FormResponse[string]["value"]> = Object.fromEntries(
+      Object.entries(response).map(([uuid, { value }]) => [uuid, value])
+    );
 
-  if (!decidedAction) {
+    const result = evaluateRaqbLogic({
+      queryValue: route.queryValue as JsonTree,
+      queryBuilderConfig,
+      data: responseValues,
+    });
+
+    if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
+      chosenRoute = route;
+      break;
+    }
+  }
+
+  if (!chosenRoute) {
     return null;
   }
 
-  // Without type assertion, it is never. See why https://github.com/microsoft/TypeScript/issues/16928
-  return decidedAction as Route["action"];
+  return chosenRoute;
 }

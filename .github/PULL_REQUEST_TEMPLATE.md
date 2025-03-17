@@ -5,14 +5,24 @@
 - Fixes #XXXX (GitHub issue number)
 - Fixes CAL-XXXX (Linear issue number - should be visible at the bottom of the GitHub issue description)
 
-<!-- Please provide a loom video for visual changes to speed up reviews
- Loom Video: https://www.loom.com/
--->
+## Visual Demo (For contributors especially)
+
+A visual demonstration is strongly recommended, for both the original and new change **(video / image - any one)**.
+
+#### Video Demo (if applicable):
+
+- Show screen recordings of the issue or feature.
+- Demonstrate how to reproduce the issue, the behavior before and after the change.
+
+#### Image Demo (if applicable):
+
+- Add side-by-side screenshots of the original and updated change.
+- Highlight any significant change(s).
 
 ## Mandatory Tasks (DO NOT REMOVE)
 
 - [ ] I have self-reviewed the code (A decent size PR without self-review might be rejected).
-- [ ] I have added a Docs issue [here](https://github.com/calcom/docs/issues/new) if this PR makes changes that would require a [documentation change](https://docs.cal.com/docs). If N/A, write N/A here and check the checkbox.
+- [ ] I have updated the developer docs in /docs if this PR makes changes that would require a [documentation change](https://cal.com/docs). If N/A, write N/A here and check the checkbox.
 - [ ] I confirm automated tests are in place that prove my fix is effective or that my feature works.
 
 ## How should this be tested?

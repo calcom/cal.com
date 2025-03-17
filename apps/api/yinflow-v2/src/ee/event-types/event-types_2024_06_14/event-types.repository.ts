@@ -1,115 +1,101 @@
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UsersService } from "@/modules/users/services/users.service";
 import { Injectable } from "@nestjs/common";
 
-import {
-  getEventTypeById,
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeLocations,
-} from "@calcom/platform-libraries";
-import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
-import type { PrismaClient } from "@calcom/prisma";
-
-import { UsersService } from "../../../modules/users/services/users.service";
-import { UserWithProfile } from "../../../modules/users/users.repository";
-
-type InputEventTransformed = Omit<
-  CreateEventTypeInput_2024_06_14,
-  | "lengthInMinutes"
-  | "locations"
-  | "bookingFields"
-  | "bookingLimitsCount"
-  | "onlyShowFirstAvailableSlot"
-  | "bookingLimitsDuration"
-  | "offsetStart"
-  | "periodType"
-  | "periodDays"
-  | "periodCountCalendarDays"
-  | "periodStartDate"
-  | "periodEndDate"
-  | "recurrence"
-> & {
-  length: number;
-  slug: string;
-  locations?: ReturnType<typeof transformApiEventTypeLocations>;
-  bookingFields?: ReturnType<typeof transformApiEventTypeBookingFields>;
-};
+import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {
-  constructor(private usersService: UsersService) {}
-  // TODO: PrismaWriteService
-  async createUserEventType(userId: number, body: InputEventTransformed) {
-    // return this.dbWrite.prisma.eventType.create({
-    //   data: {
-    //     ...body,
-    //     userId,
-    //     locations: body.locations,
-    //     bookingFields: body.bookingFields,
-    //     users: { connect: { id: userId } },
-    //   },
-    // });
-  }
-  // TODO: PrismaReadService
-  async getEventTypeWithSeats(eventTypeId: number) {
-    // return this.dbRead.prisma.eventType.findUnique({
-    //   where: { id: eventTypeId },
-    //   select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
-    // });
-  }
-  // TODO: PrismaReadService
-  async getUserEventType(userId: number, eventTypeId: number) {
-    // return this.dbRead.prisma.eventType.findFirst({
-    //   where: {
-    //     id: eventTypeId,
-    //     userId,
-    //   },
-    //   include: { users: true, schedule: true },
-    // });
-  }
-  // TODO: PrismaReadService
-  async getUserEventTypes(userId: number) {
-    // return this.dbRead.prisma.eventType.findMany({
-    //   where: {
-    //     userId,
-    //   },
-    //   include: { users: true, schedule: true },
-    // });
-  }
-  // TODO: PrismaReadService
-  async getUserEventTypeForAtom(
-    user: UserWithProfile,
-    isUserOrganizationAdmin: boolean,
-    eventTypeId: number
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+
+  async createUserEventType(
+    userId: number,
+    body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar">
   ) {
-    // return await getEventTypeById({
-    //   currentOrganizationId: this.usersService.getUserMainOrgId(user),
-    //   eventTypeId,
-    //   userId: user.id,
-    //   prisma: this.dbRead.prisma as unknown as PrismaClient,
-    //   isUserOrganizationAdmin,
-    //   isTrpcCall: true,
-    // });
+    return this.dbWrite.prisma.eventType.create({
+      data: {
+        ...body,
+        userId,
+        locations: body.locations,
+        bookingFields: body.bookingFields,
+        users: { connect: { id: userId } },
+      },
+    });
   }
-  // TODO: PrismaReadService
+
+  async getEventTypeWithSeats(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        users: { select: { id: true } },
+        seatsPerTimeSlot: true,
+        locations: true,
+        requiresConfirmation: true,
+      },
+    });
+  }
+
+  async getEventTypeWithMetaData(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { metadata: true },
+    });
+  }
+
+  async getEventTypeWithHosts(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: { hosts: true },
+    });
+  }
+
+  async getUserEventType(userId: number, eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        userId,
+      },
+      include: { users: true, schedule: true, destinationCalendar: true },
+    });
+  }
+
+  async getUserEventTypes(userId: number) {
+    return this.dbRead.prisma.eventType.findMany({
+      where: {
+        userId,
+      },
+      include: { users: true, schedule: true, destinationCalendar: true },
+    });
+  }
+
   async getEventTypeById(eventTypeId: number) {
-    // return this.dbRead.prisma.eventType.findUnique({
-    //   where: { id: eventTypeId },
-    //   include: { users: true, schedule: true },
-    // });
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: { users: true, schedule: true, destinationCalendar: true },
+    });
   }
-  // TODO: PrismaReadService
+
+  async getEventTypeByIdWithOwnerAndTeam(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: { owner: true, team: true },
+    });
+  }
+
   async getUserEventTypeBySlug(userId: number, slug: string) {
-    // return this.dbRead.prisma.eventType.findUnique({
-    //   where: {
-    //     userId_slug: {
-    //       userId: userId,
-    //       slug: slug,
-    //     },
-    //   },
-    //   include: { users: true, schedule: true },
-    // });
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        userId_slug: {
+          userId: userId,
+          slug: slug,
+        },
+      },
+      include: { users: true, schedule: true, destinationCalendar: true },
+    });
   }
-  // TODO: PrismaWriteService
+
   async deleteEventType(eventTypeId: number) {
-    // return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
+    return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
   }
 }

@@ -27,10 +27,12 @@ type PartialBooking =
       | "attendees"
       | "userPrimaryEmail"
       | "smsReminderNumber"
+      | "title"
     > & {
       eventType:
         | (Partial<EventType> & {
-            team: { parentId?: number };
+            slug: string;
+            team: { parentId?: number; hideBranding: boolean };
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
         | null;
@@ -57,7 +59,7 @@ async function getWorkflowReminders<T extends Prisma.WorkflowReminderSelect>(
   while (true) {
     const newFilteredWorkflowReminders = await prisma.workflowReminder.findMany({
       where: filter,
-      select: select,
+      select: select as any,
       skip: pageNumber * pageSize,
       take: pageSize,
     });
@@ -82,7 +84,7 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
     method: WorkflowMethods.EMAIL,
     cancelled: true,
     scheduledDate: {
-      lte: dayjs().toISOString(),
+      lt: dayjs().toISOString(),
     },
   };
 
@@ -184,6 +186,7 @@ export const select: Prisma.WorkflowReminderSelect = {
           team: {
             select: {
               parentId: true,
+              hideBranding: true,
             },
           },
         },
@@ -197,7 +200,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
     method: WorkflowMethods.EMAIL,
     scheduled: false,
     scheduledDate: {
-      lte: dayjs().add(72, "hour").toISOString(),
+      lte: dayjs().add(2, "hour").toISOString(),
     },
     OR: [{ cancelled: false }, { cancelled: null }],
   };

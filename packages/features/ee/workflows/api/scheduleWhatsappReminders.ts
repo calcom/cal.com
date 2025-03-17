@@ -2,13 +2,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
 import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
-import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
 import * as twilio from "../lib/reminders/providers/twilioProvider";
 
@@ -38,8 +37,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         lte: dayjs().add(7, "day").toISOString(),
       },
     },
-    select,
-  })) as PartialWorkflowReminder[];
+    select: select as any,
+  })) as any[];
 
   if (!unscheduledReminders.length) {
     res.json({ ok: true });
@@ -77,6 +76,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template);
       const message = templateFunction(
         false,
+        reminder.booking.user?.locale || "en",
         reminder.workflowStep.action,
         getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
         reminder.booking?.startTime.toISOString() || "",

@@ -2,7 +2,7 @@ import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import type { ReactNode } from "react";
 import React from "react";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 export const Group = (props: RadioGroupPrimitive.RadioGroupProps & { children: ReactNode }) => (
   <RadioGroupPrimitive.Root {...props}>{props.children}</RadioGroupPrimitive.Root>
@@ -42,14 +42,21 @@ export const RadioField = ({
   id,
   value,
   className,
+  withPadding,
 }: {
   label: string | ReactNode;
   disabled?: boolean;
   id: string;
   value: string;
   className?: string;
+  withPadding?: boolean;
 }) => (
-  <div className={classNames("flex items-start", className)}>
+  <div
+    className={classNames(
+      "flex items-start",
+      withPadding && "hover:bg-subtle cursor-pointer rounded-lg p-1.5",
+      className
+    )}>
     <Radio value={value} disabled={disabled} id={id}>
       <Indicator disabled={disabled} />
     </Radio>

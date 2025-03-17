@@ -2,10 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { FUTURE_ROUTES_OVERRIDE_COOKIE_NAME as COOKIE_NAME } from "@calcom/lib/constants";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session || !session.user || !session.user.email) {
     res.status(401).json({ message: "Not authenticated" });
@@ -16,12 +17,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
 
   // We take you back where you came from if possible
   if (typeof req.headers["referer"] === "string") redirectUrl = req.headers["referer"];
-
-  /* Only admins can opt-in to future routes for now */
-  if (session.user.role !== "ADMIN") {
-    res.redirect(redirectUrl);
-    return;
-  }
 
   // If has the cookie, Opt-out of V2
   if (COOKIE_NAME in req.cookies && req.cookies[COOKIE_NAME] === "1") {

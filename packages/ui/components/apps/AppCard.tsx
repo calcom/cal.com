@@ -8,7 +8,6 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
@@ -16,6 +15,7 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import type { ButtonProps } from "@calcom/ui";
 import { Badge, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../button";
 
@@ -42,12 +42,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
-      setIsLoading(false);
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-      setIsLoading(false);
     },
   });
 
@@ -64,7 +62,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   }, [app.name, searchText]);
 
   const handleAppInstall = () => {
-    setIsLoading(true);
     if (isConferencing(app.categories)) {
       mutation.mutate({
         type: app.type,
@@ -154,7 +151,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       onClick: () => {
                         handleAppInstall();
                       },
-                      loading: isLoading,
+                      loading: mutation.isPending,
                     };
                   }
                   return <InstallAppButtonChild paid={app.paid} {...props} />;
@@ -176,7 +173,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       onClick: () => {
                         handleAppInstall();
                       },
-                      loading: isLoading,
+                      loading: mutation.isPending,
                     };
                   }
                   return <InstallAppButtonChild paid={app.paid} {...props} />;
@@ -184,7 +181,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
               />
             )}
       </div>
-      <div className="absolute right-0 mr-4 flex max-w-44 flex-wrap justify-end gap-1">
+      <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
         {appAdded > 0 ? <Badge variant="green">{t("installed", { count: appAdded })}</Badge> : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>

@@ -5,7 +5,8 @@ import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -51,7 +52,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
     code,
   };
-  const server_location = location === "us" ? "com" : location;
+  let server_location = location === "us" ? "com" : location;
+
+  if (location === "us") {
+    server_location = "com";
+  } else if (location === "au") {
+    server_location = "com.au";
+  } else {
+    server_location = location;
+  }
 
   const query = stringify(params);
 

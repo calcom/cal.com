@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "serial" });
 
@@ -175,7 +176,7 @@ test.describe("unauthorized user sees correct translations (pt-br)", async () =>
 
 test.describe("unauthorized user sees correct translations (es-419)", async () => {
   test.use({
-    locale: "es-419",
+    locale: "es",
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
@@ -437,13 +438,11 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
       await page.waitForLoadState("domcontentloaded");
 
       await page.locator(".bg-default > div > div:nth-child(2)").first().click();
-      await page.locator("#react-select-2-option-0").click();
+      await page.getByTestId("select-option-ar").click();
 
-      await page.getByRole("button", { name: "Aktualisieren" }).click();
-
-      await page
-        .getByRole("button", { name: "Einstellungen erfolgreich aktualisiert" })
-        .waitFor({ state: "visible" });
+      await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+        action: () => page.click("[data-testid=general-submit-button]"),
+      });
 
       await page.locator("html[lang=ar]").waitFor({ state: "attached" });
       await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
@@ -501,11 +500,9 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
       await page.locator(".bg-default > div > div:nth-child(2)").first().click();
       await page.locator("text=Português (Brasil)").click();
 
-      await page.getByRole("button", { name: "Aktualisieren" }).click();
-
-      await page
-        .getByRole("button", { name: "Einstellungen erfolgreich aktualisiert" })
-        .waitFor({ state: "visible" });
+      await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+        action: () => page.click("[data-testid=general-submit-button]"),
+      });
 
       await page.locator("html[lang=pt-BR]").waitFor({ state: "attached" });
       await page.locator("html[dir=ltr]").waitFor({ state: "attached" });

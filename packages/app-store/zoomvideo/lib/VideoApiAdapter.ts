@@ -72,7 +72,7 @@ export const zoomUserSettingsSchema = z.object({
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
-// append comma seperated settings here, to retrieve only these specific settings
+// append comma separated settings here, to retrieve only these specific settings
 const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording";
 
 type ZoomRecurrence = {
@@ -105,7 +105,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       recurringEvent,
       startTime,
       attendees,
-    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 8 } | undefined => {
+    }: CalendarEvent): { recurrence: ZoomRecurrence } | undefined => {
       if (!recurringEvent) {
         return;
       }
@@ -147,7 +147,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         recurrence: {
           ...recurrence,
         },
-        type: 8,
       };
     };
 
@@ -333,12 +332,15 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           body: JSON.stringify(await translateEvent(event)),
         });
 
-        return Promise.resolve({
+        const updatedMeeting = await fetchZoomApi(`meetings/${bookingRef.uid}`);
+        const result = zoomEventResultSchema.parse(updatedMeeting);
+
+        return {
           type: "zoom_video",
-          id: bookingRef.meetingId as string,
-          password: bookingRef.meetingPassword as string,
-          url: bookingRef.meetingUrl as string,
-        });
+          id: result.id.toString(),
+          password: result.password || "",
+          url: result.join_url,
+        };
       } catch (err) {
         log.error("Failed to update meeting", safeStringify(err));
         return Promise.reject(new Error("Failed to update meeting"));

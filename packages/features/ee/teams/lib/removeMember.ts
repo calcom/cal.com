@@ -115,6 +115,16 @@ const removeMember = async ({
         userId: membership.userId,
         organizationId: team.id,
       }),
+      prisma.host.deleteMany({
+        where: {
+          userId: memberId,
+          eventType: {
+            team: {
+              parentId: teamId,
+            },
+          },
+        },
+      }),
     ]);
   }
 

@@ -1,10 +1,9 @@
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Request } from "express";
 
 import { Webhook } from "@calcom/prisma/client";
-
-import { GetUserReturnType } from "../../auth/decorators/get-user/get-user.decorator";
-import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsUserWebhookGuard implements CanActivate {
@@ -12,7 +11,7 @@ export class IsUserWebhookGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { webhook: Webhook }>();
-    const user = request.user as GetUserReturnType;
+    const user = request.user as ApiAuthGuardUser;
     const webhookId = request.params.webhookId;
 
     if (!user || !webhookId) {

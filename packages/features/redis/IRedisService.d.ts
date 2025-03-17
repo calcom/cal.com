@@ -8,4 +8,6 @@ export interface IRedisService {
   lrange: <TResult = string>(key: string, start: number, end: number) => Promise<TResult[]>;
 
   lpush: <TData>(key: string, ...elements: TData[]) => Promise<number>;
+
+  del: (key: string) => Promise<number>;
 }

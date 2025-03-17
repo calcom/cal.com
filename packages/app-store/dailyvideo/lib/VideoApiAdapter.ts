@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { handleErrorsJson } from "@calcom/lib/errors";
+import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import { fetcher } from "@calcom/lib/dailyApiFetcher";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import {
@@ -9,13 +10,12 @@ import {
   recordingItemSchema,
 } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
 import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
-import { getDailyAppKeys } from "./getDailyAppKeys";
 import {
   dailyReturnTypeSchema,
   getTranscripts,
@@ -43,7 +43,7 @@ export interface DailyVideoCallData {
 }
 
 /** @deprecated use metadata on index file */
-export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
+export const FAKE_DAILY_CREDENTIAL: CredentialForCalendarService & { invalid: boolean } = {
   id: 0,
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
@@ -52,19 +52,8 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   appId: "daily-video",
   invalid: false,
   teamId: null,
-};
-
-export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
-  const { api_key } = await getDailyAppKeys();
-  return fetch(`https://api.daily.co/v1${endpoint}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${api_key}`,
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-    ...init,
-  }).then(handleErrorsJson);
+  delegatedToId: null,
+  delegatedTo: null,
 };
 
 function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
@@ -111,7 +100,50 @@ async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   return allTranscriptsAccessLinks;
 }
 
-export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToken: string | null) => {
+export const updateMeetingTokenIfExpired = async ({
+  bookingReferenceId,
+  meetingToken,
+  roomName,
+  exp,
+}: {
+  bookingReferenceId: number;
+  meetingToken: string | null;
+  roomName: string;
+  exp: number;
+}) => {
+  if (!meetingToken) return null;
+
+  try {
+    await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
+  } catch (err) {
+    const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
+      properties: {
+        room_name: roomName,
+        exp: exp,
+        enable_recording_ui: false,
+        is_owner: true,
+      },
+    }).then(meetingTokenSchema.parse);
+
+    await prisma.bookingReference.update({
+      where: {
+        id: bookingReferenceId,
+      },
+      data: {
+        meetingPassword: organizerMeetingToken.token,
+      },
+    });
+
+    return organizerMeetingToken.token;
+  }
+
+  return meetingToken;
+};
+
+export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
+  meetingToken: string | null,
+  userId?: number
+) => {
   if (!meetingToken) return null;
 
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
@@ -120,6 +152,7 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
       room_name: token.room_name,
       exp: token.exp,
       enable_recording_ui: false,
+      user_id: userId,
     },
   }).then(meetingTokenSchema.parse);
 
@@ -127,14 +160,15 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
 };
 
 // Only for backward compatibility
-export const setEnableRecordingUIForOrganizer = async (
+export const setEnableRecordingUIAndUserIdForOrganizer = async (
   bookingReferenceId: number,
-  meetingToken: string | null
+  meetingToken: string | null,
+  userId?: number
 ) => {
   if (!meetingToken) return null;
 
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
-  if (token.enable_recording_ui === false) return null;
+  if (token.enable_recording_ui === false && !!token.user_id) return null;
 
   const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
     properties: {
@@ -142,6 +176,7 @@ export const setEnableRecordingUIForOrganizer = async (
       exp: token.exp,
       enable_recording_ui: false,
       is_owner: true,
+      user_id: userId,
     },
   }).then(meetingTokenSchema.parse);
 
@@ -205,6 +240,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_knocking: true,
         enable_screenshare: true,
         enable_chat: true,
+        enable_pip_ui: true,
         exp: exp,
         enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
         enable_transcription_storage: !!hasTeamPlan,
@@ -231,6 +267,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_knocking: true,
         enable_screenshare: true,
         enable_chat: true,
+        enable_pip_ui: true,
         exp: exp,
         enable_recording: isScalePlanTrue ? "cloud" : undefined,
         start_video_off: true,
@@ -301,6 +338,24 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         const res = await fetcher(`/rooms/${roomName}`).then(getRooms.parse);
         const roomId = res.id;
         const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
+
+        if (!allTranscripts.data.length) return [];
+
+        const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
+        const allTranscriptsAccessLink = await processTranscriptsInBatches(allTranscriptsIds);
+        const accessLinks = await Promise.all(allTranscriptsAccessLink);
+
+        return Promise.resolve(accessLinks);
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to get transcription access link");
+      }
+    },
+    getAllTranscriptsAccessLinkFromMeetingId: async (meetingId: string): Promise<Array<string>> => {
+      try {
+        const allTranscripts = await fetcher(`/transcript?mtgSessionId=${meetingId}`).then(
+          getTranscripts.parse
+        );
 
         if (!allTranscripts.data.length) return [];
 

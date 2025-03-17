@@ -21,6 +21,8 @@ export type AppConfig = {
   stripe: {
     apiKey: string;
     webhookSecret: string;
+    teamMonthlyPriceId: string;
+    isTeamBillingEnabled: boolean;
   };
   app: {
     baseUrl: string;

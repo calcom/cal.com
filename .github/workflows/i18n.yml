@@ -1,0 +1,25 @@
+name: Run i18n AI automation
+on:
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-main
+  cancel-in-progress: false
+
+jobs:
+  i18n:
+    name: Run i18n
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lingodotdev/lingo.dev@main
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        with:
+          api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
+          pull-request: true
