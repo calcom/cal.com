@@ -496,6 +496,8 @@ checksums:
     browser_notifications_turned_off: f9ff8b96ea57c00e90d761af4f3494c3
     browser_notifications_denied: 82aae055de0e798655fa07f96d426717
     please_allow_notifications: 1ff79d465b45be45108352f8422cdb84
+    push_notifications: e771f23130f9aab4f3e2e99acacf5d5a
+    push_notifications_description: 405bef88b5ba902815aa310ddfa6c81b
     browser_notifications_not_supported: 3cdb7e333c9bfcf703047d66deab825e
     email: e7f34943a0c2fb849db1839ff6ef5cb5
     email_placeholder: 06962d9f03dcdbd4fa1b876f240054e8
@@ -867,6 +869,7 @@ checksums:
     disabled: 0889a3dfd914a7ef638611796b17bf72
     disable: 81b754fd7962e0bd9b6ba87f3972e7fc
     billing: b01dbdd049ebbd4a349fa64d6ce65a3b
+    here: 462e596d55b481e23f29b5ced669624a
     manage_your_billing_info: 761a62cb360478bf678d6cd3be37c8db
     availability: f141aa3e9adb2179806cc1c909b5516a
     edit_availability: 899e894888ad242ace4b73085108793e
@@ -1547,6 +1550,7 @@ checksums:
     transcript_from_previous_call: 7485bc94e7ca0e7b2f9cefa8f5b12168
     you_can_download_transcript_from_attachments: bd1f8b66fa7a44eeed9c113112a042e5
     link_valid_for_12_hrs: 7701a0f7bdc1ca82a14e6fa28583ac74
+    link_valid_for_12_hrs_description: 4b38956402dac1b1a12515a06a957940
     create_your_first_form: 5d33316ece53f9ffddba51418869d7aa
     create_your_first_form_description: deafa03d444fc9af9c16f48408d8048c
     create_your_first_webhook: cbb0a8e44a610282d7c63fef7219c0be
@@ -2912,6 +2916,7 @@ checksums:
     dry_run_mode_active: 921ba1004a593504ba9719886864d90e
     icon_showcase: 0879657c77461a19cafbdaa1e168b95e
     icons_showcase: 8771aa0011d8ffefbe9370312152ef6a
+    migrating_from_team: 07daeef0898e300a586e7c4b1a568582
     feature_currently_disabled: 3d4991fb6097adb96e8e2afca1e44b7e
     choose_an_option: 1c57b133afef47a60666d5d37b9b321e
     enter_option_value: 03bdf1e9fd1bdba6f895bf6f85d2fd28
@@ -2941,6 +2946,32 @@ checksums:
     asc: 859eb73e4d1bda5351ca36472efe6492
     desc: 55089d006e5eb530227e6f1c41707fc9
     verify_email_change: b7a83c7a3100b128e8d1a8f36a8171ba
+    organization_slug_taken: 492cc9dd76b78c9210c0c7dfafbfd040
+    you_cannot_create_an_organization_as_you_are_already_part_of_an_organization: f7df69b7f201bdfc1f26eb41006102a2
+    you_need_to_complete_user_onboarding_before_creating_an_organization: c1489f3a1ddc3859fd07e83b3b07be66
+    use_company_email_to_create_an_organization: 26abc465780871f0a23b2eef61ea0d1f
+    you_cannot_create_a_platform_organization_as_you_are_already_part_of_a_team: 49e21cc9b2edfa47d62f3967e339dc30
+    you_need_to_have_minimum_published_teams: caca2e163c61ef5d37557bc13af44b78
+    you_are_part_of_this_organization_already: 6aa91e4d820d3c72f555f1e9e0737ced
+    you_are_part_of_another_organization_cannot_create_organization: 53b9b4a53e020a408d720e350ae7b774
+    organization_payment_success: 951a82c2e195a15f83af3b026fa57a72
+    organization_payment_success_description: e10387c8e2a9880819197eb6e7668851
+    this_may_take_a_few_seconds: 0c64a854aca6535be51454d1256e4bcb
+    organization_onboarding_status: dddf2c2fa427199744c5d64b5496da46
+    organization_onboarding_status_description: ffdd7f90e2a009df12f21a2809daf694
+    payment_failed: ae71f51d0a9d3498300477af85feb254
+    payment_failed_description: ef65b33c522f14bd5db83014667c9c16
+    creating_your_organization: 32b8f9facb2514d15d489dbffb094eab
+    organization_onboarding_already_completed: df2c905eb169f2f42e293fa6d5243d93
+    organization_onboarding_already_exists: aaaa83350fdf0178c9600ed074bb2bbf
+    organization_onboarding_not_found: c7cd7bb978730d6ab4caed9bb4193406
+    payment_successful: 26139c4e065830e603a6ccac55527e8f
+    handover_onboarding_page_title: a61ab7919f72082df9a972bac8c74426
+    handover_onboarding_page_description: 6d339f432ff7f65ab8a795b63a251ecb
+    organization_already_exists_with_this_slug: f52b122360e50086b5a32af26f8e2d86
+    you_do_not_have_permission_to_create_an_organization_for_this_email: c5190e46518fb611a5474d5fbe638958
+    you_do_not_have_permission_to_migrate_one_or_more_of_the_teams: f22359610b55abcd13d16d45bf70fca2
+    organization_has_subscription_already: 60152b9cef5c8bb2b4a41db2fa9994b4
     rr_reset_interval: ffdef32be533d9f5b1b86100dfb891ea
     interval: 5af7bb003b4c592d32e7755cd72ddabf
     rr_reset_interval_description: 049a939eb13f36b3c772fc67494f7754
@@ -2965,6 +2996,8 @@ checksums:
     limited_access_trial_mode: c501618906970336bf51e5d715efed8d
     uid: 379cc5edfadebfc2d792e341bf7a190b
     link: 60f0aa33e70ca6df3b6659802b16f433
+    rows_per_page: c95a0b385cad1e73b95619fe92a61cb6
+    pagination_status: cd211731460d6ae349ac8a8898313be3
     tip_username_plus: d3279ca90f8abdd965844998dd29bebc
     user_has_no_team_yet: a8d58d1e2b62cfb97b61afd1b72385c4
     no_team_members: a8329bca21c7026eb28cde53c0d2911a

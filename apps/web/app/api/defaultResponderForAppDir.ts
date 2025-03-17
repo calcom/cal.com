@@ -27,7 +27,7 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
 
       ok = true;
       if (result) {
-        return result instanceof Response ? result : NextResponse.json(result);
+        return result;
       }
 
       return NextResponse.json({});

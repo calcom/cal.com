@@ -16,10 +16,12 @@ import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
+import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
+import { ZIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
@@ -32,10 +34,34 @@ const NAMESPACE = "organizations";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerOrganizationsRouter = router({
+  getOrganizationOnboarding: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getOrganizationOnboarding"),
+      () => import("./getOrganizationOnboarding.handler")
+    );
+    return handler(opts);
+  }),
+
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler(opts);
   }),
+  intentToCreateOrg: authedProcedure.input(ZIntentToCreateOrgInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("intentToCreateOrg"),
+      () => import("./intentToCreateOrg.handler")
+    );
+    return handler(opts);
+  }),
+  createWithPaymentIntent: authedProcedure
+    .input(ZCreateWithPaymentIntentInputSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("createWithPaymentIntent"),
+        () => import("./createWithPaymentIntent.handler")
+      );
+      return handler(opts);
+    }),
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("update"), () => import("./update.handler"));
     return handler(opts);

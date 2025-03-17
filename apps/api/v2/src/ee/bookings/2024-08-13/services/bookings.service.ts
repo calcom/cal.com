@@ -1,4 +1,5 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
@@ -15,6 +16,7 @@ import { z } from "zod";
 
 import {
   handleNewRecurringBooking,
+  getTranslation,
   getAllUserBookings,
   handleInstantMeeting,
   handleCancelBooking,
@@ -22,6 +24,7 @@ import {
   roundRobinManualReassignment,
   handleMarkNoShow,
   confirmBookingHandler,
+  getCalendarLinks,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import {
@@ -226,8 +229,7 @@ export class BookingsService_2024_08_13 {
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
-      // note(Lauris): we substract -1 because getAllUSerBookings child function adds +1 for some reason
-      take: queryParams.take ? queryParams.take - 1 : 100,
+      take: queryParams.take ?? 100,
       filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
         user,
@@ -548,5 +550,35 @@ export class BookingsService_2024_08_13 {
     });
 
     return this.getBooking(bookingUid);
+  }
+
+  async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
+    }
+
+    if (!booking.eventTypeId) {
+      throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
+    }
+
+    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(
+      booking.eventTypeId
+    );
+    if (!eventType) {
+      throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
+    }
+    // TODO: Maybe we should get locale from query params?
+    return getCalendarLinks({
+      booking,
+      eventType: {
+        ...eventType,
+        // TODO: Support dynamic event bookings later. It would require a slug input it seems
+        isDynamic: false,
+      },
+      // It can be made customizable through the API endpoint later.
+      t: await getTranslation("en", "common"),
+    });
   }
 }
