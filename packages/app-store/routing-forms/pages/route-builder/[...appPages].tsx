@@ -30,7 +30,6 @@ import {
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
@@ -49,6 +48,7 @@ import {
   isDynamicOperandField,
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 import type {
   GlobalRoute,
   LocalRoute,

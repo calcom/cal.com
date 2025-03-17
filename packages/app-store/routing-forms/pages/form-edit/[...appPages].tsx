@@ -22,11 +22,11 @@ import classNames from "@calcom/ui/classNames";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 
 export { getServerSideProps };
 type SelectOption = { label: string; id: string | null };

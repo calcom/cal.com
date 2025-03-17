@@ -15,7 +15,7 @@ import { Switch, InputField, Button, Select, showToast } from "@calcom/ui";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
