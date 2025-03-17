@@ -12,7 +12,9 @@ export const ShellMainAppDirBackButton = ({ backPath }: { backPath: LayoutProps[
       variant="icon"
       size="sm"
       color="minimal"
-      onClick={() => (typeof backPath === "string" ? router.push(backPath as string) : router.back())}
+      onClick={() =>
+        typeof backPath === "string" ? router.push(backPath as string) : (router.back(), router.refresh())
+      }
       StartIcon="arrow-left"
       aria-label="Go Back"
       className="rounded-md ltr:mr-2 rtl:ml-2"
