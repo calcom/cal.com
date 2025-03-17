@@ -215,10 +215,10 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
-      // Can only schedule at least 15 minutes in advance and at most 7 days in advance
+      // schedule at least 15 minutes in advance and at most 2 hours in advance
       if (
         currentDate.isBefore(scheduledDate.subtract(15, "minute")) &&
-        !scheduledDate.isAfter(currentDate.add(7, "day"))
+        !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
           const scheduledSMS = await twilio.scheduleSMS(
@@ -246,7 +246,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         } catch (error) {
           log.error(`Error scheduling SMS with error ${error}`);
         }
-      } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
+      } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
         // Write to DB and send to CRON if scheduled reminder date is past 7 days
         await prisma.workflowReminder.create({
           data: {

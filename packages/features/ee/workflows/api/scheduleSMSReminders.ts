@@ -1,4 +1,4 @@
-/* Schedule any workflow reminder that falls within 7 days for SMS */
+/* Schedule any workflow reminder that falls within the next 2 hours for SMS */
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
@@ -51,7 +51,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        lte: dayjs().add(2, "hour").toISOString(),
       },
     },
     select: {
