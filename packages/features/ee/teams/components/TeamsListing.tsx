@@ -30,7 +30,7 @@ export function TeamsListing() {
     }
   );
 
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
 
   const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
     onSuccess: (teamName) => {

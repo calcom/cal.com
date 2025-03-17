@@ -17,6 +17,7 @@ import { ConferencingService } from "@/modules/conferencing/services/conferencin
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { Logger } from "@nestjs/common";
 import {
   Controller,
   Get,
@@ -32,6 +33,7 @@ import {
   Redirect,
   UnauthorizedException,
   Req,
+  HttpException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
@@ -54,6 +56,8 @@ export type OAuthCallbackState = {
 })
 @DocsTags("Conferencing")
 export class ConferencingController {
+  private readonly logger = new Logger("ConferencingController");
+
   constructor(
     private readonly tokensRepository: TokensRepository,
     private readonly conferencingService: ConferencingService,
@@ -112,6 +116,10 @@ export class ConferencingController {
     @Query("error") error: string | undefined,
     @Query("error_description") error_description: string | undefined
   ): Promise<{ url: string }> {
+    if (!state) {
+      throw new BadRequestException("Missing `state` query param");
+    }
+
     const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
     try {
       const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
@@ -132,6 +140,9 @@ export class ConferencingController {
         return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState);
       }
     } catch (error) {
+      if (error instanceof HttpException || error instanceof Error) {
+        this.logger.error(error.message);
+      }
       return {
         url: decodedCallbackState.onErrorReturnTo ?? "",
       };
