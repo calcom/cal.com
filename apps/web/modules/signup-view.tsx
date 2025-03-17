@@ -218,19 +218,23 @@ export default function Signup({ prepopulateFormValues, redirectUrl }: SignupPro
                 </defs>
               </svg>
               <p className="text-[42px] font-medium leading-none text-[#114559]">
-                Crie sua conta no <br />
-                <span className="text-[42px] font-medium leading-none text-[#06C6A9]">
+                Acesse o{" "}
+                <span class="text-[42px] font-medium leading-none text-[#06C6A9]">
                   {" "}
                   Painel do Profissional
                 </span>
-              </p>
-              <p className="mt-6 text-lg font-normal text-[#114559]">
-                Você recebeu um convite para criar a sua conta no
-                <span className="text-lg font-medium text-[#114559]"> Painel do Profissional </span>
-                Yinflow.Life.
+                <br />
               </p>
               <p className="mt-6 text-lg font-normal leading-5 text-[#114559]">
-                Crie sua conta utilizando o mesmo e-mail Google informado nas etapas anteriores de admissão.
+                Configure sua conta utilizando seu e-mail Google e obtenha acesso ao Painel do Profissional.
+              </p>
+              <p className="mt-6 text-lg font-normal leading-5 text-[#114559]">
+                Em caso de dúvidas,{" "}
+                <a
+                  href="https://www.yinflow.life/whatsapp-time-de-operacoes"
+                  className="cadastro-agenda underline">
+                  entre em contato com o Time de Operações.
+                </a>
               </p>
             </div>
             {/* Already have an account & T&C */}
@@ -309,11 +313,7 @@ export default function Signup({ prepopulateFormValues, redirectUrl }: SignupPro
           </div>
           <div className="border-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-3xl border-[#06C6A3]  bg-[#E0F6EF] pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
             <div className="hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl lg:block lg:py-[6px] lg:pl-[6px]">
-              <img
-                className="block h-full	h-full"
-                src="/mock-event-type-list.svg"
-                alt="Cal.com Booking Page"
-              />
+              <img className="block h-full	h-full" src="/embed-intro.png" alt="Agenda.Yinflow" />
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
               {FEATURES.map((feature) => (

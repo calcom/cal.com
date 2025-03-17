@@ -26,6 +26,7 @@ function Policy() {
               armazenamento e compartilhamento de dados, tendo todos os seus sistemas sendo gerenciados por
               profssionais competentes e certificados para atuação em suas respectivas funções.
             </div>
+
             <h4 className="style-8">2. COLETA E USO DE DADOS</h4>
             <div className="style-9">
               <strong className="style-10">2.1.</strong> Nós obtemos seus dados pessoais através de seu
@@ -199,46 +200,97 @@ function Policy() {
             <div className="style-105">
               <strong className="style-106">2.5.</strong> Ao se cadastrar em nosso aplicativo, caso você
               conceda permissão por meio da funcionalidade de conectar o seu calendário, o aplicativo poderá
-              acessar dados da sua conta Google Calendar exclusivamente com o objetivo de melhorar a sua
-              experiência de usuário e fornecer nossos serviços, da seguinte forma:
+              acessar dados da sua conta Google Calendar (ou Google Agenda) exclusivamente com o objetivo de
+              melhorar a sua experiência de usuário e fornecer nossos serviços, da seguinte forma:
               <ul>
                 <br className="style-107" />
                 <li>
-                  Acesso e uso: Poderemos acessar e usar dados de eventos do Google Calendar para
+                  - Acesso e uso: Poderemos acessar e usar dados de eventos do Google Calendar para
                   disponibilizar sua agenda como profisisonal de saúde para nossos pacientes para que os
                   mesmos possam fazer solicitações de agendamentos na sua agenda através da nossa aplicação.
                   Ao nos fornecer este acesso você estará nos dando acesso à dados da sua conta Google
                   Calendar que serão obtidos pelos seguintes escopos da API do Google Calendar:
                   <br className="style-108" />
+                  <br className="style-108" />
                   <ul>
                     <li>
-                      Eventos do Calendário (somente leitura): Permitirá visualizar eventos em todos os seus
+                      - Eventos do Calendário (somente leitura): Permitirá visualizar eventos em todos os seus
                       calendários. Esta permissão será utilizada pela nossa aplicação para detectar dias e
                       horários em que você tem eventos agendados e portanto, com base nisso, inferir sua
                       disponibilidade, que por sua vez será usada para criar uma agenda de horários
                       efetivamente disponíveis para solicitações agendamento, evitando solicitações que
                       resultem em conflito de horários, ou seja, dois eventos agendados no mesmo horário.
                       <br className="style-108" />
+                      <br className="style-108" />
                     </li>
                     <li>
-                      Eventos do Calendário (leitura e escrita): Permitirá visualizar e editar eventos em
-                      todos os seus calendários. Esta permissão será utilizada para criar eventos em seu
-                      calendário a partir de solicitações de agendamento.
+                      - Eventos do Calendário (gerenciamento de eventos): Permitirá visualizar, editar, criar
+                      e excluir eventos em todos os seus calendários. Esta permissão será utilizada para criar
+                      eventos em seu calendário a partir de solicitações de agendamento, bem como gerenciar
+                      esses eventos quando necessário.
+                      <br className="style-108" />
                       <br className="style-108" />
                     </li>
                   </ul>
                 </li>
                 <li>
-                  Armazenamento: Dados de eventos obtidos pela API do Google Calendar não serão armazenados em
-                  nossos servidores e não serão lidos por humanos.
+                  - Armazenamento: Dados de eventos obtidos pela API do Google Calendar não serão armazenados
+                  em nossos servidores e não serão lidos por humanos.
+                  <br className="style-108" />
                   <br className="style-108" />
                 </li>
                 <li>
-                  Compartilhamento: Dados de eventos obtidos pela API do Google Calendar não serão
+                  - Compartilhamento: Dados de eventos obtidos pela API do Google Calendar não serão
                   compartilhados.
                   <br className="style-108" />
+                  <br className="style-108" />
+                </li>
+                <br className="style-108" />
+                <li>
+                  <strong>Segurança dos Dados:</strong> Implementamos rigorosas práticas de segurança para
+                  proteger seus dados do Google Calendar, incluindo:
+                  <ul>
+                    <li>- Criptografia em trânsito e em repouso</li>
+                    <li>- Controles de acesso estritos</li>
+                    <li>- Monitoramento contínuo de segurança</li>
+                    <li>- Auditorias regulares de segurança</li>
+                  </ul>
+                </li>
+                <br className="style-108" />
+                <li>
+                  <strong>Não Utilizamos seus Dados Para:</strong>
+                  <ul>
+                    <li>- Publicidade ou marketing</li>
+                    <li>- Venda ou transferência a terceiros</li>
+                    <li>- Análise de crédito ou fins financeiros</li>
+                    <li>- Qualquer finalidade além do agendamento</li>
+                  </ul>
                 </li>
               </ul>
+            </div>
+            <div
+              className="google-limited-use-notice"
+              style={{
+                padding: "20px",
+                margin: "20px 0",
+                backgroundColor: "#f8f9fa",
+                border: "2px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "1.1em",
+              }}>
+              <strong>Aviso Importante sobre Uso de APIs do Google:</strong>
+              <br />O uso e transferência para qualquer outro aplicativo de informações recebidas das APIs do
+              Google pela Yinflow.Life aderirão à{" "}
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="style-7">
+                Política de Dados do Usuário dos Serviços de API do Google
+              </a>
+              , incluindo os requisitos de Uso Limitado. Seus dados do Google Calendar são usados
+              exclusivamente para fornecer as funcionalidades de agendamento e nunca serão vendidos, usados
+              para publicidade ou compartilhados com terceiros.
             </div>
             <h4 className="style-110">3. Compartilhamento de Dados</h4>
             <div className="style-111">
@@ -421,7 +473,7 @@ function Policy() {
                   <tr className="style-188">
                     <td className="style-189">O que é feito com meus dados depois de 20 anos?</td>
                     <td className="style-190">
-                      Conforme Lei nº 13.787, de 27 de dezembro de 2018: “Art. 6º Decorrido o prazo mínimo de
+                      Conforme Lei nº 13.787, de 27 de dezembro de 2018: "Art. 6º Decorrido o prazo mínimo de
                       20 (vinte) anos a partir do último registro, os prontuários em suporte de papel e os
                       digitalizados poderão ser eliminados. § 1º Prazos diferenciados para a guarda de
                       prontuário de paciente, em papel ou digitalizado, poderão ser fixados em regulamento, de
@@ -433,7 +485,7 @@ function Policy() {
                       registradas na forma de regulamento. § 5º As disposições deste artigo aplicam-se a todos
                       os prontuários de paciente, independentemente de sua forma de armazenamento, inclusive
                       aos microfilmados e aos arquivados eletronicamente em meio óptico, bem como aos
-                      constituídos por documentos gerados e mantidos originalmente de forma eletrônica.”
+                      constituídos por documentos gerados e mantidos originalmente de forma eletrônica."
                     </td>
                   </tr>
                 </tbody>
