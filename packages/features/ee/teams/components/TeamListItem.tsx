@@ -46,7 +46,7 @@ export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const user = trpc.viewer.me.useQuery().data;
+  const user = trpc.viewer.me.get.useQuery().data;
   const team = props.team;
 
   const showDialog = searchParams?.get("inviteModal") === "true";
