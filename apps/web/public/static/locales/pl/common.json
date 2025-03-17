@@ -1118,6 +1118,7 @@
   "duplicate": "Duplikat",
   "offer_seats": "Zaproponuj miejsca",
   "offer_seats_description": "Zaoferuj miejsca do zarezerwowania. To automatycznie wyłącza rezerwacje gości i rezerwacje wstępne.",
+  "seats_available_one": "Dostępne miejsce",
   "seats_available_other": "Dostępne miejsca",
   "seats_nearly_full": "Prawie wszystkie miejsca zajęte",
   "seats_half_full": "Miejsca szybko znikają",

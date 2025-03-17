@@ -1118,6 +1118,7 @@
   "duplicate": "Duplicar",
   "offer_seats": "Oferecer lugares",
   "offer_seats_description": "Oferecer lugares para reservas (isto desactiva os convidados e confirmações nas reservas)",
+  "seats_available_one": "Lugar disponível",
   "seats_available_other": "Lugares disponíveis",
   "seats_nearly_full": "Lugares quase esgotados",
   "seats_half_full": "Lugares rapidamente ocupados",
