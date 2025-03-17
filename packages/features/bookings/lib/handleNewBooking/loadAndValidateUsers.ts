@@ -85,7 +85,7 @@ export async function loadAndValidateUsers({
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
-    hostname,
+    hostname: hostname || "",
     forcedSlug,
     isPlatform,
     routedTeamMemberIds,
