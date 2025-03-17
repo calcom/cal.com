@@ -1,5 +1,4 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
@@ -7,6 +6,8 @@ import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+
+import { AppStoreMetadataRepository } from "./appStoreMetadataRepository";
 
 export type TDependencyData = {
   name?: string;
@@ -64,6 +65,8 @@ export async function getAppRegistry() {
 
 export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
   // Get teamIds to grab existing credentials
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
+  await appStoreMetadataRepository.buildAllAppsMap();
 
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
@@ -114,16 +117,18 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
     app.createdAt = dbapp.createdAt.toISOString();
-    let dependencyData: TDependencyData = [];
+    const dependencyData: TDependencyData = [];
     if (app.dependencies) {
-      dependencyData = app.dependencies.map((dependency) => {
-        const dependencyInstalled = dbApps.some(
-          (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
-        );
-        // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-        const dependencyName = getAppFromSlug(dependency)?.name;
-        return { name: dependencyName, installed: dependencyInstalled };
-      });
+      await Promise.all(
+        app.dependencies.map(async (dependency) => {
+          const dependencyInstalled = dbApps.some(
+            (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
+          );
+          // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
+          const dependencyName = await appStoreMetadataRepository.getAppFromSlug(dependency)?.name;
+          return { name: dependencyName, installed: dependencyInstalled };
+        })
+      );
     }
 
     apps.push({

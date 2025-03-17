@@ -1,8 +1,9 @@
+// TODO: This file should not be in packages/lib. Move it higher in the application stack.
 // eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import getApps from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
@@ -26,7 +27,9 @@ import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendarCredentials = (credentials: Array<CredentialForCalendarService>) => {
-  const calendarCredentials = getApps(credentials, true)
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
+  const calendarCredentials = appStoreMetadataRepository
+    .getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {

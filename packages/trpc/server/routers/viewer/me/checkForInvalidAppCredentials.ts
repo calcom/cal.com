@@ -1,4 +1,4 @@
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
@@ -11,6 +11,7 @@ type checkInvalidAppCredentialsOptions = {
 };
 
 export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredentialsOptions) => {
+  const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const userId = ctx.user.id;
 
   const apps = await prisma.credential.findMany({
@@ -42,7 +43,7 @@ export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredent
   for (const app of apps) {
     if (app.appId) {
       const appId = app.appId;
-      const appMeta = await getAppFromSlug(appId);
+      const appMeta = await appStoreMetadataRepository.getAppFromSlug(appId);
       const name = appMeta ? appMeta.name : appId;
       appNamesAndSlugs.push({ slug: appId, name });
     }

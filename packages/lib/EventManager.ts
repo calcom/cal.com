@@ -1,3 +1,4 @@
+// This file should not be in packages/lib. Move it higher in the application stack
 import type { DestinationCalendar, BookingReference } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
@@ -5,10 +6,10 @@ import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { AppStoreMetadataRepository } from "@calcom/app-store/appStoreMetadataRepository";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
-import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
@@ -140,10 +141,11 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser, eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
+    const appStoreMetadataRepository = new AppStoreMetadataRepository(); // Refactor to dependency injection?
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
-    const appCredentials = getApps(user.credentials, true).flatMap((app) =>
-      app.credentials.map((creds) => ({ ...creds, appName: app.name }))
-    );
+    const appCredentials = appStoreMetadataRepository
+      .getApps(user.credentials, true)
+      .flatMap((app) => app.credentials.map((creds) => ({ ...creds, appName: app.name })));
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
     this.calendarCredentials = appCredentials
       .filter(
