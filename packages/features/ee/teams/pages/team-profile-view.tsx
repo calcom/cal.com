@@ -124,6 +124,7 @@ const ProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");

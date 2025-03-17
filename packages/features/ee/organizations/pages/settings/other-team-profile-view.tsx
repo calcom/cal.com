@@ -70,6 +70,7 @@ const OtherTeamProfileView = () => {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -123,6 +124,7 @@ const OtherTeamProfileView = () => {
   const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
     async onSuccess() {
       await utils.viewer.organizations.listOtherTeams.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");
