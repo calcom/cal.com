@@ -1,3 +1,5 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
 import crypto from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -14,8 +16,8 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
+async function postHandler(req: NextRequest) {
+  const body = await parseRequestData(req);
   const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
 
   if (!session) {
@@ -80,3 +82,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ secret, keyUri, dataUri, backupCodes });
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

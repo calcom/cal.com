@@ -1043,6 +1043,8 @@ export async function login(
 
   //login
   await page.goto("/");
+  await page.waitForSelector("text=Welcome back");
+
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);

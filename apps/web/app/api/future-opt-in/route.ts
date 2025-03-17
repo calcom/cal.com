@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -6,7 +7,7 @@ import { FUTURE_ROUTES_OVERRIDE_COOKIE_NAME as COOKIE_NAME } from "@calcom/lib/c
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export async function GET() {
+async function getHandler() {
   const headersList = headers();
   const cookiesList = cookies();
   const legacyReq = buildLegacyRequest(headersList, cookiesList);
@@ -35,3 +36,5 @@ export async function GET() {
 
   return response;
 }
+
+export const GET = defaultResponderForAppDir(getHandler);

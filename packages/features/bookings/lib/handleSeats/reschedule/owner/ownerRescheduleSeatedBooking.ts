@@ -7,7 +7,7 @@ import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
+import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type {
   NewTimeSlotBooking,
   SeatedBooking,
