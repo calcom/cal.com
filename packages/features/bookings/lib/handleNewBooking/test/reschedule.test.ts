@@ -617,7 +617,7 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking({
-            bookingData: mockedBookingData,
+            bookingData: mockBookingData,
           });
 
           await expectBookingInDBToBeRescheduledFromTo({

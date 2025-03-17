@@ -1558,18 +1558,15 @@ describe("handleNewBooking", () => {
             utm_content: "content test",
           };
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                },
-                tracking,
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
               },
-            }),
+              tracking,
+            },
           });
 
           const scenarioData = getScenarioData({
@@ -1608,7 +1605,9 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "zoomvideo",
           });
           await createBookingScenario(scenarioData);
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
 
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           expectBookingTrackingToBeInDatabase(tracking, createdBooking.uid!);
