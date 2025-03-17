@@ -698,7 +698,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
-  const { data: userSettings } = trpc.viewer.me.useQuery();
+  const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
   const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
