@@ -82,7 +82,7 @@ const BookerComponent = ({
   isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
   hashedLink,
-  timeZonesFromProps,
+  timeZones,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -398,7 +398,7 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZonesFromProps={timeZonesFromProps}
+                  timeZonesFromProps={timeZones}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
