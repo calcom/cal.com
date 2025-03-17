@@ -5,7 +5,7 @@ import classNames from "@calcom/ui/classNames";
 
 import { UpgradeTeamsBadge } from "../../badge";
 import { Icon } from "../../icon";
-import type { SelectProps } from "./Select";
+import type { SelectProps } from "./types";
 
 export const InputComponent = <
   Option,
@@ -47,7 +47,11 @@ export const OptionComponent = <
         <span className="mr-auto" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {props.label || <>&nbsp;</>}
         </span>
-        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? <UpgradeTeamsBadge /> : <></>}
+        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
+          <UpgradeTeamsBadge checkForActiveStatus={true} />
+        ) : (
+          <></>
+        )}
         {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
