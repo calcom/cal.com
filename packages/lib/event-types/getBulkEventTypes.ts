@@ -16,20 +16,22 @@ const getBulkEventTypes = async (userId: number) => {
     },
   });
 
-  const eventTypesWithLogo = eventTypes.map((eventType) => {
-    const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+  const eventTypesWithLogo = await Promise.all(
+    eventTypes.map(async (eventType) => {
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
 
-    // some events has null as location for legacy reasons, so this fallbacks to daily video
-    const app = appStoreMetadataRepository.getAppFromLocationValue(
-      locationParsed.success && locationParsed.data?.[0]?.type
-        ? locationParsed.data[0].type
-        : "integrations:daily"
-    );
-    return {
-      ...eventType,
-      logo: app?.logo,
-    };
-  });
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = await appStoreMetadataRepository.getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
+      return {
+        ...eventType,
+        logo: app?.logo,
+      };
+    })
+  );
 
   return {
     eventTypes: eventTypesWithLogo,

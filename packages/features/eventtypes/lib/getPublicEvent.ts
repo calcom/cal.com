@@ -241,7 +241,7 @@ export const getPublicEvent = async (
 
     if (preferedLocationType?.appSlug) {
       const appStoreMetadataRepository = new AppStoreMetadataRepository();
-      const foundApp = appStoreMetadataRepository.getAppFromSlug(preferedLocationType.appSlug);
+      const foundApp = await appStoreMetadataRepository.getAppFromSlug(preferedLocationType.appSlug);
       const appType = foundApp?.appData?.location?.type;
       if (appType) {
         // Replace the location with the preferred location type

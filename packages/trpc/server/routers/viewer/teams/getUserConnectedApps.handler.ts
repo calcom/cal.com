@@ -132,24 +132,26 @@ export const getUserConnectedAppsHandler = async ({ ctx, input }: GetUserConnect
     const userId = credentials[0]?.userId;
 
     if (userId) {
-      userConnectedAppsMap[userId] = credentials?.map((cred) => {
-        const appSlug = cred.app?.slug;
-        let appData = appDataMap.get(appSlug);
+      userConnectedAppsMap[userId] = await Promise.all(
+        credentials?.map(async (cred) => {
+          const appSlug = cred.app?.slug;
+          let appData = appDataMap.get(appSlug);
 
-        if (!appData) {
-          appData = appStoreMetadataRepository.getAppFromSlug(appSlug);
-          appDataMap.set(appSlug, appData);
-        }
+          if (!appData) {
+            appData = await appStoreMetadataRepository.getAppFromSlug(appSlug);
+            appDataMap.set(appSlug, appData);
+          }
 
-        const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
-        const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
-        return {
-          name: appData?.name ?? null,
-          logo: appData?.logo ?? null,
-          app: cred.app,
-          externalId: externalId ?? null,
-        };
-      });
+          const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
+          const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
+          return {
+            name: appData?.name ?? null,
+            logo: appData?.logo ?? null,
+            app: cred.app,
+            externalId: externalId ?? null,
+          };
+        })
+      );
     }
   }
 

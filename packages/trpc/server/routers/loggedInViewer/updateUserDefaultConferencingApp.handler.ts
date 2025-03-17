@@ -24,7 +24,7 @@ export const updateUserDefaultConferencingAppHandler = async ({
   const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const currentMetadata = userMetadata.parse(ctx.user.metadata);
   const credentials = await getUsersCredentials(ctx.user);
-  const foundApp = appStoreMetadataRepository
+  const foundApp = await appStoreMetadataRepository
     .getApps(credentials, true)
     .filter((app) => app.slug === input.appSlug)[0];
   const appLocation = foundApp?.appData?.location;

@@ -34,7 +34,7 @@ export const queryForDependenciesHandler = async ({ ctx, input }: QueryForDepend
       });
       const appInstalled = !!dbCredential || !!delegationCredentials.length;
 
-      const app = appStoreMetadataRepository.getAppFromSlug(dependency);
+      const app = await appStoreMetadataRepository.getAppFromSlug(dependency);
 
       dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
     })

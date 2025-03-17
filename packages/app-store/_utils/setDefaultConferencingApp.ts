@@ -8,7 +8,7 @@ const setDefaultConferencingApp = async (userId: number, appSlug: string) => {
   const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const eventTypes = await getBulkEventTypes(userId);
   const eventTypeIds = eventTypes.eventTypes.map((item) => item.id);
-  const foundApp = appStoreMetadataRepository.getAppFromSlug(appSlug);
+  const foundApp = await appStoreMetadataRepository.getAppFromSlug(appSlug);
   const appType = foundApp?.appData?.location?.type;
 
   if (!appType) {

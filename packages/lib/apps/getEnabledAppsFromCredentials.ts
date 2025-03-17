@@ -75,7 +75,7 @@ const getEnabledAppsFromCredentials = async (
 
   enabledApps = [...enabledApps, ...delegationCredentialSupportedEnabledApps];
 
-  const apps = appStoreMetadataRepository.getApps(credentials, filterOnCredentials);
+  const apps = await appStoreMetadataRepository.getApps(credentials, filterOnCredentials);
   const filteredApps = apps.reduce((reducedArray, app) => {
     const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
     if (appDbQuery?.enabled || app.isGlobal) {

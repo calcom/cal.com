@@ -21,7 +21,7 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
   });
 
   describe("Dynamic link apps", () => {
-    test("should return the app type for Zoom", () => {
+    test("should return the app type for Zoom", async () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -31,7 +31,7 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
         },
       };
 
-      const result = getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+      const result = await getLocationForOrganizerDefaultConferencingAppInEvtFormat({
         organizer,
         loggedInUserTranslate: mockTranslate,
       });
@@ -39,7 +39,7 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
       expect(result).toBe("integrations:zoom");
     });
 
-    test("should return the app type for Google Meet", () => {
+    test("should return the app type for Google Meet", async () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -49,7 +49,7 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
         },
       };
 
-      const result = getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+      const result = await getLocationForOrganizerDefaultConferencingAppInEvtFormat({
         organizer,
         loggedInUserTranslate: mockTranslate,
       });
@@ -59,7 +59,7 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
   });
 
   describe("Static link apps", () => {
-    test("should return the app type for Campfire", () => {
+    test("should return the app type for Campfire", async () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -69,7 +69,7 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
           },
         },
       };
-      const result = getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+      const result = await getLocationForOrganizerDefaultConferencingAppInEvtFormat({
         organizer,
         loggedInUserTranslate: mockTranslate,
       });
@@ -77,25 +77,26 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
     });
   });
 
-  describe("Error handling", () => {
-    test("should throw a UserError if defaultConferencingApp is not set", () => {
+  describe("Error handling", async () => {
+    test("should throw a UserError if defaultConferencingApp is not set", async () => {
       const organizer = {
         name: "Test Organizer",
         metadata: null,
       };
 
-      expect(() =>
-        getLocationForOrganizerDefaultConferencingAppInEvtFormat({
-          organizer,
-          loggedInUserTranslate: mockTranslate,
-        })
+      expect(
+        async () =>
+          await getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+            organizer,
+            loggedInUserTranslate: mockTranslate,
+          })
       ).toThrow(UserError);
       expect(mockTranslate).toHaveBeenCalledWith("organizer_default_conferencing_app_not_found", {
         organizer: "Test Organizer",
       });
     });
 
-    test("should throw a SystemError if the app is not found", () => {
+    test("should throw a SystemError if the app is not found", async () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -105,15 +106,16 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
         },
       };
 
-      expect(() =>
-        getLocationForOrganizerDefaultConferencingAppInEvtFormat({
-          organizer,
-          loggedInUserTranslate: mockTranslate,
-        })
+      expect(
+        async () =>
+          await getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+            organizer,
+            loggedInUserTranslate: mockTranslate,
+          })
       ).toThrow(SystemError);
     });
 
-    test("should throw a SystemError for static link apps if appLink is missing", () => {
+    test("should throw a SystemError for static link apps if appLink is missing", async () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -123,11 +125,12 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
         },
       };
 
-      expect(() =>
-        getLocationForOrganizerDefaultConferencingAppInEvtFormat({
-          organizer,
-          loggedInUserTranslate: mockTranslate,
-        })
+      expect(
+        async () =>
+          await getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+            organizer,
+            loggedInUserTranslate: mockTranslate,
+          })
       ).toThrow(SystemError);
     });
   });

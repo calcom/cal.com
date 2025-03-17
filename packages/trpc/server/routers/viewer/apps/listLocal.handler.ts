@@ -20,7 +20,7 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
   const appStoreMetadataRepository = new AppStoreMetadataRepository();
   const { prisma } = ctx;
   const category = input.category;
-  const localApps = appStoreMetadataRepository.getLocalAppMetadata();
+  const localApps = await appStoreMetadataRepository.getLocalAppMetadata();
 
   const dbApps = await prisma.app.findMany({
     where: {

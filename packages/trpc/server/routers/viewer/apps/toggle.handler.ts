@@ -23,7 +23,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
   const { enabled, slug } = input;
 
   // Get app name from metadata
-  const localApps = appStoreMetadataRepository.getLocalAppMetadata();
+  const localApps = await appStoreMetadataRepository.getLocalAppMetadata();
   const appMetadata = localApps.find((localApp) => localApp.slug === slug);
 
   if (!appMetadata) {

@@ -189,45 +189,49 @@ export async function getTeamWithMembers(args: {
       }),
     });
   }
-  const members = teamOrOrgMemberships.map((m) => {
-    const { credentials, profile, ...restUser } = m.user;
-    return {
-      ...restUser,
-      username: profile?.username ?? restUser.username,
-      role: m.role,
-      profile: profile,
-      organizationId: profile?.organizationId ?? null,
-      organization: profile?.organization,
-      accepted: m.accepted,
-      disableImpersonation: m.disableImpersonation,
-      subteams: orgSlug
-        ? m.user.teams
-            .filter((membership) => membership.team.id !== teamOrOrg.id)
-            .map((membership) => membership.team.slug)
-        : null,
-      bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
-      connectedApps: !isTeamView
-        ? credentials?.map((cred) => {
-            const appSlug = cred.app?.slug;
-            let appData = appDataMap.get(appSlug);
+  const members = await Promise.all(
+    teamOrOrgMemberships.map(async (m) => {
+      const { credentials, profile, ...restUser } = m.user;
+      return {
+        ...restUser,
+        username: profile?.username ?? restUser.username,
+        role: m.role,
+        profile: profile,
+        organizationId: profile?.organizationId ?? null,
+        organization: profile?.organization,
+        accepted: m.accepted,
+        disableImpersonation: m.disableImpersonation,
+        subteams: orgSlug
+          ? m.user.teams
+              .filter((membership) => membership.team.id !== teamOrOrg.id)
+              .map((membership) => membership.team.slug)
+          : null,
+        bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
+        connectedApps: !isTeamView
+          ? await Promise.all(
+              credentials?.map(async (cred) => {
+                const appSlug = cred.app?.slug;
+                let appData = appDataMap.get(appSlug);
 
-            if (!appData) {
-              appData = appStoreMetadataRepository.getAppFromSlug(appSlug);
-              appDataMap.set(appSlug, appData);
-            }
+                if (!appData) {
+                  appData = await appStoreMetadataRepository.getAppFromSlug(appSlug);
+                  appDataMap.set(appSlug, appData);
+                }
 
-            const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
-            const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
-            return {
-              name: appData?.name ?? null,
-              logo: appData?.logo ?? null,
-              app: cred.app,
-              externalId: externalId ?? null,
-            };
-          })
-        : null,
-    };
-  });
+                const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
+                const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
+                return {
+                  name: appData?.name ?? null,
+                  logo: appData?.logo ?? null,
+                  app: cred.app,
+                  externalId: externalId ?? null,
+                };
+              })
+            )
+          : null,
+      };
+    })
+  );
 
   const eventTypesWithUsersUserProfile = [];
   for (const eventType of teamOrOrg.eventTypes) {

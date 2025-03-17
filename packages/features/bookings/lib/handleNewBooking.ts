@@ -807,7 +807,7 @@ async function handler(
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = appStoreMetadataRepository.getAppFromSlug(
+      const app = await appStoreMetadataRepository.getAppFromSlug(
         organizerMetadata?.defaultConferencingApp?.appSlug
       );
       locationBodyString = app?.appData?.location?.type || locationBodyString;

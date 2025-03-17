@@ -18,7 +18,7 @@ export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
   const { user } = ctx;
   const appId = input.appId;
   const credentials = await getUsersCredentials(user);
-  const apps = appStoreMetadataRepository.getApps(credentials);
+  const apps = await appStoreMetadataRepository.getApps(credentials);
   const appFromDb = apps.find((app) => app.slug === appId);
   if (!appFromDb) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find app ${appId}` });

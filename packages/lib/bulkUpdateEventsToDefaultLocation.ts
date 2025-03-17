@@ -26,7 +26,7 @@ export const bulkUpdateEventsToDefaultLocation = async ({
   }
 
   const appStoreMetadataRepository = new AppStoreMetadataRepository();
-  const foundApp = appStoreMetadataRepository.getAppFromSlug(defaultApp.appSlug);
+  const foundApp = await appStoreMetadataRepository.getAppFromSlug(defaultApp.appSlug);
   const appType = foundApp?.appData?.location?.type;
   if (!appType) {
     throw new TRPCError({

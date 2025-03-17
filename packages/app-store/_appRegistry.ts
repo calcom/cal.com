@@ -66,6 +66,7 @@ export async function getAppRegistry() {
 export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
   // Get teamIds to grab existing credentials
   const appStoreMetadataRepository = new AppStoreMetadataRepository();
+  await appStoreMetadataRepository.buildAllAppsMap();
 
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
@@ -116,16 +117,18 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
     app.createdAt = dbapp.createdAt.toISOString();
-    let dependencyData: TDependencyData = [];
+    const dependencyData: TDependencyData = [];
     if (app.dependencies) {
-      dependencyData = app.dependencies.map((dependency) => {
-        const dependencyInstalled = dbApps.some(
-          (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
-        );
-        // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-        const dependencyName = appStoreMetadataRepository.getAppFromSlug(dependency)?.name;
-        return { name: dependencyName, installed: dependencyInstalled };
-      });
+      await Promise.all(
+        app.dependencies.map(async (dependency) => {
+          const dependencyInstalled = dbApps.some(
+            (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
+          );
+          // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
+          const dependencyName = await appStoreMetadataRepository.getAppFromSlug(dependency)?.name;
+          return { name: dependencyName, installed: dependencyInstalled };
+        })
+      );
     }
 
     apps.push({

@@ -157,7 +157,7 @@ async function getLocationInEvtFormatOrThrow({
   }
 
   try {
-    return getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+    return await getLocationForOrganizerDefaultConferencingAppInEvtFormat({
       organizer: {
         name: organizer.name ?? "Organizer",
         metadata: organizer.metadata,
@@ -194,7 +194,7 @@ export class SystemError extends Error {
   }
 }
 
-export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+export async function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   organizer,
   loggedInUserTranslate: translate,
 }: {
@@ -218,7 +218,7 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
     );
   }
   const defaultConferencingAppSlug = defaultConferencingApp.appSlug;
-  const app = appStoreMetadataRepository.getAppFromSlug(defaultConferencingAppSlug);
+  const app = await appStoreMetadataRepository.getAppFromSlug(defaultConferencingAppSlug);
   if (!app) {
     throw new SystemError(`Default conferencing app ${defaultConferencingAppSlug} not found`);
   }

@@ -20,7 +20,7 @@ export async function getDefaultLocations(user: User): Promise<EventTypeLocation
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
     const credentials = await getUsersCredentials(user);
 
-    const foundApp = appStoreMetadataRepository
+    const foundApp = await appStoreMetadataRepository
       .getApps(credentials, true)
       .filter((app) => app.slug === defaultConferencingData.appSlug)[0]; // There is only one possible install here so index [0] is the one we are looking for ;
     const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
