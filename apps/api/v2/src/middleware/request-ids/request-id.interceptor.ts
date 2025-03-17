@@ -21,11 +21,11 @@ export class ResponseInterceptor implements NestInterceptor {
         const { statusCode } = response;
         const responseTime = Date.now() - startTime;
 
-        let jsonBody = {};
+        let jsonBodyString = "{}";
 
         try {
           if (data && typeof data === "object") {
-            jsonBody = JSON.stringify(data);
+            jsonBodyString = JSON.stringify(data);
           }
         } catch (err) {
           this.logger.error("Could not parse request body");
@@ -37,7 +37,7 @@ export class ResponseInterceptor implements NestInterceptor {
           url,
           statusCode,
           responseTime,
-          responseBody: jsonBody,
+          responseBody: jsonBodyString,
           timestamp: new Date().toISOString(),
         });
       })
