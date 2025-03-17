@@ -24,7 +24,6 @@ import {
 import { useDataTable } from "../hooks";
 
 interface SaveFilterSegmentButtonProps {
-  tableIdentifier: string;
   selectedSegmentId?: number;
 }
 
@@ -34,10 +33,7 @@ interface FormValues {
   teamId?: number;
 }
 
-export function SaveFilterSegmentButton({
-  tableIdentifier,
-  selectedSegmentId,
-}: SaveFilterSegmentButtonProps) {
+export function SaveFilterSegmentButton({ selectedSegmentId }: SaveFilterSegmentButtonProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [isOpen, setIsOpen] = useState(false);
@@ -55,10 +51,11 @@ export function SaveFilterSegmentButton({
     },
   });
 
-  const { activeFilters, sorting, columnVisibility, columnSizing } = useDataTable();
+  const { tableIdentifier, activeFilters, sorting, columnVisibility, columnSizing } = useDataTable();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { data: segments } = trpc.viewer.filterSegments.list.useQuery({ tableIdentifier });
+  const data = trpc.viewer.filterSegments.list.useQuery({ tableIdentifier });
+  const segments = data?.data;
   const selectedSegment = useMemo(() => {
     return segments?.find((segment) => segment.id === selectedSegmentId);
   }, [segments, selectedSegmentId]);

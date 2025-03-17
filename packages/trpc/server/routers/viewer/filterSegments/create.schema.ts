@@ -23,7 +23,6 @@ const teamCreateSchema = z.object({
 // Schema for user scope - no teamId allowed
 const userCreateSchema = z.object({
   scope: z.literal("USER"),
-  teamId: z.undefined(),
   ...baseCreateSchema,
 });
 
