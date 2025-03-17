@@ -159,9 +159,31 @@ export class BookingsService_2024_08_13 {
     );
   }
 
-  async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
+  async handleBookingWithRequest(
+    request: Request,
+    body: CreateBookingInput_2024_08_13 | RescheduleBookingInput,
+    bookingRequest: any
+  ) {
+    return handleNewBooking({
+      bookingData: body,
+      userId: bookingRequest.userId,
+      hostname: request.headers.host,
+      forcedSlug: request.headers["x-cal-force-slug"] as string,
+      platformClientId: request.headers["x-cal-client-id"] as string,
+      platformCancelUrl: request.headers["x-cal-platform-cancel-url"] as string,
+      platformRescheduleUrl: request.headers["x-cal-platform-reschedule-url"] as string,
+      platformBookingUrl: request.headers["x-cal-platform-booking-url"] as string,
+      platformBookingLocation: request.headers["x-cal-platform-booking-location"] as string,
+    });
+  }
+
+  async createBookingWithRequest(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    return this.handleBookingWithRequest(request, body, bookingRequest);
+  }
+
+  async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
+    const booking = await this.createBookingWithRequest(request, body);
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -176,8 +198,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13) {
-    const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    const booking = await this.createBookingWithRequest(request, body);
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -288,7 +309,7 @@ export class BookingsService_2024_08_13 {
         bookingUid,
         body
       );
-      const booking = await handleNewBooking(bookingRequest);
+      const booking = await this.handleBookingWithRequest(request, body, bookingRequest);
       if (!booking.uid) {
         throw new Error("Booking missing uid");
       }
