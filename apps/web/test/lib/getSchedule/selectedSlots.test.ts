@@ -240,6 +240,13 @@ describe("getSchedule", () => {
 
       const schedule = await getSchedule({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
+        ctx: {
+          req: {
+            cookies: {
+              uid: "uid1",
+            },
+          } as IncomingMessage & { cookies: { uid: string } },
+        },
       });
 
       // The 4:00 slot should show 1 seat taken
@@ -289,6 +296,13 @@ describe("getSchedule", () => {
 
       const schedule = await getSchedule({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
+        ctx: {
+          req: {
+            cookies: {
+              uid: "uid1",
+            },
+          } as IncomingMessage & { cookies: { uid: string } },
+        },
       });
 
       // The 4:00 slot should still be unavailable even when the reservation is for a different event type
@@ -387,6 +401,56 @@ describe("getSchedule", () => {
 
       // There are two unexpired slots
       expect(remainingSlots).toHaveLength(2);
+    });
+
+    test("should keep all slots available when uid cookie is not present", async () => {
+      // In IST timezone, it is 2024-05-31T07:00:00
+      vi.setSystemTime("2024-05-31T01:30:00Z");
+      const yesterdayDateString = "2024-05-30";
+      const plus2DateString = "2024-06-02";
+      const plus5DateString = "2024-06-05";
+
+      const scenarioData: ScheduleScenario = {
+        ...getBaseScenarioData(),
+        selectedSlots: [
+          {
+            eventTypeId: 1,
+            userId: 101,
+            slotUtcStartDate: new Date(`${plus2DateString}T04:00:00.000Z`),
+            slotUtcEndDate: new Date(`${plus2DateString}T04:45:00.000Z`),
+            uid: "other-user-uid",
+            releaseAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour from now
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const schedule = await getSchedule({
+        input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
+      });
+
+      console.log({ plus2DateString, scheduleSlots: schedule.slots[plus2DateString] });
+
+      // All slots should be available as the uid cookie is not present and reservation can't be verified for this user
+      expect(schedule).toHaveTimeSlots(
+        [
+          "04:00:00.000Z",
+          "04:45:00.000Z",
+          "05:30:00.000Z",
+          "06:15:00.000Z",
+          "07:00:00.000Z",
+          "07:45:00.000Z",
+          "08:30:00.000Z",
+          "09:15:00.000Z",
+          "10:00:00.000Z",
+          "10:45:00.000Z",
+          "11:30:00.000Z",
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
     });
   });
 });

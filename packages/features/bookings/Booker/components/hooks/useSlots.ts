@@ -11,6 +11,7 @@ import {
   PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS,
   PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
 } from "@calcom/lib/constants";
+import { isCookieCreationAllowed } from "@calcom/lib/cookie";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
 import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
@@ -129,9 +130,9 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
 
   // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
   const timeSlotToBeBooked = selectedTimeslot ?? allSelectedTimeslots.at(-1);
-
+  const isReservationSupported = isCookieCreationAllowed();
   const handleReserveSlot = () => {
-    if (eventTypeId && timeSlotToBeBooked && eventDuration) {
+    if (eventTypeId && timeSlotToBeBooked && eventDuration && isReservationSupported) {
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(timeSlotToBeBooked).utc().toISOString(),
         eventTypeId,

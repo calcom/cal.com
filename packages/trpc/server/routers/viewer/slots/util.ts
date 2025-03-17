@@ -128,6 +128,10 @@ export async function _getReservedSlotsAndCleanupExpired({
     })) || [];
 
   const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter(
+    // If bookerClientUid is not present/undefined, it means we can't be sure if the the reservation that we find is for the same user or not.
+    // This is because
+    // 1. We aren't always able to set uid cookie in the browser.
+    // 2. UID cookie itself is set in response of reservation call at the moment.
     (slot) => bookerClientUid && slot.uid !== bookerClientUid
   );
 

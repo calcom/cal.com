@@ -86,6 +86,7 @@ expect.extend({
 
     const expectedSlotHasFullTimestamp = expectedSlots[0].split("-").length === 3;
 
+    // TODO: We should match what is expected with what is in the actual. Because actual could have more slots than expected array in case of doExactMatch:false
     if (
       !schedule.slots[`${dateString}`]
         .map((slot) => slot.time)
