@@ -68,6 +68,12 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
       title: t("nearly_there"),
       subtitle: [t("nearly_there_instructions")],
     },
+    {
+      title: "Último passo!",
+      subtitle: [
+        "Por último, precisaremos do seu Certificado Digital e-CNPJ A1. Esse certificado será utilizado para emissão de notas fiscais de serviços prestadas por você.",
+      ],
+    },
   ];
 
   return {
