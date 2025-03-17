@@ -6,7 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { showToast, TopBanner } from "@calcom/ui";
 
 export type TeamsUpgradeBannerProps = {
-  data: RouterOutputs["viewer"]["getUserTopBanners"]["teamUpgradeBanner"];
+  data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["teamUpgradeBanner"];
 };
 
 export function TeamsUpgradeBanner({ data }: TeamsUpgradeBannerProps) {

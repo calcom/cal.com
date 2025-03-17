@@ -17,7 +17,7 @@ const SkeletonLoader = () => {
   );
 };
 
-const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"] }) => {
+const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get"] }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [disableImpersonation, setDisableImpersonation] = useState<boolean | undefined>(
@@ -32,8 +32,8 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
       utils.viewer.me.invalidate();
     },
     onMutate: async ({ disableImpersonation }) => {
-      await utils.viewer.me.cancel();
-      const previousValue = utils.viewer.me.getData();
+      await utils.viewer.me.get.cancel();
+      const previousValue = utils.viewer.me.get.getData();
 
       setDisableImpersonation(disableImpersonation);
 
@@ -41,7 +41,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
     },
     onError: (error, variables, context) => {
       if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
+        utils.viewer.me.get.setData(undefined, context.previousValue);
         setDisableImpersonation(context.previousValue?.disableImpersonation);
       }
       showToast(`${t("error")}, ${error.message}`, "error");
@@ -68,7 +68,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 };
 
 const ProfileImpersonationViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
   if (isPending || !user) return <SkeletonLoader />;
 
   return <ProfileImpersonationView user={user} />;
