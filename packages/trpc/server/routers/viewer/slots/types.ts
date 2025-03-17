@@ -81,6 +81,7 @@ export interface ContextForGetSchedule extends Record<string, unknown> {
 }
 
 export type TGetScheduleInputSchema = z.infer<typeof getScheduleSchema>;
+export const ZGetScheduleInputSchema = getScheduleSchema;
 
 export type GetScheduleOptions = {
   ctx?: ContextForGetSchedule;
