@@ -31,7 +31,7 @@ const DateOverrideList = ({
   excludedDates?: string[];
   userTimeFormat: number | null;
   hour12: boolean;
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
 }) => {

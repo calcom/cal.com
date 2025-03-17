@@ -92,7 +92,7 @@ type AvailabilitySettingsProps = {
     timeZone: string;
     schedule: Availability[];
   };
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   handleDelete: () => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
@@ -183,7 +183,7 @@ const DateOverride = ({
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;

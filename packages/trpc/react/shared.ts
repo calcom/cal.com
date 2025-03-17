@@ -17,6 +17,7 @@ export const ENDPOINTS = [
   "i18n",
   "insights",
   "me",
+  "ooo",
   "payments",
   "public",
   "timezones",
@@ -24,6 +25,7 @@ export const ENDPOINTS = [
   "slots",
   "teams",
   "organizations",
+  "travelSchedules",
   "users",
   "viewer",
   "webhook",
@@ -34,5 +36,4 @@ export const ENDPOINTS = [
   "attributes",
   "delegationCredential",
   "routingForms",
-  "delegationCredential",
 ] as const;
