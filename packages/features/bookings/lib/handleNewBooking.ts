@@ -323,8 +323,8 @@ export type BookingHandlerInput = {
   bookingData: Record<string, any>;
   userId?: number;
   // These used to come from headers but now we're passing them as params
-  hostname: string | undefined;
-  forcedSlug: string | undefined;
+  hostname?: string;
+  forcedSlug?: string;
 } & PlatformParams;
 
 async function handler(
