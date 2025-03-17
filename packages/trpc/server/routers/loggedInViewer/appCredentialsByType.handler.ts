@@ -1,3 +1,4 @@
+import { getAllDelegationCredentialsForUserByAppType } from "@calcom/lib/delegationCredential/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -15,6 +16,7 @@ type AppCredentialsByTypeOptions = {
 export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentialsByTypeOptions) => {
   const { user } = ctx;
   const userAdminTeams = await UserRepository.getUserAdminTeams(ctx.user.id);
+  const userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
 
   const credentials = await prisma.credential.findMany({
     where: {
@@ -22,18 +24,35 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
         { userId: user.id },
         {
           teamId: {
-            in: userAdminTeams,
+            in: userAdminTeamsIds,
           },
         },
       ],
       type: input.appType,
     },
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+      team: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  const delegationCredentials = await getAllDelegationCredentialsForUserByAppType({
+    user: { id: user.id, email: user.email },
+    appType: input.appType,
   });
 
   // For app pages need to return which teams the user can install the app on
   // return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
   return {
-    credentials,
-    userAdminTeams,
+    credentials: [...delegationCredentials, ...credentials],
+    userAdminTeams: userAdminTeamsIds,
   };
 };

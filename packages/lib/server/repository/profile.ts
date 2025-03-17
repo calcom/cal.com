@@ -36,15 +36,24 @@ const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
 });
 
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
+const organizationSettingsSelect = Prisma.validator<Prisma.OrganizationSettingsSelect>()({
+  allowSEOIndexing: true,
+  orgProfileRedirectsToVerifiedDomain: true,
+});
 const organizationSelect = {
   id: true,
   slug: true,
   name: true,
   metadata: true,
   logoUrl: true,
-  calVideoLogo: true,
   bannerUrl: true,
   isPlatform: true,
+};
+const organizationWithSettingsSelect = {
+  ...organizationSelect,
+  organizationSettings: {
+    select: organizationSettingsSelect,
+  },
 };
 
 export enum LookupTarget {
@@ -363,7 +372,6 @@ export class ProfileRepository {
         },
         organization: {
           select: {
-            calVideoLogo: true,
             id: true,
             logoUrl: true,
             name: true,
@@ -375,10 +383,17 @@ export class ProfileRepository {
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
+                allowSEOIndexing: true,
               },
             },
             members: {
+              distinct: ["role"],
               select: membershipSelect,
+              where: {
+                accepted: true,
+                // Filter out memberships that are not owned by the user
+                user: { profiles: { some: { id } } },
+              },
             },
           },
         },
@@ -412,7 +427,7 @@ export class ProfileRepository {
           select: userSelect,
         },
         organization: {
-          select: organizationSelect,
+          select: organizationWithSettingsSelect,
         },
       },
     });
@@ -435,6 +450,39 @@ export class ProfileRepository {
     }
 
     return profiles;
+  }
+
+  static async findManyForUsers(userIds: number[]) {
+    const profiles = await prisma.profile.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+      },
+    });
+
+    return profiles.map((profile) => {
+      const parsedOrganization = getParsedTeam(profile.organization);
+
+      return normalizeProfile({
+        username: profile.username,
+        id: profile.id,
+        userId: profile.userId,
+        uid: profile.uid,
+        name: parsedOrganization.name,
+        organizationId: profile.organizationId,
+        organization: {
+          ...parsedOrganization,
+          requestedSlug: parsedOrganization.metadata?.requestedSlug ?? null,
+          metadata: parsedOrganization.metadata,
+        },
+      });
+    });
   }
 
   static async findManyForUser(user: { id: number }) {

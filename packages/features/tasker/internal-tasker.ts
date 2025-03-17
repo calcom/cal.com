@@ -1,29 +1,42 @@
 import { Task } from "./repository";
-import { type Tasker, type TaskTypes } from "./tasker";
-import tasksMap from "./tasks";
+import { type TaskerCreate, type Tasker } from "./tasker";
+import tasksMap, { tasksConfig } from "./tasks";
 
 /**
  * This is the default internal Tasker that uses the Task repository to create tasks.
- * It doens't have any external dependencies and is suitable for most use cases.
+ * It doesn't have any external dependencies and is suitable for most use cases.
  * To use a different Tasker, you can create a new class that implements the Tasker interface.
  * Then, you can use the TaskerFactory to select the new Tasker.
  */
 export class InternalTasker implements Tasker {
-  async create(type: TaskTypes, payload: string): Promise<string> {
-    return Task.create(type, payload);
-  }
+  create: TaskerCreate = async (type, payload, options = {}): Promise<string> => {
+    const payloadString = typeof payload === "string" ? payload : JSON.stringify(payload);
+    return Task.create(type, payloadString, options);
+  };
   async processQueue(): Promise<void> {
     const tasks = await Task.getNextBatch();
+    console.info(`Processing ${tasks.length} tasks`, tasks);
+
     const tasksPromises = tasks.map(async (task) => {
+      console.info(
+        `Processing task ${task.id}, attempt:${task.attempts} maxAttempts:${task.maxAttempts} lastFailedAttempt:${task.lastFailedAttemptAt}`,
+        task
+      );
       const taskHandlerGetter = tasksMap[task.type as keyof typeof tasksMap];
       if (!taskHandlerGetter) throw new Error(`Task handler not found for type ${task.type}`);
+      const taskConfig = tasksConfig[task.type as keyof typeof tasksConfig];
       const taskHandler = await taskHandlerGetter();
       return taskHandler(task.payload)
         .then(async () => {
           await Task.succeed(task.id);
         })
         .catch(async (error) => {
-          await Task.retry(task.id, error instanceof Error ? error.message : "Unknown error");
+          console.info(`Retrying task ${task.id}: ${error}`);
+          await Task.retry({
+            taskId: task.id,
+            lastError: error instanceof Error ? error.message : "Unknown error",
+            minRetryIntervalMins: taskConfig?.minRetryIntervalMins ?? null,
+          });
         });
     });
     const settled = await Promise.allSettled(tasksPromises);

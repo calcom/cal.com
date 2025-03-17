@@ -1,19 +1,27 @@
 import type { TFunction } from "next-i18next";
 
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
-const PersonInfo = ({ name = "", email = "", role = "" }) => (
-  <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
-    {name} - {role}{" "}
-    <span style={{ color: "#4B5563" }}>
-      <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
-        {email}
-      </a>
-    </span>
-  </div>
-);
+export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => {
+  const displayEmail = !isSmsCalEmail(email);
+  const formattedPhoneNumber = !!phoneNumber ? `${phoneNumber} ` : "";
+
+  return (
+    <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
+      {name} - {role} {formattedPhoneNumber}
+      {displayEmail && (
+        <span style={{ color: "#4B5563" }}>
+          <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
+            {email}
+          </a>
+        </span>
+      )}
+    </div>
+  );
+};
 
 export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
@@ -28,7 +36,7 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             email={props.calEvent.organizer.email}
           />
           {props.calEvent.team?.members.map((member) => (
-            <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member.email} />
+            <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member?.email} />
           ))}
           {props.calEvent.attendees.map((attendee) => (
             <PersonInfo
@@ -36,6 +44,7 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
               name={attendee.name}
               role={t("guest")}
               email={attendee.email}
+              phoneNumber={attendee.phoneNumber ?? undefined}
             />
           ))}
         </>

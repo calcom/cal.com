@@ -7,7 +7,7 @@ const DIRECTUS_BASE_URL = "https://painel.yinflow.life/items";
 const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN || "";
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
   req.userId = session?.user?.id || -1;
   const proProfessionalId = req.query.proProfessionalId as string;

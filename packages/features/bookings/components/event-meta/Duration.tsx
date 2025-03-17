@@ -1,12 +1,13 @@
 import type { TFunction } from "next-i18next";
 import { useEffect, useRef } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useShouldShowArrows, Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
 export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
@@ -64,7 +65,7 @@ export const EventDuration = ({
   };
 
   const isDynamicEvent = "isDynamic" in event && event.isDynamic;
-
+  const isEmbed = useIsEmbed();
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
     // Only store event duration in url if event has multiple durations.
@@ -74,7 +75,9 @@ export const EventDuration = ({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      if (isEmbed) return;
       if (selectedDuration && itemRefs.current[selectedDuration]) {
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Called on !isEmbed case
         itemRefs.current[selectedDuration]?.scrollIntoView({
           behavior: "smooth",
           block: "center",
@@ -83,9 +86,9 @@ export const EventDuration = ({
       }
     }, 100);
     return () => clearTimeout(timeout);
-  }, [selectedDuration]);
+  }, [selectedDuration, isEmbed]);
 
-  if ((!event?.metadata?.multipleDuration && !isDynamicEvent) || isPlatform)
+  if (!event?.metadata?.multipleDuration && !isDynamicEvent)
     return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];

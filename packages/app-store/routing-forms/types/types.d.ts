@@ -1,9 +1,15 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
+import type { ImmutableTree, Config } from "react-awesome-query-builder";
 import type z from "zod";
 
+import type { AttributeType } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
+import type {
+  FormFieldsQueryBuilderConfigWithRaqbFields,
+  AttributesQueryBuilderConfigWithRaqbFields,
+} from "../lib/getQueryBuilderConfig";
 import type { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
 
 export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
@@ -16,13 +22,14 @@ export type FormResponse = Record<
   {
     value: number | string | string[];
     label: string;
+    identifier?: string;
   }
 >;
 
 export type Fields = z.infer<typeof zodFieldsView>;
 export type Field = NonNullable<Fields>[number];
 export type Routes = z.infer<typeof zodRoutesView>;
-export type Route = Routes[0];
+export type Route = NonNullable<Routes>[0];
 export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
 
 export type SerializableFormTeamMembers = {
@@ -30,6 +37,7 @@ export type SerializableFormTeamMembers = {
   name: string | null;
   email: string;
   avatarUrl: string | null;
+  defaultScheduleId: number | null;
 };
 export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
   T,
@@ -56,3 +64,41 @@ export type SerializableRoute =
   | GlobalRoute;
 
 export type OrderedResponses = FormResponse[string][];
+
+export type Attribute = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  isWeightsEnabled?: boolean;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
+  }[];
+};
+
+export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
+export type FormFieldsQueryValue = LocalRoute["queryValue"];
+export type SerializableField = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
+
+export type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
+
+export type FormFieldsQueryBuilderState = {
+  tree: ImmutableTree;
+  config: FormFieldsQueryBuilderConfigWithRaqbFields;
+};
+
+export type AttributesQueryBuilderState = {
+  tree: ImmutableTree;
+  config: AttributesQueryBuilderConfigWithRaqbFields;
+};
+
+export type LocalRouteWithRaqbStates = LocalRoute & {
+  formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
+  attributesQueryBuilderState: AttributesQueryBuilderState | null;
+  fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
+  attributeIdForWeights?: string;
+};
+
+export type EditFormRoute = LocalRouteWithRaqbStates | GlobalRoute;

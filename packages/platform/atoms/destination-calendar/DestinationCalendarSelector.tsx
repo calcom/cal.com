@@ -1,18 +1,20 @@
+"use client";
+
 import { useState, useEffect, useMemo } from "react";
 
 import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { Badge, Select } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 
 export type DestinationCalendarProps = {
   connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
-  onChange: (value: { externalId: string; integration: string }) => void;
+  onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
   hidePlaceholder?: boolean;
   value: string | undefined;
@@ -35,17 +37,18 @@ export const DestinationCalendarSelector = ({
     value: string;
     label: string;
     subtitle: string;
+    delegationCredentialId?: string;
   } | null>(null);
 
   useEffect(() => {
     const selected = connectedCalendars
-      .map((connected) => connected.calendars ?? [])
+      .map((connected: any) => connected.calendars ?? [])
       .flat()
-      .find((cal) => cal.externalId === value);
+      .find((cal: any) => cal.externalId === value);
 
     if (selected) {
-      const selectedIntegration = connectedCalendars.find((integration) =>
-        integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
+      const selectedIntegration = connectedCalendars.find((integration: any) =>
+        integration.calendars?.some((calendar: any) => calendar.externalId === selected.externalId)
       );
 
       setSelectedOption({
@@ -60,7 +63,7 @@ export const DestinationCalendarSelector = ({
 
   const options = useMemo(() => {
     return (
-      connectedCalendars.map((selectedCalendar) => ({
+      connectedCalendars.map((selectedCalendar: any) => ({
         key: selectedCalendar.credentialId,
         label: `${selectedCalendar.integration.title?.replace(/calendar/i, "")} (${
           selectedCalendar.primary?.integration === "office365_calendar"
@@ -68,13 +71,14 @@ export const DestinationCalendarSelector = ({
             : selectedCalendar.primary?.name
         })`,
         options: (selectedCalendar.calendars ?? [])
-          .filter((cal) => cal.readOnly === false)
-          .map((cal) => ({
+          .filter((cal: any) => cal.readOnly === false)
+          .map((cal: any) => ({
             label: ` ${cal.name} `,
             subtitle: `(${selectedCalendar?.integration.title?.replace(/calendar/i, "")} - ${
               selectedCalendar?.primary?.name
             })`,
             value: `${cal.integration}:${cal.externalId}`,
+            delegationCredentialId: cal.delegationCredentialId || undefined,
           })),
       })) ?? []
     );
@@ -133,6 +137,7 @@ export const DestinationCalendarSelector = ({
           onChange({
             integration,
             externalId,
+            delegationCredentialId: newValue.delegationCredentialId,
           });
         }}
         isLoading={isPending}

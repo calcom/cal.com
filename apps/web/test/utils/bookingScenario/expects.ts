@@ -1,6 +1,6 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { InputEventType, getOrganizer } from "./bookingScenario";
+import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
 
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
@@ -16,6 +16,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
@@ -143,10 +144,9 @@ expect.extend({
 
     if (!isEmailContentMatched) {
       logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
-
       return {
         pass: false,
-        message: () => `Email content ${isNot ? "is" : "is not"} matching. ${JSON.stringify(emailsToLog)}`,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching.`,
         actual: actualEmailContent,
         expected: expectedEmailContent,
       };
@@ -428,6 +428,16 @@ export async function expectBookingToBeInDatabase(
   );
 }
 
+export function expectSMSToBeTriggered({ sms, toNumber }: { sms: Fixtures["sms"]; toNumber: string }) {
+  expect(sms.get()).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        to: toNumber,
+      }),
+    ])
+  );
+}
+
 export function expectSuccessfulBookingCreationEmails({
   emails,
   organizer,
@@ -439,6 +449,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange,
   booking,
   destinationEmail,
+  calendarType,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
@@ -451,6 +462,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange?: { start: Date; end: Date };
   booking: { uid: string; urlOrigin?: string };
   destinationEmail?: string;
+  calendarType?: string;
 }) {
   const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
   expect(emails).toHaveEmail(
@@ -486,12 +498,16 @@ export function expectSuccessfulBookingCreationEmails({
           }
         : null),
       to: `${destinationEmail ?? organizer.email}`,
-      ics: {
-        filename: "event.ics",
-        iCalUID: `${iCalUID}`,
-        recurrence,
-        method: "REQUEST",
-      },
+      ...(calendarType !== "office365_calendar"
+        ? {
+            ics: {
+              filename: "event.ics",
+              iCalUID: `${iCalUID}`,
+              recurrence,
+              method: "REQUEST",
+            },
+          }
+        : {}),
     },
     `${destinationEmail ?? organizer.email}`
   );
@@ -689,7 +705,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
 }) {
   if (newOrganizer !== prevOrganizer) {
     vi.waitFor(() => {
-      // new organizer should recieve scheduling emails
+      // new organizer should receive scheduling emails
       expect(emails).toHaveEmail(
         {
           heading: "new_event_scheduled",
@@ -700,7 +716,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
     });
 
     vi.waitFor(() => {
-      // old organizer should recieve cancelled emails
+      // old organizer should receive cancelled emails
       expect(emails).toHaveEmail(
         {
           heading: "event_request_cancelled",
@@ -711,7 +727,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
     });
   } else {
     vi.waitFor(() => {
-      // organizer should recieve rescheduled emails
+      // organizer should receive rescheduled emails
       expect(emails).toHaveEmail(
         {
           heading: "event_has_been_rescheduled",
@@ -764,6 +780,33 @@ export function expectSuccessfulBookingRescheduledEmails({
   );
 }
 
+export function expectSuccesfulLocationChangeEmails({
+  emails,
+  organizer,
+  location,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  location: {
+    href: string;
+    linkText: string;
+  };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      titleTag: "location_changed_event_type_subject",
+      links: [
+        {
+          href: location.href,
+          text: location.linkText,
+        },
+      ],
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+}
+
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
@@ -792,7 +835,7 @@ export function expectBookingRequestedEmails({
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker?: { email: string; name: string };
 }) {
   expect(emails).toHaveEmail(
     {
@@ -803,14 +846,16 @@ export function expectBookingRequestedEmails({
     `${organizer.email}`
   );
 
-  expect(emails).toHaveEmail(
-    {
-      titleTag: "booking_submitted_subject",
-      to: `${booker.email}`,
-      noIcs: true,
-    },
-    `${booker.email}`
-  );
+  if (booker) {
+    expect(emails).toHaveEmail(
+      {
+        titleTag: "booking_submitted_subject",
+        to: `${booker.email}`,
+        noIcs: true,
+      },
+      `${booker.email}`
+    );
+  }
 }
 
 export function expectBookingRequestRescheduledEmails({
@@ -818,8 +863,6 @@ export function expectBookingRequestRescheduledEmails({
   loggedInUser,
   booker,
   booking,
-  bookNewTimePath,
-  organizer,
 }: {
   emails: Fixtures["emails"];
   organizer: ReturnType<typeof getOrganizer>;
@@ -840,7 +883,7 @@ export function expectBookingRequestRescheduledEmails({
       subHeading: "request_reschedule_subtitle",
       links: [
         {
-          href: `${bookingUrlOrigin}${bookNewTimePath}?rescheduleUid=${booking.uid}`,
+          href: `${bookingUrlOrigin}/reschedule/${booking.uid}?allowRescheduleForCancelledBooking=true`,
           text: "Book a new time",
         },
       ],
@@ -874,13 +917,17 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
   subscriberUrl,
   paidEvent,
   eventType,
+  isEmailHidden = false,
+  isAttendeePhoneNumberHidden = false,
 }: {
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker: { email: string; name: string; attendeePhoneNumber?: string };
   subscriberUrl: string;
   location: string;
   paidEvent?: boolean;
   eventType: InputEventType;
+  isEmailHidden?: boolean;
+  isAttendeePhoneNumberHidden?: boolean;
 }) {
   // There is an inconsistency in the way we send the data to the webhook for paid events and unpaid events. Fix that and then remove this if statement.
   if (!paidEvent) {
@@ -901,8 +948,17 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
           email: {
             label: "email_address",
             value: booker.email,
-            isHidden: false,
+            isHidden: isEmailHidden,
           },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                  isHidden: isAttendeePhoneNumberHidden,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -923,6 +979,14 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
         responses: {
           name: { label: "name", value: booker.name },
           email: { label: "email", value: booker.email },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -939,13 +1003,17 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   subscriberUrl,
   paidEvent,
   videoCallUrl,
+  isEmailHidden = false,
+  isAttendeePhoneNumberHidden = false,
 }: {
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker: { email: string; name: string; attendeePhoneNumber?: string };
   subscriberUrl: string;
   location: string;
   paidEvent?: boolean;
   videoCallUrl?: string | null;
+  isEmailHidden?: boolean;
+  isAttendeePhoneNumberHidden?: boolean;
 }) {
   if (!paidEvent) {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
@@ -956,7 +1024,16 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
         },
         responses: {
           name: { label: "your_name", value: booker.name, isHidden: false },
-          email: { label: "email_address", value: booker.email, isHidden: false },
+          email: { label: "email_address", value: booker.email, isHidden: isEmailHidden },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                  isHidden: isAttendeePhoneNumberHidden,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -980,6 +1057,14 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
             label: "email",
             value: booker.email,
           },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -1092,32 +1177,32 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
   });
 }
 
+type ExpectedForSuccessfulCalendarEventCreationInCalendar = {
+  calendarId?: string | null;
+  /**
+   * explciityl set to null if you don't want to match on videoCallUrl
+   */
+  videoCallUrl: string | null;
+  destinationCalendars?: Partial<DestinationCalendar>[];
+  credential?: Partial<CredentialForCalendarService>;
+};
+
 export function expectSuccessfulCalendarEventCreationInCalendar(
-  calendarMock: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateEventCalls: any[];
-  },
+  calendarMock: CalendarServiceMethodMock,
   expected:
-    | {
-        calendarId?: string | null;
-        videoCallUrl: string;
-        destinationCalendars?: Partial<DestinationCalendar>[];
-      }
-    | {
-        calendarId?: string | null;
-        videoCallUrl: string;
-        destinationCalendars?: Partial<DestinationCalendar>[];
-      }[]
+    | ExpectedForSuccessfulCalendarEventCreationInCalendar
+    | ExpectedForSuccessfulCalendarEventCreationInCalendar[]
 ) {
   const expecteds = expected instanceof Array ? expected : [expected];
   expect(calendarMock.createEventCalls.length).toBe(expecteds.length);
   for (let i = 0; i < calendarMock.createEventCalls.length; i++) {
     const expected = expecteds[i];
-
-    const calEvent = calendarMock.createEventCalls[i][0];
-
+    const createEventCall = calendarMock.createEventCalls[i];
+    const { credential } = createEventCall.calendarServiceConstructorArgs;
+    const { calEvent } = createEventCall.args;
+    if (expected.credential) {
+      expect(credential).toEqual(expect.objectContaining(expected.credential));
+    }
     expect(calEvent).toEqual(
       expect.objectContaining({
         destinationCalendar: expected.calendarId
@@ -1129,21 +1214,21 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
           : expected.destinationCalendars
           ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
           : null,
-        videoCallData: expect.objectContaining({
-          url: expected.videoCallUrl,
-        }),
+
+        ...(expected.videoCallUrl !== null
+          ? {
+              videoCallData: expect.objectContaining({
+                url: expected.videoCallUrl,
+              }),
+            }
+          : {}),
       })
     );
   }
 }
 
 export function expectSuccessfulCalendarEventUpdationInCalendar(
-  calendarMock: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateEventCalls: any[];
-  },
+  calendarMock: CalendarServiceMethodMock,
   expected: {
     externalCalendarId: string;
     calEvent: Partial<CalendarEvent>;
@@ -1152,23 +1237,14 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
 ) {
   expect(calendarMock.updateEventCalls.length).toBe(1);
   const call = calendarMock.updateEventCalls[0];
-  const uid = call[0];
-  const calendarEvent = call[1];
-  const externalId = call[2];
+  const { uid, event, externalCalendarId } = call.args;
   expect(uid).toBe(expected.uid);
-  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
-  expect(externalId).toBe(expected.externalCalendarId);
+  expect(event).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalCalendarId).toBe(expected.externalCalendarId);
 }
 
 export function expectSuccessfulCalendarEventDeletionInCalendar(
-  calendarMock: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    deleteEventCalls: any[];
-  },
+  calendarMock: CalendarServiceMethodMock,
   expected: {
     externalCalendarId: string;
     calEvent: Partial<CalendarEvent>;
@@ -1177,12 +1253,10 @@ export function expectSuccessfulCalendarEventDeletionInCalendar(
 ) {
   expect(calendarMock.deleteEventCalls.length).toBe(1);
   const call = calendarMock.deleteEventCalls[0];
-  const uid = call[0];
-  const calendarEvent = call[1];
-  const externalId = call[2];
+  const { uid, event, externalCalendarId } = call.args;
   expect(uid).toBe(expected.uid);
-  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
-  expect(externalId).toBe(expected.externalCalendarId);
+  expect(event).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalCalendarId).toBe(expected.externalCalendarId);
 }
 
 export function expectSuccessfulVideoMeetingCreation(
@@ -1272,4 +1346,28 @@ export function expectICalUIDAsString(iCalUID: string | undefined | null) {
   }
 
   return iCalUID;
+}
+
+export async function expectBookingToNotHaveReference(
+  booking: Pick<Booking, "uid">,
+  reference: Partial<BookingReference>
+) {
+  const actualBooking = await prismaMock.booking.findUnique({
+    where: {
+      uid: booking.uid,
+    },
+    include: {
+      references: true,
+    },
+  });
+
+  expect(actualBooking?.references).not.toEqual(expect.arrayContaining([expect.objectContaining(reference)]));
+}
+
+export function expectNoAttemptToCreateCalendarEvent(calendarMock: CalendarServiceMethodMock) {
+  expect(calendarMock.createEventCalls.length).toBe(0);
+}
+
+export function expectNoAttemptToGetAvailability(calendarMock: CalendarServiceMethodMock) {
+  expect(calendarMock.getAvailabilityCalls.length).toBe(0);
 }

@@ -1,3 +1,18 @@
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
+import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
+import {
+  EventTypeWebhookOutputResponseDto,
+  EventTypeWebhookOutputDto,
+  EventTypeWebhooksOutputResponseDto,
+} from "@/modules/webhooks/outputs/event-type-webhook.output";
+import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
+import { EventTypeWebhooksService } from "@/modules/webhooks/services/event-type-webhooks.service";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   Controller,
   Post,
@@ -10,35 +25,19 @@ import {
   Patch,
   ParseIntPipe,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
 
-import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
-import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
-import { GetWebhook } from "../../webhooks/decorators/get-webhook-decorator";
-import { IsUserEventTypeWebhookGuard } from "../../webhooks/guards/is-user-event-type-webhook-guard";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../webhooks/inputs/webhook.input";
-import {
-  EventTypeWebhookOutputResponseDto,
-  EventTypeWebhookOutputDto,
-  EventTypeWebhooksOutputResponseDto,
-} from "../../webhooks/outputs/event-type-webhook.output";
-import { DeleteManyWebhooksOutputResponseDto } from "../../webhooks/outputs/webhook.output";
-import { PartialWebhookInputPipe, WebhookInputPipe } from "../../webhooks/pipes/WebhookInputPipe";
-import { WebhookOutputPipe } from "../../webhooks/pipes/WebhookOutputPipe";
-import { EventTypeWebhooksService } from "../../webhooks/services/event-type-webhooks.service";
-import { WebhooksService } from "../../webhooks/services/webhooks.service";
-
 @Controller({
   path: "/v2/event-types/:eventTypeId/webhooks",
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsUserEventTypeWebhookGuard)
-@ApiTags("Users' EventTypes Webhooks")
+@DocsTags("Event Types / Webhooks")
 export class EventTypeWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,
@@ -46,7 +45,7 @@ export class EventTypeWebhooksController {
   ) {}
 
   @Post("/")
-  @ApiOperation({ summary: "Create a webhook for an event-type" })
+  @ApiOperation({ summary: "Create a webhook" })
   async createEventTypeWebhook(
     @Body() body: CreateWebhookInputDto,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
@@ -64,7 +63,7 @@ export class EventTypeWebhooksController {
   }
 
   @Patch("/:webhookId")
-  @ApiOperation({ summary: "Update a webhook of an event-type" })
+  @ApiOperation({ summary: "Update a webhook" })
   async updateEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
     @Param("webhookId") webhookId: string
@@ -82,7 +81,7 @@ export class EventTypeWebhooksController {
   }
 
   @Get("/:webhookId")
-  @ApiOperation({ summary: "Get a webhook of an event-type" })
+  @ApiOperation({ summary: "Get a webhook" })
   async getEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
@@ -93,7 +92,7 @@ export class EventTypeWebhooksController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get all webhooks of an event-type" })
+  @ApiOperation({ summary: "Get all webhooks" })
   async getEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Query() pagination: SkipTakePagination
@@ -114,7 +113,7 @@ export class EventTypeWebhooksController {
   }
 
   @Delete("/:webhookId")
-  @ApiOperation({ summary: "Delete a webhook of an event-type" })
+  @ApiOperation({ summary: "Delete a webhook" })
   async deleteEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     await this.webhooksService.deleteWebhook(webhook.id);
     return {
@@ -126,7 +125,7 @@ export class EventTypeWebhooksController {
   }
 
   @Delete("/")
-  @ApiOperation({ summary: "Delete all webhooks of an event-type" })
+  @ApiOperation({ summary: "Delete all webhooks" })
   async deleteAllEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<DeleteManyWebhooksOutputResponseDto> {

@@ -8,7 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
-import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
+import { Codes } from "./EmbedCodes";
+import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
@@ -20,6 +21,7 @@ export const tabs = [
     href: "embedTabName=embed-code",
     icon: "code" as const,
     type: "code",
+    "data-testid": "HTML",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
       { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
@@ -74,6 +76,7 @@ export const tabs = [
   {
     name: "React",
     href: "embedTabName=embed-react",
+    "data-testid": "react",
     icon: "code" as const,
     type: "code",
     Component: forwardRef<
@@ -125,6 +128,7 @@ export const tabs = [
     href: "embedTabName=embed-preview",
     icon: "trello" as const,
     type: "iframe",
+    "data-testid": "Preview",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
       { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
@@ -175,56 +179,54 @@ const getEmbedTypeSpecificString = ({
   let uiInstructionStringArg: {
     apiName: string;
     theme: PreviewState["theme"];
-    brandColor: string;
+    brandColor: string | null;
+    darkBrandColor: string | null;
     hideEventTypeDetails: boolean;
     layout?: BookerLayout;
   };
+  const baseUiInstructionStringArg = {
+    theme: previewState.theme,
+    brandColor: previewState.palette.brandColor,
+    darkBrandColor: previewState.palette.darkBrandColor,
+    hideEventTypeDetails: previewState.hideEventTypeDetails,
+    layout: previewState.layout,
+  };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
+      ...baseUiInstructionStringArg,
       apiName: getApiNameForReactSnippet({ mainApiName: "cal" }),
-      theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
-      layout: previewState.layout,
     };
   } else {
     uiInstructionStringArg = {
+      ...baseUiInstructionStringArg,
       apiName: getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" }),
-      theme: previewState.theme,
-      brandColor: previewState.palette.brandColor,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
-      layout: previewState.layout,
     };
   }
   if (!frameworkCodes[embedType]) {
     throw new Error(`Code not available for framework:${embedFramework} and embedType:${embedType}`);
   }
+
+  const codeGeneratorInput = {
+    calLink,
+    uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+    embedCalOrigin,
+    namespace,
+  };
+
   if (embedType === "inline") {
     return frameworkCodes[embedType]({
-      calLink,
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      previewState,
-      embedCalOrigin,
-      namespace,
+      ...codeGeneratorInput,
+      previewState: previewState.inline,
     });
   } else if (embedType === "floating-popup") {
-    const floatingButtonArg = {
-      calLink,
-      ...(doWeNeedCalOriginProp(embedCalOrigin) ? { calOrigin: embedCalOrigin } : null),
-      ...previewState.floatingPopup,
-    };
     return frameworkCodes[embedType]({
-      namespace,
-      floatingButtonArg: JSON.stringify(floatingButtonArg),
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      ...codeGeneratorInput,
+      previewState: previewState.floatingPopup,
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
-      namespace,
-      calLink,
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      previewState,
-      embedCalOrigin,
+      ...codeGeneratorInput,
+      previewState: previewState.elementClick,
     });
   }
   return "";
@@ -234,27 +236,26 @@ const getEmbedUIInstructionString = ({
   apiName,
   theme,
   brandColor,
+  darkBrandColor,
   hideEventTypeDetails,
   layout,
 }: {
   apiName: string;
   theme?: string;
-  brandColor: string;
+  brandColor: string | null;
+  darkBrandColor: string | null;
   hideEventTypeDetails: boolean;
   layout?: string;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
+
   return getInstructionString({
     apiName,
     instructionName: "ui",
     instructionArg: {
       theme,
-      styles: {
-        branding: {
-          brandColor,
-        },
-      },
-      hideEventTypeDetails: hideEventTypeDetails,
+      cssVarsPerTheme: buildCssVarsPerTheme({ brandColor, darkBrandColor }),
+      hideEventTypeDetails,
       layout,
     },
   });

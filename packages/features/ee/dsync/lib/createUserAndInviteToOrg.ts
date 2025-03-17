@@ -3,6 +3,7 @@ import type { TFunction } from "next-i18next";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -46,6 +47,7 @@ const createUserAndInviteToOrg = async ({
           ],
         },
       },
+      creationSource: CreationSource.WEBAPP,
     },
   });
 

@@ -7,9 +7,9 @@ import { User } from "@calcom/prisma/client";
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getByUsernames(usernames: string[]) {
+  async getByUsernames(usernames: string[], orgSlug?: string, orgId?: number) {
     const users = await Promise.all(
-      usernames.map((username) => this.usersRepository.findByUsername(username))
+      usernames.map((username) => this.usersRepository.findByUsername(username, orgSlug, orgId))
     );
     const usersFiltered: User[] = [];
 

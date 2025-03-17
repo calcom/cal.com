@@ -1,5 +1,6 @@
 import { DestinationCalendarSettingsPlatformWrapper } from "../../destination-calendar/index";
 import { SelectedCalendarsSettingsPlatformWrapper } from "../../selected-calendars/index";
+import type { CalendarRedirectUrls } from "../../selected-calendars/wrappers/SelectedCalendarsSettingsPlatformWrapper";
 
 type CalendarSettingsPlatformWrapperProps = {
   classNames?: {
@@ -7,9 +8,15 @@ type CalendarSettingsPlatformWrapperProps = {
     destinationCalendarSettingsCustomClassnames?: string;
     selectedCalendarSettingsCustomClassnames?: string;
   };
+  calendarRedirectUrls?: CalendarRedirectUrls;
+  allowDelete?: boolean;
 };
 
-export const CalendarSettingsPlatformWrapper = ({ classNames }: CalendarSettingsPlatformWrapperProps) => {
+export const CalendarSettingsPlatformWrapper = ({
+  classNames,
+  calendarRedirectUrls,
+  allowDelete = true,
+}: CalendarSettingsPlatformWrapperProps) => {
   return (
     <div className={classNames?.calendarSettingsCustomClassnames}>
       <DestinationCalendarSettingsPlatformWrapper
@@ -18,6 +25,8 @@ export const CalendarSettingsPlatformWrapper = ({ classNames }: CalendarSettings
       />
       <SelectedCalendarsSettingsPlatformWrapper
         classNames={classNames?.selectedCalendarSettingsCustomClassnames}
+        calendarRedirectUrls={calendarRedirectUrls}
+        allowDelete={allowDelete}
       />
     </div>
   );

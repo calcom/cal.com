@@ -1,25 +1,37 @@
+import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "@/lib/roles/constants";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
 
-import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "../../../../lib/roles/constants";
-import { GetUserReturnType } from "../../../auth/decorators/get-user/get-user.decorator";
-import { Roles } from "../../../auth/decorators/roles/roles.decorator";
-import { MembershipsRepository } from "../../../memberships/memberships.repository";
-
 @Injectable()
 export class RolesGuard implements CanActivate {
   private readonly logger = new Logger("RolesGuard Logger");
-  constructor(private reflector: Reflector, private membershipRepository: MembershipsRepository) {}
+  constructor(
+    private reflector: Reflector,
+    private membershipRepository: MembershipsRepository,
+    private readonly redisService: RedisService
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { team: Team }>();
     const teamId = request.params.teamId as string;
     const orgId = request.params.orgId as string;
-    const user = request.user as GetUserReturnType;
+    const user = request.user as ApiAuthGuardUser;
     const allowedRole = this.reflector.get(Roles, context.getHandler());
+    const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
+      teamId ?? "none"
+    }:guard:roles:${allowedRole}`;
+    const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
+
+    if (cachedAccess) {
+      return cachedAccess;
+    }
 
     let canAccess = false;
 
@@ -117,6 +129,7 @@ export class RolesGuard implements CanActivate {
         });
       }
     }
+    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
     return canAccess;
   }
 }

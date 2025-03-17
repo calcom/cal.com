@@ -8,6 +8,7 @@ export declare module "next" {
     session?: Session | null;
 
     userId: number;
+    user?: { role: string; locked: boolean; email: string } | null;
     method: string;
     // session: { user: { id: number } };
     // query: Partial<{ [key: string]: string | string[] }>;

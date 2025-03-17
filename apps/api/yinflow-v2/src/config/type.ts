@@ -13,6 +13,7 @@ export type AppConfig = {
   db: {
     readUrl: string;
     writeUrl: string;
+    redisUrl: string;
   };
   next: {
     authSecret: string;
@@ -20,6 +21,8 @@ export type AppConfig = {
   stripe: {
     apiKey: string;
     webhookSecret: string;
+    teamMonthlyPriceId: string;
+    isTeamBillingEnabled: boolean;
   };
   app: {
     baseUrl: string;

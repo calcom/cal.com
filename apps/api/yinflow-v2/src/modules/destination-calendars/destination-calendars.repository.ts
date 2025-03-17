@@ -1,32 +1,38 @@
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class DestinationCalendarsRepository {
-  // TODO: PrismaWriteService
+  constructor(private readonly dbWrite: PrismaWriteService) {}
+
   async updateCalendar(
     integration: string,
     externalId: string,
-    credentialId: number,
+
     userId: number,
-    primaryEmail: string | null
+    primaryEmail: string | null,
+    credentialId?: number,
+    delegationCredentialId?: string
   ) {
-    //   return await this.dbWrite.prisma.destinationCalendar.upsert({
-    //     update: {
-    //       integration,
-    //       externalId,
-    //       credentialId,
-    //       primaryEmail,
-    //     },
-    //     create: {
-    //       integration,
-    //       externalId,
-    //       credentialId,
-    //       primaryEmail,
-    //       userId,
-    //     },
-    //     where: {
-    //       userId: userId,
-    //     },
-    //   });
+    return await this.dbWrite.prisma.destinationCalendar.upsert({
+      update: {
+        integration,
+        externalId,
+        ...(credentialId ? { credentialId } : {}),
+        ...(delegationCredentialId ? { delegationCredentialId } : {}),
+        primaryEmail,
+      },
+      create: {
+        integration,
+        externalId,
+        ...(credentialId ? { credentialId } : {}),
+        ...(delegationCredentialId ? { delegationCredentialId } : {}),
+        primaryEmail,
+        userId,
+      },
+      where: {
+        userId: userId,
+      },
+    });
   }
 }

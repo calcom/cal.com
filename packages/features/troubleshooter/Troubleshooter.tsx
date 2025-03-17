@@ -1,7 +1,5 @@
-import StickyBox from "react-sticky-box";
-
-import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import classNames from "@calcom/ui/classNames";
 
 import { LargeCalendar } from "./components/LargeCalendar";
 import { TroubleshooterHeader } from "./components/TroubleshooterHeader";
@@ -51,11 +49,9 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
           <div className="bg-default dark:bg-muted sticky top-0 z-10 [grid-area:header]">
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
           </div>
-          <StickyBox key="meta" className={classNames("relative z-10")}>
-            <div className="ps-6">
-              <TroubleshooterSidebar />
-            </div>
-          </StickyBox>
+          <div className="sticky top-0 z-10 ps-6">
+            <TroubleshooterSidebar />
+          </div>
 
           <div className="ml[-1px] border-subtle  sticky top-0 [grid-area:main]">
             <LargeCalendar extraDays={extraDays} />

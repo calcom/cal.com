@@ -1,12 +1,12 @@
+import { CalProviderController } from "@/ee/provider/provider.controller";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { Module } from "@nestjs/common";
 
-import { CredentialsRepository } from "../../modules/credentials/credentials.repository";
-import { OAuthClientModule } from "../../modules/oauth-clients/oauth-client.module";
-import { TokensModule } from "../../modules/tokens/tokens.module";
-import { CalProviderController } from "./provider.controller";
-
 @Module({
-  imports: [TokensModule, OAuthClientModule],
+  imports: [PrismaModule, TokensModule, OAuthClientModule],
   providers: [CredentialsRepository],
   controllers: [CalProviderController],
 })

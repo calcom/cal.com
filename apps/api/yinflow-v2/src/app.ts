@@ -1,12 +1,15 @@
 import "./instrument";
 
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import { BaseExceptionFilter, HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import * as Sentry from "@sentry/node";
-// import * as cookieParser from "cookie-parser";
+import * as cookieParser from "cookie-parser";
 import { Request } from "express";
+import helmet from "helmet";
 
 import {
   API_VERSIONS,
@@ -15,13 +18,10 @@ import {
   CAL_API_VERSION_HEADER,
   X_CAL_CLIENT_ID,
   X_CAL_SECRET_KEY,
+  X_CAL_PLATFORM_EMBED,
 } from "@calcom/platform-constants";
 
-// import helmet from "helmet";
-import { HttpExceptionFilter } from "./filters/http-exception.filter";
-import { PrismaExceptionFilter } from "./filters/prisma-exception.filter";
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
-import { ZodExceptionFilter } from "./filters/zod-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
@@ -38,21 +38,21 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     defaultVersion: VERSION_2024_04_15,
   });
 
-  // app.use(helmet());
+  app.use(helmet());
 
   app.enableCors({
-    origin: true,
+    origin: "*",
     methods: ["GET", "PATCH", "DELETE", "HEAD", "POST", "PUT", "OPTIONS"],
     allowedHeaders: [
       X_CAL_CLIENT_ID,
       X_CAL_SECRET_KEY,
+      X_CAL_PLATFORM_EMBED,
       CAL_API_VERSION_HEADER,
       "Accept",
       "Authorization",
       "Content-Type",
       "Origin",
     ],
-    credentials: true,
     maxAge: 86_400,
   });
 
@@ -72,15 +72,12 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
 
   // Exception filters, new filters go at the bottom, keep the order
   const { httpAdapter } = app.get(HttpAdapterHost);
-  if (process.env.SENTRY_DSN) {
-    Sentry.setupNestErrorHandler(app, new BaseExceptionFilter(httpAdapter));
-  }
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
 
-  // app.use(cookieParser());
+  app.use(cookieParser());
 
   return app;
 };

@@ -13,5 +13,5 @@ export class GetEventTypesOutput_2024_06_14 {
   @ValidateNested({ each: true })
   @Type(() => EventTypeOutput_2024_06_14)
   @IsArray()
-  data!: EventTypeOutput_2024_06_14[] | null;
+  data!: EventTypeOutput_2024_06_14[];
 }

@@ -30,7 +30,7 @@ export const LargeCalendar = ({
   const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
   const displayOverlay =
-    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+    getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 

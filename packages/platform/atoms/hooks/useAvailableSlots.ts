@@ -8,9 +8,25 @@ import http from "../lib/http";
 
 export const QUERY_KEY = "get-available-slots";
 
-export const useAvailableSlots = ({ enabled, ...rest }: GetAvailableSlotsInput & { enabled: boolean }) => {
+export const useAvailableSlots = ({
+  enabled,
+  ...rest
+}: GetAvailableSlotsInput & { enabled: boolean; isTeamEvent?: boolean; teamId?: number }) => {
   const availableSlots = useQuery({
-    queryKey: [QUERY_KEY, rest.startTime, rest.endTime, rest.eventTypeId, rest.eventTypeSlug],
+    queryKey: [
+      QUERY_KEY,
+      rest.startTime,
+      rest.endTime,
+      rest.eventTypeId,
+      rest.eventTypeSlug,
+      rest.isTeamEvent ?? false,
+      rest.teamId ?? false,
+      rest.usernameList,
+      rest.routedTeamMemberIds,
+      rest.skipContactOwner,
+      rest.shouldServeCache,
+      rest.teamMemberEmail,
+    ],
     queryFn: () => {
       return http
         .get<ApiResponse<AvailableSlotsType>>("/slots/available", {

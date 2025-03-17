@@ -5,7 +5,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
 import { EventsInsights } from "@calcom/features/insights/server/events";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
@@ -102,12 +102,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         OR: [
           {
             teamId: team.id,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ],
         createdAt: {
@@ -132,12 +133,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         OR: [
           {
             teamId: team.id,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ],
       };
@@ -156,13 +158,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         take: 10,
       });
 
-      const eventTypeIds = bookingsFromSelected
-        .filter((booking) => typeof booking.eventTypeId === "number")
-        .map((booking) => booking.eventTypeId);
+      const eventTypeIds = bookingsFromSelected.reduce((acc: number[], booking) => {
+        if (typeof booking.eventTypeId !== "number") return acc;
+        return [...acc, booking.eventTypeId];
+      }, []);
 
       const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {
         id: {
-          in: eventTypeIds as number[],
+          in: eventTypeIds,
         },
       };
 

@@ -26,7 +26,7 @@ function Policy() {
               armazenamento e compartilhamento de dados, tendo todos os seus sistemas sendo gerenciados por
               profssionais competentes e certificados para atuação em suas respectivas funções.
             </div>
-            
+
             <h4 className="style-8">2. COLETA E USO DE DADOS</h4>
             <div className="style-9">
               <strong className="style-10">2.1.</strong> Nós obtemos seus dados pessoais através de seu
@@ -198,30 +198,44 @@ function Policy() {
               para seus próprios fins.
             </div>
             <div className="style-105">
-              <strong className="style-106">2.5.</strong> Ao se cadastrar em nosso aplicativo, caso você conceda permissão por meio da funcionalidade de conectar o seu calendário, o aplicativo poderá acessar dados da sua conta Google Calendar (ou Google Agenda) exclusivamente com o objetivo de melhorar a sua experiência de usuário e fornecer nossos serviços, da seguinte forma:
+              <strong className="style-106">2.5.</strong> Ao se cadastrar em nosso aplicativo, caso você
+              conceda permissão por meio da funcionalidade de conectar o seu calendário, o aplicativo poderá
+              acessar dados da sua conta Google Calendar (ou Google Agenda) exclusivamente com o objetivo de
+              melhorar a sua experiência de usuário e fornecer nossos serviços, da seguinte forma:
               <ul>
                 <br className="style-107" />
                 <li>
-                  - Acesso e uso: Poderemos acessar e usar dados de eventos do Google Calendar para disponibilizar sua agenda como profisisonal de saúde para nossos pacientes para que os mesmos possam fazer solicitações de agendamentos na sua agenda através da nossa aplicação. Ao nos fornecer este acesso você estará nos dando acesso à dados da sua conta Google Calendar que serão obtidos pelos seguintes escopos da API do Google Calendar:
+                  - Acesso e uso: Poderemos acessar e usar dados de eventos do Google Calendar para
+                  disponibilizar sua agenda como profisisonal de saúde para nossos pacientes para que os
+                  mesmos possam fazer solicitações de agendamentos na sua agenda através da nossa aplicação.
+                  Ao nos fornecer este acesso você estará nos dando acesso à dados da sua conta Google
+                  Calendar que serão obtidos pelos seguintes escopos da API do Google Calendar:
                   <br className="style-108" />
                   <br className="style-108" />
                   <ul>
                     <li>
-                      - Eventos do Calendário (somente leitura): Permitirá visualizar eventos em todos os seus calendários. Esta permissão será utilizada pela nossa aplicação para detectar dias e horários em que você tem eventos agendados e portanto, com base nisso, inferir sua disponibilidade, que por sua vez será usada para criar uma agenda de horários
-                      efetivamente disponíveis para solicitações agendamento, evitando solicitações que resultem em conflito de horários, ou seja, dois eventos agendados no mesmo horário.
+                      - Eventos do Calendário (somente leitura): Permitirá visualizar eventos em todos os seus
+                      calendários. Esta permissão será utilizada pela nossa aplicação para detectar dias e
+                      horários em que você tem eventos agendados e portanto, com base nisso, inferir sua
+                      disponibilidade, que por sua vez será usada para criar uma agenda de horários
+                      efetivamente disponíveis para solicitações agendamento, evitando solicitações que
+                      resultem em conflito de horários, ou seja, dois eventos agendados no mesmo horário.
                       <br className="style-108" />
                       <br className="style-108" />
                     </li>
                     <li>
-                      - Eventos do Calendário (gerenciamento de eventos): Permitirá visualizar, editar, criar e excluir eventos em todos os seus calendários. Esta permissão será utilizada para criar eventos em seu calendário a partir de solicitações de agendamento, bem como gerenciar esses eventos quando necessário.
+                      - Eventos do Calendário (gerenciamento de eventos): Permitirá visualizar, editar, criar
+                      e excluir eventos em todos os seus calendários. Esta permissão será utilizada para criar
+                      eventos em seu calendário a partir de solicitações de agendamento, bem como gerenciar
+                      esses eventos quando necessário.
                       <br className="style-108" />
                       <br className="style-108" />
                     </li>
                   </ul>
                 </li>
                 <li>
-                  - Armazenamento: Dados de eventos obtidos pela API do Google Calendar não serão armazenados em
-                  nossos servidores e não serão lidos por humanos.
+                  - Armazenamento: Dados de eventos obtidos pela API do Google Calendar não serão armazenados
+                  em nossos servidores e não serão lidos por humanos.
                   <br className="style-108" />
                   <br className="style-108" />
                 </li>
@@ -233,7 +247,8 @@ function Policy() {
                 </li>
                 <br className="style-108" />
                 <li>
-                  <strong>Segurança dos Dados:</strong> Implementamos rigorosas práticas de segurança para proteger seus dados do Google Calendar, incluindo:
+                  <strong>Segurança dos Dados:</strong> Implementamos rigorosas práticas de segurança para
+                  proteger seus dados do Google Calendar, incluindo:
                   <ul>
                     <li>- Criptografia em trânsito e em repouso</li>
                     <li>- Controles de acesso estritos</li>
@@ -253,22 +268,29 @@ function Policy() {
                 </li>
               </ul>
             </div>
-            <div className="google-limited-use-notice" style={{
-              padding: "20px",
-              margin: "20px 0",
-              backgroundColor: "#f8f9fa",
-              border: "2px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "1.1em"
-            }}>
-              <strong>Aviso Importante sobre Uso de APIs do Google:</strong><br/>
-              O uso e transferência para qualquer outro aplicativo de informações recebidas das APIs do Google pela Yinflow.Life aderirão à <a 
-                href="https://developers.google.com/terms/api-services-user-data-policy" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+            <div
+              className="google-limited-use-notice"
+              style={{
+                padding: "20px",
+                margin: "20px 0",
+                backgroundColor: "#f8f9fa",
+                border: "2px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "1.1em",
+              }}>
+              <strong>Aviso Importante sobre Uso de APIs do Google:</strong>
+              <br />O uso e transferência para qualquer outro aplicativo de informações recebidas das APIs do
+              Google pela Yinflow.Life aderirão à{" "}
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="style-7">
                 Política de Dados do Usuário dos Serviços de API do Google
-              </a>, incluindo os requisitos de Uso Limitado. Seus dados do Google Calendar são usados exclusivamente para fornecer as funcionalidades de agendamento e nunca serão vendidos, usados para publicidade ou compartilhados com terceiros.
+              </a>
+              , incluindo os requisitos de Uso Limitado. Seus dados do Google Calendar são usados
+              exclusivamente para fornecer as funcionalidades de agendamento e nunca serão vendidos, usados
+              para publicidade ou compartilhados com terceiros.
             </div>
             <h4 className="style-110">3. Compartilhamento de Dados</h4>
             <div className="style-111">

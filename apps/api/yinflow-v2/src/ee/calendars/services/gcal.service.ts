@@ -1,24 +1,20 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { AppsRepository } from "@/modules/apps/apps.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { calendar_v3 } from "@googleapis/calendar";
+import { Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
-import { google } from "googleapis";
+import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
 
-import { GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
-
-import { getEnv } from "../../../env";
-import { AppsRepository } from "../../../modules/apps/apps.repository";
-import { CredentialsRepository } from "../../../modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "../../../modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "../../../modules/tokens/tokens.repository";
-import { OAuthCalendarApp } from "../../calendars/calendars.interface";
-import { CalendarsService } from "../../calendars/services/calendars.service";
+import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -27,12 +23,12 @@ const CALENDAR_SCOPES = [
 
 @Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
-  private apiUrl = getEnv("API_URL");
-  private redirectUri = `${this.apiUrl}/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
   private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
   private logger = new Logger("GcalService");
 
   constructor(
+    private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
     private readonly calendarsService: CalendarsService,
@@ -83,7 +79,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     const { client_id, client_secret } = this.gcalResponseSchema.parse(app.keys);
 
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirectUri);
+    const oAuth2Client = new OAuth2Client(client_id, client_secret, redirectUri);
     return oAuth2Client;
   }
 
@@ -95,7 +91,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     }
 
     if (gcalCredentials.invalid) {
-      throw new BadRequestException("Invalid google oauth credentials.");
+      throw new BadRequestException("Invalid google OAuth credentials.");
     }
 
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
@@ -120,7 +116,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
   ) {
     // User chose not to authorize your app or didn't authorize your app
     // redirect directly without oauth code
-    if (!code) {
+    if (!code || code === "undefined") {
       return { url: redir || origin };
     }
 
@@ -136,16 +132,10 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const token = await oAuth2Client.getToken(parsedCode);
     // Google oAuth Credentials are stored in token.tokens
     const key = token.tokens;
-    const credential = await this.credentialRepository.createAppCredential(
-      GOOGLE_CALENDAR_TYPE,
-      key as Prisma.InputJsonValue,
-      ownerId
-    );
 
     oAuth2Client.setCredentials(key);
 
-    const calendar = google.calendar({
-      version: "v3",
+    const calendar = new calendar_v3.Calendar({
       auth: oAuth2Client,
     });
 
@@ -154,10 +144,39 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
     if (primaryCal?.id) {
-      await this.selectedCalendarsRepository.createSelectedCalendar(
-        primaryCal.id,
-        credential.id,
+      const alreadyExistingSelectedCalendar = await this.selectedCalendarsRepository.getUserSelectedCalendar(
         ownerId,
+        GOOGLE_CALENDAR_TYPE,
+        primaryCal.id
+      );
+
+      if (alreadyExistingSelectedCalendar) {
+        const isCredentialValid = await this.calendarsService.checkCalendarCredentialValidity(
+          ownerId,
+          alreadyExistingSelectedCalendar.credentialId ?? 0,
+          GOOGLE_CALENDAR_TYPE
+        );
+
+        // user credential probably got expired in this case
+        if (!isCredentialValid) {
+          await this.calendarsService.createAndLinkCalendarEntry(
+            ownerId,
+            alreadyExistingSelectedCalendar.externalId,
+            key as Prisma.InputJsonValue,
+            GOOGLE_CALENDAR_TYPE,
+            alreadyExistingSelectedCalendar.credentialId
+          );
+        }
+
+        return {
+          url: redir || origin,
+        };
+      }
+
+      await this.calendarsService.createAndLinkCalendarEntry(
+        ownerId,
+        primaryCal.id,
+        key as Prisma.InputJsonValue,
         GOOGLE_CALENDAR_TYPE
       );
     }

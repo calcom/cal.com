@@ -1,45 +1,52 @@
 import { m } from "framer-motion";
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
 
-import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/monorepo";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
+import { EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
+import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
-import "./styles/scale.css";
 
 const MOBILE_WIDTH = 768;
 
-const WebTimezoneSelect = dynamic(
-  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
-  {
-    ssr: false,
-  }
-);
+const getTranslatedField = (
+  translations: Array<Pick<EventTypeTranslation, "field" | "targetLocale" | "translatedText">>,
+  field: EventTypeAutoTranslatedField,
+  userLocale: string
+) => {
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
+
+  return translations?.find(
+    (trans) =>
+      trans.field === field &&
+      i18nLocales.includes(trans.targetLocale) &&
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
+  )?.translatedText;
+};
 
 export const EventMeta = ({
   event,
   isPending,
-  isPlatform = true,
-  isOcurrence,
+  isPrivateLink,
   classNames,
+  locale,
 }: {
   event?: Pick<
     BookerEvent,
     | "lockTimeZoneToggleOnBookingPage"
     | "schedule"
     | "seatsPerTimeSlot"
-    | "users"
+    | "subsetOfUsers"
     | "length"
     | "schedulingType"
     | "profile"
@@ -53,8 +60,11 @@ export const EventMeta = ({
     | "recurringEvent"
     | "price"
     | "isDynamic"
+    | "fieldTranslations"
+    | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
+  isPrivateLink: boolean;
   isPlatform?: boolean;
   isOcurrence: boolean;
   classNames?: {
@@ -62,27 +72,21 @@ export const EventMeta = ({
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
-  const { setTimezone, timeFormat, timezone: timeZone } = useTimePreferences();
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
-  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const [seatedEventData, setSeatedEventData] = useBookerStore(
+  const [seatedEventData] = useBookerStore(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
-  const { i18n, t } = useLocale();
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const pathname = usePathname();
   const [showMessage, setShowMessage] = useState(false);
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
-  const [TimezoneSelect] = useMemo(
-    () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
-    [isPlatform]
-  );
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
@@ -92,7 +96,7 @@ export const EventMeta = ({
   }, [event, setTimezone]);
 
   useEffect(() => {
-    const hasRecurrenceInPath = pathname.includes("semanal") || pathname.includes("quinzenal");
+    const hasRecurrenceInPath = pathname!.includes("semanal") || pathname!.includes("quinzenal");
     const handleResize = () => {
       setShowMessage(window.innerWidth < MOBILE_WIDTH && hasRecurrenceInPath);
     };
@@ -122,20 +126,19 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
+  const userLocale = locale ?? navigator.language;
+  const translatedDescription = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.DESCRIPTION,
+    userLocale
+  );
+  const translatedTitle = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.TITLE,
+    userLocale
+  );
 
   const startDate = selectedTimeslot ? new Date(selectedTimeslot) : new Date();
-  const date = new Intl.DateTimeFormat(i18n.language, {
-    timeZone,
-    dateStyle: "full",
-  }).format(startDate);
-
-  const time = new Intl.DateTimeFormat(i18n.language, {
-    timeZone,
-    timeStyle: "short",
-    hour12: false,
-  })
-    .format(startDate)
-    .toLowerCase();
 
   return (
     <div
@@ -148,29 +151,25 @@ export const EventMeta = ({
       )}
       {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          {!isPlatform && (
-            <EventMembers
-              schedulingType={event.schedulingType}
-              users={event.users}
-              profile={event.profile}
-              entity={event.entity}
-            />
-          )}
-          <EventTitle
-            className={`${classNames?.eventMetaTitle} title-class-font-size my-2 mt-4 hidden sm:block`}>
-            {event?.title}
+          <EventMembers
+            schedulingType={event.schedulingType}
+            users={event.subsetOfUsers}
+            profile={event.profile}
+            entity={event.entity}
+            isPrivateLink={isPrivateLink}
+          />
+          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
+            {translatedTitle ?? event?.title}
           </EventTitle>
-          <p className="title-class-font-size my-4 mb-8 sm:hidden">{event?.title}</p>
-          {event.description && (
-            <>
-              <EventMetaBlock contentClassName=" hidden sm:block mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4 description-class-font-size">
-                <div dangerouslySetInnerHTML={{ __html: event.description }} />
-              </EventMetaBlock>
-
-              <EventMetaBlock contentClassName=" sm:hidden mb-8 break-words max-w-full max-h-[180px] scroll-bar  description-class-font-size">
-                <div dangerouslySetInnerHTML={{ __html: event.description }} />
-              </EventMetaBlock>
-            </>
+          {(event.description || translatedDescription) && (
+            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+              <div
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
+                }}
+              />
+            </EventMetaBlock>
           )}
           <div>
             <div
@@ -201,14 +200,49 @@ export const EventMeta = ({
                     timeZone={timezone}
                     language={i18n.language}
                   />
-                </EventMetaBlock>
-              )} */}
-              {showMessage && (
-                <span className="-mb-4 ml-0.5 flex items-center gap-2 text-base">
-                  <Icon
-                    name="calendar"
-                    data-testid="calendar-icon"
-                    className="calendar-scale mr-2 h-3 w-3 stroke-[3px]"
+                </span>
+              </EventMetaBlock>
+            )}
+            {selectedTimeslot && (
+              <EventMetaBlock icon="calendar">
+                <FromToTime
+                  date={selectedTimeslot}
+                  duration={selectedDuration || event.length}
+                  timeFormat={timeFormat}
+                  timeZone={timezone}
+                  language={i18n.language}
+                />
+              </EventMetaBlock>
+            )}
+            <EventDetails event={event} />
+            <EventMetaBlock
+              className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
+              contentClassName="relative max-w-[90%]"
+              icon="globe">
+              {bookerState === "booking" ? (
+                <>{timezone}</>
+              ) : (
+                <span
+                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                    event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
+                  }`}>
+                  <TimezoneSelect
+                    menuPosition="absolute"
+                    timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
+                    classNames={{
+                      control: () =>
+                        "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
+                      menu: () => "!w-64 max-w-[90vw] mb-1 ",
+                      singleValue: () => "text-text py-1",
+                      indicatorsContainer: () => "ml-auto",
+                      container: () => "max-w-full",
+                    }}
+                    value={event.lockTimeZoneToggleOnBookingPage ? CURRENT_TIMEZONE : timezone}
+                    onChange={({ value }) => {
+                      setTimezone(value);
+                      setBookerStoreTimezone(value);
+                    }}
+                    isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                   A partir de {date}, {time}
                 </span>

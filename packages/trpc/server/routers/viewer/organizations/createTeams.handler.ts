@@ -8,6 +8,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -33,7 +34,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NoUserError();
   }
 
-  const { orgId, moveTeams } = input;
+  const { orgId, moveTeams, creationSource } = input;
 
   // Remove empty team names that could be there due to the default empty team name
   const teamNames = input.teamNames.filter((name) => name.trim().length > 0);
@@ -106,6 +107,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
             ownerId: organizationOwner.id,
           },
           ctx,
+          creationSource,
         });
       })
   );
@@ -173,6 +175,7 @@ async function moveTeam({
   newSlug,
   org,
   ctx,
+  creationSource,
 }: {
   teamId: number;
   newSlug?: string | null;
@@ -183,6 +186,7 @@ async function moveTeam({
     metadata: Prisma.JsonValue;
   };
   ctx: CreateTeamsOptions["ctx"];
+  creationSource: CreationSource;
 }) {
   const team = await prisma.team.findUnique({
     where: {
@@ -240,6 +244,7 @@ async function moveTeam({
         teamId: org.id,
         language: "en",
         usernameOrEmail: invitableMembers,
+        creationSource,
       },
     });
   }

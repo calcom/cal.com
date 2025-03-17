@@ -3,16 +3,17 @@
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import { Button, HeadSeo, Icon } from "@calcom/ui";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import { Button, Icon } from "@calcom/ui";
 
-import { type PageProps } from "./videos-meeting-ended-single-view.getServerSideProps";
+import type { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function MeetingUnavailable(props: PageProps) {
   const { t } = useLocale();
 
   return (
     <div>
-      <HeadSeo title="Meeting Unavailable" description="Meeting Unavailable" />
       <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">

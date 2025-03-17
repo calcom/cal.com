@@ -1,16 +1,14 @@
 import * as React from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="w-full overflow-auto md:overflow-visible">
-      <table
-        ref={ref}
-        className={classNames("border-subtle w-full caption-bottom border text-sm", className)}
-        {...props}
-      />
-    </div>
+    <table
+      ref={ref}
+      className={classNames("border-subtle w-full caption-bottom border text-sm", className)}
+      {...props}
+    />
   )
 );
 Table.displayName = "Table";

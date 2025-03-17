@@ -1,12 +1,11 @@
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { User } from "@prisma/client";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
@@ -16,24 +15,25 @@ export class OAuthClientUsersService {
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly schedulesService: SchedulesService_2024_04_15,
-    private readonly organizationsTeamsService: OrganizationsTeamsService
+    private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
-  async createOauthClientUser(
-    oAuthClientId: string,
-    body: CreateManagedUserInput,
-    isPlatformManaged: boolean,
-    organizationId?: number
-  ) {
-    const existsWithEmail = await this.managedUserExistsWithEmail(oAuthClientId, body.email);
-    if (existsWithEmail) {
-      throw new BadRequestException("User with the provided e-mail already exists.");
+  async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
+    const oAuthClientId = oAuthClient.id;
+    const organizationId = oAuthClient.organizationId;
+
+    const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
+    if (existingUser) {
+      throw new ConflictException(
+        `User with the provided e-mail already exists. Existing user ID=${existingUser.id}`
+      );
     }
 
     let user: User;
     if (!organizationId) {
-      throw new BadRequestException("You cannot create a managed user outside of an organization");
+      throw new BadRequestException(
+        "You cannot create a managed user outside of an organization - the OAuth client does not belong to any organization."
+      );
     } else {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
@@ -44,6 +44,7 @@ export class OAuthClientUsersService {
               role: "MEMBER",
             },
           ],
+          creationSource: CreationSource.API_V2,
           teamId: organizationId,
           isOrg: true,
           parentId: null,
@@ -54,7 +55,7 @@ export class OAuthClientUsersService {
               autoAccept: true,
             },
           },
-          isPlatformManaged,
+          isPlatformManaged: true,
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
@@ -64,9 +65,11 @@ export class OAuthClientUsersService {
       const updatedUser = await this.userRepository.update(user.id, {
         name: body.name,
         locale: body.locale,
+        avatarUrl: body.avatarUrl,
       });
       user.locale = updatedUser.locale;
       user.name = updatedUser.name;
+      user.avatarUrl = updatedUser.avatarUrl;
     }
 
     const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
@@ -74,14 +77,14 @@ export class OAuthClientUsersService {
       user.id
     );
 
-    await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    if (oAuthClient.areDefaultEventTypesEnabled) {
+      await this.eventTypesService.createUserDefaultEventTypes(user.id);
+    }
 
     if (body.timeZone) {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
       user.defaultScheduleId = defaultSchedule.id;
     }
-
-    await this.organizationsTeamsService.addUserToPlatformTeamEvents(user.id, organizationId, oAuthClientId);
 
     return {
       user,
@@ -93,10 +96,9 @@ export class OAuthClientUsersService {
     };
   }
 
-  async managedUserExistsWithEmail(oAuthClientId: string, email: string) {
+  async getExistingUserByEmail(oAuthClientId: string, email: string) {
     const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
-    const user = await this.userRepository.findByEmail(oAuthEmail);
-    return !!user;
+    return await this.userRepository.findByEmail(oAuthEmail);
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {

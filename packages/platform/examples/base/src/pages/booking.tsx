@@ -89,16 +89,18 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <>
-            <h1>{eventTypeSlug}</h1>
             <Booker
+              bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
               eventSlug={eventTypeSlug}
-              username={props.calUsername ?? ""}
               onCreateBookingSuccess={(data) => {
                 setBookingTitle(data.data.title ?? "");
-                router.push(`/${data.data.uid}`);
+                if (data.data.paymentRequired) {
+                  router.push(`/payment/${data.data.paymentUid}`);
+                } else {
+                  router.push(`/${data.data.uid}`);
+                }
               }}
-              teamId={teams?.[0]?.id || 0}
-              isTeamEvent={isTeamEvent}
+              metadata={{ CustomKey: "CustomValue" }}
               duration={eventTypeDuration}
               customClassNames={{
                 bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
@@ -113,6 +115,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   availableTimes: "!bg-[#D7CEF5]",
                 },
               }}
+              {...(isTeamEvent
+                ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
+                : { username: props.calUsername })}
+              hostsLimit={3}
             />
           </>
         )}
@@ -126,6 +132,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               router.push(`/${data.data.uid}`);
             }}
             duration={eventTypeDuration}
+            bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
+            hostsLimit={3}
           />
         )}
         {bookingTitle && <p>Booking created: {bookingTitle}</p>}

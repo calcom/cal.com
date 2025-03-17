@@ -16,7 +16,6 @@ import type { AvailabilityFormValues } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -31,6 +30,7 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 export type { TimeRange };
 
@@ -417,7 +417,6 @@ const TimeRangeField = ({
           } else {
             onChange({ ...value, start: newStart });
           }
-          handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
       />
       <span className="text-default w-2 self-center"> - </span>

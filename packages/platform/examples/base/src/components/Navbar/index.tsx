@@ -23,6 +23,9 @@ export function Navbar({ username }: { username?: string }) {
             <Link href="/availability">Availability</Link>
           </li>
           <li>
+            <Link href="/event-types">EventTypes</Link>
+          </li>
+          <li>
             <Link href="/booking">Book Me</Link>
           </li>
           <li>
@@ -30,6 +33,10 @@ export function Navbar({ username }: { username?: string }) {
           </li>
           <li>
             <Link href="/embed">Embed</Link>
+          </li>
+
+          <li>
+            <Link href="/conferencing-apps">Conferencing Apps</Link>
           </li>
         </ul>
       </div>

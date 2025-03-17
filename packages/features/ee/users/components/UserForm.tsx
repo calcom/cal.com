@@ -2,21 +2,12 @@
 import { noop } from "lodash";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localeOptions } from "@calcom/lib/i18n";
+import { defaultLocaleOption, localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
-import {
-  Avatar,
-  Button,
-  EmailField,
-  Form,
-  ImageUploader,
-  Label,
-  Select,
-  TextField,
-  TimezoneSelect,
-} from "@calcom/ui";
+import { Avatar, Button, EmailField, Form, ImageUploader, Label, Select, TextField } from "@calcom/ui";
 
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
@@ -76,7 +67,7 @@ export const UserForm = ({
     { value: "GOOGLE", label: "GOOGLE" },
     { value: "SAML", label: "SAML" },
   ];
-  const defaultLocale = defaultValues?.locale || localeOptions[0].value;
+  const defaultLocale = defaultValues?.locale || defaultLocaleOption.value;
 
   const form = useForm<FormValues>({
     defaultValues: {

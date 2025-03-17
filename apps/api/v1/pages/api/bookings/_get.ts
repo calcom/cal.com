@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
@@ -12,6 +12,7 @@ import {
 } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
+import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 /**
@@ -216,10 +217,18 @@ export async function handler(req: NextApiRequest) {
     args.take = take;
     args.skip = skip;
   }
+  const queryFilterForExpand = schemaQuerySingleOrMultipleExpand.parse(req.query.expand);
+  const expand = Array.isArray(queryFilterForExpand)
+    ? queryFilterForExpand
+    : queryFilterForExpand
+    ? [queryFilterForExpand]
+    : [];
+
   args.include = {
     attendees: true,
     user: true,
     payment: true,
+    eventType: expand.includes("team") ? { include: { team: true } } : false,
   };
 
   const queryFilterForAttendeeEmails = schemaQuerySingleOrMultipleAttendeeEmails.parse(req.query);

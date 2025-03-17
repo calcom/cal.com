@@ -2,23 +2,25 @@ import type { BookingReference, EventType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
-import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
-import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { sendRequestRescheduleEmail } from "@calcom/emails";
+import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
+import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
+import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { deleteMeeting } from "@calcom/lib/videoClient";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -28,7 +30,6 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import { deleteAllWorkflowReminders } from "../workflows/util";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
 
@@ -58,6 +59,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         include: {
           team: {
             select: {
+              id: true,
+              name: true,
               parentId: true,
             },
           },
@@ -157,7 +160,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   //cancel workflow reminders of previous booking
-  await deleteAllWorkflowReminders(bookingToReschedule.workflowReminders);
+  await WorkflowRepository.deleteAllWorkflowReminders(bookingToReschedule.workflowReminders);
 
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?
@@ -170,6 +173,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         username: user?.username || "",
         language: { translate: selectedLanguage, locale: user.locale || "en" },
         timeZone: user?.timeZone,
+        phoneNumber: user.phoneNumber,
       };
     });
   };
@@ -198,6 +202,13 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     ),
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
+    team: !!bookingToReschedule.eventType?.team
+      ? {
+          name: bookingToReschedule.eventType.team.name,
+          id: bookingToReschedule.eventType.team.id,
+          members: [],
+        }
+      : undefined,
   });
 
   const director = new CalendarEventDirector();
@@ -205,7 +216,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   director.setExistingBooking(bookingToReschedule);
   cancellationReason && director.setCancellationReason(cancellationReason);
   if (Object.keys(event).length) {
-    await director.buildForRescheduleEmail();
+    // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
+    await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
   }
@@ -228,12 +240,24 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
       if (bookingRef.type.endsWith("_calendar")) {
         const calendar = await getCalendar(
-          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+          getDelegationCredentialOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              delegationCredentialId: bookingRef?.delegationCredentialId,
+            },
+          })
         );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(
-          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          getDelegationCredentialOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              delegationCredentialId: bookingRef?.delegationCredentialId,
+            },
+          }),
           bookingRef.uid
         );
       }
@@ -242,7 +266,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
   // Send emails
-  await sendRequestRescheduleEmail(
+  await sendRequestRescheduleEmailAndSMS(
     builder.calendarEvent,
     {
       rescheduleLink: builder.rescheduleLink,
@@ -295,10 +319,11 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     userId,
     eventTypeId: bookingToReschedule.eventTypeId as number,
     triggerEvent: eventTrigger,
-    teamId,
+    teamId: teamId ? [teamId] : null,
     orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,

@@ -1,4 +1,5 @@
-// lets refactor and move this into packages/lib/hooks/
+"use client";
+
 import { useState, useEffect } from "react";
 
 const useMediaQuery = (query: string) => {

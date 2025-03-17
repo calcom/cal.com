@@ -15,47 +15,47 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
 ) => {
   const defaultWorkingWeekdays = [1, 2, 3, 4, 5];
 
-  dayjsFactory.getWorkingWeekdays = function (): number[] {
+  (dayjsFactory as any).getWorkingWeekdays = function (): number[] {
     return options.workingWeekdays || defaultWorkingWeekdays;
   };
 
-  dayjsFactory.setWorkingWeekdays = function (workingWeekdays: number[]): void {
+  (dayjsFactory as any).setWorkingWeekdays = function (workingWeekdays: number[]): void {
     options.workingWeekdays = workingWeekdays;
   };
 
-  dayjsFactory.getHolidays = function (): string[] {
+  (dayjsFactory as any).getHolidays = function (): string[] {
     return options.holidays || [];
   };
 
-  dayjsFactory.setHolidays = function (holidays: string[]): void {
+  (dayjsFactory as any).setHolidays = function (holidays: string[]): void {
     options.holidays = holidays;
   };
 
-  dayjsFactory.getHolidayFormat = function (): string | undefined {
+  (dayjsFactory as any).getHolidayFormat = function (): string | undefined {
     return options.holidayFormat;
   };
 
-  dayjsFactory.setHolidayFormat = function (holidayFormat: string): void {
+  (dayjsFactory as any).setHolidayFormat = function (holidayFormat: string): void {
     options.holidayFormat = holidayFormat;
   };
 
-  dayjsFactory.getAdditionalWorkingDays = function (): string[] {
+  (dayjsFactory as any).getAdditionalWorkingDays = function (): string[] {
     return options.additionalWorkingDays || [];
   };
 
-  dayjsFactory.setAdditionalWorkingDays = function (additionalWorkingDays: string[]): void {
+  (dayjsFactory as any).setAdditionalWorkingDays = function (additionalWorkingDays: string[]): void {
     options.additionalWorkingDays = additionalWorkingDays;
   };
 
-  dayjsFactory.getAdditionalWorkingDayFormat = function (): string | undefined {
+  (dayjsFactory as any).getAdditionalWorkingDayFormat = function (): string | undefined {
     return options.additionalWorkingDayFormat;
   };
 
-  dayjsFactory.setAdditionalWorkingDayFormat = function (additionalWorkingDayFormat: string): void {
+  (dayjsFactory as any).setAdditionalWorkingDayFormat = function (additionalWorkingDayFormat: string): void {
     options.additionalWorkingDayFormat = additionalWorkingDayFormat;
   };
 
-  dayjsClass.prototype.isHoliday = function (this: Dayjs): boolean {
+  (dayjsClass.prototype as any).isHoliday = function (this: Dayjs): boolean {
     if (!options.holidays) {
       return false;
     }
@@ -66,13 +66,13 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return false;
   };
 
-  dayjsClass.prototype.isBusinessDay = function (this: Dayjs): boolean {
+  (dayjsClass.prototype as any).isBusinessDay = function (this: Dayjs): boolean {
     const workingWeekdays = options.workingWeekdays || defaultWorkingWeekdays;
 
-    if (this.isHoliday()) {
+    if ((this as any).isHoliday()) {
       return false;
     }
-    if (this.isAdditionalWorkingDay()) {
+    if ((this as any).isAdditionalWorkingDay()) {
       return true;
     }
     if (workingWeekdays.includes(this.day())) {
@@ -82,7 +82,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return false;
   };
 
-  dayjsClass.prototype.isAdditionalWorkingDay = function (this: Dayjs): boolean {
+  (dayjsClass.prototype as any).isAdditionalWorkingDay = function (this: Dayjs): boolean {
     if (!options.additionalWorkingDays) {
       return false;
     }
@@ -93,7 +93,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return false;
   };
 
-  dayjsClass.prototype.businessDaysAdd = function (this: Dayjs, days: number): Dayjs {
+  (dayjsClass.prototype as any).businessDaysAdd = function (this: Dayjs, days: number): Dayjs {
     const numericDirection = days < 0 ? -1 : 1;
     let currentDay = this.clone();
     let daysRemaining = Math.abs(days);
@@ -101,7 +101,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     while (daysRemaining > 0) {
       currentDay = currentDay.add(numericDirection, `d`);
 
-      if (currentDay.isBusinessDay()) {
+      if ((currentDay as any).isBusinessDay()) {
         daysRemaining -= 1;
       }
     }
@@ -109,15 +109,15 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return currentDay;
   };
 
-  dayjsClass.prototype.businessDaysSubtract = function (this: Dayjs, days: number): Dayjs {
+  (dayjsClass.prototype as any).businessDaysSubtract = function (this: Dayjs, days: number): Dayjs {
     let currentDay = this.clone();
 
-    currentDay = currentDay.businessDaysAdd(days * -1);
+    currentDay = (currentDay as any).businessDaysAdd(days * -1);
 
     return currentDay;
   };
 
-  dayjsClass.prototype.businessDiff = function (this: Dayjs, date: Dayjs): number {
+  (dayjsClass.prototype as any).businessDiff = function (this: Dayjs, date: Dayjs): number {
     const day1 = this.clone();
     const day2 = date.clone();
 
@@ -132,7 +132,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     }
 
     while (start < end) {
-      if (start.isBusinessDay()) {
+      if ((start as any).isBusinessDay()) {
         daysBetween += 1;
       }
 
@@ -142,7 +142,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return isPositiveDiff ? daysBetween : -daysBetween;
   };
 
-  dayjsClass.prototype.nextBusinessDay = function (this: Dayjs): Dayjs {
+  (dayjsClass.prototype as any).nextBusinessDay = function (this: Dayjs): Dayjs {
     const searchLimit = 7;
     let currentDay = this.clone();
 
@@ -150,7 +150,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     while (loopIndex < searchLimit) {
       currentDay = currentDay.add(1, `day`);
 
-      if (currentDay.isBusinessDay()) {
+      if ((currentDay as any).isBusinessDay()) {
         break;
       }
       loopIndex += 1;
@@ -159,7 +159,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return currentDay;
   };
 
-  dayjsClass.prototype.prevBusinessDay = function (this: Dayjs): Dayjs {
+  (dayjsClass.prototype as any).prevBusinessDay = function (this: Dayjs): Dayjs {
     const searchLimit = 7;
     let currentDay = this.clone();
 
@@ -167,7 +167,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     while (loopIndex < searchLimit) {
       currentDay = currentDay.subtract(1, `day`);
 
-      if (currentDay.isBusinessDay()) {
+      if ((currentDay as any).isBusinessDay()) {
         break;
       }
       loopIndex += 1;
@@ -176,7 +176,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return currentDay;
   };
 
-  dayjsClass.prototype.businessDaysInMonth = function (this: Dayjs): Dayjs[] {
+  (dayjsClass.prototype as any).businessDaysInMonth = function (this: Dayjs): Dayjs[] {
     if (!this.isValid()) {
       return [];
     }
@@ -187,7 +187,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     let monthComplete = false;
 
     while (!monthComplete) {
-      if (currentDay.isBusinessDay()) {
+      if ((currentDay as any).isBusinessDay()) {
         businessDays.push(currentDay.clone());
       }
 
@@ -201,13 +201,13 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     return businessDays;
   };
 
-  dayjsClass.prototype.lastBusinessDayOfMonth = function (this: Dayjs): Dayjs {
-    const businessDays = this.businessDaysInMonth();
+  (dayjsClass.prototype as any).lastBusinessDayOfMonth = function (this: Dayjs): Dayjs {
+    const businessDays = (this as any).businessDaysInMonth();
     const lastBusinessDay = businessDays[businessDays.length - 1];
     return lastBusinessDay;
   };
 
-  dayjsClass.prototype.businessWeeksInMonth = function (this: Dayjs): Dayjs[][] {
+  (dayjsClass.prototype as any).businessWeeksInMonth = function (this: Dayjs): Dayjs[][] {
     if (!this.isValid()) {
       return [];
     }
@@ -219,7 +219,7 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
     let monthComplete = false;
 
     while (!monthComplete) {
-      if (currentDay.isBusinessDay()) {
+      if ((currentDay as any).isBusinessDay()) {
         businessDays.push(currentDay.clone());
       }
 

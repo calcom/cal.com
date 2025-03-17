@@ -10,7 +10,7 @@ export class OutputSchedulesService_2024_06_11 {
 
   async getResponseSchedule(databaseSchedule: Schedule & { availability: Availability[] }) {
     if (!databaseSchedule.timeZone) {
-      throw new Error("Failed to create schedule because its timezone is not set.");
+      databaseSchedule.timeZone = "Europe/London";
     }
 
     const ownerDefaultScheduleId = await this.usersRepository.getUserScheduleDefaultId(

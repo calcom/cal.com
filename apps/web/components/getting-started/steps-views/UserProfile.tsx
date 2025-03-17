@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -34,28 +33,43 @@ const UserProfile = ({ nextStep }: UserProfileProps) => {
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
 
-  const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async (_data, context) => {
-      if (context.avatarUrl) showToast(t("your_user_profile_updated_successfully"), "success");
-      else
-        try {
-          if (eventTypes?.length === 0) {
-            await Promise.all(
-              DEFAULT_EVENT_TYPES.map(async (event) => {
-                return createEventType.mutate(event);
-              })
-            );
-          }
-        } catch (error) {
-          console.error(error);
-        }
-
-      nextStep();
+  // Create a separate mutation for avatar updates
+  const avatarMutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: async (data) => {
+      showToast(t("your_user_profile_updated_successfully"), "success");
+      setImageSrc(data.avatarUrl ?? "");
     },
     onError: () => {
       showToast(t("problem_saving_user_profile"), "error");
     },
   });
+
+  // Original mutation remains for onboarding completion
+  const mutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: async () => {
+      try {
+        if (eventTypes?.length === 0) {
+          await Promise.all(
+            DEFAULT_EVENT_TYPES.map(async (event) => {
+              return createEventType.mutate(event);
+            })
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      nextStep();
+      await utils.viewer.me.refetch();
+      const redirectUrl = localStorage.getItem("onBoardingRedirect");
+      localStorage.removeItem("onBoardingRedirect");
+      redirectUrl ? router.push(redirectUrl) : router.push("/");
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
 
@@ -66,11 +80,9 @@ const UserProfile = ({ nextStep }: UserProfileProps) => {
     });
   });
 
-  async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const enteredAvatar = avatarRef.current?.value;
-    mutation.mutate({
-      avatarUrl: enteredAvatar,
+  async function updateProfileHandler(newAvatar: string) {
+    avatarMutation.mutate({
+      avatarUrl: newAvatar,
     });
   }
 
@@ -122,8 +134,7 @@ const UserProfile = ({ nextStep }: UserProfileProps) => {
               nativeInputValueSetter?.call(avatarRef.current, newAvatar);
               const ev2 = new Event("input", { bubbles: true });
               avatarRef.current?.dispatchEvent(ev2);
-              updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
-              setImageSrc(newAvatar);
+              updateProfileHandler(newAvatar);
             }}
             imageSrc={imageSrc}
           />

@@ -1,11 +1,7 @@
 {
   "functions": {
     "pages/api/slots/*.ts": {
-      "memory": 3008
-    },
-    "pages/api/book/recurring-events.ts": {
-      "memory": 3008,
-      "maxDuration": 60
+      "memory": 512
     }
   }
 }

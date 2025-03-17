@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
     },
+    ssr: {
+      noExternal: ["turndown"], // Example if you want to disable SSR for your library
+    },
     build: {
       commonjsOptions: {
         include: [/@calcom\/lib/, /@calcom\/features/, /node_modules/],
@@ -34,7 +37,7 @@ export default defineConfig(({ mode }) => {
         fileName: "cal-atoms",
       },
       rollupOptions: {
-        external: ["react", "fs", "path", "os", "react-dom"],
+        external: ["react", "fs", "path", "os", "react-dom", "react-awesome-query-builder"],
         output: {
           globals: {
             react: "React",
@@ -49,6 +52,7 @@ export default defineConfig(({ mode }) => {
         path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         "@": path.resolve(__dirname, "./src"),
+        "@calcom/lib/markdownToSafeHTML": path.resolve(__dirname, "./lib/markdownToSafeHTML"),
         ".prisma/client": path.resolve(__dirname, "../../prisma-client"),
         "@prisma/client": path.resolve(__dirname, "../../prisma-client"),
         "@calcom/prisma": path.resolve(__dirname, "../../prisma"),
@@ -56,9 +60,9 @@ export default defineConfig(({ mode }) => {
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
         "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
         "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
-        "@calcom/web/public/static/locales/pt-BR/common.json": path.resolve(
+        "@calcom/web/public/static/locales/en/common.json": path.resolve(
           __dirname,
-          "../../../apps/web/public/static/locales/pt-BR/common.json"
+          "../../../apps/web/public/static/locales/en/common.json"
         ),
       },
     },

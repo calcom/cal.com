@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -51,6 +51,7 @@ export async function getHandler(req: NextApiRequest) {
     where: { id },
     include: {
       customInputs: true,
+      hashedLink: { select: { link: true } },
       team: { select: { slug: true } },
       hosts: { select: { userId: true, isFixed: true } },
       owner: { select: { username: true, id: true } },

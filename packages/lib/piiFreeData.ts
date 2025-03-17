@@ -89,7 +89,9 @@ export function getPiiFreeDestinationCalendar(destinationCalendar: Partial<Desti
   };
 }
 
-export function getPiiFreeEventType(eventType: Partial<Omit<EventType, "recurringEvent">>) {
+export function getPiiFreeEventType(
+  eventType: Partial<Pick<EventType, "id" | "schedulingType" | "seatsPerTimeSlot">>
+) {
   return {
     id: eventType.id,
     schedulingType: eventType.schedulingType,

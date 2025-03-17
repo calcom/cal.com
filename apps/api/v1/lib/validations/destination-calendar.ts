@@ -6,7 +6,7 @@ export const schemaDestinationCalendarBaseBodyParams = DestinationCalendar.pick(
   integration: true,
   externalId: true,
   eventTypeId: true,
-  // bookingId: true,
+  bookingId: true,
   userId: true,
 }).partial();
 
@@ -45,4 +45,4 @@ export const schemaDestinationCalendarReadPublic = DestinationCalendar.pick({
   eventTypeId: true,
   bookingId: true,
   userId: true,
-} as any);
+});

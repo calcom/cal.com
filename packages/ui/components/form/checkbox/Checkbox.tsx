@@ -3,12 +3,14 @@ import { useId } from "@radix-ui/react-id";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
-import classNames from "@calcom/lib/classNames";
-import { Icon } from "@calcom/ui";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import classNames from "@calcom/ui/classNames";
+
+import { Icon } from "../../icon";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: React.ReactNode;
-  description: string;
+  description?: string;
   descriptionAsLabel?: boolean;
   informationIconText?: string;
   error?: boolean;
@@ -45,7 +47,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
     return (
       <div className="block items-center sm:flex">
         {label && (
-          <div className="mb-4 min-w-48 sm:mb-0">
+          <div className="min-w-48 mb-4 sm:mb-0">
             {React.createElement(
               descriptionAsLabel ? "div" : "label",
               {
@@ -61,7 +63,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
           </div>
         )}
         <div className="w-full">
-          <div className="relative flex items-center">
+          <div className="hover:bg-subtle relative flex w-fit items-center rounded-md p-1">
             {React.createElement(
               descriptionAsLabel ? "label" : "div",
               {
@@ -92,13 +94,25 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 </div>
                 {descriptionAsSafeHtml ? (
                   <span
-                    className={classNames("text-sm", rest.descriptionClassName)}
+                    className={classNames(
+                      "text-default ml-2 text-sm",
+                      !label && "font-medium",
+                      rest.descriptionClassName
+                    )}
+                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
-                      __html: descriptionAsSafeHtml,
+                      __html: markdownToSafeHTML(descriptionAsSafeHtml),
                     }}
                   />
                 ) : (
-                  <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
+                  <span
+                    className={classNames(
+                      "text-default ml-2 text-sm",
+                      !label && "font-medium",
+                      rest.descriptionClassName
+                    )}>
+                    {description}
+                  </span>
                 )}
               </>
             )}

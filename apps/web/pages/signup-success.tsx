@@ -77,7 +77,8 @@ export default function SignupSuccess() {
 
           <span className="text-4xl font-medium text-[#114559]">Sua conta foi configurada com sucesso!</span>
           <span className="text-sm text-[#114559]">
-            Acesse o <b className="font-semibold">Painel do Profissional</b> para atender e gerenciar seus pacientes na Yinflow.Life.
+            Acesse o <b className="font-semibold">Painel do Profissional</b> para atender e gerenciar seus
+            pacientes na Yinflow.Life.
           </span>
           <a
             href={PAINEL_URL}
@@ -110,7 +111,7 @@ export default function SignupSuccess() {
     );
 
   return (
-    <div className="w-dvh flex h-dvh items-center justify-center bg-[#F4F6F8]">
+    <div className="w-dvh h-dvh flex items-center justify-center bg-[#F4F6F8]">
       <div className="flex h-4/5 w-4/5 flex-row rounded-[32px] bg-white">
         <div className="flex h-full w-1/2 flex-col gap-[24px] rounded-[32px] p-[56px]">
           <svg width="179" height="40" viewBox="0 0 179 40" fill="none" className="mb-[24px] ">

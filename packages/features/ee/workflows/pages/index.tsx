@@ -5,14 +5,16 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
+import { AnimatedPopover, Avatar, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -22,16 +24,27 @@ import EmptyScreen from "../components/EmptyScreen";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
-function WorkflowsPage() {
+type PageProps = {
+  filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;
+};
+
+function WorkflowsPage({ filteredList }: PageProps) {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
-  const queryRes = trpc.viewer.workflows.filteredList.useQuery({
-    filters,
-  });
+  const { data, isPending: _isPending } = trpc.viewer.workflows.filteredList.useQuery(
+    {
+      filters,
+    },
+    {
+      enabled: !filteredList,
+    }
+  );
+  const filteredWorkflows = filteredList ?? data;
+  const isPending = filteredList ? false : _isPending;
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -51,14 +64,13 @@ function WorkflowsPage() {
   });
 
   return (
-    <Shell withoutMain>
+    <Shell withoutMain withoutSeo={true}>
       <LicenseRequired>
         <ShellMain
           heading={t("workflows")}
           subtitle={t("workflows_to_automate_notifications")}
-          title="Workflows"
-          description="Create workflows to automate notifications and reminders."
-          hideHeadingOnMobile
+          title={t("workflows")}
+          description={t("workflows_to_automate_notifications")}
           CTA={
             session.data?.hasValidLicense ? (
               <CreateButtonWithTeamsList
@@ -74,7 +86,7 @@ function WorkflowsPage() {
             ) : null
           }>
           <>
-            {queryRes.data?.totalCount ? (
+            {filteredWorkflows?.totalCount ? (
               <div className="flex">
                 <TeamsFilter />
                 <div className="mb-4 ml-auto">
@@ -90,11 +102,11 @@ function WorkflowsPage() {
               </div>
             ) : null}
             <FilterResults
-              queryRes={queryRes}
+              queryRes={{ isPending, data: filteredWorkflows }}
               emptyScreen={<EmptyScreen isFilteredView={false} />}
               noResultsScreen={<EmptyScreen isFilteredView={true} />}
               SkeletonLoader={SkeletonLoader}>
-              <WorkflowList workflows={queryRes.data?.filtered} />
+              <WorkflowList workflows={filteredWorkflows?.filtered} />
             </FilterResults>
           </>
         </ShellMain>

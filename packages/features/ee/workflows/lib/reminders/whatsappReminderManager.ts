@@ -76,6 +76,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappReminderTemplate(
           false,
+          evt.organizer.language.locale,
           action,
           evt.organizer.timeFormat,
           evt.startTime,
@@ -89,6 +90,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventCancelledTemplate(
           false,
+          evt.organizer.language.locale,
           action,
           evt.organizer.timeFormat,
           evt.startTime,
@@ -102,6 +104,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventRescheduledTemplate(
           false,
+          evt.organizer.language.locale,
           action,
           evt.organizer.timeFormat,
           evt.startTime,
@@ -115,6 +118,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventCompletedTemplate(
           false,
+          evt.organizer.language.locale,
           action,
           evt.organizer.timeFormat,
           evt.startTime,
@@ -128,6 +132,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappReminderTemplate(
           false,
+          evt.organizer.language.locale,
           action,
           evt.organizer.timeFormat,
           evt.startTime,

@@ -44,7 +44,7 @@ export default function RejectBooking(props: Props) {
 
   const rejectBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
-      node.scrollIntoView({ behavior: "smooth" });
+      // node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

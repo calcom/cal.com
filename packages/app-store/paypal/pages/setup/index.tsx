@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,7 +35,7 @@ export default function PayPalSetup() {
     <div className="bg-default flex h-screen">
       {showContent ? (
         <div className="bg-default border-subtle m-auto max-w-[43em] overflow-auto rounded border pb-10 md:p-10">
-          <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
+          <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/paypal/icon.svg" alt="Paypal Payment Logo" />
               <p className="text-default mt-5 text-lg">Paypal</p>
