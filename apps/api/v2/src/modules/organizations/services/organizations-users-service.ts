@@ -8,6 +8,7 @@ import { Injectable, ConflictException } from "@nestjs/common";
 import { Team, CreationSource } from "@prisma/client";
 import { plainToInstance } from "class-transformer";
 
+import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
 
 @Injectable()
@@ -48,16 +49,15 @@ export class OrganizationsUsersService {
     const usernameOrEmail = userCreateBody.username ? userCreateBody.username : userCreateBody.email;
 
     // Create new org user
-    const createdUserCall = await createNewUsersConnectToOrgIfExists({
-      invitations: [
+    const createdUserCall = await UserCreationService.createUsersUnderTeamOrOrg({
+      usersToCreate: [
         {
-          usernameOrEmail: usernameOrEmail,
-          role: userCreateBody.organizationRole,
+          email: usernameOrEmail,
+          username: usernameOrEmail,
         },
       ],
-      teamId: org.id,
-      creationSource: CreationSource.API_V2,
       isOrg: true,
+      team: org.id,
       parentId: null,
       autoAcceptEmailDomain: "not-required-for-this-endpoint",
       orgConnectInfoByUsernameOrEmail: {
@@ -66,6 +66,7 @@ export class OrganizationsUsersService {
           autoAccept: userCreateBody.autoAccept,
         },
       },
+      creationSource: CreationSource.API_V2_TEAM_INVITE,
     });
 
     const createdUser = createdUserCall[0];
