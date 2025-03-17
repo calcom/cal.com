@@ -118,6 +118,8 @@ async function _getReservedSlotsAndCleanupExpired({
 }) {
   const currentTimeInUtc = dayjs.utc().format();
 
+  await _cleanupExpiredSlots({ eventTypeId });
+
   const unexpiredSelectedSlots =
     (await prisma.selectedSlots.findMany({
       where: {
@@ -128,8 +130,6 @@ async function _getReservedSlotsAndCleanupExpired({
     })) || [];
 
   const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
-
-  await _cleanupExpiredSlots({ eventTypeId });
 
   const reservedSlots = slotsSelectedByOtherUsers;
 

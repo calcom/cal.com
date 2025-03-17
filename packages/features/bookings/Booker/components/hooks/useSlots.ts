@@ -7,7 +7,6 @@ import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotRe
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import {
-  MINUTES_TO_BOOK,
   PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS,
   PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
 } from "@calcom/lib/constants";
@@ -106,12 +105,6 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     trpc: { context: { skipBatch: true } },
   });
 
-  const handleRemoveSlot = () => {
-    if (event?.data) {
-      removeSelectedSlot.mutate({ uid: slotReservationId });
-    }
-  };
-
   const eventTypeId = event.data?.id;
   const eventDuration = selectedDuration || event.data?.length || 0;
   const allSelectedTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot].filter(
@@ -140,17 +133,13 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       });
     }
   };
-
+  function handleRemoveSlot() {
+    if (event?.data) removeSelectedSlot.mutate({ uid: slotReservationId });
+  }
   useEffect(() => {
     handleReserveSlot();
-
-    const interval = setInterval(() => {
-      handleReserveSlot();
-    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
-
     return () => {
       handleRemoveSlot();
-      clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.data?.id, timeSlotToBeBooked]);
@@ -162,6 +151,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     tentativeSelectedTimeslots,
     slotReservationId,
     allSelectedTimeslots,
+    handleRemoveSlot,
     /**
      * Faster but not that accurate as getSchedule, but doesn't give false positive, so it is usable
      */

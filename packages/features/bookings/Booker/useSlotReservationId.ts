@@ -1,15 +1,16 @@
-// TODO: It would be lost on refresh, so we need to persist it.
-// Though, we are persisting it in a cookie(`uid` cookie is set through reserveSlot call)
-// but that becomes a third party cookie in context of embed and thus isn't accessible inside embed
-// So, we need to persist it in top window as first party cookie in that case.
-let slotReservationId: null | string = null;
+import { useEffect, useRef } from "react";
+
+import { getCookie } from "@calcom/lib/cookie";
 
 export const useSlotReservationId = () => {
-  function set(uid: string) {
-    slotReservationId = uid;
-  }
-  function get() {
-    return slotReservationId;
-  }
-  return [get(), set] as const;
+  const slotReservationId = useRef<null | string>(null);
+
+  const uid = getCookie("uid");
+  useEffect(() => set(uid), [uid]);
+
+  const set = (uid: string) => {
+    if (uid) slotReservationId.current = uid;
+  };
+
+  return [slotReservationId.current, set];
 };
