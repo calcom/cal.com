@@ -184,7 +184,6 @@ const AddCertificate = () => {
             type="password"
             autoComplete="off"
             autoCorrect="off"
-            hidden
           />
         </div>
         <div className="mt-4 w-full">
@@ -199,7 +198,6 @@ const AddCertificate = () => {
             type="password"
             autoComplete="off"
             autoCorrect="off"
-            hidden
           />
           {a1Password !== retypeA1Password && retypeA1Password !== "" && (
             <p data-testid="required" className="py-2 text-xs text-red-500">
