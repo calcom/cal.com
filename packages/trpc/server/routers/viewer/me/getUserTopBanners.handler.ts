@@ -4,8 +4,8 @@ import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { checkIfOrgNeedsUpgradeHandler } from "../viewer/organizations/checkIfOrgNeedsUpgrade.handler";
-import { getUpgradeableHandler } from "../viewer/teams/getUpgradeable.handler";
+import { checkIfOrgNeedsUpgradeHandler } from "../organizations/checkIfOrgNeedsUpgrade.handler";
+import { getUpgradeableHandler } from "../teams/getUpgradeable.handler";
 import { checkInvalidAppCredentials } from "./checkForInvalidAppCredentials";
 import { shouldVerifyEmailHandler } from "./shouldVerifyEmail.handler";
 

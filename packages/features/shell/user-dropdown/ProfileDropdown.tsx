@@ -18,7 +18,7 @@ import classNames from "@calcom/ui/classNames";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
-  const { data } = trpc.viewer.me.useQuery();
+  const { data } = trpc.viewer.me.get.useQuery();
   const [menuOpen, setMenuOpen] = useState(false);
   const refreshData = useRefreshData();
 
