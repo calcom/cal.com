@@ -652,6 +652,8 @@ export class InputBookingsService_2024_08_13 {
         queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
       afterUpdatedDate: queryParams.afterUpdatedAt,
       beforeUpdatedDate: queryParams.beforeUpdatedAt,
+      afterCreatedDate: queryParams.afterCreatedAt,
+      beforeCreatedDate: queryParams.beforeCreatedAt,
     };
   }
 

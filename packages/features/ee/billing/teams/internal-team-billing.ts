@@ -1,18 +1,19 @@
 import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
-import { safeStringify } from "@calcom/lib/safeStringify";
+
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import billing from "..";
 import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
@@ -124,13 +125,15 @@ export class InternalTeamBilling implements TeamBilling {
       const { id: teamId, metadata, isOrganization } = this.team;
 
       const { url } = await this.checkIfTeamPaymentRequired();
-      const organizationOnboarding = await OrganizationOnboardingRepository.findByOrganizationId(this.team.id);
+      const organizationOnboarding = await OrganizationOnboardingRepository.findByOrganizationId(
+        this.team.id
+      );
       log.debug("updateQuantity", safeStringify({ url, team: this.team }));
 
       /**
        * If there's no pending checkout URL it means that this team has not been paid.
        * We cannot update the subscription yet, this will be handled on publish/checkout.
-       * 
+       *
        * An organization can only be created if it is paid for and updateQuantity is called only when we have an organization.
        * For some old organizations, it is possible that they aren't paid for yet, but then they wouldn't have been published as well(i.e. slug would be null and are unusable)
        * So, we can safely assume go forward for organizations.

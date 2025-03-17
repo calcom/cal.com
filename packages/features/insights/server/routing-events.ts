@@ -17,6 +17,7 @@ import type {
   RoutingFormResponsesInput,
   RoutingFormStatsInput,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
 import { type ResponseValue, ZResponse } from "../lib/types";
@@ -320,6 +321,11 @@ class RoutingEventsInsights {
         bookingStartTime: true,
         bookingEndTime: true,
         createdAt: true,
+        utm_source: true,
+        utm_medium: true,
+        utm_campaign: true,
+        utm_term: true,
+        utm_content: true,
       },
       where: whereClause,
       orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
@@ -408,6 +414,8 @@ class RoutingEventsInsights {
       }, {} as Record<string, string | undefined>);
 
       return {
+        "Booking UID": item.bookingUid,
+        "Booking Link": item.bookingUid ? `${WEBAPP_URL}/booking/${item.bookingUid}` : "",
         "Response ID": item.id,
         "Form Name": item.formName,
         "Submitted At": item.createdAt.toISOString(),
@@ -423,6 +431,11 @@ class RoutingEventsInsights {
         "Routed To Name": item.bookingUserName || "",
         "Routed To Email": item.bookingUserEmail || "",
         ...mapKeys(fields, (_, key) => startCase(key)),
+        utm_source: item.utm_source || "",
+        utm_medium: item.utm_medium || "",
+        utm_campaign: item.utm_campaign || "",
+        utm_term: item.utm_term || "",
+        utm_content: item.utm_content || "",
       };
     });
 

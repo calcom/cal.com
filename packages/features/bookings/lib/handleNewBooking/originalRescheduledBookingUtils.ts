@@ -1,8 +1,9 @@
+import type { Prisma } from "@prisma/client";
+
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { BookingStatus } from "@calcom/prisma/enums";
-
-import { type OriginalRescheduledBooking } from "./getOriginalRescheduledBooking";
 
 export const validateOriginalRescheduledBooking = async (
   originalRescheduledBooking: OriginalRescheduledBooking
@@ -18,3 +19,14 @@ export const validateOriginalRescheduledBooking = async (
     throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
   }
 };
+
+export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
+  const originalBooking = await BookingRepository.findOriginalRescheduledBooking(uid, seatsEventType);
+  validateOriginalRescheduledBooking(originalBooking);
+
+  return originalBooking;
+}
+
+export type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+
+export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
