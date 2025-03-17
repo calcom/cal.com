@@ -1923,11 +1923,46 @@ async function handler(
 
   try {
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await prisma.hashedLink.delete({
+      const hashedLink = await prisma.hashedLink.findUnique({
         where: {
           link: reqBody.hashedLink as string,
         },
       });
+
+      if (hashedLink) {
+        let shouldDeleteLink = true;
+        const now = new Date();
+
+        if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
+          throw new HttpError({ statusCode: 410, message: "Link has expired" });
+        }
+
+        if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
+          if (hashedLink.maxUsageCount > hashedLink.usageCount + 1) {
+            await prisma.hashedLink.update({
+              where: {
+                id: hashedLink.id,
+              },
+              data: {
+                usageCount: {
+                  increment: 1,
+                },
+              },
+            });
+            shouldDeleteLink = false;
+          } else {
+            shouldDeleteLink = true;
+          }
+        }
+
+        if (shouldDeleteLink) {
+          await prisma.hashedLink.delete({
+            where: {
+              link: reqBody.hashedLink as string,
+            },
+          });
+        }
+      }
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));

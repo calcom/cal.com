@@ -32,6 +32,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     },
     select: {
       eventTypeId: true,
+      expiresAt: true,
+      maxUsageCount: true,
+      usageCount: true,
       eventType: {
         select: {
           users: {
@@ -68,6 +71,15 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   if (!hashedLink) {
     return notFound;
   }
+
+  if (hashedLink.expiresAt && hashedLink.expiresAt < new Date()) {
+    return notFound;
+  }
+
+  if (hashedLink.maxUsageCount && hashedLink.usageCount >= hashedLink.maxUsageCount) {
+    return notFound;
+  }
+
   const username = hashedLink.eventType.users[0]?.username;
   const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 
