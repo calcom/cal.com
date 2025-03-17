@@ -31,8 +31,7 @@ export default function BillingCredits() {
       }
     },
     onError: (err) => {
-      //todo
-      console.log(`error: ${JSON.stringify(error)}`);
+      showToast(t("Credit purchase failed. Please try again or contact support."), "error");
     },
   });
 
