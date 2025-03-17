@@ -7,7 +7,7 @@ import { useState } from "react";
 import superjson from "superjson";
 
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 
 import { httpBatchLink, httpLink, loggerLink, splitLink, TRPCClientError } from "@trpc/client";
 

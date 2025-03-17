@@ -1230,6 +1230,7 @@ async function handler(
         evt,
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
+        tracking: input.bookingData.tracking,
       });
 
       if (booking?.userId) {

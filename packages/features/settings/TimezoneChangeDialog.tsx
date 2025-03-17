@@ -69,7 +69,7 @@ const TimezoneChangeDialogContent = () => {
 };
 
 export function useOpenTimezoneDialog() {
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
   const [showDialog, setShowDialog] = useState(false);
   const { data: userSession, status } = useSession();
 
