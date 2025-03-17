@@ -535,7 +535,7 @@ describe("SalesforceCRMService", () => {
             }),
           });
 
-          const result = await service.createContacts([{ email: "test@example.com" }]);
+          const result = await service.createContacts([{ name: "New Contact", email: "test@example.com" }]);
           expect(result).toEqual([{ id: "newContactId", name: "New Contact", email: "test@example.com" }]);
         });
         it("attendee has no account", async () => {
