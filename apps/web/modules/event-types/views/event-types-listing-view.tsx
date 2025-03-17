@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
+import { useTeamsAndUserProfiles } from "@calcom/features/ee/teams/hooks/useTeamsAndUserProfiles";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -950,30 +951,8 @@ const InfiniteScrollMain = ({
 
 export const EventTypesCTA = () => {
   const { data: user } = useMeQuery();
-  const routerQuery = useRouterQuery();
-  const filters = getTeamsFiltersFromQuery(routerQuery);
-  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
-    filters && { filters },
-    {
-      refetchOnWindowFocus: false,
-      gcTime: 1 * 60 * 60 * 1000,
-      staleTime: 1 * 60 * 60 * 1000,
-    }
-  );
-  const profileOptions =
-    getUserEventGroupsData?.profiles
-      ?.filter((profile) => !profile.readOnly)
-      ?.filter((profile) => !profile.eventTypesLockedByOrg)
-      ?.map((profile) => {
-        return {
-          teamId: profile.teamId,
-          label: profile.name || profile.slug,
-          image: profile.image,
-          membershipRole: profile.membershipRole,
-          slug: profile.slug,
-        };
-      }) ?? [];
-
+  const profileOptions = useTeamsAndUserProfiles({ membershipRole: true });
+  console.log("events -0>", profileOptions);
   return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
 };
 

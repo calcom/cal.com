@@ -268,6 +268,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
       await utils.viewer.teams.get.invalidate();
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });

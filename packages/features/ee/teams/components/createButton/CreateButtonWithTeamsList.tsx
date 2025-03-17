@@ -1,6 +1,6 @@
 "use client";
 
-import { trpc } from "@calcom/trpc/react";
+import { useTeamsAndUserProfiles } from "@calcom/features/ee/teams/hooks/useTeamsAndUserProfiles";
 
 import type { CreateBtnProps, Option } from "./CreateButton";
 import { CreateButton } from "./CreateButton";
@@ -13,19 +13,7 @@ export function CreateButtonWithTeamsList(
     includeOrg?: boolean;
   }
 ) {
-  const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery({ includeOrg: props.includeOrg });
-  if (!query.data) return null;
-
-  const teamsAndUserProfiles: Option[] = query.data
-    .filter((profile) => !profile.readOnly)
-    .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        slug: profile.slug,
-      };
-    });
+  const teamsAndUserProfiles = useTeamsAndUserProfiles() as Option[];
 
   if (props.isAdmin) {
     teamsAndUserProfiles.push({
@@ -40,6 +28,5 @@ export function CreateButtonWithTeamsList(
   if (props.onlyShowWithTeams && teamsAndUserProfiles.length < 2) return null;
 
   if (props.onlyShowWithNoTeams && teamsAndUserProfiles.length > 1) return null;
-
   return <CreateButton {...props} options={teamsAndUserProfiles} />;
 }
