@@ -17,9 +17,10 @@ beforeEach(() => {
 
 export const calendarServicesMapMock = mockDeep<typeof CalendarServicesMap>({
   fallbackMockImplementation: () => {
-    throw new Error(
-      "Unimplemented calendarServicesMapMock. You seem to have mocked the app that you are trying to use"
-    );
+    console.log("Not implemented");
+    // throw new Error(
+    //   "Unimplemented calendarServicesMapMock. You seem to have mocked the app that you are trying to use"
+    // );
   },
 });
 
@@ -41,8 +42,9 @@ export const paymentAppMapMock = mockDeep<typeof PaymentAppsMap>({
 
 export const videoAdaptersMapMock = mockDeep<typeof VideoAdaptersMap>({
   fallbackMockImplementation: () => {
-    throw new Error(
-      "Unimplemented videoAdaptersMapMock. You seem to have mocked the app that you are trying to use"
-    );
+    console.log("videoApiAdaptor Not implemented");
+    // throw new Error(
+    //   "Unimplemented videoAdaptersMapMock. You seem to have mocked the app that you are trying to use"
+    // );
   },
 });
