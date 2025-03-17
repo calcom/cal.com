@@ -242,7 +242,28 @@ export class InputEventTypesService_2024_06_14 {
       systemCustomRescheduleReasonField || systemAfterFieldRescheduleReason,
     ];
 
-    return [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+    const bookingFields = [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+
+    if (!this.hasEmailOrPhoneOnlySetup(bookingFields)) {
+      throw new BadRequestException(
+        "Booking fields validation failed: visible and required email or visible and required attendee phone field is needed."
+      );
+    }
+
+    return bookingFields;
+  }
+
+  hasEmailOrPhoneOnlySetup(bookingFields: (SystemField | CustomField)[]) {
+    const emailField = bookingFields.find((field) => field.type === "email" && field.name === "email");
+    const attendeePhoneNumberField = bookingFields.find(
+      (field) => field.type === "phone" && field.name === "attendeePhoneNumber"
+    );
+
+    const isEmailFieldRequiredAndVisible = emailField?.required && !emailField?.hidden;
+    const isAttendeePhoneNumberFieldRequiredAndVisible =
+      attendeePhoneNumberField?.required && !attendeePhoneNumberField?.hidden;
+
+    return isEmailFieldRequiredAndVisible || isAttendeePhoneNumberFieldRequiredAndVisible;
   }
 
   isUserCustomField(field: SystemField | CustomField): field is CustomField {
