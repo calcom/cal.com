@@ -883,7 +883,7 @@ export default class SalesforceCRMService implements CRM {
       });
   }
 
-  private getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
+  public getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
     return [
       emailDomain,
       `www.${emailDomain}`,
