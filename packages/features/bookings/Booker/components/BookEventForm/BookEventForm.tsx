@@ -12,8 +12,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 
 import { useBookerStore } from "../../store";
+import { useBookerTime } from "../hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
+import { useLogIfSlotNoLongerAvailable } from "../hooks/useLogIfSlotNoLongerAvailable";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -64,7 +66,8 @@ export const BookEventForm = ({
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-
+  const { timezone } = useBookerTime();
+  useLogIfSlotNoLongerAvailable({ isTimeslotUnavailable, timeslot, timezone });
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
 

@@ -107,7 +107,7 @@ async function getEventTypeId({
   return eventType?.id;
 }
 
-async function _getReservedSlotsAndCleanupExpired({
+export async function _getReservedSlotsAndCleanupExpired({
   bookerClientUid,
   usersWithCredentials,
   eventTypeId,
@@ -127,7 +127,9 @@ async function _getReservedSlotsAndCleanupExpired({
       ...selectSelectedSlots,
     })) || [];
 
-  const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
+  const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter(
+    (slot) => bookerClientUid && slot.uid !== bookerClientUid
+  );
 
   await _cleanupExpiredSlots({ eventTypeId });
 

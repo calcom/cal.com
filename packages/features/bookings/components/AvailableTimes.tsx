@@ -18,6 +18,7 @@ import { Button, Icon, SkeletonText } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
+import { useLogIfSlotNoLongerAvailable } from "../Booker/components/hooks/useLogIfSlotNoLongerAvailable";
 import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
@@ -141,6 +142,9 @@ const SlotItem = ({
   };
 
   const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
+
+  useLogIfSlotNoLongerAvailable({ isTimeslotUnavailable, timeslot: slot.time, timezone });
+
   return (
     <AnimatePresence>
       <div className="flex gap-2">
