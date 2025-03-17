@@ -59,6 +59,8 @@ export const handleNewRecurringBooking = async (
 
     const firstBookingResult = await handleNewBooking({
       bookingData: req.body,
+      hostname: req.headers.host || "",
+      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       ...handleBookingMeta,
     });
     luckyUsers = firstBookingResult.luckyUsers;
@@ -99,6 +101,8 @@ export const handleNewRecurringBooking = async (
     };
 
     const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking({
+      hostname: req.headers.host || "",
+      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       bookingData: recurringEventReq.body,
       ...handleBookingMeta,
     });

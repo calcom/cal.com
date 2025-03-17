@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
 
 import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
@@ -33,21 +32,25 @@ type EventType = Pick<
 export const loadUsers = async ({
   eventType,
   dynamicUserList,
-  req,
+  hostname,
+  forcedSlug,
+  isPlatform,
   routedTeamMemberIds,
   contactOwnerEmail,
 }: {
   eventType: EventType;
   dynamicUserList: string[];
-  req: IncomingMessage;
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
+  hostname: string;
+  forcedSlug: string | undefined;
+  isPlatform: boolean;
 }) => {
   try {
     const { currentOrgDomain } = getOrgDomainConfig({
-      hostname: req.headers.host || "",
-      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-      isPlatform: !!req.headers["x-cal-client-id"],
+      hostname,
+      forcedSlug,
+      isPlatform,
     });
 
     const users = eventType.id

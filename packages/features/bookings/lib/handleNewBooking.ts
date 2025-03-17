@@ -322,9 +322,9 @@ export type PlatformParams = {
 export type BookingHandlerInput = {
   bookingData: Record<string, any>;
   userId?: number;
-
   // These used to come from headers but now we're passing them as params
-  forcedSlugHeader?: boolean;
+  hostname: string | undefined;
+  forcedSlug: string | undefined;
 } & PlatformParams;
 
 async function handler(
@@ -339,6 +339,8 @@ async function handler(
     platformBookingUrl,
     platformRescheduleUrl,
     platformBookingLocation,
+    hostname,
+    forcedSlug,
   } = input;
 
   const isPlatformBooking = !!platformClientId;
@@ -490,7 +492,9 @@ async function handler(
   const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await monitorCallbackAsync(
     loadAndValidateUsers,
     {
-      req,
+      hostname,
+      forcedSlug,
+      isPlatform: isPlatformBooking,
       eventType,
       eventTypeId,
       dynamicUserList,
