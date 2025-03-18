@@ -23,12 +23,13 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Avatar, Icon, Label, Select, SkeletonText } from "@calcom/ui";
+import { Avatar, Label, Select, SkeletonText } from "@calcom/ui";
 import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 

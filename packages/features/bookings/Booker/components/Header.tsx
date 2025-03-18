@@ -7,9 +7,10 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { ButtonGroup, Icon, ToggleGroup } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { ButtonGroup, ToggleGroup } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";

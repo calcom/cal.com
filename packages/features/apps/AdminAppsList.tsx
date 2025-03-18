@@ -16,13 +16,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { ConfirmationDialogContent, Form, Icon, List } from "@calcom/ui";
+import { ConfirmationDialogContent, List } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import cs from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { Form } from "@calcom/ui/form/inputs/Form";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Switch } from "@calcom/ui/form/switch/Switch";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { showToast } from "@calcom/ui/toast/showToast";
 

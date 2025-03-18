@@ -19,10 +19,11 @@ import type { OrganizationRepository } from "@calcom/lib/server/repository/organ
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
-import { ErrorBoundary, Icon, Skeleton, VerticalTabItem } from "@calcom/ui";
+import { ErrorBoundary, Skeleton, VerticalTabItem } from "@calcom/ui";
 import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [

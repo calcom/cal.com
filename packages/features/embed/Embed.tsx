@@ -25,11 +25,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { ColorPicker, HorizontalTabs, Icon, Label, Select } from "@calcom/ui";
+import { ColorPicker, HorizontalTabs, Label, Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Switch } from "@calcom/ui/form/switch/Switch";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";

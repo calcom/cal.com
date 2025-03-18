@@ -6,9 +6,10 @@ import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
-import { FilterSearchField, AnimatedPopover, Divider, Icon, Tooltip, VerticalDivider } from "@calcom/ui";
+import { FilterSearchField, AnimatedPopover, Divider, Tooltip, VerticalDivider } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 

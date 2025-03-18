@@ -5,8 +5,9 @@ import type { FormEvent } from "react";
 import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Input, Skeleton, Icon, Label } from "@calcom/ui";
+import { Input, Skeleton, Label } from "@calcom/ui";
 import type { InputFieldProps } from "@calcom/ui/components/form/inputs/types";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 type AddonProps = {
   children: React.ReactNode;

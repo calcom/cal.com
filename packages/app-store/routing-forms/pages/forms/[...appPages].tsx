@@ -17,10 +17,11 @@ import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { ArrowButton, Badge, ButtonGroup, Icon, List, ListLinkItem } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { ArrowButton, Badge, ButtonGroup, List, ListLinkItem } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
