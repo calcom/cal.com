@@ -12,7 +12,6 @@ import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 import {
-  Button,
   ConfirmationDialogContent,
   Dropdown,
   DropdownMenuContent,
@@ -24,6 +23,7 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 

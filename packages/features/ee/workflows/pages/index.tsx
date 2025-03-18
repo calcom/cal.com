@@ -13,9 +13,10 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, showToast } from "@calcom/ui";
+import { AnimatedPopover } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import classNames from "@calcom/ui/classNames";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";

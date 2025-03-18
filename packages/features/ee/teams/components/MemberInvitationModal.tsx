@@ -13,8 +13,8 @@ import { CreationSource } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Form,
   Icon,
   Label,

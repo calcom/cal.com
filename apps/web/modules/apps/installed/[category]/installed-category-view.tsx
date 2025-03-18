@@ -12,9 +12,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Icon } from "@calcom/ui";
-import { AppSkeletonLoader as SkeletonLoader, ShellSubHeading, showToast } from "@calcom/ui";
+import { AppSkeletonLoader as SkeletonLoader, ShellSubHeading } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { QueryCell } from "@lib/QueryCell";
 

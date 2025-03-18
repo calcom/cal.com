@@ -13,7 +13,8 @@ import { nameOfDay } from "@calcom/lib/weekday";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, Label, Select, showToast } from "@calcom/ui";
+import { Form, Label, Select } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import {
   SkeletonButton,
@@ -21,6 +22,7 @@ import {
   SkeletonText,
   SkeletonAvatar,
 } from "@calcom/ui/skeleton/Skeleton";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";

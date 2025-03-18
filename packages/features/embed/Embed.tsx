@@ -25,7 +25,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, ColorPicker, HorizontalTabs, Icon, Label, Select, Switch, TextField } from "@calcom/ui";
+import { ColorPicker, HorizontalTabs, Icon, Label, Select, Switch, TextField } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { showToast } from "@calcom/ui/toast/showToast";
 

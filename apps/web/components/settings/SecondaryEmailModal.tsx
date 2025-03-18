@@ -5,7 +5,8 @@ import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, TextField, Form, InputError } from "@calcom/ui";
+import { TextField, Form, InputError } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 interface SecondaryEmailModalProps {

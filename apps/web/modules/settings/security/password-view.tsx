@@ -11,8 +11,9 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
+import { Form, PasswordField, Select, SettingsToggle } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import {
   SkeletonButton,
@@ -20,6 +21,7 @@ import {
   SkeletonText,
   SkeletonAvatar,
 } from "@calcom/ui/skeleton/Skeleton";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;

@@ -6,8 +6,8 @@ import startCase from "lodash/startCase";
 import { forwardRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Popover,
   PopoverTrigger,
   PopoverContent,

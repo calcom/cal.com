@@ -8,8 +8,10 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Switch, Select, Button, InputField, showToast } from "@calcom/ui";
+import { Switch, Select, InputField } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import {
   SalesforceRecordEnum,

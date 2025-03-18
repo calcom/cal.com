@@ -38,13 +38,14 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { PasswordField, TextField, showToast } from "@calcom/ui";
+import { PasswordField, TextField } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Icon } from "@calcom/ui/icon/Icon";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 

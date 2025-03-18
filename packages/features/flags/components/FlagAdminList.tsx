@@ -1,6 +1,7 @@
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch, showToast } from "@calcom/ui";
+import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 export const FlagAdminList = () => {
   const [data] = trpc.viewer.features.list.useSuspenseQuery();

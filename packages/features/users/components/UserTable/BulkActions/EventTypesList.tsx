@@ -8,7 +8,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
-  Button,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -20,6 +19,7 @@ import {
   PopoverTrigger,
   Icon,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { showToast } from "@calcom/ui/toast/showToast";
 

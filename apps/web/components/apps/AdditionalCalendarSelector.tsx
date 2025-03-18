@@ -4,13 +4,13 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 interface AdditionalCalendarSelectorProps {
   isPending?: boolean;

@@ -10,13 +10,13 @@ import {
   AppListCard,
   List,
   DisconnectIntegrationComponent,
-  Button,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
   Switch,
 } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";

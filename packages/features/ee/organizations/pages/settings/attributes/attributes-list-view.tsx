@@ -10,13 +10,13 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Switch,
   Dropdown,
-  Button,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownItem,
   DropdownMenuItem,
   Badge,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 

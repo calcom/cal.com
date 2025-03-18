@@ -4,7 +4,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import {
-  Button,
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -13,6 +12,7 @@ import {
   DropdownItem,
   ConfirmationDialogContent,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Dialog } from "@calcom/ui/dialog/Dialog";
 import { showToast } from "@calcom/ui/toast/showToast";
 

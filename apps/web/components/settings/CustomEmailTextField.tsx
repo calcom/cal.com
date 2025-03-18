@@ -9,9 +9,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Button,
   InputError,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import type { FormValues } from "~/settings/my-account/profile-view";
 

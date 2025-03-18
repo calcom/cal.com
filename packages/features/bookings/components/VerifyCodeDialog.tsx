@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Input, Label } from "@calcom/ui";
+import { Icon, Input, Label } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 export const VerifyCodeDialog = ({

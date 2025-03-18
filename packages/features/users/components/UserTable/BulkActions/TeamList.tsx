@@ -5,8 +5,8 @@ import { useState } from "react";
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Command,
   CommandEmpty,
   CommandGroup,

@@ -9,8 +9,8 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Form,
   Switch,
   showToast,

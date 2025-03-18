@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, PasswordField, showToast } from "@calcom/ui";
+import { Form, PasswordField } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import TwoFactor from "@components/auth/TwoFactor";
 

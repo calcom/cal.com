@@ -10,7 +10,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Switch, InputField, Button, Select, showToast } from "@calcom/ui";
+import { Switch, InputField, Select } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,

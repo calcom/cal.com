@@ -9,7 +9,6 @@ import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   DropdownActions,
-  Button,
   Form,
   TextField,
   TextAreaField,
@@ -21,6 +20,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 

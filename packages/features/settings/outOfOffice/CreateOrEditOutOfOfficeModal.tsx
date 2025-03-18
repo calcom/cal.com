@@ -9,8 +9,8 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   DateRangePicker,
   Select,
   Switch,

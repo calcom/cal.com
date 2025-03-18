@@ -5,8 +5,8 @@ import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Form,
   SelectField,
   InputField,

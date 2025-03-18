@@ -17,8 +17,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,

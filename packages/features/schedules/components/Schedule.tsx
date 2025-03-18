@@ -19,8 +19,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,

@@ -1,8 +1,9 @@
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ConfirmationDialogContent, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent } from "@calcom/ui";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableUser } from "../types";
 

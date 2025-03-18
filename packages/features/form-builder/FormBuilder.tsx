@@ -12,7 +12,6 @@ import turndown from "@calcom/lib/turndownService";
 import {
   Badge,
   BooleanToggleGroupField,
-  Button,
   Form,
   Icon,
   Input,
@@ -21,6 +20,7 @@ import {
   SelectField,
   Switch,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { Editor } from "@calcom/ui/editor/Editor";

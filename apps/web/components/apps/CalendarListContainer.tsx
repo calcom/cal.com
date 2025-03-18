@@ -8,8 +8,10 @@ import { SelectedCalendarsSettingsWebWrapper } from "@calcom/atoms/selected-cale
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, List, ShellSubHeading, AppSkeletonLoader as SkeletonLoader, showToast } from "@calcom/ui";
+import { List, ShellSubHeading, AppSkeletonLoader as SkeletonLoader } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";

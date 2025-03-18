@@ -3,8 +3,9 @@
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc";
-import { TextField, showToast } from "@calcom/ui";
+import { TextField } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import UsersTable from "./components/UsersTable";
 

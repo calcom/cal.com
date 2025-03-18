@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 
-import { Select, showToast } from "@calcom/ui";
+import { Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 export interface IAppConfigurationProps {
   credentialIds: number[];

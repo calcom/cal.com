@@ -10,7 +10,6 @@ import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   AddressInput,
-  Button,
   EmailField,
   Group,
   Icon,
@@ -20,6 +19,7 @@ import {
   RadioField,
   Tooltip,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 import { ComponentForField } from "./FormBuilderField";

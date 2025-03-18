@@ -3,7 +3,8 @@ import { useForm, useFieldArray } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
-import { Button, Label, Icon } from "@calcom/ui";
+import { Label, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 

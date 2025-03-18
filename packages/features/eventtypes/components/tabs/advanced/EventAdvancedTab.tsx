@@ -39,8 +39,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   Badge,
   Icon,
   Label,

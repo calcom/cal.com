@@ -21,8 +21,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   ConfirmationDialogContent,
   EditableHeading,
   Form,

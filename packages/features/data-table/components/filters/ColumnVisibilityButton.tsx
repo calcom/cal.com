@@ -6,8 +6,8 @@ import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonProps } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import {
-  Button,
   buttonClasses,
   Popover,
   PopoverTrigger,

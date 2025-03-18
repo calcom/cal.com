@@ -23,7 +23,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import type { ActionType } from "@calcom/ui";
 import {
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuCheckboxItem,
@@ -40,6 +39,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { showToast } from "@calcom/ui/toast/showToast";
