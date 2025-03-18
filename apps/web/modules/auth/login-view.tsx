@@ -19,9 +19,10 @@ import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { EmailField, PasswordField } from "@calcom/ui";
+import { EmailField } from "@calcom/ui/form/inputs/Input";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
+import { PasswordField } from "@calcom/ui/form/inputs/Input";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";

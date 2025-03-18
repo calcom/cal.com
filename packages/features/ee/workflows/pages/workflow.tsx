@@ -17,7 +17,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Form } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";

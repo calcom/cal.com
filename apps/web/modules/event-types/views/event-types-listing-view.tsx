@@ -31,10 +31,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Badge,
   ConfirmationDialogContent,
   HorizontalTabs,
-  Icon,
   Skeleton,
   TextField,
   Tooltip,
@@ -42,6 +40,7 @@ import {
   UserAvatarGroup,
 } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
@@ -58,6 +57,7 @@ import {
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { Label } from "@calcom/ui/form/inputs/Label";
 import { Switch } from "@calcom/ui/form/switch/Switch";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import useMeQuery from "@lib/hooks/useMeQuery";

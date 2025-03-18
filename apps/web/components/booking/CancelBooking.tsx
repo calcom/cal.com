@@ -7,7 +7,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { Label } from "@calcom/ui/form/inputs/Label";
-import { TextArea } from "@calcom/ui";
+import { TextArea } from "@calcom/ui/form/inputs/Input";
 import { Select } from "@calcom/ui/form/select/Select";
 import { Button } from "@calcom/ui/button/Button";
 

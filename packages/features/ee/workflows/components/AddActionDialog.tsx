@@ -10,7 +10,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { EmailField } from "@calcom/ui";
+import { EmailField } from "@calcom/ui/form/inputs/Input";
 import { Select } from "@calcom/ui/form/select/Select";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";

@@ -7,7 +7,7 @@ import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmailField } from "@calcom/ui";
+import { EmailField } from "@calcom/ui/form/inputs/Input";
 import { Button } from "@calcom/ui/button/Button";
 
 import AuthContainer from "@components/ui/AuthContainer";

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { Skeleton } from "@calcom/ui";
+import { Skeleton } from "@calcom/ui/skeleton/Skeleton";
 
 import { CalendarToggleContainer } from "./CalendarToggleContainer";
 import { EventScheduleItem } from "./EventScheduleItem";

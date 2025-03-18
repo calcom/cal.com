@@ -12,9 +12,9 @@ import {
   CommandSeparator,
   CommandGroup,
   buttonClasses,
-  Icon,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type {

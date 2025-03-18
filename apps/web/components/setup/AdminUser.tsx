@@ -9,8 +9,9 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmailField, PasswordField } from "@calcom/ui";
+import { EmailField } from "@calcom/ui/form/inputs/Input";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { PasswordField } from "@calcom/ui/form/inputs/Input";
 import { Label } from "@calcom/ui/form/inputs/Label";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 

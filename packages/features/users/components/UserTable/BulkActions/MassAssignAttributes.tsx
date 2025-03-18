@@ -6,6 +6,7 @@ import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { Button } from "@calcom/ui/button/Button";
 import {
   Command,
@@ -14,7 +15,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  Icon,
   Input,
   Popover,
   PopoverContent,

@@ -9,10 +9,12 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextField, TextAreaField, Table, DropdownActions } from "@calcom/ui";
+import { Table, DropdownActions } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextAreaField } from "@calcom/ui/form/inputs/Input";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 

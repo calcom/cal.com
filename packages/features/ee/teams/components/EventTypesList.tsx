@@ -16,10 +16,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  Icon,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { User } from "./MemberList";

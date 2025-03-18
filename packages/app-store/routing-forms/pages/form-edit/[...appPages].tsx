@@ -7,13 +7,15 @@ import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { BooleanToggleGroupField, FormCard, SelectField, Skeleton } from "@calcom/ui";
+import { BooleanToggleGroupField, FormCard } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { Label } from "@calcom/ui/form/inputs/Label";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { SelectField } from "@calcom/ui/form/select/Select";
 import { Icon } from "@calcom/ui/icon/Icon";
+import { Skeleton } from "@calcom/ui/skeleton/Skeleton";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

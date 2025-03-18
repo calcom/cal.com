@@ -5,8 +5,6 @@ import { type Table } from "@tanstack/react-table";
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonProps } from "@calcom/ui/button/Button";
-import { Button } from "@calcom/ui/button/Button";
 import {
   buttonClasses,
   Popover,
@@ -19,9 +17,11 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-  Icon,
 } from "@calcom/ui";
+import type { ButtonProps } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;

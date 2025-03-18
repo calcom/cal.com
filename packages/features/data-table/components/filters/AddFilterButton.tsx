@@ -6,7 +6,6 @@ import startCase from "lodash/startCase";
 import { forwardRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/button/Button";
 import {
   Popover,
   PopoverTrigger,
@@ -16,8 +15,9 @@ import {
   CommandList,
   CommandEmpty,
   CommandItem,
-  Icon,
-  } from "@calcom/ui";
+} from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";

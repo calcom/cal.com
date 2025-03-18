@@ -12,7 +12,6 @@ import { trpc } from "@calcom/trpc";
 import {
   buttonClasses,
   TextField,
-  Icon,
   Sheet,
   SheetBody,
   SheetClose,
@@ -23,6 +22,7 @@ import {
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 type TeamMemberItemProps = {

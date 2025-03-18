@@ -5,10 +5,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { DialogFooter, Form } from "@calcom/ui";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
+import { DialogFooter } from "@calcom/ui/dialog/Dialog";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";

@@ -5,7 +5,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ImageUploader, TextAreaField } from "@calcom/ui";
+import { ImageUploader } from "@calcom/ui";
+import { TextAreaField } from "@calcom/ui/form/inputs/Input";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";

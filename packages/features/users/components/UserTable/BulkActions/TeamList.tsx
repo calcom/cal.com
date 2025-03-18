@@ -5,7 +5,6 @@ import { useState } from "react";
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button } from "@calcom/ui/button/Button";
 import {
   Command,
   CommandEmpty,
@@ -13,12 +12,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  Icon,
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableUser } from "../types";

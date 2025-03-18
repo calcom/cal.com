@@ -9,7 +9,7 @@ import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextAreaField } from "@calcom/ui";
+import { TextAreaField } from "@calcom/ui/form/inputs/Input";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Editor } from "@calcom/ui/editor/Editor";

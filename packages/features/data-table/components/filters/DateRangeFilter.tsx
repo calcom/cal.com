@@ -6,7 +6,6 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   DateRangePicker,
-  Icon,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -19,6 +18,7 @@ import {
 } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {

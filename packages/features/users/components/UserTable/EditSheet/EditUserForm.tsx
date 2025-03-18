@@ -11,7 +11,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import {
-  TextField,
   InputField,
   TextAreaField,
   ImageUploader,
@@ -26,6 +25,7 @@ import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
 import { showToast } from "@calcom/ui/toast/showToast";
 

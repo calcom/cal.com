@@ -10,13 +10,15 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ConfirmationDialogContent, Icon, RadioGroup as RadioArea, TextAreaField } from "@calcom/ui";
+import { ConfirmationDialogContent, RadioGroup as RadioArea } from "@calcom/ui";
+import { TextAreaField } from "@calcom/ui/form/inputs/Input";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
 import { Input } from "@calcom/ui/form/inputs/TextField";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 enum ReassignType {

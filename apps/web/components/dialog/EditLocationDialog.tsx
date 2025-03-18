@@ -19,7 +19,7 @@ import type { LocationOption } from "@calcom/features/form/components/LocationSe
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Form } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 import { Input } from "@calcom/ui/form/inputs/TextField";
