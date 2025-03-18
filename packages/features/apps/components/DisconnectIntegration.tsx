@@ -34,7 +34,7 @@ export default function DisconnectIntegration(props: {
     },
     async onSettled() {
       await utils.viewer.connectedCalendars.invalidate();
-      await utils.viewer.integrations.invalidate();
+      await utils.viewer.apps.integrations.invalidate();
     },
   });
 
