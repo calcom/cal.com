@@ -13,10 +13,11 @@ import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberU
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();

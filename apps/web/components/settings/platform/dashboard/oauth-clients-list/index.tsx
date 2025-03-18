@@ -1,7 +1,8 @@
 import { useRouter } from "next/navigation";
 
 import type { PlatformOAuthClientDto } from "@calcom/platform-types";
-import { EmptyScreen, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 import { OAuthClientCard } from "@components/settings/platform/oauth-clients/OAuthClientCard";
 

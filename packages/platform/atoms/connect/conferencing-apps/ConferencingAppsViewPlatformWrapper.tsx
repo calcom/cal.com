@@ -12,7 +12,6 @@ import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants"
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import {
-  Button,
   SkeletonContainer,
   SkeletonText,
   Dropdown,
@@ -20,8 +19,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
-  EmptyScreen,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";

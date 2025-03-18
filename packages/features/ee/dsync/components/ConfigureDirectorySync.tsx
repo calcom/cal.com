@@ -2,8 +2,9 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { AppSkeletonLoader as SkeletonLoader, Button, Label, showToast, EmptyScreen } from "@calcom/ui";
+import { AppSkeletonLoader as SkeletonLoader, Button, Label, showToast } from "@calcom/ui";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 import CreateDirectory from "./CreateDirectory";
 import DirectoryInfo from "./DirectoryInfo";

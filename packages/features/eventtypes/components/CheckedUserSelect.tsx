@@ -2,8 +2,9 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Icon, Label, Select } from "@calcom/ui";
+import { Icon, Label, Select } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 export type CheckedUserSelectOption = {
   avatar: string;

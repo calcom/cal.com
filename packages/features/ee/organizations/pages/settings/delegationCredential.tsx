@@ -18,11 +18,11 @@ import {
   Badge,
   Switch,
   InfoBadge,
-  EmptyScreen,
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 interface DelegationItemProps {
   delegation: {

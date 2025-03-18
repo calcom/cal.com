@@ -10,7 +10,7 @@ import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtype
 import useAppsData from "@calcom/lib/hooks/useAppsData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 

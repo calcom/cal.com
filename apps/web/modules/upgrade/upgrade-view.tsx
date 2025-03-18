@@ -6,7 +6,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { showToast } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 

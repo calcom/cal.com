@@ -5,7 +5,7 @@ import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 type AppsLayoutProps = {
   children: React.ReactNode;

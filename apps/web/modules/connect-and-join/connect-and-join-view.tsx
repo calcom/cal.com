@@ -10,8 +10,9 @@ import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-para
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { EmptyScreen, Alert } from "@calcom/ui";
+import { Alert } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 import { TRPCClientError } from "@trpc/client";
 

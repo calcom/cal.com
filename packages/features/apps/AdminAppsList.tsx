@@ -17,9 +17,7 @@ import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Button,
   ConfirmationDialogContent,
-  EmptyScreen,
   Form,
   Icon,
   List,
@@ -30,8 +28,10 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import cs from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 
