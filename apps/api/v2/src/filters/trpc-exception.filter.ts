@@ -37,6 +37,30 @@ export class TRPCExceptionFilter implements ExceptionFilter {
         break;
       case "TOO_MANY_REQUESTS":
         statusCode = 429;
+        break;
+      case "PAYLOAD_TOO_LARGE":
+        statusCode = 413;
+        break;
+      case "CLIENT_CLOSED_REQUEST":
+        statusCode = 499;
+        break;
+      case "METHOD_NOT_SUPPORTED":
+        statusCode = 405;
+      case "NOT_IMPLEMENTED":
+        statusCode = 501;
+        break;
+      case "PRECONDITION_FAILED":
+        statusCode = 412;
+        break;
+      case "TIMEOUT":
+        statusCode = 408;
+        break;
+      case "UNPROCESSABLE_CONTENT":
+        statusCode = 422;
+        break;
+      case "PARSE_ERROR":
+        statusCode = 400;
+        break;
       default:
         statusCode = 500;
         break;
