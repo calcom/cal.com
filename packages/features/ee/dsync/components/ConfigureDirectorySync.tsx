@@ -1,9 +1,9 @@
 import { useState } from "react";
 
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  AppSkeletonLoader as SkeletonLoader,
   Button,
   Dialog,
   DialogClose,
