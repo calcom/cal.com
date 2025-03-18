@@ -21,7 +21,6 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
 import {
   Button,
-  CheckboxField,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -29,6 +28,7 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 import classNames from "@calcom/ui/classNames";
 
 export type { TimeRange };

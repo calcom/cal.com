@@ -11,7 +11,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   AddressInput,
   Button,
-  CheckboxField,
   EmailField,
   Group,
   Icon,
@@ -21,6 +20,7 @@ import {
   RadioField,
   Tooltip,
 } from "@calcom/ui";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";

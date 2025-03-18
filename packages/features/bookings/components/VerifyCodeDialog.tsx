@@ -3,17 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  Icon,
-  Input,
-  Label,
-} from "@calcom/ui";
+import { Button, Icon, Input, Label } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 export const VerifyCodeDialog = ({
   isOpenDialog,

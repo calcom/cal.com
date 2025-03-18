@@ -13,12 +13,6 @@ import {
   Badge,
   BooleanToggleGroupField,
   Button,
-  CheckboxField,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
   Form,
   Icon,
   Input,
@@ -30,6 +24,8 @@ import {
   Switch,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";

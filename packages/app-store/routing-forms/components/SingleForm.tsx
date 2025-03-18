@@ -15,13 +15,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
 import {
-  Alert,
   Badge,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
   DropdownMenuSeparator,
   Form,
   SettingsToggle,
@@ -31,9 +25,11 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 import { TRPCClientError } from "@trpc/react-query";
 

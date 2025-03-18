@@ -7,7 +7,8 @@ import {
 } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
+import { Select, TextField } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 
 import {
   convertToSmallestCurrencyUnit,

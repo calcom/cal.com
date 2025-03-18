@@ -15,8 +15,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -30,6 +28,7 @@ import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 
 import { TeamRole } from "./TeamPill";
 

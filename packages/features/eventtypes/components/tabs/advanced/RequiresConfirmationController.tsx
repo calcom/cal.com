@@ -11,8 +11,9 @@ import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
+import { Input, SettingsToggle, RadioField, Select } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;

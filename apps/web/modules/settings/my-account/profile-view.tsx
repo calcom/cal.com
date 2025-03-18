@@ -23,12 +23,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import {
-  Alert,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger,
   Editor,
   Form,
   Icon,
@@ -42,8 +36,10 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
 import { Button } from "@calcom/ui/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";

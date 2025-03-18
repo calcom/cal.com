@@ -10,10 +10,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   DropdownActions,
   Icon,
   showToast,
@@ -22,6 +18,7 @@ import {
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 

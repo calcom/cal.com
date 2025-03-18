@@ -6,16 +6,8 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  Form,
-  showToast,
-  TextField,
-} from "@calcom/ui";
+import { Button, Form, showToast, TextField } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;

@@ -3,16 +3,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  Icon,
-  showToast,
-} from "@calcom/ui";
+import { Button, Icon, showToast } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;

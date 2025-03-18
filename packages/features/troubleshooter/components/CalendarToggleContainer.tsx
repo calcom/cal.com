@@ -1,6 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Button, Switch } from "@calcom/ui";
+import { Switch } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
 
 import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
 

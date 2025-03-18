@@ -4,19 +4,9 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import {
-  showToast,
-  Form,
-  SettingsToggle,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogClose,
-  Button,
-  RadioGroup as RadioArea,
-} from "@calcom/ui";
+import { showToast, Form, SettingsToggle, Button, RadioGroup as RadioArea } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",

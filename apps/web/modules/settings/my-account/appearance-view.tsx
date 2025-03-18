@@ -20,7 +20,6 @@ import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
-  Alert,
   Button,
   ColorPicker,
   Form,
@@ -32,6 +31,7 @@ import {
   UpgradeTeamsBadge,
   useCalcomTheme,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 
 const SkeletonLoader = () => {
   return (

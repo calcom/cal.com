@@ -17,8 +17,8 @@ import {
   Tooltip,
   TextField,
   showToast,
-  Alert,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 

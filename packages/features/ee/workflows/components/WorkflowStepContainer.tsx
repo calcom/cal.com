@@ -19,11 +19,6 @@ import {
   AddVariablesDropdown,
   Badge,
   Button,
-  CheckboxField,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -41,6 +36,8 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 import {
   getWhatsappTemplateForAction,

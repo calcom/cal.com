@@ -20,7 +20,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { Alert, EmptyScreen, HorizontalTabs } from "@calcom/ui";
+import { EmptyScreen, HorizontalTabs } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

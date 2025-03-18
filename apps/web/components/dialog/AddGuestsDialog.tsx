@@ -4,16 +4,8 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  MultiEmail,
-  Icon,
-  showToast,
-} from "@calcom/ui";
+import { Button, MultiEmail, Icon, showToast } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
 
 interface IAddGuestsDialog {
   isOpenDialog: boolean;

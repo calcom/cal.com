@@ -19,10 +19,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   EmptyScreen,
   Form,
   Icon,
@@ -35,6 +31,7 @@ import {
   TextField,
 } from "@calcom/ui";
 import cs from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 

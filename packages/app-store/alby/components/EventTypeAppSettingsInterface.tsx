@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { currencyOptions } from "@calcom/app-store/alby/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
+import { Select, TextField } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
 import { PaypalPaymentOptions as paymentOptions } from "../zod";

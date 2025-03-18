@@ -14,15 +14,12 @@ import {
   Form,
   Switch,
   showToast,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
   TextField,
   TextAreaField,
   Table,
   DropdownActions,
 } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 

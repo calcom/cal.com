@@ -7,7 +7,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import {
-  Alert,
   Button,
   Command,
   CommandEmpty,
@@ -22,6 +21,7 @@ import {
   PopoverTrigger,
   showToast,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
 
 import type { UserTableUser } from "../types";

@@ -27,8 +27,6 @@ import {
   EditableHeading,
   Form,
   SkeletonText,
-  Dialog,
-  DialogTrigger,
   Label,
   SelectSkeletonLoader,
   Skeleton,
@@ -36,8 +34,9 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { Icon } from "@calcom/ui/icon/Icon";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";

@@ -4,8 +4,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   ButtonGroup,
   ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -16,6 +14,7 @@ import {
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 

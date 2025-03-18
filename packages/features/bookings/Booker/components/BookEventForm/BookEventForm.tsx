@@ -9,7 +9,9 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
+import { EmptyScreen, Form } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
 
 import { useBookerStore } from "../../store";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";

@@ -31,10 +31,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Alert,
   Badge,
   ConfirmationDialogContent,
-  Dialog,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -54,9 +52,11 @@ import {
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
+import { Dialog } from "@calcom/ui/dialog/Dialog";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

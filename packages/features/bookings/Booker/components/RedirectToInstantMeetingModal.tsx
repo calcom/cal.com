@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogContent } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";
 
 const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   const message = "/o";

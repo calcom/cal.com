@@ -14,7 +14,9 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
-import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
+import { Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";

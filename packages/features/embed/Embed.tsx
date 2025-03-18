@@ -28,10 +28,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   ColorPicker,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   HorizontalTabs,
   Icon,
   Label,
@@ -40,6 +36,7 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";

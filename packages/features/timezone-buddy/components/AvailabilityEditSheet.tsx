@@ -11,7 +11,6 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
-  Alert,
   Button,
   Form,
   Label,
@@ -24,6 +23,7 @@ import {
   SheetTitle,
   showToast,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 
 import type { SliderUser } from "./AvailabilitySliderTable";
 

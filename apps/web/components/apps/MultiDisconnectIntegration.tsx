@@ -11,10 +11,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownItem,
-  Dialog,
   ConfirmationDialogContent,
   showToast,
 } from "@calcom/ui";
+import { Dialog } from "@calcom/ui/dialog/Dialog";
 
 import type { inferRouterOutputs } from "@trpc/server";
 

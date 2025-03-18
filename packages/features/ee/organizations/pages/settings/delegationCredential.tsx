@@ -10,9 +10,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   DropdownActions,
   Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
   Form,
   TextField,
   TextAreaField,
@@ -25,6 +22,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 
 interface DelegationItemProps {
   delegation: {

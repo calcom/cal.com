@@ -25,10 +25,6 @@ import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   Dropdown,
   DropdownItem,
   DropdownMenuCheckboxItem,
@@ -46,6 +42,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 

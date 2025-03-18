@@ -7,7 +7,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Badge, Button, Icon, showToast } from "@calcom/ui";
+import { Icon, showToast } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
 
 interface IAppConnectionItem {
   title: string;

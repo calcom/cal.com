@@ -27,9 +27,10 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge, Checkbox, showToast } from "@calcom/ui";
+import { Badge, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import classNames from "@calcom/ui/classNames";
+import { Checkbox } from "@calcom/ui/form/checkbox/Checkbox";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";

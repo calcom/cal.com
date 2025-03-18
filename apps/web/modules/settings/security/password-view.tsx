@@ -12,7 +12,6 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Alert,
   Button,
   Form,
   PasswordField,
@@ -23,6 +22,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
 
 type ChangePasswordSessionFormValues = {

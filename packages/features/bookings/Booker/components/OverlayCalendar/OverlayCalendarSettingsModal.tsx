@@ -4,10 +4,6 @@ import { Fragment } from "react";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  Alert,
-  Dialog,
-  DialogClose,
-  DialogContent,
   EmptyScreen,
   ListItem,
   ListItemText,
@@ -16,7 +12,9 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 

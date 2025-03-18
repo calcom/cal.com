@@ -7,7 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Form, TextField, Tooltip } from "@calcom/ui";
-import { Alert, RadioGroup as RadioArea } from "@calcom/ui";
+import { RadioGroup as RadioArea } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
 
 type props = {

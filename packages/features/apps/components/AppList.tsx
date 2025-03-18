@@ -18,7 +18,6 @@ import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
 import {
-  Alert,
   Button,
   Dropdown,
   DropdownItem,
@@ -28,6 +27,7 @@ import {
   List,
   showToast,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 

@@ -35,12 +35,7 @@ import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Badge,
-  Checkbox,
   ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   Dropdown,
   DropdownItem,
   DropdownMenuPortal,
@@ -54,6 +49,8 @@ import {
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { Checkbox } from "@calcom/ui/form/checkbox/Checkbox";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";

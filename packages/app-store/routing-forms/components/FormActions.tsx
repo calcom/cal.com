@@ -14,10 +14,6 @@ import type { ButtonProps } from "@calcom/ui";
 import {
   Button,
   ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -29,6 +25,7 @@ import {
   TextField,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 

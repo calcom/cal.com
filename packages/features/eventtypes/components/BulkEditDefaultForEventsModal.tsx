@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogContent, Form, DialogFooter, DialogClose, Button, CheckboxField } from "@calcom/ui";
+import { Form, Button } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),

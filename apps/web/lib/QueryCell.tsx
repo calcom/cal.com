@@ -8,7 +8,8 @@ import type {
 import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Loader } from "@calcom/ui";
+import { Loader } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 
 type ErrorLike = {
   message: string;

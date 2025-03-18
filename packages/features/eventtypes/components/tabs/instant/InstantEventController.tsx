@@ -15,20 +15,10 @@ import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberU
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Alert,
-  Button,
-  EmptyScreen,
-  SettingsToggle,
-  Dialog,
-  DialogContent,
-  showToast,
-  TextField,
-  Label,
-  Select,
-  Badge,
-} from "@calcom/ui";
+import { Button, EmptyScreen, SettingsToggle, showToast, TextField, Label, Select, Badge } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;

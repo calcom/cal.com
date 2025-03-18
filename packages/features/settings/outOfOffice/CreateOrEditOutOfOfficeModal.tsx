@@ -12,10 +12,6 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
   DateRangePicker,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
   Select,
   showToast,
   Switch,
@@ -25,6 +21,7 @@ import {
   Input,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 

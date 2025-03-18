@@ -15,9 +15,6 @@ import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 import {
   Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
   Form,
   Icon,
   Label,
@@ -28,6 +25,7 @@ import {
   ToggleGroup,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";

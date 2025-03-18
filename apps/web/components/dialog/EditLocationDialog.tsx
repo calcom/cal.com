@@ -19,8 +19,9 @@ import type { LocationOption } from "@calcom/features/form/components/LocationSe
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, Input, Dialog, DialogContent, DialogFooter, Form } from "@calcom/ui";
+import { Icon, Input, Form } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 
 import { QueryCell } from "../../lib/QueryCell";
 

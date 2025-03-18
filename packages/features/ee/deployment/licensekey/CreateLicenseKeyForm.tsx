@@ -9,7 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { Ensure } from "@calcom/types/utils";
 import { showToast } from "@calcom/ui";
-import { Alert, Button, Form, Label, TextField, ToggleGroup } from "@calcom/ui";
+import { Label, TextField, ToggleGroup } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
+import { Form } from "@calcom/ui/form/inputs/Form";
 
 import { UserPermissionRole } from "../../../../prisma/enums";
 

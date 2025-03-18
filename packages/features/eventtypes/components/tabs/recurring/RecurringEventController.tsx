@@ -12,7 +12,8 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert, Select, SettingsToggle, TextField } from "@calcom/ui";
+import { Select, SettingsToggle, TextField } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
 
 export type RecurringEventControllerProps = {

@@ -12,10 +12,10 @@ import {
   InputField,
   Label,
   Input,
-  Dialog,
   ConfirmationDialogContent,
   SettingsToggle,
 } from "@calcom/ui";
+import { Dialog } from "@calcom/ui/dialog/Dialog";
 
 const attributeFormSchema = z.object({
   attrName: z.string().min(1),

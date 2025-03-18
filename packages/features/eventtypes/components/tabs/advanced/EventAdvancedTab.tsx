@@ -40,10 +40,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
-  Alert,
   Button,
   Badge,
-  CheckboxField,
   Icon,
   Label,
   SelectField,
@@ -52,7 +50,9 @@ import {
   TextField,
   ColorPicker,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";

@@ -3,7 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { ConfirmationDialogContent, Dialog, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent, showToast } from "@calcom/ui";
+import { Dialog } from "@calcom/ui/dialog/Dialog";
 
 interface IDeleteDialog {
   isOpenDialog: boolean;
