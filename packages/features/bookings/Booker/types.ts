@@ -120,7 +120,7 @@ export type WrappedBookerPropsMain = {
   customClassNames?: CustomClassNames;
   isBookingDryRun?: boolean;
   renderCaptcha?: boolean;
-  submitButtonDisabled?: boolean;
+  confirmButtonDisabled?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

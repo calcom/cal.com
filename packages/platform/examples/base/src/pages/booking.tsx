@@ -107,6 +107,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               }}
               metadata={{ CustomKey: "CustomValue" }}
               duration={eventTypeDuration}
+              confirmButtonDisabled={false}
               customClassNames={{
                 bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
                 datePickerCustomClassNames: {
@@ -130,7 +131,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               hostsLimit={3}
               selectedDate={new Date("2025-03-25")}
               allowUpdatingUrlParams={true}
-              submitButtonDisabled={false}
             />
           </>
         )}

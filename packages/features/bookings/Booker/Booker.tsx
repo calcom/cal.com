@@ -82,7 +82,7 @@ const BookerComponent = ({
   isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
   hashedLink,
-  submitButtonDisabled,
+  confirmButtonDisabled,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -240,7 +240,7 @@ const BookerComponent = ({
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
-        submitButtonDisabled={submitButtonDisabled}
+        confirmButtonDisabled={confirmButtonDisabled}
         classNames={{
           confirmButton: customClassNames?.confirmStage?.confirmButton,
           backButton: customClassNames?.confirmStage?.backButton,
