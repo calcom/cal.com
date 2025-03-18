@@ -16,6 +16,7 @@ import {
   ColumnFilterType,
   convertFacetedValuesToMap,
   SaveFilterSegmentButton,
+  FilterSegmentSelect,
   useDataTable,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -522,6 +523,7 @@ function UserListTableContent() {
         ToolbarLeft={
           <>
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <FilterSegmentSelect />
             <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
             <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />

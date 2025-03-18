@@ -123,6 +123,7 @@ export type IconName =
   | "sparkles"
   | "split"
   | "square-check"
+  | "square-pen"
   | "star"
   | "sun"
   | "sunrise"

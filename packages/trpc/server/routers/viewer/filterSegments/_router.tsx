@@ -16,9 +16,6 @@ const UNSTABLE_HANDLER_CACHE: FilterSegmentsRouterHandlerCache = {};
 
 export const filterSegmentsRouter = router({
   list: authedProcedure.input(ZListFilterSegmentsInputSchema).query(async ({ input, ctx }) => {
-    console.log("💡 LIST", {
-      input,
-    });
     if (!UNSTABLE_HANDLER_CACHE.list) {
       UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
     }

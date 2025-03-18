@@ -14,8 +14,18 @@ export const deleteHandler = async ({
   };
   input: TDeleteFilterSegmentInputSchema;
 }) => {
-  const { id, scope, teamId } = input;
+  const { id } = input;
   const userId = ctx.user.id;
+
+  const { scope, teamId } = await prisma.filterSegment.findFirstOrThrow({
+    where: {
+      id,
+    },
+    select: {
+      scope: true,
+      teamId: true,
+    },
+  });
 
   // First, fetch the existing segment to check permissions
   const existingSegment = await prisma.filterSegment.findFirst({

@@ -3,7 +3,9 @@
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback } from "react";
+import { createContext, useCallback, useMemo, useEffect } from "react";
+
+import { trpc } from "@calcom/trpc/react";
 
 import {
   type FilterValue,
@@ -12,6 +14,7 @@ import {
   ZActiveFilter,
   type ActiveFilter,
   ZColumnSizing,
+  type FilterSegmentOutput,
 } from "./types";
 
 export type DataTableContextType = {
@@ -40,8 +43,11 @@ export type DataTableContextType = {
   offset: number;
   limit: number;
 
+  segments: FilterSegmentOutput[];
+  selectedSegment: FilterSegmentOutput | undefined;
   segmentId: number | undefined;
-  setSegmentId: OnChangeFn<number>;
+  setSegment: (segment: FilterSegmentOutput | undefined) => void;
+  canSaveSegment: boolean;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -84,10 +90,34 @@ export function DataTableProvider({
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
 
   const pathname = usePathname() as string | null;
-  const identifier = _tableIdentifier ?? pathname ?? undefined;
-  if (!identifier) {
+  const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
+  if (!tableIdentifier) {
     throw new Error("tableIdentifier is required");
   }
+  const { data: segments } = trpc.viewer.filterSegments.list.useQuery({ tableIdentifier });
+  const selectedSegment = useMemo(
+    () => segments?.find((segment) => segment.id === segmentId),
+    [segments, segmentId]
+  );
+
+  useEffect(() => {
+    if (selectedSegment) {
+      setActiveFilters(selectedSegment.activeFilters);
+      setSorting(selectedSegment.sorting);
+      setColumnVisibility(selectedSegment.columnVisibility);
+      setColumnSizing(selectedSegment.columnSizing);
+      setPageSize(selectedSegment.perPage);
+      setPageIndex(0);
+    }
+  }, [
+    selectedSegment,
+    setActiveFilters,
+    setSorting,
+    setColumnVisibility,
+    setColumnSizing,
+    setPageSize,
+    setPageIndex,
+  ]);
 
   const addFilter = useCallback(
     (columnId: string) => {
@@ -143,10 +173,37 @@ export function DataTableProvider({
     [setPageSize, setPageIndex]
   );
 
+  const setSegment = useCallback(
+    (segment: FilterSegmentOutput | undefined) => {
+      setSegmentId(segment?.id || -1);
+    },
+    [setSegmentId]
+  );
+
+  const canSaveSegment = useMemo(() => {
+    if (!selectedSegment) {
+      return (
+        activeFilters.length > 0 ||
+        sorting.length > 0 ||
+        Object.keys(columnVisibility).length > 0 ||
+        Object.keys(columnSizing).length > 0 ||
+        pageSize !== defaultPageSize
+      );
+    } else {
+      return (
+        activeFilters !== selectedSegment.activeFilters ||
+        sorting !== selectedSegment.sorting ||
+        columnVisibility !== selectedSegment.columnVisibility ||
+        columnSizing !== selectedSegment.columnSizing ||
+        pageSize !== selectedSegment.perPage
+      );
+    }
+  }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, defaultPageSize]);
+
   return (
     <DataTableContext.Provider
       value={{
-        tableIdentifier: identifier,
+        tableIdentifier,
         activeFilters,
         addFilter,
         clearAll,
@@ -164,8 +221,11 @@ export function DataTableProvider({
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
+        segments,
+        selectedSegment,
         segmentId: segmentId === -1 ? undefined : segmentId,
-        setSegmentId,
+        setSegment,
+        canSaveSegment,
       }}>
       {children}
     </DataTableContext.Provider>

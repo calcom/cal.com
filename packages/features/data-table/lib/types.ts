@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { RouterOutputs } from "@calcom/trpc";
 import type { IconName } from "@calcom/ui/components/icon";
 
 export enum ColumnFilterType {
@@ -221,3 +222,5 @@ export const ZActiveFilter = z.object({
   f: z.string(),
   v: ZFilterValue.optional(),
 }) satisfies z.ZodType<ActiveFilter>;
+
+export type FilterSegmentOutput = RouterOutputs["viewer"]["filterSegments"]["list"][number];

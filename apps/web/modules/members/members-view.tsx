@@ -12,7 +12,8 @@ const MembersPage: React.FC = () => {
       title={t("organization_members")}
       description={t("organization_description")}
       withoutSeo
-      subtitle={t("organization_description")}>
+      subtitle={t("organization_description")}
+      actions={<p>actions</p>}>
       <MembersView />
     </Shell>
   );

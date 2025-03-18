@@ -1,6 +1,6 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,14 +18,11 @@ import {
   Label,
   Select,
   Switch,
+  RadioField,
   showToast,
 } from "@calcom/ui";
 
-import { useDataTable } from "../hooks";
-
-interface SaveFilterSegmentButtonProps {
-  selectedSegmentId?: number;
-}
+import { useDataTable } from "../../hooks";
 
 interface FormValues {
   name: string;
@@ -33,13 +30,12 @@ interface FormValues {
   teamId?: number;
 }
 
-export function SaveFilterSegmentButton({ selectedSegmentId }: SaveFilterSegmentButtonProps) {
+export function SaveFilterSegmentButton() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [isOpen, setIsOpen] = useState(false);
   const [isTeamSegment, setIsTeamSegment] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number>();
-  const [saveMode, setSaveMode] = useState<"create" | "update">("create");
   const session = useSession();
   const orgRole = session?.data?.user?.org?.role;
   const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
@@ -51,14 +47,21 @@ export function SaveFilterSegmentButton({ selectedSegmentId }: SaveFilterSegment
     },
   });
 
-  const { tableIdentifier, activeFilters, sorting, columnVisibility, columnSizing } = useDataTable();
+  const {
+    tableIdentifier,
+    activeFilters,
+    sorting,
+    columnVisibility,
+    columnSizing,
+    selectedSegment,
+    canSaveSegment,
+  } = useDataTable();
+
+  const [saveMode, setSaveMode] = useState<"create" | "update">(() =>
+    selectedSegment ? "update" : "create"
+  );
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const data = trpc.viewer.filterSegments.list.useQuery({ tableIdentifier });
-  const segments = data?.data;
-  const selectedSegment = useMemo(() => {
-    return segments?.find((segment) => segment.id === selectedSegmentId);
-  }, [segments, selectedSegmentId]);
 
   const { mutate: createSegment } = trpc.viewer.filterSegments.create.useMutation({
     onSuccess: () => {
@@ -86,10 +89,10 @@ export function SaveFilterSegmentButton({ selectedSegmentId }: SaveFilterSegment
     if (!isOpen) {
       setIsTeamSegment(false);
       setSelectedTeamId(undefined);
-      setSaveMode("create");
+      setSaveMode(selectedSegment ? "update" : "create");
       form.reset();
     }
-  }, [isOpen, form]);
+  }, [isOpen, form, selectedSegment]);
 
   const onSubmit = (values: FormValues) => {
     if (isTeamSegment && !selectedTeamId) {
@@ -98,7 +101,7 @@ export function SaveFilterSegmentButton({ selectedSegmentId }: SaveFilterSegment
     }
 
     const segmentData = {
-      name: values.name,
+      name: saveMode === "update" && selectedSegment ? selectedSegment.name : values.name,
       tableIdentifier,
       activeFilters,
       sorting,
@@ -142,7 +145,7 @@ export function SaveFilterSegmentButton({ selectedSegmentId }: SaveFilterSegment
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button StartIcon="bookmark" color="secondary">
+        <Button StartIcon="bookmark" color="secondary" disabled={!canSaveSegment}>
           {t("save")}
         </Button>
       </DialogTrigger>
@@ -152,36 +155,26 @@ export function SaveFilterSegmentButton({ selectedSegmentId }: SaveFilterSegment
           {selectedSegment ? (
             <div className="mb-4">
               <RadioGroup.Root
-                defaultValue="create"
+                defaultValue="update"
                 onValueChange={(value: string) => setSaveMode(value as "create" | "update")}
                 className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroup.Item
-                    value="update"
-                    id="update"
-                    className="h-4 w-4 rounded-full border border-gray-300 hover:border-gray-400">
-                    <RadioGroup.Indicator className="relative flex h-full w-full items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
-                  </RadioGroup.Item>
-                  <Label htmlFor="update">{t("override_segment", { name: selectedSegment.name })}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroup.Item
-                    value="create"
-                    id="create"
-                    className="h-4 w-4 rounded-full border border-gray-300 hover:border-gray-400">
-                    <RadioGroup.Indicator className="relative flex h-full w-full items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
-                  </RadioGroup.Item>
-                  <Label htmlFor="create">{t("create_new_segment")}</Label>
-                </div>
+                <RadioField
+                  id="update_segment"
+                  label={t("override_segment", { name: selectedSegment.name })}
+                  value="update"
+                />
+                <RadioField id="create_segment" label={t("create_new_segment")} value="create" />
               </RadioGroup.Root>
             </div>
           ) : null}
 
           <div>
-            <div>
-              <Label>{t("name")}</Label>
-              <Input {...form.register("name")} required />
-            </div>
+            {saveMode === "create" && (
+              <div>
+                <Label>{t("name")}</Label>
+                <Input {...form.register("name")} required />
+              </div>
+            )}
 
             {isAdminOrOwner && saveMode === "create" && (
               <>
