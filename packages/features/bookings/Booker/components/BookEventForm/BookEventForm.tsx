@@ -31,6 +31,7 @@ type BookEventFormProps = {
   isVerificationCodeSending: boolean;
   isTimeslotUnavailable: boolean;
   shouldRenderCaptcha?: boolean;
+  submitButtonDisabled?: boolean;
 };
 
 export const BookEventForm = ({
@@ -49,6 +50,7 @@ export const BookEventForm = ({
   isPlatform = false,
   isTimeslotUnavailable,
   shouldRenderCaptcha,
+  submitButtonDisabled,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -203,7 +205,9 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={(!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable}
+                disabled={
+                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || submitButtonDisabled
+                }
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||

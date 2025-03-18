@@ -82,6 +82,7 @@ const BookerComponent = ({
   isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
   hashedLink,
+  submitButtonDisabled,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -239,6 +240,7 @@ const BookerComponent = ({
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
+        submitButtonDisabled={submitButtonDisabled}
         isPlatform={isPlatform}>
         <>
           {!isPlatform && (
