@@ -1,7 +1,8 @@
 import type { Directory } from "@boxyhq/saml-jackson";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast, Label, Tooltip } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
+import { Label, Tooltip } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 
 const DirectoryInfo = ({ directory }: { directory: Directory }) => {

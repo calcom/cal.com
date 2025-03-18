@@ -26,7 +26,6 @@ import {
   ImageUploader,
   Label,
   LinkIconButton,
-  showToast,
   SkeletonContainer,
   SkeletonText,
   TextField,
@@ -35,6 +34,7 @@ import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 import { Editor } from "@calcom/ui/editor/Editor";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 

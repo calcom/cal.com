@@ -18,7 +18,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { showToast, ToggleGroup } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
+import { ToggleGroup } from "@calcom/ui";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 
 import { QueryCell } from "@lib/QueryCell";

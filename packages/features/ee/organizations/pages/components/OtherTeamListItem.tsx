@@ -9,12 +9,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  showToast,
   Tooltip,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 

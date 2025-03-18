@@ -6,7 +6,6 @@ import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Button } from "@calcom/ui/button/Button";
 import {
   Command,
   CommandEmpty,
@@ -15,12 +14,13 @@ import {
   CommandItem,
   CommandList,
   Popover,
-  showToast,
   PopoverContent,
   PopoverTrigger,
   Icon,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { User } from "./MemberList";
 

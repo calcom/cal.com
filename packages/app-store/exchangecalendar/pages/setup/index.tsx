@@ -7,7 +7,8 @@ import z from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmailField, Form, PasswordField, SelectField, TextField } from "@calcom/ui";
+import { EmailField, Form, PasswordField, SelectField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 

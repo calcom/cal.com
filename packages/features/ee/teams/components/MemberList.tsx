@@ -42,7 +42,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
   Tooltip,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
@@ -51,6 +50,7 @@ import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { Checkbox } from "@calcom/ui/form/checkbox/Checkbox";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";

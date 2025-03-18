@@ -13,7 +13,6 @@ import {
   TextField,
   TextAreaField,
   SelectField,
-  showToast,
   Badge,
   Switch,
   InfoBadge,
@@ -23,6 +22,7 @@ import {
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 interface DelegationItemProps {
   delegation: {

@@ -5,7 +5,8 @@ import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { PasswordField, TextField } from "@calcom/ui";
+import { PasswordField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";

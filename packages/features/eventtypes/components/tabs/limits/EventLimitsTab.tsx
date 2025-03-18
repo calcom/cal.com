@@ -19,7 +19,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
-import { DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
+import { DateRangePicker, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 

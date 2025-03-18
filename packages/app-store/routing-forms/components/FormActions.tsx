@@ -18,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Form,
-  showToast,
   Switch,
   TextAreaField,
   TextField,
@@ -26,6 +25,7 @@ import {
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 

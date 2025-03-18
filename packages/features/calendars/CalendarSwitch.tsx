@@ -5,8 +5,9 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, showToast, Switch } from "@calcom/ui";
+import { Icon, Switch } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 export type ICalendarSwitchProps = {
   title: string;

@@ -16,12 +16,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { ConfirmationDialogContent, Form, Icon, List, showToast, Switch, TextField } from "@calcom/ui";
+import { ConfirmationDialogContent, Form, Icon, List, Switch } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import cs from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 

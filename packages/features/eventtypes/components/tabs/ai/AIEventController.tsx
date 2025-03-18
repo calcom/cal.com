@@ -13,10 +13,11 @@ import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Label, SettingsToggle, Divider, TextField, showToast, Icon } from "@calcom/ui";
+import { Label, SettingsToggle, Divider, TextField, Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 type AIEventControllerProps = {
   eventType: EventTypeSetup;

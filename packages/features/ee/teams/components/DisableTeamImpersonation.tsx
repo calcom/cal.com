@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, SettingsToggle } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
+import { SettingsToggle } from "@calcom/ui";
 
 const DisableTeamImpersonation = ({
   teamId,

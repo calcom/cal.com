@@ -11,7 +11,8 @@ import {
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select, TextField } from "@calcom/ui";
+import { Select } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Alert } from "@calcom/ui/alert/Alert";
 
 import type { appDataSchema } from "../zod";

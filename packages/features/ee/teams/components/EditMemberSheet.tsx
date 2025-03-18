@@ -22,10 +22,10 @@ import {
   Tooltip,
   ToggleGroup,
   Form,
-  showToast,
   Loader,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { updateRoleInCache } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";

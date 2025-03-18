@@ -7,7 +7,8 @@ import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { BooleanToggleGroupField, FormCard, Icon, Label, SelectField, Skeleton, TextField } from "@calcom/ui";
+import { BooleanToggleGroupField, FormCard, Icon, Label, SelectField, Skeleton } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";

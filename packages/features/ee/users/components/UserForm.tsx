@@ -7,7 +7,8 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { defaultLocaleOption, localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { EmailField, Form, ImageUploader, Label, Select, TextField } from "@calcom/ui";
+import { EmailField, Form, ImageUploader, Label, Select } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 

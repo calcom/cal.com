@@ -43,7 +43,6 @@ import {
   HorizontalTabs,
   Icon,
   Label,
-  showToast,
   Skeleton,
   Switch,
   TextField,
@@ -57,6 +56,7 @@ import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 import { Dialog } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
