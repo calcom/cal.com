@@ -883,6 +883,17 @@ export default class SalesforceCRMService implements CRM {
       });
   }
 
+  public getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
+    return [
+      emailDomain,
+      `www.${emailDomain}`,
+      `http://www.${emailDomain}`,
+      `http://${emailDomain}`,
+      `https://www.${emailDomain}`,
+      `https://${emailDomain}`,
+    ].join(", ");
+  }
+
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
@@ -890,13 +901,16 @@ export default class SalesforceCRMService implements CRM {
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE Website IN ('${emailDomain}', 'www.${emailDomain}', 
-                      'http://www.${emailDomain}', 'http://${emailDomain}',
-                      'https://www.${emailDomain}', 'https://${emailDomain}') LIMIT 1`
+      `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+        emailDomain
+      )}) LIMIT 1`
     );
     if (accountQuery.records.length > 0) {
-      const account = accountQuery.records[0] as { Id: string };
-      log.info("Found account based on email domain", safeStringify({ accountId: account.Id }));
+      const account = accountQuery.records[0] as { Id: string; Website: string };
+      log.info(
+        "Found account based on email domain",
+        safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
+      );
       return account.Id;
     }
 
@@ -923,13 +937,26 @@ export default class SalesforceCRMService implements CRM {
     log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
+      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+        emailDomain
+      )}) LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
-      log.info("Found account matching email domain", safeStringify({ emailDomain }));
+      const account = accountQuery.records[0] as {
+        Id?: string;
+        OwnerId?: string;
+        Owner?: { Email?: string };
+        Website?: string;
+      };
+
+      log.info(
+        "Found account matching email domain",
+        safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
+      );
+
       return {
-        ...(accountQuery.records[0] as { Id?: string; OwnerId?: string; Owner?: { Email?: string } }),
+        ...account,
         Email: undefined,
       };
     }

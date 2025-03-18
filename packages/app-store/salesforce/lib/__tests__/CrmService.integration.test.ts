@@ -178,8 +178,8 @@ describe("SalesforceCRMService", () => {
 
       it("(Lookup-3) should fallback to account having most number of contacts matched by emailDomain when Lookup-1 and Lookup-2 fails", async () => {
         const crmService = new SalesforceCRMService(credential, appOptions);
-        const account1OwnerEmail = "contact-account-owner1@example.com";
-        const account2OwnerEmail = "contact-account-owner2@example.com";
+        const account1OwnerEmail = "account1-owner@example.com";
+        const account2OwnerEmail = "account2-owner@example.com";
         const emailDomain = "example.com";
         const lookingForEmail = `test@${emailDomain}`;
         const account1 = salesforceMock.addAccount({
