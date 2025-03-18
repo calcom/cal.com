@@ -31,6 +31,7 @@ import {
   BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
   BookingInputPhoneLocation_2024_08_13,
+  BookingInputOrganizersDefaultAppLocation_2024_08_13,
   ValidateBookingLocation_2024_08_13,
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
@@ -117,6 +118,7 @@ class Attendee {
   BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
   BookingInputPhoneLocation_2024_08_13,
+  BookingInputOrganizersDefaultAppLocation_2024_08_13,
   ValidateBookingLocation_2024_08_13
 )
 export class CreateBookingInput_2024_08_13 {
@@ -189,6 +191,7 @@ export class CreateBookingInput_2024_08_13 {
       { $ref: getSchemaPath(BookingInputIntegrationLocation_2024_08_13) },
       { $ref: getSchemaPath(BookingInputLinkLocation_2024_08_13) },
       { $ref: getSchemaPath(BookingInputPhoneLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputOrganizersDefaultAppLocation_2024_08_13) },
     ],
   })
   @Type(() => Object)

@@ -45,6 +45,7 @@ export const createSalesforceMock = () => {
   // Query parser and responder
   const handleQuery = (query: string) => {
     // Simple SOQL parser
+    console.log({ query });
     const fromMatch = query.match(/FROM\s+(\w+)/i);
     const whereMatch = query.match(/WHERE\s+(.+?)(?:\s+LIMIT|\s+ORDER|\s*$)/i);
     const limitMatch = query.match(/LIMIT\s+(\d+)/i);
@@ -77,6 +78,7 @@ export const createSalesforceMock = () => {
         return { records: [] };
     }
 
+    console.log({ whereClause });
     // Apply where clause filtering (basic implementation)
     if (whereClause) {
       if (whereClause.includes("Email =")) {
@@ -131,6 +133,14 @@ export const createSalesforceMock = () => {
         if (websiteLikeMatch) {
           const websitePart = websiteLikeMatch[1];
           result = result.filter((r) => r.Website && r.Website.includes(websitePart));
+        }
+      }
+
+      if (whereClause.includes("Website IN")) {
+        const websitesMatch = whereClause.match(/Website IN \((.+)\)/i);
+        if (websitesMatch) {
+          const websites = websitesMatch[1].split(",").map((w) => w.trim());
+          result = result.filter((r) => websites.includes(r.Website));
         }
       }
 
@@ -249,12 +259,80 @@ export const createSalesforceMock = () => {
   };
 
   // Mock connection interface
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const mockConnection = {
     query: vi.fn().mockImplementation(handleQuery),
     sobject: vi.fn().mockReturnValue({
-      create: vi.fn().mockImplementation(() => ({ success: true, id: `id_${Math.random()}` })),
-      update: vi.fn().mockImplementation(() => ({ success: true })),
-      delete: vi.fn().mockImplementation(() => ({ success: true })),
+      create: vi.fn().mockImplementation(async (data) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
+        let result;
+
+        switch (objectType) {
+          case "Contact":
+            result = addContact(data);
+            break;
+          case "Lead":
+            result = addLead(data);
+            break;
+          case "Account":
+            result = addAccount(data);
+            break;
+          case "User":
+            result = addUser(data);
+            break;
+          case "Event":
+            records.events.push({ ...data, Id: `evt${Math.random().toString().slice(2, 10)}` });
+            result = { Id: records.events[records.events.length - 1].Id };
+            break;
+          default:
+            result = { Id: `gen${Math.random().toString().slice(2, 10)}` };
+        }
+
+        return {
+          success: true,
+          id: result.Id,
+          ...result,
+        };
+      }),
+      update: vi.fn().mockImplementation(async (data) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
+        const id = data.Id;
+        let record;
+
+        switch (objectType) {
+          case "Contact":
+            record = records.contacts.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "Lead":
+            record = records.leads.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "Account":
+            record = records.accounts.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "User":
+            record = records.users.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "Event":
+            record = records.events.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+        }
+
+        return {
+          success: !!record,
+          id: record?.Id,
+        };
+      }),
+      delete: vi.fn().mockImplementation(async () => ({ success: true })),
     }),
     describe: vi.fn().mockImplementation(() => {
       return {
@@ -283,11 +361,26 @@ export const createSalesforceMock = () => {
     },
   };
 
+  const getContacts = () => {
+    return records.contacts;
+  };
+
+  const getLeads = () => {
+    return records.leads;
+  };
+
+  const getAccounts = () => {
+    return records.accounts;
+  };
+
   return {
     mockConnection,
     addContact,
+    getContacts,
     addLead,
+    getLeads,
     addAccount,
+    getAccounts,
     addUser,
     getRecords: () => records,
   };

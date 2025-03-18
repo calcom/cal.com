@@ -1,6 +1,5 @@
 import publicProcedure from "../../procedures/publicProcedure";
 import { importHandler, router } from "../../trpc";
-import { slotsRouter } from "../viewer/slots/_router";
 import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
@@ -45,8 +44,6 @@ export const publicViewerRouter = router({
     );
     return handler(opts);
   }),
-  // REVIEW: This router is part of both the public and private viewer router?
-  slots: slotsRouter,
   event,
   ssoConnections: publicProcedure.query(async () => {
     const handler = await importHandler(
