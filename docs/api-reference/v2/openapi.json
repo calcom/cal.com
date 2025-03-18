@@ -3401,10 +3401,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           }
         ],
@@ -3450,10 +3451,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3546,6 +3548,26 @@
             "in": "query",
             "description": "Filter bookings with end before this date string.",
             "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created after this date string.",
+            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created before this date string.",
+            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
               "type": "string"
             }
@@ -3668,10 +3690,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3707,10 +3730,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3764,10 +3788,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3820,10 +3845,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3877,10 +3903,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3924,10 +3951,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3989,10 +4017,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4036,10 +4065,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4094,10 +4124,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4688,10 +4719,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4735,10 +4767,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4810,10 +4843,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4855,10 +4889,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4910,10 +4945,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5188,8 +5224,6 @@
     "/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -5217,8 +5251,6 @@
       },
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [],
         "responses": {
           "200": {
@@ -5238,8 +5270,6 @@
     "/v2/oauth-clients/{clientId}": {
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5266,8 +5296,6 @@
       },
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5304,8 +5332,6 @@
       },
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5334,8 +5360,6 @@
     "/v2/oauth-clients/{clientId}/managed-users": {
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5399,10 +5423,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5447,10 +5472,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5487,10 +5513,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5526,10 +5553,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5571,10 +5599,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5626,10 +5655,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5746,10 +5776,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -5924,10 +5955,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           }
         ],
@@ -5964,10 +5996,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6000,10 +6033,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -6045,10 +6079,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -7716,7 +7751,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -8409,7 +8444,12 @@
             "type": "string"
           },
           "required": {
-            "type": "object"
+            "type": "object",
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Can be set to true only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "placeholder": {
             "type": "string"
@@ -8419,7 +8459,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
           }
         },
-        "required": ["type", "label", "required", "placeholder"]
+        "required": ["type", "label", "placeholder"]
       },
       "TitleDefaultFieldInput_2024_06_14": {
         "type": "object",
@@ -9085,7 +9125,12 @@
           },
           "required": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both. Can only be hidden\n      for organization team event types when also providing attendee phone number booking field."
           },
           "placeholder": {
             "type": "string"
@@ -9105,7 +9150,7 @@
             "default": "email"
           }
         },
-        "required": ["type", "required", "isDefault", "slug"]
+        "required": ["type", "isDefault", "slug"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -9772,7 +9817,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -14814,6 +14859,17 @@
         },
         "required": ["type"]
       },
+      "BookingInputOrganizersDefaultAppLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only available for team event types and the only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer."
+          }
+        },
+        "required": ["type"]
+      },
       "ValidateBookingLocation_2024_08_13": {
         "type": "object",
         "properties": {}
@@ -14957,6 +15013,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -15040,6 +15099,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -15128,6 +15190,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },

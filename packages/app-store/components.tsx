@@ -59,7 +59,7 @@ export const InstallAppButton = (
     disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
-  const { isPending: isUserLoading, data: user } = trpc.viewer.me.useQuery();
+  const { isPending: isUserLoading, data: user } = trpc.viewer.me.get.useQuery();
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
   const { isPending: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
@@ -109,7 +109,7 @@ export const AppDependencyComponent = ({
   dependencyData,
 }: {
   appName: string;
-  dependencyData: RouterOutputs["viewer"]["appsRouter"]["queryForDependencies"];
+  dependencyData: RouterOutputs["viewer"]["apps"]["queryForDependencies"];
 }) => {
   const { t } = useLocale();
 

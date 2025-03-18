@@ -321,6 +321,11 @@ class RoutingEventsInsights {
         bookingStartTime: true,
         bookingEndTime: true,
         createdAt: true,
+        utm_source: true,
+        utm_medium: true,
+        utm_campaign: true,
+        utm_term: true,
+        utm_content: true,
       },
       where: whereClause,
       orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
@@ -426,6 +431,11 @@ class RoutingEventsInsights {
         "Routed To Name": item.bookingUserName || "",
         "Routed To Email": item.bookingUserEmail || "",
         ...mapKeys(fields, (_, key) => startCase(key)),
+        utm_source: item.utm_source || "",
+        utm_medium: item.utm_medium || "",
+        utm_campaign: item.utm_campaign || "",
+        utm_term: item.utm_term || "",
+        utm_content: item.utm_content || "",
       };
     });
 
