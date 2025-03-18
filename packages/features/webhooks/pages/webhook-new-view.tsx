@@ -22,7 +22,7 @@ export const NewWebhookView = () => {
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
   const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
 
-  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.apps.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
