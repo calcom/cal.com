@@ -80,13 +80,14 @@ const accountQueryResponse = {
 
 describe("SalesforceCRMService", () => {
   let service: SalesforceCRMService;
-  let mockConnection: { query: any };
+  let mockConnection: { query: any; sobject: any };
 
   setupAndTeardown();
 
   beforeEach(() => {
     mockConnection = {
       query: vi.fn(),
+      sobject: vi.fn(),
     };
 
     const mockCredential: CredentialPayload = {
@@ -508,6 +509,57 @@ describe("SalesforceCRMService", () => {
           1,
           "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
         );
+      });
+    });
+  });
+
+  describe("createContacts", () => {
+    describe("createEventOn lead", () => {
+      describe("createNewContactUnderAccount enabled", () => {
+        it("when attendee has an account", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce(accountQueryResponse);
+          querySpy.mockResolvedValueOnce({ records: [] });
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newContactId",
+              name: "New Contact",
+              email: "test@example.com",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Contact", email: "test@example.com" }]);
+          expect(result).toEqual([{ id: "newContactId", email: "test@example.com" }]);
+        });
+        it("attendee has no account", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce({ records: [] });
+          querySpy.mockResolvedValueOnce({ records: [] });
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newLeadId",
+              name: "New Lead",
+              email: "test@newlead.com",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Lead", email: "test@newlead.com" }]);
+          expect(result).toEqual([{ id: "newLeadId", email: "test@newlead.com" }]);
+        });
       });
     });
   });
