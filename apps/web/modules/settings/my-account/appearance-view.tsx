@@ -24,14 +24,12 @@ import {
   ColorPicker,
   Form,
   showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
   SettingsToggle,
   UpgradeTeamsBadge,
   useCalcomTheme,
 } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 
 const SkeletonLoader = () => {
   return (

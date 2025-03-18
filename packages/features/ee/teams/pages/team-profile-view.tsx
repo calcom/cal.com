@@ -31,16 +31,18 @@ import {
   Label,
   LinkIconButton,
   showToast,
-  SkeletonAvatar,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
   TextField,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 import { Editor } from "@calcom/ui/editor/Editor";
+import {
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  SkeletonAvatar,
+} from "@calcom/ui/skeleton/Skeleton";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
