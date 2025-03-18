@@ -194,6 +194,7 @@ export default function CancelBooking(props: Props) {
                 data-testid="confirm_cancel"
                 disabled={
                   props.isHost &&
+                  !props.seatReferenceUid &&
                   (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
                 onClick={async () => {
@@ -201,16 +202,17 @@ export default function CancelBooking(props: Props) {
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
+                  const payload = {
+                    uid: booking?.uid,
+                    cancellationReason: cancellationReason,
+                    allRemainingBookings,
+                    seatReferenceUid,
+                    cancelledBy: currentUserEmail,
+                    internalNote: internalNote,
+                  };
+
                   const res = await fetch("/api/cancel", {
-                    body: JSON.stringify({
-                      uid: booking?.uid,
-                      cancellationReason: cancellationReason,
-                      allRemainingBookings,
-                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
-                      seatReferenceUid,
-                      cancelledBy: currentUserEmail,
-                      internalNote: internalNote,
-                    }),
+                    body: JSON.stringify(payload),
                     headers: {
                       "Content-Type": "application/json",
                     },
