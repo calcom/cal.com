@@ -17,11 +17,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   AddVariablesDropdown,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   EmailField,
   Icon,
   Input,
@@ -29,15 +24,22 @@ import {
   Select,
   TextArea,
   TextField,
-  } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+} from "@calcom/ui";
 import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/dropdown/Dropdown";
 import { Editor } from "@calcom/ui/editor/Editor";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import {
   getWhatsappTemplateForAction,

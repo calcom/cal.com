@@ -4,6 +4,8 @@ import { useState } from "react";
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { trpc } from "@calcom/trpc";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import classNames from "@calcom/ui/classNames";
 import {
   Dropdown,
   DropdownItem,
@@ -11,9 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
-} from "@calcom/ui";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/dropdown/Dropdown";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 export function ProfileDropdown() {

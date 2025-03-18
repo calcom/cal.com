@@ -8,10 +8,11 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Switch } from "@calcom/ui/form/switch/Switch";
-import { Select, InputField } from "@calcom/ui";
+import { InputField } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
+import { Select } from "@calcom/ui/form/select/Select";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import {

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { Button } from "@calcom/ui/button/Button";
 import { showToast } from "@calcom/ui/toast/showToast";
 

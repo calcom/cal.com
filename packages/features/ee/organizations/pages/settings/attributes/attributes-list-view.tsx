@@ -7,15 +7,15 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
 import {
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownItem,
   DropdownMenuItem,
-  Badge,
-} from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
+} from "@calcom/ui/dropdown/Dropdown";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";

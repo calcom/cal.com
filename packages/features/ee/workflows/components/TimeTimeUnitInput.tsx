@@ -3,15 +3,14 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
+import { Icon, TextField } from "@calcom/ui";
 import {
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
-  TextField,
-} from "@calcom/ui";
+} from "@calcom/ui/dropdown/Dropdown";
 
 const TIME_UNITS = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
 

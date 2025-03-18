@@ -33,8 +33,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { ConfirmationDialogContent } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import {
-  ConfirmationDialogContent,
   Dropdown,
   DropdownItem,
   DropdownMenuPortal,
@@ -42,15 +47,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
-import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+} from "@calcom/ui/dropdown/Dropdown";
 import { Checkbox } from "@calcom/ui/form/checkbox/Checkbox";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";

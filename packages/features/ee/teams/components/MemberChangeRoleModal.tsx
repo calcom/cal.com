@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 

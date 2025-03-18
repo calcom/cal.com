@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui";
+} from "@calcom/ui/dropdown/Dropdown";
 import { Button } from "@calcom/ui/button/Button";
 
 interface AdditionalCalendarSelectorProps {

@@ -3,17 +3,17 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import { ConfirmationDialogContent } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { Dialog } from "@calcom/ui/dialog/Dialog";
 import {
   Dropdown,
-  DropdownMenuTrigger,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuItem,
-  DropdownItem,
-  ConfirmationDialogContent,
-} from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog } from "@calcom/ui/dialog/Dialog";
+  DropdownMenuTrigger,
+} from "@calcom/ui/dropdown/Dropdown";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { inferRouterOutputs } from "@trpc/server";

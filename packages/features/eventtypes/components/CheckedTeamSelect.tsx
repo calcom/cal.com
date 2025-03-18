@@ -8,7 +8,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";

@@ -33,13 +33,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   ConfirmationDialogContent,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
   HorizontalTabs,
   Icon,
   Label,
@@ -54,6 +47,15 @@ import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 import { Dialog } from "@calcom/ui/dialog/Dialog";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calcom/ui/dropdown/Dropdown";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";

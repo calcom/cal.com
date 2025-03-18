@@ -22,6 +22,11 @@ import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import type { ActionType } from "@calcom/ui";
+import { Icon, MeetingTimeInTimezones, TableActions, TextAreaField } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
+import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -32,15 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuPortal,
-  Icon,
-  MeetingTimeInTimezones,
-  TableActions,
-  TextAreaField,
-} from "@calcom/ui";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
-import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+} from "@calcom/ui/dropdown/Dropdown";
 import { showToast } from "@calcom/ui/toast/showToast";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 

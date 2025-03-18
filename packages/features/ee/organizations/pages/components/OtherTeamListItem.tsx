@@ -1,20 +1,19 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { ButtonGroup, ConfirmationDialogContent } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
+import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 import {
-  ButtonGroup,
-  ConfirmationDialogContent,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
+} from "@calcom/ui/dropdown/Dropdown";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 

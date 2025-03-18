@@ -9,6 +9,10 @@ import WebShell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { VerticalTabItemProps } from "@calcom/ui";
+import { HorizontalTabs, Label, Skeleton, Tooltip, VerticalDivider, VerticalTabs } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
+import classNames from "@calcom/ui/classNames";
 import {
   DropdownMenuSeparator,
   Dropdown,
@@ -16,16 +20,7 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  HorizontalTabs,
-  Label,
-  Skeleton,
-  Tooltip,
-  VerticalDivider,
-  VerticalTabs,
-} from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/dropdown/Dropdown";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";

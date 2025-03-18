@@ -8,7 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Label, Button } from "@calcom/ui";
+import { Label } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 

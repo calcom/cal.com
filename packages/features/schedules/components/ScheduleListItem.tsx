@@ -11,7 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui";
+} from "@calcom/ui/dropdown/Dropdown";
 import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import { Icon } from "@calcom/ui/icon/Icon";

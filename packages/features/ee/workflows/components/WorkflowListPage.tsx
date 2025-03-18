@@ -7,21 +7,19 @@ import { useState } from "react";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { ArrowButton, Badge, Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
+import classNames from "@calcom/ui/classNames";
 import {
-  ArrowButton,
-  Badge,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
-  } from "@calcom/ui";
+} from "@calcom/ui/dropdown/Dropdown";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
-import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
-import classNames from "@calcom/ui/classNames";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import type { WorkflowStep } from "../lib/types";

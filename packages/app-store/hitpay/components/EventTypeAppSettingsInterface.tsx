@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Alert } from "@calcom/ui/alert/Alert";
 

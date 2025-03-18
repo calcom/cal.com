@@ -17,16 +17,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
+import { List } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
 import {
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  List,
-} from "@calcom/ui";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { Button } from "@calcom/ui/button/Button";
+} from "@calcom/ui/dropdown/Dropdown";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
