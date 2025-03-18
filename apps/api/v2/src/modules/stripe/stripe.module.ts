@@ -1,16 +1,17 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeController } from "@/modules/stripe/controllers/stripe.controller";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
 @Module({
-  imports: [ConfigModule, PrismaModule, UsersModule],
+  imports: [ConfigModule, PrismaModule, UsersModule, forwardRef(() => OrganizationsModule)],
   exports: [StripeService],
   providers: [StripeService, AppsRepository, CredentialsRepository, TokensRepository, MembershipsRepository],
   controllers: [StripeController],
