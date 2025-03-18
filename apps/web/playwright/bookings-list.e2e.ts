@@ -70,6 +70,10 @@ test.describe("Bookings", () => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       await page.goto(`/bookings/upcoming`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("bookings/get") && response.status() === 200
+      );
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
@@ -233,6 +237,10 @@ test.describe("Bookings", () => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       await page.goto(`/bookings/past`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("bookings/get") && response.status() === 200
+      );
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
