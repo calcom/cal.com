@@ -259,10 +259,14 @@ export const createSalesforceMock = () => {
   };
 
   // Mock connection interface
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const mockConnection = {
     query: vi.fn().mockImplementation(handleQuery),
     sobject: vi.fn().mockReturnValue({
       create: vi.fn().mockImplementation(async (data) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
         let result;
 
@@ -294,6 +298,8 @@ export const createSalesforceMock = () => {
         };
       }),
       update: vi.fn().mockImplementation(async (data) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
         const id = data.Id;
         let record;
