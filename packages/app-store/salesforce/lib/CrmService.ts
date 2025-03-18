@@ -1115,7 +1115,11 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      log.error(`No value found for field ${field.name}`);
+      log.error(
+        `No value found for field ${field.name} with value ${
+          personRecord[field.name]
+        }, field config ${JSON.stringify(fieldConfig)} and Salesforce config ${JSON.stringify(field)}`
+      );
     }
 
     return writeOnRecordBody;
