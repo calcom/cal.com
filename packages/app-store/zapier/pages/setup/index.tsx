@@ -18,7 +18,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
     refetchOnWindowFocus: false,

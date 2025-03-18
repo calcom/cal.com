@@ -17,7 +17,7 @@ export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isPending } = trpc.viewer.integrations.useQuery({
+  const { data: eventTypeApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
