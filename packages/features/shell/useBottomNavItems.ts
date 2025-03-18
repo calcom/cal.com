@@ -56,6 +56,4 @@ export function useBottomNavItems({
       icon: "settings",
     },
   ].filter(Boolean) as NavigationItemType[];
-
-  return navItems;
 }
