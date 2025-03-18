@@ -8,7 +8,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout } from "@calcom/ui/layouts/WizardLayout";
 import { showToast } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 
