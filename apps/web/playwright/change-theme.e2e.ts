@@ -43,12 +43,15 @@ test.describe("Change App Theme Test", () => {
 
     await page.goto("/settings/my-account/appearance");
     await page.click('[data-testid="appTheme-light"]');
-    await page.click('[data-testid="update-app-theme-btn"]');
+    const updateThemeButton = page.locator('[data-testid="update-app-theme-btn"]');
+    await updateThemeButton.scrollIntoViewIfNeeded();
+    await updateThemeButton.click();
     const toast1 = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast1).toBeTruthy();
 
     await page.click('[data-testid="appTheme-system"]');
-    await page.click('[data-testid="update-app-theme-btn"]');
+    await updateThemeButton.scrollIntoViewIfNeeded();
+    await updateThemeButton.click();
     const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast2).toBeTruthy();
 

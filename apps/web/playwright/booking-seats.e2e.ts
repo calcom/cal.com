@@ -105,7 +105,9 @@ test.describe("Booking with Seats", () => {
     await page.fill('[data-testid="cancel_reason"]', "Double booked!");
 
     // confirm cancellation
-    await page.locator('[data-testid="confirm_cancel"]').click();
+    const confirmCancelButton = page.locator('[data-testid="confirm_cancel"]');
+    await confirmCancelButton.scrollIntoViewIfNeeded();
+    await confirmCancelButton.click();
 
     await expect(page.locator("text=This event is canceled")).toBeVisible();
 
@@ -230,7 +232,9 @@ test.describe("Reschedule for booking with seats", () => {
 
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
-    await page.locator('[data-testid="confirm_cancel"]').click();
+    const confirmCancelButton = page.locator('[data-testid="confirm_cancel"]');
+    await confirmCancelButton.scrollIntoViewIfNeeded();
+    await confirmCancelButton.click();
 
     await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
 
@@ -241,6 +245,8 @@ test.describe("Reschedule for booking with seats", () => {
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
     // Page should not be 404
+
+    await page.locator('[data-testid="confirm_cancel"]').scrollIntoViewIfNeeded();
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
