@@ -7,10 +7,11 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { defaultLocaleOption, localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { EmailField, ImageUploader, Label, Select } from "@calcom/ui";
+import { EmailField, ImageUploader, Select } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 
 import type { UserAdminRouterOutputs } from "../server/trpc-router";

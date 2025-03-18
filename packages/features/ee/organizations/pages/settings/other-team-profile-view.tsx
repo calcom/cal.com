@@ -23,7 +23,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   ConfirmationDialogContent,
   ImageUploader,
-  Label,
   LinkIconButton,
   SkeletonContainer,
   SkeletonText,
@@ -34,6 +33,7 @@ import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 import { Editor } from "@calcom/ui/editor/Editor";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";

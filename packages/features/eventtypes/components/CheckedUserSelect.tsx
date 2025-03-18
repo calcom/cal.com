@@ -3,7 +3,8 @@ import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { Label, Select } from "@calcom/ui";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { Select } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Input, Label } from "@calcom/ui";
+import { Input } from "@calcom/ui/form/inputs/TextField";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { Select } from "@calcom/ui/form/select/Select";
 
 import type { LocalRouteWithRaqbStates, AttributeRoutingConfig } from "../../routing-forms/types/types";

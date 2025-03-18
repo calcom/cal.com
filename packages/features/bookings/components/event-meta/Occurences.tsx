@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { Alert } from "@calcom/ui";
-import { Input } from "@calcom/ui";
+import { Input } from "@calcom/ui/form/inputs/TextField";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";

@@ -19,11 +19,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
-import { DateRangePicker, InputField, Label, Select } from "@calcom/ui";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { DateRangePicker, InputField, Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 

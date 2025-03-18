@@ -13,11 +13,12 @@ import { CreationSource } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Icon, Label, Select, TextAreaField, TextField, ToggleGroup } from "@calcom/ui";
+import { Icon, Select, TextAreaField, TextField, ToggleGroup } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { PendingMember } from "../lib/types";

@@ -3,9 +3,10 @@
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Input, Select } from "@calcom/ui";
+import { Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { Input } from "@calcom/ui/form/inputs/TextField";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";

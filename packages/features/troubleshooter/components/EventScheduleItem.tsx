@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Label } from "@calcom/ui";
+import { Badge } from "@calcom/ui";
+import { Label } from "@calcom/ui/form/inputs/Label";
 
 import { useTroubleshooterStore } from "../store";
 import { TroubleshooterListItemHeader } from "./TroubleshooterListItemContainer";

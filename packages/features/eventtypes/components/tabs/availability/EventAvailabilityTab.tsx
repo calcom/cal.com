@@ -23,11 +23,12 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Avatar, Label, Select, SkeletonText } from "@calcom/ui";
+import { Avatar, Select, SkeletonText } from "@calcom/ui";
 import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { Icon } from "@calcom/ui/icon/Icon";
 

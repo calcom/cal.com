@@ -25,7 +25,6 @@ import {
   ConfirmationDialogContent,
   EditableHeading,
   SkeletonText,
-  Label,
   SelectSkeletonLoader,
   Skeleton,
   Tooltip,
@@ -35,6 +34,7 @@ import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Icon } from "@calcom/ui/icon/Icon";
 

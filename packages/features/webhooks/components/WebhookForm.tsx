@@ -8,7 +8,8 @@ import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/form/inputs/Form";
-import { Label, Select, TextArea, TextField, ToggleGroup } from "@calcom/ui";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { Select, TextArea, TextField, ToggleGroup } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 

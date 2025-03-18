@@ -8,19 +8,11 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  AddressInput,
-  EmailField,
-  Group,
-  Icon,
-  InfoBadge,
-  InputField,
-  Label,
-  RadioField,
-  } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { AddressInput, EmailField, Group, Icon, InfoBadge, InputField, RadioField } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";

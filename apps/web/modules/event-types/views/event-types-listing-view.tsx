@@ -35,7 +35,6 @@ import {
   ConfirmationDialogContent,
   HorizontalTabs,
   Icon,
-  Label,
   Skeleton,
   TextField,
   Tooltip,
@@ -57,6 +56,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/dropdown/Dropdown";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 

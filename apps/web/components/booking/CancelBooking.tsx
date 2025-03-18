@@ -6,7 +6,8 @@ import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { Label, TextArea, Select } from "@calcom/ui";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { TextArea, Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 
 interface InternalNotePresetsSelectProps {

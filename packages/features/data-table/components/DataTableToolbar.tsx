@@ -7,7 +7,7 @@ import type { ComponentPropsWithoutRef } from "react";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonProps } from "@calcom/ui/button/Button";
-import { Input } from "@calcom/ui";
+import { Input } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 

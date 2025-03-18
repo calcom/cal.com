@@ -9,8 +9,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { DatePicker, Label, Select } from "@calcom/ui";
+import { DatePicker, Select } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Label } from "@calcom/ui/form/inputs/Label";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 

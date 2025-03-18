@@ -14,7 +14,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/form/inputs/Form";
-import { Label, Select } from "@calcom/ui";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import {

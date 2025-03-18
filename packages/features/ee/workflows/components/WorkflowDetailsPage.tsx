@@ -11,7 +11,8 @@ import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { Label, MultiSelectCheckboxes, TextField, InfoBadge } from "@calcom/ui";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { MultiSelectCheckboxes, TextField, InfoBadge } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 

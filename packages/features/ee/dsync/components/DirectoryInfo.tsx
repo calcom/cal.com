@@ -2,7 +2,7 @@ import type { Directory } from "@boxyhq/saml-jackson";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/toast/showToast";
-import { Label } from "@calcom/ui";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Button } from "@calcom/ui/button/Button";
 

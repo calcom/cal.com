@@ -15,7 +15,6 @@ import {
   ToggleGroup,
   InputField,
   TextAreaField,
-  Label,
   ImageUploader,
   SelectField,
   SheetHeader,
@@ -27,6 +26,7 @@ import {
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { Label } from "@calcom/ui/form/inputs/Label";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableAction } from "../types";
