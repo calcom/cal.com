@@ -53,7 +53,8 @@ export const BookerPlatformWrapper = (
     crmAppSlug,
     crmOwnerRecordType,
     preventEventTypeRedirect,
-    isBookingDryRun,
+    onBookerStateChange,
+    allowUpdatingUrlParams = false,
   } = props;
   const layout = BookerLayouts[view];
 
