@@ -56,7 +56,7 @@ export const RoutingKPICards = () => {
 
   return (
     <>
-      <Grid numItemsSm={1} numItemsLg={3} className="mt-4 gap-x-4 gap-y-4">
+      <Grid numColsSm={1} numColsLg={3} className="mt-4 gap-x-4 gap-y-4">
         {categories.map((item) => (
           <CardInsights key={item.title}>
             <Text className="text-default">{item.title}</Text>
@@ -73,7 +73,7 @@ export const RoutingKPICards = () => {
 const LoadingKPICards = (props: { categories: { title: string; index: string }[] }) => {
   const { categories } = props;
   return (
-    <Grid numItemsSm={2} numItemsLg={4} className="mt-4 gap-x-4 gap-y-4">
+    <Grid numColsSm={2} numColsLg={4} className="mt-4 gap-x-4 gap-y-4">
       {categories.map((item) => (
         <CardInsights key={item.title}>
           <div className="animate-pulse">
