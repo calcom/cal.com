@@ -1,8 +1,6 @@
 import type { User as UserAuth } from "next-auth";
-import { useState } from "react";
 
-import { IS_CALCOM, IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
 
@@ -20,10 +18,8 @@ export function useBottomNavItems({
   user,
 }: BottomNavItemsProps): NavigationItemType[] {
   const { t } = useLocale();
-  const [isReferalLoading, setIsReferalLoading] = useState(false);
-  const { fetchAndCopyToClipboard } = useCopy();
 
-  const navItems = [
+  return [
     {
       name: "view_public_page",
       href: publicPageUrl,
@@ -40,31 +36,11 @@ export function useBottomNavItems({
       },
       icon: "copy",
     },
-    IS_CALCOM
+    IS_DUB_REFERRALS_ENABLED
       ? {
-          name: "copy_referral_link",
-          href: "",
-          onClick: (e: { preventDefault: () => void }) => {
-            e.preventDefault();
-            setIsReferalLoading(true);
-            // Create an artificial delay to show the loading state so it doesn't flicker if this request is fast
-            setTimeout(() => {
-              fetchAndCopyToClipboard(
-                fetch("/api/generate-referral-link", {
-                  method: "POST",
-                })
-                  .then((res) => res.json())
-                  .then((res) => res.shortLink),
-                {
-                  onSuccess: () => showToast(t("link_copied"), "success"),
-                  onFailure: () => showToast("Copy to clipboard failed", "error"),
-                }
-              );
-              setIsReferalLoading(false);
-            }, 1000);
-          },
+          name: "earn_20_percent_affiliate",
+          href: "/refer",
           icon: "gift",
-          isLoading: isReferalLoading,
         }
       : null,
     isAdmin
@@ -80,16 +56,6 @@ export function useBottomNavItems({
       icon: "settings",
     },
   ].filter(Boolean) as NavigationItemType[];
-
-  // Conditionally add the referral item after "view_public_page"
-  if (IS_DUB_REFERRALS_ENABLED) {
-    const viewPublicPageIndex = navItems.findIndex((item) => item.name === "view_public_page");
-    navItems.splice(viewPublicPageIndex + 1, 0, {
-      name: "earn_20_percent_affiliate",
-      href: "/refer",
-      icon: "gift",
-    });
-  }
 
   return navItems;
 }
