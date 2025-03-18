@@ -6,8 +6,10 @@ import { Toaster } from "sonner";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, showToast, TextField } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 const formSchema = z.object({
   api_key: z.string(),

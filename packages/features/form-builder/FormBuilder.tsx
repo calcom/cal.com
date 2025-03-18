@@ -20,11 +20,11 @@ import {
   Label,
   SelectField,
   showToast,
-  Editor,
   Switch,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { Editor } from "@calcom/ui/editor/Editor";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 import { fieldTypesConfigMap } from "./fieldTypes";

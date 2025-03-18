@@ -24,7 +24,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Editor,
   EmailField,
   Icon,
   Input,
@@ -37,6 +36,7 @@ import {
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { Editor } from "@calcom/ui/editor/Editor";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 
 import {

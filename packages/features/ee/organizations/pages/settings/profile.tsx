@@ -20,7 +20,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   BannerUploader,
-  Editor,
   Form,
   ImageUploader,
   Label,
@@ -36,6 +35,7 @@ import {
 import { OrgBanner } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { Editor } from "@calcom/ui/editor/Editor";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 import { useOrgBranding } from "../../../organizations/context/provider";

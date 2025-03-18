@@ -22,7 +22,6 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
   ConfirmationDialogContent,
-  Editor,
   Form,
   ImageUploader,
   Label,
@@ -35,6 +34,7 @@ import {
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
+import { Editor } from "@calcom/ui/editor/Editor";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
