@@ -21,7 +21,7 @@ export class TRPCExceptionFilter implements ExceptionFilter {
     switch (exception.code) {
       case "UNAUTHORIZED":
         statusCode = 401;
-        errorMessage = "You're not authorized to access this resource";
+        errorMessage = "You are not authorized to access this resource";
         break;
       case "FORBIDDEN":
         statusCode = 403;
