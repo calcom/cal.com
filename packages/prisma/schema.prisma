@@ -501,6 +501,8 @@ model CreditBalance {
   user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            Int?               @unique
   additionalCredits Int                @default(0)
+  limitReachedAt    DateTime?
+  warningSentAt     DateTime?
   expenseLogs       CreditExpenseLog[]
 }
 

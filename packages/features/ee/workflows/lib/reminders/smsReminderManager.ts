@@ -247,7 +247,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
           log.error(`Error scheduling SMS with error ${error}`);
         }
       } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
-        // Write to DB and send to CRON if scheduled reminder date is past 7 days
+        // Write to DB and send to CRON if scheduled reminder date is past 2 hours from now
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,

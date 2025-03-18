@@ -11,7 +11,7 @@ const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE || process.env.IS_E2E;
 
-function createTwilioClient() {
+export function createTwilioClient() {
   if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
     return TwilioClient(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
   }
@@ -34,10 +34,13 @@ export const sendSMS = async (
   phoneNumber: string,
   body: string,
   sender: string,
+  bookingUid: string,
   userId?: number | null,
   teamId?: number | null,
   whatsapp = false
 ) => {
+  //check if there are available credits otherwise dont send and send as email instead
+
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
@@ -74,6 +77,7 @@ export const sendSMS = async (
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, whatsapp),
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
   });
 
   return response;
@@ -84,10 +88,12 @@ export const scheduleSMS = async (
   body: string,
   scheduledDate: Date,
   sender: string,
-  userId?: number | null,
-  teamId?: number | null,
+  bookingUid: string,
+  userId: number | null,
+  teamId: number | null,
   whatsapp = false
 ) => {
+  //check if there are available credits otherwise dont schedule and send as email instead
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
@@ -123,6 +129,7 @@ export const scheduleSMS = async (
     scheduleType: "fixed",
     sendAt: scheduledDate,
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
   });
 
   return response;
