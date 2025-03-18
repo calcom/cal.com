@@ -615,6 +615,10 @@ export default class SalesforceCRMService implements CRM {
       }
     }
 
+    if (createdContacts.length === 0) {
+      // This should never happen
+      log.error(`No contacts created for these app options ${safeStringify(appOptions)}`);
+    }
     return createdContacts;
   }
 
