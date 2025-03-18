@@ -526,6 +526,7 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createNewContactUnderAccount) {
         // Check for an account
         const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
+
         if (accountId) {
           const createdAccountContacts = await this.createNewContactUnderAnAccount({
             attendee,
@@ -536,10 +537,14 @@ export default class SalesforceCRMService implements CRM {
             createdContacts.push(...createdAccountContacts);
           }
         } else {
-          log.info(
-            "createEventOn=LEAD, No account found for attendee, not creating a contact",
-            safeStringify({ attendeeEmail: attendee.email })
-          );
+          await this.createAttendeeRecord({
+            attendee,
+            recordType: SalesforceRecordEnum.LEAD,
+            organizerId,
+            calEventResponses,
+          }).then((result) => {
+            createdContacts.push(...result);
+          });
         }
       } else {
         await this.createAttendeeRecord({
