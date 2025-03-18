@@ -122,10 +122,10 @@ export const AvailableTimeSlots = ({
 
   const therapyIds = [1375, 1379, 1383, 1389, 1523, 1518];
 
-  const isTherapy = therapyIds.includes((((event as any).data as any)?.id as any) ?? 0);
+  const isTherapy = therapyIds.includes((((props.event as any).data as any)?.id as any) ?? 0);
   const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(
     dates,
-    isTherapy,
+    false,
     false,
     scheduleData?.slots
   );
