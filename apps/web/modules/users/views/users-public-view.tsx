@@ -15,7 +15,8 @@ import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/featur
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
+import { Icon, UnpublishedEntity } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 

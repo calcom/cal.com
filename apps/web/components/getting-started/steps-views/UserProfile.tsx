@@ -8,7 +8,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
 import { Button } from "@calcom/ui/button/Button";
 
 type FormData = {

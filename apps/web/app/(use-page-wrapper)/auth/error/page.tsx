@@ -3,8 +3,8 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 import { z } from "zod";
 
-import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import AuthContainer from "@components/ui/AuthContainer";
 

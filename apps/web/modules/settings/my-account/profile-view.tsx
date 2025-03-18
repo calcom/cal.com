@@ -24,7 +24,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import {
   Alert,
-  Button,
   Dialog,
   DialogClose,
   DialogContent,
@@ -42,8 +41,9 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
-  UserAvatar,
 } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
+import { Button } from "@calcom/ui/button/Button";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
