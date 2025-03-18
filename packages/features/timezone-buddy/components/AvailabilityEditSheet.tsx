@@ -10,9 +10,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button } from "@calcom/ui/button/Button";
 import {
-  Form,
   Label,
   Sheet,
   SheetBody,
@@ -23,6 +21,8 @@ import {
   SheetTitle,
 } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
+import { Form } from "@calcom/ui/form/inputs/Form";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { SliderUser } from "./AvailabilitySliderTable";

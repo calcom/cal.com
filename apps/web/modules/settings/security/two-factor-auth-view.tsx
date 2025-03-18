@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, SettingsToggle } from "@calcom/ui";
+import { Badge } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 

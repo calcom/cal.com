@@ -9,7 +9,8 @@ import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingS
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Badge, Tooltip } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Avatar } from "@calcom/ui/avatar/Avatar";

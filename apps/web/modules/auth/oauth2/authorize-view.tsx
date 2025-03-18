@@ -9,7 +9,8 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, Select } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { Select } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 

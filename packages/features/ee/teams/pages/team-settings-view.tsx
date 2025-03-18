@@ -14,7 +14,8 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Form, SettingsToggle } from "@calcom/ui";
+import { Form } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";

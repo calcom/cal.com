@@ -2,7 +2,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Input } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { Input } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";

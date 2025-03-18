@@ -7,7 +7,8 @@ import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/l
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { Icon, Tooltip } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import classNames from "@calcom/ui/classNames";
 
 const excludeNullValues = (value: unknown) => !!value;

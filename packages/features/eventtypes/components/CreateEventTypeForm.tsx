@@ -8,7 +8,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Form, TextAreaField, TextField, Tooltip } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextAreaField, TextField } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Editor } from "@calcom/ui/editor/Editor";
 
 export default function CreateEventTypeForm({

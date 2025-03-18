@@ -19,9 +19,10 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { ColorPicker, Form, SettingsToggle, UpgradeTeamsBadge, useCalcomTheme } from "@calcom/ui";
+import { ColorPicker, Form, UpgradeTeamsBadge, useCalcomTheme } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { showToast } from "@calcom/ui/toast/showToast";
 

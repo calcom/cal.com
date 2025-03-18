@@ -39,20 +39,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/button/Button";
-import {
-  Badge,
-  Icon,
-  Label,
-  SelectField,
-  SettingsToggle,
-  Switch,
-  TextField,
-  ColorPicker,
-} from "@calcom/ui";
+import { Badge, Icon, Label, SelectField, TextField, ColorPicker } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";

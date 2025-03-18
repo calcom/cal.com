@@ -18,13 +18,13 @@ import {
   InputField,
   Label,
   SelectField,
-  Switch,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { Editor } from "@calcom/ui/editor/Editor";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";

@@ -19,17 +19,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
+import { Dropdown, DropdownMenuContent, DropdownMenuTrigger, Select, SkeletonText } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
-import {
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  Select,
-  SkeletonText,
-  Switch,
-} from "@calcom/ui";
-import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 import classNames from "@calcom/ui/classNames";
+import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 
 export type { TimeRange };
 

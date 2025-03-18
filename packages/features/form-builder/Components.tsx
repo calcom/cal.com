@@ -17,8 +17,8 @@ import {
   InputField,
   Label,
   RadioField,
-  Tooltip,
-} from "@calcom/ui";
+  } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Button } from "@calcom/ui/button/Button";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 

@@ -4,7 +4,6 @@ import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSw
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
-import type { ButtonProps } from "@calcom/ui";
 import {
   CalendarSwitchComponent,
   AppListCard,
@@ -13,10 +12,11 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Switch,
 } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import type { ButtonProps } from "@calcom/ui/button/Button";
 import { Button } from "@calcom/ui/button/Button";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";

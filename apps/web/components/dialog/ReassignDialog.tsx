@@ -11,7 +11,6 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Form,
   Label,
   ConfirmationDialogContent,
   Input,
@@ -22,6 +21,7 @@ import {
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { Form } from "@calcom/ui/form/inputs/Form";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 enum ReassignType {

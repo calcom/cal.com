@@ -44,7 +44,6 @@ import {
   Icon,
   Label,
   Skeleton,
-  Switch,
   TextField,
   Tooltip,
   ArrowButton,
@@ -56,6 +55,7 @@ import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 import { Dialog } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import useMeQuery from "@lib/hooks/useMeQuery";

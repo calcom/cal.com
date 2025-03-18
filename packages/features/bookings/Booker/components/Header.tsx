@@ -7,7 +7,8 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { ButtonGroup, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
+import { ButtonGroup, Icon, ToggleGroup } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Button } from "@calcom/ui/button/Button";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";

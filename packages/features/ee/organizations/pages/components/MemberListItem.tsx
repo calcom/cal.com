@@ -9,8 +9,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Tooltip,
-} from "@calcom/ui";
+  } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";

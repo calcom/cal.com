@@ -5,12 +5,14 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { TextField, Tooltip, ImageUploader } from "@calcom/ui";
+import { ImageUploader } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 type FormValues = {
   name: string;

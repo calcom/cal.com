@@ -4,7 +4,8 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { DialogTrigger, Tooltip } from "@calcom/ui";
+import { DialogTrigger } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Button } from "@calcom/ui/button/Button";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";

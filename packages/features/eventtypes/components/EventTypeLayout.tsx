@@ -19,7 +19,6 @@ import {
   HorizontalTabs,
   Label,
   Skeleton,
-  Switch,
   Tooltip,
   VerticalDivider,
   VerticalTabs,
@@ -27,6 +26,7 @@ import {
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 

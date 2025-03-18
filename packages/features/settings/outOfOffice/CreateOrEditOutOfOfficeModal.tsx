@@ -9,18 +9,11 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { DateRangePicker, Select, TextArea, UpgradeTeamsBadge, Label, Input } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
-import {
-  DateRangePicker,
-  Select,
-  Switch,
-  TextArea,
-  UpgradeTeamsBadge,
-  Label,
-  Input,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";

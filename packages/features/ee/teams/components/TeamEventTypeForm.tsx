@@ -6,7 +6,9 @@ import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEvent
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Form, TextField, Tooltip } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { RadioGroup as RadioArea } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";

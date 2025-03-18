@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { SettingsToggle } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 interface GeneralViewProps {

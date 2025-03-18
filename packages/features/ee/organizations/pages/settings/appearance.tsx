@@ -15,7 +15,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Form, SettingsToggle } from "@calcom/ui";
+import { Form } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { Button } from "@calcom/ui/button/Button";
 import { showToast } from "@calcom/ui/toast/showToast";
 

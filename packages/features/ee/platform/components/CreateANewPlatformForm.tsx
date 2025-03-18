@@ -16,7 +16,8 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import { Form, TextField, Button } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField, Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 
 export const CreateANewPlatformForm = () => {

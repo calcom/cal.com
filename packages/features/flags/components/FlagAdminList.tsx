@@ -1,6 +1,7 @@
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch } from "@calcom/ui";
+import { Badge, List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 export const FlagAdminList = () => {

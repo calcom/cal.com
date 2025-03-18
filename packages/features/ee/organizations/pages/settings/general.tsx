@@ -13,7 +13,8 @@ import { nameOfDay } from "@calcom/lib/weekday";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Form, Label, Select } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { Label, Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import {

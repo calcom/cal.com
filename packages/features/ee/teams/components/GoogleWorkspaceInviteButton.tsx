@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/toast/showToast";
-import { Tooltip } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Button } from "@calcom/ui/button/Button";
 
 const GoogleIcon = () => (

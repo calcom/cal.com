@@ -17,8 +17,8 @@ import {
   CommandEmpty,
   CommandItem,
   Icon,
-  Tooltip,
-} from "@calcom/ui";
+  } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 

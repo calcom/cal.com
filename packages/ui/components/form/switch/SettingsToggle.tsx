@@ -26,7 +26,7 @@ type Props = {
   hideSwitch?: boolean;
 };
 
-function SettingsToggle({
+export function SettingsToggle({
   checked,
   onCheckedChange,
   description,
@@ -123,5 +123,3 @@ function SettingsToggle({
     </>
   );
 }
-
-export default SettingsToggle;

@@ -23,8 +23,9 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
+import { Label, Select, RadioGroup as RadioArea } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 

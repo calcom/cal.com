@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Switch } from "@calcom/ui";
+import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 

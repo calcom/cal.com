@@ -3,7 +3,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Form, Label, Select } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
+import { Label, Select } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 import { showToast } from "@calcom/ui/toast/showToast";

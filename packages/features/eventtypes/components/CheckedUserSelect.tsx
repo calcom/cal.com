@@ -2,7 +2,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Label, Select } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { Label, Select } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 

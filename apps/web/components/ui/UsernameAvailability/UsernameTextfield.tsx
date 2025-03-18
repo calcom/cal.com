@@ -10,9 +10,10 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { TextField, Tooltip } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 import type { TRPCClientErrorLike } from "@trpc/client";

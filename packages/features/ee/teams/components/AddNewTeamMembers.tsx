@@ -13,7 +13,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
 import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
