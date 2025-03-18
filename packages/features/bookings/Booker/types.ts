@@ -163,7 +163,7 @@ export type CustomClassNames = {
     availableTimes?: string;
   };
   atomsWrapper?: string;
-  confirmStage?: {
+  confirmStep?: {
     confirmButton?: string;
     backButton?: string;
   };

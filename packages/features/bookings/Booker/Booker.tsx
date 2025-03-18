@@ -242,8 +242,8 @@ const BookerComponent = ({
         isVerificationCodeSending={isVerificationCodeSending}
         confirmButtonDisabled={confirmButtonDisabled}
         classNames={{
-          confirmButton: customClassNames?.confirmStage?.confirmButton,
-          backButton: customClassNames?.confirmStage?.backButton,
+          confirmButton: customClassNames?.confirmStep?.confirmButton,
+          backButton: customClassNames?.confirmStep?.backButton,
         }}
         isPlatform={isPlatform}>
         <>
@@ -490,7 +490,7 @@ const BookerComponent = ({
                 shouldRenderCaptcha={shouldRenderCaptcha}
                 watchedCfToken={watchedCfToken}
                 confirmButtonDisabled={confirmButtonDisabled}
-                confirmStepClassNames={customClassNames?.confirmStage}
+                confirmStepClassNames={customClassNames?.confirmStep}
               />
             </BookerSection>
           </AnimatePresence>
