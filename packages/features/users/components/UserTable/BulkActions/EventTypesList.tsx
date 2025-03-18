@@ -16,12 +16,12 @@ import {
   CommandItem,
   CommandList,
   Popover,
-  showToast,
   PopoverContent,
   PopoverTrigger,
   Icon,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableUser } from "../types";
 

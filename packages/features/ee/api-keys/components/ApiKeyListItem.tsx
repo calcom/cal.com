@@ -3,8 +3,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Badge,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -12,6 +10,8 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];

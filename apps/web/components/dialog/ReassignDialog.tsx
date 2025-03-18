@@ -15,7 +15,6 @@ import {
   Form,
   Label,
   ConfirmationDialogContent,
-  showToast,
   Input,
   Icon,
   RadioGroup as RadioArea,
@@ -23,6 +22,7 @@ import {
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 enum ReassignType {
   ROUND_ROBIN = "round_robin",

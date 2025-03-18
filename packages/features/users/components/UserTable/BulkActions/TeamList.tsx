@@ -17,9 +17,9 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  showToast,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableUser } from "../types";
 

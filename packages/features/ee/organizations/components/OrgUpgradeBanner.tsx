@@ -4,7 +4,8 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, TopBanner } from "@calcom/ui";
+import { TopBanner } from "@calcom/ui/top-banner/TopBanner";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 export type OrgUpgradeBannerProps = {
   data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["orgUpgradeBanner"];

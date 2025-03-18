@@ -4,7 +4,8 @@ import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, showToast } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { showToast } from "@calcom/ui/toast/showToast";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import type { IconName } from "@calcom/ui/icon/Icon";
 

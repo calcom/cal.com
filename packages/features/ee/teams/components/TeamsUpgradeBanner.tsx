@@ -3,7 +3,8 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { showToast, TopBanner } from "@calcom/ui";
+import { TopBanner } from "@calcom/ui/top-banner/TopBanner";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 export type TeamsUpgradeBannerProps = {
   data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["teamUpgradeBanner"];

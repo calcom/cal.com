@@ -4,7 +4,7 @@ import React from "react";
 import { useEventTypeById } from "@calcom/atoms/hooks/event-types/private/useEventTypeById";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
 import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";
 
 import { getDurationFormatted } from "../../../components/event-meta/Duration";

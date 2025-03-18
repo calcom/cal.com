@@ -11,11 +11,11 @@ import {
   DropdownMenuPortal,
   DropdownItem,
   DropdownMenuSeparator,
-  showToast,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableUser, UserTableAction } from "./types";
 

@@ -17,7 +17,6 @@ import {
   InputField,
   TextAreaField,
   Label,
-  showToast,
   ImageUploader,
   SelectField,
   SheetHeader,
@@ -28,6 +27,7 @@ import {
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";

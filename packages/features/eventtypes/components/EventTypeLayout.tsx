@@ -18,8 +18,6 @@ import {
   DropdownMenuTrigger,
   HorizontalTabs,
   Label,
-  Icon,
-  showToast,
   Skeleton,
   Switch,
   Tooltip,
@@ -29,6 +27,8 @@ import {
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";

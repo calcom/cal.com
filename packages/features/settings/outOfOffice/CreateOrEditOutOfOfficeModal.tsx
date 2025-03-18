@@ -13,7 +13,6 @@ import {
   Button,
   DateRangePicker,
   Select,
-  showToast,
   Switch,
   TextArea,
   UpgradeTeamsBadge,
@@ -22,6 +21,7 @@ import {
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 

@@ -14,9 +14,10 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { showToast, useCalcomTheme } from "@calcom/ui";
+import { useCalcomTheme } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import FormInputFields from "../../components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";

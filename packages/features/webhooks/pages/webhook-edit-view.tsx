@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, SkeletonContainer } from "@calcom/ui";
+import { SkeletonContainer } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";

@@ -23,7 +23,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import type { ActionType } from "@calcom/ui";
 import {
-  Badge,
   Button,
   Dropdown,
   DropdownItem,
@@ -36,13 +35,14 @@ import {
   DropdownMenuPortal,
   Icon,
   MeetingTimeInTimezones,
-  showToast,
   TableActions,
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 

@@ -34,7 +34,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
-  Badge,
   ConfirmationDialogContent,
   Dropdown,
   DropdownItem,
@@ -47,6 +46,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";

@@ -7,7 +7,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Icon, showToast } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { showToast } from "@calcom/ui/toast/showToast";
 import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 

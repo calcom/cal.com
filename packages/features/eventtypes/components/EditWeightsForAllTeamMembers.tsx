@@ -20,10 +20,10 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  showToast,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };

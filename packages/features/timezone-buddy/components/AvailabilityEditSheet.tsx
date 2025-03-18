@@ -21,9 +21,9 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  showToast,
 } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { SliderUser } from "./AvailabilitySliderTable";
 

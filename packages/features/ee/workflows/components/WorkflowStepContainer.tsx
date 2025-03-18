@@ -17,8 +17,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   AddVariablesDropdown,
-  Badge,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -29,15 +27,17 @@ import {
   Input,
   Label,
   Select,
-  showToast,
   TextArea,
   TextField,
   Tooltip,
 } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { Editor } from "@calcom/ui/editor/Editor";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import {
   getWhatsappTemplateForAction,

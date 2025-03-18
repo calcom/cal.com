@@ -6,16 +6,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
-  Badge,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
-  showToast,
 } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { Button } from "@calcom/ui/button/Button";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 export function ScheduleListItem({
   schedule,

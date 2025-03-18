@@ -15,10 +15,10 @@ import {
   DropdownMenuContent,
   DropdownItem,
   DropdownMenuItem,
-  Icon,
-  showToast,
   Badge,
 } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
+import { showToast } from "@calcom/ui/toast/showToast";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
