@@ -489,6 +489,8 @@ const BookerComponent = ({
                 skipConfirmStep={skipConfirmStep}
                 shouldRenderCaptcha={shouldRenderCaptcha}
                 watchedCfToken={watchedCfToken}
+                confirmButtonDisabled={confirmButtonDisabled}
+                confirmStepClassNames={customClassNames?.confirmStage}
               />
             </BookerSection>
           </AnimatePresence>
