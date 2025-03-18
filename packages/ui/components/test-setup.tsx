@@ -6,10 +6,31 @@ import { afterEach, expect, vi } from "vitest";
 // For next.js webapp compponent that use "preserve" for jsx in tsconfig.json
 global.React = React;
 
+vi.mock("framer-motion", () => ({
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  LazyMotion: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  m: {
+    span: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+    div: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  },
+  useReducedMotion: () => false,
+  useAnimate: () => [null, vi.fn()],
+}));
+
+// Add new mocks
+vi.mock("next-seo", () => ({
+  NextSeo: () => null,
+  LogoJsonLd: () => null,
+}));
+
 vi.mock("@calcom/features/ee/organizations/hooks", () => ({
   useOrgBrandingValues() {
     return {};
   },
+}));
+
+vi.mock("react-sticky-box", () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div data-testid="sticky-box">{children}</div>,
 }));
 
 vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
