@@ -25,16 +25,14 @@
   margin-bottom: -4px;
 }
 
-p.text-subtle.mt-2.text-sm.font-semibold {
+/* p.text-subtle.mt-2.text-sm.font-semibold {
   font-size: 40px;
   font-family:
     Syne Variablefont Wght,
     sans-serif;
   font-weight: bold;
   color: #06c6a3;
-
-  /* padding-top: 30px !important; */
-}
+} */
 
 .custom-mobile-text {
   font-size: 22px !important;
@@ -71,7 +69,7 @@ p.text-subtle.mt-2.text-sm.font-semibold {
   margin-left: 120px !important;
 }
 
-h1.text-text.text-xl.font-semibold.my-2 {
+/* h1.text-text.text-xl.font-semibold.my-2 {
   font-size: 17px;
   font-family:
     Syne Variablefont Wght,
@@ -80,7 +78,7 @@ h1.text-text.text-xl.font-semibold.my-2 {
   margin-left: 120px !important;
   line-height: 1.4;
   font-weight: 500;
-}
+} */
 
 .\[--booker-meta-width\:340px\] {
   --booker-meta-width: 650px;
@@ -106,9 +104,9 @@ h1.text-text.text-xl.font-semibold.my-2 {
   padding: 0.8rem !important;
 }
 
-ul.flex.items-center.border-muted {
+/* ul.flex.items-center.border-muted {
   position: absolute;
-}
+} */
 
 .relative.z-10.mb-8.break-words.max-w-full.max-h-\[180px\].scroll-bar.pr-4 {
   margin-left: 120px !important;
