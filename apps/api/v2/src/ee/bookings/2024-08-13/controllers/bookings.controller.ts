@@ -2,6 +2,7 @@ import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.gua
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { GetCalVideoSessionsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-cal-video-sessions";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
@@ -315,6 +316,28 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Get("/:bookingUid/getCalVideoSessions")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({ summary: "Get Cal Video Meeting Sessions" })
+  async getCalVideoSessions(
+    @Param("bookingUid") bookingUid: string
+  ): Promise<GetCalVideoSessionsOutput_2024_08_13> {
+    const participants = await this.bookingsService.getCalVideoSessions(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: participants,
     };
   }
 

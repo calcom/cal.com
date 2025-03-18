@@ -69,3 +69,31 @@ export const ZGetMeetingTokenResponseSchema = z
     user_id: z.number().nullable().optional(),
   })
   .passthrough();
+
+export const ZGetMeeting = z.object({
+  total_count: z.number(),
+  data: z.array(
+    z
+      .object({
+        id: z.string(),
+        room: z.string(),
+        start_time: z.number(),
+        duration: z.number(),
+        max_participants: z.number(),
+        participants: z.array(
+          z.object({
+            user_id: z.string().nullable(),
+            participant_id: z.string(),
+            user_name: z.string(),
+            join_time: z.number(),
+            duration: z.number(),
+          })
+        ),
+      })
+      .passthrough()
+  ),
+});
+
+export type TGetMeeting = z.infer<typeof ZGetMeeting>;
+
+export type TGetMeetingParticipants = TGetMeeting["data"][number]["participants"];

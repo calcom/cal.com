@@ -3553,6 +3553,26 @@
             }
           },
           {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created after this date string.",
+            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created before this date string.",
+            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "afterUpdatedAt",
             "required": false,
             "in": "query",
@@ -3981,6 +4001,54 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReassignBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/getCalVideoSessions": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getCalVideoSessions",
+        "summary": "Get Cal Video Meeting Sessions",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetCalVideoSessionsOutput_2024_08_13"
                 }
               }
             }
@@ -16460,6 +16528,90 @@
             "description": "Reason for reassigning the booking"
           }
         }
+      },
+      "Participant": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "participant_id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "join_time": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "number"
+          }
+        },
+        "required": ["user_id", "participant_id", "user_name", "join_time", "duration"]
+      },
+      "VideoSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "room": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "max_participants": {
+            "type": "number"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Participant"
+            }
+          },
+          "ongoing": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "room", "start_time", "duration", "max_participants", "participants", "ongoing"]
+      },
+      "VideoSessionsWrapper": {
+        "type": "object",
+        "properties": {
+          "total_count": {
+            "type": "number"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoSession"
+            }
+          }
+        },
+        "required": ["total_count", "data"]
+      },
+      "GetCalVideoSessionsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoSessionsWrapper"
+            }
+          }
+        },
+        "required": ["status", "data"]
       },
       "DeclineBookingInput_2024_08_13": {
         "type": "object",

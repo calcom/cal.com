@@ -25,6 +25,7 @@ import {
   handleMarkNoShow,
   confirmBookingHandler,
   getCalendarLinks,
+  getMeetingSessions,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import {
@@ -493,6 +494,24 @@ export class BookingsService_2024_08_13 {
     });
 
     return this.outputService.getOutputReassignedBooking(reassigned);
+  }
+
+  async getCalVideoSessions(bookingUid: string) {
+    const booking = await this.bookingsRepository.getByUidWithReferences(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const calVideoReferences = booking.references.filter((reference) => reference.type === "daily_video");
+
+    const participants = await Promise.all(
+      calVideoReferences.map(async (reference) => {
+        const participants = await getMeetingSessions(reference.uid);
+        return participants;
+      })
+    );
+
+    return participants;
   }
 
   async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {

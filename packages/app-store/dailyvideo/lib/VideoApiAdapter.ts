@@ -16,6 +16,7 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 
 import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
 import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
+import type { TGetMeeting } from "./types";
 import {
   dailyReturnTypeSchema,
   getTranscripts,
@@ -23,6 +24,7 @@ import {
   getRooms,
   meetingTokenSchema,
   ZGetMeetingTokenResponseSchema,
+  ZGetMeeting,
 } from "./types";
 
 export interface DailyEventResult {
@@ -449,6 +451,15 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       } catch (err) {
         console.log("err", err);
         throw new Error("Something went wrong! can't get transcripts");
+      }
+    },
+    getMeetingSessions: async (roomName: string): Promise<TGetMeeting> => {
+      try {
+        const meeting = await fetcher(`/meetings?room=${roomName}`).then(ZGetMeeting.parse);
+        return meeting;
+      } catch (err) {
+        console.error("error getting participants", err);
+        throw new Error("Something went wrong! can't get participants");
       }
     },
     checkIfRoomNameMatchesInRecording: async (roomName: string, recordingId: string): Promise<boolean> => {

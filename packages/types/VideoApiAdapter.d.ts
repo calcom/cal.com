@@ -1,3 +1,4 @@
+import type { TGetMeeting } from "@calcom/app-store/dailyvideo/lib/types";
 import type {
   TSubmitBatchProcessorJobRes,
   batchProcessorBody,
@@ -43,6 +44,8 @@ export type VideoApiAdapter =
       ): Promise<TGetTranscriptAccessLink["transcription"] | { message: string }>;
 
       checkIfRoomNameMatchesInRecording?(roomName: string, recordingId: string): Promise<boolean>;
+
+      getMeetingSessions?(roomName: string): Promise<TGetMeeting>;
     }
   | undefined;
 
