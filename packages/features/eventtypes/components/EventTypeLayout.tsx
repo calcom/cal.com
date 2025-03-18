@@ -8,10 +8,11 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 import WebShell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { HorizontalTabs, Skeleton, Tooltip, VerticalDivider, VerticalTabs } from "@calcom/ui";
+import { HorizontalTabs, Skeleton, VerticalTabs } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
+import { VerticalDivider } from "@calcom/ui/divider/Divider";
 import {
   DropdownMenuSeparator,
   Dropdown,
@@ -25,6 +26,7 @@ import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Icon } from "@calcom/ui/icon/Icon";
 import type { VerticalTabItemProps } from "@calcom/ui/navigation/tabs/VerticalTabItem";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";

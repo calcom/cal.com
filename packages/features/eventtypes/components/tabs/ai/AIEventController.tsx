@@ -14,7 +14,7 @@ import { ComponentForField } from "@calcom/features/form-builder/FormBuilderFiel
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Label } from "@calcom/ui/form/inputs/Label";
-import { Divider } from "@calcom/ui";
+import { Divider } from "@calcom/ui/divider/Divider";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";

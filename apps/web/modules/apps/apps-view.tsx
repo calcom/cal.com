@@ -6,16 +6,10 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
-import {
-  AllApps,
-  AppStoreCategories,
-  HorizontalTabs,
-  TextField,
-  PopularAppsSlider,
-  RecentAppsSlider,
-} from "@calcom/ui";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { AllApps, AppStoreCategories, HorizontalTabs, PopularAppsSlider, RecentAppsSlider } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import { type getServerSideProps } from "@lib/apps/getServerSideProps";
 

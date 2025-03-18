@@ -34,8 +34,6 @@ import {
   ConfirmationDialogContent,
   HorizontalTabs,
   Skeleton,
-  TextField,
-  Tooltip,
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
@@ -56,9 +54,11 @@ import {
 } from "@calcom/ui/dropdown/Dropdown";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { Label } from "@calcom/ui/form/inputs/Label";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

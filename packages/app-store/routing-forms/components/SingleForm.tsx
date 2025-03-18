@@ -14,22 +14,17 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
-import {
-  Badge,
-  DropdownMenuSeparator,
-  SettingsToggle,
-  TextAreaField,
-  TextField,
-  Tooltip,
-  VerticalDivider,
-} from "@calcom/ui";
+import { Badge, DropdownMenuSeparator, SettingsToggle, TextAreaField } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { VerticalDivider } from "@calcom/ui/divider/Divider";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { TRPCClientError } from "@trpc/react-query";
 

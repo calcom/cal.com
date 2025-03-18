@@ -7,20 +7,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import {
-  DropdownActions,
-  TextField,
-  TextAreaField,
-  SelectField,
-  Badge,
-  InfoBadge,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import { DropdownActions, TextAreaField, SelectField, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { InfoBadge } from "@calcom/ui/badge/InfoBadge";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { showToast } from "@calcom/ui/toast/showToast";
 

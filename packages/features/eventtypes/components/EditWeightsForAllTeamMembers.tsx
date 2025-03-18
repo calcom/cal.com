@@ -11,7 +11,6 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc } from "@calcom/trpc";
 import {
   buttonClasses,
-  TextField,
   Sheet,
   SheetBody,
   SheetClose,
@@ -22,6 +21,7 @@ import {
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 

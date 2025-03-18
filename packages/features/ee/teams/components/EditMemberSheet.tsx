@@ -11,21 +11,13 @@ import { useEditMode } from "@calcom/features/users/components/UserTable/EditShe
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetBody,
-  Skeleton,
-  Tooltip,
-  Loader,
-} from "@calcom/ui";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody, Skeleton, Loader } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { updateRoleInCache } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";

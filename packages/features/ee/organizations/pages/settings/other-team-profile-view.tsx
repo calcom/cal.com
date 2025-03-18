@@ -26,7 +26,6 @@ import {
   LinkIconButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
@@ -34,6 +33,7 @@ import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
 import { Editor } from "@calcom/ui/editor/Editor";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";

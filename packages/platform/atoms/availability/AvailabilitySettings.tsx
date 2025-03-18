@@ -27,16 +27,16 @@ import {
   SkeletonText,
   SelectSkeletonLoader,
   Skeleton,
-  Tooltip,
-  VerticalDivider,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogTrigger } from "@calcom/ui/dialog/Dialog";
+import { VerticalDivider } from "@calcom/ui/divider/Divider";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { Icon } from "@calcom/ui/icon/Icon";
+import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";

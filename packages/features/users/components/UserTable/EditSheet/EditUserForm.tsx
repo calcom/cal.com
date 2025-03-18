@@ -19,10 +19,10 @@ import {
   SheetBody,
   SheetFooter,
   SheetTitle,
-  Divider,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
+import { Divider } from "@calcom/ui/divider/Divider";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
