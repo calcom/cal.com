@@ -32,6 +32,10 @@ type BookEventFormProps = {
   isTimeslotUnavailable: boolean;
   shouldRenderCaptcha?: boolean;
   submitButtonDisabled?: boolean;
+  classNames?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
 };
 
 export const BookEventForm = ({
@@ -51,6 +55,7 @@ export const BookEventForm = ({
   isTimeslotUnavailable,
   shouldRenderCaptcha,
   submitButtonDisabled,
+  classNames,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -197,7 +202,12 @@ export const BookEventForm = ({
           ) : (
             <>
               {!!onCancel && (
-                <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                <Button
+                  color="minimal"
+                  type="button"
+                  onClick={onCancel}
+                  data-testid="back"
+                  className={classNames?.backButton}>
                   {t("back")}
                 </Button>
               )}
@@ -213,6 +223,7 @@ export const BookEventForm = ({
                   loadingStates.creatingRecurringBooking ||
                   isVerificationCodeSending
                 }
+                className={classNames?.confirmButton}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>

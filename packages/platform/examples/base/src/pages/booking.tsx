@@ -119,6 +119,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
                   availableTimes: "!bg-[#D7CEF5]",
                 },
+                confirmStage: {
+                  confirmButton: "!bg-purple-700",
+                  backButton: "text-purple-700 hover:!bg-purple-700 hover:!text-white",
+                },
               }}
               {...(isTeamEvent
                 ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }

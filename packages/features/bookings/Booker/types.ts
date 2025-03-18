@@ -163,4 +163,8 @@ export type CustomClassNames = {
     availableTimes?: string;
   };
   atomsWrapper?: string;
+  confirmStage?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
 };

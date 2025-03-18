@@ -241,6 +241,10 @@ const BookerComponent = ({
         rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
         submitButtonDisabled={submitButtonDisabled}
+        classNames={{
+          confirmButton: customClassNames?.confirmStage?.confirmButton,
+          backButton: customClassNames?.confirmStage?.backButton,
+        }}
         isPlatform={isPlatform}>
         <>
           {!isPlatform && (
