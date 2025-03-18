@@ -14,6 +14,8 @@ import {
   updateEventType,
   getEventTypesPublic,
   EventTypesPublic,
+  SystemField,
+  CustomField,
 } from "@calcom/platform-libraries/event-types";
 import { GetEventTypesQuery_2024_06_14, InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
@@ -31,6 +33,9 @@ export class EventTypesService_2024_06_14 {
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
+    if (body.bookingFields) {
+      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+    }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
@@ -76,6 +81,16 @@ export class EventTypesService_2024_06_14 {
       throw new BadRequestException("User already has an event type with this slug.");
     }
     await this.checkUserOwnsSchedule(userId, body.scheduleId);
+  }
+
+  checkHasUserAccessibleEmailBookingField(bookingFields: (SystemField | CustomField)[]) {
+    const emailField = bookingFields.find((field) => field.type === "email" && field.name === "email");
+    const isEmailFieldRequiredAndVisible = emailField?.required && !emailField?.hidden;
+    if (!isEmailFieldRequiredAndVisible) {
+      throw new BadRequestException(
+        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+      );
+    }
   }
 
   async getEventTypeByUsernameAndSlug(
@@ -219,6 +234,9 @@ export class EventTypesService_2024_06_14 {
     body: Partial<InputEventTransformed_2024_06_14>,
     user: UserWithProfile
   ) {
+    if (body.bookingFields) {
+      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+    }
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
