@@ -39,6 +39,12 @@ vi.mock("../components/BookEventForm", () => ({
   },
 }));
 
+vi.mock("../components/BookEventForm/BookFormAsModal", () => ({
+  BookFormAsModal: () => {
+    return <div data-testid="book-form-as-modal">Mock Book Form As Modal</div>;
+  },
+}));
+
 const mockEvent = {
   data: {
     id: 1,
