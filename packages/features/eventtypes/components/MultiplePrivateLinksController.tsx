@@ -43,6 +43,40 @@ export const MultiplePrivateLinksController = ({
     trpcUtils.viewer.eventTypes.getHashedLink.invalidate();
   }, [trpcUtils]);
 
+  // Add validation to ensure maxUsageCount is greater than current usage
+  useEffect(() => {
+    const validateUsageCounts = async () => {
+      const links = formMethods.getValues("multiplePrivateLinks") || [];
+
+      // Convert links to array and properly type it
+      const linksArray = [...links] as PrivateLinkWithOptions[];
+
+      for (let i = 0; i < linksArray.length; i++) {
+        const link = linksArray[i];
+        if (
+          typeof link !== "string" &&
+          link.maxUsageCount !== null &&
+          link.maxUsageCount !== undefined &&
+          linkTypes[i] === "usage"
+        ) {
+          const response = await trpcUtils.viewer.eventTypes.getHashedLink.fetch({ linkId: link.link });
+          const currentUsage = response?.usageCount ?? link.usageCount ?? 0;
+
+          if (link.maxUsageCount <= currentUsage) {
+            showToast(t("usage_count_error"), "error");
+            return "Maximum usage count must be greater than current usage count";
+          }
+        }
+      }
+
+      return true;
+    };
+
+    formMethods.register("multiplePrivateLinks", {
+      validate: validateUsageCounts,
+    });
+  }, [formMethods, linkTypes, t, trpcUtils.viewer.eventTypes.getHashedLink]);
+
   return (
     <Controller
       name="multiplePrivateLinks"
@@ -154,16 +188,19 @@ export const MultiplePrivateLinksController = ({
                 val.maxUsageCount !== null &&
                 !isNaN(Number(val.maxUsageCount))
               ) {
-                const remainingUses = val.maxUsageCount - latestUsageCount;
-                const isUsageExceeded = remainingUses <= 0;
+                // Calculate uses - if link is still active, there must be at least 1 use remaining
+                const maxUses = val.maxUsageCount;
+                const usedCount = latestUsageCount;
+                const remainingUses = maxUses - usedCount;
 
-                if (isUsageExceeded) {
+                // Only show limit reached if we've EXCEEDED the limit (used more than max)
+                if (usedCount > maxUses) {
                   linkDescription = t("usage_limit_reached");
-                } else if (val.maxUsageCount === 1) {
-                  linkDescription = t("single_use_link");
                 } else {
-                  // Use the real-time data from DB for display
-                  linkDescription = `${remainingUses} of ${val.maxUsageCount} uses remaining`;
+                  // Show remaining uses - if usedCount equals maxUses, we still have that last use
+                  linkDescription = `${remainingUses} of ${maxUses} ${
+                    remainingUses === 1 ? "use" : "uses"
+                  } remaining`;
                 }
               }
 
@@ -292,9 +329,24 @@ export const MultiplePrivateLinksController = ({
                             value={val.maxUsageCount === null ? "" : val.maxUsageCount}
                             onChange={(e) => {
                               const value = e.target.value === "" ? null : parseInt(e.target.value);
-                              // Only update the maxUsageCount if it's a valid number
-                              if (e.target.value === "" || (!isNaN(Number(value)) && Number(value) > 0)) {
+                              if (e.target.value === "") {
+                                updateLinkOption(key, { maxUsageCount: null });
+                              } else if (!isNaN(Number(value))) {
                                 updateLinkOption(key, { maxUsageCount: value });
+                              }
+                            }}
+                            onBlur={async (e) => {
+                              const value = e.target.value === "" ? null : parseInt(e.target.value);
+                              if (value !== null && value < latestUsageCount) {
+                                e.target.value = val.maxUsageCount?.toString() ?? "";
+                                updateLinkOption(key, { maxUsageCount: val.maxUsageCount });
+                                showToast(t("usage_count_error"), "error");
+                                // Set form as invalid
+                                formMethods.setError("multiplePrivateLinks", {
+                                  type: "manual",
+                                  message: t("usage_count_error"),
+                                });
+                                await formMethods.trigger("multiplePrivateLinks");
                               }
                             }}
                           />

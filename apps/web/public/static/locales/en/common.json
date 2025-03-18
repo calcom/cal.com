@@ -334,6 +334,8 @@
   "share_a_link_or_embed": "Share a link or embed",
   "share_a_link_or_embed_description": "Share your {{appName}} link or embed on your site.",
   "availability_settings": "Availability Settings",
+  "usage_limit_reached": "Usage limit reached",
+  "usage_count_error": "Maximum usage count must be greater than current usage count",
   "continue_without_calendar": "Continue without calendar",
   "continue_with": "Continue with {{appName}}",
   "connect_your_calendar": "Connect your calendar",
