@@ -45,6 +45,7 @@ export const createSalesforceMock = () => {
   // Query parser and responder
   const handleQuery = (query: string) => {
     // Simple SOQL parser
+    console.log({ query });
     const fromMatch = query.match(/FROM\s+(\w+)/i);
     const whereMatch = query.match(/WHERE\s+(.+?)(?:\s+LIMIT|\s+ORDER|\s*$)/i);
     const limitMatch = query.match(/LIMIT\s+(\d+)/i);
@@ -77,6 +78,7 @@ export const createSalesforceMock = () => {
         return { records: [] };
     }
 
+    console.log({ whereClause });
     // Apply where clause filtering (basic implementation)
     if (whereClause) {
       if (whereClause.includes("Email =")) {
@@ -131,6 +133,14 @@ export const createSalesforceMock = () => {
         if (websiteLikeMatch) {
           const websitePart = websiteLikeMatch[1];
           result = result.filter((r) => r.Website && r.Website.includes(websitePart));
+        }
+      }
+
+      if (whereClause.includes("Website IN")) {
+        const websitesMatch = whereClause.match(/Website IN \((.+)\)/i);
+        if (websitesMatch) {
+          const websites = websitesMatch[1].split(",").map((w) => w.trim());
+          result = result.filter((r) => websites.includes(r.Website));
         }
       }
 
