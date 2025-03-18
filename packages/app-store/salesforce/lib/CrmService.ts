@@ -604,11 +604,11 @@ export default class SalesforceCRMService implements CRM {
             if (error.name === "DUPLICATES_DETECTED") {
               const existingId = this.getExistingIdFromDuplicateError(error);
               if (existingId) {
-                console.log("Using existing record:", existingId);
+                log.info("Using existing record:", existingId);
                 createdContacts.push({ id: existingId, email: attendee.email });
               }
             } else {
-              console.error("Error creating lead:", error);
+              log.error("Error creating lead:", error);
             }
           }
         }
@@ -815,6 +815,7 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
     const conn = await this.conn;
 
     const fieldSet = new Set(fieldsToTest);
@@ -834,7 +835,7 @@ export default class SalesforceCRMService implements CRM {
 
       return foundFields;
     } catch (e) {
-      console.error(e);
+      log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
   }
