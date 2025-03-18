@@ -1,6 +1,7 @@
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, ListItem, ListItemText, ListItemTitle } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 import { List } from "@calcom/ui/list/List";
 import { showToast } from "@calcom/ui/toast/showToast";

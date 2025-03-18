@@ -7,8 +7,9 @@ import { useState } from "react";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ArrowButton, Badge, Icon } from "@calcom/ui";
+import { ArrowButton } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Badge } from "@calcom/ui/badge/Badge";
 import { Button } from "@calcom/ui/button/Button";
 import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
@@ -19,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/dropdown/Dropdown";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { getActionIcon } from "../lib/getActionIcon";

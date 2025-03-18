@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { TextArea } from "@calcom/ui/form/inputs/Input";
 import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
 import { Button } from "@calcom/ui/button/Button";

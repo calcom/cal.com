@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge, InputError } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { InputError } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import {
   Dropdown,

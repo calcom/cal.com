@@ -14,7 +14,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";

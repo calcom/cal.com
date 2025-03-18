@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import {
   Dropdown,

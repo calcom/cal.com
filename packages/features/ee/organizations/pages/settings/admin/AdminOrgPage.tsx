@@ -5,7 +5,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, ConfirmationDialogContent, DropdownActions, Table } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge/Badge";
+import { ConfirmationDialogContent, DropdownActions, Table } from "@calcom/ui";
 import { Dialog } from "@calcom/ui/dialog/Dialog";
 import { showToast } from "@calcom/ui/toast/showToast";
 

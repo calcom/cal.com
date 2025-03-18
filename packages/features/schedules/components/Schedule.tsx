@@ -19,7 +19,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
