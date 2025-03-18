@@ -19,14 +19,16 @@ import classNames from "@calcom/ui/classNames";
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 import AddCertificate from "@components/getting-started/steps-views/AddCertificate";
+import AssignTerms from "@components/getting-started/steps-views/AssignTerms";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-const INITIAL_STEP = "user-settings";
+const INITIAL_STEP = "assign-terms";
 const BASE_STEPS = [
+  "assign-terms",
   "user-settings",
   "connected-calendar",
   "connected-video",
@@ -43,6 +45,12 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     subtitle: string[];
     skipText?: string;
   }[] = [
+    {
+      title: "Bem-vindo(a) ao Painel do Profissional",
+      subtitle: [
+        "Antes de configurar seu perfil com suas informações, precisamos que leia e assine o contrato com a Yinflow.Life.",
+      ],
+    },
     {
       title: t("welcome_to_cal_header", { appName: APP_NAME }),
       subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
@@ -86,6 +94,7 @@ const stepRouteSchema = z.object({
   step: z
     .array(
       z.enum([
+        "assign-terms",
         "user-settings",
         "setup-availability",
         "user-profile",
@@ -176,6 +185,9 @@ const OnboardingPage = (props: PageProps) => {
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
+                {(currentStep as "assign-terms") === "assign-terms" && (
+                  <AssignTerms nextStep={goToNextStep} />
+                )}
                 {currentStep === "user-settings" && (
                   <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
                 )}

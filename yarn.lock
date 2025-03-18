@@ -4469,6 +4469,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@docuseal/react@npm:^1.0.61":
+  version: 1.0.61
+  resolution: "@docuseal/react@npm:1.0.61"
+  checksum: 123885daa76072e2a4d01d05ffd13ccc2fb8940190ddf3787457a2e34673bc1dd1dbdea9a8b6b07338a12f179d748d406024fd7661636d4c133a021b0efd6a7d
+  languageName: node
+  linkType: hard
+
 "@dub/analytics@npm:^0.0.15":
   version: 0.0.15
   resolution: "@dub/analytics@npm:0.0.15"
@@ -18138,6 +18145,7 @@ __metadata:
   dependencies:
     "@changesets/cli": ^2.26.1
     "@daily-co/daily-js": ^0.59.0
+    "@docuseal/react": ^1.0.61
     "@next/third-parties": ^14.2.5
     "@playwright/test": ^1.45.3
     "@snaplet/copycat": ^4.1.0
