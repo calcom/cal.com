@@ -8,11 +8,15 @@ import { CreateButtonWithTeamsList } from "./CreateButtonWithTeamsList";
 const runtimeMock = async (data: Array<any>) => {
   const updatedTrpc = {
     viewer: {
-      teamsAndUserProfilesQuery: {
-        useQuery() {
-          return {
-            data: data,
-          };
+      eventTypes: {
+        getUserEventGroups: {
+          useQuery() {
+            return {
+              data: {
+                profiles: data,
+              },
+            };
+          },
         },
       },
     },
@@ -37,18 +41,22 @@ describe("Create Button Tests", () => {
       vi.mock("@calcom/trpc/react", () => ({
         trpc: {
           viewer: {
-            teamsAndUserProfilesQuery: {
-              useQuery() {
-                return {
-                  data: [
-                    {
-                      teamId: 1,
-                      name: "test",
-                      slug: "create-button-test",
-                      image: "image",
+            eventTypes: {
+              getUserEventGroups: {
+                useQuery() {
+                  return {
+                    data: {
+                      profiles: [
+                        {
+                          teamId: 1,
+                          name: "test",
+                          slug: "create-button-test",
+                          image: "image",
+                        },
+                      ],
                     },
-                  ],
-                };
+                  };
+                },
               },
             },
           },
