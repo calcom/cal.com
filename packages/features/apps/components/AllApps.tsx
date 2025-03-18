@@ -10,8 +10,8 @@ import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/Icon/Icon";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 import { AppCard } from "./AppCard";
 
