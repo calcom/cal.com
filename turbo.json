@@ -183,12 +183,10 @@
       "outputs": ["dist/**", "build/**"]
     },
     "type-check": {
-      "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "cache": false
     },
     "type-check:ci": {
-      "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "cache": false
     },
     "@calcom/prisma#db-reset": {
       "cache": false,
