@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
 import { Button } from "@calcom/ui/button/Button";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";

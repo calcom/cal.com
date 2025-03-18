@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { Button } from "@calcom/ui/button/Button";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
 

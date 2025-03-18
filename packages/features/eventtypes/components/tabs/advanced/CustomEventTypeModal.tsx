@@ -7,7 +7,7 @@ import type { InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName, validateCustomEventName } from "@calcom/lib/event";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";

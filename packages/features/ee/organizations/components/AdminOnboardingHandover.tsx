@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
 import { Button } from "@calcom/ui/button/Button";
 
 export const AdminOnboardingHandover = () => {

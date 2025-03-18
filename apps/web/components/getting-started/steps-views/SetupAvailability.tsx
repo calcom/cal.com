@@ -5,7 +5,7 @@ import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Form } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/inputs/Form";
 import { Button } from "@calcom/ui/button/Button";
 
 import type { TRPCClientErrorLike } from "@trpc/client";

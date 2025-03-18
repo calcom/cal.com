@@ -13,7 +13,7 @@ import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberU
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";

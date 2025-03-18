@@ -9,7 +9,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast/showToast";
 import { Button } from "@calcom/ui/button/Button";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 

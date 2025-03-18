@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
 import type { RouterOutputs } from "@calcom/trpc";
-import { TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import classNames from "@calcom/ui/classNames";
 
