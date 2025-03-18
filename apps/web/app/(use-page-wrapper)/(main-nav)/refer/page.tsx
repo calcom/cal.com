@@ -4,29 +4,17 @@ import { useState, useEffect } from "react";
 
 import ReferralClient from "@calcom/features/dub/ReferralClient";
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
-import { SkeletonText, SkeletonButton, SkeletonAvatar, SkeletonContainer } from "@calcom/ui";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SkeletonText, SkeletonButton, SkeletonAvatar, SkeletonContainer, showToast } from "@calcom/ui";
 
-const DisabledReferralsPage = () => (
-  <div className="mx-auto max-w-4xl p-8 text-center">
-    <h2 className="mb-4 text-xl font-semibold">Referral Program</h2>
-    <p>You need a Dub API Key and Program Id to use this page.</p>
-  </div>
-);
-
-// Existing code for fetching the token
 const fetchReferralsToken = async () => {
   try {
     const response = await fetch("/api/user/referrals-token");
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error response:", errorText);
-      try {
-        const errorJson = JSON.parse(errorText);
-        throw new Error(`API error: ${errorJson.error || response.statusText}`);
-      } catch (e) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
+      const { error } = await response.json();
+      showToast(error, "error");
+      return null;
     }
 
     const data = await response.json();
@@ -42,6 +30,7 @@ const fetchReferralsToken = async () => {
 const EnabledReferralsPage = () => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useLocale();
 
   useEffect(() => {
     const getToken = async () => {
@@ -50,6 +39,7 @@ const EnabledReferralsPage = () => {
         setToken(publicToken);
       } catch (err) {
         console.error("Error fetching referrals token:", err);
+        showToast(t("unexpected_error_try_again"), "error");
       } finally {
         setLoading(false);
       }
@@ -124,5 +114,13 @@ const EnabledReferralsPage = () => {
 
 // Export the appropriate component based on the feature flag
 export default function ReferralsPage() {
-  return IS_DUB_REFERRALS_ENABLED ? <EnabledReferralsPage /> : <DisabledReferralsPage />;
+  const { t } = useLocale();
+  return IS_DUB_REFERRALS_ENABLED ? (
+    <EnabledReferralsPage />
+  ) : (
+    <div className="mx-auto max-w-4xl p-8 text-center">
+      <h2 className="mb-4 text-xl font-semibold">{t("referral_program")}</h2>
+      <p>{t("dub_disabled_error_message")}</p>
+    </div>
+  );
 }
