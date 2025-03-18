@@ -9,6 +9,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
+import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -29,6 +30,7 @@ type BookingsRouterHandlerCache = {
   bulkEventFetch?: typeof import("./bulkEventFetch.handler").bulkEventFetchHandler;
   bulkUpdateToDefaultLocation?: typeof import("./bulkUpdateToDefaultLocation.handler").bulkUpdateToDefaultLocationHandler;
   getHashedLink?: typeof import("./getHashedLink.handler").getHashedLinkHandler;
+  getHashedLinks?: typeof import("./getHashedLinks.handler").getHashedLinksHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
@@ -288,6 +290,24 @@ export const eventTypesRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.getHashedLink({
+      ctx,
+      input,
+    });
+  }),
+
+  getHashedLinks: authedProcedure.input(ZGetHashedLinksInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getHashedLinks) {
+      UNSTABLE_HANDLER_CACHE.getHashedLinks = await import("./getHashedLinks.handler").then(
+        (mod) => mod.getHashedLinksHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getHashedLinks) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getHashedLinks({
       ctx,
       input,
     });

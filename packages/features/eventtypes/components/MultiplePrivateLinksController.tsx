@@ -37,12 +37,6 @@ export const MultiplePrivateLinksController = ({
   // Fetch latest data for all links
   const trpcUtils = trpc.useUtils();
 
-  // This will force a refetch when the component mounts
-  useEffect(() => {
-    // Invalidate the cache to force fresh data fetch
-    trpcUtils.viewer.eventTypes.getHashedLink.invalidate();
-  }, [trpcUtils]);
-
   // Add validation to ensure maxUsageCount is greater than current usage
   useEffect(() => {
     const validateUsageCounts = async () => {
@@ -87,9 +81,22 @@ export const MultiplePrivateLinksController = ({
         }
 
         // Convert any string values to PrivateLinkWithOptions
-        const convertedValue = value.map((val) =>
+        const convertedValue = value.map((val: string | PrivateLinkWithOptions) =>
           typeof val === "string" ? { link: val, expiresAt: null, maxUsageCount: null, usageCount: 0 } : val
         );
+
+        // Query all links at once instead of individually
+        const { data: allLinksData } = trpc.viewer.eventTypes.getHashedLinks.useQuery(
+          { linkIds: convertedValue.map((val) => val.link) },
+          {
+            enabled: convertedValue.length > 0,
+            staleTime: 0,
+            refetchOnMount: true,
+          }
+        );
+
+        // Create a map of link data for easy access
+        const linkDataMap = new Map(allLinksData?.map((data) => [data.linkId, data]) || []);
 
         // Initialize link types if not already set
         convertedValue.forEach((val, index) => {
@@ -155,20 +162,10 @@ export const MultiplePrivateLinksController = ({
           <ul ref={animateRef}>
             {convertedValue.map((val, key) => {
               const singleUseURL = `${bookerUrl}/d/${val.link}/${formMethods.getValues("slug")}`;
-              // Get link type from state
               const linkType = linkTypes[key] || "single";
 
-              // Always fetch the latest data for this link
-              const { data: latestLinkData } = trpc.viewer.eventTypes.getHashedLink.useQuery(
-                { linkId: val.link },
-                {
-                  enabled: !!val.link,
-                  staleTime: 0,
-                  refetchOnMount: true,
-                }
-              );
-
-              // Use the latest data from DB if available, otherwise fallback to the form data
+              // Get the link data from our map instead of individual queries
+              const latestLinkData = linkDataMap.get(val.link);
               const latestUsageCount = latestLinkData?.usageCount ?? (val.usageCount || 0);
 
               // Determine link type description

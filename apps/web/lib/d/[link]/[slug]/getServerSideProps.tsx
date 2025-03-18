@@ -81,6 +81,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     ? hashedLink.usageCount >= hashedLink.maxUsageCount
     : false;
 
+  // Block access if the link is expired or has exceeded its usage limit
+  if (isExpired || isUsageExceeded) {
+    return notFound;
+  }
+
   const username = hashedLink.eventType.users[0]?.username;
   const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 

@@ -11,8 +11,8 @@ export const HashedLinkUsageIndicator = ({ link }: { link: string }) => {
     usageCount: number;
   } | null>(null);
 
-  const { data, isLoading: isFetching } = trpc.viewer.eventTypes.getHashedLink.useQuery(
-    { linkId: link },
+  const { data, isLoading: isFetching } = trpc.viewer.eventTypes.getHashedLinks.useQuery(
+    { linkIds: [link] },
     {
       enabled: !!link,
       retry: 1,
@@ -23,11 +23,12 @@ export const HashedLinkUsageIndicator = ({ link }: { link: string }) => {
   );
 
   useEffect(() => {
-    if (data) {
+    if (data && data.length > 0) {
+      const linkData = data[0];
       setUsageData({
-        expiresAt: data.expiresAt,
-        maxUsageCount: data.maxUsageCount,
-        usageCount: data.usageCount,
+        expiresAt: linkData.expiresAt,
+        maxUsageCount: linkData.maxUsageCount,
+        usageCount: linkData.usageCount,
       });
       setIsLoading(false);
     } else if (!isFetching) {

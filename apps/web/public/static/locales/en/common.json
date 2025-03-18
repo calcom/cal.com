@@ -1320,6 +1320,7 @@
   "go_to_stripe_billing": "Go to billing",
   "stripe_description": "Require payment for bookings (0.5% + €0.10 commission per transaction)",
   "trial_expired": "Your trial has expired",
+  "link_expired_on_date": "This link expired on {{date}}",
   "remove_app": "Remove App",
   "yes_remove_app": "Yes, remove app",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
