@@ -60,9 +60,11 @@ const mockSchedule = {
   invalidate: vi.fn(),
 };
 
-// Mock useIsPlatformBookerEmbed
-vi.mock("@calcom/atoms/monorepo", () => ({
+vi.mock("@calcom/atoms/hooks/useIsPlatformBookerEmbed", () => ({
   useIsPlatformBookerEmbed: () => false,
+}));
+
+vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => false,
 }));
 
@@ -166,6 +168,9 @@ const defaultProps = {
 
 describe("Booker", () => {
   beforeEach(() => {
+    constantsScenarios.set({
+      PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
+    });
     vi.clearAllMocks();
   });
 
@@ -206,7 +211,7 @@ describe("Booker", () => {
 
   it("should invalidate schedule when cancelling booking form", () => {
     const mockInvalidate = vi.fn();
-    constantsScenarios.setEnvVariables({
+    constantsScenarios.set({
       PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM: "true",
     });
     const propsWithInvalidate = {

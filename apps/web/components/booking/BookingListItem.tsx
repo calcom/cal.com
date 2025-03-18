@@ -9,7 +9,6 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
-import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -46,6 +45,7 @@ import {
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
@@ -120,6 +120,28 @@ function BookingListItem(booking: BookingItemProps) {
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
+
+  const attendeeList = booking.attendees.map((attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      id: attendee.id,
+      noShow: attendee.noShow || false,
+      phoneNumber: attendee.phoneNumber,
+    };
+  });
+
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+    onSuccess: async (data) => {
+      showToast(data.message, "success");
+      // Invalidate and refetch the bookings query to update the UI
+      await utils.viewer.bookings.invalidate();
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -259,14 +281,18 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: "map-pin" as const,
     },
-    {
-      id: "add_members",
-      label: t("additional_guests"),
-      onClick: () => {
-        setIsOpenAddGuestsDialog(true);
-      },
-      icon: "user-plus" as const,
-    },
+    ...(booking.eventType?.disableGuests
+      ? []
+      : [
+          {
+            id: "add_members",
+            label: t("additional_guests"),
+            onClick: () => {
+              setIsOpenAddGuestsDialog(true);
+            },
+            icon: "user-plus" as const,
+          },
+        ]),
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -283,11 +309,22 @@ function BookingListItem(booking: BookingItemProps) {
   if (isBookingInPast || isOngoing) {
     editBookingActions.push({
       id: "no_show",
-      label: t("mark_as_no_show"),
+      label:
+        attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
       onClick: () => {
+        // If there's only one attendee, mark them as no-show directly without showing the dialog
+        if (attendeeList.length === 1) {
+          const attendee = attendeeList[0];
+          noShowMutation.mutate({
+            bookingUid: booking.uid,
+            attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+          });
+          return;
+        }
+
         setIsNoShowDialogOpen(true);
       },
-      icon: "eye-off" as const,
+      icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : ("eye-off" as const),
     });
   }
 
@@ -423,15 +460,6 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
-  });
 
   return (
     <>
@@ -875,32 +903,22 @@ type NoShowProps = {
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
+  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber } = attendeeProps;
   const { t } = useLocale();
 
-  const [noShow, setNoShow] = useState(noShowAttendee);
+  const utils = trpc.useUtils();
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
+      utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
     },
   });
-
-  function toggleNoShow({
-    attendee,
-    bookingUid,
-  }: {
-    attendee: { email: string; noShow: boolean };
-    bookingUid: string;
-  }) {
-    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
-    setNoShow(!noShow);
-  }
 
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
@@ -950,29 +968,16 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
           {isBookingInPast && (
             <DropdownMenuItem className="focus:outline-none">
-              {noShow ? (
-                <DropdownItem
-                  data-testid="unmark-no-show"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                  }}
-                  StartIcon="eye">
-                  {t("unmark_as_no_show")}
-                </DropdownItem>
-              ) : (
-                <DropdownItem
-                  data-testid="mark-no-show"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                  }}
-                  StartIcon="eye-off">
-                  {t("mark_as_no_show")}
-                </DropdownItem>
-              )}
+              <DropdownItem
+                data-testid={noShow ? "unmark-no-show" : "mark-no-show"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setOpenDropdown(false);
+                  noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
+                }}
+                StartIcon={noShow ? "eye" : "eye-off"}>
+                {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
+              </DropdownItem>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

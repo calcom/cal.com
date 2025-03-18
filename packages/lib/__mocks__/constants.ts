@@ -19,6 +19,7 @@ const mockedConstants = {
   CURRENT_TIMEZONE: "Europe/London",
   APP_NAME: "Cal.com",
   BOOKER_NUMBER_OF_DAYS_TO_LOAD: 14,
+  PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
 } as typeof constants;
 
 vi.mock("@calcom/lib/constants", () => {
@@ -44,7 +45,7 @@ export const constantsScenarios = {
     // @ts-ignore
     mockedConstants.WEBSITE_URL = url;
   },
-  setEnvVariables: (envVariables: Record<string, string>) => {
+  set: (envVariables: Record<string, string>) => {
     Object.entries(envVariables).forEach(([key, value]) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore

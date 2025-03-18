@@ -3,7 +3,7 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import {
   sdkActionManager,

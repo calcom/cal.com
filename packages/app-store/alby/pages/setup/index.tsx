@@ -2,7 +2,7 @@ import { auth, Client, webln } from "@getalby/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -73,11 +73,11 @@ function AlbySetupCallback() {
 function AlbySetupPage(props: IAlbySetupProps) {
   const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "alby" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "alby" });
   const [albyPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = albyPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
-  const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");

@@ -15,6 +15,8 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
 import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
+
 export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
 
 const useQuickAvailabilityChecks = ({
@@ -31,6 +33,11 @@ const useQuickAvailabilityChecks = ({
   // Maintain a cache to ensure previous state is maintained as the request is fetched
   // It is important because tentatively selecting a new timeslot will cause a new request which is uncached.
   const cachedQuickAvailabilityChecksRef = useRef<QuickAvailabilityCheck[]>([]);
+  const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
+
+  if (!isQuickAvailabilityCheckFeatureEnabled) {
+    return cachedQuickAvailabilityChecksRef.current;
+  }
 
   // Create array of slots with their UTC start and end dates
   const slotsToCheck = timeslotsAsISOString.map((slot) => {
@@ -85,7 +92,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       shallow
     );
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
-  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
+  const reserveSlotMutation = trpc.viewer.slots.reserveSlot.useMutation({
     trpc: {
       context: {
         skipBatch: true,
@@ -95,7 +102,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       setSlotReservationId(data.uid);
     },
   });
-  const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
+  const removeSelectedSlot = trpc.viewer.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
 

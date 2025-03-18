@@ -2,11 +2,9 @@ import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   FilterSearchField,
@@ -17,11 +15,9 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
-
-export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
-export type IEventTypeFilter = IEventTypesFilters[0];
 
 function useFilterQuery() {
   // passthrough allows additional params to not be removed

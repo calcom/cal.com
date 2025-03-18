@@ -1,12 +1,11 @@
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
-import { classNames } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -24,12 +23,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Form,
-  SettingsToggle,
   showToast,
   Switch,
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 
@@ -126,7 +125,8 @@ function NewFormDialog({
                 placeholder={t("form_description_placeholder")}
               />
             </div>
-            {action === "duplicate" && (
+            {/* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */}
+            {/* {action === "duplicate" && (
               <Controller
                 name="shouldConnect"
                 render={({ field: { value, onChange } }) => {
@@ -142,7 +142,7 @@ function NewFormDialog({
                   );
                 }}
               />
-            )}
+            )} */}
           </div>
           <DialogFooter showDivider className="mt-12">
             <DialogClose />

@@ -1,6 +1,6 @@
 import { Task } from "./repository";
 import { type TaskerCreate, type Tasker } from "./tasker";
-import tasksMap from "./tasks";
+import tasksMap, { tasksConfig } from "./tasks";
 
 /**
  * This is the default internal Tasker that uses the Task repository to create tasks.
@@ -18,18 +18,25 @@ export class InternalTasker implements Tasker {
     console.info(`Processing ${tasks.length} tasks`, tasks);
 
     const tasksPromises = tasks.map(async (task) => {
-      console.info(`Processing task ${task.id}`, task);
+      console.info(
+        `Processing task ${task.id}, attempt:${task.attempts} maxAttempts:${task.maxAttempts} lastFailedAttempt:${task.lastFailedAttemptAt}`,
+        task
+      );
       const taskHandlerGetter = tasksMap[task.type as keyof typeof tasksMap];
       if (!taskHandlerGetter) throw new Error(`Task handler not found for type ${task.type}`);
-
+      const taskConfig = tasksConfig[task.type as keyof typeof tasksConfig];
       const taskHandler = await taskHandlerGetter();
       return taskHandler(task.payload)
         .then(async () => {
           await Task.succeed(task.id);
         })
         .catch(async (error) => {
-          console.info(`Error processing task ${task.id}: ${error}`);
-          await Task.retry(task.id, error instanceof Error ? error.message : "Unknown error");
+          console.info(`Retrying task ${task.id}: ${error}`);
+          await Task.retry({
+            taskId: task.id,
+            lastError: error instanceof Error ? error.message : "Unknown error",
+            minRetryIntervalMins: taskConfig?.minRetryIntervalMins ?? null,
+          });
         });
     });
     const settled = await Promise.allSettled(tasksPromises);

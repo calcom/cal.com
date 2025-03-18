@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
@@ -88,24 +88,24 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
       .string()
       .trim()
       .min(64)
-      .max(64, {
-        message: t("max_limit_allowed_hint", { limit: 64 }),
+      .max(128, {
+        message: t("max_limit_allowed_hint", { limit: 128 }),
       }),
     saltKey: z
       .string()
       .trim()
       .min(64)
-      .max(64, {
-        message: t("max_limit_allowed_hint", { limit: 64 }),
+      .max(128, {
+        message: t("max_limit_allowed_hint", { limit: 128 }),
       }),
   });
 
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "hitpay" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "hitpay" });
   const [HitPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = HitPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
 
-  const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");
@@ -137,11 +137,13 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
 
   useEffect(() => {
     const keyObj = isSandbox ? props.sandbox : props.prod;
-    reset({
+    const _keyData = {
       apiKey: keyObj?.apiKey || "",
       saltKey: keyObj?.saltKey || "",
-    });
-    setKeyData(keyObj);
+    };
+
+    reset(_keyData);
+    setKeyData(_keyData);
   }, [isSandbox]);
 
   useEffect(() => {

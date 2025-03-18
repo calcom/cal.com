@@ -286,7 +286,7 @@ function MemberListContent(props: Props) {
       isOrg: checkIsOrg(props.team),
     });
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
@@ -618,7 +618,7 @@ function MemberListContent(props: Props) {
     ];
 
     return cols;
-  }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
+  }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
 

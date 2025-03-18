@@ -12,6 +12,7 @@ import type {
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
@@ -32,10 +33,10 @@ export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?:
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["integrations"];
+  data: RouterOutputs["viewer"]["apps"]["integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
-  defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
+  defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
@@ -71,7 +72,7 @@ export const AppList = ({
   const ChildAppCard = ({
     item,
   }: {
-    item: RouterOutputs["viewer"]["integrations"]["items"][number] & {
+    item: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
       credentialOwner?: CredentialOwner;
     };
   }) => {
@@ -229,7 +230,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
         <DropdownItem
           color="destructive"
           onClick={() => handleDisconnect(credentialId, app, teamId)}
-          disabled={isGlobal}
+          disabled={isGlobal || isDelegationCredential({ credentialId })}
           StartIcon="trash">
           {t("remove_app")}
         </DropdownItem>

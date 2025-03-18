@@ -1,9 +1,9 @@
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon, List } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
@@ -14,10 +14,19 @@ interface ConnectedAppStepProps {
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { nextStep } = props;
-  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.integrations.useQuery({
+  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
+
+    /**
+     * Both props together sort by most popular first, then by installed first.
+     * So, installed apps are always shown at the top, followed by remaining apps sorted by descending popularity.
+     *
+     * This is done because there could be not so popular app already installed by the admin(e.g. through Delegation Credential)
+     * and we want to show it at the top so that user can set it as default if he wants to.
+     */
     sortByMostPopular: true,
+    sortByInstalledFirst: true,
   });
   const { data } = useMeQuery();
   const { t } = useLocale();

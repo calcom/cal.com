@@ -4,8 +4,8 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
 import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -21,9 +21,9 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TimezoneSelect,
   SettingsToggle,
 } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 
@@ -66,7 +66,7 @@ const SkeletonLoader = () => {
 
 interface GeneralViewProps {
   localeProp: string;
-  user: RouterOutputs["viewer"]["me"];
+  user: RouterOutputs["viewer"]["me"]["get"];
   travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
   revalidatePage: GeneralQueryViewProps["revalidatePage"];
 }
@@ -78,7 +78,7 @@ type GeneralQueryViewProps = {
 const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
   const { t } = useLocale();
 
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
 
   const { data: travelSchedules, isPending: isPendingTravelSchedules } =
     trpc.viewer.getTravelSchedules.useQuery();
@@ -343,7 +343,12 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         </div>
 
         <SectionBottomActions align="end">
-          <Button loading={isUpdateBtnLoading} disabled={isDisabled} color="primary" type="submit">
+          <Button
+            loading={isUpdateBtnLoading}
+            disabled={isDisabled}
+            color="primary"
+            type="submit"
+            data-testid="general-submit-button">
             <>{t("update")}</>
           </Button>
         </SectionBottomActions>

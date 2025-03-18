@@ -76,6 +76,26 @@ test.describe("user with a special character in the username", () => {
     const response = await page.goto(`/${user.username}/30-min`);
     expect(response?.status()).not.toBe(404);
   });
+
+  test("Should not throw 500 when redirecting user to his/her only event-type page even if username contains special characters", async ({
+    page,
+    users,
+  }) => {
+    const benny = await users.create({
+      username: "ßenny", // ß is a special character
+      eventTypes: [
+        {
+          title: "15 min",
+          slug: "15-min",
+          length: 15,
+        },
+      ],
+      overrideDefaultEventTypes: true,
+    });
+    // This redirects to /[user]/[type] because this user has only 1 event-type
+    const response = await page.goto(`/${benny.username}`);
+    expect(response?.status()).not.toBe(500);
+  });
 });
 
 test.describe("free user", () => {
@@ -505,6 +525,7 @@ test.describe("Booking round robin event", () => {
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("Does not book seated round robin host outside availability with date override", async ({

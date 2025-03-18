@@ -18,13 +18,11 @@ let pages = (exports.pages = glob
       .replace(/(\.tsx|\.js|\.ts)/, "")
       .replace(/\/.*/, "")
   )
-  // "/future" is a temporary directory for incremental migration to App Router
   .filter(
     (v, i, self) =>
       self.indexOf(v) === i &&
       ![
         "[user]",
-        "future",
         "_trpc",
         "layout",
         "layoutHOC",

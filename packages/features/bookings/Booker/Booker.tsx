@@ -1,21 +1,21 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef } from "react";
-import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
+import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
-import classNames from "@calcom/lib/classNames";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import classNames from "@calcom/ui/classNames";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -31,6 +31,7 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -129,6 +130,8 @@ const BookerComponent = ({
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
+  const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
+
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
@@ -166,6 +169,7 @@ const BookerComponent = ({
     bookingForm,
     bookerState,
     isInstantMeeting,
+    layout == BookerLayouts.WEEK_VIEW,
     event?.data?.bookingFields
   );
 
@@ -182,17 +186,21 @@ const BookerComponent = ({
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
-    if (selectedTimeslot && skipConfirmStep && !isInstantMeeting) return setBookerState("selecting_time");
+    const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;
+    if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
+      return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
 
-  const unavailableTimeSlots = allSelectedTimeslots.filter((slot) => {
-    return !isTimeSlotAvailable({
-      scheduleData: schedule?.data ?? null,
-      slotToCheckInIso: slot,
-      quickAvailabilityChecks: slots.quickAvailabilityChecks,
-    });
-  });
+  const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
+    ? allSelectedTimeslots.filter((slot) => {
+        return !isTimeSlotAvailable({
+          scheduleData: schedule?.data ?? null,
+          slotToCheckInIso: slot,
+          quickAvailabilityChecks: slots.quickAvailabilityChecks,
+        });
+      })
+    : [];
 
   const slot = getQueryParam("slot");
 
@@ -223,7 +231,7 @@ const BookerComponent = ({
         onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
-        isTimeslotUnavailable={unavailableTimeSlots.includes(selectedTimeslot || "")}
+        isTimeslotUnavailable={!isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "")}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}
