@@ -14,7 +14,7 @@ import {
   PopularAppsSlider,
   RecentAppsSlider,
 } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 import classNames from "@calcom/ui/classNames";
 
 import { type getServerSideProps } from "@lib/apps/getServerSideProps";

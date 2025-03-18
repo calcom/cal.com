@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter, Tooltip } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 

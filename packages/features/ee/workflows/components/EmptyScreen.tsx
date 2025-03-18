@@ -4,7 +4,7 @@ import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import type { IconName } from "@calcom/ui";
+import type { IconName } from "@calcom/ui/icon/Icon";
 import { EmptyScreen as ClassicEmptyScreen, Icon, showToast } from "@calcom/ui";
 
 type WorkflowExampleType = {

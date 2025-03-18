@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Form, TextField, CheckboxField } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 export default function ICSFeedSetup() {
   const { t } = useLocale();

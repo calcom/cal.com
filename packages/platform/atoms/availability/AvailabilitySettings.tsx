@@ -36,7 +36,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 import classNames from "@calcom/ui/classNames";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";

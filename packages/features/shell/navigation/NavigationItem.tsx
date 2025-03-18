@@ -4,7 +4,7 @@ import React, { Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip, Icon, SkeletonText } from "@calcom/ui";
-import type { IconName } from "@calcom/ui";
+import type { IconName } from "@calcom/ui/icon/Icon";
 import classNames from "@calcom/ui/classNames";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";

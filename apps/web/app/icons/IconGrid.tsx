@@ -1,7 +1,7 @@
 "use client";
 
-import { Icon } from "@calcom/ui";
-import type { IconName } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
+import type { IconName } from "@calcom/ui/icon/Icon";
 
 export const IconGrid = (props: {
   title: string;

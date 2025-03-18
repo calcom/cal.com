@@ -1,4 +1,4 @@
-import type { IconName } from "@calcom/ui";
+import type { IconName } from "@calcom/ui/icon/Icon";
 import { Badge, Icon } from "@calcom/ui";
 
 type DisplayInfoType = {

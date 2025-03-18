@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 import classNames from "@calcom/ui/classNames";
 
 interface HeaderProps {

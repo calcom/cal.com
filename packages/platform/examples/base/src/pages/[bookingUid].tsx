@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 import { useBooking, useCancelBooking } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 const inter = Inter({ subsets: ["latin"] });
 
