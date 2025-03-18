@@ -1012,6 +1012,7 @@ export default class SalesforceCRMService implements CRM {
       bookingUid,
       organizerEmail,
       calEventResponses,
+      contactId,
     });
 
     this.log.info(
@@ -1038,6 +1039,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid,
     organizerEmail,
     calEventResponses,
+    contactId,
   }: {
     existingFields: Field[];
     personRecord: Record<string, any>;
@@ -1046,15 +1048,26 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
+    contactId: string;
   }): Promise<Record<string, any>> {
+    const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${contactId}`] });
     const writeOnRecordBody: Record<string, any> = {};
 
     for (const field of existingFields) {
       const fieldConfig = onBookingWriteToRecordFields[field.name];
 
+      if (!fieldConfig) {
+        log.error(`No field config found for field ${field.name}`);
+        continue;
+      }
+
+      log.info(
+        `Processing field ${field.name} with type ${field.type} and config ${JSON.stringify(fieldConfig)}`
+      );
+
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
-        this.log.info(
+        log.info(
           `Field ${field.name} on contactId ${personRecord?.Id} already exists with value ${
             personRecord[field.name]
           }`
@@ -1086,6 +1099,7 @@ export default class SalesforceCRMService implements CRM {
           });
           if (extractedText) {
             writeOnRecordBody[field.name] = extractedText;
+            continue;
           }
         } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
           const dateValue = await this.getDateFieldValue(
@@ -1096,9 +1110,12 @@ export default class SalesforceCRMService implements CRM {
           );
           if (dateValue) {
             writeOnRecordBody[field.name] = dateValue;
+            continue;
           }
         }
       }
+
+      log.error(`No value found for field ${field.name}`);
     }
 
     return writeOnRecordBody;
