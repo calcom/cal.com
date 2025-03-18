@@ -1,4 +1,4 @@
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 
 function SkeletonLoaderTeamList() {
   return (

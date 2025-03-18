@@ -5,7 +5,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { Logo } from "@calcom/ui";
+import { Logo } from "@calcom/ui/logo/Logo";
 
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 

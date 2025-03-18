@@ -8,13 +8,13 @@ import { z } from "zod";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Icon } from "@calcom/ui/icon/Icon";
+import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/skeleton/Skeleton";
 
 const schema = z.object({
   teams: z.array(

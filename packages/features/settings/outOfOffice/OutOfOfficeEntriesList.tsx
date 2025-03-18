@@ -26,7 +26,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";

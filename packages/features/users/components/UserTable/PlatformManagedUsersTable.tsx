@@ -16,7 +16,8 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge, SkeletonText } from "@calcom/ui";
+import { Badge } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Checkbox } from "@calcom/ui/form/checkbox/Checkbox";
 

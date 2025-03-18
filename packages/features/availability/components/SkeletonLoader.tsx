@@ -1,4 +1,4 @@
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 

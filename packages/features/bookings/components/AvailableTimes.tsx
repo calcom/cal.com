@@ -15,7 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Icon } from "@calcom/ui/icon/Icon";
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 

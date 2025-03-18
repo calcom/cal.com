@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import React, { Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/icon/Icon";
 import type { IconName } from "@calcom/ui/icon/Icon";

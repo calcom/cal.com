@@ -10,9 +10,9 @@ import type { SingleValueLocationOption } from "@calcom/features/form/components
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import { Skeleton } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/inputs/Label";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/skeleton/Skeleton";
 
 import { QueryCell } from "@lib/QueryCell";
 

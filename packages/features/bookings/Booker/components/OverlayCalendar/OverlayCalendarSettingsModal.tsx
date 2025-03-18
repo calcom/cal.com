@@ -3,7 +3,8 @@ import { Fragment } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ListItem, ListItemText, ListItemTitle, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { ListItem, ListItemText, ListItemTitle, SkeletonContainer } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import { Alert } from "@calcom/ui/alert/Alert";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogClose } from "@calcom/ui/dialog/Dialog";

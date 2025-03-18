@@ -1,6 +1,6 @@
 import React from "react";
 
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 
 function SkeletonLoader() {
   return (

@@ -1,4 +1,5 @@
-import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
+import { SkeletonAvatar } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 
 function SkeletonLoader() {
   return (

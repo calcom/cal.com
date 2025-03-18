@@ -1,4 +1,4 @@
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 import classNames from "@calcom/ui/classNames";
 
 export const EventMetaSkeleton = () => (
