@@ -27,7 +27,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
-  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.apps.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,

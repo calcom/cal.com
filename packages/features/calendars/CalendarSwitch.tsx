@@ -80,7 +80,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       }
     },
     async onSettled() {
-      await utils.viewer.integrations.invalidate();
+      await utils.viewer.apps.integrations.invalidate();
       await utils.viewer.connectedCalendars.invalidate();
     },
     onError() {
