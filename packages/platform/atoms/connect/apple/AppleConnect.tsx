@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form } from "@calcom/ui/form/inputs/Form";
-import { PasswordField } from "@calcom/ui";
+import { PasswordField } from "@calcom/ui/form/inputs/Input";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 

@@ -12,7 +12,7 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/form/inputs/Form";
-import { PasswordField } from "@calcom/ui";
+import { PasswordField } from "@calcom/ui/form/inputs/Input";
 import { Select } from "@calcom/ui/form/select/Select";
 import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 import { Alert } from "@calcom/ui/alert/Alert";

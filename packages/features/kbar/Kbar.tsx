@@ -18,7 +18,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 
 import { MintlifyChat } from "../mintlify-chat/MintlifyChat";

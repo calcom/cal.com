@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc";
-import { TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import { showToast } from "@calcom/ui/toast/showToast";
 

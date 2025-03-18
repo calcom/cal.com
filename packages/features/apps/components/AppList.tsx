@@ -17,7 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
-import { List } from "@calcom/ui";
+import { List } from "@calcom/ui/list/List";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";
 import {

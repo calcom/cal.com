@@ -12,7 +12,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import {
   TextField,
-  ToggleGroup,
   InputField,
   TextAreaField,
   ImageUploader,
@@ -27,6 +26,7 @@ import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
+import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
 import { showToast } from "@calcom/ui/toast/showToast";
 
 import type { UserTableAction } from "../types";

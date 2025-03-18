@@ -11,7 +11,7 @@ import {
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HeadSeo } from "@calcom/ui";
+import HeadSeo from "@calcom/ui/head-seo/HeadSeo";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 import PageWrapper from "@components/PageWrapper";

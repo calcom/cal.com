@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { AppSkeletonLoader as SkeletonLoader } from "@calcom/ui";
+import { SkeletonLoader } from "@calcom/ui/apps/SkeletonLoader";
 import { Button } from "@calcom/ui/button/Button";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/dialog/Dialog";
 import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";

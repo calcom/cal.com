@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Button } from "@calcom/ui/button/Button";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";

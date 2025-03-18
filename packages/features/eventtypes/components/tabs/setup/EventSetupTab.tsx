@@ -18,10 +18,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Select, Skeleton, TextField, TextAreaField } from "@calcom/ui";
+import { Select, Skeleton, TextAreaField } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/editor/Editor";
+import { Label } from "@calcom/ui/form/inputs/Label";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
 
 export type EventSetupTabCustomClassNames = {

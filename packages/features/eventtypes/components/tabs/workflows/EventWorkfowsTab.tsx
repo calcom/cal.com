@@ -15,7 +15,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/icon/Icon";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";

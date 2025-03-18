@@ -38,7 +38,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { PasswordField } from "@calcom/ui";
+import { PasswordField } from "@calcom/ui/form/inputs/Input";
 import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Alert } from "@calcom/ui/alert/Alert";
 import { Button } from "@calcom/ui/button/Button";

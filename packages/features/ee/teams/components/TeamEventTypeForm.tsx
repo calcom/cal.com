@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
 import { RadioGroup as RadioArea } from "@calcom/ui";
 import { Alert } from "@calcom/ui/alert/Alert";

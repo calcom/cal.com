@@ -9,7 +9,8 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
+import { Button as CalButton, TextArea } from "@calcom/ui";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 const Select = dynamic(

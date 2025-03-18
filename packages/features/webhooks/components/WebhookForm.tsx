@@ -7,10 +7,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Select, TextArea } from "@calcom/ui";
+import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
+import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
 import { Label } from "@calcom/ui/form/inputs/Label";
-import { Select, TextArea, TextField, ToggleGroup } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
+import { TextField } from "@calcom/ui/form/inputs/TextField";
 import { Switch } from "@calcom/ui/form/switch/Switch";
 
 import SectionBottomActions from "../../settings/SectionBottomActions";

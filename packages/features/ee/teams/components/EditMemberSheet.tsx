@@ -19,11 +19,11 @@ import {
   SheetBody,
   Skeleton,
   Tooltip,
-  ToggleGroup,
   Loader,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Form } from "@calcom/ui/form/inputs/Form";
+import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
 import { Icon } from "@calcom/ui/icon/Icon";
 import { showToast } from "@calcom/ui/toast/showToast";
 

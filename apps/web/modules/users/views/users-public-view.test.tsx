@@ -3,7 +3,7 @@ import { describe, it, vi } from "vitest";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { HeadSeo } from "@calcom/ui";
+import HeadSeo from "@calcom/ui/head-seo/HeadSeo";
 
 import UserPage from "./users-public-view";
 
