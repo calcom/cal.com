@@ -3,7 +3,8 @@
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { NumberInput, Select } from "@calcom/ui";
+import { NumberInput } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { Button } from "@calcom/ui/button/Button";
 import { Form } from "@calcom/ui/form/inputs/Form";
 

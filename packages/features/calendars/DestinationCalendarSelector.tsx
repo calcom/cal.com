@@ -6,7 +6,8 @@ import { components } from "react-select";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, Select } from "@calcom/ui";
+import { Badge } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 interface Props {

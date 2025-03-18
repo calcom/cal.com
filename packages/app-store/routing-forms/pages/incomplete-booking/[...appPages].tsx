@@ -11,7 +11,8 @@ import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Switch } from "@calcom/ui/form/switch/Switch";
-import { InputField, Select } from "@calcom/ui";
+import { InputField } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { Button } from "@calcom/ui/button/Button";
 import { showToast } from "@calcom/ui/toast/showToast";
 

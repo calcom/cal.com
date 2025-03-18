@@ -9,7 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { DatePicker, Select } from "@calcom/ui";
+import { DatePicker } from "@calcom/ui";
+import { Select } from "@calcom/ui/form/select/Select";
 import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Label } from "@calcom/ui/form/inputs/Label";
 
