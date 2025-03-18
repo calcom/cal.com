@@ -25,7 +25,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
   const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation({
+  const setDefaultConferencingApp = trpc.viewer.apps.setDefaultConferencingApp.useMutation({
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
     },
@@ -54,7 +54,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                 setDefaultConferencingApp.mutate({ slug });
               }
               setInstalling(false);
-              utils.viewer.integrations.invalidate();
+              utils.viewer.apps.integrations.invalidate();
               showToast(t("app_successfully_installed"), "success");
             },
             onError: (error) => {
