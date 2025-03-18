@@ -561,6 +561,8 @@ describe("SalesforceCRMService", () => {
           expect(result).toEqual([{ id: "newLeadId", email: "test@newlead.com" }]);
         });
       });
+    });
+  });
 
   describe("getAllPossibleAccountWebsiteFromEmailDomain", () => {
     it("should return all possible account websites from email domain", () => {

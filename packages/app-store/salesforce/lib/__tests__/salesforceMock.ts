@@ -262,9 +262,71 @@ export const createSalesforceMock = () => {
   const mockConnection = {
     query: vi.fn().mockImplementation(handleQuery),
     sobject: vi.fn().mockReturnValue({
-      create: vi.fn().mockImplementation(() => ({ success: true, id: `id_${Math.random()}` })),
-      update: vi.fn().mockImplementation(() => ({ success: true })),
-      delete: vi.fn().mockImplementation(() => ({ success: true })),
+      create: vi.fn().mockImplementation(async (data) => {
+        const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
+        let result;
+
+        switch (objectType) {
+          case "Contact":
+            result = addContact(data);
+            break;
+          case "Lead":
+            result = addLead(data);
+            break;
+          case "Account":
+            result = addAccount(data);
+            break;
+          case "User":
+            result = addUser(data);
+            break;
+          case "Event":
+            records.events.push({ ...data, Id: `evt${Math.random().toString().slice(2, 10)}` });
+            result = { Id: records.events[records.events.length - 1].Id };
+            break;
+          default:
+            result = { Id: `gen${Math.random().toString().slice(2, 10)}` };
+        }
+
+        return {
+          success: true,
+          id: result.Id,
+          ...result,
+        };
+      }),
+      update: vi.fn().mockImplementation(async (data) => {
+        const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
+        const id = data.Id;
+        let record;
+
+        switch (objectType) {
+          case "Contact":
+            record = records.contacts.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "Lead":
+            record = records.leads.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "Account":
+            record = records.accounts.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "User":
+            record = records.users.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+          case "Event":
+            record = records.events.find((r) => r.Id === id);
+            if (record) Object.assign(record, data);
+            break;
+        }
+
+        return {
+          success: !!record,
+          id: record?.Id,
+        };
+      }),
+      delete: vi.fn().mockImplementation(async () => ({ success: true })),
     }),
     describe: vi.fn().mockImplementation(() => {
       return {
@@ -293,11 +355,26 @@ export const createSalesforceMock = () => {
     },
   };
 
+  const getContacts = () => {
+    return records.contacts;
+  };
+
+  const getLeads = () => {
+    return records.leads;
+  };
+
+  const getAccounts = () => {
+    return records.accounts;
+  };
+
   return {
     mockConnection,
     addContact,
+    getContacts,
     addLead,
+    getLeads,
     addAccount,
+    getAccounts,
     addUser,
     getRecords: () => records,
   };
