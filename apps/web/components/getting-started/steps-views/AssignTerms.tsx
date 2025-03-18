@@ -23,13 +23,15 @@ const AssignTerms = ({ nextStep }: AssignTermsProps) => {
   return (
     <form onSubmit={onSubmit}>
       <span>Por favor, leia atentamente e preencha todas as partes solicitadas.</span>
-      <DocusealForm
-        src="https://docs.yinflow.life/d/wGickgWzeH5HUF"
-        email={user.email}
-        onComplete={(data) => {
-          console.log(data);
-        }}
-      />
+      <div className="h-[50vh] overflow-scroll">
+        <DocusealForm
+          src="https://docs.yinflow.life/d/wGickgWzeH5HUF"
+          email={user.email}
+          onComplete={(data) => {
+            console.log(data);
+          }}
+        />
+      </div>
       <Button
         disabled={!termsIsAssigned}
         EndIcon="arrow-right"
