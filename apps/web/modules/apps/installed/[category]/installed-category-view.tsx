@@ -38,16 +38,16 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const query = trpc.viewer.integrations.useQuery({
+  const query = trpc.viewer.apps.integrations.useQuery({
     variant,
     exclude,
     onlyInstalled: true,
     includeTeamInstalledApps: true,
   });
 
-  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
 
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
@@ -65,7 +65,7 @@ const IntegrationsContainer = ({
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           onSuccessCallback();
         },
         onError: (error) => {
@@ -83,7 +83,7 @@ const IntegrationsContainer = ({
       },
       {
         onSuccess: () => {
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           callback();
         },
       }
@@ -91,11 +91,11 @@ const IntegrationsContainer = ({
   };
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.integrations.invalidate();
+    utils.viewer.apps.integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   // TODO: Refactor and reuse getAppCategories?
@@ -218,7 +218,7 @@ export default function InstalledApps({ category }: PageProps) {
         onSuccess: () => {
           showToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.integrations.invalidate();
+          utils.viewer.apps.integrations.invalidate();
           utils.viewer.connectedCalendars.invalidate();
         },
         onError: () => {

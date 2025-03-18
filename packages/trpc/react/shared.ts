@@ -30,7 +30,6 @@ export const ENDPOINTS = [
   "viewer",
   "webhook",
   "workflows",
-  "appsRouter",
   "googleWorkspace",
   "oAuth",
   "attributes",

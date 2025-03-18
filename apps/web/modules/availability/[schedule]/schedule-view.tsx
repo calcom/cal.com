@@ -70,7 +70,7 @@ export const AvailabilitySettingsWebWrapper = ({
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;

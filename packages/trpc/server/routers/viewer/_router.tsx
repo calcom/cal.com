@@ -39,6 +39,7 @@ export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
 
   router({
+    apps: appsRouter,
     me: meRouter,
     public: publicViewerRouter,
     auth: authRouter,
@@ -64,7 +65,6 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     appBasecamp3: app_Basecamp3,
     features: featureFlagRouter,
-    appsRouter,
     users: userAdminRouter,
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,
