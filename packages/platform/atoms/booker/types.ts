@@ -73,6 +73,8 @@ export type BookerPlatformWrapperAtomProps = Omit<
   hostsLimit?: number;
   preventEventTypeRedirect?: boolean;
   allowUpdatingUrlParams?: boolean;
+  timeZones?: string[];
+  isBookingDryRun?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
