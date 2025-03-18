@@ -2,11 +2,6 @@ import prisma from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
 import { hasReadPermissionsForUserId } from "../../hasEditPermissionForUser";
-import {
-  transformAvailabilityForAtom,
-  transformDateOverridesForAtom,
-  transformWorkingHoursForAtom,
-} from "../../schedules";
 
 export class ScheduleRepository {
   static async findScheduleById({ id }: { id: number }) {
@@ -75,11 +70,8 @@ export class ScheduleRepository {
       id: schedule.id,
       name: schedule.name,
       isManaged: schedule.userId !== userId,
-      workingHours: transformWorkingHoursForAtom(schedule),
       schedule: schedule.availability,
-      availability: transformAvailabilityForAtom(schedule),
       timeZone,
-      dateOverrides: transformDateOverridesForAtom(schedule, timeZone),
       isDefault: !scheduleId || defaultScheduleId === schedule.id,
       isLastSchedule: schedulesCount <= 1,
       readOnly: schedule.userId !== userId && !isManagedEventType,

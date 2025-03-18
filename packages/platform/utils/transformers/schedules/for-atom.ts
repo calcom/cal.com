@@ -1,12 +1,19 @@
-import type { Availability } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime">[];
-type ScheduleOverride = Pick<Availability, "date" | "startTime" | "endTime">[];
+type ScheduleAvailability = {
+  days: number[];
+  startTime: Date;
+  endTime: Date;
+}[];
+
+type ScheduleOverride = {
+  date: Date | null;
+  startTime: Date;
+  endTime: Date;
+}[];
 
 export function transformWorkingHoursForAtom(schedule: {
   timeZone: string | null;

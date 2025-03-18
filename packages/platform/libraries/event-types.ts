@@ -44,7 +44,7 @@ export {
   systemAfterFieldNotes,
   systemAfterFieldGuests,
   apiToInternalintegrationsMapping,
-} from "@calcom/lib/event-types/transformers";
+} from "@calcom/platform-utils/transformers/event-types";
 
 export type {
   SystemField,
@@ -52,7 +52,7 @@ export type {
   NameSystemField,
   EmailSystemField,
   InternalLocation,
-} from "@calcom/lib/event-types/transformers";
+} from "@calcom/platform-utils/transformers/event-types";
 
 export { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 

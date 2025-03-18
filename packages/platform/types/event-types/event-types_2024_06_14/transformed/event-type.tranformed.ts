@@ -8,7 +8,7 @@ import type {
   transformSeatsApiToInternal,
   transformBookingFieldsApiToInternal,
   InternalLocationsSchema,
-} from "@calcom/lib/event-types/transformers";
+} from "@calcom/platform-utils/transformers/event-types";
 
 import type { CreateEventTypeInput_2024_06_14, ConfirmationPolicyTransformedSchema } from "../inputs";
 
