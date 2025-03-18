@@ -12,9 +12,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, StepCard, Steps } from "@calcom/ui";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { StepCard, Steps } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/icon/Icon";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 

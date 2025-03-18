@@ -15,8 +15,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Badge,
-  Button,
-  ButtonGroup,
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
@@ -29,6 +27,8 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 
 import { TeamRole } from "./TeamPill";

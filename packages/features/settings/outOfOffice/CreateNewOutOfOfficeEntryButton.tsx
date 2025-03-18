@@ -8,7 +8,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { ButtonProps } from "@calcom/ui";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";

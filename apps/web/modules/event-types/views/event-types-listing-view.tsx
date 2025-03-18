@@ -33,8 +33,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
   Badge,
-  Button,
-  ButtonGroup,
   ConfirmationDialogContent,
   Dialog,
   Dropdown,
@@ -56,6 +54,8 @@ import {
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 
 import useMeQuery from "@lib/hooks/useMeQuery";

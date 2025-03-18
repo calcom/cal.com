@@ -2,7 +2,7 @@
 
 import { useWebPush } from "@calcom/features/notifications/WebPushContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 const PushNotificationsView = () => {
   const { t } = useLocale();

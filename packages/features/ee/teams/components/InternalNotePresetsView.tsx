@@ -9,7 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, SettingsToggle, showToast, Icon, Input } from "@calcom/ui";
+import { Form, SettingsToggle, showToast, Icon, Input } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 interface ProfileViewProps {

@@ -10,7 +10,8 @@ import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Input } from "@calcom/ui";
+import { Input } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 

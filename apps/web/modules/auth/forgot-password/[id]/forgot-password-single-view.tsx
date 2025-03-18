@@ -6,7 +6,8 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, PasswordField, Form } from "@calcom/ui";
+import { PasswordField, Form } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import AuthContainer from "@components/ui/AuthContainer";
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 export default function CopyButton({ error }: { error: string }) {
   const { t } = useLocale();

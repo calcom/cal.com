@@ -10,7 +10,8 @@ import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField, InfoBadge } from "@calcom/ui";
+import { Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField, InfoBadge } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";

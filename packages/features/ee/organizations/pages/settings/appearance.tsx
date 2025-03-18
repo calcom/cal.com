@@ -15,7 +15,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, showToast, SettingsToggle } from "@calcom/ui";
+import { Form, showToast, SettingsToggle } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 type BrandColorsFormValues = {
   brandColor: string;

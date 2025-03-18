@@ -7,7 +7,8 @@ import type { InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName, validateCustomEventName } from "@calcom/lib/event";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogClose, DialogFooter, DialogContent, TextField } from "@calcom/ui";
+import { Dialog, DialogClose, DialogFooter, DialogContent, TextField } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 interface FormValues {

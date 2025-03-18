@@ -1,4 +1,4 @@
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 type PlatformBillingCardProps = {
   plan: string;

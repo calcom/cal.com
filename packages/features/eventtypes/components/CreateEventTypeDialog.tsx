@@ -10,7 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
+import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import CreateEventTypeForm from "./CreateEventTypeForm";
 

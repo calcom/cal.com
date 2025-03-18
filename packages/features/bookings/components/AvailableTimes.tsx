@@ -14,7 +14,8 @@ import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { Button, Icon, SkeletonText } from "@calcom/ui";
+import { Icon, SkeletonText } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";

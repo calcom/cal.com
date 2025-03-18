@@ -11,8 +11,9 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast, Icon, Switch } from "@calcom/ui";
+import { showToast, Icon, Switch } from "@calcom/ui";
 import { HeadSeo } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import KeyField from "../../components/KeyInput";
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";

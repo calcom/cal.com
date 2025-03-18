@@ -9,7 +9,7 @@ import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 interface Props {
   samlTenantID: string;

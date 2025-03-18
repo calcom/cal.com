@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 /*
 import * as Radio from "@calcom/ui";

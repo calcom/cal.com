@@ -3,7 +3,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, Dialog, DialogContent, DialogFooter, Form, Label, Select, showToast } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, Form, Label, Select, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 type InvitationLinkSettingsModalProps = {
   isOpen: boolean;

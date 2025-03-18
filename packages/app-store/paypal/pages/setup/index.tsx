@@ -5,7 +5,8 @@ import { Toaster } from "sonner";
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast, TextField } from "@calcom/ui";
+import { showToast, TextField } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 export default function PayPalSetup() {

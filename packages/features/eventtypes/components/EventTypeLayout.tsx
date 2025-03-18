@@ -10,8 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import {
-  Button,
-  ButtonGroup,
   DropdownMenuSeparator,
   Dropdown,
   DropdownMenuContent,
@@ -28,6 +26,8 @@ import {
   VerticalDivider,
   VerticalTabs,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 
 import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";

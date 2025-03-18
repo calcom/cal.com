@@ -7,7 +7,8 @@ import { Toaster } from "sonner";
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
+import { Icon, showToast, Tooltip } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import type { getServerSideProps } from "./_getServerSideProps";
 

@@ -7,7 +7,8 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { EmptyScreen, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 type ConferencingAppsViewWebWrapperProps = {
   title: string;

@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Tooltip } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import { useDataTable } from "../../hooks/useDataTable";
 

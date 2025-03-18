@@ -9,7 +9,8 @@ import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { WizardLayout } from "@calcom/ui";
-import { Button, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 export const CreateTeamEventType = () => {
   const searchParams = useCompatSearchParams();

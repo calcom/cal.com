@@ -2,7 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
 import type { ButtonProps } from "@calcom/ui";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 export const InstallAppButtonChild = ({
   multiInstall,

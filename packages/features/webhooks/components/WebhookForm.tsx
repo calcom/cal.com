@@ -7,7 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
+import { Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import SectionBottomActions from "../../settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";

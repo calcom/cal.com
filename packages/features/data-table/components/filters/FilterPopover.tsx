@@ -1,8 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 
+import { Popover, PopoverContent, PopoverTrigger, Badge } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import type { IconName } from "@calcom/ui/icon/Icon";
-import { Button, Popover, PopoverContent, PopoverTrigger, Badge } from "@calcom/ui";
 
 import { useFilterValue } from "../../hooks";
 import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";

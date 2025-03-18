@@ -17,8 +17,6 @@ import type { Brand } from "@calcom/types/utils";
 import {
   Alert,
   Badge,
-  Button,
-  ButtonGroup,
   Dialog,
   DialogClose,
   DialogContent,
@@ -33,6 +31,8 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
 
 import { TRPCClientError } from "@trpc/react-query";

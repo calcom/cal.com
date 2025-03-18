@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 import AuthContainer from "@components/ui/AuthContainer";

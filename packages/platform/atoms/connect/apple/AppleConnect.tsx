@@ -13,7 +13,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, PasswordField, TextField } from "@calcom/ui";
+import { Form, PasswordField, TextField } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";

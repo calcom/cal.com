@@ -1,6 +1,7 @@
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, DialogFooter } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;

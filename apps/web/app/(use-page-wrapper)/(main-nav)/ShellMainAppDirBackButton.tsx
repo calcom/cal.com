@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import type { LayoutProps } from "@calcom/features/shell/Shell";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 export const ShellMainAppDirBackButton = ({ backPath }: { backPath: LayoutProps["backPath"] }) => {
   const router = useRouter();

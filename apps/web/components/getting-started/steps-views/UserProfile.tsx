@@ -7,8 +7,9 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
+import { Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 type FormData = {
   bio: string;

@@ -14,7 +14,8 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, showToast, useCalcomTheme } from "@calcom/ui";
+import { showToast, useCalcomTheme } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 import FormInputFields from "../../components/FormInputFields";

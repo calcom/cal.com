@@ -36,8 +36,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Avatar,
   Badge,
-  Button,
-  ButtonGroup,
   Checkbox,
   ConfirmationDialogContent,
   Dialog,
@@ -54,6 +52,8 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
+import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";

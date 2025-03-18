@@ -12,7 +12,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LocationObject } from "@calcom/lib/location";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { Button, Form, Icon, Avatar } from "@calcom/ui";
+import { Form, Icon, Avatar } from "@calcom/ui";
+import { Button } from "@calcom/ui/button/Button";
 
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
