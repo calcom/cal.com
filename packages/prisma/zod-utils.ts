@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { type } from "arktype";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
@@ -23,6 +24,11 @@ import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
+// removedNullable: I did not add `.or("null")` here since it was not being used
+// and its generally good practice to define object types standalone and only
+// add optionality or nullability once they're referenced in a position where
+// it's required.
+
 // Let's not import 118kb just to get an enum
 export enum Frequency {
   YEARLY = 0,
@@ -46,18 +52,30 @@ export const bookerLayoutOptions = [
   BookerLayouts.COLUMN_VIEW,
 ];
 
-const layoutOptions = z.union([
-  z.literal(bookerLayoutOptions[0]),
-  z.literal(bookerLayoutOptions[1]),
-  z.literal(bookerLayoutOptions[2]),
-]);
+// const layoutOptions = z.union([
+//   z.literal(bookerLayoutOptions[0]),
+//   z.literal(bookerLayoutOptions[1]),
+//   z.literal(bookerLayoutOptions[2]),
+// ]);
 
-export const bookerLayouts = z
-  .object({
-    enabledLayouts: z.array(layoutOptions),
-    defaultLayout: layoutOptions,
-  })
-  .nullable();
+// zodToArk
+const layoutOptions = type.enumerated(...bookerLayoutOptions);
+
+// export const bookerLayouts = z
+//   .object({
+//     enabledLayouts: z.array(layoutOptions),
+//     defaultLayout: layoutOptions,
+//   })
+//   .nullable();
+
+// zodToArk
+// 1. renamed bookerLayouts => bookerLayoutsSchema
+// to match convention (it was being aliased when imported)
+// 2. removedNullable (see note at top of file)
+export const bookerLayoutsSchema = type({
+  enabledLayouts: layoutOptions.array(),
+  defaultLayout: layoutOptions,
+});
 
 export const orgOnboardingInvitedMembersSchema = z.array(
   z.object({ email: z.string().email(), name: z.string().optional() })
@@ -73,13 +91,14 @@ export const orgOnboardingTeamsSchema = z.array(
   })
 );
 
-export const defaultBookerLayoutSettings = {
+export const defaultBookerLayoutSettings: BookerLayoutSettings = {
   defaultLayout: BookerLayouts.MONTH_VIEW,
   // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.
   enabledLayouts: bookerLayoutOptions,
 };
 
-export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
+// export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
+export type BookerLayoutSettings = typeof bookerLayoutsSchema.infer;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
@@ -125,7 +144,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
       useHostSchedulesForTeamEvent: z.boolean().optional(),
     })
     .optional(),
-  bookerLayouts: bookerLayouts.optional(),
+  bookerLayouts: bookerLayoutsSchema.optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
@@ -339,7 +358,7 @@ export const userMetadata = z
     isPremium: z.boolean().optional(),
     sessionTimeout: z.number().optional(), // Minutes
     defaultConferencingApp: schemaDefaultConferencingApp.optional(),
-    defaultBookerLayouts: bookerLayouts.optional(),
+    defaultBookerLayouts: bookerLayoutsSchema.optional(),
     emailChangeWaitingForVerification: z
       .string()
       .transform((data) => data.toLowerCase())
@@ -373,26 +392,44 @@ export enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
-export const teamMetadataSchema = z
-  .object({
-    requestedSlug: z.string().or(z.null()),
-    paymentId: z.string(),
-    subscriptionId: z.string().nullable(),
-    subscriptionItemId: z.string().nullable(),
-    orgSeats: z.number().nullable(),
-    orgPricePerSeat: z.number().nullable(),
-    migratedToOrgFrom: z
-      .object({
-        teamSlug: z.string().or(z.null()).optional(),
-        lastMigrationTime: z.string().optional(),
-        reverted: z.boolean().optional(),
-        lastRevertTime: z.string().optional(),
-      })
-      .optional(),
-    billingPeriod: z.nativeEnum(BillingPeriod).optional(),
-  })
-  .partial()
-  .nullable();
+// export const teamMetadataSchema = z
+//   .object({
+//     requestedSlug: z.string().or(z.null()),
+//     paymentId: z.string(),
+//     subscriptionId: z.string().nullable(),
+//     subscriptionItemId: z.string().nullable(),
+//     orgSeats: z.number().nullable(),
+//     orgPricePerSeat: z.number().nullable(),
+//     migratedToOrgFrom: z
+//       .object({
+//         teamSlug: z.string().or(z.null()).optional(),
+//         lastMigrationTime: z.string().optional(),
+//         reverted: z.boolean().optional(),
+//         lastRevertTime: z.string().optional(),
+//       })
+//       .optional(),
+//     billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+//   })
+//   .partial()
+//   .nullable();
+
+// zodToArk
+// 1. removedNullable (see note at top of file)
+export const teamMetadataSchema = type({
+  requestedSlug: "string | null",
+  paymentId: "string",
+  subscriptionId: "string | null",
+  subscriptionItemId: "string | null",
+  orgSeats: "string | null",
+  orgPricePerSeat: "string | null",
+  migratedToOrgFrom: {
+    "teamSlug?": "string | null",
+    "lastMigrationTime?": "string",
+    "reverted?": "boolean",
+    "lastRevertTime?": "string",
+  },
+  billinPeriod: type.enumerated(...Object.values(BillingPeriod)),
+}).partial();
 
 export const bookingMetadataSchema = z
   .object({
@@ -402,25 +439,46 @@ export const bookingMetadataSchema = z
   .nullable()
   .describe("BookingMetadata");
 
-export const customInputOptionSchema = z.array(
-  z.object({
-    label: z.string(),
-    type: z.string(),
-  })
-);
+// export const customInputOptionSchema = z.array(
+//   z.object({
+//     label: z.string(),
+//     type: z.string(),
+//   })
+// );
 
-export const customInputSchema = z.object({
-  id: z.number(),
-  eventTypeId: z.number(),
-  label: z.string(),
+// zodToArk
+export const customInputOptionSchema = type({
+  label: "string",
+  type: "string",
+}).array();
+
+// export const customInputSchema = z.object({
+//   id: z.number(),
+//   eventTypeId: z.number(),
+//   label: z.string(),
+//   type: z.nativeEnum(EventTypeCustomInputType),
+//   options: customInputOptionSchema.optional().nullable(),
+//   required: z.boolean(),
+//   placeholder: z.string(),
+//   hasToBeCreated: z.boolean().optional(),
+// });
+
+// zodToArk
+export const customInputSchema = type({
+  id: "number",
+  eventTypeId: "number",
+  label: "string",
   type: z.nativeEnum(EventTypeCustomInputType),
-  options: customInputOptionSchema.optional().nullable(),
-  required: z.boolean(),
-  placeholder: z.string(),
-  hasToBeCreated: z.boolean().optional(),
+  "options?": customInputOptionSchema.or("null"),
+  required: "boolean",
+  placeholder: "string",
+  "hasToBeCreated?": "boolean",
 });
 
-export type CustomInputSchema = z.infer<typeof customInputSchema>;
+// export type CustomInputSchema = z.infer<typeof customInputSchema>;
+
+// zodToArk
+export type CustomInputSchema = typeof customInputSchema.infer;
 
 export const recordingItemSchema = z
   .object({

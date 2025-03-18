@@ -141,6 +141,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ark/schema@npm:0.44.4":
+  version: 0.44.4
+  resolution: "@ark/schema@npm:0.44.4"
+  dependencies:
+    "@ark/util": 0.44.4
+  checksum: 3a76852a315ee440cdbd746743d84e023909ee9c6ba3852222491396b66c3ad1b3ce7f880ca76d8d829123850cd6a3e16995c700a323b536c59d8254ac9715d8
+  languageName: node
+  linkType: hard
+
+"@ark/util@npm:0.44.4":
+  version: 0.44.4
+  resolution: "@ark/util@npm:0.44.4"
+  checksum: 30e9ceb7fa54b7260c06a233ba64aa7eced273d3e84d103f80c13391bdc29e357b453a561c3b86cc2cbcbc24e9709374c0d8497fe2b3060c36013618457f6688
+  languageName: node
+  linkType: hard
+
 "@aws-crypto/crc32@npm:3.0.0":
   version: 3.0.0
   resolution: "@aws-crypto/crc32@npm:3.0.0"
@@ -3409,6 +3425,7 @@ __metadata:
     "@prisma/client": ^5.4.2
     "@prisma/extension-accelerate": ^0.6.2
     "@prisma/generator-helper": ^5.4.2
+    arktype: ^2.1.9
     npm-run-all: ^4.1.5
     prisma: ^5.4.2
     prisma-kysely: ^1.7.1
@@ -16152,6 +16169,16 @@ __metadata:
   dependencies:
     dequal: ^2.0.3
   checksum: 305bd73c76756117b59aba121d08f413c7ff5e80fa1b98e217a3443fcddb9a232ee790e24e432b59ae7625aebcf4c47cb01c2cac872994f0b426f5bdfcd96ba9
+  languageName: node
+  linkType: hard
+
+"arktype@npm:^2.1.9":
+  version: 2.1.9
+  resolution: "arktype@npm:2.1.9"
+  dependencies:
+    "@ark/schema": 0.44.4
+    "@ark/util": 0.44.4
+  checksum: 5949e148fca2541342cad0356fb366495755dc6f4100660d0af06db7a0ab550d10e4301d0f9f57cc0be7d48e4f8742cb58356ba616e4e7b3b7caf6b7bffd834f
   languageName: node
   linkType: hard
 

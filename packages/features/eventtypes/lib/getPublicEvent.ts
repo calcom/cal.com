@@ -19,10 +19,10 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
-  BookerLayouts,
   eventTypeMetaDataSchemaWithTypedApps,
+  BookerLayouts,
   bookerLayoutOptions,
-  bookerLayouts as bookerLayoutsSchema,
+  bookerLayoutsSchema,
   customInputSchema,
   teamMetadataSchema,
   userMetadata as userMetadataSchema,
@@ -291,7 +291,7 @@ export const getPublicEvent = async (
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
-        bookerLayouts: bookerLayoutsSchema.parse(
+        bookerLayouts: bookerLayoutsSchema(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
         ...(orgDetails
@@ -379,7 +379,7 @@ export const getPublicEvent = async (
   if (!event) return null;
 
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
-  const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
+  const teamMetadata = teamMetadataSchema(event.team?.metadata || {});
   const usersAsHosts = event.hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
