@@ -13,10 +13,11 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, showToast, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Badge, showToast } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
 import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
