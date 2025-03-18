@@ -101,7 +101,7 @@ type BookingField = z.infer<typeof fieldSchema>;
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
-    Pick<RouterOutputs["viewer"]["me"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
+    Pick<RouterOutputs["viewer"]["me"]["get"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
   >;
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
