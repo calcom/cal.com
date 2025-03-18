@@ -1406,6 +1406,7 @@ export default class SalesforceCRMService implements CRM {
       existingFields,
       personRecord,
       onBookingWriteToRecordFields: writeToRecordObject,
+      contactId: personRecord.Id,
     });
     await conn
       .sobject(recordType)
