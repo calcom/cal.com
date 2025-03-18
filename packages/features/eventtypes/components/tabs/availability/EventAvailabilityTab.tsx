@@ -70,7 +70,7 @@ type EventTypeScheduleDetailsProps = {
     schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
   };
   isSchedulePending?: boolean;
-  user?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
+  user?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
   editAvailabilityRedirectUrl?: string;
   customClassNames?: AvailabilityTableCustomClassNames;
 };

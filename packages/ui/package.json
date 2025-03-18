@@ -55,6 +55,7 @@
     "./components/icon/Spinner": "./components/icon/Spinner.tsx",
     "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
     "./components/table/TableNew": "./components/table/TableNew.tsx",
+    "./components/app-list-card/AppListCard": "./components/app-list-card/AppListCard.tsx",
     "./__mocks__/ui": "./__mocks__/ui.tsx"
   },
   "license": "MIT",
@@ -106,6 +107,6 @@
     "fs-extra": "^11.2.0",
     "lucide-static": "^0.424.0",
     "node-html-parser": "^6.1.13",
-    "typescript": "^4.9.4"
+    "typescript": "^5.8.2"
   }
 }

@@ -47,8 +47,12 @@ import { ApiResponse } from "@calcom/platform-types";
 @DocsTags("Slots")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to \`2024-09-04\``,
+  description: `Must be set to ${VERSION_2024_09_04}`,
+  example: VERSION_2024_09_04,
   required: true,
+  schema: {
+    default: VERSION_2024_09_04,
+  },
 })
 export class SlotsController_2024_09_04 {
   constructor(private readonly slotsService: SlotsService_2024_09_04) {}

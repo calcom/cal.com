@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     (t) => t("create_your_org_description")
   );
 
-export default EnterprisePage;
+const ServerPageWrapper = async () => {
+  return <EnterprisePage />;
+};
+
+export default ServerPageWrapper;

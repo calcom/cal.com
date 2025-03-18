@@ -103,6 +103,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   router.push(`/${data.data.uid}`);
                 }
               }}
+              onBookerStateChange={(bookerState) => {
+                console.log("Booker state updated:", bookerState);
+                // You can perform any actions based on the updated state here
+              }}
               metadata={{ CustomKey: "CustomValue" }}
               duration={eventTypeDuration}
               customClassNames={{
@@ -122,6 +126,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
                 : { username: props.calUsername })}
               hostsLimit={3}
+              selectedDate={new Date("2025-03-25")}
+              allowUpdatingUrlParams={true}
             />
           </>
         )}

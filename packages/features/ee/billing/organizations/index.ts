@@ -1,5 +1,4 @@
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
 
 import { InternalOrganizationBilling } from "./internal-organization-billing";
 import { OrganizationBillingRepository } from "./organization-billing.repository";

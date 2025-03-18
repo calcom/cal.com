@@ -329,7 +329,7 @@ function OutOfOfficeEntriesListContent() {
     <>
       <DataTableWrapper
         testId="ooo-list-data-table"
-        hideHeader={selectedTab === OutOfOfficeTab.MINE}
+        rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
         table={table}
         isPending={isPending}
         hasNextPage={hasNextPage}

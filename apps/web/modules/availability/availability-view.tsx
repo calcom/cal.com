@@ -27,7 +27,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
 
-  const meQuery = trpc.viewer.me.useQuery();
+  const meQuery = trpc.viewer.me.get.useQuery();
 
   const router = useRouter();
 
@@ -101,7 +101,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
