@@ -28,5 +28,6 @@ export function CreateButtonWithTeamsList(
   if (props.onlyShowWithTeams && teamsAndUserProfiles.length < 2) return null;
 
   if (props.onlyShowWithNoTeams && teamsAndUserProfiles.length > 1) return null;
+
   return <CreateButton {...props} options={teamsAndUserProfiles} />;
 }

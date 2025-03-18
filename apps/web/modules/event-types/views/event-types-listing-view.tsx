@@ -952,7 +952,7 @@ const InfiniteScrollMain = ({
 export const EventTypesCTA = () => {
   const { data: user } = useMeQuery();
   const profileOptions = useTeamsAndUserProfiles({ membershipRole: true });
-  console.log("events -0>", profileOptions);
+
   return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
 };
 
