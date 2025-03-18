@@ -100,12 +100,12 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
       }),
   });
 
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "hitpay" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "hitpay" });
   const [HitPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = HitPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
 
-  const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");
