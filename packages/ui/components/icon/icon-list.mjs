@@ -147,5 +147,5 @@ export const lucideIconList = new Set([
   "calendar-range",
   "bookmark",
   "square-pen",
-  "funnel",
+  "list-filter",
 ]);

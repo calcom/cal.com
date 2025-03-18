@@ -114,7 +114,7 @@ export function FilterSegmentSelect() {
     <>
       <Dropdown>
         <DropdownMenuTrigger asChild>
-          <Button color="secondary" StartIcon="funnel" EndIcon="chevron-down">
+          <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down">
             {selectedSegment?.name || t("segment")}
           </Button>
         </DropdownMenuTrigger>

@@ -86,6 +86,7 @@ export type IconName =
   | "layout-dashboard"
   | "link-2"
   | "link"
+  | "list-filter"
   | "loader"
   | "lock-open"
   | "lock"
