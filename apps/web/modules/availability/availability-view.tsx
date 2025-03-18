@@ -120,7 +120,7 @@ export function AvailabilityList() {
 
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
 
-  if (isFetchingAvailabilityData) {
+  if (isFetchingAvailabilityData || !availabilityData) {
     return <SkeletonLoader />;
   }
 
