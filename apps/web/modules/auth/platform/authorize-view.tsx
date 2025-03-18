@@ -6,7 +6,9 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
-import { Avatar, Button, Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 import { hasPermission } from "../../../../../packages/platform/utils/permissions";
 

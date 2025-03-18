@@ -18,16 +18,16 @@ import {
   TextAreaField,
   Label,
   showToast,
-  Avatar,
   ImageUploader,
   SelectField,
   SheetHeader,
   SheetBody,
   SheetFooter,
-  Button,
   SheetTitle,
   Divider,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";

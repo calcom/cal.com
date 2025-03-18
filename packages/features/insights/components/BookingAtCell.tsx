@@ -3,15 +3,8 @@ import { useId } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
-import {
-  Badge,
-  Avatar,
-  Icon,
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-  HoverCardPortal,
-} from "@calcom/ui";
+import { Badge, Icon, HoverCard, HoverCardContent, HoverCardTrigger, HoverCardPortal } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
 
 import type { RoutingFormTableRow } from "../lib/types";
 import { BookingStatusBadge } from "./BookingStatusBadge";

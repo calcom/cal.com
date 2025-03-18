@@ -10,8 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc } from "@calcom/trpc";
 import {
-  Avatar,
-  Button,
   buttonClasses,
   TextField,
   Icon,
@@ -24,6 +22,8 @@ import {
   SheetTitle,
   showToast,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };

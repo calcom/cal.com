@@ -10,9 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import {
-  Avatar,
   Badge,
-  Button,
   SkeletonContainer,
   SkeletonText,
   SkeletonButton,
@@ -21,6 +19,8 @@ import {
   showToast,
   Alert,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 

@@ -6,7 +6,6 @@ import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
-  Avatar,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -16,6 +15,7 @@ import {
   DropdownMenuTrigger,
   Icon,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
 import classNames from "@calcom/ui/classNames";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";

@@ -5,7 +5,8 @@ import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Loader, Sheet, SheetContent, SheetBody, SheetHeader, SheetFooter } from "@calcom/ui";
+import { Loader, Sheet, SheetContent, SheetBody, SheetHeader, SheetFooter } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
 
 import type { UserTableAction, UserTableState } from "../types";
 import { DisplayInfo } from "./DisplayInfo";

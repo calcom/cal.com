@@ -5,7 +5,9 @@ import { useTranslation } from "react-i18next";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
+import { Switch, Badge, Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 import type { CredentialOwner } from "../types";

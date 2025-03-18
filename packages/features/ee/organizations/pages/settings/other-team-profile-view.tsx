@@ -21,8 +21,6 @@ import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
-  Button,
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
@@ -36,6 +34,8 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 

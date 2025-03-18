@@ -5,7 +5,9 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Form, Button, Icon, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
+import { Form, Icon, TextField, showToast, Tooltip, ImageUploader } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 type FormValues = {
   name: string;

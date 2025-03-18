@@ -8,7 +8,6 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import {
-  Avatar,
   ToggleGroup,
   Badge,
   Tooltip,
@@ -16,8 +15,9 @@ import {
   HoverCardContent,
   HoverCardTrigger,
   Input,
-  Button,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 import {
   Table,

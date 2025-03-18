@@ -25,8 +25,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
-  Button,
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
@@ -42,6 +40,8 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 

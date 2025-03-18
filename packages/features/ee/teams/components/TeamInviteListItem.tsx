@@ -3,8 +3,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -12,6 +10,8 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 interface Props {

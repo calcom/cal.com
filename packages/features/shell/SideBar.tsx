@@ -9,7 +9,8 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import { Avatar, ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo } from "@calcom/ui";
+import { ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
 import classNames from "@calcom/ui/classNames";
 
 import { KBarTrigger } from "../kbar/Kbar";

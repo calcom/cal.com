@@ -2,8 +2,9 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
+import { DropdownActions, Table } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
 import type { IconName } from "@calcom/ui/icon/Icon";
-import { Avatar, DropdownActions, Table } from "@calcom/ui";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 

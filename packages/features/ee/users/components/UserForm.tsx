@@ -7,7 +7,9 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { defaultLocaleOption, localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { Avatar, Button, EmailField, Form, ImageUploader, Label, Select, TextField } from "@calcom/ui";
+import { EmailField, Form, ImageUploader, Label, Select, TextField } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 

@@ -12,7 +12,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   Icon,
   Sheet,
   SheetContent,
@@ -26,6 +25,7 @@ import {
   showToast,
   Loader,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
 
 import { updateRoleInCache } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";

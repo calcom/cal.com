@@ -5,7 +5,9 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
+import { Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Button } from "@calcom/ui/button/Button";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();

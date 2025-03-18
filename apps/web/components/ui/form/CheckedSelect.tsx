@@ -3,7 +3,7 @@ import type { Props } from "react-select";
 
 import Select from "@calcom/features/form/components/Select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar/Avatar";
 import { Icon } from "@calcom/ui/icon/Icon";
 
 type CheckedSelectOption = {
