@@ -175,6 +175,7 @@ export const MultiplePrivateLinksController = ({
                       disabled
                       value={singleUseURL}
                       className="bg-gray-50"
+                      data-testid="private-link-url"
                       addOnSuffix={
                         <Tooltip content={t("copy_link")}>
                           <Button
