@@ -75,7 +75,7 @@ export const AvailableTimeSlots = ({
   const [layout] = useBookerStore((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStore((state) => ({
+  const { setTentativeSelectedTimeslots } = useBookerStore((state) => ({
     setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
     tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
   }));
@@ -116,13 +116,11 @@ export const AvailableTimeSlots = ({
     return [];
   }, [date, extraDays, nonEmptyScheduleDaysFromSelectedDate]);
 
-  const therapyIds = [1375, 1379, 1383, 1389, 1523, 1518];
-
-  const isTherapy = therapyIds.includes((((event as any).data as any)?.id as any) ?? 0);
+  // const isTherapy = therapyIds.includes((((event as any).data as any)?.id as any) ?? 0);
   const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(
     dates,
-    isTherapy,
-    (event as any).data?.id === 1518,
+    false,
+    false,
     scheduleData?.slots
   );
 
