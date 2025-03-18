@@ -116,6 +116,10 @@ export const AvailableTimeSlots = ({
     return [];
   }, [date, extraDays, nonEmptyScheduleDaysFromSelectedDate]);
 
+  useEffect(() => {
+    console.log("event test", props);
+  }, [props]);
+
   // const isTherapy = therapyIds.includes((((event as any).data as any)?.id as any) ?? 0);
   const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(
     dates,

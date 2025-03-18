@@ -3,7 +3,8 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync, getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
@@ -58,7 +59,7 @@ export const EventMembers = ({
         ];
 
   return (
-    <div>
+    <>
       <AvatarGroup
         size="sm"
         className="border-muted"
@@ -78,7 +79,7 @@ export const EventMembers = ({
         ]}
       />
 
-      <p className=" custom-mobile-text text-subtle mt-8 text-sm font-semibold">
+      <p className="text-subtle mt-2 text-sm font-semibold">
         {showOnlyProfileName
           ? profile.name
           : shownUsers
@@ -86,33 +87,6 @@ export const EventMembers = ({
               .filter((name) => name)
               .join(", ")}
       </p>
-      <div className="grid hidden grid-cols-1 md:block">
-        <AvatarGroup
-          size="xl"
-          className="border-muted"
-          items={[
-            ...orgOrTeamAvatarItem,
-            ...shownUsers.map((user) => ({
-              href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
-                user.profile?.username
-              }?redirect=false`,
-              alt: user.name || "",
-              title: user.name || "",
-              image: getUserAvatarUrl(user),
-            })),
-          ]}
-        />
-        <p
-          style={{ lineHeight: "32px", color: "#114559", fontSize: 22 }}
-          className="text-subtle adjust-title text-small mt-2 font-semibold">
-          {showOnlyProfileName
-            ? profile.name
-            : shownUsers
-                .map((user) => user.name)
-                .filter((name) => name)
-                .join(", ")}
-        </p>
-      </div>
-    </div>
+    </>
   );
 };
