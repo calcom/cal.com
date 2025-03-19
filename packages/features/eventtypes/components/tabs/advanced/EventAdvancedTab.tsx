@@ -30,7 +30,12 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, APP_NAME } from "@calcom/lib/constants";
+import {
+  DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
+  APP_NAME,
+  MAX_SEATS_PER_TIME_SLOT,
+} from "@calcom/lib/constants";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -830,8 +835,10 @@ export const EventAdvancedTab = ({
                         label={t("number_of_seats")}
                         type="number"
                         disabled={seatsLocked.disabled}
-                        defaultValue={value}
+                        //For old events if value > MAX_SEATS_PER_TIME_SLOT
+                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
                         min={1}
+                        max={MAX_SEATS_PER_TIME_SLOT}
                         containerClassName={classNames(
                           "max-w-80",
                           customClassNames?.seatsOptions?.seatsInput.container
@@ -839,9 +846,11 @@ export const EventAdvancedTab = ({
                         addOnClassname={customClassNames?.seatsOptions?.seatsInput.addOn}
                         className={customClassNames?.seatsOptions?.seatsInput?.input}
                         labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
-                        addOnSuffix={<>{t("seats")}</>}
+                        addOnSuffix={t("seats")}
                         onChange={(e) => {
-                          onChange(Math.abs(Number(e.target.value)));
+                          let enteredValue = Number(e.target.value);
+                          if (enteredValue < 1) enteredValue = 1;
+                          onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
                         }}
                         data-testid="seats-per-time-slot"
                       />

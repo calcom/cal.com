@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -107,6 +108,7 @@ const schemaEventTypeEditParams = z
     seatsShowAttendees: z.boolean().optional(),
     seatsShowAvailabilityCount: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),
+    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).optional(),
     scheduleId: z.number().optional(),
   })
   .strict();
