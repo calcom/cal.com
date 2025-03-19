@@ -109,6 +109,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               }}
               metadata={{ CustomKey: "CustomValue" }}
               duration={eventTypeDuration}
+              confirmButtonDisabled={false}
               customClassNames={{
                 bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
                 datePickerCustomClassNames: {
@@ -120,6 +121,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 availableTimeSlotsCustomClassNames: {
                   availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
                   availableTimes: "!bg-[#D7CEF5]",
+                },
+                confirmStep: {
+                  confirmButton: "!bg-purple-700",
+                  backButton: "text-purple-700 hover:!bg-purple-700 hover:!text-white",
                 },
               }}
               {...(isTeamEvent

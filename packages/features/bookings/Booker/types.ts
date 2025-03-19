@@ -123,6 +123,7 @@ export type WrappedBookerPropsMain = {
   customClassNames?: CustomClassNames;
   isBookingDryRun?: boolean;
   renderCaptcha?: boolean;
+  confirmButtonDisabled?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
@@ -167,4 +168,8 @@ export type CustomClassNames = {
     availableTimes?: string;
   };
   atomsWrapper?: string;
+  confirmStep?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
 };
