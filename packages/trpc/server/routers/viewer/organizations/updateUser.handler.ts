@@ -86,6 +86,11 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       user: {
         select: {
           username: true,
+          profiles: {
+            select: {
+              username: true,
+            },
+          },
         },
       },
     },
@@ -94,7 +99,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   if (!requestedMember)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
 
-  const hasUsernameUpdated = input.username !== requestedMember.user.username;
+  const hasUsernameUpdated = input.username !== requestedMember.user.profiles[0]?.username;
 
   if (input.username && hasUsernameUpdated && user.profile.organization?.slug) {
     const checkRegularUsernameRes = await checkRegularUsername(
