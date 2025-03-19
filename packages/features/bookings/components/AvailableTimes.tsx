@@ -62,6 +62,9 @@ type SlotItemProps = {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
+  confirmStepClassNames?: {
+    confirmButton?: string;
+  };
   loadingStates?: IUseBookingLoadingStates;
   isVerificationCodeSending?: boolean;
   renderConfirmNotVerifyEmailButtonCond?: boolean;
@@ -69,6 +72,7 @@ type SlotItemProps = {
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
   unavailableTimeSlots?: string[];
+  confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
 };
 
@@ -89,6 +93,8 @@ const SlotItem = ({
   handleSlotClick,
   onTentativeTimeSelect,
   unavailableTimeSlots = [],
+  confirmButtonDisabled,
+  confirmStepClassNames,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -200,6 +206,7 @@ const SlotItem = ({
                   variant={layout === "column_view" ? "icon" : "button"}
                   StartIcon={layout === "column_view" ? "chevron-right" : undefined}
                   type="button"
+                  className={confirmStepClassNames?.confirmButton}
                   onClick={() =>
                     onTimeSelect &&
                     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
@@ -211,7 +218,8 @@ const SlotItem = ({
                     loadingStates?.creatingBooking ||
                     loadingStates?.creatingRecurringBooking ||
                     isVerificationCodeSending ||
-                    loadingStates?.creatingInstantBooking
+                    loadingStates?.creatingInstantBooking ||
+                    confirmButtonDisabled
                   }
                   color="primary"
                   loading={

@@ -894,14 +894,15 @@ export default class SalesforceCRMService implements CRM {
   }
 
   public getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
-    return [
+    const websites = [
       emailDomain,
       `www.${emailDomain}`,
       `http://www.${emailDomain}`,
       `http://${emailDomain}`,
       `https://www.${emailDomain}`,
       `https://${emailDomain}`,
-    ].join(", ");
+    ];
+    return websites.map((website) => `'${website}'`).join(", ");
   }
 
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
