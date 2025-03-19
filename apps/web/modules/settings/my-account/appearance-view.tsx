@@ -19,19 +19,13 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import {
-  Alert,
-  Button,
-  ColorPicker,
-  Form,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  SettingsToggle,
-  UpgradeTeamsBadge,
-  useCalcomTheme,
-} from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { useCalcomTheme } from "@calcom/ui/styles";
 
 const SkeletonLoader = () => {
   return (
