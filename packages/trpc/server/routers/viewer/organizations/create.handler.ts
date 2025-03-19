@@ -204,7 +204,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
   }
 
-  const autoAcceptEmail = orgOwnerEmail.split("@")[1];
+  const autoAcceptEmail = isPlatform ? "UNUSED_FOR_PLATFORM" : orgOwnerEmail.split("@")[1];
 
   const orgData = {
     name,
