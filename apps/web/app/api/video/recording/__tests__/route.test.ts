@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
+import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
 import { verifyVideoToken } from "@calcom/lib/videoTokens";
 
 import { GET } from "../route";
