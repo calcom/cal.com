@@ -32,7 +32,6 @@ describe("deleteHandler", () => {
 
     const input: TDeleteFilterSegmentInputSchema = {
       id: segment.id,
-      scope: "USER",
     };
 
     const result = await deleteHandler({
@@ -89,8 +88,6 @@ describe("deleteHandler", () => {
 
     const input: TDeleteFilterSegmentInputSchema = {
       id: segment.id,
-      scope: "TEAM",
-      teamId: team.id,
     };
 
     const result = await deleteHandler({
@@ -113,7 +110,6 @@ describe("deleteHandler", () => {
   it("should throw error when deleting non-existent segment", async () => {
     const input: TDeleteFilterSegmentInputSchema = {
       id: 999,
-      scope: "USER",
     };
 
     await expect(
@@ -161,8 +157,6 @@ describe("deleteHandler", () => {
 
     const input: TDeleteFilterSegmentInputSchema = {
       id: segment.id,
-      scope: "TEAM",
-      teamId: team.id,
     };
 
     await expect(
@@ -170,6 +164,6 @@ describe("deleteHandler", () => {
         ctx: { user: mockUser },
         input,
       })
-    ).rejects.toThrow("Filter segment not found or you don't have permission to delete it");
+    ).rejects.toThrow("You must be a team admin or owner to delete team filter segments");
   });
 });
