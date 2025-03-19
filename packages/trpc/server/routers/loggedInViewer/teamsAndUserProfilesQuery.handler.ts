@@ -2,6 +2,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -83,6 +84,11 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       }));
   }
 
+  //For making team logo same as Org logo
+  const ownerTeam = user.teams.find((membership) => membership.role === MembershipRole.OWNER);
+  const ownerLogoUrl = ownerTeam?.team.logoUrl;
+  const ownerName = ownerTeam?.team.name;
+
   return [
     {
       teamId: null,
@@ -97,7 +103,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? `team/${membership.team.slug}` : null,
-      image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
+      image: ownerLogoUrl ?? getPlaceholderAvatar(membership.team.logoUrl, ownerName),
       role: membership.role,
       readOnly: !withRoleCanCreateEntity(membership.role),
     })),
