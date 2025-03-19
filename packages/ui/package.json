@@ -7,7 +7,6 @@
   "exports": {
     ".": "./index.ts",
     "./classNames": "./classNames.ts",
-    "./layouts": "./layouts.ts",
     "./components/alert": "./components/alert/index.ts",
     "./components/app-list-card": "./components/app-list-card/index.ts",
     "./components/apps": "./components/apps/index.ts",
