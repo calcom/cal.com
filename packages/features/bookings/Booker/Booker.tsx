@@ -83,6 +83,7 @@ const BookerComponent = ({
   renderCaptcha,
   hashedLink,
   confirmButtonDisabled,
+  timeZones,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();

@@ -59,6 +59,7 @@ export const BookerPlatformWrapper = (
     onBookerStateChange,
     allowUpdatingUrlParams = false,
     confirmButtonDisabled,
+    isBookingDryRun,
   } = props;
   const layout = BookerLayouts[view];
 
