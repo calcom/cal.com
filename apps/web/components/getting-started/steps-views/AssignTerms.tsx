@@ -30,7 +30,7 @@ const AssignTerms = ({ nextStep }: AssignTermsProps) => {
           src="https://docs.yinflow.life/d/wGickgWzeH5HUF"
           email={user.email}
           onComplete={(data) => {
-            if (status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
+            if (data.status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
           }}
         />
       </div>
