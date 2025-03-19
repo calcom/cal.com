@@ -108,7 +108,7 @@ const schemaEventTypeEditParams = z
     seatsShowAttendees: z.boolean().optional(),
     seatsShowAvailabilityCount: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),
-    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).optional(),
+    seatsPerTimeSlot: z.number().max(MAX_SEATS_PER_TIME_SLOT).optional(),
     scheduleId: z.number().optional(),
   })
   .strict();
