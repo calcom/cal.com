@@ -17,7 +17,7 @@ import {
 } from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableUser } from "../types";
 

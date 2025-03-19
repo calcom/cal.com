@@ -13,14 +13,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup, Input } from "@calcom/ui/components/form";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@calcom/ui/components/hover-card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@calcom/ui/components/table/TableNew";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";

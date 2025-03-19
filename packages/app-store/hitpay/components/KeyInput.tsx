@@ -7,7 +7,7 @@ import React, { forwardRef, useState, useEffect, useId, useCallback } from "reac
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
-import type { InputFieldProps } from "@calcom/ui/components/form/inputs/types";
+import type { InputFieldProps } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
