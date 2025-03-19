@@ -21,7 +21,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import ErrorBoundary from "@calcom/ui/components/errorBoundary";
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import VerticalTabItem from "@calcom/ui/components/navigation";

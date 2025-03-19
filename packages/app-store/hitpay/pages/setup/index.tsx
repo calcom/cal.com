@@ -13,7 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
-import HeadSeo from "@calcom/ui/components/head-seo";
+import { HeadSeo } from "@calcom/ui/components/head-seo";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 

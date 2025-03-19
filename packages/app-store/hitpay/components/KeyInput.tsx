@@ -5,9 +5,9 @@ import type { FormEvent } from "react";
 import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { InputFieldProps } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
+import type { InputFieldProps } from "@calcom/ui/components/form/inputs/types";
 import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
