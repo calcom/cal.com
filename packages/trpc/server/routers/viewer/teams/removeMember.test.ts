@@ -7,7 +7,7 @@ import { describe, test, expect } from "vitest";
 
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import removeMember from "./removeMember.handler";
 
 describe.skip("removeMember", () => {

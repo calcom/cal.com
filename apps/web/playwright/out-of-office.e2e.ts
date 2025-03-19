@@ -653,6 +653,9 @@ test.describe("Out of office", () => {
       await user.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
       await expect(
@@ -667,6 +670,9 @@ test.describe("Out of office", () => {
       await user.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
       await page.locator('[data-testid="add-filter-button"]').click();

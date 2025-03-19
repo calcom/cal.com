@@ -1,6 +1,5 @@
 import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
-
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type GetTravelSchedulesOptions = {
   ctx: {
