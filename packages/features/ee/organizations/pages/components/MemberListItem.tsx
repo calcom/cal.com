@@ -68,7 +68,7 @@ export default function MemberListItem(props: Props) {
               <Tooltip content={t("view_public_page")}>
                 <Button
                   target="_blank"
-                  href={`${bookerUrl}/${user.profile.username}`}
+                  href={`${bookerUrl}/${user.username}`}
                   color="secondary"
                   className={classNames("rounded-r-md")}
                   variant="icon"
@@ -87,7 +87,7 @@ export default function MemberListItem(props: Props) {
                   <DropdownMenuItem className="outline-none">
                     <DropdownItem
                       disabled={!member.accepted}
-                      href={`/${user.profile.username}`}
+                      href={`/${user.username}`}
                       target="_blank"
                       type="button"
                       StartIcon="external-link">
