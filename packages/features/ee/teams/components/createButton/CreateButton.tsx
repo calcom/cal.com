@@ -107,7 +107,7 @@ export function CreateButton(props: CreateBtnProps) {
               {buttonText ? buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent sideOffset={14} align="end">
+          <DropdownMenuContent sideOffset={14} align="end" className="scroll-bar max-h-60 overflow-y-auto">
             <DropdownMenuLabel>
               <div className="w-48 text-left text-xs">{subtitle}</div>
             </DropdownMenuLabel>

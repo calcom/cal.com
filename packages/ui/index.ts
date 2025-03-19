@@ -60,17 +60,6 @@ export {
 export { RangeSlider } from "./components/form/slider/RangeSlider";
 export { RangeSliderPopover } from "./components/form/slider/RangeSliderPopover";
 
-export {
-  AllApps,
-  AppCard,
-  AppSkeletonLoader,
-  SkeletonLoader,
-  Slider,
-  PopularAppsSlider,
-  RecentAppsSlider,
-  useShouldShowArrows,
-  AppStoreCategories,
-} from "./components/apps";
 export { TopBanner } from "./components/top-banner";
 export type { TopBannerProps } from "./components/top-banner";
 export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
