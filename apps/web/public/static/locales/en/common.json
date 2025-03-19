@@ -1477,6 +1477,7 @@
   "custom_brand_colors": "Custom brand colors",
   "customize_your_brand_colors": "Customize your own brand colour into your booking page.",
   "pro": "Pro",
+  "link_settings": "Link Settings",
   "removes_cal_branding": "Removes any {{appName}} related brandings, i.e. 'Powered by {{appName}}.'",
   "instant_meeting_with_title": "Instant Meeting with {{name}}",
   "profile_picture": "Profile Picture",
