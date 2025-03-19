@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -23,7 +23,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Form,
-  SettingsToggle,
   showToast,
   Switch,
   TextAreaField,
@@ -126,7 +125,8 @@ function NewFormDialog({
                 placeholder={t("form_description_placeholder")}
               />
             </div>
-            {action === "duplicate" && (
+            {/* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */}
+            {/* {action === "duplicate" && (
               <Controller
                 name="shouldConnect"
                 render={({ field: { value, onChange } }) => {
@@ -142,7 +142,7 @@ function NewFormDialog({
                   );
                 }}
               />
-            )}
+            )} */}
           </div>
           <DialogFooter showDivider className="mt-12">
             <DialogClose />

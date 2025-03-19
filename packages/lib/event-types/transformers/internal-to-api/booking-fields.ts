@@ -73,6 +73,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           } satisfies EmailDefaultFieldOutput_2024_06_14;
         case "location":
           return {

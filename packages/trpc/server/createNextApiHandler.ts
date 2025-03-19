@@ -67,7 +67,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
 
           // i18n and cityTimezones are now being accessed using the CalComVersion, which updates on every release,
           // letting the clients get the new versions when the version number changes.
-          i18n: SETTING_FOR_CACHED_BY_VERSION,
+          "i18n.get": SETTING_FOR_CACHED_BY_VERSION,
           cityTimezones: SETTING_FOR_CACHED_BY_VERSION,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
