@@ -2295,7 +2295,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.150"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.152"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3333,13 +3333,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.150":
-  version: 0.0.150
-  resolution: "@calcom/platform-libraries@npm:0.0.150"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.152":
+  version: 0.0.152
+  resolution: "@calcom/platform-libraries@npm:0.0.152"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 10aa079cd8b499d6248bf66b342cc60d55b516ba583929cec4b0bd6af32467c1f586638dc987b566f996aca9e4d38a27f0ac2b07e1f0a0446cb03e7b7278fb57
+  checksum: c3e41f0ab169343d289c8e1fb225aa1b4e09def688837f156a3957cfb37a9d4b1cdd9e515ab14ba9e91db31524495919bcd0608d45cd88ee2b2dffbb2d9fdb6d
   languageName: node
   linkType: hard
 
@@ -3708,7 +3708,7 @@ __metadata:
     react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
     tailwind-merge: ^1.13.2
-    typescript: ^4.9.4
+    typescript: ^5.8.2
   languageName: unknown
   linkType: soft
 

@@ -6,7 +6,7 @@ ensuring that we don't have issues with atoms.
 import * as DialogPrimitives from "@radix-ui/react-dialog-atoms";
 import * as React from "react";
 
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { cn } from "../../lib/utils";
 

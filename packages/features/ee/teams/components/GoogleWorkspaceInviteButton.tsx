@@ -41,7 +41,7 @@ export function GoogleWorkspaceInviteButton(
   const teamId = Number(params.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
   const { data: credential } = trpc.viewer.googleWorkspace.checkForGWorkspace.useQuery();
-  const { data: hasGcalInstalled } = trpc.viewer.appsRouter.checkGlobalKeys.useQuery({
+  const { data: hasGcalInstalled } = trpc.viewer.apps.checkGlobalKeys.useQuery({
     slug: "google-calendar",
   });
   const mutation = trpc.viewer.googleWorkspace.getUsersFromGWorkspace.useMutation({

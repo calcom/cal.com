@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  AppSkeletonLoader as SkeletonLoader,
   Button,
   DialogClose,
   DialogContent,

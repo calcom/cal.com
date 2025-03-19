@@ -13,7 +13,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
 
 type GetOptions = {
@@ -332,6 +332,24 @@ export async function getBookings({
             {
               updatedAt: {
                 lte: dayjs.utc(filters.beforeUpdatedDate).toDate(),
+              },
+            },
+          ]
+        : []),
+      ...(filters?.afterCreatedDate
+        ? [
+            {
+              createdAt: {
+                gte: dayjs.utc(filters.afterCreatedDate).toDate(),
+              },
+            },
+          ]
+        : []),
+      ...(filters?.beforeCreatedDate
+        ? [
+            {
+              createdAt: {
+                lte: dayjs.utc(filters.beforeCreatedDate).toDate(),
               },
             },
           ]

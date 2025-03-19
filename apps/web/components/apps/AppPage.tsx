@@ -87,7 +87,7 @@ export const AppPage = ({
       if (data?.setupPending) return;
       setIsLoading(false);
       showToast(data?.message || t("app_successfully_installed"), "success");
-      await utils.viewer.appCredentialsByType.invalidate({ appType: type });
+      await utils.viewer.apps.appCredentialsByType.invalidate({ appType: type });
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
@@ -143,7 +143,7 @@ export const AppPage = ({
    */
   const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
 
-  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery({ appType: type });
+  const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -161,7 +161,7 @@ export const AppPage = ({
     [appDbQuery.data, availableForTeams]
   );
 
-  const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
+  const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
   });
 

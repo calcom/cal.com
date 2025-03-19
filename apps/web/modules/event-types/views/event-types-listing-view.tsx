@@ -15,7 +15,10 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import {
+  InfiniteSkeletonLoader,
+  EventTypesSkeletonLoader,
+} from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -911,7 +914,7 @@ const InfiniteScrollMain = ({
   }
 
   if (!eventTypeGroups || !profiles || status === "pending") {
-    return <InfiniteSkeletonLoader />;
+    return <EventTypesSkeletonLoader />;
   }
 
   const tabs = eventTypeGroups.map((item) => ({

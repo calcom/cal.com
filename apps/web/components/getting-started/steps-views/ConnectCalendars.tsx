@@ -19,7 +19,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
     eventTypeId: null,
   });
   const { t } = useLocale();
-  const queryIntegrations = trpc.viewer.integrations.useQuery({
+  const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
     onlyInstalled: false,
     sortByMostPopular: true,

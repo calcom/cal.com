@@ -7,6 +7,7 @@ import {
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/email-manager";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -38,6 +39,11 @@ export const sendEmailVerification = async ({
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
+  }
+
+  if (await checkIfEmailIsBlockedInWatchlistController(email)) {
+    log.warn("Email is blocked - not sending verification email", email);
+    return { ok: false, skipped: false };
   }
 
   if (isPlatform) {
@@ -82,6 +88,11 @@ export const sendEmailVerificationByCode = async ({
   username,
   isVerifyingEmail,
 }: VerifyEmailType) => {
+  if (await checkIfEmailIsBlockedInWatchlistController(email)) {
+    log.warn("Email is blocked - not sending verification email", email);
+    return { ok: false, skipped: false };
+  }
+
   const translation = await getTranslation(language ?? "en", "common");
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
@@ -120,6 +131,11 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
+  }
+
+  if (await checkIfEmailIsBlockedInWatchlistController(user.emailFrom)) {
+    log.warn("Email is blocked - not sending verification email", user.emailFrom);
+    return { ok: false, skipped: false };
   }
 
   await checkRateLimitAndThrowError({

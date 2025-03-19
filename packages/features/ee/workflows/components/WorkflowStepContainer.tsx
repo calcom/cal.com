@@ -58,7 +58,7 @@ import { whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
-type User = RouterOutputs["viewer"]["me"];
+type User = RouterOutputs["viewer"]["me"]["get"];
 
 type WorkflowStepProps = {
   step?: WorkflowStep;

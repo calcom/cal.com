@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import {
   Button,
   Dropdown,
@@ -19,7 +19,7 @@ import {
 import type { inferRouterOutputs } from "@trpc/server";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
-type Credentials = RouterOutput["viewer"]["appCredentialsByType"]["credentials"];
+type Credentials = RouterOutput["viewer"]["apps"]["appCredentialsByType"]["credentials"];
 
 interface Props {
   credentials: Credentials;
@@ -48,7 +48,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
     },
     async onSettled() {
       await utils.viewer.connectedCalendars.invalidate();
-      await utils.viewer.integrations.invalidate();
+      await utils.viewer.apps.integrations.invalidate();
     },
   });
 

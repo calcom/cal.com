@@ -58,6 +58,7 @@ export const BookerPlatformWrapper = (
     preventEventTypeRedirect,
     onBookerStateChange,
     allowUpdatingUrlParams = false,
+    confirmButtonDisabled,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -501,9 +502,10 @@ export const BookerPlatformWrapper = (
           }
         }
         rescheduleUid={props.rescheduleUid ?? null}
-        rescheduledBy={props.rescheduledBy}
+        rescheduledBy={props.rescheduledBy ?? null}
         bookingUid={props.bookingUid ?? null}
         isRedirect={false}
+        confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""
         hasSession={hasSession}
         onGoBackInstantMeeting={function (): void {
