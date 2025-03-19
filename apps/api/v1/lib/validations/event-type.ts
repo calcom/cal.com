@@ -92,8 +92,6 @@ const schemaEventTypeCreateParams = z
   })
   .strict();
 
-export const seatsPerTimeSlotSchema = z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).optional();
-
 export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams
   .merge(schemaEventTypeCreateParams)
   .merge(schemaQueryUserId.partial());
@@ -106,7 +104,7 @@ const schemaEventTypeEditParams = z
       .transform((s) => slugify(s))
       .optional(),
     length: z.number().int().optional(),
-    seatsPerTimeSlot: seatsPerTimeSlotSchema,
+    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).optional(),
     seatsShowAttendees: z.boolean().optional(),
     seatsShowAvailabilityCount: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),

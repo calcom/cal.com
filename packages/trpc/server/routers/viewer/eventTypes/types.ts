@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { seatsPerTimeSlotSchema } from "@calcom/api/lib/validations/event-type";
 import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
   customInputSchema,
@@ -72,7 +72,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     assignRRMembersUsingSegment: z.boolean().optional(),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
     useEventLevelSelectedCalendars: z.boolean().optional(),
-    seatsPerTimeSlot: seatsPerTimeSlotSchema,
+    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).optional(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);
