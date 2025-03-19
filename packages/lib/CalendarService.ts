@@ -139,6 +139,39 @@ export default abstract class BaseCalendarService implements Calendar {
     return attendees;
   }
 
+  // temp hack to add schedule agent attributes to ORGANIZER and ATTENDEE
+  private appendScheduleAgent(ics: string, agent = "CLIENT"): string {
+    // unfold the line by removing \r\n\t
+    ics = ics.replace(/\r\n\t/g, "");
+
+    const foldLine = (line: string): string => {
+      const parts = [];
+      let length = 75;
+
+      while (line.length > length) {
+        parts.push(line.slice(0, length));
+        line = line.slice(length);
+        length = 74;
+      }
+
+      parts.push(line);
+      return parts.join("\r\n\t");
+    };
+
+    // for each line, match if it's start with `ORGANIZER` or `ATTENDEE`
+    // if it does, append the attribute `SCHEDULE-AGENT=CLIENT` to the line
+    return ics
+      .split("\r\n")
+      .map((line) => {
+        if (line.startsWith("ORGANIZER") || line.startsWith("ATTENDEE")) {
+          return `${line};SCHEDULE-AGENT=${agent}`;
+        }
+        // re-fold the line
+        return foldLine(line);
+      })
+      .join("\r\n");
+  }
+
   async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
@@ -146,7 +179,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const uid = uuidv4();
 
       // We create local ICS files
-      const { error, value: iCalString } = createEvent({
+      const { error, value: _iCalString } = createEvent({
         uid,
         startInputType: "utc",
         start: convertDate(event.startTime),
@@ -165,8 +198,9 @@ export default abstract class BaseCalendarService implements Calendar {
         ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
       });
 
-      if (error || !iCalString)
+      if (error || !_iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
+      const iCalString = this.appendScheduleAgent(_iCalString);
 
       const mainHostDestinationCalendar = event.destinationCalendar
         ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
@@ -223,7 +257,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = await this.getEventsByUID(uid);
 
       /** We generate the ICS files */
-      const { error, value: iCalString } = createEvent({
+      const { error, value: _iCalString } = createEvent({
         uid,
         startInputType: "utc",
         start: convertDate(event.startTime),
@@ -235,7 +269,7 @@ export default abstract class BaseCalendarService implements Calendar {
         attendees: this.getAttendees(event),
       });
 
-      if (error) {
+      if (error || !_iCalString) {
         this.log.debug("Error creating iCalString");
 
         return {
@@ -247,6 +281,8 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+      const iCalString = this.appendScheduleAgent(_iCalString);
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
