@@ -139,4 +139,3 @@ jobs:
           else
             echo "No reports found for branch ${{ github.event.pull_request.head.ref }}. Nothing to clean up."
           fi
-          
