@@ -398,7 +398,7 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZonesFromProps={timeZones}
+                  timeZones={timeZones}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
