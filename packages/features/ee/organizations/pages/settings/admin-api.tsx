@@ -3,9 +3,9 @@
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { ButtonGroup } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Icon } from "@calcom/ui/components/icon";
 
 export const AdminAPIView = () => {
   const { t } = useLocale();

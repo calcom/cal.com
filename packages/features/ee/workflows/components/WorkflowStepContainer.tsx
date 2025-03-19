@@ -15,7 +15,6 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { AddVariablesDropdown } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -27,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";

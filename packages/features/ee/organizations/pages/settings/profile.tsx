@@ -18,8 +18,6 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-// if I include this in the above barrel import, I get a runtime error that the component is not exported.
-import { OrgBanner } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { LinkIconButton } from "@calcom/ui/components/button";
@@ -29,6 +27,8 @@ import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
+// if I include this in the above barrel import, I get a runtime error that the component is not exported.
+import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import {
   SkeletonButton,
   SkeletonContainer,

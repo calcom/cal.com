@@ -9,7 +9,7 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton } from "@calcom/ui";
+import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";

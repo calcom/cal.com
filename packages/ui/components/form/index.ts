@@ -1,5 +1,5 @@
 export { Checkbox, MultiSelectCheckbox, CheckboxField } from "./checkbox";
-export type { Option } from "./checkbox";
+export type { Option as MultiSelectCheckboxesOptionType } from "./checkbox";
 export { HintsOrErrors } from "./inputs/HintOrErrors";
 export {
   EmailField,

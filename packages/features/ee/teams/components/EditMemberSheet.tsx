@@ -11,11 +11,12 @@ import { useEditMode } from "@calcom/features/users/components/UserTable/EditShe
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody, Skeleton, Loader } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Form } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody } from "@calcom/ui/components/sheet";
+import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 

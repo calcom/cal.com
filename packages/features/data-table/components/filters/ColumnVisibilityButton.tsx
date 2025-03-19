@@ -5,11 +5,10 @@ import { type Table } from "@tanstack/react-table";
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
-  buttonClasses,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
   Command,
   CommandInput,
   CommandList,
@@ -17,11 +16,9 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-} from "@calcom/ui";
-import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 
 export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;

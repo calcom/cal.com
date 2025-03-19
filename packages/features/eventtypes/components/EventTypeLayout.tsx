@@ -8,7 +8,6 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 import WebShell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { HorizontalTabs, Skeleton, VerticalTabs } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
@@ -24,7 +23,9 @@ import {
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 

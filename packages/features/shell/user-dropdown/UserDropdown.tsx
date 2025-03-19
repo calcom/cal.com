@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import {
   Dropdown,
   DropdownItem,

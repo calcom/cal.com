@@ -7,13 +7,11 @@ import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { BooleanToggleGroupField, FormCard } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { FormCard } from "@calcom/ui/components/card";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
+import { Label, BooleanToggleGroupField, SelectField, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
