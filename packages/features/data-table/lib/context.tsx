@@ -85,7 +85,7 @@ export function DataTableProvider({
     "widths",
     parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING)
   );
-  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
+  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(null));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
 
@@ -99,6 +99,15 @@ export function DataTableProvider({
     () => segments?.find((segment) => segment.id === segmentId),
     [segments, segmentId]
   );
+
+  useEffect(() => {
+    if (segments && segmentId > 0) {
+      const segment = segments.find((segment) => segment.id === segmentId);
+      if (!segment) {
+        setSegmentId(null);
+      }
+    }
+  }, [segments, segmentId]);
 
   useEffect(() => {
     if (selectedSegment) {
@@ -175,7 +184,7 @@ export function DataTableProvider({
 
   const setSegment = useCallback(
     (segment: FilterSegmentOutput | undefined) => {
-      setSegmentId(segment?.id || -1);
+      setSegmentId(segment?.id || null);
     },
     [setSegmentId]
   );
@@ -223,7 +232,7 @@ export function DataTableProvider({
         offset: pageIndex * pageSize,
         segments,
         selectedSegment,
-        segmentId: segmentId === -1 ? undefined : segmentId,
+        segmentId: segmentId || undefined,
         setSegment,
         canSaveSegment,
       }}>
