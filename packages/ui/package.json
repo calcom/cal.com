@@ -52,9 +52,7 @@
     "./components/top-banner": "./components/top-banner/index.ts",
     "./components/filter-select": "./components/filter-select/index.ts",
     "./components/icon": "./components/icon/index.ts",
-    "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
-    "./components/icon/Spinner": "./components/icon/Spinner.tsx",
-    "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
+    "./components/unpublished-entity": "./components/unpublished-entity/index.ts",
     "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./components/app-list-card/AppListCard": "./components/app-list-card/AppListCard.tsx",
     "./__mocks__/ui": "./__mocks__/ui.tsx"
