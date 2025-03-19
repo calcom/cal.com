@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import { ZActiveFilter, ZColumnSizing, ZColumnVisibility, ZSortingState } from "./types";
+import { ZActiveFilters, ZColumnSizing, ZColumnVisibility, ZSortingState } from "./types";
 
 // Base schema for common fields
 const baseCreateSchema = {
   name: z.string().min(1),
   tableIdentifier: z.string().min(1),
-  activeFilters: ZActiveFilter.array().optional(),
+  activeFilters: ZActiveFilters.optional(),
   sorting: ZSortingState.optional(),
   columnVisibility: ZColumnVisibility.optional(),
   columnSizing: ZColumnSizing.optional(),

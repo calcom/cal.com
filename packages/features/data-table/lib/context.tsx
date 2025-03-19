@@ -12,15 +12,15 @@ import {
   ZSorting,
   ZColumnVisibility,
   ZActiveFilter,
-  type ActiveFilter,
   ZColumnSizing,
   type FilterSegmentOutput,
+  type ActiveFilters,
 } from "./types";
 
 export type DataTableContextType = {
   tableIdentifier: string;
 
-  activeFilters: ActiveFilter[];
+  activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
   addFilter: (columnId: string) => void;
   updateFilter: (columnId: string, value: FilterValue) => void;
@@ -52,7 +52,7 @@ export type DataTableContextType = {
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
-const DEFAULT_ACTIVE_FILTERS: ActiveFilter[] = [];
+const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [];
 const DEFAULT_SORTING: SortingState = [];
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
 const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};

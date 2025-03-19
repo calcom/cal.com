@@ -2,7 +2,7 @@ export type { SortingState, ColumnSizingState, VisibilityState } from "@tanstack
 export {
   type ActiveFilter,
   type FilterSegmentOutput,
-  ZActiveFilter,
+  ZActiveFilters,
   ZSortingState,
   ZColumnSizing,
   ZColumnVisibility,

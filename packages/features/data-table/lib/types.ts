@@ -217,17 +217,21 @@ export type ActiveFilter = {
   v?: FilterValue;
 };
 
+export type ActiveFilters = ActiveFilter[];
+
 export const ZActiveFilter = z.object({
   f: z.string(),
   v: ZFilterValue.optional(),
 }) satisfies z.ZodType<ActiveFilter>;
+
+export const ZActiveFilters = ZActiveFilter.array();
 
 export type FilterSegmentOutput = {
   id: number;
   name: string;
   tableIdentifier: string;
   scope: "USER" | "TEAM";
-  activeFilters: ActiveFilter[];
+  activeFilters: ActiveFilters;
   sorting: SortingState;
   columnVisibility: Record<string, boolean>;
   columnSizing: Record<string, number>;
