@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { authenticator } from "otplib";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
@@ -27,7 +28,7 @@ test.describe("2FA Tests", async () => {
       await user.apiLogin();
 
       // expects the home page for an authorized user
-      await page.goto("/settings/security/two-factor-auth");
+      await gotoWhenIdle(page, "/settings/security/two-factor-auth");
       await page.click(`[data-testid=two-factor-switch]`);
       await page.fill('input[name="password"]', userPassword);
       await page.press('input[name="password"]', "Enter");
@@ -59,7 +60,7 @@ test.describe("2FA Tests", async () => {
     });
 
     await test.step("Logout", async () => {
-      await page.goto("/auth/logout");
+      await gotoWhenIdle(page, "/auth/logout");
     });
 
     await test.step("Login with 2FA enabled", async () => {
@@ -96,7 +97,7 @@ test.describe("2FA Tests", async () => {
       await user.apiLogin();
 
       // expects the home page for an authorized user
-      await page.goto("/settings/security/two-factor-auth");
+      await gotoWhenIdle(page, "/settings/security/two-factor-auth");
       await page.click(`[data-testid=two-factor-switch][data-state="unchecked"]`);
       await page.fill('input[name="password"]', userPassword);
       await page.press('input[name="password"]', "Enter");
@@ -134,7 +135,7 @@ test.describe("2FA Tests", async () => {
       const userPassword = user.username!;
 
       // expects the home page for an authorized user
-      await page.goto("/settings/security/two-factor-auth");
+      await gotoWhenIdle(page, "/settings/security/two-factor-auth");
       await page.click(`[data-testid=two-factor-switch][data-state="checked"]`);
       await page.fill('input[name="password"]', userPassword);
 

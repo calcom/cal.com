@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -10,7 +11,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/apps/installed/messaging");
+    await gotoWhenIdle(page, "/apps/installed/messaging");
 
     const locator = page.getByRole("heading", { name: "Messaging" });
 
@@ -22,7 +23,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/apps/telegram");
+    await gotoWhenIdle(page, "/apps/telegram");
 
     const locator = page.getByRole("heading", { name: "Telegram" });
 
@@ -34,7 +35,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/apps/apple-calendar/setup");
+    await gotoWhenIdle(page, "/apps/apple-calendar/setup");
 
     const locator = page.getByRole("heading", { name: "Connect to Apple Server" });
 
@@ -46,7 +47,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/apps/categories");
+    await gotoWhenIdle(page, "/apps/categories");
 
     const locator = page.getByTestId("app-store-category-messaging");
 
@@ -58,7 +59,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/apps/categories/messaging");
+    await gotoWhenIdle(page, "/apps/categories/messaging");
 
     const locator = page.getByText(/messaging apps/i);
 
@@ -70,7 +71,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/bookings/upcoming/");
+    await gotoWhenIdle(page, "/bookings/upcoming/");
 
     const locator = page.getByTestId("horizontal-tab-upcoming");
 
@@ -82,7 +83,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/getting-started/connected-calendar");
+    await gotoWhenIdle(page, "/getting-started/connected-calendar");
 
     const locator = page.getByText("Apple Calendar");
 

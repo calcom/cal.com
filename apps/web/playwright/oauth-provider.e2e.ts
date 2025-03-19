@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
@@ -28,7 +29,8 @@ test.describe("OAuth Provider", () => {
     const user = await users.create({ username: "test user", name: "test user" });
     await user.apiLogin();
 
-    await page.goto(
+    await gotoWhenIdle(
+      page,
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
     );
     await page.getByTestId("allow-button").click();
@@ -106,7 +108,8 @@ test.describe("OAuth Provider", () => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
-    await page.goto(
+    await gotoWhenIdle(
+      page,
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
     );
 
@@ -191,7 +194,8 @@ test.describe("OAuth Provider", () => {
   }) => {
     const user = await users.create({ username: "test-user", name: "test user" });
 
-    await page.goto(
+    await gotoWhenIdle(
+      page,
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
     );
 

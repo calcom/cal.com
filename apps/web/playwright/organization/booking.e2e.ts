@@ -13,6 +13,7 @@ import {
   bookTimeSlot,
   doOnOrgDomain,
   expectPageToBeNotFound,
+  gotoWhenIdle,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
   testName,
@@ -292,7 +293,7 @@ test.describe("Bookings", () => {
       const teamEventSlugUpperCase = teamEventSlug.toUpperCase();
 
       // This is the most closest to the actual user flow as org1.cal.com maps to /org/orgSlug
-      await page.goto(`/org/${org.slug}/${teamSlugUpperCase}/${teamEventSlugUpperCase}`);
+      await gotoWhenIdle(page, `/org/${org.slug}/${teamSlugUpperCase}/${teamEventSlugUpperCase}`);
       await page.waitForSelector("[data-testid=day]");
     });
   });
@@ -416,7 +417,7 @@ test.describe("Bookings", () => {
             ),
 
             // Trigger the page navigation
-            page.goto(`${calLink}`),
+            await gotoWhenIdle(page, `${calLink}`),
           ]);
           const ssrResponse = await response.text();
           const document = new JSDOM(ssrResponse).window.document;
@@ -596,7 +597,7 @@ async function bookUserEvent({
   };
   event: { slug: string; title: string };
 }) {
-  await page.goto(`/${user.username}/${event.slug}`);
+  await gotoWhenIdle(page, `/${user.username}/${event.slug}`);
 
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
@@ -624,7 +625,7 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 };
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
-  await page.goto(`/event-types/${eventId}?tabName=advanced`);
+  await gotoWhenIdle(page, `/event-types/${eventId}?tabName=advanced`);
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();

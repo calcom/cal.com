@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -17,7 +18,7 @@ test.describe("Onboarding", () => {
         identityProvider,
       });
       await user.apiLogin();
-      await page.goto("/getting-started");
+      await gotoWhenIdle(page, "/getting-started");
       // tests whether the user makes it to /getting-started
       // after login with completedOnboarding false
       await page.waitForURL("/getting-started");

@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
-import { localize } from "./lib/testUtils";
+import { gotoWhenIdle, localize } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -53,7 +53,7 @@ test.describe("Login and logout tests", () => {
     await users.logout();
 
     // check if we are at the login page
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
   });
 

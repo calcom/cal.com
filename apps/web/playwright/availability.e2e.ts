@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 
 import { test } from "./lib/fixtures";
-import { localize, submitAndWaitForResponse } from "./lib/testUtils";
+import { gotoWhenIdle, localize, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -11,7 +11,7 @@ test.describe("Availability", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
-    await page.goto("/availability");
+    await gotoWhenIdle(page, "/availability");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="schedules"]');
   });
@@ -38,7 +38,7 @@ test.describe("Availability", () => {
     });
     const nextMonth = dayjs().add(1, "month").startOf("month");
     const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
-    await page.goto(troubleshooterURL);
+    await gotoWhenIdle(page, troubleshooterURL);
     await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 

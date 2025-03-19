@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -11,7 +12,7 @@ test.describe("Settings/admin tests", () => {
     });
     await user.apiLogin();
 
-    await page.goto("/settings/admin");
+    await gotoWhenIdle(page, "/settings/admin");
 
     await page.waitForLoadState();
 

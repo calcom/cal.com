@@ -12,6 +12,7 @@ import {
   confirmReschedule,
   createUserWithSeatedEventAndAttendees,
   gotoRoutingLink,
+  gotoWhenIdle,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -36,7 +37,7 @@ test.describe("BOOKING_CREATED", async () => {
     const webhookReceiver = await webhooks.createReceiver();
 
     // --- Book the first available day next month in the pro user's "30min"-event
-    await page.goto(`/${user.username}/${eventType.slug}`);
+    await gotoWhenIdle(page, `/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
 
@@ -138,7 +139,7 @@ test.describe("BOOKING_REJECTED", async () => {
     const user = await users.create();
 
     // --- visit user page
-    await page.goto(`/${user.username}`);
+    await gotoWhenIdle(page, `/${user.username}`);
 
     // --- book the user's event
     await bookOptinEvent(page);
@@ -146,7 +147,7 @@ test.describe("BOOKING_REJECTED", async () => {
     // --- login as that user
     await user.apiLogin();
     const webhookReceiver = await webhooks.createReceiver();
-    await page.goto("/bookings/unconfirmed");
+    await gotoWhenIdle(page, "/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
 
     await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm?batch=1", {
@@ -251,7 +252,7 @@ test.describe("BOOKING_REQUESTED", async () => {
     const webhookReceiver = await webhooks.createReceiver();
 
     // --- visit user page
-    await page.goto(`/${user.username}`);
+    await gotoWhenIdle(page, `/${user.username}`);
 
     // --- book the user's opt in
     await bookOptinEvent(page);
@@ -359,7 +360,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
       status: BookingStatus.ACCEPTED,
     });
 
-    await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
+    await gotoWhenIdle(page, `/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -427,7 +428,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
       include: { attendee: true },
     });
 
-    await page.goto(`/reschedule/${references[0].referenceUid}`);
+    await gotoWhenIdle(page, `/reschedule/${references[0].referenceUid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -460,7 +461,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
       },
     });
 
-    await page.goto(`/reschedule/${references[1].referenceUid}`);
+    await gotoWhenIdle(page, `/reschedule/${references[1].referenceUid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -495,7 +496,7 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     bookings.create(user.id, user.name, eventType.id, { startTime: dayjs().add(2, "day").toDate() });
 
     //create a new webhook with meeting ended trigger here
-    await page.goto("/settings/developer/webhooks");
+    await gotoWhenIdle(page, "/settings/developer/webhooks");
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
 
@@ -747,7 +748,7 @@ test.describe("OOO_CREATED", async () => {
     await user.apiLogin();
     const webhookReceiver = await webhooks.createReceiver();
 
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
 
     await page.getByTestId("add_entry_ooo").click();
     await page.getByTestId("reason_select").click();
@@ -815,7 +816,7 @@ test.describe("OOO_CREATED", async () => {
     await user.apiLogin();
     const { webhookReceiver } = await webhooks.createTeamReceiver();
 
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
 
     await page.getByTestId("add_entry_ooo").click();
     await page.getByTestId("reason_select").click();

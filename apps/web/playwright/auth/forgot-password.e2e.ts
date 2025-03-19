@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 import { uuid } from "short-uuid";
 
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
@@ -13,7 +14,7 @@ test.describe("Forgot password", async () => {
     const user = await users.create();
 
     // Got to reset password flow
-    await page.goto("/auth/forgot-password");
+    await gotoWhenIdle(page, "/auth/forgot-password");
     await page.waitForSelector("text=Forgot Password?");
 
     await page.fill('input[name="email"]', `${user.username}@example.com`);
@@ -47,7 +48,7 @@ test.describe("Forgot password", async () => {
       },
     });
 
-    await page.goto(`/auth/forgot-password/${id}`);
+    await gotoWhenIdle(page, `/auth/forgot-password/${id}`);
 
     await page.waitForSelector("text=That request is expired.");
 
@@ -61,7 +62,7 @@ test.describe("Forgot password", async () => {
       },
     });
 
-    await page.goto(`/auth/forgot-password/${id}`);
+    await gotoWhenIdle(page, `/auth/forgot-password/${id}`);
 
     const newPassword = `${user.username}-123CAL-${uuid().toString()}`; // To match the password policy
 
@@ -91,7 +92,7 @@ test.describe("Forgot password", async () => {
     expect(await verifyPassword(newPassword, updatedPassword)).toBeTruthy();
 
     // finally, make sure the same URL cannot be used to reset the password again, as it should be expired.
-    await page.goto(`/auth/forgot-password/${id}`);
+    await gotoWhenIdle(page, `/auth/forgot-password/${id}`);
 
     await expect(page.locator(`text=Whoops`)).toBeVisible();
   });

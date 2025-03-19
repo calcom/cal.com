@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse } from "./lib/testUtils";
+import { gotoWhenIdle, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -10,7 +10,7 @@ test.describe("Change Password Test", () => {
     const pro = await users.create();
     await pro.apiLogin();
     // Go to http://localhost:3000/settings/security
-    await page.goto("/settings/security/password");
+    await gotoWhenIdle(page, "/settings/security/password");
 
     expect(pro.username).toBeTruthy();
 

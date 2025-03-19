@@ -1,3 +1,5 @@
+import { gotoWhenIdle } from "playwright/lib/testUtils";
+
 import { test } from "../../lib/fixtures";
 
 const ALL_APPS = ["fathom", "matomo", "plausible", "ga4", "gtm", "metapixel"];
@@ -15,11 +17,11 @@ test.describe("check analytics Apps", () => {
       }) => {
         const user = await users.create();
         await user.apiLogin();
-        await page.goto("apps/categories/analytics");
+        await gotoWhenIdle(page, "apps/categories/analytics");
         await appsPage.installAnalyticsAppSkipConfigure(app);
         // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000); // waits for 1 second
-        await page.goto("/event-types");
+        await gotoWhenIdle(page, "/event-types");
         await appsPage.goToEventType("30 min");
         await appsPage.goToAppsTab();
         await appsPage.verifyAppsInfo(0);
@@ -35,7 +37,7 @@ test.describe("check analytics Apps", () => {
         await user.apiLogin();
         const eventTypes = await user.getUserEventsAsOwner();
         const eventTypesIds = eventTypes.map((item) => item.id);
-        await page.goto("/apps/categories/analytics");
+        await gotoWhenIdle(page, "/apps/categories/analytics");
         await appsPage.installAnalyticsApp(app, eventTypesIds);
         for (const id of eventTypesIds) {
           await appsPage.verifyAppsInfoNew(app, id);

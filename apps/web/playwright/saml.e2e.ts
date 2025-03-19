@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
@@ -21,14 +22,14 @@ test.describe("SAML tests", () => {
     await expect(shellLocator).toBeVisible();
     // eslint-disable-next-line playwright/no-skipped-test
     // Try to go Security page
-    await page.goto("/settings/security/sso");
+    await gotoWhenIdle(page, "/settings/security/sso");
     // It should redirect you to the event-types page
     // await page.waitForSelector("[data-testid=saml_config]");
   });
 
   test.describe("SAML Signup Flow Test", async () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto("/signup");
+      await gotoWhenIdle(page, "/signup");
       await expect(page.locator("text=Create your account")).toBeVisible(); // this prevents flaky test
       await page.getByTestId("continue-with-saml-button").click();
       await page.waitForSelector('[data-testid="saml-submit-button"]');

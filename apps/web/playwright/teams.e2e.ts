@@ -9,6 +9,7 @@ import {
   bookTimeSlot,
   confirmReschedule,
   fillStripeTestCheckout,
+  gotoWhenIdle,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
 } from "./lib/testUtils";
@@ -21,7 +22,7 @@ test.describe("Teams tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/teams");
+    await gotoWhenIdle(page, "/teams");
 
     await page.waitForLoadState();
 
@@ -53,7 +54,7 @@ test.describe("Teams - NonOrg", () => {
     const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
-    await page.goto(`/team/${team.slug}/${teamEventSlug}`);
+    await gotoWhenIdle(page, `/team/${team.slug}/${teamEventSlug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -91,7 +92,7 @@ test.describe("Teams - NonOrg", () => {
     const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
-    await page.goto(`/team/${team.slug}/${teamEventSlug}`);
+    await gotoWhenIdle(page, `/team/${team.slug}/${teamEventSlug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -132,14 +133,14 @@ test.describe("Teams - NonOrg", () => {
     if (memberUser) {
       await memberUser.apiLogin();
 
-      await page.goto("/teams");
+      await gotoWhenIdle(page, "/teams");
       await expect(page.locator("[data-testid=new-team-btn]")).toBeHidden();
       await expect(page.locator("[data-testid=create-team-btn]")).toHaveAttribute("disabled", "");
 
       const uniqueName = "test-unique-team-name";
 
       // Go directly to the create team page
-      await page.goto("/settings/teams/new");
+      await gotoWhenIdle(page, "/settings/teams/new");
       // Fill input[name="name"]
       await page.locator('input[name="name"]').fill(uniqueName);
       await page.click("[type=submit]");
@@ -155,7 +156,7 @@ test.describe("Teams - NonOrg", () => {
     // Name to be used for both user and team
     const uniqueName = user.username!;
     await user.apiLogin();
-    await page.goto("/teams");
+    await gotoWhenIdle(page, "/teams");
 
     await test.step("Can create team with same name", async () => {
       // Click text=Create Team
@@ -179,13 +180,13 @@ test.describe("Teams - NonOrg", () => {
     await test.step("Can access user and team with same slug", async () => {
       // Go to team page and confirm name
       const teamUrl = `/team/${uniqueName}`;
-      await page.goto(teamUrl);
+      await gotoWhenIdle(page, teamUrl);
       await page.waitForURL(teamUrl);
       await expect(page.locator("[data-testid=team-name]")).toHaveText(uniqueName);
 
       // Go to user page and confirm name
       const userUrl = `/${uniqueName}`;
-      await page.goto(userUrl);
+      await gotoWhenIdle(page, userUrl);
       await page.waitForURL(userUrl);
       await expect(page.locator("[data-testid=name-title]")).toHaveText(uniqueName);
 
@@ -215,7 +216,7 @@ test.describe("Teams - NonOrg", () => {
     const { team } = await owner.getFirstTeamMembership();
 
     // Mark team as private
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await gotoWhenIdle(page, `/settings/teams/${team.id}/members`);
     await Promise.all([
       page.click("[data-testid=make-team-private-check]"),
       expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible(),
@@ -225,11 +226,11 @@ test.describe("Teams - NonOrg", () => {
     ]);
 
     // Go to Team's page
-    await page.goto(`/team/${team.slug}`);
+    await gotoWhenIdle(page, `/team/${team.slug}`);
     await expect(page.locator('[data-testid="book-a-team-member-btn"]')).toBeHidden();
 
     // Go to members page
-    await page.goto(`/team/${team.slug}?members=1`);
+    await gotoWhenIdle(page, `/team/${team.slug}?members=1`);
     await expect(page.locator('[data-testid="you-cannot-see-team-members"]')).toBeVisible();
     await expect(page.locator('[data-testid="team-members-container"]')).toBeHidden();
   });
@@ -258,7 +259,7 @@ test.describe("Teams - NonOrg", () => {
       id: teamEventId,
     } = await owner.getFirstTeamEvent(team.id);
 
-    await page.goto(`/event-types?teamId=${team.id}`);
+    await gotoWhenIdle(page, `/event-types?teamId=${team.id}`);
 
     await page.getByTestId(`event-type-options-${teamEventId}`).first().click();
     await page.getByTestId("embed").click();
@@ -294,7 +295,7 @@ test.describe("Teams - NonOrg", () => {
     const eventType = await owner.getFirstTeamEvent(team.id);
 
     const booking = await bookings.create(owner.id, owner.username, eventType.id);
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoWhenIdle(page, `/reschedule/${booking.uid}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await confirmReschedule(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();

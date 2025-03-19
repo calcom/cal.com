@@ -1,10 +1,12 @@
 import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { gotoWhenIdle } from "@calcom/web/playwright/lib/testUtils";
 
 test.describe("Preview", () => {
   test("Preview - embed-core should load if correct embedLibUrl is provided", async ({ page }) => {
-    await page.goto(
+    await gotoWhenIdle(
+      page,
       "http://localhost:3000/embed/preview.html?embedLibUrl=http://localhost:3000/embed/embed.js&bookerUrl=http://localhost:3000&calLink=pro/30min"
     );
     const libraryLoaded = await page.evaluate(() => {
@@ -29,7 +31,8 @@ test.describe("Preview", () => {
 
   test("Preview - embed-core should load from embedLibUrl", async ({ page }) => {
     // Intentionally pass a URL that will not load to be able to easily test that the embed was loaded from there
-    page.goto(
+    await gotoWhenIdle(
+      page,
       "http://localhost:3000/embed/preview.html?embedLibUrl=http://localhost:3000/embed/embed-not-found.js&bookerUrl=http://localhost:3000&calLink=pro/30min"
     );
 

@@ -1,6 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { gotoWhenIdle } from "@calcom/web/playwright/lib/testUtils";
+
 export async function addForm(
   page: Page,
   {
@@ -11,7 +13,7 @@ export async function addForm(
     forTeam?: boolean;
   } = {}
 ) {
-  await page.goto(`/routing-forms/forms`);
+  await gotoWhenIdle(page, `/routing-forms/forms`);
   await page.click('[data-testid="new-routing-form"]');
 
   if (forTeam) {
@@ -36,7 +38,7 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   page: Page,
   form: { name: string; description?: string; field?: { typeIndex: number; label: string } }
 ) {
-  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await gotoWhenIdle(page, `apps/routing-forms/form-edit/${formId}`);
   await expect(page.locator('[name="name"]')).toHaveValue(form.name);
   await page.click('[data-testid="add-field"]');
   if (form.description) {

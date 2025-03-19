@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 
 // eslint-disable-next-line no-restricted-imports
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { gotoWhenIdle } from "@calcom/web/playwright/lib/testUtils";
 
 import { getEmbedIframe } from "../lib/testUtils";
 
@@ -57,7 +58,7 @@ test.describe("Namespacing", () => {
       embeds.addEmbedListeners("namespace-init-test-2"),
     ]);
 
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.click("#two-different-namespace-with-different-init-config");
     const namespace1IframeSrc = await page.locator("iframe").nth(0).getAttribute("src");
     const namespace2IframeSrc = await page.locator("iframe").nth(1).getAttribute("src");

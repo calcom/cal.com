@@ -4,7 +4,7 @@ import type { createUsersFixture } from "playwright/fixtures/users";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 
 import { test } from "../lib/fixtures";
-import { bookEventOnThisPage, doOnOrgDomain } from "../lib/testUtils";
+import { bookEventOnThisPage, doOnOrgDomain, gotoWhenIdle } from "../lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -51,7 +51,7 @@ test.describe("Unpublished Organization Redirection", () => {
       const { team } = await orgOwner.getFirstTeamMembership();
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/team/${team.slug}`);
+        await gotoWhenIdle(page, `/team/${team.slug}`);
 
         // Expect the empty screen to be visible, indicating the profile is not accessible.
         await expect(page.getByTestId("empty-screen")).toBeVisible();
@@ -70,7 +70,7 @@ test.describe("Unpublished Organization Redirection", () => {
       const { team } = await orgOwner.getFirstTeamMembership();
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/team/${team.slug}?orgRedirection=true`);
+        await gotoWhenIdle(page, `/team/${team.slug}?orgRedirection=true`);
 
         // Verify that the team profile is visible.
         await expect(page.getByTestId("team-name")).toBeVisible();
@@ -95,7 +95,7 @@ test.describe("Unpublished Organization Redirection", () => {
       const orgOwner = await createUserWithOrganizationAndTeam(users);
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/${orgOwner.username}`);
+        await gotoWhenIdle(page, `/${orgOwner.username}`);
 
         // Expect the empty screen, indicating the profile is inaccessible.
         await expect(page.getByTestId("empty-screen")).toBeVisible();
@@ -113,7 +113,7 @@ test.describe("Unpublished Organization Redirection", () => {
       const orgOwner = await createUserWithOrganizationAndTeam(users);
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/${orgOwner.username}?orgRedirection=true`);
+        await gotoWhenIdle(page, `/${orgOwner.username}?orgRedirection=true`);
 
         // Verify that the user profile is visible.
         await expect(page.locator('[data-testid="name-title"]')).toBeVisible();
@@ -160,7 +160,7 @@ test.describe("Unpublished Organization Redirection", () => {
       });
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/d/${privateEvent.hashedLink[0]?.link}/${privateEvent.slug}`);
+        await gotoWhenIdle(page, `/d/${privateEvent.hashedLink[0]?.link}/${privateEvent.slug}`);
 
         // Expect the empty screen, indicating the event is inaccessible.
         await expect(page.getByTestId("empty-screen")).toBeVisible();
@@ -195,7 +195,10 @@ test.describe("Unpublished Organization Redirection", () => {
       });
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/d/${privateEvent.hashedLink[0]?.link}/${privateEvent.slug}?orgRedirection=true`);
+        await gotoWhenIdle(
+          page,
+          `/d/${privateEvent.hashedLink[0]?.link}/${privateEvent.slug}?orgRedirection=true`
+        );
 
         // Verify that the event page is visible.
         await expect(page.getByTestId("event-title")).toBeVisible();

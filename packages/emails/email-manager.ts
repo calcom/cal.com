@@ -516,7 +516,7 @@ export const sendAwaitingPaymentEmailAndSMS = async (
   );
   await Promise.all(emailsToSend);
   const awaitingPaymentSMS = new AwaitingPaymentSMS(calEvent);
-  await awaitingPaymentSMS.sendSMSToAttendees();
+  awaitingPaymentSMS.sendSMSToAttendees();
 };
 
 export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent) => {

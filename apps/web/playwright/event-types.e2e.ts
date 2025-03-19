@@ -10,6 +10,7 @@ import {
   createNewEventType,
   gotoBookingPage,
   gotoFirstEventType,
+  gotoWhenIdle,
   saveEventType,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
@@ -23,7 +24,7 @@ test.describe("Event Types tests", () => {
 
     await user.apiLogin();
 
-    await page.goto("/event-types");
+    await gotoWhenIdle(page, "/event-types");
 
     const locator = page.getByRole("heading", { name: "Event Types" });
 
@@ -36,7 +37,7 @@ test.describe("Event Types tests", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
       await user.apiLogin();
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
 
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');
@@ -56,7 +57,7 @@ test.describe("Event Types tests", () => {
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
       await createNewEventType(page, { eventTitle });
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
       await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
 
@@ -64,7 +65,7 @@ test.describe("Event Types tests", () => {
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
       await createNewEventType(page, { eventTitle });
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
       const firstEvent = page.locator("[data-testid=event-types] > li a").first();
       const firstEventTitle = await firstEvent.getAttribute("title");
       await expect(firstEventTitle).toBe(eventTitle);
@@ -170,7 +171,7 @@ test.describe("Event Types tests", () => {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
 
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
 
       const previewLink = await page
         .locator("[data-testid=preview-link-button]")
@@ -180,7 +181,7 @@ test.describe("Event Types tests", () => {
       /**
        * Verify first organizer address
        */
-      await page.goto(previewLink ?? "");
+      await gotoWhenIdle(page, previewLink ?? "");
       await selectFirstAvailableTimeSlotNextMonth(page);
       await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);
@@ -190,7 +191,7 @@ test.describe("Event Types tests", () => {
       /**
        * Verify second organizer address
        */
-      await page.goto(previewLink ?? "");
+      await gotoWhenIdle(page, previewLink ?? "");
       await selectFirstAvailableTimeSlotNextMonth(page);
       await page.locator(`span:has-text("${locationData[1]}")`).click();
       await bookTimeSlot(page);
@@ -317,14 +318,14 @@ test.describe("Event Types tests", () => {
           action: () => page.locator("[data-testid=update-eventtype]").click(),
         });
 
-        await page.goto("/event-types");
+        await gotoWhenIdle(page, "/event-types");
 
         const previewLink = await page
           .locator("[data-testid=preview-link-button]")
           .first()
           .getAttribute("href");
 
-        await page.goto(previewLink ?? "");
+        await gotoWhenIdle(page, previewLink ?? "");
         await selectFirstAvailableTimeSlotNextMonth(page);
         await bookTimeSlot(page);
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();

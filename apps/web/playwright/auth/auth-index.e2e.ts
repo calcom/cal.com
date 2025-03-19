@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
-import { submitAndWaitForResponse } from "../lib/testUtils";
+import { gotoWhenIdle, submitAndWaitForResponse } from "../lib/testUtils";
 
 test.describe("Can signup from a team invite", async () => {
   test.beforeEach(async ({ users }) => {
@@ -21,7 +21,7 @@ test.describe("Can signup from a team invite", async () => {
       password: `${proUser.username}-MEMBER`,
       email: `${proUser.username}-member@example.com`,
     };
-    await page.goto("/settings/teams/new");
+    await gotoWhenIdle(page, "/settings/teams/new");
 
     // Create a new team
     await page.locator('input[name="name"]').fill(teamName);
@@ -47,7 +47,7 @@ test.describe("Can signup from a team invite", async () => {
     // Open a new user window to accept the invite
     const context = await browser.newContext();
     const newPage = await context.newPage();
-    await newPage.goto(`/auth/signup?token=${tokenObj.token}&callbackUrl=/settings/teams`);
+    await gotoWhenIdle(newPage, `/auth/signup?token=${tokenObj.token}&callbackUrl=/settings/teams`);
     // We wait on locales so we prevent password lost on re-render
     await newPage.locator('text="Create your account"').waitFor();
 

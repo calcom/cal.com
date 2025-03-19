@@ -18,6 +18,7 @@ import {
   confirmReschedule,
   createUserWithLimits,
   expectSlotNotAllowedToBook,
+  gotoWhenIdle,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -83,7 +84,7 @@ test.describe("Booking limits", () => {
       let slotUrl = "";
 
       const monthUrl = getLastEventUrlWithMonth(user, firstMondayInBookingMonth);
-      await page.goto(monthUrl);
+      await gotoWhenIdle(page, monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
       const bookingDay = availableDays.getByText(firstMondayInBookingMonth.date().toString(), {
@@ -109,7 +110,7 @@ test.describe("Booking limits", () => {
             .locator('span[data-testid="reschedule-link"] > a')
             .getAttribute("href");
 
-          await page.goto(monthUrl);
+          await gotoWhenIdle(page, monthUrl);
         }
       });
 
@@ -135,7 +136,7 @@ test.describe("Booking limits", () => {
         );
 
         // try to book directly via form page
-        await page.goto(slotUrl);
+        await gotoWhenIdle(page, slotUrl);
         await expectSlotNotAllowedToBook(page);
       });
 
@@ -147,7 +148,8 @@ test.describe("Booking limits", () => {
         const month = String(rescheduledBooking.startTime.getMonth() + 1).padStart(2, "0");
         const day = String(rescheduledBooking.startTime.getDate()).padStart(2, "0");
 
-        await page.goto(
+        await gotoWhenIdle(
+          page,
           `/${user.username}/${
             user.eventTypes.at(-1)?.slug
           }?rescheduleUid=${bookingId}&date=${year}-${month}-${day}&month=${year}-${month}`
@@ -188,7 +190,7 @@ test.describe("Booking limits", () => {
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
+        await gotoWhenIdle(page, getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
@@ -220,7 +222,7 @@ test.describe("Booking limits", () => {
       const limitUnit = intervalLimitKeyToUnit(limitKey);
 
       const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
-      await page.goto(monthUrl);
+      await gotoWhenIdle(page, monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
       const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
@@ -242,7 +244,7 @@ test.describe("Booking limits", () => {
 
           await expect(page.getByTestId("success-page")).toBeVisible();
 
-          await page.goto(monthUrl);
+          await gotoWhenIdle(page, monthUrl);
         }
       });
 
@@ -268,13 +270,13 @@ test.describe("Booking limits", () => {
         );
 
         // try to book directly via form page
-        await page.goto(slotUrl);
+        await gotoWhenIdle(page, slotUrl);
 
         await expectSlotNotAllowedToBook(page);
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
+        await gotoWhenIdle(page, getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
@@ -310,7 +312,7 @@ test.describe("Duration limits", () => {
       let slotUrl = "";
 
       const monthUrl = getLastEventUrlWithMonth(user, firstMondayInBookingMonth);
-      await page.goto(monthUrl);
+      await gotoWhenIdle(page, monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
       const bookingDay = availableDays.getByText(firstMondayInBookingMonth.date().toString(), {
@@ -332,7 +334,7 @@ test.describe("Duration limits", () => {
 
           await expect(page.getByTestId("success-page")).toBeVisible();
 
-          await page.goto(monthUrl);
+          await gotoWhenIdle(page, monthUrl);
         }
       });
 
@@ -358,12 +360,12 @@ test.describe("Duration limits", () => {
         );
 
         // try to book directly via form page
-        await page.goto(slotUrl);
+        await gotoWhenIdle(page, slotUrl);
         await expectSlotNotAllowedToBook(page);
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
+        await gotoWhenIdle(page, getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
@@ -403,7 +405,7 @@ test.describe("Duration limits", () => {
       const limitUnit = intervalLimitKeyToUnit(limitKey);
 
       const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
-      await page.goto(monthUrl);
+      await gotoWhenIdle(page, monthUrl);
 
       const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
       const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
@@ -425,7 +427,7 @@ test.describe("Duration limits", () => {
 
           await expect(page.getByTestId("success-page")).toBeVisible();
 
-          await page.goto(monthUrl);
+          await gotoWhenIdle(page, monthUrl);
         }
       });
 
@@ -451,12 +453,12 @@ test.describe("Duration limits", () => {
         );
 
         // try to book directly via form page
-        await page.goto(slotUrl);
+        await gotoWhenIdle(page, slotUrl);
         await expectSlotNotAllowedToBook(page);
       });
 
       await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
+        await gotoWhenIdle(page, getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
 
         // finish rendering days before counting
         await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });

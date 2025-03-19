@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse } from "./lib/testUtils";
+import { gotoWhenIdle, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "serial" });
 
@@ -11,7 +11,7 @@ test.describe("unauthorized user sees correct translations (de)", async () => {
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     // we dont need to wait for styles and images, only for dom
     await page.waitForLoadState("domcontentloaded");
 
@@ -37,7 +37,7 @@ test.describe("unauthorized user sees correct translations (ar)", async () => {
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.waitForLoadState("domcontentloaded");
 
     await page.locator("html[lang=ar]").waitFor({ state: "attached" });
@@ -62,7 +62,7 @@ test.describe("unauthorized user sees correct translations (zh)", async () => {
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.waitForLoadState("domcontentloaded");
 
     await page.locator("html[lang=zh]").waitFor({ state: "attached" });
@@ -87,7 +87,7 @@ test.describe("unauthorized user sees correct translations (zh-CN)", async () =>
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.waitForLoadState("domcontentloaded");
 
     await page.locator("html[lang=zh-CN]").waitFor({ state: "attached" });
@@ -112,7 +112,7 @@ test.describe("unauthorized user sees correct translations (zh-TW)", async () =>
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.waitForLoadState("domcontentloaded");
 
     await page.locator("html[lang=zh-TW]").waitFor({ state: "attached" });
@@ -137,7 +137,7 @@ test.describe("unauthorized user sees correct translations (pt)", async () => {
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.waitForLoadState("domcontentloaded");
 
     await page.locator("html[lang=pt]").waitFor({ state: "attached" });
@@ -162,7 +162,7 @@ test.describe("unauthorized user sees correct translations (pt-br)", async () =>
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.waitForLoadState("domcontentloaded");
 
     await page.locator("html[lang=pt-BR]").waitFor({ state: "attached" });
@@ -187,7 +187,7 @@ test.describe("unauthorized user sees correct translations (es-419)", async () =
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {
-    await page.goto("/");
+    await gotoWhenIdle(page, "/");
     await page.waitForLoadState("domcontentloaded");
 
     // es-419 is disabled in i18n config, so es should be used as fallback
@@ -221,7 +221,7 @@ test.describe("authorized user sees correct translations (de)", async () => {
     });
 
     await test.step("should navigate to /event-types and show German translations", async () => {
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
 
       await page.waitForLoadState("domcontentloaded");
 
@@ -244,7 +244,7 @@ test.describe("authorized user sees correct translations (de)", async () => {
     });
 
     await test.step("should navigate to /bookings and show German translations", async () => {
-      await page.goto("/bookings");
+      await gotoWhenIdle(page, "/bookings");
 
       await page.waitForLoadState("domcontentloaded");
 
@@ -297,7 +297,7 @@ test.describe("authorized user sees correct translations (pt-br)", async () => {
     });
 
     await test.step("should navigate to /event-types and show Brazil-Portuguese translations", async () => {
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
 
       await page.waitForLoadState("domcontentloaded");
 
@@ -316,7 +316,7 @@ test.describe("authorized user sees correct translations (pt-br)", async () => {
     });
 
     await test.step("should navigate to /bookings and show Brazil-Portuguese translations", async () => {
-      await page.goto("/bookings");
+      await gotoWhenIdle(page, "/bookings");
 
       await page.waitForLoadState("domcontentloaded");
 
@@ -369,7 +369,7 @@ test.describe("authorized user sees correct translations (ar)", async () => {
     });
 
     await test.step("should navigate to /event-types and show Arabic translations", async () => {
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
 
       await page.waitForLoadState("domcontentloaded");
 
@@ -388,7 +388,7 @@ test.describe("authorized user sees correct translations (ar)", async () => {
     });
 
     await test.step("should navigate to /bookings and show Arabic translations", async () => {
-      await page.goto("/bookings");
+      await gotoWhenIdle(page, "/bookings");
 
       await page.waitForLoadState("domcontentloaded");
 
@@ -441,7 +441,7 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
     });
 
     await test.step("should change the language and show Arabic translations", async () => {
-      await page.goto("/settings/my-account/general");
+      await gotoWhenIdle(page, "/settings/my-account/general");
 
       await page.waitForLoadState("domcontentloaded");
 
@@ -502,7 +502,7 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
     });
 
     await test.step("should change the language and show Brazil-Portuguese translations", async () => {
-      await page.goto("/settings/my-account/general");
+      await gotoWhenIdle(page, "/settings/my-account/general");
       await page.waitForLoadState("domcontentloaded");
 
       await page.locator(".bg-default > div > div:nth-child(2)").first().click();

@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { gotoWhenIdle, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -29,7 +29,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByPlaceholder("Price").click();
@@ -37,7 +37,7 @@ test.describe("Payment app", () => {
     await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent?.slug}`);
+    await gotoWhenIdle(page, `${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
     await expect(page.locator("text=200 sats").first()).toBeVisible();
@@ -46,7 +46,7 @@ test.describe("Payment app", () => {
     await expect(page.locator("text=200 sats").first()).toBeVisible();
 
     // go to /event-types and check if the price is 200 sats
-    await page.goto(`event-types/`);
+    await gotoWhenIdle(page, `event-types/`);
     await expect(page.locator("text=200 sats").first()).toBeVisible();
   });
 
@@ -73,7 +73,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent?.id}?tabName=apps`);
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByTestId("stripe-currency-select").click();
     await page.getByTestId("select-option-usd").click();
@@ -82,7 +82,7 @@ test.describe("Payment app", () => {
     await page.getByTestId("stripe-price-input").fill("350");
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent?.slug}`);
+    await gotoWhenIdle(page, `${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
     expect(await page.locator("text=350").first()).toBeTruthy();
@@ -91,7 +91,7 @@ test.describe("Payment app", () => {
     expect(await page.locator("text=350").first()).toBeTruthy();
 
     // go to /event-types and check if the price is 200 sats
-    await page.goto(`event-types/`);
+    await gotoWhenIdle(page, `event-types/`);
     expect(await page.locator("text=350").first()).toBeTruthy();
   });
 
@@ -113,7 +113,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -128,7 +128,7 @@ test.describe("Payment app", () => {
     await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent?.slug}`);
+    await gotoWhenIdle(page, `${user.username}/${paymentEvent?.slug}`);
 
     // expect 150 to be displayed in page
     expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
@@ -138,7 +138,7 @@ test.describe("Payment app", () => {
     expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
 
     // go to /event-types and check if the price is 150
-    await page.goto(`event-types/`);
+    await gotoWhenIdle(page, `event-types/`);
     expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
   });
 
@@ -156,7 +156,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -183,7 +183,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -218,7 +218,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     // make sure Tracking ID is displayed
@@ -265,7 +265,7 @@ test.describe("Payment app", () => {
       ],
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent.id}?tabName=apps`);
 
     await page.locator("[data-testid='paypal-app-switch']").click();
     await page.locator("[data-testid='stripe-app-switch']").isDisabled();
@@ -312,7 +312,7 @@ test.describe("Payment app", () => {
       ],
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await gotoWhenIdle(page, `event-types/${paymentEvent.id}?tabName=apps`);
 
     await page.getByTestId("paypal-app-switch").click();
     await page.getByTestId("paypal-price-input").fill("100");

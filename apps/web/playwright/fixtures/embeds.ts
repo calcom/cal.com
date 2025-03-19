@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 export const createEmbedsFixture = (page: Page) => {
   return {
@@ -109,7 +110,7 @@ export const createEmbedsFixture = (page: Page) => {
 
     async gotoPlayground({ calNamespace, url }: { calNamespace: string; url: string }) {
       await this.addEmbedListeners(calNamespace);
-      await page.goto(url);
+      await gotoWhenIdle(page, url);
     },
   };
 };

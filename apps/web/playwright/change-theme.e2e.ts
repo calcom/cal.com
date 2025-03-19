@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -6,7 +7,7 @@ test.describe("Change App Theme Test", () => {
   test("change app theme to dark", async ({ page, users }) => {
     const pro = await users.create();
     await pro.apiLogin();
-    await page.goto("/settings/my-account/appearance");
+    await gotoWhenIdle(page, "/settings/my-account/appearance");
     await expect(page.locator('text="Dashboard theme"')).toBeVisible();
     await page.click('[data-testid="appTheme-dark"]');
     await page.click('[data-testid="update-app-theme-btn"]');
@@ -24,7 +25,7 @@ test.describe("Change App Theme Test", () => {
   test("change app theme to light", async ({ page, users }) => {
     const pro = await users.create();
     await pro.apiLogin();
-    await page.goto("/settings/my-account/appearance");
+    await gotoWhenIdle(page, "/settings/my-account/appearance");
     await expect(page.locator('text="Dashboard theme"')).toBeVisible();
     await page.click('[data-testid="appTheme-light"]');
     await page.click('[data-testid="update-app-theme-btn"]');
@@ -43,7 +44,7 @@ test.describe("Change App Theme Test", () => {
     const pro = await users.create();
     await pro.apiLogin();
 
-    await page.goto("/settings/my-account/appearance");
+    await gotoWhenIdle(page, "/settings/my-account/appearance");
     await expect(page.locator('text="Dashboard theme"')).toBeVisible();
     await page.click('[data-testid="appTheme-light"]');
     await page.click('[data-testid="update-app-theme-btn"]');
@@ -71,7 +72,7 @@ test.describe("Change Booking Page Theme Test", () => {
     const pro = await users.create();
     await pro.apiLogin();
 
-    await page.goto("/settings/my-account/appearance");
+    await gotoWhenIdle(page, "/settings/my-account/appearance");
     await expect(page.locator('text="Dashboard theme"')).toBeVisible();
 
     //Click the "Dark" theme label
@@ -82,7 +83,7 @@ test.describe("Change Booking Page Theme Test", () => {
     const toast = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast).toBeTruthy();
     //Go to the profile page and check if the theme is dark
-    await page.goto(`/${pro.username}`);
+    await gotoWhenIdle(page, `/${pro.username}`);
     await page.reload();
     await page.waitForLoadState("domcontentloaded"); // Fix the race condition
     const htmlClass = await page.getAttribute("html", "class");
@@ -93,7 +94,7 @@ test.describe("Change Booking Page Theme Test", () => {
     const pro = await users.create();
     await pro.apiLogin();
 
-    await page.goto("/settings/my-account/appearance");
+    await gotoWhenIdle(page, "/settings/my-account/appearance");
     await expect(page.locator('text="Dashboard theme"')).toBeVisible();
 
     //Click the "Light" theme label
@@ -104,7 +105,7 @@ test.describe("Change Booking Page Theme Test", () => {
     const toast = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast).toBeTruthy();
     //Go to the profile page and check if the theme is light
-    await page.goto(`/${pro.username}`);
+    await gotoWhenIdle(page, `/${pro.username}`);
     const htmlClass = await page.getAttribute("html", "class");
     expect(htmlClass).toContain("light");
   });
@@ -113,7 +114,7 @@ test.describe("Change Booking Page Theme Test", () => {
     const pro = await users.create();
     await pro.apiLogin();
 
-    await page.goto("/settings/my-account/appearance");
+    await gotoWhenIdle(page, "/settings/my-account/appearance");
     await expect(page.locator('text="Dashboard theme"')).toBeVisible();
 
     await page.click('[data-testid="theme-light"]');
@@ -125,7 +126,7 @@ test.describe("Change Booking Page Theme Test", () => {
     await page.click('[data-testid="update-theme-btn"]');
     const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast2).toBeTruthy();
-    await page.goto(`/${pro.username}`);
+    await gotoWhenIdle(page, `/${pro.username}`);
 
     const systemTheme = await page.evaluate(() => {
       return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";

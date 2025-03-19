@@ -6,7 +6,7 @@ import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calc
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
+import { getEmailsReceivedByUser, gotoWhenIdle, localize } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -16,7 +16,7 @@ const preventFlakyTest = async (page: Page) => {
 };
 test.describe("Signup Main Page Test", async () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/signup");
+    await gotoWhenIdle(page, "/signup");
     await preventFlakyTest(page);
   });
 
@@ -59,7 +59,7 @@ test.describe("Email Signup Flow Test", async () => {
         username: "pro",
       });
 
-      await page.goto("/signup");
+      await gotoWhenIdle(page, "/signup");
       await preventFlakyTest(page);
       const continueWithEmailButton = page.getByTestId("continue-with-email-button");
       await expect(continueWithEmailButton).toBeVisible();
@@ -90,7 +90,7 @@ test.describe("Email Signup Flow Test", async () => {
         username: "pro",
       });
 
-      await page.goto("/signup");
+      await gotoWhenIdle(page, "/signup");
       await preventFlakyTest(page);
       const continueWithEmailButton = page.getByTestId("continue-with-email-button");
       await expect(continueWithEmailButton).toBeVisible();
@@ -125,7 +125,7 @@ test.describe("Email Signup Flow Test", async () => {
     await prisma.user.deleteMany({ where: { username: "rock" } });
 
     // Signup with premium username name
-    await page.goto("/signup");
+    await gotoWhenIdle(page, "/signup");
     await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
@@ -158,7 +158,7 @@ test.describe("Email Signup Flow Test", async () => {
       email: `rickjones${Math.random()}-${Date.now()}@example.com`,
     });
 
-    await page.goto("/signup");
+    await gotoWhenIdle(page, "/signup");
     await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
@@ -183,7 +183,7 @@ test.describe("Email Signup Flow Test", async () => {
   });
   test("Signup fields prefilled with query params", async ({ page, users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
-    await page.goto(signupUrlWithParams);
+    await gotoWhenIdle(page, signupUrlWithParams);
     await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
@@ -237,7 +237,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
 
     const signupUrlWithToken = `/signup?token=${token}`;
-    await page.goto(signupUrlWithToken);
+    await gotoWhenIdle(page, signupUrlWithToken);
     await preventFlakyTest(page);
     await expect(page.getByTestId("signup-submit-button")).toBeVisible();
 
@@ -269,7 +269,7 @@ test.describe("Email Signup Flow Test", async () => {
       password: "Password99!",
     });
 
-    await page.goto("/signup");
+    await gotoWhenIdle(page, "/signup");
     await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
@@ -311,7 +311,7 @@ test.describe("Email Signup Flow Test", async () => {
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await gotoWhenIdle(page, `/settings/teams/${team.id}/members`);
 
     await test.step("Invite User to team", async () => {
       // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)
@@ -339,7 +339,7 @@ test.describe("Email Signup Flow Test", async () => {
       // Follow invite link to new window
       const context = await browser.newContext();
       const newPage = await context.newPage();
-      await newPage.goto(inviteLink);
+      await gotoWhenIdle(newPage, inviteLink);
       await expect(newPage.locator("text=Create your account")).toBeVisible();
 
       const url = new URL(newPage.url());
@@ -358,7 +358,7 @@ test.describe("Email Signup Flow Test", async () => {
   });
 
   test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
-    await page.goto("/signup");
+    await gotoWhenIdle(page, "/signup");
     await preventFlakyTest(page);
 
     // Navigate to email form

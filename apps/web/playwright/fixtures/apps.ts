@@ -5,6 +5,7 @@ import {
   bookTimeSlot,
   gotoBookingPage,
   gotoFirstEventType,
+  gotoWhenIdle,
   saveEventType,
   selectFirstAvailableTimeSlotNextMonth,
 } from "../lib/testUtils";
@@ -13,7 +14,7 @@ export function createAppsFixture(page: Page) {
   return {
     goToAppsCategory: async (category: string) => {
       await page.getByTestId(`app-store-category-${category}`).nth(1).click();
-      await page.goto("apps/categories/analytics");
+      await gotoWhenIdle(page, "apps/categories/analytics");
     },
     installAnalyticsAppSkipConfigure: async (app: string) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
@@ -51,13 +52,13 @@ export function createAppsFixture(page: Page) {
     },
 
     installConferencingAppSkipConfigure: async (app: string) => {
-      await page.goto(`apps/${app}`);
+      await gotoWhenIdle(page, `apps/${app}`);
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       await page.click('[data-testid="set-up-later"]');
     },
     verifyConferencingApp: async (app: TApp) => {
-      await page.goto("/event-types");
+      await gotoWhenIdle(page, "/event-types");
       await gotoFirstEventType(page);
       await page.getByTestId("location-select").last().click();
       await page.getByTestId(`location-select-item-${app.type}`).click();
@@ -75,7 +76,7 @@ export function createAppsFixture(page: Page) {
     },
 
     installConferencingAppNewFlow: async (app: TApp, eventTypeIds: number[]) => {
-      await page.goto(`apps/${app.slug}`);
+      await gotoWhenIdle(page, `apps/${app.slug}`);
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
@@ -94,7 +95,7 @@ export function createAppsFixture(page: Page) {
 
     verifyConferencingAppNew: async (app: TApp, eventTypeIds: number[]) => {
       for (const id of eventTypeIds) {
-        await page.goto(`/event-types/${id}`);
+        await gotoWhenIdle(page, `/event-types/${id}`);
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
         await bookTimeSlot(page, { name: `Test Testson`, email: `test@example.com` });
@@ -118,7 +119,7 @@ export function createAppsFixture(page: Page) {
       await expect(page.locator(`text=1 apps, ${activeApps} active`)).toBeVisible();
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
-      await page.goto(`event-types/${eventTypeId}?tabName=apps`);
+      await gotoWhenIdle(page, `event-types/${eventTypeId}?tabName=apps`);
       await page.waitForLoadState("domcontentloaded");
       await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },

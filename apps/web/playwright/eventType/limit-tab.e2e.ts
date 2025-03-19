@@ -1,10 +1,12 @@
+import { gotoWhenIdle } from "playwright/lib/testUtils";
+
 import { loginUser } from "../fixtures/regularBookings";
 import { test } from "../lib/fixtures";
 
 test.describe("Limits Tab - Event Type", () => {
   test.beforeEach(async ({ page, users, bookingPage }) => {
     await loginUser(users);
-    await page.goto("/event-types");
+    await gotoWhenIdle(page, "/event-types");
     await bookingPage.goToEventType("30 min");
     await bookingPage.goToTab("event_limit_tab_title");
   });

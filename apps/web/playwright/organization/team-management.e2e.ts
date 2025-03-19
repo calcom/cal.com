@@ -5,7 +5,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
-import { fillStripeTestCheckout } from "../lib/testUtils";
+import { fillStripeTestCheckout, gotoWhenIdle } from "../lib/testUtils";
 
 test.describe("Teams", () => {
   test.afterEach(({ orgs, users }) => {
@@ -23,7 +23,7 @@ test.describe("Teams", () => {
     });
     const inviteeEmail = `${user.username}+invitee@example.com`;
     await user.apiLogin();
-    await page.goto("/teams");
+    await gotoWhenIdle(page, "/teams");
 
     await test.step("Can create team", async () => {
       // Click text=Create Team

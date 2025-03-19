@@ -7,7 +7,7 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { setupManagedEvent } from "./lib/testUtils";
+import { gotoWhenIdle, setupManagedEvent } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -52,7 +52,7 @@ test.describe("Bookings", () => {
       const bookingWhereFirstUserIsAttendee = await bookingWhereFirstUserIsAttendeeFixture.self();
 
       await firstUser.apiLogin();
-      await page.goto(`/bookings/upcoming`);
+      await gotoWhenIdle(page, `/bookings/upcoming`);
       const upcomingBookings = page.locator('[data-testid="upcoming-bookings"]');
       const firstUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(0);
       const secondUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(1);
@@ -69,7 +69,7 @@ test.describe("Bookings", () => {
     test("Cannot choose date range presets", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
-      await page.goto(`/bookings/upcoming`);
+      await gotoWhenIdle(page, `/bookings/upcoming`);
       await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
       await page.locator('[data-testid="add-filter-button"]').click();
@@ -107,7 +107,7 @@ test.describe("Bookings", () => {
       const bookingWhereFirstUserIsOrganizer = await bookingWhereFirstUserIsOrganizerFixture.self();
       await firstUser.apiLogin();
       const webhookReceiver = await webhooks.createReceiver();
-      await page.goto(`/bookings/past`);
+      await gotoWhenIdle(page, `/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
@@ -159,7 +159,7 @@ test.describe("Bookings", () => {
       const bookingWhereFirstUserIsOrganizer = await bookingWhereFirstUserIsOrganizerFixture.self();
 
       await firstUser.apiLogin();
-      await page.goto(`/bookings/past`);
+      await gotoWhenIdle(page, `/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
@@ -198,7 +198,7 @@ test.describe("Bookings", () => {
       const booking = await bookingFixture.self();
       await adminUser.apiLogin();
       const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
-      await page.goto(`/bookings/past`);
+      await gotoWhenIdle(page, `/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
@@ -233,7 +233,7 @@ test.describe("Bookings", () => {
     test("Can choose date range presets", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
-      await page.goto(`/bookings/past`);
+      await gotoWhenIdle(page, `/bookings/past`);
       await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
       await page.locator('[data-testid="add-filter-button"]').click();
@@ -341,7 +341,7 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
-    await page.goto(`/bookings/upcoming`);
+    await gotoWhenIdle(page, `/bookings/upcoming`);
 
     await page.locator('[data-testid="add-filter-button"]').click();
     await page.locator('[data-testid="add-filter-item-userId"]').click();
@@ -441,7 +441,7 @@ test.describe("Bookings", () => {
     const anotherUser = teamMatesObj.find((m) => m.name !== host.user.name)?.name;
 
     await owner.apiLogin();
-    await page.goto("/bookings/upcoming");
+    await gotoWhenIdle(page, "/bookings/upcoming");
     await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
     await page.locator('[data-testid="add-filter-button"]').click();

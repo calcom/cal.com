@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
@@ -74,7 +75,7 @@ test.describe("Insights", async () => {
     await user.apiLogin();
 
     // go to insights page
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
   });
@@ -87,7 +88,7 @@ test.describe("Insights", async () => {
 
     await createTeamsAndMembership(user.id, userTwo.id);
     // go to insights page
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
   });
@@ -104,7 +105,7 @@ test.describe("Insights", async () => {
     await createTeamsAndMembership(user.id, userTwo.id);
 
     // go to insights page
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
     await page.locator(`[data-testid=insights-filters-false-undefined-${user.id}]`).waitFor();
 
     await page.getByTestId("dashboard-shell").getByText("Your account").click();
@@ -129,7 +130,7 @@ test.describe("Insights", async () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
     await page.locator('[data-testid^="insights-filters-true-"]').waitFor();
 
     await page.locator('[data-testid^="insights-filters-true-"]').getByText("All").click();
@@ -151,7 +152,7 @@ test.describe("Insights", async () => {
 
     await owner.apiLogin();
 
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
 
     await page.getByTestId("dashboard-shell").getByText("Your account").click();
 
@@ -170,7 +171,7 @@ test.describe("Insights", async () => {
 
     await owner.apiLogin();
 
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
 
     await page.getByTestId("dashboard-shell").getByText("Your account").click();
 
@@ -194,7 +195,7 @@ test.describe("Insights", async () => {
 
     await owner.apiLogin();
 
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
 
     // Choose a team
     await page.getByTestId("dashboard-shell").getByText("Your account").click();
@@ -239,7 +240,7 @@ test.describe("Insights", async () => {
 
     await owner.apiLogin();
 
-    await page.goto("/insights");
+    await gotoWhenIdle(page, "/insights");
 
     const downloadPromise = page.waitForEvent("download");
 

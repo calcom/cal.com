@@ -2,6 +2,7 @@ import type { Page, Frame } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
+import { gotoWhenIdle } from "@calcom/web/playwright/lib/testUtils";
 
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
@@ -143,7 +144,7 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   return booking;
 }
 export async function installAppleCalendar(page: Page) {
-  await page.goto("/apps/categories/calendar");
+  await gotoWhenIdle(page, "/apps/categories/calendar");
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');
   await page.waitForURL("/apps/apple-calendar");
   await page.click('[data-testid="install-app-button"]');

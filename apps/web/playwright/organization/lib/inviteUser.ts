@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
 
-import { submitAndWaitForResponse } from "../../lib/testUtils";
+import { gotoWhenIdle, submitAndWaitForResponse } from "../../lib/testUtils";
 
 export const inviteUserToOrganization = async ({
   page,
@@ -16,7 +16,7 @@ export const inviteUserToOrganization = async ({
   email: string;
   usersFixture: ReturnType<typeof createUsersFixture>;
 }) => {
-  await page.goto(`/settings/organizations/${organizationSlug}/members`);
+  await gotoWhenIdle(page, `/settings/organizations/${organizationSlug}/members`);
   const invitedUserEmail = usersFixture.trackEmail({
     username: email.split("@")[0],
     domain: email.split("@")[1],
@@ -40,13 +40,13 @@ export const inviteExistingUserToOrganization = async ({
   };
   usersFixture: ReturnType<typeof createUsersFixture>;
 }) => {
-  await page.goto(`/settings/organizations/${organizationSlug}/members`);
+  await gotoWhenIdle(page, `/settings/organizations/${organizationSlug}/members`);
   await inviteAnEmail(page, user.email);
   return { invitedUserEmail: user.email };
 };
 
 export async function acceptTeamOrOrgInvite(page: Page) {
-  await page.goto("/settings/teams");
+  await gotoWhenIdle(page, "/settings/teams");
   await submitAndWaitForResponse(page, "/api/trpc/teams/acceptOrLeave?batch=1", {
     action: () => page.click('[data-testid^="accept-invitation"]'),
   });

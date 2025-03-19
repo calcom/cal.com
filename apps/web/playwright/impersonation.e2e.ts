@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -18,7 +19,7 @@ test.describe("Users can impersonate", async () => {
     const userToImpersonate = await users.create({ disableImpersonation: false });
 
     await user.apiLogin();
-    await page.goto("/settings/admin/impersonation");
+    await gotoWhenIdle(page, "/settings/admin/impersonation");
     await expect(page.getByText("User Impersonation")).toBeVisible();
     const adminInput = page.getByTestId("admin-impersonation-input");
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -28,7 +29,7 @@ test.describe("Users can impersonate", async () => {
 
     // // Wait for sign in to complete
     await page.waitForURL("/event-types");
-    await page.goto("/settings/profile");
+    await gotoWhenIdle(page, "/settings/profile");
 
     const stopImpersonatingButton = page.getByTestId("stop-impersonating-button");
 

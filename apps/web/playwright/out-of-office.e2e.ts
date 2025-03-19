@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse, localize } from "./lib/testUtils";
+import { submitAndWaitForResponse, localize, gotoWhenIdle } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -24,7 +24,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -81,7 +81,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -168,7 +168,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -216,7 +216,7 @@ test.describe("Out of office", () => {
       },
     });
 
-    await page.goto(`/${user.username}`);
+    await gotoWhenIdle(page, `/${user.username}`);
 
     const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
     await eventTypeLink.click();
@@ -232,7 +232,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -281,7 +281,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -322,7 +322,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -360,7 +360,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -404,7 +404,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -425,7 +425,7 @@ test.describe("Out of office", () => {
 
     //As member1, OOO is created on Next month 4th - 5th, forwarding to 'owner'
     await member1User?.apiLogin();
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
     await addOOOButton.click();
@@ -453,7 +453,7 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
-    await page.goto("/settings/my-account/out-of-office");
+    await gotoWhenIdle(page, "/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
@@ -474,7 +474,7 @@ test.describe("Out of office", () => {
 
     await test.step("As member1, expect error while OOO is created on Next month 4th - 5th, forwarding to 'owner'", async () => {
       await member1User?.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
+      await gotoWhenIdle(page, "/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
       await addOOOButton.click();
@@ -506,7 +506,7 @@ test.describe("Out of office", () => {
       const entriesListRespPromise = page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
-      await page.goto("/settings/my-account/out-of-office?type=team");
+      await gotoWhenIdle(page, "/settings/my-account/out-of-office?type=team");
       await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
 
@@ -621,7 +621,7 @@ test.describe("Out of office", () => {
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.goto("/settings/my-account/out-of-office?type=team");
+        await gotoWhenIdle(page, "/settings/my-account/out-of-office?type=team");
         await page.waitForLoadState("domcontentloaded");
         await entriesListRespPromise;
 
@@ -651,7 +651,7 @@ test.describe("Out of office", () => {
     test("Default date range filter set to `Last 7 Days`", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
+      await gotoWhenIdle(page, "/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
       await page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
@@ -668,7 +668,7 @@ test.describe("Out of office", () => {
     test("Can choose date range presets", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
+      await gotoWhenIdle(page, "/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
       await page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
@@ -759,7 +759,7 @@ test.describe("Out of office", () => {
       const entriesListRespPromise = page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
-      await page.goto("/settings/my-account/out-of-office");
+      await gotoWhenIdle(page, "/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
 

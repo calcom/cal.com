@@ -2,12 +2,13 @@ import { expect } from "@playwright/test";
 
 // eslint-disable-next-line no-restricted-imports
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { gotoWhenIdle } from "@calcom/web/playwright/lib/testUtils";
 
 import "../../src/types";
 
 test.describe("Embed Pages", () => {
   test("Event Type Page: should not have margin top on embed page", async ({ page }) => {
-    await page.goto("http://localhost:3000/free/30min/embed");
+    await gotoWhenIdle(page, "http://localhost:3000/free/30min/embed");
     // Checks the margin from top by checking the distance between the div inside main from the viewport
     const marginFromTop = await page.evaluate(async () => {
       return await new Promise<{
@@ -35,7 +36,7 @@ test.describe("Embed Pages", () => {
   });
 
   test("Event Type Page: should have margin top on non embed page", async ({ page }) => {
-    await page.goto("http://localhost:3000/free/30min");
+    await gotoWhenIdle(page, "http://localhost:3000/free/30min");
 
     // Checks the margin from top by checking the distance between the div inside main from the viewport
     const marginFromTop = await page.evaluate(() => {
@@ -63,7 +64,7 @@ test.describe("Embed Pages", () => {
         window.name = "cal-embed=";
       });
 
-      await page.goto(`http://localhost:3000/free/30min?theme=${queryParamTheme}`);
+      await gotoWhenIdle(page, `http://localhost:3000/free/30min?theme=${queryParamTheme}`);
 
       const isEmbed = await page.evaluate(() => {
         return window?.isEmbed?.();
@@ -90,7 +91,7 @@ test.describe("Embed Pages", () => {
       await page.evaluate(() => {
         window.name = "testing";
       });
-      await page.goto(`http://localhost:3000/free/30min`);
+      await gotoWhenIdle(page, `http://localhost:3000/free/30min`);
       const isEmbed = await page.evaluate(() => {
         return window?.isEmbed?.();
       });
@@ -108,7 +109,7 @@ test.describe("Embed Pages", () => {
       await page.evaluate(() => {
         window.name = "cal-embed=";
       });
-      await page.goto("http://localhost:3000/free/30min?theme=dark");
+      await gotoWhenIdle(page, "http://localhost:3000/free/30min?theme=dark");
       let embedTheme = await page.evaluate(() => {
         return window?.getEmbedTheme?.();
       });

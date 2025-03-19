@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import path from "path";
+import { gotoWhenIdle } from "playwright/lib/testUtils";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
@@ -14,7 +15,7 @@ test.describe("User Avatar", async () => {
     let objectKey: string;
 
     await test.step("Can upload an initial picture", async () => {
-      await page.goto("/settings/my-account/profile");
+      await gotoWhenIdle(page, "/settings/my-account/profile");
 
       await page.getByTestId("open-upload-avatar-dialog").click();
 
@@ -56,7 +57,7 @@ test.describe("User Avatar", async () => {
     });
 
     await test.step("View avatar on the public page", async () => {
-      await page.goto(`/${user.username}`);
+      await gotoWhenIdle(page, `/${user.username}`);
 
       await expect(page.locator(`img`)).toHaveAttribute(
         "src",
@@ -81,7 +82,7 @@ test.describe("Team Logo", async () => {
 
     await user.apiLogin();
 
-    await page.goto(`/settings/teams/${team.id}/profile`);
+    await gotoWhenIdle(page, `/settings/teams/${team.id}/profile`);
 
     await test.step("Can upload an initial picture", async () => {
       await page.getByTestId("open-upload-avatar-dialog").click();
@@ -136,7 +137,7 @@ test.describe("Organization Logo", async () => {
     const { team: org } = await owner.getOrgMembership();
 
     await owner.apiLogin();
-    await page.goto("/settings/organizations/profile");
+    await gotoWhenIdle(page, "/settings/organizations/profile");
 
     let objectKey: string;
 
@@ -189,7 +190,7 @@ test.describe("Organization Logo", async () => {
     const requestedSlug = org.metadata?.requestedSlug;
 
     await test.step("it shows the correct logo on the unpublished public page", async () => {
-      await page.goto(`/org/${requestedSlug}`);
+      await gotoWhenIdle(page, `/org/${requestedSlug}`);
 
       await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
 

@@ -6,7 +6,7 @@ import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/en
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectInteractions } from "@calcom/web/playwright/lib/pageObject";
-import { getEmailsReceivedByUser, gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
+import { getEmailsReceivedByUser, gotoRoutingLink, gotoWhenIdle } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   addForm,
@@ -93,7 +93,7 @@ test.describe("Routing Forms", () => {
       await gotoRoutingLink({ page, formId });
       await expect(page.locator("text=Test Form Name")).toBeVisible();
 
-      await page.goto(`apps/routing-forms/route-builder/${formId}`);
+      await gotoWhenIdle(page, `apps/routing-forms/route-builder/${formId}`);
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
       await expect(page.getByTestId(`404-page`)).toBeVisible();
@@ -101,12 +101,12 @@ test.describe("Routing Forms", () => {
 
     test("recently added form appears first in the list", async ({ page }) => {
       await addForm(page, { name: "Test Form 1" });
-      await page.goto(`apps/routing-forms/forms`);
+      await gotoWhenIdle(page, `apps/routing-forms/forms`);
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(1);
 
       await addForm(page, { name: "Test Form 2" });
-      await page.goto(`apps/routing-forms/forms`);
+      await gotoWhenIdle(page, `apps/routing-forms/forms`);
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(2);
 
@@ -149,7 +149,7 @@ test.describe("Routing Forms", () => {
     test.describe.skip("F1<-F2 Relationship", () => {
       test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
-        await page.goto(`/routing-forms/forms`);
+        await gotoWhenIdle(page, `/routing-forms/forms`);
         const form2Id = await addForm(page, { name: "F2" });
 
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
@@ -172,7 +172,7 @@ test.describe("Routing Forms", () => {
         });
 
         // Add F1 as Router to F2
-        await page.goto(`/routing-forms/route-builder/${form2Id}`);
+        await gotoWhenIdle(page, `/routing-forms/route-builder/${form2Id}`);
         await selectNewRoute(page, {
           // It should be F1. TODO: Verify that it's F1
           routeSelectNumber: 2,
@@ -180,7 +180,7 @@ test.describe("Routing Forms", () => {
         await saveCurrentForm(page);
 
         // Expect F1 fields to be available in F2
-        await page.goto(`/routing-forms/form-edit/${form2Id}`);
+        await gotoWhenIdle(page, `/routing-forms/form-edit/${form2Id}`);
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -195,7 +195,7 @@ test.describe("Routing Forms", () => {
           },
         });
 
-        await page.goto(`/routing-forms/form-edit/${form2Id}`);
+        await gotoWhenIdle(page, `/routing-forms/form-edit/${form2Id}`);
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
         await expect(page.locator('[data-testid="field"]')).toHaveCount(3);
@@ -282,7 +282,7 @@ test.describe("Routing Forms", () => {
 
   test.describe("Seeded Routing Form ", () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto(`/routing-forms/forms`);
+      await gotoWhenIdle(page, `/routing-forms/forms`);
     });
     test.afterEach(async ({ users }) => {
       // This also delete forms on cascade
@@ -309,7 +309,7 @@ test.describe("Routing Forms", () => {
       // Log back in to view form responses.
       await user.apiLogin();
 
-      await page.goto(`/routing-forms/reporting/${routingForm.id}`);
+      await gotoWhenIdle(page, `/routing-forms/reporting/${routingForm.id}`);
 
       const headerEls = page.locator("[data-testid='reporting-header'] th");
 
@@ -355,7 +355,7 @@ test.describe("Routing Forms", () => {
         ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
       ]);
 
-      await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
+      await gotoWhenIdle(page, `apps/routing-forms/route-builder/${routingForm.id}`);
       const [download] = await Promise.all([
         // Start waiting for the download
         page.waitForEvent("download"),
@@ -405,29 +405,33 @@ test.describe("Routing Forms", () => {
 
       // Router should be publicly accessible
       await users.logout();
-      await page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
+      await gotoWhenIdle(page, `/router?form=${routingForm.id}&Test field=event-routing`);
       await page.waitForURL((url) => {
         return url.pathname.endsWith("/pro/30min") && url.searchParams.get("Test field") === "event-routing";
       });
 
-      await page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
+      await gotoWhenIdle(page, `/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
         return url.hostname.includes("cal.com") && url.searchParams.get("Test field") === "external-redirect";
       });
 
-      await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
+      await gotoWhenIdle(page, `/router?form=${routingForm.id}&Test field=custom-page`);
       await expect(page.locator("text=Custom Page Result")).toBeVisible();
 
-      await page.goto(`/router?form=${routingForm.id}&Test field=doesntmatter&${Identifiers.multi}=Option-2`);
+      await gotoWhenIdle(
+        page,
+        `/router?form=${routingForm.id}&Test field=doesntmatter&${Identifiers.multi}=Option-2`
+      );
       await expect(page.locator("text=Multiselect(Legacy) chosen")).toBeVisible({ timeout: 10000 });
 
-      await page.goto(
+      await gotoWhenIdle(
+        page,
         `/router?form=${routingForm.id}&Test field=doesntmatter&${Identifiers.multiNewFormat}=d1302635-9f12-17b1-9153-c3a854649182`
       );
       await expect(page.locator("text=Multiselect chosen")).toBeVisible({ timeout: 10000 });
 
       // Negative test - Ensures that the "No logic" situation where a Route is considered to be always passing isn't hitting
-      await page.goto(`/router?form=${routingForm.id}&Test field=kuchbhi`);
+      await gotoWhenIdle(page, `/router?form=${routingForm.id}&Test field=kuchbhi`);
       await page.waitForURL((url) => {
         return url.searchParams.get("Test field") === "kuchbhi";
       });
@@ -450,7 +454,7 @@ test.describe("Routing Forms", () => {
     test("Test preview should return correct route", async ({ page, users }) => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
-      await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
+      await gotoWhenIdle(page, `apps/routing-forms/form-edit/${routingForm.id}`);
       await page.click('[data-testid="test-preview"]');
 
       //event redirect
@@ -668,7 +672,7 @@ test.describe("Routing Forms", () => {
     };
 
     const selectSendMailToAllMembers = async ({ page, formId }: { page: Page; formId: string }) => {
-      await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await gotoWhenIdle(page, `apps/routing-forms/form-edit/${formId}`);
       await page.click('[data-testid="assign-all-team-members-toggle"]');
       await saveCurrentForm(page);
     };
@@ -682,7 +686,7 @@ test.describe("Routing Forms", () => {
       formId: string;
       text: string;
     }) => {
-      await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await gotoWhenIdle(page, `apps/routing-forms/form-edit/${formId}`);
       await page.click('[data-testid="routing-form-select-members"]');
       await page.getByText(text).nth(1).click();
       await saveCurrentForm(page);
@@ -828,7 +832,7 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
-  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await gotoWhenIdle(page, `apps/routing-forms/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
   await page.fill('[data-testid="description"]', form.description);
 
@@ -884,7 +888,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 }
 
 async function addShortTextFieldAndSaveForm({ page, formId }: { page: Page; formId: string }) {
-  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await gotoWhenIdle(page, `apps/routing-forms/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
   await page.locator(".data-testid-field-type").nth(0).click();
   await page.fill(`[name="fields.0.label"]`, "Short Text");
