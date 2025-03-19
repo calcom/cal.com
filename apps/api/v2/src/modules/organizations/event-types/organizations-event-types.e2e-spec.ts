@@ -448,7 +448,7 @@ describe("Organizations Event Types Endpoints", () => {
 
     it("managed team event types should be returned when fetching event types of users", async () => {
       return request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}`)
+        .get(`/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .expect(200)
         .then(async (response) => {
@@ -465,7 +465,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("managed team event type should be returned when fetching event types of users", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}&eventSlug=${managedEventTypeSlug}`
+          `/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}&eventSlug=${managedEventTypeSlug}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .expect(200)
