@@ -6,7 +6,7 @@ import { verifyVideoToken } from "@calcom/lib/videoTokens";
 
 import { GET } from "../route";
 
-vi.mock("@calcom/core/videoClient", () => ({
+vi.mock("@calcom/lib/videoClient", () => ({
   getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
 }));
 
