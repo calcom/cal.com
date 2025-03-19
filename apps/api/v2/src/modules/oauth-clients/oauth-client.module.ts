@@ -7,6 +7,7 @@ import { OAuthClientUsersController } from "@/modules/oauth-clients/controllers/
 import { OAuthClientsController } from "@/modules/oauth-clients/controllers/oauth-clients/oauth-clients.controller";
 import { OAuthFlowController } from "@/modules/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthClientsInputService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients-input.service";
 import { OAuthClientsOutputService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients-output.service";
@@ -48,8 +49,9 @@ import { JwtService } from "@nestjs/jwt";
     OAuthClientsInputService,
     OAuthClientsOutputService,
     JwtService,
+    OAuthClientUsersOutputService,
   ],
   controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
-  exports: [OAuthClientRepository],
+  exports: [OAuthClientRepository, OAuthClientUsersOutputService],
 })
 export class OAuthClientModule {}
