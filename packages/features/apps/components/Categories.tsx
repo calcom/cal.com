@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText } from "@calcom/ui/components/Skeleton";
 import { Icon } from "@calcom/ui/components/icon/Icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 
 import { Slider } from "./Slider";
 

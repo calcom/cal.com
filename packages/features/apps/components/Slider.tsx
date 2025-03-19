@@ -8,8 +8,8 @@ import type { ComponentProps, FC } from "react";
 import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText } from "@calcom/ui/components/Skeleton";
 import { Icon } from "@calcom/ui/components/icon/Icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 
 const SliderButton: FC<ComponentProps<"button">> = (props) => {
   const { children, ...rest } = props;

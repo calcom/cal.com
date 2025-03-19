@@ -1,5 +1,5 @@
-import { SkeletonText } from "@calcom/ui/components/Skeleton";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 
 export function SkeletonLoader({ className }: { className?: string }) {
   return (
