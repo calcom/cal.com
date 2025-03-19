@@ -76,10 +76,14 @@ export function FilterSegmentSelect() {
     );
 
     return [
-      {
-        label: t("personal"),
-        segments: personalSegments.sort(sortFn),
-      },
+      ...(personalSegments.length > 0
+        ? [
+            {
+              label: t("personal"),
+              segments: personalSegments.sort(sortFn),
+            },
+          ]
+        : []),
       ...Object.entries(teamSegmentsByTeam)
         .map(([teamName, segments]) => ({
           label: teamName,
@@ -99,6 +103,8 @@ export function FilterSegmentSelect() {
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
           <DropdownMenuContent align="start" className="w-60">
+            {segmentGroups.length === 0 && <p className="text-subtle px-3 py-1">{t("no_segments")}</p>}
+
             {segmentGroups.map((group, index) => (
               <div key={index}>
                 {group.label && (
