@@ -9,7 +9,11 @@ import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, List, ShellSubHeading, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button/Button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import { ShellSubHeading } from "@calcom/ui/components/layout/ShellSubHeading";
+import { List } from "@calcom/ui/components/list/List";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";

@@ -15,8 +15,8 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge/Badge";
-import { Button } from "@calcom/ui/components/button";
-import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button/Button";
+import type { ButtonProps } from "@calcom/ui/components/button/Button";
 import { showToast } from "@calcom/ui/components/toast/showToast";
 
 interface AppCardProps {
