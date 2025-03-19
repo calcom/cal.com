@@ -171,7 +171,8 @@ const BookerComponent = ({
     bookerState,
     isInstantMeeting,
     layout == BookerLayouts.WEEK_VIEW,
-    event?.data?.bookingFields
+    event?.data?.bookingFields,
+    event?.data?.locations
   );
 
   // Cloudflare Turnstile Captcha
