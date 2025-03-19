@@ -10,6 +10,8 @@ interface AssignTermsProps {
   nextStep: () => void;
 }
 
+const COMPLETED_ASSIGNMENT_STATUS = "completed";
+
 const AssignTerms = ({ nextStep }: AssignTermsProps) => {
   const [termsIsAssigned, setTermsIsAssigned] = useState(false);
   const [user] = trpc.viewer.me.useSuspenseQuery();
@@ -28,7 +30,7 @@ const AssignTerms = ({ nextStep }: AssignTermsProps) => {
           src="https://docs.yinflow.life/d/wGickgWzeH5HUF"
           email={user.email}
           onComplete={(data) => {
-            console.log(data);
+            if (status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
           }}
         />
       </div>
