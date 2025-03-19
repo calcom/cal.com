@@ -459,6 +459,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.length).toEqual(1);
           expect(data[0].slug).toEqual(managedEventTypeSlug);
           expect(data[0].ownerId).toEqual(teammate1.id);
+          expect(data[0].id).not.toEqual(managedEventType.id);
         });
     });
 
@@ -477,6 +478,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.length).toEqual(1);
           expect(data[0].slug).toEqual(managedEventTypeSlug);
           expect(data[0].ownerId).toEqual(teammate1.id);
+          expect(data[0].id).not.toEqual(managedEventType.id);
         });
     });
 
