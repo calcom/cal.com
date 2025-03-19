@@ -6,12 +6,12 @@ import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEvent
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { RadioGroup as RadioArea } from "@calcom/ui";
-import { Alert } from "@calcom/ui/components/alert";
-import classNames from "@calcom/ui/classNames";
 
 type props = {
   isTeamAdminOrOwner: boolean;

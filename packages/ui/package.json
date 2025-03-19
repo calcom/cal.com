@@ -41,6 +41,7 @@
     "./components/navigation": "./components/navigation/index.ts",
     "./components/organization-banner": "./components/organization-banner/index.ts",
     "./components/popover": "./components/popover/index.ts",
+    "./components/radio": "./components/radio/index.ts",
     "./components/scrollable": "./components/scrollable/index.ts",
     "./components/sheet": "./components/sheet/index.ts",
     "./components/skeleton": "./components/skeleton/index.ts",
