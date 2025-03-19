@@ -11,7 +11,7 @@ export const InstallAppButtonChild = ({
   ...props
 }: {
   multiInstall?: boolean;
-  credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
+  credentials?: RouterOutputs["viewer"]["apps"]["appCredentialsByType"]["credentials"];
   paid?: AppFrontendPayload["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
