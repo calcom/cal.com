@@ -3,8 +3,8 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { DropdownActions, Table } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import type { IconName } from "@calcom/ui/components/icon/Icon";
+import { Avatar } from "@calcom/ui/components/avatar";
+import type { IconName } from "@calcom/ui/components/icon";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 

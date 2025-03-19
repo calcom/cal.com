@@ -6,8 +6,8 @@ import { TestForm } from "@calcom/app-store/routing-forms/components/SingleForm"
 import type { RoutingForm } from "@calcom/app-store/routing-forms/types/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { Select } from "@calcom/ui/components/form/select/Select";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 
 export default function InsightsVirtualQueuesPage() {
   const { t } = useLocale();

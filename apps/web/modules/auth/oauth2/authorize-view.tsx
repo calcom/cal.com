@@ -9,10 +9,10 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Icon } from "@calcom/ui/components/icon";
+import { Select } from "@calcom/ui/components/form";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 
 export default function Authorize() {
   const { t } = useLocale();

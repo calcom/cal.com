@@ -15,14 +15,14 @@ import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
-import { Alert } from "@calcom/ui/components/alert/Alert";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import { Switch } from "@calcom/ui/components/form/switch/Switch";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Switch } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 

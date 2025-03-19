@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { trpc } from "@calcom/trpc";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
 import {
   Dropdown,
@@ -13,8 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown/Dropdown";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+} from "@calcom/ui/components/dropdown";
+import { Icon } from "@calcom/ui/components/icon";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();

@@ -37,12 +37,12 @@ import {
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
-import { Alert } from "@calcom/ui/components/alert/Alert";
-import { Badge } from "@calcom/ui/components/badge/Badge";
-import { Button } from "@calcom/ui/components/button/Button";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup/ButtonGroup";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import classNames from "@calcom/ui/classNames";
-import { Dialog } from "@calcom/ui/components/dialog/Dialog";
+import { Dialog } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -51,14 +51,14 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown/Dropdown";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Switch } from "@calcom/ui/components/form/switch/Switch";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { showToast } from "@calcom/ui/components/toast/showToast";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+} from "@calcom/ui/components/dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

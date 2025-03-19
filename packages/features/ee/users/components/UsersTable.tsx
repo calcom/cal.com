@@ -8,13 +8,13 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent, DropdownActions, Table } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Badge } from "@calcom/ui/components/badge/Badge";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 

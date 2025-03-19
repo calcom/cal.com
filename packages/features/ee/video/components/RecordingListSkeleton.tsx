@@ -1,4 +1,4 @@
-import { SkeletonContainer } from "@calcom/ui/components/skeleton/Skeleton";
+import { SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 import RecordingListItemSkeleton from "./RecordingListItemSkeleton";
 

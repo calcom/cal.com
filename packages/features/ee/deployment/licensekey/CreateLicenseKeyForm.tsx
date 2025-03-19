@@ -8,13 +8,13 @@ import { Controller, useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { Ensure } from "@calcom/types/utils";
-import { showToast } from "@calcom/ui/components/toast/showToast";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { showToast } from "@calcom/ui/components/toast";
+import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui";
-import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
-import { Alert } from "@calcom/ui/components/alert/Alert";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
 
 import { UserPermissionRole } from "../../../../prisma/enums";
 

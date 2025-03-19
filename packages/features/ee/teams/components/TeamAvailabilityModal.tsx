@@ -10,9 +10,9 @@ import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { DatePicker } from "@calcom/ui";
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Select } from "@calcom/ui/components/form";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Label } from "@calcom/ui/components/form";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 

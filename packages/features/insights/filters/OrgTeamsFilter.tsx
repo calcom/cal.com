@@ -9,9 +9,9 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { AnimatedPopover, FilterSearchField } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Divider } from "@calcom/ui/components/divider/Divider";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Divider } from "@calcom/ui/components/divider";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";
 

@@ -18,11 +18,11 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { FormCard, SelectWithValidation as Select, TextArea } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge/Badge";
-import { Divider } from "@calcom/ui/components/divider/Divider";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { SelectField } from "@calcom/ui/components/form/select/Select";
-import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { Badge } from "@calcom/ui/components/badge";
+import { Divider } from "@calcom/ui/components/divider";
+import { TextField } from "@calcom/ui/components/form";
+import { SelectField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";

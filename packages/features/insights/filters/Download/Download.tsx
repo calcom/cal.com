@@ -2,8 +2,8 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown/Dropdown";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
+import { Button } from "@calcom/ui/components/button";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 

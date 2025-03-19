@@ -1,7 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { List } from "@calcom/ui/components/list/List";
+import { Icon } from "@calcom/ui/components/icon";
+import { List } from "@calcom/ui/components/list";
 import classNames from "@calcom/ui/classNames";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";

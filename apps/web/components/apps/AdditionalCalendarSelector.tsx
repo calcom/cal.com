@@ -9,8 +9,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown/Dropdown";
-import { Button } from "@calcom/ui/components/button/Button";
+} from "@calcom/ui/components/dropdown";
+import { Button } from "@calcom/ui/components/button";
 
 interface AdditionalCalendarSelectorProps {
   isPending?: boolean;

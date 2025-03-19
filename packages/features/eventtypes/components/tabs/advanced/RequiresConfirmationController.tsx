@@ -12,11 +12,11 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { RadioField } from "@calcom/ui";
-import { Select } from "@calcom/ui/components/form/select/Select";
+import { Select } from "@calcom/ui/components/form";
 import classNames from "@calcom/ui/classNames";
-import { CheckboxField } from "@calcom/ui/components/form/checkbox/Checkbox";
-import { Input } from "@calcom/ui/components/form/inputs/TextField";
-import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;

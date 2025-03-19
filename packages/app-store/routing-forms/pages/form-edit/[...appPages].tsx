@@ -8,14 +8,14 @@ import { v4 as uuidv4 } from "uuid";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BooleanToggleGroupField, FormCard } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { SelectField } from "@calcom/ui/components/form/select/Select";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { Skeleton } from "@calcom/ui/components/skeleton/Skeleton";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SelectField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Skeleton } from "@calcom/ui/components/skeleton";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

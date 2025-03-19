@@ -2,13 +2,13 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { Input } from "@calcom/ui/components/form/inputs/TextField";
-import { Alert } from "@calcom/ui/components/alert/Alert";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Icon } from "@calcom/ui/components/icon";
+import { Input } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
-import type { IconName } from "@calcom/ui/components/icon/Icon";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import type { IconName } from "@calcom/ui/components/icon";
 
 interface ISearchDialog {
   isOpenDialog: boolean;

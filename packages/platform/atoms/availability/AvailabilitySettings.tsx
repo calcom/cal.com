@@ -28,15 +28,15 @@ import {
   SelectSkeletonLoader,
   Skeleton,
 } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogTrigger } from "@calcom/ui/components/dialog/Dialog";
-import { VerticalDivider } from "@calcom/ui/components/divider/Divider";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { Switch } from "@calcom/ui/components/form/switch/Switch";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Dialog, DialogTrigger } from "@calcom/ui/components/dialog";
+import { VerticalDivider } from "@calcom/ui/components/divider";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";

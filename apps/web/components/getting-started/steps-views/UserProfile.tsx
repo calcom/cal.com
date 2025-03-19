@@ -9,10 +9,10 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { ImageUploader } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
 import { Editor } from "@calcom/ui/components/editor/Editor";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Label } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 type FormData = {
   bio: string;

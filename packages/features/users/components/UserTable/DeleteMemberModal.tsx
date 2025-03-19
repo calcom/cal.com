@@ -4,8 +4,8 @@ import type { Dispatch } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { ConfirmationDialogContent } from "@calcom/ui";
-import { Dialog } from "@calcom/ui/components/dialog/Dialog";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Dialog } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableAction, UserTableState } from "./types";
 

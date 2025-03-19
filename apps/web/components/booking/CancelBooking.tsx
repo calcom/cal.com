@@ -5,11 +5,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { TextArea } from "@calcom/ui/components/form/inputs/Input";
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
+import { Label } from "@calcom/ui/components/form";
+import { TextArea } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];

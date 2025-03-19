@@ -6,10 +6,10 @@ import { Toaster } from "sonner";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 const formSchema = z.object({
   api_key: z.string(),

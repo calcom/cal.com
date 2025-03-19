@@ -6,12 +6,12 @@ import { Controller, useForm } from "react-hook-form";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ImageUploader } from "@calcom/ui";
-import { TextAreaField } from "@calcom/ui/components/form/inputs/Input";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();

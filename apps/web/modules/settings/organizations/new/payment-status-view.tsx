@@ -1,6 +1,6 @@
 "use client";
 
-import { WizardLayout } from "@calcom/ui/components/layouts/WizardLayout";
+import { WizardLayout } from "@calcom/ui/layouts";
 
 import PaymentStatusView from "~/settings/organizations/new/_components/PaymentStatusView";
 

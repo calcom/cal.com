@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo/Logo";
 
 import { UserDropdown } from "./user-dropdown/UserDropdown";

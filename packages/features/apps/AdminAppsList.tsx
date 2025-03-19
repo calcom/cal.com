@@ -17,17 +17,17 @@ import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
 import cs from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Switch } from "@calcom/ui/components/form/switch/Switch";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { List } from "@calcom/ui/components/list/List";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { List } from "@calcom/ui/components/list";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 

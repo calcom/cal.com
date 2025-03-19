@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button/Button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export default function NoPlatformPlan() {
   const { t } = useLocale();

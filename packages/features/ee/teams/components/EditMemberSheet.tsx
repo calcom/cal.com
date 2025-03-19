@@ -12,12 +12,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody, Skeleton, Loader } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { showToast } from "@calcom/ui/components/toast/showToast";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Form } from "@calcom/ui/components/form";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { updateRoleInCache } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";

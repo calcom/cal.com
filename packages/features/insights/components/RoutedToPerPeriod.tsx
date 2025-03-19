@@ -9,10 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { HoverCard, HoverCardContent, HoverCardTrigger, Input } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Badge } from "@calcom/ui/components/badge/Badge";
-import { Button } from "@calcom/ui/components/button/Button";
-import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import {
   Table,
   TableBody,
@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@calcom/ui/components/table/TableNew";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 

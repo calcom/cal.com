@@ -11,12 +11,12 @@ import type {
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 

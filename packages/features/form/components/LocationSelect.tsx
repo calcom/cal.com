@@ -4,8 +4,8 @@ import { components } from "react-select";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Select } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
 
 export type LocationSelectCustomClassNames = {

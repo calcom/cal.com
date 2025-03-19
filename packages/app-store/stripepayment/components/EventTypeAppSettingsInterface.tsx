@@ -5,9 +5,9 @@ import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import { RadioField } from "@calcom/ui";
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Alert } from "@calcom/ui/components/alert/Alert";
+import { Select } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
 import classNames from "@calcom/ui/classNames";
 
 import {

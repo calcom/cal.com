@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { Button } from "@calcom/ui/components/button/Button";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Select } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 export interface IAppConfigurationProps {
   credentialIds: number[];

@@ -15,13 +15,13 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { RadioGroup as RadioArea } from "@calcom/ui";
-import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
-import { Alert } from "@calcom/ui/components/alert/Alert";
-import { Button } from "@calcom/ui/components/button/Button";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 
 import { useOnboarding } from "../lib/onboardingStore";
 

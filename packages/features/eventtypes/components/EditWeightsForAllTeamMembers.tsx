@@ -19,11 +19,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
-import { Button } from "@calcom/ui/components/button/Button";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };

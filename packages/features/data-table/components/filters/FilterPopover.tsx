@@ -2,8 +2,8 @@
 import startCase from "lodash/startCase";
 
 import { Popover, PopoverContent, PopoverTrigger, Badge } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
-import type { IconName } from "@calcom/ui/components/icon/Icon";
+import { Button } from "@calcom/ui/components/button";
+import type { IconName } from "@calcom/ui/components/icon";
 
 import { useFilterValue } from "../../hooks";
 import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";

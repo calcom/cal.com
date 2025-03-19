@@ -18,12 +18,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { ArrowButton, ButtonGroup, ListLinkItem } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge/Badge";
-import { Button } from "@calcom/ui/components/button/Button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { List } from "@calcom/ui/components/list/List";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
+import { List } from "@calcom/ui/components/list";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

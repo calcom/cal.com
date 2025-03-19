@@ -20,13 +20,13 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
 import { DateRangePicker } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { InputField } from "@calcom/ui/components/form/inputs/TextField";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Select } from "@calcom/ui/components/form/select/Select";
-import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { Label } from "@calcom/ui/components/form";
+import { InputField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 

@@ -1,5 +1,5 @@
 import { Card } from "@calcom/ui";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { helpCards } from "@lib/settings/platform/utils";
 

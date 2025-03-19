@@ -7,12 +7,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import { FilterSearchField, AnimatedPopover } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
-import { VerticalDivider } from "@calcom/ui/components/divider/Divider";
-import { Divider } from "@calcom/ui/components/divider/Divider";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { VerticalDivider } from "@calcom/ui/components/divider";
+import { Divider } from "@calcom/ui/components/divider";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 

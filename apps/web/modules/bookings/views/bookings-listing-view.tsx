@@ -21,9 +21,9 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import { HorizontalTabs } from "@calcom/ui";
-import { Alert } from "@calcom/ui/components/alert/Alert";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import type { VerticalTabItemProps } from "@calcom/ui/components/navigation/tabs/VerticalTabItem";
+import { Alert } from "@calcom/ui/components/alert";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

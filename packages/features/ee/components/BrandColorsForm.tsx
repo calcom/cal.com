@@ -6,9 +6,9 @@ import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ColorPicker, Alert } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 type BrandColorsFormValues = {
   brandColor: string;

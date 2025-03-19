@@ -13,15 +13,15 @@ import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { Divider } from "@calcom/ui/components/divider/Divider";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Button } from "@calcom/ui/components/button/Button";
+import { Label } from "@calcom/ui/components/form";
+import { Divider } from "@calcom/ui/components/divider";
+import { TextField } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 type AIEventControllerProps = {
   eventType: EventTypeSetup;

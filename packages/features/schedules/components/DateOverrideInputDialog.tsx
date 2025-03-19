@@ -6,12 +6,12 @@ import dayjs from "@calcom/dayjs";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
-import { Switch } from "@calcom/ui/components/form/switch/Switch";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Switch } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui";
 import cs from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog/Dialog";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";

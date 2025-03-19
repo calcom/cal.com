@@ -18,9 +18,9 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { showToast } from "@calcom/ui/components/toast/showToast";
-import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { QueryCell } from "@lib/QueryCell";
 

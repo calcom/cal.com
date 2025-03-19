@@ -5,12 +5,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { CalendarSwitchComponent, AppListCard, DisconnectIntegrationComponent } from "@calcom/ui";
-import { Alert } from "@calcom/ui/components/alert/Alert";
-import type { ButtonProps } from "@calcom/ui/components/button/Button";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown/Dropdown";
-import { Switch } from "@calcom/ui/components/form/switch/Switch";
-import { List } from "@calcom/ui/components/list/List";
+import { Alert } from "@calcom/ui/components/alert";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
+import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
+import { Switch } from "@calcom/ui/components/form";
+import { List } from "@calcom/ui/components/list";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";

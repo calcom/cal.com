@@ -10,12 +10,12 @@ import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { ButtonOrLink, Credits } from "@calcom/ui";
-import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
-import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo/Logo";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { KBarTrigger } from "../kbar/Kbar";
 import { Navigation } from "./navigation/Navigation";

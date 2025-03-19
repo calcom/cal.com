@@ -8,10 +8,10 @@ import type { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { orgSettingsSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Button } from "@calcom/ui/components/button/Button";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 type FormValues = {
   name: Team["name"];

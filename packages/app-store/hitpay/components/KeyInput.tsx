@@ -5,11 +5,11 @@ import type { FormEvent } from "react";
 import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Skeleton } from "@calcom/ui/components/skeleton/Skeleton";
-import type { InputFieldProps } from "@calcom/ui/components/form/inputs/types";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { Input } from "@calcom/ui/components/form/inputs/TextField";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import type { InputFieldProps } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Skeleton } from "@calcom/ui/components/skeleton";
 
 type AddonProps = {
   children: React.ReactNode;

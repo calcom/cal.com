@@ -8,10 +8,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Form } from "@calcom/ui/components/form/inputs/Form";
-import { TextAreaField } from "@calcom/ui/components/form/inputs/Input";
-import { TextField } from "@calcom/ui/components/form/inputs/TextField";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Form } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Editor } from "@calcom/ui/components/editor/Editor";
 
 export default function CreateEventTypeForm({

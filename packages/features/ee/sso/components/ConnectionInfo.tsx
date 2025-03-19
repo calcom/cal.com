@@ -3,12 +3,12 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Dialog, DialogTrigger } from "@calcom/ui/components/dialog/Dialog";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { Icon } from "@calcom/ui/components/icon/Icon";
-import { showToast } from "@calcom/ui/components/toast/showToast";
-import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogTrigger } from "@calcom/ui/components/dialog";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export default function ConnectionInfo({
   teamId,

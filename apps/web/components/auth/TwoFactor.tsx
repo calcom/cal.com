@@ -3,8 +3,8 @@ import useDigitInput from "react-digit-input";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Input } from "@calcom/ui/components/form/inputs/TextField";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Input } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
 
 export default function TwoFactor({ center = true, autoFocus = true }) {
   const [value, onChange] = useState("");

@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Loader } from "@calcom/ui";
-import { Alert } from "@calcom/ui/components/alert/Alert";
+import { Alert } from "@calcom/ui/components/alert";
 
 type ErrorLike = {
   message: string;

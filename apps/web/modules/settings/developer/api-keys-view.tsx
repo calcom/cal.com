@@ -10,9 +10,9 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Dialog, DialogContent } from "@calcom/ui/components/dialog/Dialog";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton/Skeleton";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 const SkeletonLoader = () => {
   return (

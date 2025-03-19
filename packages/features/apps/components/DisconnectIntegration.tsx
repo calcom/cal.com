@@ -6,8 +6,8 @@ import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientA
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { DisconnectIntegrationComponent } from "@calcom/ui";
-import type { ButtonProps } from "@calcom/ui/components/button/Button";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 export default function DisconnectIntegration(props: {
   credentialId: number;
