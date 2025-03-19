@@ -10,6 +10,7 @@ import type {
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+import type { IntlSupportedTimeZones } from "../src/constants/timeZones";
 
 // Type that includes only the data values from BookerStore (excluding functions)
 export type BookerStoreValues = Omit<
@@ -34,6 +35,7 @@ export type BookerStoreValues = Omit<
   | "setFormValues"
   | "setOrg"
 >;
+type Timezone = (typeof IntlSupportedTimeZones)[number];
 
 export type BookerPlatformWrapperAtomProps = Omit<
   BookerProps,
@@ -73,7 +75,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   hostsLimit?: number;
   preventEventTypeRedirect?: boolean;
   allowUpdatingUrlParams?: boolean;
-  timeZones?: string[];
+  timeZones?: Timezone[];
   isBookingDryRun?: boolean;
 };
 
