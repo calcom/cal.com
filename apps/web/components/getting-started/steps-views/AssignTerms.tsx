@@ -34,7 +34,7 @@ const AssignTerms = ({ nextStep }: AssignTermsProps) => {
           }}
           onLoad={(data) => {
             console.log(data);
-            if (data.status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
+            if (data.completed_submitter) setTermsIsAssigned(true);
           }}
         />
       </div>
