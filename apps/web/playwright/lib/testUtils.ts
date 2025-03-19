@@ -496,17 +496,6 @@ export async function submitAndWaitForResponse(
   const submitPromise = page.waitForResponse(url);
   await action();
   const response = await submitPromise;
-
-  if (response.status() !== expectedStatusCode) {
-    const responseBody = await response.text();
-    const responseJson = await response.json();
-    const b = responseJson.message;
-    console.error(`Unexpected status code: ${response.status()}`);
-    console.error(`Response body: ${responseBody}`);
-    console.error(`Response json: ${responseJson}`);
-    console.error(`Response b: ${b}`);
-  }
-
   expect(response.status()).toBe(expectedStatusCode);
 }
 
