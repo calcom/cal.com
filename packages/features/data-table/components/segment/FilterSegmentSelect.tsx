@@ -1,9 +1,7 @@
 import { useState, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
 import {
-  showToast,
   Button,
   Dropdown,
   DropdownItem,
@@ -54,28 +52,6 @@ export function FilterSegmentSelect() {
       isDestructive: true,
     },
   ];
-
-  const utils = trpc.useContext();
-
-  const { mutate: duplicateSegment } = trpc.viewer.filterSegments.create.useMutation({
-    onSuccess: () => {
-      utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_duplicated"), "success");
-    },
-    onError: () => {
-      showToast(t("error_duplicating_filter_segment"), "error");
-    },
-  });
-
-  const { mutate: deleteSegment } = trpc.viewer.filterSegments.delete.useMutation({
-    onSuccess: () => {
-      utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_deleted"), "success");
-    },
-    onError: () => {
-      showToast(t("error_deleting_filter_segment"), "error");
-    },
-  });
 
   const segmentGroups = useMemo(() => {
     const sortFn = (a: FilterSegmentOutput, b: FilterSegmentOutput) => a.name.localeCompare(b.name);

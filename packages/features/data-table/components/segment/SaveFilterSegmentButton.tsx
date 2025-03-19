@@ -66,11 +66,11 @@ export function SaveFilterSegmentButton() {
   const { mutate: createSegment } = trpc.viewer.filterSegments.create.useMutation({
     onSuccess: () => {
       utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_created"), "success");
+      showToast(t("filter_segment_saved"), "success");
       setIsOpen(false);
     },
     onError: () => {
-      showToast(t("error_creating_filter_segment"), "error");
+      showToast(t("error_saving_filter_segment"), "error");
     },
   });
 
