@@ -2,9 +2,9 @@
 
 import { useSession } from "next-auth/react";
 
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { SkeletonLoader } from "@calcom/ui/components/apps/SkeletonLoader";
 
 import SSOConfiguration from "../components/SSOConfiguration";
 

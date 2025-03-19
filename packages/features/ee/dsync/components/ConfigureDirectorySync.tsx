@@ -1,13 +1,19 @@
 import { useState } from "react";
 
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonLoader } from "@calcom/ui/components/apps/SkeletonLoader";
-import { Button } from "@calcom/ui/components/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog/Dialog";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
-import { Label } from "@calcom/ui/components/form/inputs/Label";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Button } from "@calcom/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import CreateDirectory from "./CreateDirectory";
 import DirectoryInfo from "./DirectoryInfo";
