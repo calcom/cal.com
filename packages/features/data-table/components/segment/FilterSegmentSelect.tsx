@@ -81,7 +81,11 @@ export function FilterSegmentSelect() {
     const sortFn = (a: FilterSegmentOutput, b: FilterSegmentOutput) => a.name.localeCompare(b.name);
 
     const personalSegments = segments?.filter((segment) => !segment.team) || [];
-    const teamSegments = segments?.filter((segment) => segment.team) || [];
+    const teamSegments =
+      segments?.filter(
+        (segment): segment is FilterSegmentOutput & { team: NonNullable<FilterSegmentOutput["team"]> } =>
+          segment.team !== null
+      ) || [];
 
     // Group team segments by team name
     const teamSegmentsByTeam = teamSegments.reduce<{ [teamName: string]: FilterSegmentOutput[] }>(

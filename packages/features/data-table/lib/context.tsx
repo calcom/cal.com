@@ -107,7 +107,7 @@ export function DataTableProvider({
         setSegmentId(null);
       }
     }
-  }, [segments, segmentId]);
+  }, [segments, segmentId, setSegmentId]);
 
   useEffect(() => {
     if (selectedSegment) {
@@ -131,6 +131,8 @@ export function DataTableProvider({
   const addFilter = useCallback(
     (columnId: string) => {
       if (!activeFilters?.some((filter) => filter.f === columnId)) {
+        // do not reset the page to 0 yet,
+        // because we don't have the filter value yet (`v: undefined`)
         setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
       }
     },
@@ -142,7 +144,7 @@ export function DataTableProvider({
       setPageIndex(0);
       setActiveFilters((prev) => prev.filter((filter) => exclude?.includes(filter.f)));
     },
-    [setActiveFilters]
+    [setActiveFilters, setPageIndex]
   );
 
   const updateFilter = useCallback(
@@ -163,7 +165,7 @@ export function DataTableProvider({
         return newFilters;
       });
     },
-    [setActiveFilters]
+    [setActiveFilters, setPageIndex]
   );
 
   const removeFilter = useCallback(
@@ -171,7 +173,7 @@ export function DataTableProvider({
       setPageIndex(0);
       setActiveFilters((prev) => prev.filter((filter) => filter.f !== columnId));
     },
-    [setActiveFilters]
+    [setActiveFilters, setPageIndex]
   );
 
   const setPageSizeAndGoToFirstPage = useCallback(
@@ -230,7 +232,7 @@ export function DataTableProvider({
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
-        segments,
+        segments: segments ?? [],
         selectedSegment,
         segmentId: segmentId || undefined,
         setSegment,

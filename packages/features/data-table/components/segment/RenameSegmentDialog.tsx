@@ -49,10 +49,20 @@ export function RenameSegmentDialog({
     if (!segment) {
       return;
     }
-    updateSegment({
-      ...segment,
-      name: data.name,
-    });
+    if (segment.scope === "TEAM") {
+      updateSegment({
+        ...segment,
+        scope: "TEAM",
+        teamId: segment.teamId ?? 0,
+        name: data.name,
+      });
+    } else {
+      updateSegment({
+        ...segment,
+        scope: "USER",
+        name: data.name,
+      });
+    }
   };
 
   return (

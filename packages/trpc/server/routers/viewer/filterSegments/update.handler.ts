@@ -14,17 +14,17 @@ export const updateHandler = async ({
   };
   input: TUpdateFilterSegmentInputSchema;
 }) => {
-  const { id, scope, teamId, ...dataToUpdate } = input;
+  const { id, name, activeFilters, sorting, columnVisibility, columnSizing, perPage } = input;
   const userId = ctx.user.id;
 
   // First, fetch the existing segment to check permissions
   const existingSegment = await prisma.filterSegment.findFirst({
     where: {
       id,
-      ...(scope === "TEAM"
+      ...(input.scope === "TEAM"
         ? {
             scope: "TEAM",
-            teamId,
+            teamId: input.teamId,
             team: {
               members: {
                 some: {
@@ -57,7 +57,14 @@ export const updateHandler = async ({
   // Update the filter segment with only the allowed fields
   const updatedSegment = await prisma.filterSegment.update({
     where: { id },
-    data: dataToUpdate,
+    data: {
+      name,
+      activeFilters,
+      sorting,
+      columnVisibility,
+      columnSizing,
+      perPage,
+    },
   });
 
   return updatedSegment;

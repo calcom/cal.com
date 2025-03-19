@@ -49,11 +49,22 @@ export function DuplicateSegmentDialog({
     if (!segment) {
       return;
     }
-    const { id: _id, name: _name, ...rest } = segment;
-    createSegment({
-      ...rest,
-      name: data.name,
-    });
+    const { id: _id, name: _name, team: _team, teamId, ...rest } = segment;
+
+    if (segment.scope === "TEAM") {
+      createSegment({
+        ...rest,
+        teamId: teamId ?? 0,
+        scope: "TEAM",
+        name: data.name,
+      });
+    } else {
+      createSegment({
+        ...rest,
+        scope: "USER",
+        name: data.name,
+      });
+    }
   };
 
   return (
