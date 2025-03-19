@@ -33,6 +33,7 @@ const AssignTerms = ({ nextStep }: AssignTermsProps) => {
             if (data.status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
           }}
           onLoad={(data) => {
+            console.log(data);
             if (data.status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
           }}
         />
