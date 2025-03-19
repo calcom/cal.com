@@ -609,17 +609,21 @@ export default class SalesforceCRMService implements CRM {
             if (error.name === "DUPLICATES_DETECTED") {
               const existingId = this.getExistingIdFromDuplicateError(error);
               if (existingId) {
-                console.log("Using existing record:", existingId);
+                log.info("Using existing record:", existingId);
                 createdContacts.push({ id: existingId, email: attendee.email });
               }
             } else {
-              console.error("Error creating lead:", error);
+              log.error("Error creating lead:", error);
             }
           }
         }
       }
     }
 
+    if (createdContacts.length === 0) {
+      // This should never happen
+      log.error(`No contacts created for these app options ${safeStringify(appOptions)}`);
+    }
     return createdContacts;
   }
 
@@ -816,6 +820,7 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
     const conn = await this.conn;
 
     const fieldSet = new Set(fieldsToTest);
@@ -835,7 +840,7 @@ export default class SalesforceCRMService implements CRM {
 
       return foundFields;
     } catch (e) {
-      console.error(e);
+      log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
   }
@@ -889,14 +894,15 @@ export default class SalesforceCRMService implements CRM {
   }
 
   public getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
-    return [
+    const websites = [
       emailDomain,
       `www.${emailDomain}`,
       `http://www.${emailDomain}`,
       `http://${emailDomain}`,
       `https://www.${emailDomain}`,
       `https://${emailDomain}`,
-    ].join(", ");
+    ];
+    return websites.map((website) => `'${website}'`).join(", ");
   }
 
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
@@ -1039,6 +1045,7 @@ export default class SalesforceCRMService implements CRM {
       bookingUid,
       organizerEmail,
       calEventResponses,
+      contactId,
     });
 
     this.log.info(
@@ -1065,6 +1072,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid,
     organizerEmail,
     calEventResponses,
+    contactId,
   }: {
     existingFields: Field[];
     personRecord: Record<string, any>;
@@ -1073,15 +1081,26 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
+    contactId: string;
   }): Promise<Record<string, any>> {
+    const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${contactId}`] });
     const writeOnRecordBody: Record<string, any> = {};
 
     for (const field of existingFields) {
       const fieldConfig = onBookingWriteToRecordFields[field.name];
 
+      if (!fieldConfig) {
+        log.error(`No field config found for field ${field.name}`);
+        continue;
+      }
+
+      log.info(
+        `Processing field ${field.name} with type ${field.type} and config ${JSON.stringify(fieldConfig)}`
+      );
+
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
-        this.log.info(
+        log.info(
           `Field ${field.name} on contactId ${personRecord?.Id} already exists with value ${
             personRecord[field.name]
           }`
@@ -1113,6 +1132,7 @@ export default class SalesforceCRMService implements CRM {
           });
           if (extractedText) {
             writeOnRecordBody[field.name] = extractedText;
+            continue;
           }
         } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
           const dateValue = await this.getDateFieldValue(
@@ -1123,9 +1143,16 @@ export default class SalesforceCRMService implements CRM {
           );
           if (dateValue) {
             writeOnRecordBody[field.name] = dateValue;
+            continue;
           }
         }
       }
+
+      log.error(
+        `No value found for field ${field.name} with value ${
+          personRecord[field.name]
+        }, field config ${JSON.stringify(fieldConfig)} and Salesforce config ${JSON.stringify(field)}`
+      );
     }
 
     return writeOnRecordBody;
@@ -1412,6 +1439,7 @@ export default class SalesforceCRMService implements CRM {
       existingFields,
       personRecord,
       onBookingWriteToRecordFields: writeToRecordObject,
+      contactId: personRecord.Id,
     });
     await conn
       .sobject(recordType)
