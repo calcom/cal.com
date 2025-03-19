@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
+import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { StepCard } from "@calcom/ui/components/card/StepCard";
-import classNames from "@calcom/ui/classNames";
 
 import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
 

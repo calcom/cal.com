@@ -1,10 +1,10 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { ButtonGroup, ConfirmationDialogContent } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogTrigger } from "@calcom/ui/components/dialog";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,

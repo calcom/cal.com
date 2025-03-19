@@ -7,6 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
   Command,
   CommandEmpty,
@@ -14,13 +16,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableUser } from "../types";

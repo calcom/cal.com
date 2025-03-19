@@ -6,6 +6,9 @@ import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import {
   Command,
   CommandEmpty,
@@ -13,15 +16,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  Input,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
+} from "@calcom/ui/components/command";
+import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableUser } from "../types";

@@ -3,7 +3,6 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
-import { InputError } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -12,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { InputError } from "@calcom/ui/components/form";
 
 import type { FormValues } from "~/settings/my-account/profile-view";
 

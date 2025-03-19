@@ -7,12 +7,12 @@ import { useState } from "react";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ArrowButton } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import classNames from "@calcom/ui/classNames";
 import {
   Dropdown,
   DropdownItem,

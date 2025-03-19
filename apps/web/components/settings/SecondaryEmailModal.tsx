@@ -5,11 +5,9 @@ import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form } from "@calcom/ui/components/form";
-import { InputError } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField, InputError } from "@calcom/ui/components/form";
 
 interface SecondaryEmailModalProps {
   isLoading: boolean;

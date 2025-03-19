@@ -7,12 +7,12 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { HoverCard, HoverCardContent, HoverCardTrigger, Input } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { ToggleGroup } from "@calcom/ui/components/form";
+import { ToggleGroup, Input } from "@calcom/ui/components/form";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@calcom/ui/components/hover-card";
 import {
   Table,
   TableBody,

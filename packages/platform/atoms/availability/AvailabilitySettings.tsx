@@ -21,21 +21,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import {
-  ConfirmationDialogContent,
-  EditableHeading,
-  SkeletonText,
-  SelectSkeletonLoader,
-  Skeleton,
-} from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogTrigger } from "@calcom/ui/components/dialog";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
+import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";

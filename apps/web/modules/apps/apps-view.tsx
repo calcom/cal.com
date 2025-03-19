@@ -9,11 +9,11 @@ import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsS
 import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import type { HorizontalTabItemProps } from "@calcom/ui";
-import { HorizontalTabs } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import { type getServerSideProps } from "@lib/apps/getServerSideProps";
 

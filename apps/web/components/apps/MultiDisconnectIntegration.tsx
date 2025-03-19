@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { ConfirmationDialogContent } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Dialog } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
