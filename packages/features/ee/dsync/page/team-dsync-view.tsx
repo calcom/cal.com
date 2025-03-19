@@ -7,7 +7,7 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonLoader } from "@calcom/ui";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import ConfigureDirectorySync from "../components/ConfigureDirectorySync";
 

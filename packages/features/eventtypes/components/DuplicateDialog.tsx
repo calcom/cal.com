@@ -14,12 +14,12 @@ import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { EventTypeDuplicateInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { Editor } from "@calcom/ui/editor/Editor";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 const querySchema = z.object({
   title: z.string().min(1),

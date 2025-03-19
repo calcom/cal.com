@@ -14,7 +14,7 @@ import {
   buttonClasses,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type {

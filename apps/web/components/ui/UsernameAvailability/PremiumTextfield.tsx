@@ -15,11 +15,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Input } from "@calcom/ui/form/inputs/TextField";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Input } from "@calcom/ui/components/form/inputs/TextField";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 

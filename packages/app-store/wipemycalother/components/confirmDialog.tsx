@@ -6,10 +6,10 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog/Dialog";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;

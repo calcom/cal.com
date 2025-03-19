@@ -7,18 +7,18 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Button } from "@calcom/ui/components/button/Button";
 import {
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownItem,
   DropdownMenuItem,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Switch } from "@calcom/ui/form/switch/Switch";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";

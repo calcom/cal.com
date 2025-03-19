@@ -4,12 +4,12 @@ import { Fragment } from "react";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ListItem, ListItemText, ListItemTitle, SkeletonContainer } from "@calcom/ui";
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
-import { Alert } from "@calcom/ui/alert/Alert";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
+import { Alert } from "@calcom/ui/components/alert/Alert";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
-import { Switch } from "@calcom/ui/form/switch/Switch";
+import { Dialog, DialogContent, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 

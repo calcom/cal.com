@@ -21,9 +21,9 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
-import { Form } from "@calcom/ui/form/inputs/Form";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
 import { Steps } from "@calcom/ui";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import { HttpError } from "@lib/core/http/error";
 

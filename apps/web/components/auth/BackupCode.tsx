@@ -2,8 +2,8 @@ import React from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
 
 export default function TwoFactor({ center = true }) {
   const { t } = useLocale();

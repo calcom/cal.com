@@ -1,8 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
 import {
   Dropdown,
@@ -11,10 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Switch } from "@calcom/ui/form/switch/Switch";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 type WebhookProps = {
   id: string;

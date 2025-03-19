@@ -11,21 +11,21 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui";
-import { TextAreaField } from "@calcom/ui/form/inputs/Input";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import type { ButtonProps } from "@calcom/ui/button/Button";
-import { Button } from "@calcom/ui/button/Button";
+import { TextAreaField } from "@calcom/ui/components/form/inputs/Input";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import type { ButtonProps } from "@calcom/ui/components/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
 import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Switch } from "@calcom/ui/form/switch/Switch";
-import { showToast } from "@calcom/ui/toast/showToast";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 

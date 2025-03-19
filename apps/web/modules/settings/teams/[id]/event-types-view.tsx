@@ -8,9 +8,9 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { WizardLayout } from "@calcom/ui/layouts/WizardLayout";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Button } from "@calcom/ui/button/Button";
+import { WizardLayout } from "@calcom/ui/components/layouts/WizardLayout";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Button } from "@calcom/ui/components/button/Button";
 
 export const CreateTeamEventType = () => {
   const searchParams = useCompatSearchParams();

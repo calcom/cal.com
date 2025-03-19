@@ -6,8 +6,8 @@ import { useRef, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Button } from "@calcom/ui/button/Button";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Button } from "@calcom/ui/components/button/Button";
 
 const ImpersonationView = () => {
   const { t } = useLocale();

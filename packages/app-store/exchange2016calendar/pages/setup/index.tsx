@@ -4,10 +4,10 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { Button } from "@calcom/ui/button/Button";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { Alert } from "@calcom/ui/components/alert/Alert";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
 
 export default function Exchange2016CalendarSetup() {
   const { t } = useLocale();

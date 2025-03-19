@@ -7,7 +7,7 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useShouldShowArrows } from "@calcom/ui";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 import classNames from "@calcom/ui/classNames";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */

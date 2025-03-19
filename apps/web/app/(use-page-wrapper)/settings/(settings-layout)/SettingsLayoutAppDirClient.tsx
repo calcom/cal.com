@@ -18,14 +18,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
 import classNames from "@calcom/ui/classNames";
-import ErrorBoundary from "@calcom/ui/errorBoundary/ErrorBoundary";
-import { Icon } from "@calcom/ui/icon/Icon";
-import type { VerticalTabItemProps } from "@calcom/ui/navigation/tabs/VerticalTabItem";
-import VerticalTabItem from "@calcom/ui/navigation/tabs/VerticalTabItem";
-import { Skeleton } from "@calcom/ui/skeleton/Skeleton";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Button } from "@calcom/ui/components/button/Button";
+import ErrorBoundary from "@calcom/ui/components/errorBoundary/ErrorBoundary";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation/tabs/VerticalTabItem";
+import VerticalTabItem from "@calcom/ui/components/navigation/tabs/VerticalTabItem";
+import { Skeleton } from "@calcom/ui/components/skeleton/Skeleton";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [

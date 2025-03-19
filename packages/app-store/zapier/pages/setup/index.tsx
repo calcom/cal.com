@@ -6,10 +6,10 @@ import { Toaster } from "sonner";
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { Button } from "@calcom/ui/button/Button";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Button } from "@calcom/ui/components/button/Button";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 export interface IZapierSetupProps {
   inviteLink?: string;

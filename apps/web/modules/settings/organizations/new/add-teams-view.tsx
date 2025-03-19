@@ -1,6 +1,6 @@
 "use client";
 
-import { WizardLayout } from "@calcom/ui/layouts/WizardLayout";
+import { WizardLayout } from "@calcom/ui/components/layouts/WizardLayout";
 
 import { AddNewTeamsForm } from "./_components/AddNewTeamsForm";
 

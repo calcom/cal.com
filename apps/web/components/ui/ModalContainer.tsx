@@ -2,7 +2,7 @@ import classNames from "classnames";
 import type { PropsWithChildren } from "react";
 import React from "react";
 
-import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog/Dialog";
 
 export default function ModalContainer(
   props: PropsWithChildren<{

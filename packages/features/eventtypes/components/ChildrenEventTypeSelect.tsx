@@ -6,14 +6,14 @@ import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Select } from "@calcom/ui/form/select/Select";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
-import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
-import { Switch } from "@calcom/ui/form/switch/Switch";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
 
 export type ChildrenEventType = {
   value: string;

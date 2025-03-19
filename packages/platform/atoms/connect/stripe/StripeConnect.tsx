@@ -1,8 +1,8 @@
 import type { FC } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/button/Button";
-import type { IconName } from "@calcom/ui/icon/Icon";
+import { Button } from "@calcom/ui/components/button/Button";
+import type { IconName } from "@calcom/ui/components/icon/Icon";
 import type { ButtonColor } from "@calcom/ui";
 
 import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";

@@ -1,8 +1,8 @@
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { TopBanner } from "@calcom/ui/top-banner/TopBanner";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { TopBanner } from "@calcom/ui/components/top-banner/TopBanner";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import { useFlagMap } from "../../flags/context/provider";
 

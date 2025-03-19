@@ -3,11 +3,11 @@ import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Input } from "@calcom/ui/form/inputs/TextField";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Input } from "@calcom/ui/components/form/inputs/TextField";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 export const VerifyCodeDialog = ({
   isOpenDialog,

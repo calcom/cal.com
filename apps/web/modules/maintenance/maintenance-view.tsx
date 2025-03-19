@@ -1,7 +1,7 @@
 "use client";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 
 export default function MaintenancePage() {
   return (

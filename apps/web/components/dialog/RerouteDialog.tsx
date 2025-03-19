@@ -24,10 +24,10 @@ import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog/Dialog";
 
 const enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",

@@ -6,9 +6,9 @@ import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Button } from "@calcom/ui/button/Button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Button } from "@calcom/ui/components/button/Button";
 
 export type OrgUpgradeBannerProps = {
   data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["orgUpgradeBanner"];

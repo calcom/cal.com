@@ -1,7 +1,7 @@
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog/Dialog";
 
 interface CreateTeamDialogProps {
   open: boolean;

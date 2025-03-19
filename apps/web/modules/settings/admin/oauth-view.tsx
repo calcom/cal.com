@@ -6,13 +6,13 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { ImageUploader } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 type FormValues = {
   name: string;

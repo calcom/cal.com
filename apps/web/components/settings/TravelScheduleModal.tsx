@@ -5,11 +5,11 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui/form/inputs/Label";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
 import { DateRangePicker, DatePicker } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
 
 import type { FormValues } from "~/settings/my-account/general-view";
 

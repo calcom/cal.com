@@ -5,11 +5,11 @@ import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form } from "@calcom/ui/form/inputs/Form";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
 import { InputError } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
 
 interface SecondaryEmailModalProps {
   isLoading: boolean;

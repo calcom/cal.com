@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react";
 
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 
 import type { getServerSideProps } from "@server/lib/auth/signin/getServerSideProps";
 

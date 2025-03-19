@@ -23,23 +23,23 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { ImageUploader } from "@calcom/ui";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { Editor } from "@calcom/ui/editor/Editor";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { PasswordField } from "@calcom/ui/form/inputs/Input";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Alert } from "@calcom/ui/components/alert/Alert";
+import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { PasswordField } from "@calcom/ui/components/form/inputs/Input";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   SkeletonAvatar,
-} from "@calcom/ui/skeleton/Skeleton";
-import { showToast } from "@calcom/ui/toast/showToast";
+} from "@calcom/ui/components/skeleton/Skeleton";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";

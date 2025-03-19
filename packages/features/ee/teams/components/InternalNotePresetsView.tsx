@@ -10,12 +10,12 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Input } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];

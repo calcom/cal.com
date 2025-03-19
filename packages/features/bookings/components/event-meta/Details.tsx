@@ -5,7 +5,7 @@ import { PriceIcon } from "@calcom/features/bookings/components/event-meta/Price
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 import { type IconName } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 

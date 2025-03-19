@@ -27,11 +27,11 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
 import classNames from "@calcom/ui/classNames";
-import { Checkbox } from "@calcom/ui/form/checkbox/Checkbox";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Checkbox } from "@calcom/ui/components/form/checkbox/Checkbox";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";

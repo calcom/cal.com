@@ -8,11 +8,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 

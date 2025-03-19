@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { SkeletonLoader } from "@calcom/ui/apps/SkeletonLoader";
+import { SkeletonLoader } from "@calcom/ui/components/apps/SkeletonLoader";
 
 import SSOConfiguration from "../components/SSOConfiguration";
 

@@ -10,9 +10,9 @@ import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtype
 import useAppsData from "@calcom/lib/hooks/useAppsData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { Button } from "@calcom/ui/button/Button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import { Alert } from "@calcom/ui/components/alert/Alert";
+import { Button } from "@calcom/ui/components/button/Button";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];

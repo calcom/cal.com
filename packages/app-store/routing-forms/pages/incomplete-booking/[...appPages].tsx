@@ -10,11 +10,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Switch } from "@calcom/ui/form/switch/Switch";
-import { InputField } from "@calcom/ui/form/inputs/TextField";
-import { Select } from "@calcom/ui/form/select/Select";
-import { Button } from "@calcom/ui/button/Button";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
+import { InputField } from "@calcom/ui/components/form/inputs/TextField";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { Button } from "@calcom/ui/components/button/Button";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,

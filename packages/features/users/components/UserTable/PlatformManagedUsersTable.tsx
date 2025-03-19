@@ -16,10 +16,10 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Checkbox } from "@calcom/ui/form/checkbox/Checkbox";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Checkbox } from "@calcom/ui/components/form/checkbox/Checkbox";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";

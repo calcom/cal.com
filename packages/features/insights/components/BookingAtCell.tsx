@@ -3,10 +3,10 @@ import { useId } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
-import { Badge } from "@calcom/ui/badge/Badge";
+import { Badge } from "@calcom/ui/components/badge/Badge";
 import { HoverCard, HoverCardContent, HoverCardTrigger, HoverCardPortal } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 import type { RoutingFormTableRow } from "../lib/types";
 import { BookingStatusBadge } from "./BookingStatusBadge";

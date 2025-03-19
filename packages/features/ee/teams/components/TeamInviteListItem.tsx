@@ -8,11 +8,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 interface Props {
   team: {

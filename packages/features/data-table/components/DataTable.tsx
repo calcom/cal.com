@@ -25,7 +25,7 @@ import {
   CommandItem,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";

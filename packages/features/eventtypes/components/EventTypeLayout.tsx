@@ -9,10 +9,10 @@ import WebShell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { HorizontalTabs, Skeleton, VerticalTabs } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
+import { Button } from "@calcom/ui/components/button/Button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup/ButtonGroup";
 import classNames from "@calcom/ui/classNames";
-import { VerticalDivider } from "@calcom/ui/divider/Divider";
+import { VerticalDivider } from "@calcom/ui/components/divider/Divider";
 import {
   DropdownMenuSeparator,
   Dropdown,
@@ -20,13 +20,13 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Switch } from "@calcom/ui/form/switch/Switch";
-import { Icon } from "@calcom/ui/icon/Icon";
-import type { VerticalTabItemProps } from "@calcom/ui/navigation/tabs/VerticalTabItem";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation/tabs/VerticalTabItem";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";

@@ -14,8 +14,8 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import type { VerticalTabItemProps } from "@calcom/ui/navigation/tabs/VerticalTabItem";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation/tabs/VerticalTabItem";
 
 import { EventTypeSingleLayout } from "./EventTypeLayout";
 

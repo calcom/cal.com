@@ -2,7 +2,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import { ConfirmationDialogContent } from "@calcom/ui";
-import { Dialog } from "@calcom/ui/dialog/Dialog";
+import { Dialog } from "@calcom/ui/components/dialog/Dialog";
 
 export type RemoveAppParams = {
   credentialId: number;

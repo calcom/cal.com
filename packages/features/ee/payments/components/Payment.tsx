@@ -11,8 +11,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PaymentOption } from "@calcom/prisma/enums";
-import { Button } from "@calcom/ui/button/Button";
-import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
+import { Button } from "@calcom/ui/components/button/Button";
+import { CheckboxField } from "@calcom/ui/components/form/checkbox/Checkbox";
 
 import type { PaymentPageProps } from "../pages/payment";
 

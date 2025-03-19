@@ -4,10 +4,10 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { Alert } from "@calcom/ui/components/alert/Alert";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";

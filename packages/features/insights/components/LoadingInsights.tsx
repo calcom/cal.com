@@ -1,4 +1,4 @@
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 import classNames from "@calcom/ui/classNames";
 
 import { CardInsights } from "./Card";

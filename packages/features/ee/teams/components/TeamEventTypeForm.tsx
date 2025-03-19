@@ -6,11 +6,11 @@ import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEvent
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 import { RadioGroup as RadioArea } from "@calcom/ui";
-import { Alert } from "@calcom/ui/alert/Alert";
+import { Alert } from "@calcom/ui/components/alert/Alert";
 import classNames from "@calcom/ui/classNames";
 
 type props = {

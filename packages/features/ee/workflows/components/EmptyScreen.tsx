@@ -4,10 +4,10 @@ import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
-import type { IconName } from "@calcom/ui/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import type { IconName } from "@calcom/ui/components/icon/Icon";
 
 type WorkflowExampleType = {
   Icon: IconName;

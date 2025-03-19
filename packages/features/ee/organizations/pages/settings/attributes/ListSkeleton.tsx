@@ -1,4 +1,4 @@
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 
 export function ListSkeleton() {
   return (

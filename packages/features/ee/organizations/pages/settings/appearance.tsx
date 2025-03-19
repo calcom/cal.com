@@ -15,10 +15,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { Button } from "@calcom/ui/button/Button";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { Button } from "@calcom/ui/components/button/Button";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 type BrandColorsFormValues = {
   brandColor: string;

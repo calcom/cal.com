@@ -14,9 +14,9 @@ import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
-import { Button } from "@calcom/ui/button/Button";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";

@@ -1,4 +1,4 @@
-import { SkeletonContainer } from "@calcom/ui/skeleton/Skeleton";
+import { SkeletonContainer } from "@calcom/ui/components/skeleton/Skeleton";
 
 import WebhookListItemSkeleton from "./WebhookListItemSkeleton";
 

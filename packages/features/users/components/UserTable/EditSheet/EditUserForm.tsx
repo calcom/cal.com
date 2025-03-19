@@ -20,14 +20,14 @@ import {
   SheetFooter,
   SheetTitle,
 } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
-import { Divider } from "@calcom/ui/divider/Divider";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Divider } from "@calcom/ui/components/divider/Divider";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";

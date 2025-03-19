@@ -16,9 +16,9 @@ import {
   CommandSeparator,
   buttonClasses,
 } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {

@@ -3,11 +3,11 @@ import { Trans } from "next-i18next";
 import { useState } from "react";
 
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import { InputField } from "@calcom/ui/form/inputs/TextField";
-import { Button } from "@calcom/ui/button/Button";
+import { InputField } from "@calcom/ui/components/form/inputs/TextField";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {

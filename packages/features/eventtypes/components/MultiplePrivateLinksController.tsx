@@ -5,11 +5,11 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Button } from "@calcom/ui/button/Button";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Button } from "@calcom/ui/components/button/Button";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 export const MultiplePrivateLinksController = ({
   team,

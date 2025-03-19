@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent } from "@calcom/ui/dialog/Dialog";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog/Dialog";
 
 import TwoFactor from "@components/auth/TwoFactor";
 

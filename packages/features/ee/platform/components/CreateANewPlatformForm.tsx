@@ -16,10 +16,10 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { Button } from "@calcom/ui/button/Button";
-import { Form } from "@calcom/ui/form/inputs/Form";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Alert } from "@calcom/ui/components/alert/Alert";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
 
 export const CreateANewPlatformForm = () => {
   const session = useSession();

@@ -3,17 +3,17 @@ import classNames from "classnames";
 import TeamPill, { TeamRole } from "@calcom/ee/teams/components/TeamPill";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
-import { Button } from "@calcom/ui/button/Button";
-import { ButtonGroup } from "@calcom/ui/buttonGroup/ButtonGroup";
+import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup/ButtonGroup";
 import {
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];

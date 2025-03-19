@@ -10,8 +10,8 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
-import { Button } from "@calcom/ui/button/Button";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
 
 export type DatePickerProps = {

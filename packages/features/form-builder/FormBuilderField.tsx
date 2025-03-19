@@ -4,10 +4,10 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { InfoBadge } from "@calcom/ui/badge/InfoBadge";
+import { InfoBadge } from "@calcom/ui/components/badge/InfoBadge";
 import classNames from "@calcom/ui/classNames";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";

@@ -12,10 +12,10 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Select } from "@calcom/ui/form/select/Select";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Alert } from "@calcom/ui/alert/Alert";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Alert } from "@calcom/ui/components/alert/Alert";
 import classNames from "@calcom/ui/classNames";
 
 export type RecurringEventControllerProps = {

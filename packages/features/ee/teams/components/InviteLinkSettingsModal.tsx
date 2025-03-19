@@ -3,12 +3,12 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Select } from "@calcom/ui/form/select/Select";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog/Dialog";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 type InvitationLinkSettingsModalProps = {
   isOpen: boolean;

@@ -16,9 +16,9 @@ import {
   CommandEmpty,
   CommandItem,
 } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 

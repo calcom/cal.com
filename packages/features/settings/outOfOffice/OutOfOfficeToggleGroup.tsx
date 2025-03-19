@@ -5,7 +5,7 @@ import { useCallback } from "react";
 
 import { useCompatSearchParams } from "@calcom/embed-core/src/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
+import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
 
 export enum OutOfOfficeTab {
   MINE = "mine",

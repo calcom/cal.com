@@ -24,15 +24,15 @@ import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui";
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Select } from "@calcom/ui/form/select/Select";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 

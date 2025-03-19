@@ -9,14 +9,14 @@ import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingS
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Alert } from "@calcom/ui/components/alert/Alert";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 

@@ -2,7 +2,7 @@ import { Grid } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/skeleton/Skeleton";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton/Skeleton";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { CardInsights } from "./Card";

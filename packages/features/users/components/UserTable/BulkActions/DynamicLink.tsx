@@ -3,7 +3,7 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 
 export function DynamicLink<T extends { username: string | null }>({
   table,

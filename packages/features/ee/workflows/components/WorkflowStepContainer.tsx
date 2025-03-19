@@ -16,28 +16,28 @@ import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } f
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { AddVariablesDropdown } from "@calcom/ui";
-import { Badge } from "@calcom/ui/badge/Badge";
-import { Button } from "@calcom/ui/button/Button";
+import { Badge } from "@calcom/ui/components/badge/Badge";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/dialog/Dialog";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog/Dialog";
 import {
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/dropdown/Dropdown";
-import { Editor } from "@calcom/ui/editor/Editor";
-import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
-import { EmailField } from "@calcom/ui/form/inputs/Input";
-import { TextArea } from "@calcom/ui/form/inputs/Input";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Input } from "@calcom/ui/form/inputs/TextField";
-import { Select } from "@calcom/ui/form/select/Select";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { Editor } from "@calcom/ui/components/editor/Editor";
+import { CheckboxField } from "@calcom/ui/components/form/checkbox/Checkbox";
+import { EmailField } from "@calcom/ui/components/form/inputs/Input";
+import { TextArea } from "@calcom/ui/components/form/inputs/Input";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Input } from "@calcom/ui/components/form/inputs/TextField";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 import {
   getWhatsappTemplateForAction,

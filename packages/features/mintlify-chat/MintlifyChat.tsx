@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/skeleton/Skeleton";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton/Skeleton";
 
 import { getFormattedCitations, handleAiChat, optionallyAddBaseUrl } from "../mintlify-chat/util";
 

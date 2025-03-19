@@ -5,10 +5,10 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { MultiEmail } from "@calcom/ui";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog/Dialog";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 interface IAddGuestsDialog {
   isOpenDialog: boolean;

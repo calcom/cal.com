@@ -12,14 +12,14 @@ import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Select } from "@calcom/ui/form/select/Select";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { Button } from "@calcom/ui/button/Button";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 

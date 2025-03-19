@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Icon } from "@calcom/ui/icon/Icon";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 interface LinkIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   Icon: React.ComponentProps<typeof Icon>["name"];

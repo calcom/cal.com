@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
-import { InfoBadge } from "@calcom/ui/badge/InfoBadge";
+import { InfoBadge } from "@calcom/ui/components/badge/InfoBadge";
 import classNames from "@calcom/ui/classNames";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {

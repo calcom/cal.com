@@ -8,12 +8,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { defaultLocaleOption, localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { EmailField, ImageUploader } from "@calcom/ui";
-import { Select } from "@calcom/ui/form/select/Select";
-import { Avatar } from "@calcom/ui/avatar/Avatar";
-import { Button } from "@calcom/ui/button/Button";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { Avatar } from "@calcom/ui/components/avatar/Avatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
 
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 

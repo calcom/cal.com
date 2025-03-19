@@ -3,11 +3,11 @@ import { useForm, useFieldArray } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { Button } from "@calcom/ui/button/Button";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Button } from "@calcom/ui/components/button/Button";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 type OAuthClientFormProps = {
   defaultValues?: Partial<FormValues>;

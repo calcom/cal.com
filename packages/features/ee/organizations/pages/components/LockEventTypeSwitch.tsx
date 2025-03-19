@@ -4,13 +4,13 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Form } from "@calcom/ui/form/inputs/Form";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
 import { RadioGroup as RadioArea } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/dialog/Dialog";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog/Dialog";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",

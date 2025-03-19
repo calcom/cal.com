@@ -6,13 +6,13 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { InputField, ConfirmationDialogContent } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog } from "@calcom/ui/dialog/Dialog";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Input } from "@calcom/ui/form/inputs/TextField";
-import { SelectField } from "@calcom/ui/form/select/Select";
-import { SettingsToggle } from "@calcom/ui/form/switch/SettingsToggle";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog } from "@calcom/ui/components/dialog/Dialog";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Input } from "@calcom/ui/components/form/inputs/TextField";
+import { SelectField } from "@calcom/ui/components/form/select/Select";
+import { SettingsToggle } from "@calcom/ui/components/form/switch/SettingsToggle";
 
 const attributeFormSchema = z.object({
   attrName: z.string().min(1),

@@ -10,13 +10,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { DateRangePicker, TextArea, UpgradeTeamsBadge, Input } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog/Dialog";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { Select } from "@calcom/ui/form/select/Select";
-import { Switch } from "@calcom/ui/form/switch/Switch";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog/Dialog";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { Select } from "@calcom/ui/components/form/select/Select";
+import { Switch } from "@calcom/ui/components/form/switch/Switch";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 

@@ -10,9 +10,9 @@ import type {
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui";
-import { TextArea } from "@calcom/ui/form/inputs/Input";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Icon } from "@calcom/ui/icon/Icon";
+import { TextArea } from "@calcom/ui/components/form/inputs/Input";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Icon } from "@calcom/ui/components/icon/Icon";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui")).SelectWithValidation

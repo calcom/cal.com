@@ -4,8 +4,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui";
-import { Dialog } from "@calcom/ui/dialog/Dialog";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Dialog } from "@calcom/ui/components/dialog/Dialog";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 

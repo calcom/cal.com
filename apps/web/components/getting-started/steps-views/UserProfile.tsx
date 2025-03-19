@@ -8,11 +8,11 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { ImageUploader } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui/avatar/UserAvatar";
-import { Button } from "@calcom/ui/button/Button";
-import { Editor } from "@calcom/ui/editor/Editor";
-import { Label } from "@calcom/ui/form/inputs/Label";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Label } from "@calcom/ui/components/form/inputs/Label";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 type FormData = {
   bio: string;

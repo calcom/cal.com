@@ -11,16 +11,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 import {
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
-} from "@calcom/ui/dropdown/Dropdown";
-import { EmptyScreen } from "@calcom/ui/empty-screen/EmptyScreen";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton/Skeleton";
+} from "@calcom/ui/components/dropdown/Dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen/EmptyScreen";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";

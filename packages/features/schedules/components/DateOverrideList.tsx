@@ -5,8 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { DialogTrigger } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
-import { Button } from "@calcom/ui/button/Button";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
+import { Button } from "@calcom/ui/components/button/Button";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 

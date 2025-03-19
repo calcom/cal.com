@@ -4,11 +4,11 @@ import { Controller, useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SelectField } from "@calcom/ui";
-import { Button } from "@calcom/ui/button/Button";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/dialog/Dialog";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog/Dialog";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import { directoryProviders } from "../lib/directoryProviders";
 

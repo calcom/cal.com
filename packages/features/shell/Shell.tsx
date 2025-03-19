@@ -13,11 +13,11 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/button/Button";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import ErrorBoundary from "@calcom/ui/errorBoundary/ErrorBoundary";
-import HeadSeo from "@calcom/ui/head-seo/HeadSeo";
-import { SkeletonText } from "@calcom/ui/skeleton/Skeleton";
+import ErrorBoundary from "@calcom/ui/components/errorBoundary/ErrorBoundary";
+import HeadSeo from "@calcom/ui/components/head-seo/HeadSeo";
+import { SkeletonText } from "@calcom/ui/components/skeleton/Skeleton";
 
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";

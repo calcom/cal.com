@@ -38,15 +38,15 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { PasswordField } from "@calcom/ui/form/inputs/Input";
-import { TextField } from "@calcom/ui/form/inputs/TextField";
-import { Alert } from "@calcom/ui/alert/Alert";
-import { Button } from "@calcom/ui/button/Button";
+import { PasswordField } from "@calcom/ui/components/form/inputs/Input";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Alert } from "@calcom/ui/components/alert/Alert";
+import { Button } from "@calcom/ui/components/button/Button";
 import classNames from "@calcom/ui/classNames";
-import { CheckboxField } from "@calcom/ui/form/checkbox/Checkbox";
-import { Form } from "@calcom/ui/form/inputs/Form";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { CheckboxField } from "@calcom/ui/components/form/checkbox/Checkbox";
+import { Form } from "@calcom/ui/components/form/inputs/Form";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 

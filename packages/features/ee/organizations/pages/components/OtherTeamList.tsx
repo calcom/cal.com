@@ -3,7 +3,7 @@ import { useState } from "react";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/toast/showToast";
+import { showToast } from "@calcom/ui/components/toast/showToast";
 
 import OtherTeamListItem from "./OtherTeamListItem";
 

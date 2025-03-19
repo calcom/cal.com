@@ -8,10 +8,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { ButtonGroup } from "@calcom/ui";
-import { ToggleGroup } from "@calcom/ui/form/toggleGroup/ToggleGroup";
-import { Button } from "@calcom/ui/button/Button";
-import { Icon } from "@calcom/ui/icon/Icon";
-import { Tooltip } from "@calcom/ui/tooltip/Tooltip";
+import { ToggleGroup } from "@calcom/ui/components/form/toggleGroup/ToggleGroup";
+import { Button } from "@calcom/ui/components/button/Button";
+import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Tooltip } from "@calcom/ui/components/tooltip/Tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
