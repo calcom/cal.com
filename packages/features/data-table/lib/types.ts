@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { IconName } from "@calcom/ui/components/icon/Icon";
+import type { IconName } from "@calcom/ui/components/icon";
 
 export enum ColumnFilterType {
   SINGLE_SELECT = "ss",

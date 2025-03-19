@@ -13,11 +13,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+import { Badge } from "@calcom/ui/badge";
+import { Button } from "@calcom/ui/button";
+import type { ButtonProps } from "@calcom/ui/button";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge/Badge";
-import { Button } from "@calcom/ui/components/button/Button";
-import type { ButtonProps } from "@calcom/ui/components/button/Button";
-import { showToast } from "@calcom/ui/components/toast/showToast";
+import { showToast } from "@calcom/ui/toast";
 
 interface AppCardProps {
   app: App;
