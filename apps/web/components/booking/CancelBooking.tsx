@@ -6,6 +6,7 @@ import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Icon, Label, TextArea, Select } from "@calcom/ui";
+import dayjs from "dayjs";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -71,6 +72,9 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
+    startTime?: string;
+    attendeeCanCancel?: boolean;
+    attendeeCancelMinimumNotice?: number;
   };
   profile: {
     name: string | null;
@@ -122,6 +126,10 @@ export default function CancelBooking(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const canCancel = booking?.attendeeCanCancel && booking?.attendeeCancelMinimumNotice
+    ? dayjs(booking.startTime).subtract(booking.attendeeCancelMinimumNotice, 'day').isAfter(dayjs())
+    : true;
 
   return (
     <>
@@ -193,8 +201,9 @@ export default function CancelBooking(props: Props) {
               <Button
                 data-testid="confirm_cancel"
                 disabled={
-                  props.isHost &&
-                  (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
+                  !canCancel ||
+                  (props.isHost &&
+                  (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id)))
                 }
                 onClick={async () => {
                   setLoading(true);
