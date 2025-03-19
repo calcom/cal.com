@@ -85,7 +85,7 @@ export function DataTableProvider({
     "widths",
     parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING)
   );
-  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(null));
+  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
 
