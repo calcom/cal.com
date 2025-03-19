@@ -100,8 +100,16 @@ export function SaveFilterSegmentButton() {
       return;
     }
 
+    if (saveMode === "update" && !selectedSegment) {
+      // theoretically this should never happen
+      showToast(t("segment_not_found"), "error");
+      return;
+    }
+
     const segmentData = {
-      name: saveMode === "update" && selectedSegment ? selectedSegment.name : values.name,
+      // keep the name when updating
+      // but use the input value when creating
+      name: saveMode === "update" ? selectedSegment.name : values.name,
       tableIdentifier,
       activeFilters,
       sorting,
@@ -110,7 +118,7 @@ export function SaveFilterSegmentButton() {
       perPage: 10,
     };
 
-    if (saveMode === "update" && selectedSegment) {
+    if (saveMode === "update") {
       const scope = selectedSegment.scope;
       if (scope === "TEAM") {
         updateSegment({

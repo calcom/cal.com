@@ -2,7 +2,13 @@ import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListFilterSegmentsInputSchema } from "./list.schema";
-import { ZActiveFilter, ZSortingState, ZColumnSizing, ZColumnVisibility } from "./types";
+import {
+  ZActiveFilter,
+  ZSortingState,
+  ZColumnSizing,
+  ZColumnVisibility,
+  type FilterSegmentOutput,
+} from "./types";
 
 export const listHandler = async ({
   ctx,
@@ -62,11 +68,13 @@ export const listHandler = async ({
     ],
   });
 
-  return segments.map((segment) => ({
+  const parsedSegments: FilterSegmentOutput[] = segments.map((segment) => ({
     ...segment,
     activeFilters: ZActiveFilter.array().catch([]).parse(segment.activeFilters),
     sorting: ZSortingState.catch([]).parse(segment.sorting),
     columnVisibility: ZColumnVisibility.catch({}).parse(segment.columnVisibility),
     columnSizing: ZColumnSizing.catch({}).parse(segment.columnSizing),
   }));
+
+  return parsedSegments;
 };

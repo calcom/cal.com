@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import type { RouterOutputs } from "@calcom/trpc";
 import type { IconName } from "@calcom/ui/components/icon";
 
 export enum ColumnFilterType {
@@ -223,4 +222,19 @@ export const ZActiveFilter = z.object({
   v: ZFilterValue.optional(),
 }) satisfies z.ZodType<ActiveFilter>;
 
-export type FilterSegmentOutput = RouterOutputs["viewer"]["filterSegments"]["list"][number];
+export type FilterSegmentOutput = {
+  id: number;
+  name: string;
+  tableIdentifier: string;
+  scope: "USER" | "TEAM";
+  activeFilters: ActiveFilter[];
+  sorting: SortingState;
+  columnVisibility: Record<string, boolean>;
+  columnSizing: Record<string, number>;
+  perPage: number;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: number;
+  teamId: number | null;
+  team: { id: number; name: string } | null;
+};

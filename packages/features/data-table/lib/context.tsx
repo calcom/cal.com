@@ -104,6 +104,9 @@ export function DataTableProvider({
     if (segments && segmentId > 0) {
       const segment = segments.find((segment) => segment.id === segmentId);
       if (!segment) {
+        // If segmentId is invalid (or not found), clear the segmentId from the query params,
+        // but we still keep all the other states like activeFilters, etc.
+        // This is useful when someone shares a URL that is inaccessible to someone else.
         setSegmentId(null);
       }
     }
@@ -111,6 +114,7 @@ export function DataTableProvider({
 
   useEffect(() => {
     if (selectedSegment) {
+      // segment is selected, so we apply the filters, sorting, etc. from the segment
       setActiveFilters(selectedSegment.activeFilters);
       setSorting(selectedSegment.sorting);
       setColumnVisibility(selectedSegment.columnVisibility);
@@ -131,7 +135,7 @@ export function DataTableProvider({
   const addFilter = useCallback(
     (columnId: string) => {
       if (!activeFilters?.some((filter) => filter.f === columnId)) {
-        // do not reset the page to 0 yet,
+        // do not reset the page to 0 here,
         // because we don't have the filter value yet (`v: undefined`)
         setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
       }
@@ -193,6 +197,7 @@ export function DataTableProvider({
 
   const canSaveSegment = useMemo(() => {
     if (!selectedSegment) {
+      // if no segment is selected, we can save the segment if there are any active filters, sorting, etc.
       return (
         activeFilters.length > 0 ||
         sorting.length > 0 ||
@@ -201,6 +206,7 @@ export function DataTableProvider({
         pageSize !== defaultPageSize
       );
     } else {
+      // if a segment is selected, we can save the segment if the active filters, sorting, etc. are different from the segment
       return (
         activeFilters !== selectedSegment.activeFilters ||
         sorting !== selectedSegment.sorting ||

@@ -30,25 +30,25 @@ type SubmenuItem = {
 export function FilterSegmentSelect() {
   const { t } = useLocale();
   const { segments, selectedSegment, segmentId, setSegment } = useDataTable();
-  const [renameDialogSegment, setRenameDialogSegment] = useState<FilterSegmentOutput | undefined>();
-  const [duplicateDialogSegment, setDuplicateDialogSegment] = useState<FilterSegmentOutput | undefined>();
-  const [deleteDialogSegment, setDeleteDialogSegment] = useState<FilterSegmentOutput | undefined>();
+  const [segmentToRename, setSegmentToRename] = useState<FilterSegmentOutput | undefined>();
+  const [segmentToDuplicate, setSegmentToDuplicate] = useState<FilterSegmentOutput | undefined>();
+  const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
 
   const submenuItems: SubmenuItem[] = [
     {
       iconName: "square-pen",
       labelKey: "rename",
-      onClick: (segment) => setRenameDialogSegment(segment),
+      onClick: (segment) => setSegmentToRename(segment),
     },
     {
       iconName: "copy",
       labelKey: "duplicate",
-      onClick: (segment) => setDuplicateDialogSegment(segment),
+      onClick: (segment) => setSegmentToDuplicate(segment),
     },
     {
       iconName: "trash-2",
       labelKey: "delete",
-      onClick: (segment) => setDeleteDialogSegment(segment),
+      onClick: (segment) => setSegmentToDelete(segment),
       isDestructive: true,
     },
   ];
@@ -127,25 +127,19 @@ export function FilterSegmentSelect() {
         </DropdownMenuPortal>
       </Dropdown>
 
-      {renameDialogSegment && (
-        <RenameSegmentDialog
-          segment={renameDialogSegment}
-          onClose={() => setRenameDialogSegment(undefined)}
-        />
+      {segmentToRename && (
+        <RenameSegmentDialog segment={segmentToRename} onClose={() => setSegmentToRename(undefined)} />
       )}
 
-      {duplicateDialogSegment && (
+      {segmentToDuplicate && (
         <DuplicateSegmentDialog
-          segment={duplicateDialogSegment}
-          onClose={() => setDuplicateDialogSegment(undefined)}
+          segment={segmentToDuplicate}
+          onClose={() => setSegmentToDuplicate(undefined)}
         />
       )}
 
-      {deleteDialogSegment && (
-        <DeleteSegmentDialog
-          segment={deleteDialogSegment}
-          onClose={() => setDeleteDialogSegment(undefined)}
-        />
+      {segmentToDelete && (
+        <DeleteSegmentDialog segment={segmentToDelete} onClose={() => setSegmentToDelete(undefined)} />
       )}
     </>
   );

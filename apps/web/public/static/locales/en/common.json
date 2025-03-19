@@ -3037,6 +3037,7 @@
   "filter_segment_deleted": "Filter segment deleted",
   "error_deleting_filter_segment": "Error deleting filter segment",
   "save_segment": "Save Segment",
+  "segment_not_found": "Segment not found",
   "filter_segment_saved": "Filter segment saved",
   "error_saving_filter_segment": "Error saving filter segment",
   "override_segment": "Save overrides to \"{{name}}\"",

@@ -71,8 +71,7 @@ export function DataTableWrapper<TData>({
     isFetching: paginationMode === "infinite" ? isFetching : false,
     enabled: paginationMode === "infinite",
   });
-  const { sorting, setSorting, columnVisibility, setColumnVisibility, columnSizing, setColumnSizing } =
-    useDataTable();
+  const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
   const columnFilters = useColumnFilters();
 
   useEffect(() => {
