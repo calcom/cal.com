@@ -51,7 +51,7 @@ export default function Header({
           <div className="ms-auto flex-shrink-0">{CTA}</div>
         </div>
       </header>
-      <Suspense fallback={<Icon name="loader" className="mx-auto my-5" />}>{children}</Suspense>
+      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
     </div>
   );
 }
