@@ -12,7 +12,8 @@ const useSkipConfirmStep = (
   bookerState: BookerState,
   isInstantMeeting: boolean,
   isWeekView: boolean,
-  bookingFields?: BookerEvent["bookingFields"]
+  bookingFields?: BookerEvent["bookingFields"],
+  locations?: BookerEvent["locations"]
 ) => {
   const bookingFormValues = bookingForm.getValues();
 
@@ -21,11 +22,7 @@ const useSkipConfirmStep = (
 
   useEffect(() => {
     const checkSkipStep = async () => {
-      if (
-        !bookingFields ||
-        // If there are multiple locations to select, we can't skip
-        bookingFields.some((field) => field.name === "location" && field.type === "radioInput")
-      ) {
+      if (!bookingFields || (locations && locations.length > 1)) {
         setCanSkip(false);
         return;
       }
