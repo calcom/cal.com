@@ -20,7 +20,7 @@ import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import classNames from "@calcom/ui/classNames";
-import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Editor } from "@calcom/ui/components/editor";
 import { TextAreaField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";

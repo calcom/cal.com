@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";

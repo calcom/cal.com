@@ -27,7 +27,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
-import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";

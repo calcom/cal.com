@@ -10,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import { ImageUploader } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
 import { Button } from "@calcom/ui/components/button";
-import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 

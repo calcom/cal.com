@@ -14,7 +14,7 @@ import { BooleanToggleGroupField } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
-import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";

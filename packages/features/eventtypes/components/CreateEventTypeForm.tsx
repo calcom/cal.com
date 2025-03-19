@@ -12,7 +12,7 @@ import { Form } from "@calcom/ui/components/form";
 import { TextAreaField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Editor } from "@calcom/ui/components/editor/Editor";
+import { Editor } from "@calcom/ui/components/editor";
 
 export default function CreateEventTypeForm({
   form,
