@@ -13,7 +13,14 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup, Input } from "@calcom/ui/components/form";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@calcom/ui/components/hover-card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui/components/table";
+import {
+  TableNew,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
@@ -378,7 +385,7 @@ export function RoutedToPerPeriod() {
           <div
             className="scrollbar-thin border-subtle relaitve relative h-[80dvh] overflow-auto rounded-md border"
             ref={tableContainerRef}>
-            <Table className="border-0">
+            <TableNew className="border-0">
               <TableHeader className="bg-subtle sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="bg-subtle sticky left-0 z-30 w-[200px]">{t("user")}</TableHead>
@@ -446,7 +453,7 @@ export function RoutedToPerPeriod() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </TableNew>
           </div>
         </div>
       </FormCard>

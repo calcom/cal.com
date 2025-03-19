@@ -34,7 +34,7 @@
     "./components/form": "./components/form/index.ts",
     "./components/form/timezone-select": "./components/form/timezone-select/index.ts",
     "./components/head-seo": "./components/head-seo/index.ts",
-    "./components/hover-card": "./components/hover-card/index.ts",
+    "./components/hover-card": "./components/hover-card/index.tsx",
     "./components/image-uploader": "./components/image-uploader/index.ts",
     "./components/layout": "./components/layout/index.ts",
     "./components/list": "./components/list/index.ts",

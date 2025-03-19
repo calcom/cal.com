@@ -1,4 +1,4 @@
-import "@calcom/ui/components/__mocks__/ui";
+import "@calcom/ui/__mocks__/ui";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, fireEvent, screen } from "@testing-library/react";
