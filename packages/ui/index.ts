@@ -109,11 +109,11 @@ export { showToast, ErrorToast, SuccessToast, WarningToast } from "./components/
 export { ShellSubHeading, WizardLayout } from "./components/layout";
 
 /** ⬇️ TODO - Move these to components */
-export { default as AddressInput } from "./form/AddressInputLazy";
-export { default as MultiEmail } from "./form/MultiEmailLazy";
-export { default as AddressInputNonLazy } from "./form/AddressInput";
+export { default as AddressInput } from "./components/address/AddressInputLazy";
+export { default as MultiEmail } from "./components/address/MultiEmailLazy";
+export { default as AddressInputNonLazy } from "./components/address/AddressInput";
 
-export { UnstyledSelect } from "./form/Select";
+export { UnstyledSelect } from "./components/address/Select";
 
 export {
   RadioGroup,
@@ -124,7 +124,6 @@ export {
   RadioAreaGroup,
 } from "./components/radio";
 
-export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export { default as BannerUploader } from "./components/image-uploader/BannerUploader";

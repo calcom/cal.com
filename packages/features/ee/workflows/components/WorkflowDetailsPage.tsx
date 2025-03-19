@@ -11,11 +11,8 @@ import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { MultiSelectCheckboxes } from "@calcom/ui/components/form";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import { isSMSAction } from "../lib/actionHelperFunctions";
@@ -128,7 +125,7 @@ export default function WorkflowDetailsPage(props: Props) {
             control={form.control}
             render={() => {
               return (
-                <MultiSelectCheckboxes
+                <MultiSelectCheckbox
                   options={allOptions}
                   isDisabled={props.readOnly || form.getValues("selectAll")}
                   className="w-full md:w-64"
