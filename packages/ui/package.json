@@ -8,6 +8,7 @@
     ".": "./index.ts",
     "./classNames": "./classNames.ts",
     "./styles": "./styles/index.ts",
+    "./form": "./form/index.ts",
     "./components/alert": "./components/alert/index.ts",
     "./components/app-list-card": "./components/app-list-card/index.ts",
     "./components/apps": "./components/apps/index.ts",
