@@ -106,7 +106,7 @@ export { AppListCard } from "./components/app-list-card/AppListCard";
 export { DisconnectIntegrationComponent } from "./components/disconnect-calendar-integration";
 export { CalendarSwitchComponent } from "./components/calendar-switch";
 export { showToast, ErrorToast, SuccessToast, WarningToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
-export { ShellSubHeading } from "./components/layout";
+export { ShellSubHeading, WizardLayout } from "./components/layout";
 
 /** ⬇️ TODO - Move these to components */
 export { default as AddressInput } from "./form/AddressInputLazy";
@@ -132,7 +132,6 @@ export type { ButtonColor } from "./components/button/Button";
 
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable";
-export { WizardLayout } from "./layouts/WizardLayout";
 export * from "./components/sheet";
 export * from "./components/table";
 export * from "./components/popover";
