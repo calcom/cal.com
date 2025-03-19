@@ -1,4 +1,5 @@
 export { Table } from "./Table";
+export { TableActions, DropdownActions } from "./TableActions";
 export {
   Table as TableNew,
   TableBody,

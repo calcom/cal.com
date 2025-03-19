@@ -7,7 +7,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { DropdownActions, SkeletonContainer, SkeletonText } from "@calcom/ui";
 import { Badge } from "@calcom/ui/components/badge";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -18,6 +17,8 @@ import { TextAreaField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { DropdownActions } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface DelegationItemProps {

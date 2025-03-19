@@ -13,9 +13,9 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover } from "@calcom/ui";
-import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { AnimatedPopover } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
