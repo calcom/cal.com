@@ -3,19 +3,16 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
+import { AllApps } from "@calcom/features/apps/components/AllApps";
+import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
+import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
+import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
-import {
-  AllApps,
-  AppStoreCategories,
-  HorizontalTabs,
-  TextField,
-  PopularAppsSlider,
-  RecentAppsSlider,
-} from "@calcom/ui";
+import { HorizontalTabs, TextField } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { type getServerSideProps } from "@lib/apps/getServerSideProps";
 
@@ -42,7 +39,6 @@ function AppsSearch({
   const { t } = useLocale();
   return (
     <TextField
-      className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
       addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
       containerClassName={classNames("focus:!ring-offset-0 m-1", className)}

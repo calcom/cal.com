@@ -8,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
@@ -33,7 +33,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   return store;
 }, {} as Record<string, AppMeta>);
 
-export type CredentialDataWithTeamName = CredentialPayload & {
+export type CredentialDataWithTeamName = CredentialForCalendarService & {
   team?: {
     name: string;
   } | null;
@@ -65,6 +65,8 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         teamId: null,
         appId: appMeta.slug,
         invalid: false,
+        delegatedTo: null,
+        delegatedToId: null,
         team: {
           name: "Global",
         },

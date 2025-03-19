@@ -33,6 +33,7 @@ import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
+import type { Disabled_2024_06_14 } from "../inputs/disabled.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -52,13 +53,14 @@ import {
   SelectFieldOutput_2024_06_14,
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
+  UrlFieldOutput_2024_06_14,
 } from "../outputs/booking-fields.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
 import {
   OutputAddressLocation_2024_06_14,
-  OutputConferencingLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputLinkLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
@@ -159,7 +161,7 @@ class EventTypeTeam {
   OutputLinkLocation_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
-  OutputConferencingLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -173,6 +175,7 @@ class EventTypeTeam {
   CheckboxGroupFieldOutput_2024_06_14,
   MultiEmailFieldOutput_2024_06_14,
   MultiSelectFieldOutput_2024_06_14,
+  UrlFieldOutput_2024_06_14,
   NumberFieldOutput_2024_06_14,
   PhoneFieldOutput_2024_06_14,
   RadioGroupFieldOutput_2024_06_14,
@@ -230,7 +233,7 @@ class BaseEventTypeOutput_2024_06_14 {
       { $ref: getSchemaPath(OutputLinkLocation_2024_06_14) },
       { $ref: getSchemaPath(OutputIntegrationLocation_2024_06_14) },
       { $ref: getSchemaPath(OutputPhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(OutputConferencingLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputOrganizersDefaultAppLocation_2024_06_14) },
       { $ref: getSchemaPath(OutputUnknownLocation_2024_06_14) },
     ],
     type: "array",
@@ -261,6 +264,7 @@ class BaseEventTypeOutput_2024_06_14 {
       { $ref: getSchemaPath(CheckboxGroupFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(RadioGroupFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(BooleanFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(UrlFieldOutput_2024_06_14) },
     ],
     type: "array",
   })
@@ -398,7 +402,7 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => Seats_2024_06_14)
   @ApiPropertyOptional({ type: Seats_2024_06_14 })
-  seats?: Seats_2024_06_14;
+  seats?: Seats_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsInt()

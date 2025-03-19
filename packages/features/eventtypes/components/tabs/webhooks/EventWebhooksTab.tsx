@@ -23,7 +23,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
-  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
+  const { data: installedApps, isLoading } = trpc.viewer.apps.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
   });
@@ -115,7 +115,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
               <>
                 {(isManagedEventType || isChildrenManagedEventType) && (
                   <Alert
-                    severity={webhooksDisableProps.isLocked ? "neutral" : "green"}
+                    severity={webhooksDisableProps.isLocked ? "neutral" : "info"}
                     className="mb-2"
                     title={
                       <Trans

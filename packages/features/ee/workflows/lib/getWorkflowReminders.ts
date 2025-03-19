@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
+import type { EventType, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
@@ -32,7 +33,7 @@ type PartialBooking =
       eventType:
         | (Partial<EventType> & {
             slug: string;
-            team: { parentId?: number };
+            team: { parentId?: number; hideBranding: boolean };
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
         | null;
@@ -118,7 +119,7 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
   return remindersToCancel;
 }
 
-export const select: Prisma.WorkflowReminderSelect = {
+export const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
   id: true,
   scheduledDate: true,
   isMandatoryReminder: true,
@@ -186,13 +187,14 @@ export const select: Prisma.WorkflowReminderSelect = {
           team: {
             select: {
               parentId: true,
+              hideBranding: true,
             },
           },
         },
       },
     },
   },
-};
+});
 
 export async function getAllUnscheduledReminders(): Promise<PartialWorkflowReminder[]> {
   const whereFilter: Prisma.WorkflowReminderWhereInput = {

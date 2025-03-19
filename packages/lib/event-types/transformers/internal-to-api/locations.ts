@@ -1,5 +1,5 @@
 import type {
-  OutputConferencingLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputIntegration_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputAddressLocation_2024_06_14,
@@ -42,7 +42,6 @@ const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06
   "integrations:eightxeight_video": "eightxeight-video",
   "integrations:discord_video": "discord-video",
   "integrations:demodesk_video": "demodesk-video",
-  "integrations:campsite_conferencing": "campsite-conferencing",
   "integrations:campfire_video": "campfire-video",
   "integrations:around_video": "around-video",
 };
@@ -106,8 +105,8 @@ export function transformLocationsInternalToApi(internalLocations: InternalLocat
         return attendeeDefinedLocation;
       }
       case "conferencing": {
-        const conferencingLocation: OutputConferencingLocation_2024_06_14 = {
-          type: "conferencing",
+        const conferencingLocation: OutputOrganizersDefaultAppLocation_2024_06_14 = {
+          type: "organizersDefaultApp",
         };
         return conferencingLocation;
       }

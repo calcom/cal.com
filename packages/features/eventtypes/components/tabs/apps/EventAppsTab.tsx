@@ -17,7 +17,7 @@ export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isPending } = trpc.viewer.integrations.useQuery({
+  const { data: eventTypeApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
@@ -92,7 +92,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         <div className="before:border-0">
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity={appsDisableProps.isLocked ? "neutral" : "green"}
+              severity={appsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
                 <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>

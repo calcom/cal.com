@@ -286,7 +286,7 @@ function MemberListContent(props: Props) {
       isOrg: checkIsOrg(props.team),
     });
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
@@ -318,7 +318,7 @@ function MemberListContent(props: Props) {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        header: `Member (${totalDBRowCount})`,
+        header: "Member",
         size: 250,
         cell: ({ row }) => {
           const { username, email, avatarUrl, accepted, name } = row.original;
@@ -618,10 +618,9 @@ function MemberListContent(props: Props) {
     ];
 
     return cols;
-  }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
+  }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
-  const totalFetched = flatData.length;
 
   const table = useReactTable({
     data: flatData,
@@ -675,7 +674,6 @@ function MemberListContent(props: Props) {
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                className="rounded-md"
                 onClick={() => props.setShowMemberInvitationModal(true)}
                 data-testid="new-member-button">
                 {t("add")}
@@ -699,6 +697,7 @@ function MemberListContent(props: Props) {
             </p>
             {numberOfSelectedRows >= 2 && (
               <DataTableSelectionBar.Button
+                color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
                 icon="handshake">
                 {t("group_meeting")}

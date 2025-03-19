@@ -1,10 +1,10 @@
 // We can't import @calcom/lib/constants here yet as this file is compiled using Vite
-const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL ?? "";
-const EMBED_LIB_URL = process.env.EMBED_PUBLIC_EMBED_LIB_URL ?? WEBAPP_URL;
-const IS_E2E = process.env.NEXT_PUBLIC_IS_E2E === "1";
+const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || "";
 if (!WEBAPP_URL) {
   throw new Error("WEBAPP_URL is not set");
 }
+const EMBED_LIB_URL = process.env.EMBED_PUBLIC_EMBED_LIB_URL || WEBAPP_URL;
+const IS_E2E = process.env.NEXT_PUBLIC_IS_E2E === "1";
 
 // Because it is only used in Embed Snippet Generator preview that is accessible through dashboard only which has URL WEBAPP_URL, we are good with this strict restriction
 if (!IS_E2E && (window.self === window.top || !document.referrer.startsWith(WEBAPP_URL))) {

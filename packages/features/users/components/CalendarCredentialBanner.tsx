@@ -5,7 +5,7 @@ import { type RouterOutputs } from "@calcom/trpc";
 import { TopBanner } from "@calcom/ui";
 
 export type CalendarCredentialBannerProps = {
-  data: RouterOutputs["viewer"]["getUserTopBanners"]["calendarCredentialBanner"];
+  data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["calendarCredentialBanner"];
 };
 
 function CalendarCredentialBanner({ data }: CalendarCredentialBannerProps) {

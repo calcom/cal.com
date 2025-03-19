@@ -42,9 +42,9 @@ function UsersTableBare() {
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
       showToast("User has been deleted", "success");
-      // Lets not invalidated the whole cache, just remove the user from the cache.
-      // usefull cause in prod this will be fetching 100k+ users
-      // FIXME: Tested locally and it doesnt't work, need to investigate
+      // Lets not invalidate the whole cache, just remove the user from the cache.
+      // Useful cause in prod this will be fetching 100k+ users
+      // FIXME: Tested locally and it doesn't work, need to investigate
       utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (cachedData) => {
         if (!cachedData) {
           return {
@@ -126,7 +126,7 @@ function UsersTableBare() {
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -135,12 +135,12 @@ function UsersTableBare() {
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
         //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalRowCount) {
           fetchNextPage();
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching, totalFetched, totalRowCount]
   );
 
   useEffect(() => {

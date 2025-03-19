@@ -5,11 +5,12 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TimezoneSelect, Icon, Input } from "@calcom/ui";
+import { Button, Input } from "@calcom/ui";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -20,7 +21,7 @@ interface IUserSettingsProps {
 
 const UserSettings = (props: IUserSettingsProps) => {
   const { nextStep } = props;
-  const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
   const telemetry = useTelemetry();
@@ -110,12 +111,12 @@ const UserSettings = (props: IUserSettingsProps) => {
         </div>
       </div>
       <Button
+        EndIcon="arrow-right"
         type="submit"
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
         {t("next_step_text")}
-        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

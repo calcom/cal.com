@@ -19,7 +19,9 @@ export const DryRunMessage = ({ isEmbed }: { isEmbed?: boolean }) => {
         <div className="relative">
           <Icon name="info" className="h-5 w-5 text-orange-500" />
         </div>
-        <div className="text-emphasis font-medium">{t("dry_run_mode_active")}</div>
+        <div className="text-emphasis font-medium" data-testid="dry-run-msg">
+          {t("dry_run_mode_active")}
+        </div>
       </div>
     </div>
   );

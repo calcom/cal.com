@@ -7,7 +7,7 @@ import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/que
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -40,7 +40,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { id: userId, organizationId } = user;
 
   if (!organizationId)
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organizaiton" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organizaiton" });
 
   if (!(await isOrganisationAdmin(userId, organizationId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
@@ -111,7 +111,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     email: input.email,
     name: input.name,
     timeZone: input.timeZone,
-    username: input.username,
   };
 
   if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {

@@ -11,7 +11,7 @@ export const InstallAppButtonChild = ({
   ...props
 }: {
   multiInstall?: boolean;
-  credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
+  credentials?: RouterOutputs["viewer"]["apps"]["appCredentialsByType"]["credentials"];
   paid?: AppFrontendPayload["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
@@ -36,10 +36,10 @@ export const InstallAppButtonChild = ({
   return (
     <Button
       data-testid="install-app-button"
+      {...props}
       disabled={shouldDisableInstallation}
       color="primary"
-      size="base"
-      {...props}>
+      size="base">
       {multiInstall ? t("install_another") : t("install_app")}
     </Button>
   );

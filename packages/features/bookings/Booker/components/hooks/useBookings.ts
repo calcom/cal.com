@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
-import { useHandleBookEvent } from "@calcom/atoms/monorepo";
+import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -60,6 +60,7 @@ const getBookingSuccessfulEventPayload = (booking: {
   paymentRequired: boolean;
   uid?: string;
   isRecurring: boolean;
+  videoCallUrl?: string;
 }) => {
   return {
     uid: booking.uid,
@@ -70,6 +71,7 @@ const getBookingSuccessfulEventPayload = (booking: {
     status: booking.status,
     paymentRequired: booking.paymentRequired,
     isRecurring: booking.isRecurring,
+    videoCallUrl: booking.videoCallUrl,
   };
 };
 
@@ -262,7 +264,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         isSuccessBookingPage: true,
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventSlug,
-        seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
+        seatReferenceUid: "seatReferenceUid" in booking ? (booking.seatReferenceUid as string) : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
         rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly

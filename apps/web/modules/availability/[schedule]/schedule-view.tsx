@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AvailabilitySettings } from "@calcom/atoms/monorepo";
+import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -57,6 +57,7 @@ export const AvailabilitySettingsWebWrapper = ({
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
         eventTypeIds,
+        selectedDefaultScheduleId: scheduleData?.id,
       },
       {
         onSuccess: () => {
@@ -69,7 +70,7 @@ export const AvailabilitySettingsWebWrapper = ({
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;

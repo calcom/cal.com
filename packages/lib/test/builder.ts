@@ -100,6 +100,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     userId: null,
     teamId: null,
     requiresBookerEmailVerification: false,
+    canSendCalVideoTranscriptionEmails: true,
     useEventTypeDestinationCalendarEmail: false,
     eventName: faker.lorem.words(),
     timeZone: null,

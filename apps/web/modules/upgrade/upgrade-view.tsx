@@ -10,7 +10,7 @@ import { Button, EmptyScreen } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
 export type OrgUpgradeBannerProps = {
-  data: RouterOutputs["viewer"]["getUserTopBanners"]["orgUpgradeBanner"];
+  data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["orgUpgradeBanner"];
 };
 
 export default function UpgradePage() {
@@ -29,7 +29,7 @@ export default function UpgradePage() {
   const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
 
   return (
-    <Shell hideHeadingOnMobile withoutSeo={true}>
+    <Shell withoutSeo={true}>
       <div className="max-w-screen-lg">
         {doesUserHaveOrgToUpgrade.data ? (
           <EmptyScreen

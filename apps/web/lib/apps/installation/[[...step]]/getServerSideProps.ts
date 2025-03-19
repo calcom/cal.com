@@ -1,16 +1,16 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
-import type { LocationObject } from "@calcom/core/location";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import type { LocationObject } from "@calcom/lib/location";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -78,7 +78,7 @@ const getAppBySlug = async (appSlug: string) => {
 };
 
 const getEventTypes = async (userId: number, teamIds?: number[]) => {
-  const eventTypeSelect: Prisma.EventTypeSelect = {
+  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     id: true,
     description: true,
     durationLimits: true,
@@ -88,6 +88,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     position: true,
     recurringEvent: true,
     requiresConfirmation: true,
+    canSendCalVideoTranscriptionEmails: true,
     team: { select: { slug: true } },
     schedulingType: true,
     teamId: true,
@@ -98,7 +99,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     userId: true,
     destinationCalendar: true,
     bookingFields: true,
-  };
+  });
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {

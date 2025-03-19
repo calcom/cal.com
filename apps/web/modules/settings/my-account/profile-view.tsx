@@ -19,10 +19,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import {
   Alert,
   Button,
@@ -33,6 +32,7 @@ import {
   DialogTrigger,
   Editor,
   Form,
+  Icon,
   ImageUploader,
   Label,
   PasswordField,
@@ -50,6 +50,8 @@ import CustomEmailTextField from "@components/settings/CustomEmailTextField";
 import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 const SkeletonLoader = () => {
   return (
@@ -93,13 +95,13 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.shouldVerifyEmail.invalidate();
+      utils.viewer.me.shouldVerifyEmail.invalidate();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
@@ -185,14 +187,14 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
+  const deleteMeMutation = trpc.viewer.me.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
@@ -362,7 +364,8 @@ const ProfileView = () => {
               <Button
                 color="primary"
                 data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}>
+                onClick={(e) => onConfirmButton(e)}
+                loading={deleteMeMutation.isPending}>
                 {t("delete_my_account")}
               </Button>
             </DialogFooter>
@@ -508,8 +511,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"];
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
@@ -652,36 +655,44 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
+        <p className="text-subtle mt-1 flex items-center gap-1 text-sm">
+          <Icon name="info" /> {t("tip_username_plus")}
+        </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
-          <div className="-mt-2 flex gap-2">
-            {secondaryEmailFields.map((field, index) => (
-              <CustomEmailTextField
-                key={field.itemId}
-                formMethods={formMethods}
-                formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
-                emailVerified={Boolean(field.emailVerified)}
-                emailPrimary={field.emailPrimary}
-                dataTestId={`profile-form-email-${index}`}
-                handleChangePrimary={() => {
-                  const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                    ...secondaryField,
-                    emailPrimary: cIndex === index,
-                  }));
-                  updateAllSecondaryEmailFields(fields);
-                }}
-                handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                handleItemDelete={() => deleteSecondaryEmail(index)}
-              />
-            ))}
+          <div className="-mt-2 flex flex-wrap items-start gap-2">
+            <div
+              className={
+                secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
+              }>
+              {secondaryEmailFields.map((field, index) => (
+                <CustomEmailTextField
+                  key={field.itemId}
+                  formMethods={formMethods}
+                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                  emailVerified={Boolean(field.emailVerified)}
+                  emailPrimary={field.emailPrimary}
+                  dataTestId={`profile-form-email-${index}`}
+                  handleChangePrimary={() => {
+                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                      ...secondaryField,
+                      emailPrimary: cIndex === index,
+                    }));
+                    updateAllSecondaryEmailFields(fields);
+                  }}
+                  handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                  handleItemDelete={() => deleteSecondaryEmail(index)}
+                />
+              ))}
+            </div>
             <Button
               color="secondary"
               StartIcon="plus"
-              className="mt-2 h-full"
+              className="mt-2"
               onClick={() => handleAddSecondaryEmail()}
               data-testid="add-secondary-email">
               {t("add_email")}
@@ -724,8 +735,8 @@ const ProfileForm = ({
             </div>
           </div>
         )}
-        {/* // For Non-Cal indentities, we merge the values from DB and the user logging in,
-        so essentially there is no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
+        {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
+        so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
         {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
           <div className="mt-6">
             <Label>Connected accounts</Label>
