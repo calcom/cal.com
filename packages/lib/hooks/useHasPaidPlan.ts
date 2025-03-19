@@ -8,7 +8,7 @@ export function useHasPaidPlan() {
 
   const { data: hasTeamPlan, isPending: isPendingTeamQuery } = trpc.viewer.teams.hasTeamPlan.useQuery();
 
-  const { data: user, isPending: isPendingUserQuery } = trpc.viewer.me.useQuery();
+  const { data: user, isPending: isPendingUserQuery } = trpc.viewer.me.get.useQuery();
 
   const isPending = isPendingTeamQuery || isPendingUserQuery;
 

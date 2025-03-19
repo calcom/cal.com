@@ -73,6 +73,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   hostsLimit?: number;
   preventEventTypeRedirect?: boolean;
   allowUpdatingUrlParams?: boolean;
+  confirmButtonDisabled?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;

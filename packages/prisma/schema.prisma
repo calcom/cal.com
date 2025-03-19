@@ -701,6 +701,7 @@ model Booking {
   assignmentReason             AssignmentReason[]
   internalNote                 BookingInternalNote[]
   creationSource               CreationSource?
+  tracking                     Tracking?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -709,6 +710,19 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+}
+
+model Tracking {
+  id           Int     @id @default(autoincrement())
+  bookingId    Int
+  booking      Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  utm_source   String?
+  utm_medium   String?
+  utm_campaign String?
+  utm_term     String?
+  utm_content  String?
+
+  @@unique([bookingId])
 }
 
 model Schedule {
@@ -1082,6 +1096,11 @@ view RoutingFormResponse {
   bookingStartTime                 DateTime?
   bookingEndTime                   DateTime?
   createdAt                        DateTime
+  utm_source                       String?
+  utm_medium                       String?
+  utm_campaign                     String?
+  utm_term                         String?
+  utm_content                      String?
 }
 
 model Feedback {

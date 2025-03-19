@@ -22,6 +22,8 @@ import { eventTypesRouter } from "./eventTypes/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { highPerfRouter } from "./highPerf/_router";
+import { i18nRouter } from "./i18n/_router";
+import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
@@ -36,7 +38,8 @@ export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
 
   router({
-    loggedInViewerRouter,
+    apps: appsRouter,
+    me: meRouter,
     public: publicViewerRouter,
     auth: authRouter,
     deploymentSetup: deploymentSetupRouter,
@@ -53,6 +56,7 @@ export const viewerRouter = mergeRouters(
     workflows: workflowsRouter,
     saml: ssoRouter,
     dsync: dsyncRouter,
+    i18n: i18nRouter,
     insights: insightsRouter,
     payments: paymentsRouter,
     filterSegments: filterSegmentsRouter,
@@ -61,7 +65,6 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     appBasecamp3: app_Basecamp3,
     features: featureFlagRouter,
-    appsRouter,
     users: userAdminRouter,
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,

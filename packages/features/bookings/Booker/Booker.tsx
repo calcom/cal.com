@@ -82,6 +82,7 @@ const BookerComponent = ({
   isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
   hashedLink,
+  confirmButtonDisabled,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -170,7 +171,8 @@ const BookerComponent = ({
     bookerState,
     isInstantMeeting,
     layout == BookerLayouts.WEEK_VIEW,
-    event?.data?.bookingFields
+    event?.data?.bookingFields,
+    event?.data?.locations
   );
 
   // Cloudflare Turnstile Captcha
@@ -239,6 +241,11 @@ const BookerComponent = ({
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
+        confirmButtonDisabled={confirmButtonDisabled}
+        classNames={{
+          confirmButton: customClassNames?.confirmStep?.confirmButton,
+          backButton: customClassNames?.confirmStep?.backButton,
+        }}
         isPlatform={isPlatform}>
         <>
           {!isPlatform && (
@@ -483,6 +490,8 @@ const BookerComponent = ({
                 skipConfirmStep={skipConfirmStep}
                 shouldRenderCaptcha={shouldRenderCaptcha}
                 watchedCfToken={watchedCfToken}
+                confirmButtonDisabled={confirmButtonDisabled}
+                confirmStepClassNames={customClassNames?.confirmStep}
               />
             </BookerSection>
           </AnimatePresence>
