@@ -95,16 +95,7 @@ export function SaveFilterSegmentButton() {
       return;
     }
 
-    if (saveMode === "update" && !selectedSegment) {
-      // theoretically this should never happen
-      showToast(t("segment_not_found"), "error");
-      return;
-    }
-
     const segmentData = {
-      // keep the name when updating
-      // but use the input value when creating
-      name: saveMode === "update" ? selectedSegment.name : values.name,
       tableIdentifier,
       activeFilters,
       sorting,
@@ -114,18 +105,25 @@ export function SaveFilterSegmentButton() {
     };
 
     if (saveMode === "update") {
+      if (!selectedSegment) {
+        // theoretically this should never happen
+        showToast(t("segment_not_found"), "error");
+        return;
+      }
       const scope = selectedSegment.scope;
       if (scope === "TEAM") {
         updateSegment({
           id: selectedSegment.id,
           scope,
           teamId: selectedSegment.teamId || 0,
+          name: selectedSegment.name,
           ...segmentData,
         });
       } else {
         updateSegment({
           id: selectedSegment.id,
           scope,
+          name: selectedSegment.name,
           ...segmentData,
         });
       }
@@ -133,12 +131,14 @@ export function SaveFilterSegmentButton() {
       if (isTeamSegment) {
         createSegment({
           ...segmentData,
+          name: values.name,
           scope: "TEAM",
           teamId: selectedTeamId || 0,
         });
       } else {
         createSegment({
           ...segmentData,
+          name: values.name,
           scope: "USER",
         });
       }
