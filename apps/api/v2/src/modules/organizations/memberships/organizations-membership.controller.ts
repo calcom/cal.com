@@ -13,9 +13,9 @@ import { CreateOrgMembershipOutput } from "@/modules/organizations/memberships/o
 import { DeleteOrgMembership } from "@/modules/organizations/memberships/outputs/delete-membership.output";
 import { GetAllOrgMemberships } from "@/modules/organizations/memberships/outputs/get-all-memberships.output";
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
-import { OrgMembershipOutputDto } from "@/modules/organizations/memberships/outputs/membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
+import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import {
   Controller,
   UseGuards,
@@ -63,7 +63,7 @@ export class OrganizationsMembershipsController {
     return {
       status: SUCCESS_STATUS,
       data: memberships.map((membership) =>
-        plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" })
+        plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" })
       ),
     };
   }
@@ -80,7 +80,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.createOrgMembership(orgId, body);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 
@@ -97,7 +97,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 
@@ -114,7 +114,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.deleteOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 
@@ -136,7 +136,7 @@ export class OrganizationsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 }

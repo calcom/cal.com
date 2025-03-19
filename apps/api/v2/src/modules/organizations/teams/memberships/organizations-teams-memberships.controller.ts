@@ -11,12 +11,12 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import {
-  OrgTeamMembershipOutputDto,
   OrgTeamMembershipsOutputResponseDto,
   OrgTeamMembershipOutputResponseDto,
 } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
+import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import {
   Controller,
   UseGuards,
@@ -76,7 +76,7 @@ export class OrganizationsTeamsMembershipsController {
     return {
       status: SUCCESS_STATUS,
       data: orgTeamMemberships.map((membership) =>
-        plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" })
+        plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" })
       ),
     };
   }
@@ -99,7 +99,7 @@ export class OrganizationsTeamsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, orgTeamMembership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, orgTeamMembership, { strategy: "excludeAll" }),
     };
   }
 
@@ -123,7 +123,7 @@ export class OrganizationsTeamsMembershipsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 
@@ -160,7 +160,7 @@ export class OrganizationsTeamsMembershipsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, updatedMembership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, updatedMembership, { strategy: "excludeAll" }),
     };
   }
 
@@ -190,7 +190,7 @@ export class OrganizationsTeamsMembershipsController {
     }
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 }
