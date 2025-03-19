@@ -22,12 +22,6 @@ vi.mock("@calcom/prisma", () => ({
     },
   },
 }));
-vi.mock("@sentry/nextjs", () => ({
-  captureException: vi.fn(),
-  captureMessage: vi.fn(),
-  setUser: vi.fn(),
-  setTag: vi.fn(),
-}));
 
 describe("autoLock", () => {
   const mockRedis = {
@@ -45,13 +39,11 @@ describe("autoLock", () => {
     // Mock environment variables
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
     process.env.UPSTASH_REDIS_REST_URL = "test-url";
-    process.env.NEXT_PUBLIC_SENTRY_DSN = "sentry-dsn";
   });
 
   afterEach(() => {
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
     delete process.env.UPSTASH_REDIS_REST_URL;
-    delete process.env.NEXT_PUBLIC_SENTRY_DSN;
   });
 
   describe("handleAutoLock", () => {
@@ -110,7 +102,7 @@ describe("autoLock", () => {
       });
 
       expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.count", "3");
-      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 3600);
+      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 1800);
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
@@ -262,7 +254,7 @@ describe("autoLock", () => {
       });
 
       expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.count", "1");
-      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 3600);
+      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 1800);
     });
 
     it("should handle Redis errors gracefully", async () => {

@@ -21,7 +21,7 @@ import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import {
   Alert,
   Button,
@@ -32,6 +32,7 @@ import {
   DialogTrigger,
   Editor,
   Form,
+  Icon,
   ImageUploader,
   Label,
   PasswordField,
@@ -94,13 +95,13 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.shouldVerifyEmail.invalidate();
+      utils.viewer.me.shouldVerifyEmail.invalidate();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
@@ -186,14 +187,14 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
+  const deleteMeMutation = trpc.viewer.me.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
@@ -510,8 +511,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"];
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
@@ -654,6 +655,9 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
+        <p className="text-subtle mt-1 flex items-center gap-1 text-sm">
+          <Icon name="info" /> {t("tip_username_plus")}
+        </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
