@@ -1,4 +1,3 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -6,21 +5,17 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole, type FilterSegmentScope } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTrigger,
-  Form,
-  Input,
-  Label,
-  Select,
-  Switch,
-  RadioField,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dialog";
+import { Form, Input, Label, Select, Switch } from "@calcom/ui/components/form";
+import { RadioGroup, RadioField } from "@calcom/ui/components/form/radio-area";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useDataTable } from "../../hooks";
 

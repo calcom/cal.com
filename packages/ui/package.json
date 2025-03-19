@@ -31,6 +31,7 @@
     "./components/errorBoundary": "./components/errorBoundary/index.ts",
     "./components/form": "./components/form/index.ts",
     "./components/form/timezone-select": "./components/form/timezone-select/index.ts",
+    "./components/form/radio-area": "./components/form/radio-area/index.ts",
     "./components/head-seo": "./components/head-seo/index.ts",
     "./components/image-uploader": "./components/image-uploader/index.ts",
     "./components/layout": "./components/layout/index.ts",

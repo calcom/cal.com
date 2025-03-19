@@ -1,6 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { showToast, Button, Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { FilterSegmentOutput } from "../../lib/types";
 

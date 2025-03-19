@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuPortal,
@@ -10,9 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuLabel,
-  type IconName,
-} from "@calcom/ui";
-import { Icon } from "@calcom/ui/components/icon";
+} from "@calcom/ui/components/dropdown";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "../../hooks";
 import type { FilterSegmentOutput } from "../../lib/types";
