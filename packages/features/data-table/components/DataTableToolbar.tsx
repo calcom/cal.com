@@ -8,7 +8,7 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button, type ButtonProps } from "@calcom/ui/components/button";
-import { Input } from "@calcom/ui/components/input";
+import { Input } from "@calcom/ui/components/form";
 
 import { useColumnFilters } from "../hooks";
 

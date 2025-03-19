@@ -121,7 +121,7 @@ export {
   Radio,
   Group,
   RadioField,
-} from "./form/radio-area";
+} from "./components/form/radio-area";
 
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";

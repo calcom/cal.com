@@ -40,6 +40,7 @@
     "./components/meta": "./components/meta/index.ts",
     "./components/navigation": "./components/navigation/index.ts",
     "./components/organization-banner": "./components/organization-banner/index.ts",
+    "./components/pagination": "./components/pagination/index.ts",
     "./components/popover": "./components/popover/index.ts",
     "./components/scrollable": "./components/scrollable/index.ts",
     "./components/sheet": "./components/sheet/index.ts",
