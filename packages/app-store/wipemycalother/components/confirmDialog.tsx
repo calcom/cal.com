@@ -3,10 +3,11 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, Icon, showToast } from "@calcom/ui";
+import { Button, DialogContent, DialogFooter, DialogHeader, Icon, showToast } from "@calcom/ui";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;

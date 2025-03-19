@@ -1,9 +1,10 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { IconName } from "@calcom/ui";
-import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, Icon, Input } from "@calcom/ui";
+import { Alert, Button, DialogClose, DialogContent, DialogFooter, Icon, Input } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
 
 interface ISearchDialog {

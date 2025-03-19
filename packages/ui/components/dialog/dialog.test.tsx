@@ -41,7 +41,7 @@ describe("Dialog", () => {
     preventCloseOnOutsideClick?: boolean;
     enableOverflow?: boolean;
   }) => (
-    <Dialog open={props.open} name="test-dialog">
+    <Dialog open={props.open}>
       <DialogContent
         type={props.type}
         title={props.title}

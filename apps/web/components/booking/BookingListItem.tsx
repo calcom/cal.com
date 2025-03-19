@@ -8,6 +8,7 @@ import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/a
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -25,7 +26,6 @@ import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,

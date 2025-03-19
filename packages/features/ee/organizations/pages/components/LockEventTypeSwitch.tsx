@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
@@ -8,7 +9,6 @@ import {
   showToast,
   Form,
   SettingsToggle,
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogFooter,

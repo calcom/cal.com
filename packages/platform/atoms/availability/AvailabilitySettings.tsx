@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import type {
   BulkUpdatParams,
@@ -27,7 +28,6 @@ import {
   EditableHeading,
   Form,
   SkeletonText,
-  Dialog,
   DialogTrigger,
   Label,
   SelectSkeletonLoader,

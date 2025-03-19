@@ -1,12 +1,12 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
-  Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,

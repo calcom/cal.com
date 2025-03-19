@@ -6,6 +6,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
@@ -14,7 +15,6 @@ import {
   Form,
   Switch,
   showToast,
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogClose,
