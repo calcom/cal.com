@@ -6,24 +6,24 @@ import type { TimezoneSelectProps } from "@calcom/features/components/timezone-s
 import useGetCityTimezones from "../hooks/useGetCityTimezones";
 import { filterPropsTimezones, formatTimezones } from "../src/lib/timeZones";
 
-export function Timezone(props: TimezoneSelectProps & { timeZonesFromProps?: string[] }) {
-  const { isLoading: isLoadingAvailableCityTimezoness, data: availableCityTimezones } = useGetCityTimezones();
+export function Timezone(props: TimezoneSelectProps & { timeZones?: string[] }) {
+  const { isLoading: isLoadingAvailableCityTimezones, data: availableCityTimezones } = useGetCityTimezones();
   const cityTimeZones = useMemo(() => {
-    if (props.timeZonesFromProps && !isLoadingAvailableCityTimezoness) {
-      const filteredTimeZones = filterPropsTimezones(props.timeZonesFromProps, availableCityTimezones ?? []);
+    if (props.timeZones) {
+      const filteredTimeZones = filterPropsTimezones(props.timeZones, availableCityTimezones ?? []);
       return formatTimezones(filteredTimeZones);
-    } else if (availableCityTimezones && !isLoadingAvailableCityTimezoness) {
+    } else if (availableCityTimezones && !isLoadingAvailableCityTimezones) {
       return formatTimezones(availableCityTimezones);
     }
 
     return [];
-  }, [availableCityTimezones, props.timeZonesFromProps, isLoadingAvailableCityTimezoness]);
+  }, [availableCityTimezones, props.timeZones, isLoadingAvailableCityTimezones]);
 
   return (
     <TimezoneSelect
       {...props}
       data={cityTimeZones}
-      isPending={isLoadingAvailableCityTimezoness}
+      isPending={isLoadingAvailableCityTimezones}
       isWebTimezoneSelect={false}
     />
   );
