@@ -77,7 +77,7 @@ export const sendSMS = async (
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, whatsapp),
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
   });
 
   return response;
@@ -129,7 +129,7 @@ export const scheduleSMS = async (
     scheduleType: "fixed",
     sendAt: scheduledDate,
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
   });
 
   return response;

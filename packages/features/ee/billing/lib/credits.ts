@@ -3,15 +3,37 @@ import { prisma } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 import { getAllCreditsForTeam, getAllCreditsForUser } from "@calcom/trpc/server/routers/viewer/credits/util";
 
-export async function getMonthlyCredits(teamId: number) {
-  // todo: only active subscriptions get credits
+import { InternalTeamBilling } from "../../billing/teams/internal-team-billing";
 
-  const activeMembers = await prisma.membership.count({
+export async function getMonthlyCredits(teamId: number) {
+  const team = await prisma.team.findUnique({
     where: {
-      teamId,
-      accepted: true,
+      id: teamId,
+    },
+    select: {
+      members: {
+        select: {
+          accepted: true,
+        },
+      },
+      id: true,
+      metadata: true,
+      parentId: true,
+      isOrganization: true,
     },
   });
+
+  if (!team) return 0;
+
+  const teamBillingService = new InternalTeamBilling(team);
+  const isPlanActive = await teamBillingService.checkIfTeamHasActivePlan();
+
+  if (!isPlanActive) {
+    return 0;
+  }
+
+  const activeMembers = team.members.filter((member) => member.accepted).length;
+
   // todo: where do I get price per seat from?
   const pricePerSeat = 15;
   const totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
@@ -19,10 +41,6 @@ export async function getMonthlyCredits(teamId: number) {
   return totalMonthlyCredits;
 }
 
-//handle email reminder to buy more credits when 80% out of credits
-//notification email that sms sending is disable because credits are out
-
-//make sure we never error in here
 export async function payCredits({
   quantity,
   details,
@@ -199,11 +217,11 @@ export async function handleLowCreditBalance({
   teamId,
   remainingCredits,
 }: {
-  userId?: number | null;
+  userId?: number | null; // user id is always given if it's a user workflows
   teamId?: number | null;
   remainingCredits: number;
 }) {
-  if (userId) {
+  if (userId && !teamId) {
     // check if user is on a team/org plan
     const team = await prisma.membership.findFirst({
       where: {
@@ -220,13 +238,11 @@ export async function handleLowCreditBalance({
         where: { userId },
       });
 
-      if (!creditBalance) return; // we will always have a credit balance as that point
-
-      if (creditBalance.limitReachedAt) return; // user has already reached limit
+      if (creditBalance?.limitReachedAt) return; // user has already reached limit
 
       if (!remainingCredits) {
         // user balance is 0 or below 0
-        await sendDisableSmsEmail(userId);
+        //await sendDisableSmsEmail(userId);
         await prisma.creditBalance.update({
           where: { userId },
           data: {
@@ -238,10 +254,10 @@ export async function handleLowCreditBalance({
         return;
       }
 
-      if (creditBalance.warningSentAt) return; // user has already sent warning email
+      if (creditBalance?.warningSentAt) return; // user has already sent warning email
 
       // user balance below 500 credits (5$)
-      await sendWarningEmail(userId);
+      //await sendWarningEmail(userId);
       await prisma.creditBalance.update({
         where: { userId },
         data: {
@@ -260,9 +276,7 @@ export async function handleLowCreditBalance({
         where: { teamId },
       });
 
-      if (!creditBalance) return; // we will always have a credit balance as that point
-
-      if (dayjs(creditBalance.limitReachedAt).isAfter(dayjs().startOf("month"))) return; // team has already reached limit this month
+      if (dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month"))) return; // team has already reached limit this month
 
       if (!remainingCredits) {
         // team balance is 0 or below 0
@@ -275,6 +289,7 @@ export async function handleLowCreditBalance({
         });
 
         //cancelScheduledSmsAndScheduleEmails({ userId: parsedUserId });
+        //-->
         //all team workflows but also all of the user workflows  that font have anyother teams with vredits left
         // I need a function that tells me that as user has no other teams with credits left
         // This function needs to be called if a team member of that team has sms scheduled (we only schedule 2 hours in advance)
@@ -282,17 +297,16 @@ export async function handleLowCreditBalance({
         return;
       }
 
-      if (dayjs(creditBalance.warningSentAt).isAfter(dayjs().startOf("month"))) return; // team has already sent warning email this month
+      if (dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))) return; // team has already sent warning email this month
 
       // team balance below 20% of credits
-      //  await sendWarningEmail(teamId);
+      //await sendWarningEmail(teamId);
       await prisma.creditBalance.update({
         where: { teamId },
         data: {
           warningSentAt: new Date(),
         },
       });
-      //cancel scheduled sms and schedule emails
     }
   }
 }

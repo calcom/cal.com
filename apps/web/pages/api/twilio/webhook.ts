@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
-import { payCredits } from "@calcom/features/ee/billing/lib/credits";
+import { handleLowCreditBalance, payCredits } from "@calcom/features/ee/billing/lib/credits";
 import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { defaultHandler } from "@calcom/lib/server";
 
@@ -9,7 +9,6 @@ const twilioClient = createTwilioClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const authToken = process.env.TWILIO_TOKEN;
-
   const twilioSignature = req.headers["x-twilio-signature"];
   const baseUrl = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback`;
 
@@ -23,6 +22,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { userId, teamId, bookingUid } = req.query;
 
       if (messageStatus === "sent") {
+        const phoneNumber = await twilioClient.lookups.v2.phoneNumbers(req.body.To).fetch();
+
+        if (phoneNumber.countryCode === "US" || phoneNumber.countryCode === "CA") {
+          // todo: only for teams
+          return res.status(200).send(`SMS to US and CA are free on a paid plan`);
+        }
+
+        const messageId = req.body.SmsSid;
+        const message = await twilioClient.messages(messageId).fetch();
+
+        const twilioPrice = parseFloat(message.price);
+
+        if (!twilioPrice) {
+          return res.status(401).send(`No price found for message`);
+        }
+
+        const price = twilioPrice * 1.8;
+
         const parsedUserId = userId ? (Array.isArray(userId) ? Number(userId[0]) : Number(userId)) : null;
         const parsedTeamId = teamId ? (Array.isArray(teamId) ? Number(teamId[0]) : Number(teamId)) : null;
         const parsedBookingUid = bookingUid
@@ -34,27 +51,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (!parsedUserId && !parsedTeamId) {
           return res.status(401).send("Team or user id is required");
         }
-
-        // calculate credit amount
+        const credits = price * 100 * -1;
 
         const paymentDetails = await payCredits({
-          quantity: 10,
+          quantity: credits,
           details: `SMS: ${parsedBookingUid}`,
           userId: parsedUserId,
           teamId: parsedTeamId,
         });
 
+        if (!paymentDetails) {
+          return res.status(401).send("No team or user paid credits");
+        }
+
         handleLowCreditBalance({
           userId: parsedUserId,
-          teamId: parsedTeamId,
+          teamId: paymentDetails.teamId,
           remainingCredits: paymentDetails.remainingCredits,
         });
 
         return res
           .status(200)
           .send(
-            `Credits added to ${
-              paymentDetails?.teamId ? `teamId: ${paymentDetails?.teamId}` : `userId: ${parsedUserId}`
+            `Credits paid by ${
+              paymentDetails.teamId ? `teamId ${paymentDetails.teamId}` : `userId: ${parsedUserId}`
             }`
           );
       }
