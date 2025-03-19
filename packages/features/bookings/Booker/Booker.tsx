@@ -1,5 +1,4 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
@@ -570,11 +569,10 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
-  const { data: session } = useSession();
   const event = props.event;
   const interfaceLanguage = event.data?.interfaceLanguage;
 
-  const shouldUseCustomInterfaceLanguage = interfaceLanguage && interfaceLanguage !== session?.user.locale;
+  const shouldUseCustomInterfaceLanguage = interfaceLanguage && props.userLocale !== interfaceLanguage;
   return (
     <LazyMotion strict features={loadFramerFeatures}>
       {shouldUseCustomInterfaceLanguage ? (
