@@ -32,6 +32,9 @@ const AssignTerms = ({ nextStep }: AssignTermsProps) => {
           onComplete={(data) => {
             if (data.status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
           }}
+          onLoad={(data) => {
+            if (data.status === COMPLETED_ASSIGNMENT_STATUS) setTermsIsAssigned(true);
+          }}
         />
       </div>
       <Button
