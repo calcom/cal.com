@@ -7,18 +7,13 @@ import { AppList, type HandleDisconnect } from "@calcom/features/apps/components
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Icon } from "@calcom/ui";
-import {
-  AppSkeletonLoader as SkeletonLoader,
-  Button,
-  EmptyScreen,
-  ShellSubHeading,
-  showToast,
-} from "@calcom/ui";
+import { Button, EmptyScreen, ShellSubHeading, showToast } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
