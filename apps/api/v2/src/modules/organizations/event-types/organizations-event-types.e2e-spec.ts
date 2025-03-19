@@ -17,7 +17,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookerLayoutsInputEnum_2024_06_14,
@@ -27,6 +27,7 @@ import {
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
   Host,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
@@ -61,6 +62,8 @@ describe("Organizations Event Types Endpoints", () => {
 
     let collectiveEventType: TeamEventTypeOutput_2024_06_14;
     let managedEventType: TeamEventTypeOutput_2024_06_14;
+
+    const managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -101,6 +104,7 @@ describe("Organizations Event Types Endpoints", () => {
       org = await organizationsRepositoryFixture.create({
         name: `organizations-event-types-organization-${randomString()}`,
         isOrganization: true,
+        slug: `organizations-event-types-organization-${randomString()}`,
       });
 
       falseTestOrg = await organizationsRepositoryFixture.create({
@@ -131,6 +135,36 @@ describe("Organizations Event Types Endpoints", () => {
         user: {
           connect: {
             id: userAdmin.id,
+          },
+        },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${teammate1.id}`,
+        username: teammate1Email,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: teammate1.id,
+          },
+        },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${teammate2.id}`,
+        username: teammate2Email,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: teammate2.id,
           },
         },
       });
@@ -347,7 +381,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("should create a managed team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation managed",
-        slug: `organizations-event-types-managed-${randomString()}`,
+        slug: managedEventTypeSlug,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -387,7 +421,9 @@ describe("Organizations Event Types Endpoints", () => {
           const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
 
           expect(teammate1EventTypes.length).toEqual(1);
+          expect(teammate1EventTypes[0].slug).toEqual(managedEventTypeSlug);
           expect(teammate2EventTypes.length).toEqual(1);
+          expect(teammate2EventTypes[0].slug).toEqual(managedEventTypeSlug);
           expect(teamEventTypes.filter((eventType) => eventType.schedulingType === "MANAGED").length).toEqual(
             1
           );
@@ -407,6 +443,40 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
           managedEventType = responseTeamEvent;
+        });
+    });
+
+    it("managed team event types should be returned when fetching event types of users", async () => {
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+          expect(data[0].slug).toEqual(managedEventTypeSlug);
+          expect(data[0].ownerId).toEqual(teammate1.id);
+        });
+    });
+
+    it("managed team event type should be returned when fetching event types of users", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/api/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}&eventSlug=${managedEventTypeSlug}`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+          expect(data[0].slug).toEqual(managedEventTypeSlug);
+          expect(data[0].ownerId).toEqual(teammate1.id);
         });
     });
 
