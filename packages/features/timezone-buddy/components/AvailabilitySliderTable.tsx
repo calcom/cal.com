@@ -15,7 +15,7 @@ import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
+import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
