@@ -6,12 +6,13 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
   MINUTES_TO_BOOK,
   PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS,
   PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
 } from "@calcom/lib/constants";
-import { isCookieCreationAllowed } from "@calcom/lib/cookie";
+import { createCookie, getCookie } from "@calcom/lib/cookie";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
 import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
@@ -19,6 +20,43 @@ import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewe
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
 
 export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
+
+const randomUUID = () => {
+  // Supported in all modern browsers
+  if (typeof window === "undefined" || !window.crypto) {
+    return null;
+  }
+  const crypto = window.crypto;
+  // Supported in all modern browsers - Secure context
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  // Fallback for non secure context - It is mostly needed for local development
+  if (crypto.getRandomValues) {
+    // Source: https://dev.to/smpnjn/creating-and-generating-uuids-with-javascript-4p46
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: string) =>
+      (Number(c) ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (Number(c) / 4)))).toString(16)
+    );
+  }
+
+  return null;
+};
+
+const getAndPersistBookerClientUid = () => {
+  let bookerClientUid = getCookie("uid");
+  if (!bookerClientUid) {
+    const isSecure = WEBAPP_URL.startsWith("https://");
+    bookerClientUid = randomUUID();
+    if (bookerClientUid) {
+      createCookie("uid", bookerClientUid, {
+        Secure: isSecure,
+        SameSite: isSecure ? "None" : "Lax",
+      });
+    }
+  }
+  return bookerClientUid;
+};
 
 const useQuickAvailabilityChecks = ({
   eventTypeId,
@@ -120,7 +158,6 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
   );
 
   const allUniqueSelectedTimeslots = Array.from(new Set(allSelectedTimeslots));
-
   const quickAvailabilityChecks = useQuickAvailabilityChecks({
     eventTypeId,
     eventDuration,
@@ -130,9 +167,11 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
 
   // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
   const timeSlotToBeBooked = selectedTimeslot ?? allSelectedTimeslots.at(-1);
-  const isReservationSupported = isCookieCreationAllowed();
+  const bookerClientUid = getAndPersistBookerClientUid();
+
   const handleReserveSlot = () => {
-    if (eventTypeId && timeSlotToBeBooked && eventDuration && isReservationSupported) {
+    // We can't do reservation if bookerClientUid is not set
+    if (eventTypeId && timeSlotToBeBooked && eventDuration && bookerClientUid) {
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(timeSlotToBeBooked).utc().toISOString(),
         eventTypeId,

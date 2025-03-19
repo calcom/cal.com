@@ -1,3 +1,8 @@
+type CookieOptions = {
+  Secure?: boolean;
+  SameSite?: "Lax" | "Strict" | "None";
+};
+
 export const getCookie = (name: string) => {
   if (typeof document === "undefined") {
     return null;
@@ -8,12 +13,24 @@ export const getCookie = (name: string) => {
     ?.split("=")[1];
 };
 
-export const createCookie = (name: string, value: string) => {
-  if (typeof document === "undefined") {
-    return null;
-  }
+/**
+ * Creates a new cookie with the specified name, value, and options
+ * @param name The name of the cookie
+ * @param value The value to store in the cookie
+ * @param options Configuration options for the cookie
+ */
+export const createCookie = (name: string, value: string, options: CookieOptions): void => {
+  if (typeof window === "undefined") return;
 
-  document.cookie = `${name}=${value}; path=/;`;
+  const cookieOptions = [
+    "path=/",
+    options.Secure ? "Secure" : "",
+    options.SameSite ? `SameSite=${options.SameSite}` : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
+
+  document.cookie = `${name}=${value}; ${cookieOptions}`;
 };
 
 export const deleteCookie = (name: string) => {
@@ -21,11 +38,4 @@ export const deleteCookie = (name: string) => {
     return null;
   }
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-};
-
-export const isCookieCreationAllowed = () => {
-  createCookie("cookie-allowed", "1");
-  const isAllowed = getCookie("cookie-allowed") === "1";
-  deleteCookie("cookie-allowed");
-  return isAllowed;
 };

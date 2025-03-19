@@ -21,7 +21,9 @@ interface ReserveSlotOptions {
 }
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
+  // For WebApp Booker, this request would come only if uid cookie is there. For Booker Atom, it fallsback to uuid generation. This behaviour of atoms could be changd later
   const uid = req?.cookies?.uid || uuid();
+
   const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid, _isDryRun } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
