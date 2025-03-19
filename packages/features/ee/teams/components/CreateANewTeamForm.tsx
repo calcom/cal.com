@@ -35,8 +35,14 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
     },
   });
 
+  const utils = trpc.useUtils();
+
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
-    onSuccess: (data) => onSuccess(data),
+    onSuccess: async (data) => {
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      onSuccess(data);
+    },
+
     onError: (err) => {
       if (err.message === "team_url_taken") {
         newTeamFormMethods.setError("slug", { type: "custom", message: t("url_taken") });

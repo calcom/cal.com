@@ -1,8 +1,8 @@
 import { getAllDelegationCredentialsForUserByAppType } from "@calcom/lib/delegationCredential/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import type { TrpcSessionUser } from "../../../trpc";
 import type { TAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 
 type AppCredentialsByTypeOptions = {
