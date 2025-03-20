@@ -232,21 +232,22 @@ const BookerLayoutFields = ({
           <ServerTrans
             t={t}
             i18nKey="bookerlayout_override_global_settings"
-            components={
-              ([
-                <Link target="_blank" href="/settings/my-account/appearance" className="underline">
-                  Appearance
-                </Link>,
-              ],
-              (
-                <Button
-                  onClick={onOverrideSettings}
-                  color="minimal"
-                  className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
-                  Override
-                </Button>
-              ))
-            }
+            components={[
+              <Link
+                key="appearance-link"
+                target="_blank"
+                href="/settings/my-account/appearance"
+                className="underline">
+                Appearance
+              </Link>,
+              <Button
+                key="override-button"
+                onClick={onOverrideSettings}
+                color="minimal"
+                className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
+                Override
+              </Button>,
+            ]}
           />
         </p>
       )}
