@@ -75,6 +75,8 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+import type { WorkflowEmailDataType } from "./templates/workflow-email";
+import WorkflowEmail from "./templates/workflow-email";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -538,6 +540,10 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
+};
+
+export const sendWorkflowEmail = async (emailData: WorkflowEmailDataType) => {
+  await sendEmail(() => new WorkflowEmail(emailData));
 };
 
 export const sendOrganizationCreationEmail = async (organizationCreationEvent: OrganizationCreation) => {
