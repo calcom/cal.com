@@ -99,6 +99,13 @@ export class EmailDefaultFieldOutput_2024_06_14 extends EmailDefaultFieldInput_2
   @IsBoolean()
   @DocsProperty()
   required!: boolean;
+
+  @IsBoolean()
+  @DocsProperty({
+    description: `If true show under event type settings but don't show this booking field in the Booker. If false show in both. Can only be hidden
+      for organization team event types when also providing attendee phone number booking field.`,
+  })
+  hidden!: boolean;
 }
 
 export class LocationDefaultFieldOutput_2024_06_14 {

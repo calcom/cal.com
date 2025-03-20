@@ -3,7 +3,7 @@ import { useState } from "react";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import TeamInviteListItem from "./TeamInviteListItem";
 

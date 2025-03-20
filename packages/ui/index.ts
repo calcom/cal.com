@@ -60,17 +60,6 @@ export {
 export { RangeSlider } from "./components/form/slider/RangeSlider";
 export { RangeSliderPopover } from "./components/form/slider/RangeSliderPopover";
 
-export {
-  AllApps,
-  AppCard,
-  AppSkeletonLoader,
-  SkeletonLoader,
-  Slider,
-  PopularAppsSlider,
-  RecentAppsSlider,
-  useShouldShowArrows,
-  AppStoreCategories,
-} from "./components/apps";
 export { TopBanner } from "./components/top-banner";
 export type { TopBannerProps } from "./components/top-banner";
 export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
@@ -117,24 +106,24 @@ export { AppListCard } from "./components/app-list-card/AppListCard";
 export { DisconnectIntegrationComponent } from "./components/disconnect-calendar-integration";
 export { CalendarSwitchComponent } from "./components/calendar-switch";
 export { showToast, ErrorToast, SuccessToast, WarningToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
-export { ShellSubHeading } from "./components/layout";
+export { ShellSubHeading, WizardLayout } from "./components/layout";
 
 /** ⬇️ TODO - Move these to components */
-export { default as AddressInput } from "./form/AddressInputLazy";
-export { default as MultiEmail } from "./form/MultiEmailLazy";
-export { default as AddressInputNonLazy } from "./form/AddressInput";
+export { default as AddressInput } from "./components/address/AddressInputLazy";
+export { default as MultiEmail } from "./components/address/MultiEmailLazy";
+export { default as AddressInputNonLazy } from "./components/address/AddressInput";
 
-export { UnstyledSelect } from "./form/Select";
+export { UnstyledSelect } from "./components/address/Select";
 
 export {
   RadioGroup,
-  /* TODO: solve this conflict -> Select, */
+  RadioIndicator,
+  RadioLabel,
   Radio,
-  Group,
   RadioField,
-} from "./form/radio-area";
+  RadioAreaGroup,
+} from "./components/radio";
 
-export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export { default as BannerUploader } from "./components/image-uploader/BannerUploader";
@@ -143,7 +132,6 @@ export type { ButtonColor } from "./components/button/Button";
 
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable";
-export { WizardLayout } from "./layouts/WizardLayout";
 export * from "./components/sheet";
 export * from "./components/table";
 export * from "./components/popover";
