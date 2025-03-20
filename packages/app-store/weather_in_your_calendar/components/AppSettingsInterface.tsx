@@ -1,16 +1,11 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, TextField } from "@calcom/ui";
-
-/*
-import * as Radio from "@calcom/ui";
-import { RadioField } from "@calcom/ui";
-*/
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 
 export default function AppSettings() {
   const { t } = useLocale();
-  //const [units, setUnits] = useState<"metric" | "imperial">("metric");
   const unit = "metric";
   const [location, setLocation] = useState("");
 
@@ -24,10 +19,6 @@ export default function AppSettings() {
           setLocation(e.target.value);
         }}
       />
-      {/* <Radio.Group onChange={(val) => alert(val)} aria-label="Set unit" defaultValue="metric">
-        <RadioField label="°C Celsius" id="metric" value="metric" />
-        <RadioField label="°F Fahrenheit" id="imperial" value="imperial" />
-      </Radio.Group> */}
       <Button
         href={`webcal://weather-in-calendar.com/cal/weather-cal.php?city=${location}&units=${unit}&temperature=day`}>
         {t("add_to_calendar")}

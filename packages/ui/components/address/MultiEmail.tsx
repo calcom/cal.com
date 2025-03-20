@@ -1,9 +1,9 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button } from "../components/button";
-import { EmailField } from "../components/form";
-import { Icon } from "../components/icon";
-import { Tooltip } from "../components/tooltip";
+import { Button } from "../button";
+import { EmailField } from "../form";
+import { Icon } from "../icon";
+import { Tooltip } from "../tooltip";
 
 interface MultiEmailProps {
   value: string[];

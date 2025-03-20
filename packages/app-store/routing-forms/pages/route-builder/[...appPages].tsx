@@ -17,16 +17,13 @@ import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import {
-  SelectField,
-  FormCard,
-  SelectWithValidation as Select,
-  TextArea,
-  TextField,
-  Badge,
-  Divider,
-  SettingsToggle,
-} from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { FormCard } from "@calcom/ui/components/card";
+import { Divider } from "@calcom/ui/components/divider";
+import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SelectField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";

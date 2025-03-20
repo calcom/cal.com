@@ -3,7 +3,7 @@
 import React from "react";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 type Props = {
   statusCode?: number | null;

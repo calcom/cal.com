@@ -3,7 +3,7 @@ import type { z } from "zod";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_FormResponse } from "@calcom/prisma/client";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 

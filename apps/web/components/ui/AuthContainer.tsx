@@ -1,6 +1,6 @@
 import classNames from "classnames";
 
-import { Logo } from "@calcom/ui";
+import { Logo } from "@calcom/ui/components/logo";
 
 import Loader from "@components/Loader";
 

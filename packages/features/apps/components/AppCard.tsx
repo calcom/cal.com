@@ -14,11 +14,10 @@ import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
-
-import { Badge } from "../badge/Badge";
-import type { ButtonProps } from "../button";
-import { Button } from "../button";
-import { showToast } from "../toast/showToast";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface AppCardProps {
   app: App;

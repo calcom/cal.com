@@ -4,7 +4,7 @@ import { useState, memo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-import { Card } from "@calcom/ui";
+import { Card } from "@calcom/ui/components/card";
 
 export const tips = [
   {
