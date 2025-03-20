@@ -139,7 +139,8 @@ export const createSalesforceMock = () => {
       if (whereClause.includes("Website IN")) {
         const websitesMatch = whereClause.match(/Website IN \((.+)\)/i);
         if (websitesMatch) {
-          const websites = websitesMatch[1].split(",").map((w) => w.trim());
+          // Split by comma, trim spaces and quotes
+          const websites = websitesMatch[1].split(",").map((w) => w.trim().replace(/^'|'$/g, ""));
           result = result.filter((r) => websites.includes(r.Website));
         }
       }

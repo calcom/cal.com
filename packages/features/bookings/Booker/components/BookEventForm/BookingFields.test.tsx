@@ -1,5 +1,3 @@
-import "@calcom/ui/__mocks__/ui";
-
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, fireEvent, screen } from "@testing-library/react";
 import * as React from "react";
@@ -17,6 +15,14 @@ import { BookingFields } from "./BookingFields";
 vi.mock("@calcom/features/components/phone-input", () => {
   return {
     default: PhoneInput,
+  };
+});
+
+vi.mock("@calcom/ui/components/address", async (originalImport) => {
+  const { AddressInputNonLazy } = (await originalImport()) as Record<string, unknown>;
+  // Dynamic imports of Components are not supported in Vitest. So, we use the non-lazy version of the components
+  return {
+    AddressInput: AddressInputNonLazy,
   };
 });
 
