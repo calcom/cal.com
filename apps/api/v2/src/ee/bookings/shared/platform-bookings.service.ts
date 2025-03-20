@@ -42,6 +42,10 @@ export class PlatformBookingsService {
     } else if (eventType?.teamId) {
       oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
     }
+    // Last resort check the hosts of the event-type
+    if (!oAuthClient && eventType?.teamId) {
+      oAuthClient = await this.oAuthClientRepository.getByEventTypeHosts(eventTypeId);
+    }
 
     if (oAuthClient) {
       return {

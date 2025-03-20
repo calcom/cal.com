@@ -12,8 +12,11 @@ import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/Bul
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { Icon } from "@calcom/ui";
-import { Button, EmptyScreen, ShellSubHeading, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import type { Icon } from "@calcom/ui/components/icon";
+import { ShellSubHeading } from "@calcom/ui/components/layout";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { QueryCell } from "@lib/QueryCell";
 

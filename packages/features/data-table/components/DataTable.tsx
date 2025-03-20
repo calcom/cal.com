@@ -10,6 +10,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, memo, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import {
   TableNew,
   TableBody,
@@ -17,15 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  Command,
-  CommandList,
-  CommandItem,
-  Icon,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/table";
 
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";
