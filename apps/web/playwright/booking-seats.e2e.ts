@@ -230,6 +230,8 @@ test.describe("Reschedule for booking with seats", () => {
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
 
+    await expect(page.locator('text="Cancel event"')).toBeVisible();
+
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
     // Click the cancel button and wait for the network request to complete
