@@ -6,6 +6,7 @@ import { shallow } from "zustand/shallow";
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
+import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -84,7 +85,7 @@ export const EventMeta = ({
     eventMetaTimezoneSelect?: string;
   };
   locale?: string | null;
-  timeZones?: string[];
+  timeZones?: Timezone[];
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
