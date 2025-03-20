@@ -1,9 +1,5 @@
 import { Module } from "@nestjs/common";
 
-import { BookingsController_2024_04_15 } from "../../../bookings/2024-04-15/controllers/bookings.controller";
-import { PlatformBookingsService } from "../../../bookings/shared/platform-bookings.service";
-import { EventTypesModule_2024_04_15 } from "../../../event-types/event-types_2024_04_15/event-types.module";
-import { EventTypesModule_2024_06_14 } from "../../../event-types/event-types_2024_06_14/event-types.module";
 import { ApiKeysRepository } from "../../../modules/api-keys/api-keys-repository";
 import { BillingModule } from "../../../modules/billing/billing.module";
 import { OAuthClientRepository } from "../../../modules/oauth-clients/oauth-client.repository";
@@ -14,7 +10,11 @@ import { RedisModule } from "../../../modules/redis/redis.module";
 import { TokensModule } from "../../../modules/tokens/tokens.module";
 import { TokensRepository } from "../../../modules/tokens/tokens.repository";
 import { UsersModule } from "../../../modules/users/users.module";
-import { SchedulesModule_2024_04_15 } from "../../../schedules/schedules_2024_04_15/schedules.module";
+import { BookingsController_2024_04_15 } from "../../bookings/2024-04-15/controllers/bookings.controller";
+import { PlatformBookingsService } from "../../bookings/shared/platform-bookings.service";
+import { EventTypesModule_2024_04_15 } from "../../event-types/event-types_2024_04_15/event-types.module";
+import { EventTypesModule_2024_06_14 } from "../../event-types/event-types_2024_06_14/event-types.module";
+import { SchedulesModule_2024_04_15 } from "../../schedules/schedules_2024_04_15/schedules.module";
 
 @Module({
   imports: [
