@@ -37,11 +37,12 @@ export class OrganizationsMembershipRepository {
   }
 
   async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
-    return this.dbWrite.prisma.membership.create({
-      data: { ...data, teamId: organizationId },
+    return this.dbWrite.prisma.membership.upsert({
+      create: { ...data, teamId: organizationId },
+      update: { role: data.role, accepted: data.accepted, disableImpersonation: data.disableImpersonation },
+      where: { userId_teamId: { userId: data.userId, teamId: organizationId } },
     });
   }
-
   async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
     return this.dbWrite.prisma.membership.update({
       data: { ...data },

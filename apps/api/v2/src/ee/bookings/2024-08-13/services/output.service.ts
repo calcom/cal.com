@@ -27,6 +27,7 @@ import { Booking, BookingSeat } from "@calcom/prisma/client";
 export const bookingResponsesSchema = z
   .object({
     email: z.string(),
+    attendeePhoneNumber: z.string().optional(),
     name: z.union([
       z.string(),
       z.object({
@@ -45,6 +46,7 @@ export const seatedBookingDataSchema = z
     responses: z
       .object({
         email: z.string(),
+        attendeePhoneNumber: z.string().optional(),
         name: z.union([
           z.string(),
           z.object({

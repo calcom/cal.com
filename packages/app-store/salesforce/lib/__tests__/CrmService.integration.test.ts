@@ -68,6 +68,7 @@ const salesforceSettingScenario = {
       appOptions: {
         createEventOn: SalesforceRecordEnum.LEAD,
         createEventOnLeadCheckForContact: true,
+        createNewContactUnderAccount: true,
         roundRobinSkipCheckRecordOn: SalesforceRecordEnum.ACCOUNT,
       },
       credential: createMockCredential(),
@@ -99,7 +100,8 @@ describe("SalesforceCRMService", () => {
       )
     );
     // Override jsforce mock with our custom mock
-    // @ts-expect-error - Not full implementation of jsforce.Connection
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Not full implementation of jsforce.Connection
     vi.mocked(jsforce.Connection).mockImplementation(() => ({
       ...salesforceMock.mockConnection,
       version: "1.0",
@@ -178,8 +180,8 @@ describe("SalesforceCRMService", () => {
 
       it("(Lookup-3) should fallback to account having most number of contacts matched by emailDomain when Lookup-1 and Lookup-2 fails", async () => {
         const crmService = new SalesforceCRMService(credential, appOptions);
-        const account1OwnerEmail = "contact-account-owner1@example.com";
-        const account2OwnerEmail = "contact-account-owner2@example.com";
+        const account1OwnerEmail = "account1-owner@example.com";
+        const account2OwnerEmail = "account2-owner@example.com";
         const emailDomain = "example.com";
         const lookingForEmail = `test@${emailDomain}`;
         const account1 = salesforceMock.addAccount({
@@ -334,6 +336,65 @@ describe("SalesforceCRMService", () => {
         expect(contactsOrLeadsOrAccounts[0].id).toBe(contact.Id);
         expect(contactsOrLeadsOrAccounts[0].email).toBe(lookingForEmail);
         expect(contactsOrLeadsOrAccounts[0].recordType).toBe(SalesforceRecordEnum.CONTACT);
+      });
+    });
+
+    describe("createContact", () => {
+      it("should create a contact under an account if the attendee has an account", async () => {
+        const crmService = new SalesforceCRMService(credential, appOptions);
+        const attendeeEmail = "test@booker.com";
+        const account = salesforceMock.addAccount({
+          Id: "test-account-id",
+          Owner: {
+            Email: "test@example.com",
+          },
+          Website: "https://booker.com",
+        });
+
+        expect(salesforceMock.getContacts()).toHaveLength(0);
+
+        const result = await crmService.createContacts([
+          {
+            name: "Test User",
+            email: attendeeEmail,
+          },
+        ]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBeDefined();
+        expect(result[0].email).toBe(attendeeEmail);
+
+        const allContactsInSalesforce = salesforceMock.getContacts();
+        expect(allContactsInSalesforce).toHaveLength(1);
+        expect(allContactsInSalesforce[0].Id).toBeDefined();
+        expect(allContactsInSalesforce[0].Email).toBe(attendeeEmail);
+        expect(allContactsInSalesforce[0].AccountId).toBe(account.Id);
+
+        const allLeadsInSalesforce = salesforceMock.getLeads();
+        expect(allLeadsInSalesforce).toHaveLength(0);
+      });
+
+      it("should create a lead if the attendee has no account", async () => {
+        const crmService = new SalesforceCRMService(credential, appOptions);
+        const attendeeEmail = "test@booker.com";
+        const result = await crmService.createContacts([
+          {
+            name: "Test User",
+            email: attendeeEmail,
+          },
+        ]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBeDefined();
+        expect(result[0].email).toBe(attendeeEmail);
+
+        const allLeadsInSalesforce = salesforceMock.getLeads();
+        expect(allLeadsInSalesforce).toHaveLength(1);
+        expect(allLeadsInSalesforce[0].Id).toBeDefined();
+        expect(allLeadsInSalesforce[0].Email).toBe(attendeeEmail);
+
+        const allContactsInSalesforce = salesforceMock.getContacts();
+        expect(allContactsInSalesforce).toHaveLength(0);
       });
     });
   });

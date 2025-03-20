@@ -23,8 +23,11 @@ import type {
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Input, Button, showToast } from "@calcom/ui";
+import { Input } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
