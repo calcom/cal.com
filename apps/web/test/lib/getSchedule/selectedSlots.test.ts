@@ -11,8 +11,7 @@ import { describe, test, beforeEach, vi } from "vitest";
 import type { z } from "zod";
 
 import { prisma } from "@calcom/prisma";
-import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/getSchedule.handler";
-import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
+import type { getScheduleSchema, GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./expects";

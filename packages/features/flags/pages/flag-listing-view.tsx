@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 
 import NoSSR from "@calcom/lib/components/NoSSR";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 import { FlagAdminList } from "../components/FlagAdminList";
 

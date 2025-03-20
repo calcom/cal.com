@@ -8,7 +8,7 @@ import type { AppCategories } from "@calcom/prisma/enums";
 // import prisma from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TSaveKeysInputSchema } from "./saveKeys.schema";
 
 type SaveKeysOptions = {

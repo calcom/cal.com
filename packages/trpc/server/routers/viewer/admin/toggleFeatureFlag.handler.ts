@@ -1,7 +1,7 @@
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TAdminToggleFeatureFlagSchema } from "./toggleFeatureFlag.schema";
 
 type GetOptions = {

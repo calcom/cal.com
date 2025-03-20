@@ -21,6 +21,8 @@ import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { highPerfRouter } from "./highPerf/_router";
+import { i18nRouter } from "./i18n/_router";
+import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
@@ -35,7 +37,8 @@ export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
 
   router({
-    loggedInViewerRouter,
+    apps: appsRouter,
+    me: meRouter,
     public: publicViewerRouter,
     auth: authRouter,
     deploymentSetup: deploymentSetupRouter,
@@ -52,6 +55,7 @@ export const viewerRouter = mergeRouters(
     workflows: workflowsRouter,
     saml: ssoRouter,
     dsync: dsyncRouter,
+    i18n: i18nRouter,
     insights: insightsRouter,
     payments: paymentsRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
@@ -59,7 +63,6 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     appBasecamp3: app_Basecamp3,
     features: featureFlagRouter,
-    appsRouter,
     users: userAdminRouter,
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,

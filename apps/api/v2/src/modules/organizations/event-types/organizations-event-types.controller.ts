@@ -81,7 +81,7 @@ export class OrganizationsEventTypesController {
       bodyEventType
     );
 
-    const eventType = await this.organizationsEventTypesService.createTeamEventType(
+    const eventType = await this.organizationsEventTypesService.createOrganizationTeamEventType(
       user,
       teamId,
       orgId,
@@ -212,7 +212,7 @@ export class OrganizationsEventTypesController {
       bodyEventType
     );
 
-    const eventType = await this.organizationsEventTypesService.updateTeamEventType(
+    const eventType = await this.organizationsEventTypesService.updateOrganizationTeamEventType(
       eventTypeId,
       teamId,
       transformedBody,

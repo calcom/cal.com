@@ -1,5 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsDateString, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsOptional, IsString, Validate, isEmail } from "class-validator";
+
+export const RESCHEDULED_BY_DOCS = `Email of the person who is rescheduling the booking - only needed when rescheduling a booking that requires a confirmation.
+If event type owner email is provided then rescheduled booking will be automatically confirmed. If attendee email or no email is passed then the event type
+owner will have to confirm the rescheduled booking.`;
 
 export class RescheduleBookingInput_2024_08_13 {
   @IsDateString()
@@ -8,6 +12,13 @@ export class RescheduleBookingInput_2024_08_13 {
     example: "2024-08-13T10:00:00Z",
   })
   start!: string;
+
+  @IsOptional()
+  @ApiPropertyOptional({ description: RESCHEDULED_BY_DOCS })
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid rescheduledBy email format",
+  })
+  rescheduledBy?: string;
 
   @IsString()
   @IsOptional()
@@ -25,6 +36,13 @@ export class RescheduleSeatedBookingInput_2024_08_13 {
     example: "2024-08-13T10:00:00Z",
   })
   start!: string;
+
+  @IsOptional()
+  @ApiPropertyOptional({ description: RESCHEDULED_BY_DOCS })
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid rescheduledBy email format",
+  })
+  rescheduledBy?: string;
 
   @ApiProperty({
     type: String,

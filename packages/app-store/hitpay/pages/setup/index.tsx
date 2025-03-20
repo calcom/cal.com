@@ -11,8 +11,11 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast, Icon, Switch } from "@calcom/ui";
-import { HeadSeo } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Switch } from "@calcom/ui/components/form";
+import { HeadSeo } from "@calcom/ui/components/head-seo";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import KeyField from "../../components/KeyInput";
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
@@ -100,12 +103,12 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
       }),
   });
 
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "hitpay" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "hitpay" });
   const [HitPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = HitPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
 
-  const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");

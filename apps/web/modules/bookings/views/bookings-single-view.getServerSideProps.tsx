@@ -51,7 +51,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
   if (session) {
-    const user = await ssr.viewer.me.fetch();
+    const user = await ssr.viewer.me.get.fetch();
     tz = user.timeZone;
     userTimeFormat = user.timeFormat;
   }

@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -105,4 +106,6 @@ async function deleteHandler(req: NextRequest) {
   return NextResponse.json({ message: "Calendar Selection Saved" });
 }
 
-export { deleteHandler as DELETE, postHandler as POST, getHandler as GET };
+export const POST = defaultResponderForAppDir(postHandler);
+export const DELETE = defaultResponderForAppDir(deleteHandler);
+export const GET = defaultResponderForAppDir(getHandler);

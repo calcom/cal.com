@@ -11,21 +11,14 @@ import { useEditMode } from "@calcom/features/users/components/UserTable/EditShe
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Avatar,
-  Icon,
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetBody,
-  Skeleton,
-  Tooltip,
-  ToggleGroup,
-  Form,
-  showToast,
-  Loader,
-} from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Form } from "@calcom/ui/components/form";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody } from "@calcom/ui/components/sheet";
+import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { updateRoleInCache } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";
@@ -117,7 +110,7 @@ export function EditMemberSheet({
       setRole(role);
       setMutationLoading(false);
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.organizations.listMembers.invalidate();
+      await utils.viewer.teams.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
       setEditMode(false);
     },

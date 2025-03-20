@@ -4,17 +4,11 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger,
-  Form,
-  InputField,
-  showToast,
-} from "@calcom/ui";
+import { Form } from "@calcom/ui/components/form";
+import { InputField } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 export function NewScheduleButton({
   name = "new-schedule",

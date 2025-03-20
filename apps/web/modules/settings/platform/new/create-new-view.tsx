@@ -1,7 +1,7 @@
 "use client";
 
 import { CreateANewPlatformForm } from "@calcom/features/ee/platform/components/index";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout } from "@calcom/ui/components/layout";
 
 export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   return (

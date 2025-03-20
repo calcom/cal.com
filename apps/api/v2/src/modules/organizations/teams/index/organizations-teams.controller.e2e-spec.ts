@@ -575,11 +575,15 @@ describe("Organizations Team Endpoints", () => {
 
     it("should create first oAuth client team", async () => {
       const teamName = `organizations-teams-platform-api-team1-${randomString()}`;
+      const teamMetadata = {
+        key: `value ${randomString()}`,
+      };
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .set(X_CAL_CLIENT_ID, oAuthClient1.id)
         .send({
           name: teamName,
+          metadata: teamMetadata,
         } satisfies CreateOrgTeamDto)
         .expect(201)
         .then(async (response) => {
@@ -587,6 +591,7 @@ describe("Organizations Team Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           team1 = responseBody.data;
           expect(team1.name).toEqual(teamName);
+          expect(team1.metadata).toEqual(teamMetadata);
           expect(team1.parentId).toEqual(org.id);
 
           const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(user.id, team1.id);

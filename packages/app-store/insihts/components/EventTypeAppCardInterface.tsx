@@ -2,7 +2,7 @@ import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/components/form";
 
 import type { appDataSchema } from "../zod";
 

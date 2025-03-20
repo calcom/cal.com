@@ -12,6 +12,7 @@ import {
   CreateManagedUserData,
   CreateManagedUserOutput,
 } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -140,7 +141,9 @@ describe("Managed user bookings 2024-04-15", () => {
     const responseBody: CreateManagedUserOutput = response.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data).toBeDefined();
-    expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+    expect(responseBody.data.user.email).toEqual(
+      OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+    );
     expect(responseBody.data.accessToken).toBeDefined();
     expect(responseBody.data.refreshToken).toBeDefined();
 
@@ -193,7 +196,9 @@ describe("Managed user bookings 2024-04-15", () => {
     const responseBody: CreateManagedUserOutput = response.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data).toBeDefined();
-    expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+    expect(responseBody.data.user.email).toEqual(
+      OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+    );
     expect(responseBody.data.accessToken).toBeDefined();
     expect(responseBody.data.refreshToken).toBeDefined();
 
@@ -220,7 +225,9 @@ describe("Managed user bookings 2024-04-15", () => {
     const responseBody: CreateManagedUserOutput = response.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data).toBeDefined();
-    expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+    expect(responseBody.data.user.email).toEqual(
+      OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+    );
     expect(responseBody.data.accessToken).toBeDefined();
     expect(responseBody.data.refreshToken).toBeDefined();
 
@@ -443,11 +450,6 @@ describe("Managed user bookings 2024-04-15", () => {
       expect(thirdManagedUserBookings.length).toEqual(thirdManagedUserBookingsCount);
     });
   });
-
-  function getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
-    const [username, emailDomain] = userEmail.split("@");
-    return `${username}+${oAuthClientId}@${emailDomain}`;
-  }
 
   afterAll(async () => {
     await userRepositoryFixture.delete(firstManagedUser.user.id);

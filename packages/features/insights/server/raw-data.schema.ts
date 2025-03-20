@@ -23,7 +23,7 @@ export const rawDataInputSchema = z.object({
   eventTypeId: z.coerce.number().optional().nullable(),
 }) satisfies z.ZodType<RawDataInput>;
 
-export type RoutingFormResponsesInput = {
+export type RoutingFormStatsInput = {
   startDate: string;
   endDate: string;
   teamId?: number;
@@ -31,13 +31,16 @@ export type RoutingFormResponsesInput = {
   memberUserIds?: number[];
   isAll: boolean;
   routingFormId?: string;
-  cursor?: number;
-  limit?: number;
   columnFilters: ColumnFilter[];
   sorting?: Sorting[];
 };
 
-export const routingFormResponsesInputSchema = z.object({
+export type RoutingFormResponsesInput = RoutingFormStatsInput & {
+  offset?: number;
+  limit?: number;
+};
+
+export const routingFormStatsInputSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
   teamId: z.coerce.number().optional(),
@@ -45,8 +48,12 @@ export const routingFormResponsesInputSchema = z.object({
   memberUserIds: z.number().array().optional(),
   isAll: z.coerce.boolean(),
   routingFormId: z.string().optional(),
-  cursor: z.number().optional(),
-  limit: z.number().optional(),
   columnFilters: z.array(ZColumnFilter),
   sorting: z.array(ZSorting).optional(),
+}) satisfies z.ZodType<RoutingFormStatsInput>;
+
+export const routingFormResponsesInputSchema = z.object({
+  ...routingFormStatsInputSchema.shape,
+  offset: z.number().optional(),
+  limit: z.number().max(100).optional(),
 }) satisfies z.ZodType<RoutingFormResponsesInput>;

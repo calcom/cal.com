@@ -5,7 +5,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { UserAvatar } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/components/avatar";
 
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];

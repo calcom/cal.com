@@ -3,19 +3,17 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
+import { AllApps } from "@calcom/features/apps/components/AllApps";
+import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
+import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
+import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import type { HorizontalTabItemProps } from "@calcom/ui";
-import {
-  AllApps,
-  AppStoreCategories,
-  HorizontalTabs,
-  TextField,
-  PopularAppsSlider,
-  RecentAppsSlider,
-} from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import { type getServerSideProps } from "@lib/apps/getServerSideProps";
 

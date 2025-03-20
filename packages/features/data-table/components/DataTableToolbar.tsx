@@ -6,8 +6,9 @@ import type { ComponentPropsWithoutRef } from "react";
 
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonProps } from "@calcom/ui";
-import { Button, Input } from "@calcom/ui";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Input } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
 
 import { useColumnFilters } from "../hooks";
@@ -52,7 +53,7 @@ function SearchBarComponent<TData>(
     return (
       <Input
         ref={ref}
-        className={`max-w-64 mb-0 mr-auto rounded-md ${className ?? ""}`}
+        className={`max-w-48 ${className ?? ""}`}
         placeholder="Search"
         value={searchTerm}
         onChange={(event) => setSearchTerm(event.target.value.trim())}
@@ -68,7 +69,7 @@ function SearchBarComponent<TData>(
   return (
     <Input
       ref={ref}
-      className="max-w-64 mb-0 mr-auto rounded-md"
+      className="max-w-48"
       placeholder="Search"
       value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
       onChange={(event) => {

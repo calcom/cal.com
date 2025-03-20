@@ -4,13 +4,18 @@ import { act } from "react-dom/test-utils";
 import { vi } from "vitest";
 
 import type { ButtonProps } from "../../button";
-import { Button } from "../../button";
 import ColorPicker from "./colorpicker";
 
-vi.mock("@calcom/ui", async () => {
+vi.mock("../../button/Button", async () => {
+  const ButtonMock = (await import("../../button/Button")).Button;
+  return {
+    Button: ({ tooltip, ...rest }: ButtonProps) => <ButtonMock {...rest}>{tooltip}</ButtonMock>,
+  };
+});
+
+vi.mock("../icon/Icon", async () => {
   return {
     Icon: () => <svg data-testid="dummy-icon" />,
-    Button: ({ tooltip, ...rest }: ButtonProps) => <Button {...rest}>{tooltip}</Button>,
   };
 });
 

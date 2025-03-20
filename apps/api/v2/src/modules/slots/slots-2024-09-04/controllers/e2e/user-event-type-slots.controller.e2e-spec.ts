@@ -75,6 +75,9 @@ describe("Slots 2024-09-04 Endpoints", () => {
     const seatedEventTypeSlug = `slots-2024-09-04-seated-event-type-${randomString()}`;
     let seatedEventType: EventType;
 
+    const variableLengthEventTypeSlug = `slots-2024-09-04-variable-length-event-type-${randomString()}`;
+    let variableLengthEventType: EventType;
+
     let reservedSlot: ReserveSlotOutputData_2024_09_04;
 
     beforeAll(async () => {
@@ -167,6 +170,17 @@ describe("Slots 2024-09-04 Endpoints", () => {
         user.id
       );
       seatedEventType = seatedEvent;
+
+      const variableLengthEvent = await eventTypesRepositoryFixture.create(
+        {
+          title: "frisbee match",
+          slug: `slots-2024-09-04-variable-length-event-type-${randomString()}`,
+          length: 15,
+          metadata: { multipleDuration: [15, 30, 45, 60] },
+        },
+        user.id
+      );
+      variableLengthEventType = variableLengthEvent;
 
       team = await teamRepositoryFixture.create({
         name: `slots-2024-09-04-team-${randomString()}`,
@@ -1244,6 +1258,90 @@ describe("Slots 2024-09-04 Endpoints", () => {
       expect(slots).toEqual(expectedSlotsUTC);
 
       await bookingsRepositoryFixture.deleteById(booking.id);
+    });
+
+    describe("variable length", () => {
+      it("should not be able to reserve a slot for variable length event type with invalid duration", async () => {
+        const slotStartTime = "2050-09-05T10:00:00.000Z";
+        const reserveResponse = await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId: variableLengthEventType.id,
+            slotStart: slotStartTime,
+            slotDuration: 1000,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(400);
+
+        expect(reserveResponse.body.error.message).toEqual(
+          "Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: 15, 30, 45, 60"
+        );
+      });
+
+      it("should reserve a slot with slot duration for variable event type length", async () => {
+        // note(Lauris): mock current date to test slots release time
+        const now = "2049-09-05T12:00:00.000Z";
+        const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+        advanceTo(newDate);
+
+        const slotDuration = 60;
+        const slotStartTime = "2050-09-05T10:00:00.000Z";
+        const reserveResponse = await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId: variableLengthEventType.id,
+            slotStart: slotStartTime,
+            slotDuration,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(201);
+
+        const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
+        expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+        const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+        expect(responseReservedSlot.reservationUid).toBeDefined();
+        expect(responseReservedSlot.eventTypeId).toEqual(variableLengthEventType.id);
+        expect(responseReservedSlot.slotStart).toEqual(slotStartTime);
+        expect(responseReservedSlot.slotDuration).toEqual(slotDuration);
+        expect(responseReservedSlot.slotEnd).toEqual(
+          DateTime.fromISO(slotStartTime, { zone: "UTC" }).plus({ minutes: slotDuration }).toISO()
+        );
+        expect(responseReservedSlot.reservationDuration).toEqual(5);
+
+        if (!responseReservedSlot.reservationUid) {
+          throw new Error("Reserved slot uid is undefined");
+        }
+
+        const response = await request(app.getHttpServer())
+          .get(
+            `/v2/slots?eventTypeId=${variableLengthEventType.id}&start=2050-09-05&end=2050-09-09&duration=60`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(200);
+
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        const days = Object.keys(slots);
+        expect(days.length).toEqual(5);
+
+        const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+          (slot) => slot.start !== slotStartTime
+        );
+        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+
+        const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+        expect(dbSlot).toBeDefined();
+        if (dbSlot) {
+          const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
+          const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 5 }).toISO();
+          expect(dbReleaseAt).toEqual(expectedReleaseAt);
+          expect(responseReservedSlot.reservationUntil).toEqual(expectedReleaseAt);
+        }
+        clear();
+      });
     });
 
     afterAll(async () => {

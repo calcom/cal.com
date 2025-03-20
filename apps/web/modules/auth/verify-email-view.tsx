@@ -8,7 +8,9 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
-import { Button, EmptyScreen, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();

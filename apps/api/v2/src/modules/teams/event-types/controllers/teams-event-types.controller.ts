@@ -181,7 +181,8 @@ export class TeamsEventTypesController {
       eventTypeId,
       teamId,
       transformedBody,
-      user
+      user,
+      false
     );
 
     return {

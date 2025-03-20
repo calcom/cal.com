@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { SettingsToggle, showToast } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];

@@ -10,14 +10,16 @@ import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtype
 import useAppsData from "@calcom/lib/hooks/useAppsData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isPending } = trpc.viewer.integrations.useQuery({
+  const { data: eventTypeApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });

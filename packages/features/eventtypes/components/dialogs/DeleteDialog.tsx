@@ -1,8 +1,8 @@
 import { Trans } from "next-i18next";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { DialogProps } from "@calcom/ui";
-import { ConfirmationDialogContent, Dialog } from "@calcom/ui";
+import type { DialogProps } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 
 export function DeleteDialog({
   isManagedEvent,

@@ -40,9 +40,9 @@ import type { CredentialPayload, CredentialForCalendarService } from "@calcom/ty
 
 import { TRPCError } from "@trpc/server";
 
-import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
+import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {

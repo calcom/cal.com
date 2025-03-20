@@ -55,7 +55,14 @@ export const isAvailableHandler = async ({
     if (isReserved) {
       return {
         ...slot,
-        status: "reserved" as const,
+        // Consider reserved slots as available till we fix issues with reserved slots
+        // 1. Reservation must be attempted only if the cookie is set. reservation endpoint shouldn't create the cookie itself. It should skip reservation if there is no cookie in request
+        // 2. We could consider reducing the reservation time.
+        // 3. There could still be a problem that if multiple people on the same booking page try to book the same slot only one would be successful and other would be not and when they try to select some other slot, similarly only one would be successful and rest won't.
+        // This could cause frustration for users because they would see the slot as available but when they try to book it, it is not available(Note we fetch the status of the selected slot only). This would be most common for first available slot
+        // Maybe we want to reserve the slot when confirm button is clicked because in cases where it takes long time to book, it could disable the confirm button earlier.
+        status: "available" as const,
+        realStatus: "reserved" as const,
       };
     }
 

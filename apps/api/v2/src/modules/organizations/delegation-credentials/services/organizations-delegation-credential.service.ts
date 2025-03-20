@@ -9,11 +9,11 @@ import { DelegationCredentialOutput } from "@/modules/organizations/delegation-c
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { User } from "@prisma/client";
 
+import { encryptServiceAccountKey } from "@calcom/platform-libraries";
 import {
   addDelegationCredential,
   toggleDelegationCredentialEnabled,
-  encryptServiceAccountKey,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class OrganizationsDelegationCredentialService {
@@ -38,6 +38,15 @@ export class OrganizationsDelegationCredentialService {
     delegatedServiceAccountUser: User,
     body: UpdateDelegationCredentialInput
   ) {
+    const delegationCredential =
+      await this.organizationsDelegationCredentialRepository.findByIdWithWorkspacePlatform(
+        delegationCredentialId
+      );
+
+    if (!delegationCredential) {
+      throw new NotFoundException(`DelegationCredential with id ${delegationCredentialId} not found`);
+    }
+
     if (body.enabled !== undefined) {
       await this.updateDelegationCredentialEnabled(
         orgId,
@@ -49,15 +58,8 @@ export class OrganizationsDelegationCredentialService {
     if (body.serviceAccountKey !== undefined) {
       await this.updateDelegationCredentialServiceAccountKey(delegationCredentialId, body.serviceAccountKey);
     }
-    const delegationCredential =
-      await this.organizationsDelegationCredentialRepository.findByIdWithWorkspacePlatform(
-        delegationCredentialId
-      );
-    if (!delegationCredential) {
-      throw new NotFoundException(`DelegationCredential with id ${delegationCredentialId} not found`);
-    }
 
-    return delegationCredential;
+    return { ...delegationCredential, enabled: body?.enabled ?? delegationCredential?.enabled };
   }
 
   async updateDelegationCredentialEnabled(

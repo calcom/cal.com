@@ -8,7 +8,7 @@ import {
   subdomainSuffix,
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 

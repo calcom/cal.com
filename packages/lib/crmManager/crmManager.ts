@@ -27,7 +27,7 @@ export default class CrmManager {
     return crmService;
   }
 
-  public async createEvent(event: CalendarEvent, appOptions?: any) {
+  public async createEvent(event: CalendarEvent) {
     const crmService = await this.getCrmService(this.credential);
     if (!crmService) return;
     const { skipContactCreation = false, ignoreGuests = false } = crmService.getAppOptions() || {};

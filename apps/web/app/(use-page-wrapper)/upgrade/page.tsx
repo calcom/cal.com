@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     () => ""
   );
 
-export default LegacyPage;
+const ServerPage = async () => {
+  return <LegacyPage />;
+};
+
+export default ServerPage;

@@ -10,7 +10,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout } from "@calcom/ui/components/layout";
 
 const querySchema = z.object({
   returnTo: z.string().optional(),

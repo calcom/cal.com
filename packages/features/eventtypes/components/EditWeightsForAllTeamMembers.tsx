@@ -9,12 +9,12 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc } from "@calcom/trpc";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { buttonClasses } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import {
-  Avatar,
-  Button,
-  buttonClasses,
-  TextField,
-  Icon,
   Sheet,
   SheetBody,
   SheetClose,
@@ -22,8 +22,8 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/sheet";
+import { showToast } from "@calcom/ui/components/toast";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };

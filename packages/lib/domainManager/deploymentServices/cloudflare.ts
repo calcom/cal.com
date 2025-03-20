@@ -5,7 +5,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 
 import logger from "../../logger";
 
-const log = logger.getSubLogger({ prefix: ["cloudflare"] });
+const log = logger.getSubLogger({ prefix: ["cloudflare/deploymentService"] });
 
 // TODO: This and other settings should really come from DB when admin allows configuring which deployment services to use for the organization
 const IS_RECORD_PROXIED = true;

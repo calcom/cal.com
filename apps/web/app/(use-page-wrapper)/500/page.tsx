@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 import CopyButton from "./copy-button";
 

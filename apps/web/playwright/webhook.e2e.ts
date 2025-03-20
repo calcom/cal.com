@@ -384,7 +384,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
     });
   });
 
-  test("when rescheduling to a booking that already exists, should send a booking rescheduled event with the existant booking uid", async ({
+  test("when rescheduling to a booking that already exists, should send a booking rescheduled event with the existent booking uid", async ({
     page,
     users,
     bookings,

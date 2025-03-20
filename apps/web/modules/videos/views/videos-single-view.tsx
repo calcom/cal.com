@@ -12,7 +12,7 @@ import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-f
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";

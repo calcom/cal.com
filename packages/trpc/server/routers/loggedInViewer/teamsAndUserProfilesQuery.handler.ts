@@ -3,7 +3,7 @@ import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -44,6 +44,12 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
               slug: true,
               metadata: true,
               parentId: true,
+              parent: {
+                select: {
+                  logoUrl: true,
+                  name: true,
+                },
+              },
               members: {
                 select: {
                   userId: true,
@@ -97,7 +103,9 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? `team/${membership.team.slug}` : null,
-      image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
+      image: membership.team?.parent
+        ? getPlaceholderAvatar(membership.team.parent.logoUrl, membership.team.parent.name)
+        : getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
       role: membership.role,
       readOnly: !withRoleCanCreateEntity(membership.role),
     })),

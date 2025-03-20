@@ -1,4 +1,7 @@
+import type { IncomingMessage } from "http";
 import { z } from "zod";
+
+import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 
 export const getScheduleSchema = z
   .object({
@@ -74,3 +77,12 @@ export type Slot = {
 export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
 });
+
+export interface ContextForGetSchedule extends Record<string, unknown> {
+  req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+}
+
+export type GetScheduleOptions = {
+  ctx?: ContextForGetSchedule;
+  input: TGetScheduleInputSchema;
+};

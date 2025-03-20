@@ -9,4 +9,8 @@ export const generateMetadata = async () => {
   );
 };
 
-export default Troubleshoot;
+const ServerPage = async () => {
+  return <Troubleshoot />;
+};
+
+export default ServerPage;

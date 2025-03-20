@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   bookingCreateBodySchemaForApi,
   bookingCreateSchemaLegacyPropsForApi,
-} from "@calcom/prisma/zod-utils";
+} from "@calcom/prisma/zod/custom/booking";
 
 import type { getBookingFieldsWithSystemFields } from "./getBookingFields";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";

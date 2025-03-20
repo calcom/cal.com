@@ -7,7 +7,9 @@ import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Select, List } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Select } from "@calcom/ui/components/form";
+import { List } from "@calcom/ui/components/list";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";

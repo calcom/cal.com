@@ -6,7 +6,9 @@ import { components } from "react-select";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, Icon, Select } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Select } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;

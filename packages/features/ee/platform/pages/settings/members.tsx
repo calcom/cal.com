@@ -5,7 +5,7 @@ import { UserListTable } from "@calcom/features/users/components/UserTable/UserL
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 import NoPlatformPlan from "@calcom/web/components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";

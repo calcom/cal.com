@@ -62,6 +62,15 @@ export class SelectedCalendarsRepository {
     });
   }
 
+  getUserEventTypeSelectedCalendar(userId: number) {
+    return this.dbRead.prisma.selectedCalendar.findMany({
+      where: {
+        userId,
+        eventTypeId: { not: null },
+      },
+    });
+  }
+
   async addUserSelectedCalendar(
     userId: number,
     integration: string,

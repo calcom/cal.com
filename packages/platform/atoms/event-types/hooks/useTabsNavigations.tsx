@@ -16,7 +16,7 @@ import type {
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;

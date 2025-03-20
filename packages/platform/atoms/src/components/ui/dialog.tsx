@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as React from "react";
 
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { cn } from "../../lib/utils";
 

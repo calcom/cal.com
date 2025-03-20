@@ -33,6 +33,9 @@ type AvailableTimeSlotsProps = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
+  confirmStepClassNames?: {
+    confirmButton?: string;
+  };
   loadingStates: IUseBookingLoadingStates;
   isVerificationCodeSending: boolean;
   renderConfirmNotVerifyEmailButtonCond: boolean;
@@ -44,6 +47,7 @@ type AvailableTimeSlotsProps = {
    * This is the list of time slots that are unavailable to book
    */
   unavailableTimeSlots: string[];
+  confirmButtonDisabled?: boolean;
 };
 
 /**
@@ -65,6 +69,8 @@ export const AvailableTimeSlots = ({
   seatsPerTimeSlot,
   onSubmit,
   unavailableTimeSlots,
+  confirmButtonDisabled,
+  confirmStepClassNames,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -224,6 +230,8 @@ export const AvailableTimeSlots = ({
                 skipConfirmStep={skipConfirmStep}
                 seatsPerTimeSlot={seatsPerTimeSlot}
                 handleSlotClick={handleSlotClick}
+                confirmButtonDisabled={confirmButtonDisabled}
+                confirmStepClassNames={confirmStepClassNames}
                 {...props}
               />
             </div>

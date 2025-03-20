@@ -13,7 +13,8 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { showToast, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
 import MemberListItem from "../components/MemberListItem";

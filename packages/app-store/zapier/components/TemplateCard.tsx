@@ -1,4 +1,4 @@
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 import type { Template } from "./AppSettingsInterface";
 

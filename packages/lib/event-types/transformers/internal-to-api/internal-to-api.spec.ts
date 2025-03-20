@@ -358,6 +358,7 @@ describe("transformBookingFieldsInternalToApi", () => {
         disableOnPrefill: false,
         label: undefined,
         placeholder: undefined,
+        hidden: false,
       },
     ];
 
@@ -385,6 +386,7 @@ describe("transformBookingFieldsInternalToApi", () => {
         placeholder: "custom placeholder",
         disableOnPrefill: true,
         label: "custom label",
+        hidden: false,
       },
     ];
 

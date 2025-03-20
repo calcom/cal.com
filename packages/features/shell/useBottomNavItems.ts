@@ -4,7 +4,7 @@ import { useState } from "react";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { type NavigationItemType } from "./navigation/NavigationItem";
 

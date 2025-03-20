@@ -1,6 +1,8 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Avatar } from "@calcom/ui";
+
+import { Avatar } from "../avatar/Avatar";
+import { EmptyScreen } from "../empty-screen/EmptyScreen";
 
 export type UnpublishedEntityProps = {
   /**

@@ -23,9 +23,16 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import { Spinner } from "@calcom/ui/components/icon/Spinner";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Spinner } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
@@ -70,7 +77,7 @@ type EventTypeScheduleDetailsProps = {
     schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
   };
   isSchedulePending?: boolean;
-  user?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
+  user?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
   editAvailabilityRedirectUrl?: string;
   customClassNames?: AvailabilityTableCustomClassNames;
 };

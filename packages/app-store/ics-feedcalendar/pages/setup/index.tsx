@@ -4,8 +4,12 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, Form, TextField, CheckboxField } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 export default function ICSFeedSetup() {
   const { t } = useLocale();

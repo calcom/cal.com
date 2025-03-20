@@ -92,7 +92,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       shallow
     );
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
-  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
+  const reserveSlotMutation = trpc.viewer.slots.reserveSlot.useMutation({
     trpc: {
       context: {
         skipBatch: true,
@@ -102,7 +102,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       setSlotReservationId(data.uid);
     },
   });
-  const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
+  const removeSelectedSlot = trpc.viewer.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
 

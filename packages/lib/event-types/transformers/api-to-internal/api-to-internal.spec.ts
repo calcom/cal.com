@@ -214,6 +214,7 @@ describe("transformBookingFieldsApiToInternal", () => {
         label: "Your email",
         placeholder: "bob@gmail.com",
         disableOnPrefill: true,
+        hidden: false,
       },
     ];
 

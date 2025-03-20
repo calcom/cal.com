@@ -5,17 +5,9 @@ import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Button,
-  Form,
-  SelectField,
-  InputField,
-  Label,
-  Input,
-  Dialog,
-  ConfirmationDialogContent,
-  SettingsToggle,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { SettingsToggle, SelectField, Input, InputField, Form, Label } from "@calcom/ui/components/form";
 
 const attributeFormSchema = z.object({
   attrName: z.string().min(1),

@@ -10,8 +10,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
-import { Avatar, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 

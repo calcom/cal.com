@@ -5,7 +5,8 @@ import Link from "next/link";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon, SkeletonText } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 

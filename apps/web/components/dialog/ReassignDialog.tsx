@@ -10,22 +10,19 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
-  Form,
-  Label,
   Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
+  DialogClose,
   ConfirmationDialogContent,
-  showToast,
-  Input,
-  Icon,
-  RadioGroup as RadioArea,
-  TextAreaField,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/dialog";
+import { TextAreaField, Form, Label, Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { showToast } from "@calcom/ui/components/toast";
 
 enum ReassignType {
   ROUND_ROBIN = "round_robin",

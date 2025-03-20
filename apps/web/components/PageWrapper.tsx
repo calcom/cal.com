@@ -10,7 +10,7 @@ import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
-import { IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
 
 import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";
