@@ -219,7 +219,7 @@ export default function Signup({ prepopulateFormValues, redirectUrl }: SignupPro
               </svg>
               <p className="text-[42px] font-medium leading-none text-[#114559]">
                 Acesse o{" "}
-                <span class="text-[42px] font-medium leading-none text-[#06C6A9]">
+                <span className="text-[42px] font-medium leading-none text-[#06C6A9]">
                   {" "}
                   Painel do Profissional
                 </span>
