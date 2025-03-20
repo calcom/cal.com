@@ -7,6 +7,10 @@ import { HeadSeo } from "@calcom/ui";
 
 import UserPage from "./users-public-view";
 
+vi.mock("@calcom/lib/constants", async () => {
+  return await vi.importActual("@calcom/lib/constants");
+});
+
 function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof UserPage>>) {
   return {
     trpcState: {

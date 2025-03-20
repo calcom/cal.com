@@ -7,7 +7,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import {
   useOAuthClientWebhooks,

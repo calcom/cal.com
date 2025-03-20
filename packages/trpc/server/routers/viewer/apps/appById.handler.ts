@@ -1,9 +1,9 @@
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
 import type { TAppByIdInputSchema } from "./appById.schema";
 
 type AppByIdOptions = {
