@@ -4,9 +4,7 @@ import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import * as cookieParser from "cookie-parser";
 import { Request } from "express";
-import helmet from "helmet";
 
 import {
   API_VERSIONS,
@@ -38,7 +36,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     defaultVersion: VERSION_2024_04_15,
   });
 
-  app.use(helmet());
+  // app.use(helmet());
 
   app.enableCors({
     origin: "*",
@@ -77,7 +75,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
 
-  app.use(cookieParser());
+  // app.use(cookieParser());
 
   return app;
 };

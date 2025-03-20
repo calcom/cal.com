@@ -63,6 +63,17 @@
       "cache": false,
       "dependsOn": []
     },
+    "@@calcom/yinflow-v2#build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "NODE_ENV",
+        "API_PORT",
+        "DATABASE_READ_URL",
+        "DATABASE_WRITE_URL",
+        "LOG_LEVEL",
+        "NEXTAUTH_SECRET"
+      ]
+    },
     "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
       "env": [
