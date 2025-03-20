@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { Icon } from "../icon";
-import { SkeletonText } from "../skeleton";
 import { Slider } from "./Slider";
 
 export function AppStoreCategories({

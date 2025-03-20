@@ -49,18 +49,15 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Alert,
-  Avatar,
-  Badge,
-  Button,
-  EmailInput,
-  useCalcomTheme,
-  TextArea,
-  showToast,
-  EmptyScreen,
-  Icon,
-} from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { EmailInput, TextArea } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";

@@ -1,6 +1,6 @@
-import type { DialogProps } from "@calcom/ui";
-import { Button } from "@calcom/ui";
-import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import type { DialogProps } from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 export function AccountDialog(
   props: DialogProps & {

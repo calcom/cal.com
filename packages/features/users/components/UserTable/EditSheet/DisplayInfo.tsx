@@ -1,5 +1,6 @@
-import type { IconName } from "@calcom/ui";
-import { Badge, Icon } from "@calcom/ui";
+import type { IconName } from "@calcom/ui/components/icon";
+import { Badge } from "@calcom/ui/components/badge";
+import { Icon } from "@calcom/ui/components/icon";
 
 type DisplayInfoType = {
   label: string;

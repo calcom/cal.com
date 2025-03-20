@@ -14,26 +14,20 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
-import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DropdownMenuSeparator,
-  Form,
-  SettingsToggle,
-  showToast,
-  TextAreaField,
-  TextField,
-  Tooltip,
-  VerticalDivider,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { VerticalDivider } from "@calcom/ui/components/divider";
+import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
+import { Form } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TRPCClientError } from "@trpc/react-query";
 
