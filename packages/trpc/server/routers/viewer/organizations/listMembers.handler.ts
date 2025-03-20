@@ -93,7 +93,10 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     teamId: organizationId,
     ...(searchTerm && {
       user: {
-        OR: [{ email: { contains: searchTerm } }, { username: { contains: searchTerm } }],
+        OR: [
+          { email: { contains: searchTerm, mode: "insensitive" } },
+          { username: { contains: searchTerm, mode: "insensitive" } },
+        ],
       },
     }),
   };
