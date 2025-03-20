@@ -1,8 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useMemo } from "react";
 
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui";
 import cs from "@calcom/ui/classNames";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 
 import getAppCategories from "../_utils/getAppCategories";
 
