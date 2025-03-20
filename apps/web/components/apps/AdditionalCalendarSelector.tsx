@@ -4,13 +4,13 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Button } from "@calcom/ui/components/button";
 
 interface AdditionalCalendarSelectorProps {
   isPending?: boolean;
@@ -18,7 +18,7 @@ interface AdditionalCalendarSelectorProps {
 
 const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
-  const [data] = trpc.viewer.integrations.useSuspenseQuery({ variant: "calendar", onlyInstalled: true });
+  const [data] = trpc.viewer.apps.integrations.useSuspenseQuery({ variant: "calendar", onlyInstalled: true });
 
   const options = data.items.map((item) => ({
     label: item.name,

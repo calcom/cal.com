@@ -45,7 +45,7 @@
   "exclude": [
     "dist",
     "build",
-    "node_modules",
+    "**/node_modules/**",
     "**/*WebWrapper.tsx",
     "**/*.docs.mdx",
     "**/*.stories.tsx",

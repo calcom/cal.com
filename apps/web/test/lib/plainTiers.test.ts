@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 
 import { POST } from "../../app/api/plain-hash/route";
 
@@ -35,8 +36,8 @@ vi.mock("@lib/buildLegacyCtx", () => ({
   }),
 }));
 
-vi.mock("app/api/apiRouteMiddleware", () => ({
-  apiRouteMiddleware: (handler: () => Promise<Response>) => handler,
+vi.mock("app/api/defaultResponderForAppDir", () => ({
+  defaultResponderForAppDir: (handler: () => Promise<Response>) => handler,
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -47,11 +48,23 @@ describe("Plain Integration API", () => {
   beforeAll(() => {
     process.env.PLAIN_CHAT_HMAC_SECRET_KEY = "test-secret";
     process.env.NEXT_PUBLIC_PLAIN_CHAT_ID = "test-chat-id";
+    // Force the feature to be enabled for tests
+    vi.mock("@calcom/lib/constants", () => ({
+      IS_PLAIN_CHAT_ENABLED: true,
+    }));
   });
 
   beforeEach(() => {
     vi.resetAllMocks();
   });
+
+  // Skip all tests if the feature is disabled
+  if (!IS_PLAIN_CHAT_ENABLED) {
+    it("skips tests when Plain Chat is disabled", () => {
+      console.log("Plain Chat is disabled, skipping tests");
+    });
+    return;
+  }
 
   const tiers = [
     { tier: "free", teams: [] },

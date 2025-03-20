@@ -13,13 +13,12 @@ import type {
 } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
@@ -59,6 +58,20 @@ export const bookerLayouts = z
     defaultLayout: layoutOptions,
   })
   .nullable();
+
+export const orgOnboardingInvitedMembersSchema = z.array(
+  z.object({ email: z.string().email(), name: z.string().optional() })
+);
+
+export const orgOnboardingTeamsSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    isBeingMigrated: z.boolean(),
+    // "slug" is null for new teams
+    slug: z.string().nullable(),
+  })
+);
 
 export const defaultBookerLayoutSettings = {
   defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -212,14 +225,9 @@ export const eventTypeColor = z
   })
   .nullable();
 
-export const intervalLimitsType = z
-  .object({
-    PER_DAY: z.number().optional(),
-    PER_WEEK: z.number().optional(),
-    PER_MONTH: z.number().optional(),
-    PER_YEAR: z.number().optional(),
-  })
-  .nullable();
+export type IntervalLimitsType = IntervalLimit | null;
+
+export { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
 
@@ -247,51 +255,12 @@ export const stringToDayjs = (val: string) => {
 
 export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
-export const bookingCreateBodySchema = z.object({
-  end: z.string().optional(),
-  eventTypeId: z.number(),
-  eventTypeSlug: z.string().optional(),
-  rescheduleUid: z.string().optional(),
-  recurringEventId: z.string().optional(),
-  rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
-  start: z.string(),
-  timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
-  user: z.union([z.string(), z.array(z.string())]).optional(),
-  language: z.string(),
-  bookingUid: z.string().optional(),
-  metadata: z.record(z.string()),
-  hasHashedBookingLink: z.boolean().optional(),
-  hashedLink: z.string().nullish(),
-  seatReferenceUid: z.string().optional(),
-  orgSlug: z.string().optional(),
-  teamMemberEmail: z.string().nullish(),
-  crmOwnerRecordType: z.string().nullish(),
-  routedTeamMemberIds: z.array(z.number()).nullish(),
-  routingFormResponseId: z.number().optional(),
-  skipContactOwner: z.boolean().optional(),
-  crmAppSlug: z.string().nullish().optional(),
-  cfToken: z.string().nullish().optional(),
-
-  /**
-   * Holds the corrected responses of the Form for a booking, provided during rerouting
-   */
-  reroutingFormResponses: routingFormResponseInDbSchema.optional(),
-  /**
-   * Used to identify if the booking is a dry run.
-   */
-  _isDryRun: z.boolean().optional(),
-  /** Whether to override the cache */
-  _shouldServeCache: z.boolean().optional(),
-});
-
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
   z.string().trim().min(1),
   // boolean must be true if set.
   z.boolean().refine((v) => v === true),
 ]);
-
-export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
 const PlatformClientParamsSchema = z.object({
   platformClientId: z.string().optional(),
@@ -311,54 +280,6 @@ export const bookingConfirmPatchBodySchema = z.object({
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
 });
-
-// `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
-export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
-  z.object({
-    noEmail: z.boolean().optional(),
-    recurringCount: z.number().optional(),
-    allRecurringDates: z
-      .array(
-        z.object({
-          start: z.string(),
-          end: z.string(),
-        })
-      )
-      .optional(),
-    currentRecurringIndex: z.number().optional(),
-    appsStatus: z
-      .array(
-        z.object({
-          appName: z.string(),
-          success: z.number(),
-          failures: z.number(),
-          type: z.string(),
-          errors: z.string().array(),
-          warnings: z.string().array().optional(),
-        })
-      )
-      .optional(),
-    luckyUsers: z.array(z.number()).optional(),
-    customInputs: z.undefined().optional(),
-  })
-);
-
-// It has only the legacy props that are part of `responses` now. The API can still hit old props
-export const bookingCreateSchemaLegacyPropsForApi = z.object({
-  email: z.string(),
-  name: z.string(),
-  guests: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-  location: z.string(),
-  smsReminderNumber: z.string().optional().nullable(),
-  rescheduleReason: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
-});
-
-// This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
-export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
-  bookingCreateSchemaLegacyPropsForApi.partial()
-);
 
 export const bookingCancelSchema = z.object({
   id: z.number().optional(),

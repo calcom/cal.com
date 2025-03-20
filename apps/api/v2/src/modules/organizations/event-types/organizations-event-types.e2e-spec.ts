@@ -187,6 +187,9 @@ describe("Organizations Event Types Endpoints", () => {
             type: "integration",
             integration: "cal-video",
           },
+          {
+            type: "organizersDefaultApp",
+          },
         ],
         schedulingType: "COLLECTIVE",
         hosts: [
@@ -578,6 +581,123 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
+    it("should be able to create phone-only event type", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Phone coding consultation",
+        slug: "phone-coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+          {
+            type: "organizersDefaultApp",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+            mandatory: true,
+            priority: "high",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+            hidden: true,
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+            hidden: false,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data.bookingFields).toEqual([
+            {
+              isDefault: true,
+              type: "name",
+              slug: "name",
+              required: true,
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "email",
+              slug: "email",
+              required: false,
+              label: "Email",
+              disableOnPrefill: false,
+              hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "radioInput",
+              slug: "location",
+              required: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "phone",
+              slug: "attendeePhoneNumber",
+              required: true,
+              hidden: false,
+              label: "Phone number",
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "text",
+              slug: "title",
+              required: true,
+              disableOnPrefill: false,
+              hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "multiemail",
+              slug: "guests",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "rescheduleReason",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+          ]);
+        });
+    });
+
     it("should be able to configure phone-only event type", async () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         bookingFields: [
@@ -585,13 +705,14 @@ describe("Organizations Event Types Endpoints", () => {
             type: "email",
             required: false,
             label: "Email",
+            hidden: true,
           },
           {
             type: "phone",
             slug: "attendeePhoneNumber",
             required: true,
             label: "Phone number",
-            hidden: true,
+            hidden: false,
           },
         ],
       };
@@ -619,6 +740,7 @@ describe("Organizations Event Types Endpoints", () => {
               required: false,
               label: "Email",
               disableOnPrefill: false,
+              hidden: true,
             },
             {
               isDefault: true,
@@ -632,7 +754,7 @@ describe("Organizations Event Types Endpoints", () => {
               type: "phone",
               slug: "attendeePhoneNumber",
               required: true,
-              hidden: true,
+              hidden: false,
               label: "Phone number",
               disableOnPrefill: false,
             },
@@ -773,7 +895,14 @@ describe("Organizations Event Types Endpoints", () => {
 
           expect(fetchedEventType.bookingFields).toEqual([
             { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
-            { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+            {
+              isDefault: true,
+              required: true,
+              slug: "email",
+              type: "email",
+              disableOnPrefill: false,
+              hidden: false,
+            },
             {
               disableOnPrefill: false,
               isDefault: true,

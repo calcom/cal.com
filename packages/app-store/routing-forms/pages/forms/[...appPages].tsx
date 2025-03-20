@@ -6,29 +6,25 @@ import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import useApp from "@calcom/lib/hooks/useApp";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import {
-  ArrowButton,
-  Badge,
-  Button,
-  ButtonGroup,
-  CreateButtonWithTeamsList,
-  EmptyScreen,
-  Icon,
-  List,
-  ListLinkItem,
-  Tooltip,
-} from "@calcom/ui";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
+import { List, ListLinkItem } from "@calcom/ui/components/list";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -86,7 +82,6 @@ export default function RoutingForms({
 
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
-  const { data: typeformApp } = useApp("typeform");
   const forms = queryRes.data?.filtered;
   const features = [
     {
@@ -299,17 +294,6 @@ export default function RoutingForms({
                                       StartIcon="copy">
                                       {t("duplicate")}
                                     </FormAction>
-                                    {typeformApp?.isInstalled ? (
-                                      <FormAction
-                                        data-testid="copy-redirect-url"
-                                        routingForm={form}
-                                        action="copyRedirectUrl"
-                                        color="minimal"
-                                        type="button"
-                                        StartIcon="link">
-                                        {t("Copy Typeform Redirect Url")}
-                                      </FormAction>
-                                    ) : null}
                                     <FormAction
                                       action="_delete"
                                       routingForm={form}

@@ -7,34 +7,29 @@ import { Controller, useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import cn from "@calcom/lib/classNames";
 import { IS_CALCOM } from "@calcom/lib/constants";
-import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
-import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DropdownMenuSeparator,
-  Form,
-  SettingsToggle,
-  showToast,
-  TextAreaField,
-  TextField,
-  Tooltip,
-  VerticalDivider,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { VerticalDivider } from "@calcom/ui/components/divider";
+import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
+import { Form } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
@@ -70,7 +65,6 @@ const Actions = ({
   };
 }) => {
   const { t } = useLocale();
-  const { data: typeformApp } = useApp("typeform");
 
   return (
     <div className="flex items-center">
@@ -133,19 +127,6 @@ const Actions = ({
           tooltip={t("delete")}
           tooltipSide="bottom"
         />
-        {typeformApp?.isInstalled ? (
-          <FormActionsDropdown>
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("copy_redirect_url")}
-            </FormAction>
-          </FormActionsDropdown>
-        ) : null}
       </ButtonGroup>
 
       <div className="flex md:hidden">
@@ -187,17 +168,6 @@ const Actions = ({
             StartIcon="code">
             {t("embed")}
           </FormAction>
-          {typeformApp ? (
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("Copy Typeform Redirect Url")}
-            </FormAction>
-          ) : null}
           <DropdownMenuSeparator className="hidden sm:block" />
           <FormAction
             action="_delete"
@@ -368,7 +338,7 @@ const TeamMembersMatchResult = ({
           <div data-testid="chosen-route">
             {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
           </div>
-          <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+          <div data-testid="attribute-logic-matched" className={classNames(hasMainWarnings && "text-error")}>
             {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
             {hasMainWarnings && (
               <Alert
@@ -380,7 +350,7 @@ const TeamMembersMatchResult = ({
           </div>
           <div
             data-testid="attribute-logic-fallback-matched"
-            className={cn(hasFallbackWarnings && "text-error")}>
+            className={classNames(hasFallbackWarnings && "text-error")}>
             {t("attribute_logic_fallback_matched")}:{" "}
             <span className="font-semibold">{renderFallbackLogicStatus()}</span>
             {hasFallbackWarnings && (
@@ -591,7 +561,7 @@ export const TestForm = ({
               <span className="text-default underline">
                 <a
                   target="_blank"
-                  className={cn(
+                  className={classNames(
                     findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
                   )}
                   href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}

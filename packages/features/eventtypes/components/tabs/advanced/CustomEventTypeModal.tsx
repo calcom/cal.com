@@ -4,11 +4,13 @@ import { FormProvider } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 
 import type { InputClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName, validateCustomEventName } from "@calcom/lib/event";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogClose, DialogFooter, DialogContent, TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 interface FormValues {
   customEventName: string;

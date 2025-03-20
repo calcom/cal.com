@@ -3,19 +3,21 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules";
-import { classNames } from "@calcom/lib";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { Button, Icon, SkeletonText } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { useBookerStore } from "../Booker/store";
@@ -62,6 +64,9 @@ type SlotItemProps = {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
+  confirmStepClassNames?: {
+    confirmButton?: string;
+  };
   loadingStates?: IUseBookingLoadingStates;
   isVerificationCodeSending?: boolean;
   renderConfirmNotVerifyEmailButtonCond?: boolean;
@@ -69,6 +74,7 @@ type SlotItemProps = {
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
   unavailableTimeSlots?: string[];
+  confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
 };
 
@@ -89,6 +95,8 @@ const SlotItem = ({
   handleSlotClick,
   onTentativeTimeSelect,
   unavailableTimeSlots = [],
+  confirmButtonDisabled,
+  confirmStepClassNames,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -200,6 +208,7 @@ const SlotItem = ({
                   variant={layout === "column_view" ? "icon" : "button"}
                   StartIcon={layout === "column_view" ? "chevron-right" : undefined}
                   type="button"
+                  className={confirmStepClassNames?.confirmButton}
                   onClick={() =>
                     onTimeSelect &&
                     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
@@ -211,7 +220,8 @@ const SlotItem = ({
                     loadingStates?.creatingBooking ||
                     loadingStates?.creatingRecurringBooking ||
                     isVerificationCodeSending ||
-                    loadingStates?.creatingInstantBooking
+                    loadingStates?.creatingInstantBooking ||
+                    confirmButtonDisabled
                   }
                   color="primary"
                   loading={
@@ -223,7 +233,7 @@ const SlotItem = ({
                   {(() => {
                     if (layout === "column_view") return "";
                     if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
-                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_email_button");
+                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_button");
                     return isPaidEvent ? t("pay_and_book") : t("confirm");
                   })()}
                 </Button>

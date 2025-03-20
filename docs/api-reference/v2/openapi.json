@@ -81,6 +81,29 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "emails",
+            "required": false,
+            "in": "query",
+            "description": "Filter managed users by email. If you want to filter by multiple emails, separate them with a comma.",
+            "example": "?emails=email1@example.com,email2@example.com",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -1039,7 +1062,7 @@
     },
     "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
-        "operationId": "OrganizationsDwdController_createDwd",
+        "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
         "summary": "Save delegation credentials for your organization.",
         "parameters": [
           {
@@ -1056,7 +1079,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateDwdInput"
+                "$ref": "#/components/schemas/CreateDelegationCredentialInput"
               }
             }
           }
@@ -1067,7 +1090,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateDwdOutput"
+                  "$ref": "#/components/schemas/CreateDelegationCredentialOutput"
                 }
               }
             }
@@ -1078,7 +1101,7 @@
     },
     "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
       "patch": {
-        "operationId": "OrganizationsDwdController_updateDwd",
+        "operationId": "OrganizationsDelegationCredentialController_updateDelegationCredential",
         "summary": "Update delegation credentials of your organization.",
         "parameters": [
           {
@@ -1103,7 +1126,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDwdInput"
+                "$ref": "#/components/schemas/UpdateDelegationCredentialInput"
               }
             }
           }
@@ -1114,7 +1137,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateDwdOutput"
+                  "$ref": "#/components/schemas/UpdateDelegationCredentialOutput"
                 }
               }
             }
@@ -1635,6 +1658,7 @@
       "post": {
         "operationId": "OrganizationsOrganizationsController_createOrganization",
         "summary": "Create an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "orgId",
@@ -1672,6 +1696,7 @@
       "get": {
         "operationId": "OrganizationsOrganizationsController_getOrganizations",
         "summary": "Get all organizations within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "orgId",
@@ -1701,6 +1726,7 @@
       "get": {
         "operationId": "OrganizationsOrganizationsController_getOrganization",
         "summary": "Get an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "managedOrganizationId",
@@ -1728,6 +1754,7 @@
       "patch": {
         "operationId": "OrganizationsOrganizationsController_updateOrganization",
         "summary": "Update an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "orgId",
@@ -1773,6 +1800,7 @@
       "delete": {
         "operationId": "OrganizationsOrganizationsController_deleteOrganization",
         "summary": "Delete an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
             "name": "managedOrganizationId",
@@ -3373,16 +3401,17 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           }
         ],
         "requestBody": {
           "required": true,
-          "description": "Accepts different types of booking input: CreateBookingInput_2024_08_13, CreateInstantBookingInput_2024_08_13, or CreateRecurringBookingInput_2024_08_13",
+          "description": "Accepts different types of booking input: Create Booking (Option 1), Create Instant Booking (Option 2), or Create Recurring Booking (Option 3)",
           "content": {
             "application/json": {
               "schema": {
@@ -3422,10 +3451,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3518,6 +3548,26 @@
             "in": "query",
             "description": "Filter bookings with end before this date string.",
             "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created after this date string.",
+            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created before this date string.",
+            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
               "type": "string"
             }
@@ -3640,10 +3690,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3674,15 +3725,16 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
         "summary": "Reschedule a booking",
-        "description": "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
+        "description": "Reschedule a booking or seated booking",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3694,6 +3746,24 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RescheduleSeatedBookingInput_2024_08_13"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -3718,10 +3788,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3733,6 +3804,24 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Accepts different types of cancel booking input: Cancel Booking (Option 1) or Cancel Seated Booking (Option 2)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CancelBookingInput_2024_08_13"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelSeatedBookingInput_2024_08_13"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -3756,10 +3845,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3813,10 +3903,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3860,10 +3951,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3925,10 +4017,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -3972,10 +4065,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-08-13`",
+            "description": "Must be set to 2024-08-13",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-08-13"
             }
           },
           {
@@ -4013,6 +4107,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/calendar-links": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getCalendarLinks",
+        "summary": "Get 'Add to Calendar' links for a booking",
+        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarLinksOutput_2024_08_13"
                 }
               }
             }
@@ -4338,7 +4472,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["google-meet"],
               "type": "string"
             }
           }
@@ -4375,7 +4511,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["zoom", "msteams"],
               "type": "string"
             }
           },
@@ -4428,7 +4566,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["zoom", "msteams"],
               "type": "string"
             }
           },
@@ -4478,7 +4618,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
           }
@@ -4527,7 +4669,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
             }
           }
@@ -4585,10 +4729,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4632,10 +4777,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4707,10 +4853,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4752,10 +4899,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -4807,10 +4955,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-14`",
+            "description": "Must be set to 2024-06-14",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-14"
             }
           },
           {
@@ -5085,8 +5234,6 @@
     "/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -5114,8 +5261,6 @@
       },
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [],
         "responses": {
           "200": {
@@ -5135,8 +5280,6 @@
     "/v2/oauth-clients/{clientId}": {
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5163,8 +5306,6 @@
       },
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5201,8 +5342,6 @@
       },
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5231,8 +5370,6 @@
     "/v2/oauth-clients/{clientId}/managed-users": {
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
         "parameters": [
           {
             "name": "clientId",
@@ -5248,6 +5385,16 @@
             "in": "query",
             "description": "The number of items to return",
             "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
             "schema": {
               "type": "number"
             }
@@ -5286,10 +5433,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5334,10 +5482,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5374,10 +5523,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           }
         ],
@@ -5413,10 +5563,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5458,10 +5609,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5513,10 +5665,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-06-11`",
+            "description": "Must be set to 2024-06-11",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-06-11"
             }
           },
           {
@@ -5601,7 +5754,7 @@
             }
           },
           {
-            "name": "domainWideDelegationCredentialId",
+            "name": "delegationCredentialId",
             "required": false,
             "in": "query",
             "schema": {
@@ -5633,10 +5786,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -5811,10 +5965,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           }
         ],
@@ -5851,10 +6006,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -5887,10 +6043,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -5932,10 +6089,11 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to `2024-09-04`",
+            "description": "Must be set to 2024-09-04",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-09-04"
             }
           },
           {
@@ -7603,7 +7761,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -7948,7 +8106,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -8191,6 +8349,7 @@
           "type": {
             "type": "string",
             "description": "The policy that determines when confirmation is required",
+            "enum": ["always", "time"],
             "example": "always"
           },
           "noticeThreshold": {
@@ -8200,9 +8359,13 @@
                 "$ref": "#/components/schemas/NoticeThreshold_2024_06_14"
               }
             ]
+          },
+          "blockUnconfirmedBookingsInBooker": {
+            "type": "boolean",
+            "description": "Unconfirmed bookings still block calendar slots."
           }
         },
-        "required": ["type"]
+        "required": ["type", "blockUnconfirmedBookingsInBooker"]
       },
       "Seats_2024_06_14": {
         "type": "object",
@@ -8291,7 +8454,12 @@
             "type": "string"
           },
           "required": {
-            "type": "object"
+            "type": "object",
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Can be set to true only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "placeholder": {
             "type": "string"
@@ -8301,7 +8469,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
           }
         },
-        "required": ["type", "label", "required", "placeholder"]
+        "required": ["type", "label", "placeholder"]
       },
       "TitleDefaultFieldInput_2024_06_14": {
         "type": "object",
@@ -8415,6 +8583,17 @@
         },
         "required": ["slug"]
       },
+      "InputOrganizersDefaultApp_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only allowed value for type is `organizersDefaultApp`"
+          }
+        },
+        "required": ["type"]
+      },
       "BookerLayouts_2024_06_14": {
         "type": "object",
         "properties": {
@@ -8489,35 +8668,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -8582,7 +8732,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -8594,7 +8744,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -8722,6 +8872,35 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                }
+              ]
+            }
           }
         },
         "required": ["lengthInMinutes", "title", "slug"]
@@ -8738,7 +8917,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "address",
             "description": "only allowed value for type is `address`"
@@ -8765,7 +8945,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "link",
             "description": "only allowed value for type is `link`"
@@ -8793,6 +8974,7 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
@@ -8830,7 +9012,6 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campsite-conferencing",
               "campfire-video",
               "around-video"
             ],
@@ -8859,7 +9040,8 @@
               "phone",
               "attendeeAddress",
               "attendeePhone",
-              "attendeeDefined"
+              "attendeeDefined",
+              "organizersDefaultApp"
             ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
@@ -8874,7 +9056,7 @@
         },
         "required": ["type", "phone", "public"]
       },
-      "OutputConferencingLocation_2024_06_14": {
+      "OutputOrganizersDefaultAppLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -8887,11 +9069,12 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
-            "example": "conferencing",
-            "description": "only allowed value for type is `conferencing`"
+            "example": "organizersDefaultApp",
+            "description": "only allowed value for type is `organizersDefaultApp`"
           }
         },
         "required": ["type"]
@@ -8909,6 +9092,7 @@
               "attendeeAddress",
               "attendeePhone",
               "attendeeDefined",
+              "organizersDefaultApp",
               "conferencing",
               "unknown"
             ],
@@ -8951,7 +9135,12 @@
           },
           "required": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both. Can only be hidden\n      for organization team event types when also providing attendee phone number booking field."
           },
           "placeholder": {
             "type": "string"
@@ -8971,7 +9160,7 @@
             "default": "email"
           }
         },
-        "required": ["type", "required", "isDefault", "slug"]
+        "required": ["type", "isDefault", "slug"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -9638,7 +9827,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -9712,7 +9901,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -9953,7 +10142,7 @@
                   "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
@@ -10257,35 +10446,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -10347,7 +10507,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -10359,7 +10519,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10487,6 +10647,35 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                }
+              ]
+            }
           }
         }
       },
@@ -10551,7 +10740,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string"
           }
         },
@@ -10635,7 +10824,10 @@
             "default": false
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -10752,7 +10944,11 @@
             "type": "boolean"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -10830,7 +11026,11 @@
             "type": "boolean"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -11614,35 +11814,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -11707,7 +11878,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -11719,7 +11890,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -11860,6 +12031,38 @@
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
+                }
+              ]
+            }
           }
         },
         "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
@@ -12000,7 +12203,7 @@
                   "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/OutputConferencingLocation_2024_06_14"
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
@@ -12391,35 +12594,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
-                }
-              ]
-            }
-          },
           "bookingFields": {
             "type": "array",
             "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
@@ -12481,7 +12655,7 @@
           },
           "disableGuests": {
             "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "description": "If true, person booking this event can't add guests via their emails."
           },
           "slotInterval": {
             "type": "number",
@@ -12493,7 +12667,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -12631,6 +12805,38 @@
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeePhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputAttendeeDefinedLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/InputOrganizersDefaultApp_2024_06_14"
+                }
+              ]
+            }
           }
         }
       },
@@ -13489,7 +13695,11 @@
             "type": "boolean"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -13593,7 +13803,10 @@
             "default": false
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "theme": {
             "type": "string"
@@ -13681,7 +13894,7 @@
         },
         "required": ["private_key", "client_email", "client_id"]
       },
-      "CreateDwdInput": {
+      "CreateDelegationCredentialInput": {
         "type": "object",
         "properties": {
           "workspacePlatformSlug": {
@@ -13718,7 +13931,7 @@
         },
         "required": ["name", "slug"]
       },
-      "DwdOutput": {
+      "DelegationCredentialOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -13755,7 +13968,7 @@
           "updatedAt"
         ]
       },
-      "CreateDwdOutput": {
+      "CreateDelegationCredentialOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -13764,12 +13977,12 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/DwdOutput"
+            "$ref": "#/components/schemas/DelegationCredentialOutput"
           }
         },
         "required": ["status", "data"]
       },
-      "UpdateDwdInput": {
+      "UpdateDelegationCredentialInput": {
         "type": "object",
         "properties": {
           "enabled": {
@@ -13790,7 +14003,7 @@
           }
         }
       },
-      "UpdateDwdOutput": {
+      "UpdateDelegationCredentialOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -13799,7 +14012,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/DwdOutput"
+            "$ref": "#/components/schemas/DelegationCredentialOutput"
           }
         },
         "required": ["status", "data"]
@@ -13826,7 +14039,11 @@
             "example": "CalTeam"
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           }
         },
         "required": ["name"]
@@ -13842,7 +14059,10 @@
             "minLength": 1
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           },
           "apiKey": {
             "type": "string"
@@ -13875,7 +14095,10 @@
             "minLength": 1
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           }
         },
         "required": ["id", "name"]
@@ -13921,7 +14144,11 @@
             "example": "CalTeam"
           },
           "metadata": {
-            "type": "string"
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
           }
         }
       },
@@ -14309,7 +14536,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           }
@@ -14344,7 +14571,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           }
@@ -14360,7 +14587,7 @@
           "credentialId": {
             "type": "number"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           },
@@ -14380,7 +14607,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number"
+            "type": "object"
           },
           "integration": {
             "type": "string"
@@ -14404,7 +14631,7 @@
             "type": "number",
             "nullable": true
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string",
             "nullable": true
           },
@@ -14516,6 +14743,146 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "BookingInputAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "address",
+            "description": "only allowed value for type is `address` - it refers to address defined by the organizer."
+          }
+        },
+        "required": ["type"]
+      },
+      "BookingInputAttendeeAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": ["type", "address"]
+      },
+      "BookingInputAttendeeDefinedLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          },
+          "location": {
+            "type": "string",
+            "example": "321 Example St, City, Country"
+          }
+        },
+        "required": ["type", "location"]
+      },
+      "BookingInputAttendeePhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": ["type", "phone"]
+      },
+      "BookingInputIntegrationLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "integration",
+            "description": "only allowed value for type is `integration`"
+          },
+          "integration": {
+            "type": "string",
+            "example": "cal-video",
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video",
+              "around-video"
+            ]
+          }
+        },
+        "required": ["type", "integration"]
+      },
+      "BookingInputLinkLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "link",
+            "description": "only allowed value for type is `link` - it refers to link defined by the organizer."
+          }
+        },
+        "required": ["type"]
+      },
+      "BookingInputPhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "phone",
+            "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
+          }
+        },
+        "required": ["type"]
+      },
+      "BookingInputOrganizersDefaultAppLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only available for team event types and the only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer."
+          }
+        },
+        "required": ["type"]
+      },
+      "ValidateBookingLocation_2024_08_13": {
+        "type": "object",
+        "properties": {}
       },
       "Attendee": {
         "type": "object",
@@ -14634,9 +15001,33 @@
             "deprecated": true
           },
           "location": {
-            "type": "string",
-            "description": "Location for this booking. Displayed in email and calendar event.",
-            "example": "https://example.com/meeting"
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputIntegrationLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
+              }
+            ]
           },
           "metadata": {
             "type": "object",
@@ -14696,9 +15087,33 @@
             "deprecated": true
           },
           "location": {
-            "type": "string",
-            "description": "Location for this booking. Displayed in email and calendar event.",
-            "example": "https://example.com/meeting"
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputIntegrationLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
+              }
+            ]
           },
           "metadata": {
             "type": "object",
@@ -14763,9 +15178,33 @@
             "deprecated": true
           },
           "location": {
-            "type": "string",
-            "description": "Location for this booking. Displayed in email and calendar event.",
-            "example": "https://example.com/meeting"
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputIntegrationLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
+              }
+            ]
           },
           "metadata": {
             "type": "object",
@@ -15860,6 +16299,46 @@
         },
         "required": ["status", "data"]
       },
+      "RescheduleBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time in ISO 8601 format for the new booking",
+            "example": "2024-08-13T10:00:00Z"
+          },
+          "rescheduledBy": {
+            "type": "string",
+            "description": "Email of the person who is rescheduling the booking - only needed when rescheduling a booking that requires a confirmation.\nIf event type owner email is provided then rescheduled booking will be automatically confirmed. If attendee email or no email is passed then the event type\nowner will have to confirm the rescheduled booking."
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User requested reschedule",
+            "description": "Reason for rescheduling the booking"
+          }
+        },
+        "required": ["start"]
+      },
+      "RescheduleSeatedBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time in ISO 8601 format for the new booking",
+            "example": "2024-08-13T10:00:00Z"
+          },
+          "rescheduledBy": {
+            "type": "string",
+            "description": "Email of the person who is rescheduling the booking - only needed when rescheduling a booking that requires a confirmation.\nIf event type owner email is provided then rescheduled booking will be automatically confirmed. If attendee email or no email is passed then the event type\nowner will have to confirm the rescheduled booking."
+          },
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
+            "description": "Uid of the specific seat within booking."
+          }
+        },
+        "required": ["start", "seatUid"]
+      },
       "RescheduleBookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -15887,6 +16366,30 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "CancelBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
+          },
+          "cancelSubsequentBookings": {
+            "type": "boolean",
+            "description": "For recurring non-seated booking - if true, cancel booking with the bookingUid of the individual recurrence and all recurrences that come after it."
+          }
+        }
+      },
+      "CancelSeatedBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "seatUid": {
+            "type": "string",
+            "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
+            "description": "Uid of the specific seat within booking."
+          }
+        },
+        "required": ["seatUid"]
       },
       "CancelBookingOutput_2024_08_13": {
         "type": "object",
@@ -16027,6 +16530,38 @@
             "description": "Reason for declining a booking that requires a confirmation"
           }
         }
+      },
+      "CalendarLink": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "The label of the calendar link"
+          },
+          "link": {
+            "type": "string",
+            "description": "The link to the calendar"
+          }
+        },
+        "required": ["label", "link"]
+      },
+      "CalendarLinksOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object",
+            "description": "The status of the request, always 'success' for successful responses",
+            "example": "success"
+          },
+          "data": {
+            "description": "Calendar links for the booking",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarLink"
+            }
+          }
+        },
+        "required": ["status", "data"]
       },
       "CreateTeamMembershipInput": {
         "type": "object",
@@ -16483,9 +17018,9 @@
           "externalId": {
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
-            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+            "description": "Unique identifier used to represent the specific calendar, as returned by the /calendars endpoint"
           },
-          "domainWideDelegationCredentialId": {
+          "delegationCredentialId": {
             "type": "string"
           }
         },

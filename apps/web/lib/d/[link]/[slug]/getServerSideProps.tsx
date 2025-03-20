@@ -37,6 +37,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
           users: {
             select: {
               username: true,
+              profiles: {
+                select: {
+                  id: true,
+                  organizationId: true,
+                  username: true,
+                },
+              },
             },
           },
           team: {
@@ -61,13 +68,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   if (!hashedLink) {
     return notFound;
   }
+  const username = hashedLink.eventType.users[0]?.username;
+  const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 
   if (hashedLink.eventType.team) {
     name = hashedLink.eventType.team.slug || "";
     hideBranding = hashedLink.eventType.team.hideBranding;
   } else {
-    const username = hashedLink.eventType.users[0]?.username;
-
     if (!username) {
       return notFound;
     }
@@ -85,8 +92,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       }
     }
 
+    name = profileUsername || username;
+
     const [user] = await UserRepository.findUsersByUsername({
-      usernameList: [username],
+      usernameList: [name],
       orgSlug: org,
     });
 
@@ -94,7 +103,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    name = username;
     hideBranding = user.hideBranding;
   }
 

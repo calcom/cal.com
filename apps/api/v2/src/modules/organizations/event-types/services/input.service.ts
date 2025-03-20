@@ -4,6 +4,7 @@ import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { transformTeamLocationsApiToInternal } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
@@ -11,6 +12,13 @@ import {
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/client";
 
+export type TransformedCreateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>
+>;
+
+export type TransformedUpdateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputUpdateTeamEventType"]>
+>;
 @Injectable()
 export class InputOrganizationsEventTypesService {
   constructor(
@@ -81,9 +89,17 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
+    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
+
+    const defaultLocations: CreateTeamEventTypeInput_2024_06_14["locations"] = [
+      {
+        type: "integration",
+        integration: "cal-video",
+      },
+    ];
+
     const children = await this.getChildEventTypesForManagedEventType(null, inputEventType, teamId);
 
     const metadata =
@@ -100,6 +116,7 @@ export class InputOrganizationsEventTypesService {
           : this.transformInputHosts(hosts, inputEventType.schedulingType)
         : undefined,
       assignAllTeamMembers,
+      locations: this.transformInputTeamLocations(locations || defaultLocations),
       metadata,
       children,
     };
@@ -112,7 +129,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
+    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
 
     const eventType = await this.inputEventTypesService.transformInputUpdateEventType(rest, eventTypeId);
     const dbEventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
@@ -132,6 +149,7 @@ export class InputOrganizationsEventTypesService {
         : undefined,
       assignAllTeamMembers,
       children,
+      locations: locations ? this.transformInputTeamLocations(locations) : undefined,
     };
 
     return teamEventType;
@@ -177,6 +195,10 @@ export class InputOrganizationsEventTypesService {
 
     // note(Lauris): when API user DOES NOT update managed event type users, but we still need existing managed event type users to know which event-types to update
     return eventType?.children.map((child) => child.userId).filter((id) => !!id) as number[];
+  }
+
+  transformInputTeamLocations(inputLocations: CreateTeamEventTypeInput_2024_06_14["locations"]) {
+    return transformTeamLocationsApiToInternal(inputLocations);
   }
 
   async getOwnersForManagedEventType(userIds: number[]) {
@@ -230,7 +252,11 @@ export class InputOrganizationsEventTypesService {
       const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
       const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
       if (invalidHosts.length) {
-        throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
+        throw new NotFoundException(
+          `Invalid hosts: ${invalidHosts
+            .map((host) => host.userId)
+            .join(", ")} are not members of team with id ${teamId}.`
+        );
       }
     }
   }
