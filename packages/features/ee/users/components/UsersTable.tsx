@@ -189,6 +189,12 @@ function UsersTableBare() {
                       <div className="flex flex-row">
                         <span className="text-default">{user.name}</span>
                         <span className="ml-3">/{user.username}</span>
+                        {user.profiles[0]?.username && (
+                          <span className="ml-3 flex items-center">
+                            <Icon name="building" className="text-subtle mr-1 h-5 w-5" />
+                            <span className="ml-3">{user.profiles[0]?.username}</span>
+                          </span>
+                        )}
                         {user.locked && (
                           <span className="ml-3">
                             <Icon name="lock" />
