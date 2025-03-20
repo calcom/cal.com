@@ -8,18 +8,15 @@ import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventt
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  TextField,
-  Tooltip,
-  showToast,
-  DatePicker,
-  Label,
-  NumberInput,
-  Dialog,
-  DialogContent,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
+import { DatePicker } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { NumberInput } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const MultiplePrivateLinksController = ({
   team,
