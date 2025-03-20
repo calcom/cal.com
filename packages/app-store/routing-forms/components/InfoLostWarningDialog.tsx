@@ -2,7 +2,8 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogContent, Button, DialogFooter } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 
 interface InfoLostWarningDialog {
   isOpenInfoLostDialog: boolean;

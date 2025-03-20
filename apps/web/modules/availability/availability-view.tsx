@@ -17,7 +17,9 @@ import type { OrganizationRepository } from "@calcom/lib/server/repository/organ
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 export function AvailabilityList() {
   const { t } = useLocale();

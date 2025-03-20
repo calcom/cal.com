@@ -8,7 +8,8 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 
 function hideDialogFor(hideFor: [number, DayjsManipulateType], toastContent: string) {
   document.cookie = `calcom-timezone-dialog=1;max-age=${
