@@ -447,7 +447,10 @@ const Locations: React.FC<LocationsProps> = ({
                 t={t}
                 i18nKey="event_type_requires_google_calendar"
                 components={[
-                  <Link className="cursor-pointer text-blue-500 underline" href="/apps/google-calendar">
+                  <Link
+                    key="event_type_requires_google_calendar"
+                    className="cursor-pointer text-blue-500 underline"
+                    href="/apps/google-calendar">
                     here
                   </Link>,
                 ]}
@@ -485,7 +488,10 @@ const Locations: React.FC<LocationsProps> = ({
             t={t}
             i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store"
             components={[
-              <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/conferencing">
+              <Link
+                key="cant_find_the_right_conferencing_app_visit_our_app_store"
+                className="cursor-pointer text-blue-500 underline"
+                href="/apps/categories/conferencing">
                 App Store
               </Link>,
             ]}

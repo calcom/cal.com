@@ -182,6 +182,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                           i18nKey="edit_or_manage_webhooks"
                           components={[
                             <Link
+                              key="edit_or_manage_webhooks"
                               className="cursor-pointer font-semibold underline"
                               href="/settings/developer/webhooks">
                               webhooks settings

@@ -21,12 +21,15 @@ const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number 
       values={{ location: props.location }}
       components={[
         <a
+          key="broken-video-action-link-1"
           href={
             props.eventTypeId ? `${WEBAPP_URL}/event-types/${props.eventTypeId}` : `${WEBAPP_URL}/event-types`
           }>
           change your location on the event type
         </a>,
-        <a href={`${WEBAPP_URL}/apps/installed`}>removing and adding the app again.</a>,
+        <a key="broken-video-action-link-2" href={`${WEBAPP_URL}/apps/installed`}>
+          removing and adding the app again.
+        </a>,
       ]}
     />
   );

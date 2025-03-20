@@ -167,7 +167,9 @@ export default function RequiresConfirmationController({
                                 t={t}
                                 i18nKey="when_booked_with_less_than_notice"
                                 components={[
-                                  <div className="mx-2 inline-flex items-center">
+                                  <div
+                                    key="when_booked_with_less_than_notice"
+                                    className="mx-2 inline-flex items-center">
                                     <Input
                                       type="number"
                                       min={1}

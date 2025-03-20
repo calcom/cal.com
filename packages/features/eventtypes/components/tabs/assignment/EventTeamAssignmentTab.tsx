@@ -122,6 +122,7 @@ const FixedHostHelper = ({ t }: { t: TFunction }) => (
     i18nKey="fixed_host_helper"
     components={[
       <Link
+        key="fixed_host_helper"
         className="underline underline-offset-2"
         target="_blank"
         href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">

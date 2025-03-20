@@ -69,7 +69,6 @@ const isObject = (obj: any): obj is Record<string, unknown> =>
 const parseArrayComponents = (content: string, components: ReactElement[]): ReactNode[] => {
   const parts: ReactNode[] = [];
   let currentText = "";
-  let currentIndex = 0;
 
   // Simple state machine parser to handle nested tags
   const parseContent = (text: string) => {
@@ -166,7 +165,7 @@ const parseArrayComponents = (content: string, components: ReactElement[]): Reac
       // Check for closing tag
       if (
         text[i] === "<" &&
-        text.substring(i + 1, i + 2 + tagIndex.length) === "/" + tagIndex &&
+        text.substring(i + 1, i + 2 + tagIndex.length) === `/${tagIndex}` &&
         text[i + 2 + tagIndex.length] === ">"
       ) {
         depth--;

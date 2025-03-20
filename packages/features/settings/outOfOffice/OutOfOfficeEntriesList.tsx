@@ -203,7 +203,7 @@ function OutOfOfficeEntriesListContent() {
                             values={{
                               username: item.toUser?.username,
                             }}
-                            components={[<span className="text-subtle font-bold" />]}
+                            components={[<span key="ooo-username" className="text-subtle font-bold" />]}
                           />
                         ) : (
                           <>{t("ooo_not_forwarding")}</>

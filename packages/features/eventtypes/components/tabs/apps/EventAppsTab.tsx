@@ -163,7 +163,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                   t={t}
                   i18nKey="available_apps_desc"
                   components={[
-                    <Link className="cursor-pointer underline" href="/apps">
+                    <Link key="available_apps_desc" className="cursor-pointer underline" href="/apps">
                       App Store
                     </Link>,
                   ]}

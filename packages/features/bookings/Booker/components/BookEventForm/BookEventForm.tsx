@@ -145,7 +145,11 @@ export const BookEventForm = ({
                   t={t}
                   i18nKey="timeslot_unavailable_book_a_new_time"
                   components={[
-                    <button type="button" className="underline" onClick={onCancel}>
+                    <button
+                      key="please-select-a-new-time-button"
+                      type="button"
+                      className="underline"
+                      onClick={onCancel}>
                       Please select a new time
                     </button>,
                   ]}

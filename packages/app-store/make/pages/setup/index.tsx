@@ -120,7 +120,10 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
                     t={t}
                     i18nKey="make_setup_instructions_1"
                     components={[
-                      <a href={inviteLink} className="ml-1 mr-1 text-orange-600 underline">
+                      <a
+                        key="make-invite-link"
+                        href={inviteLink}
+                        className="ml-1 mr-1 text-orange-600 underline">
                         Make Invite Link
                       </a>,
                     ]}

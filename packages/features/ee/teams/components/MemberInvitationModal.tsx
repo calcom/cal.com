@@ -208,7 +208,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               <ServerTrans
                 t={t}
                 i18nKey="invite_new_member_description"
-                components={[<span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>]}
+                components={[
+                  <span key="invite_new_member_description" className="text-emphasis font-medium">
+                    cost an extra seat ($15/m)
+                  </span>,
+                ]}
               />
             </span>
           ) : null

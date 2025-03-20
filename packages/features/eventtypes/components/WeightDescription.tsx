@@ -10,6 +10,7 @@ export default function WeightDescription({ t }: { t: TFunction }) {
       i18nKey="weights_description"
       components={[
         <Link
+          key="weights_description"
           className="underline underline-offset-2"
           target="_blank"
           href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">

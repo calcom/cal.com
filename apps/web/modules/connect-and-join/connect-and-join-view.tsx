@@ -63,7 +63,10 @@ function ConnectAndJoin() {
                     t={t}
                     i18nKey="some_other_host_already_accepted_the_meeting"
                     components={[
-                      <Link className="inline-block cursor-pointer underline" href={meetingUrl}>
+                      <Link
+                        key="continue-to-meeting-link"
+                        className="inline-block cursor-pointer underline"
+                        href={meetingUrl}>
                         Continue to Meeting
                       </Link>,
                     ]}
