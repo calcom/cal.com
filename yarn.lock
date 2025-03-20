@@ -3775,6 +3775,7 @@ __metadata:
     "@daily-co/daily-js": ^0.59.0
     "@daily-co/daily-react": ^0.17.2
     "@dub/analytics": ^0.0.15
+    "@dub/embed-react": ^0.0.10
     "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
     "@googleapis/admin": ^23.0.0
@@ -4360,6 +4361,28 @@ __metadata:
   dependencies:
     server-only: ^0.0.1
   checksum: afff2252db4a43593efc5c990fd684b5423f47978191078d3b788a7c3e51f912cf21a65d4cfdffe57a20dbe3a89c5f4ac47ff2899e266ae4ac0653a58ff0076f
+  languageName: node
+  linkType: hard
+
+"@dub/embed-core@npm:^0.0.10":
+  version: 0.0.10
+  resolution: "@dub/embed-core@npm:0.0.10"
+  dependencies:
+    "@floating-ui/dom": ^1.6.12
+  checksum: 6b423707ea296c7d7e958677c3983eeab8131e59d23bd18be3aa90c7016cb2708a94140122194d7b7074766121bde7e53216cf33532e515bb6834b9e889af87b
+  languageName: node
+  linkType: hard
+
+"@dub/embed-react@npm:^0.0.10":
+  version: 0.0.10
+  resolution: "@dub/embed-react@npm:0.0.10"
+  dependencies:
+    class-variance-authority: ^0.7.0
+    vite: 5.2.9
+  peerDependencies:
+    react: ^18.2.0
+    react-dom: ^18.2.0
+  checksum: 13cce78ab4c11c5c056832b8e92a4f333cce25f094b9da60c2919a414b49c8fc67ea89458f10cb1cdcbd46053e34e6390b3494803d9214f592e6a88dd155cb66
   languageName: node
   linkType: hard
 
@@ -17543,6 +17566,7 @@ __metadata:
   dependencies:
     "@changesets/cli": ^2.26.1
     "@daily-co/daily-js": ^0.59.0
+    "@dub/embed-core": ^0.0.10
     "@next/third-parties": ^14.2.5
     "@playwright/test": ^1.45.3
     "@snaplet/copycat": ^4.1.0
