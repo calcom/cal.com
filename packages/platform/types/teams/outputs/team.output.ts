@@ -1,6 +1,8 @@
 import { ApiProperty as DocsProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Length } from "class-validator";
+import { Expose, Transform } from "class-transformer";
+import { IsBoolean, IsInt, IsObject, IsOptional, IsString, IsUrl, Length } from "class-validator";
+
+import type { Metadata } from "../../bookings/2024-08-13/inputs/validators/validate-metadata";
 
 export class TeamOutputDto {
   @IsInt()
@@ -79,11 +81,20 @@ export class TeamOutputDto {
   @ApiPropertyOptional()
   readonly hideBookATeamMember?: boolean = false;
 
+  @ApiPropertyOptional({
+    type: Object,
+    example: { key: "value" },
+  })
+  @IsObject()
   @IsOptional()
-  @IsString()
   @Expose()
-  @ApiPropertyOptional()
-  readonly metadata?: string;
+  @Transform(
+    // note(Lauris): added this transform because without it metadata is removed for some reason
+    ({ obj }: { obj: { metadata: Metadata | null | undefined } }) => {
+      return obj.metadata || undefined;
+    }
+  )
+  metadata?: Metadata;
 
   @IsOptional()
   @IsString()

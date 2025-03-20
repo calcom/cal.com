@@ -17,7 +17,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
@@ -60,6 +60,7 @@ const getBookingSuccessfulEventPayload = (booking: {
   paymentRequired: boolean;
   uid?: string;
   isRecurring: boolean;
+  videoCallUrl?: string;
 }) => {
   return {
     uid: booking.uid,
@@ -70,6 +71,7 @@ const getBookingSuccessfulEventPayload = (booking: {
     status: booking.status,
     paymentRequired: booking.paymentRequired,
     isRecurring: booking.isRecurring,
+    videoCallUrl: booking.videoCallUrl,
   };
 };
 
@@ -262,7 +264,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         isSuccessBookingPage: true,
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventSlug,
-        seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
+        seatReferenceUid: "seatReferenceUid" in booking ? (booking.seatReferenceUid as string) : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
         rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly

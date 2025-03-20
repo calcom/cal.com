@@ -7,25 +7,21 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { map } from "@calcom/features/flags/server/procedures/map";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
 import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
 import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
-import { router, mergeRouters } from "@calcom/trpc/server/trpc";
+import { mergeRouters, router } from "@calcom/trpc/server/trpc";
 
 import { createServerSideHelpers } from "@trpc/react-query/server";
-
-const loggedInRouter = router({
-  me,
-});
 
 // Temporary workaround for OOM issue, import only procedures that are called on the server side
 const routerSlice = router({
   viewer: mergeRouters(
-    loggedInRouter,
     router({
+      me: meRouter,
       features: router({
         map,
       }),
@@ -82,7 +78,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
     // Provides a better UX to the users who have already upgraded.
     ssr.viewer.teams.hasTeamPlan.prefetch(),
     ssr.viewer.public.session.prefetch(),
-    ssr.viewer.me.prefetch(),
+    ssr.viewer.me.get.prefetch(),
   ]);
 
   return ssr;

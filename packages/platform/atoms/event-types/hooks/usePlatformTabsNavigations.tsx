@@ -10,9 +10,9 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
-import type { PlatformTabs } from "../wrappers/EventTypePlatformWrapper";
+import type { PlatformTabs } from "../../event-types/wrappers/types";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;
@@ -180,13 +180,13 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
     });
   tabs.includes("payments") &&
     tabsNavigation.push({
-      name: t("event_payments_tab_title"),
+      name: t("payments"),
       onClick: () => onClick("payments"),
       isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,
       icon: "credit-card",
       info: t(`event_payments_tab_description`),
-      "data-testid": "event_payments_tab_title",
+      "data-testid": "payments",
     });
 
   return tabsNavigation;

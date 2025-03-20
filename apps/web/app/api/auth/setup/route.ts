@@ -1,4 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -29,8 +30,9 @@ async function handler(req: NextRequest) {
   if (userCount !== 0) {
     throw new HttpError({ statusCode: 400, message: "No setup needed." });
   }
+  const body = await parseRequestData(req);
 
-  const parsedQuery = querySchema.safeParse(await req.json());
+  const parsedQuery = querySchema.safeParse(body);
   if (!parsedQuery.success) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
@@ -57,6 +59,4 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ message: "First admin user created successfully." });
 }
 
-const postHandler = defaultResponderForAppDir(handler);
-
-export { postHandler as POST };
+export const POST = defaultResponderForAppDir(handler);

@@ -5,9 +5,12 @@ import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
+import { useAtomsContext } from "./useAtomsContext";
 
 export const QUERY_KEY = "get-connected-calendars";
 export const useConnectedCalendars = (props: { enabled?: boolean }) => {
+  const { isInit } = useAtomsContext();
+
   const calendars = useQuery({
     queryKey: [QUERY_KEY],
     queryFn: () => {
@@ -18,7 +21,7 @@ export const useConnectedCalendars = (props: { enabled?: boolean }) => {
         throw new Error(res.data.error.message);
       });
     },
-    enabled: props?.enabled ?? true,
+    enabled: props?.enabled !== undefined ? props.enabled && isInit : isInit,
   });
 
   return calendars;

@@ -3,7 +3,9 @@
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ButtonGroup, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Icon } from "@calcom/ui/components/icon";
 
 export default function EnterprisePage() {
   const { t } = useLocale();
@@ -32,7 +34,7 @@ export default function EnterprisePage() {
     {
       icon: <Icon name="credit-card" className="h-5 w-5 text-green-500" />,
       title: t("unified_billing"),
-      description: t("unified_billing_description"),
+      description: t("advanced_managed_events_description"),
     },
     {
       icon: <Icon name="lock" className="h-5 w-5 text-purple-500" />,
