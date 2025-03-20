@@ -4,7 +4,7 @@
 import HTML from "html-parse-stringify";
 import type { TFunction } from "i18next";
 import type { ReactNode, ReactElement, FC } from "react";
-import React, { isValidElement, Fragment, createElement, cloneElement, Children } from "react";
+import React, { isValidElement } from "react";
 
 type CustomTransProps = {
   i18nKey: string; // Translation key
@@ -16,26 +16,9 @@ type CustomTransProps = {
   parent?: React.ElementType; // Parent element to wrap content in
 };
 
-// Utility functions adapted from react-i18next
-const getAsArray = (data: any) => (Array.isArray(data) ? data : [data]);
-const isObject = (obj: any) => obj && typeof obj === "object" && !Array.isArray(obj);
-const hasChildren = (node: any) => {
-  if (!node) return false;
-  return !!(node.props?.children ?? node.children);
-};
-const getChildren = (node: any) => {
-  if (!node) return [];
-  return node.props?.children ?? node.children;
-};
-const mergeProps = (source: any, target: any) => {
-  const newTarget = { ...target };
-  newTarget.props = Object.assign(source.props || {}, target.props || {});
-  return newTarget;
-};
-
 /**
  * A custom Trans component that doesn't use React Context
- * Supports HTML tags in translations
+ * Supports HTML tags in translations and preserves component styling and interactivity
  */
 const ServerTrans: FC<CustomTransProps> = ({
   i18nKey,
@@ -46,13 +29,12 @@ const ServerTrans: FC<CustomTransProps> = ({
   children,
   parent,
 }) => {
-  // Prepare translation options
+  // Get translated string with count if provided
   const translationOptions = { ...values };
   if (count !== undefined) {
     translationOptions.count = count;
   }
 
-  // Get translated content
   const content = t(i18nKey, translationOptions);
 
   // If no translated content is available, use the children as fallback
@@ -60,146 +42,186 @@ const ServerTrans: FC<CustomTransProps> = ({
     return <>{children}</>;
   }
 
-  // If there are no components and no HTML tags, just return the content
+  // If no content or components, just return the content
   if (
-    (!components ||
-      (Array.isArray(components) && components.length === 0) ||
-      (isObject(components) && Object.keys(components).length === 0)) &&
-    !/<[a-z][\s\S]*>/i.test(content)
+    !content ||
+    !components ||
+    (Array.isArray(components) && components.length === 0) ||
+    (!Array.isArray(components) && Object.keys(components).length === 0)
   ) {
     return <>{content}</>;
   }
 
-  // Prepare components for rendering
-  const processedComponents = processComponents(components, content);
+  // Process different kinds of tags
+  let processedContent = content;
 
-  // Render the content with components
-  const renderedContent = renderNodes(processedComponents || children, content, translationOptions);
+  // 1. First try to render with components
+  let rendered = processHtmlAndComponents(processedContent, components);
+
+  // 2. If children are provided, try to use them as fallback
+  if ((!Array.isArray(rendered) || rendered.length === 0) && children) {
+    return <>{children}</>;
+  }
 
   // Return with parent if specified
-  return parent ? createElement(parent, {}, renderedContent) : <>{renderedContent}</>;
+  if (parent) {
+    const Parent = parent;
+    return <Parent>{rendered}</Parent>;
+  }
+
+  return <>{rendered}</>;
 };
 
-// Process components similar to react-i18next
-const processComponents = (components: any, translation: string) => {
-  if (!components) return null;
+// Unified function to process both HTML tags and components in translation
+const processHtmlAndComponents = (
+  text: string,
+  components: ReactElement[] | Record<string, ReactElement>
+) => {
+  // First, extract and replace HTML tags and components to avoid conflicts
+  const placeholders: { [key: string]: ReactNode } = {};
+  let processedText = text;
 
-  const fixComponentProps = (component: ReactElement, index: number | string) => {
-    const componentKey = component.key || index;
-    const comp = cloneElement(component, { key: componentKey });
-
-    // Handle void components
-    if (
-      !comp.props ||
-      !comp.props.children ||
-      (String(translation).indexOf(`${index}/>`) < 0 && String(translation).indexOf(`${index} />`) < 0)
-    ) {
-      return comp;
-    }
-
-    function Componentized() {
-      return createElement(Fragment, null, comp);
-    }
-    return createElement(Componentized, { key: componentKey });
-  };
-
-  // Handle array components
+  // Process array-based components (indexed like <0>text</0>)
   if (Array.isArray(components)) {
-    return components.map((c, index) => fixComponentProps(c, index));
-  }
+    components.forEach((component, index) => {
+      if (!isValidElement(component)) return;
 
-  // Handle object components
-  if (isObject(components)) {
-    const componentMap: Record<string, ReactElement> = {};
-    Object.keys(components).forEach((c) => {
-      componentMap[c] = fixComponentProps(components[c], c);
+      const tagPattern = new RegExp(`<${index}>(.*?)<\/${index}>`, "gs");
+      processedText = processedText.replace(tagPattern, (match, innerContent) => {
+        const placeholder = `__COMPONENT_ARRAY_${index}_${Math.random().toString(36).substring(2)}__`;
+        placeholders[placeholder] = React.cloneElement(
+          component,
+          {
+            ...component.props,
+            key: component.key || `comp-${index}`,
+          },
+          innerContent
+        );
+        return placeholder;
+      });
     });
-    return componentMap;
   }
 
-  return null;
+  // Process object-based components (named like <tag>text</tag> where tag is a key in components object)
+  if (!Array.isArray(components) && typeof components === "object") {
+    Object.entries(components).forEach(([tag, component]) => {
+      if (!isValidElement(component)) return;
+
+      // Match both <tag>content</tag> format
+      const tagPattern = new RegExp(`<${tag}>(.*?)<\/${tag}>`, "gs");
+      processedText = processedText.replace(tagPattern, (match, innerContent) => {
+        const placeholder = `__COMPONENT_OBJECT_${tag}_${Math.random().toString(36).substring(2)}__`;
+        placeholders[placeholder] = React.cloneElement(
+          component,
+          {
+            ...component.props,
+            key: component.key || `comp-${tag}`,
+          },
+          innerContent
+        );
+        return placeholder;
+      });
+
+      // Also match self-closing tags like <tag/>
+      const selfClosingPattern = new RegExp(`<${tag}\\s*\\/>`, "g");
+      processedText = processedText.replace(selfClosingPattern, () => {
+        const placeholder = `__COMPONENT_OBJECT_SELF_${tag}_${Math.random().toString(36).substring(2)}__`;
+        placeholders[placeholder] = React.cloneElement(component, {
+          ...component.props,
+          key: component.key || `comp-self-${tag}`,
+        });
+        return placeholder;
+      });
+
+      // Match {{ key }} format for interpolation
+      const interpolationPattern = new RegExp(`{{\\s*${tag}\\s*}}`, "g");
+      processedText = processedText.replace(interpolationPattern, () => {
+        const placeholder = `__COMPONENT_INTERPOLATION_${tag}_${Math.random().toString(36).substring(2)}__`;
+        placeholders[placeholder] = React.cloneElement(component, {
+          ...component.props,
+          key: component.key || `interp-${tag}`,
+        });
+        return placeholder;
+      });
+    });
+  }
+
+  // Process common HTML tags that might be directly in the translation
+  processedText = processHtmlTags(processedText);
+
+  // Now reassemble the final content by replacing placeholders with their components
+  const result: ReactNode[] = [];
+  let currentText = "";
+
+  for (let i = 0; i < processedText.length; i++) {
+    let foundPlaceholder = false;
+
+    // Check if current position starts a placeholder
+    for (const [placeholder, component] of Object.entries(placeholders)) {
+      if (processedText.substring(i, i + placeholder.length) === placeholder) {
+        if (currentText) {
+          result.push(currentText);
+          currentText = "";
+        }
+        result.push(component);
+        i += placeholder.length - 1;
+        foundPlaceholder = true;
+        break;
+      }
+    }
+
+    if (!foundPlaceholder) {
+      currentText += processedText[i];
+    }
+  }
+
+  if (currentText) {
+    result.push(currentText);
+  }
+
+  return result.length > 0 ? result : processedText;
 };
 
-// Render nodes from translation string and components
-const renderNodes = (reactNode: any, targetString: string, interpolationOpts: any) => {
-  if (targetString === "") return [];
+// Process HTML tags that might be in the translation string
+const processHtmlTags = (text: string) => {
+  let processedText = text;
 
-  // If no HTML and no components, return as is
-  if (!/<[a-z][\s\S]*>/i.test(targetString) && !reactNode) return [targetString];
+  // Process common HTML tags
+  const htmlTags = [
+    { tag: "strong", component: "strong" },
+    { tag: "b", component: "b" },
+    { tag: "i", component: "i" },
+    { tag: "em", component: "em" },
+    { tag: "p", component: "p" },
+    { tag: "br", component: "br", selfClosing: true },
+    { tag: "div", component: "div" },
+    { tag: "span", component: "span" },
+    { tag: "a", component: "a", hasAttributes: true },
+    { tag: "ul", component: "ul" },
+    { tag: "ol", component: "ol" },
+    { tag: "li", component: "li" },
+  ];
 
-  // Parse HTML string to AST
-  const ast = HTML.parse(`<0>${targetString}</0>`);
+  htmlTags.forEach(({ tag, component, selfClosing, hasAttributes }) => {
+    if (selfClosing) {
+      // Handle self-closing tags like <br/>
+      const selfClosingRegex = new RegExp(`<${tag}\\s*\\/>`, "g");
+      processedText = processedText.replace(selfClosingRegex, `<__HTML_SELF_${component}__/>`);
+    } else if (hasAttributes) {
+      // Handle tags with attributes like <a href="...">text</a>
+      const tagWithAttributesRegex = new RegExp(`<${tag}\\s+([^>]*)>(.*?)<\\/${tag}>`, "gs");
+      processedText = processedText.replace(
+        tagWithAttributesRegex,
+        `<__HTML_ATTR_${component}__$1>$2</__HTML_ATTR_${component}__>`
+      );
+    } else {
+      // Handle regular tags like <strong>text</strong>
+      const tagRegex = new RegExp(`<${tag}>(.*?)<\\/${tag}>`, "gs");
+      processedText = processedText.replace(tagRegex, `<__HTML_${component}__>$1</__HTML_${component}__>`);
+    }
+  });
 
-  // Map AST to React elements
-  const mapAST = (reactNodes: any, astNodes: any, rootReactNode: any) => {
-    const reactNodesArray = getAsArray(reactNodes);
-    const astNodesArray = getAsArray(astNodes);
-
-    return astNodesArray.reduce((mem: any[], node: any, i: number) => {
-      // Handle text nodes
-      if (node.type === "text") {
-        mem.push(node.content);
-        return mem;
-      }
-
-      // Handle HTML tags
-      if (node.type === "tag") {
-        // Try to find matching component
-        let component = reactNodesArray[parseInt(node.name, 10)];
-
-        // Check if it's an object component
-        if (rootReactNode.length === 1 && !component) {
-          component = rootReactNode[0][node.name];
-        }
-
-        // Default to empty object if no component found
-        if (!component) component = {};
-
-        // Merge attributes if any
-        const child =
-          Object.keys(node.attrs).length !== 0 ? mergeProps({ props: node.attrs }, component) : component;
-
-        // If it's a valid React element
-        if (isValidElement(child)) {
-          // If it has children or the node has children
-          if (hasChildren(child) || (node.children && node.children.length > 0 && !node.voidElement)) {
-            const innerChildren = hasChildren(child) ? getChildren(child) : reactNodesArray;
-
-            const mappedChildren = mapAST(innerChildren, node.children, rootReactNode);
-
-            mem.push(cloneElement(child, { key: i }, mappedChildren));
-          } else {
-            // No children case
-            mem.push(cloneElement(child, { key: i }));
-          }
-        }
-        // Handle HTML tag that's not a component
-        else if (isNaN(parseFloat(node.name))) {
-          // It's an HTML element like <strong>, <span>, etc.
-          if (node.voidElement) {
-            // Void elements like <br/>, <img/>
-            mem.push(createElement(node.name, { key: `${node.name}-${i}` }));
-          } else {
-            // Regular elements with children
-            const inner = mapAST(reactNodesArray, node.children, rootReactNode);
-            mem.push(createElement(node.name, { key: `${node.name}-${i}` }, inner));
-          }
-        }
-        // Handle component by index
-        else {
-          const inner = mapAST(reactNodesArray, node.children, rootReactNode);
-          mem.push(<Fragment key={i}>{inner}</Fragment>);
-        }
-      }
-
-      return mem;
-    }, []);
-  };
-
-  // Call mapAST with properly structured input
-  const result = mapAST([{ dummy: true, children: reactNode || [] }], ast, getAsArray(reactNode || []));
-
-  return getChildren(result[0]);
+  return processedText;
 };
 
 export default ServerTrans;
