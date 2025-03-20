@@ -1,7 +1,7 @@
 import cx from "@calcom/ui/classNames";
 
-import { Input } from "../components/form";
-import { Icon } from "../components/icon";
+import { Input } from "../form";
+import { Icon } from "../icon";
 
 export type AddressInputProps = {
   value: string;

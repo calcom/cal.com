@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
-import { Tooltip } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import classNames from "@calcom/ui/classNames";
 
 import type { CalendarEvent } from "../../types/events";
