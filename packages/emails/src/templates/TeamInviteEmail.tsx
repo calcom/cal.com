@@ -157,59 +157,34 @@ export const TeamInviteEmail = (
           <>
             {autoJoinType == "added" ? (
               <>
-                <ServerTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
-                  {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-                </ServerTrans>{" "}
                 <ServerTrans
                   t={props.language}
-                  i18nKey="email_team_invite|content_addition|existing_user_added"
-                  values={{
-                    prevLink: props.prevLink ?? "",
-                    newLink: props.newLink ?? "",
-                    teamName: props.teamName,
-                  }}>
-                  Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
-                  <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous
-                  links still work and redirect appropriately.
-                  <br />
-                  <br />
-                  Please note: All of your personal event types have been moved into the{" "}
-                  <strong>{teamName}</strong> organisation, which may also include potential personal link.
-                  <br />
-                  <br />
-                  Please log in and make sure you have no private events on your new organisational account.
-                  <br />
-                  <br />
-                  For personal events we recommend creating a new account with a personal email address.
-                  <br />
-                  <br />
-                  Enjoy your new clean link:{" "}
-                  <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-                </ServerTrans>
+                  i18nKey="email_team_invite|content|added_to_org"
+                  values={{ teamName, invitedBy }}
+                />{" "}
+                <ServerTrans
+                  t={props.language}
+                  i18nKey="email|existing_user_added_link_changed"
+                  components={{
+                    a0: <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a>,
+                    a1: <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a>,
+                    a2: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>,
+                  }}
+                  values={{ teamName }}
+                />
               </>
             ) : (
               <>
-                <ServerTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
-                  {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-                </ServerTrans>{" "}
+                <ServerTrans
+                  t={props.language}
+                  i18nKey="email_team_invite|content|invited_to_org"
+                  values={{ teamName, invitedBy }}
+                />{" "}
                 <ServerTrans
                   t={props.language}
                   i18nKey="existing_user_added_link_will_change"
-                  values={{
-                    prevLink: props.prevLink ?? "",
-                    newLink: props.newLink ?? "",
-                    teamName: props.teamName,
-                  }}>
-                  On accepting the invite, your link will change to your organization domain but don&apos;t
-                  worry, all previous links will still work and redirect appropriately.
-                  <br />
-                  <br />
-                  Please note: All of your personal event types will be moved into the{" "}
-                  <strong>{teamName}</strong> organisation, which may also include potential personal link.
-                  <br />
-                  <br />
-                  For personal events we recommend creating a new account with a personal email address.
-                </ServerTrans>
+                  values={{ teamName }}
+                />
               </>
             )}
           </>
@@ -218,13 +193,17 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <ServerTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
-              {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-            </ServerTrans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|added_to_org"
+              values={{ teamName, invitedBy }}
+            />
           ) : (
-            <ServerTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
-              {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-            </ServerTrans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|invited_to_org"
+              values={{ teamName, invitedBy }}
+            />
           )}{" "}
           {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
           without the email tennis.
@@ -236,15 +215,17 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <ServerTrans t={props.language} i18nKey="email_team_invite|content|added_to_subteam">
-              {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>.
-            </ServerTrans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|added_to_subteam"
+              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy }}
+            />
           ) : (
-            <ServerTrans t={props.language} i18nKey="email_team_invite|content|invited_to_subteam">
-              {invitedBy} has invited you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>.
-            </ServerTrans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|invited_to_subteam"
+              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy }}
+            />
           )}{" "}
           {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
           without the email tennis.

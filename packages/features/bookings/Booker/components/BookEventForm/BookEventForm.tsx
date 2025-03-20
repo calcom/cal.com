@@ -141,12 +141,15 @@ export const BookEventForm = ({
               severity="info"
               title={t("unavailable_timeslot_title")}
               message={
-                <ServerTrans t={t} i18nKey="timeslot_unavailable_book_a_new_time">
-                  The selected time slot is no longer available.{" "}
-                  <button type="button" className="underline" onClick={onCancel}>
-                    Please select a new time
-                  </button>
-                </ServerTrans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="timeslot_unavailable_book_a_new_time"
+                  components={[
+                    <button type="button" className="underline" onClick={onCancel}>
+                      Please select a new time
+                    </button>,
+                  ]}
+                />
               }
             />
           </div>

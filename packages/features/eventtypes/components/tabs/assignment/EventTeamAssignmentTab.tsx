@@ -117,15 +117,18 @@ const ChildrenEventTypesList = ({
 };
 
 const FixedHostHelper = ({ t }: { t: TFunction }) => (
-  <ServerTrans t={t} i18nKey="fixed_host_helper">
-    Add anyone who needs to attend the event.
-    <Link
-      className="underline underline-offset-2"
-      target="_blank"
-      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
-      Learn more
-    </Link>
-  </ServerTrans>
+  <ServerTrans
+    t={t}
+    i18nKey="fixed_host_helper"
+    components={[
+      <Link
+        className="underline underline-offset-2"
+        target="_blank"
+        href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
+        Learn more
+      </Link>,
+    ]}
+  />
 );
 
 type FixedHostsCustomClassNames = SettingsToggleClassNames & {

@@ -51,26 +51,16 @@ export const OrganizationCreationEmail = (
             Enjoy your new organization link: <a href={`${newLink}`}>{newLinkWithoutProtocol}</a>
           </>
         ) : (
-          <ServerTrans t={props.language} i18nKey="email|existing_user_added_link_changed">
-            Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
-            <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links
-            still work and redirect appropriately.
-            <br />
-            <br />
-            Please note: All of your personal event types have been moved into the <strong>
-              {teamName}
-            </strong>{" "}
-            organisation, which may also include potential personal link.
-            <br />
-            <br />
-            Please log in and make sure you have no private events on your new organisational account.
-            <br />
-            <br />
-            For personal events we recommend creating a new account with a personal email address.
-            <br />
-            <br />
-            Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-          </ServerTrans>
+          <ServerTrans
+            t={props.language}
+            i18nKey="email|existing_user_added_link_changed"
+            components={{
+              a0: <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a>,
+              a1: <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a>,
+              a2: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>,
+            }}
+            values={{ teamName }}
+          />
         )}
       </p>
 

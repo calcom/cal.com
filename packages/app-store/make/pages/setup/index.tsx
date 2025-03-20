@@ -115,20 +115,22 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
               </>
 
               <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
-                <ServerTrans t={t} i18nKey="make_setup_instructions">
-                  <li>
-                    Go to
-                    <a href={inviteLink} className="ml-1 mr-1 text-orange-600 underline">
-                      Make Invite Link
-                    </a>
-                    and install the Cal.com app.
-                  </li>
-                  <li>Log into your Make account and create a new Scenario.</li>
-                  <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
-                  <li>Choose your account and then enter your Unique API Key.</li>
-                  <li>Test your Trigger.</li>
-                  <li>You&apos;re set!</li>
-                </ServerTrans>
+                <li>
+                  <ServerTrans
+                    t={t}
+                    i18nKey="make_setup_instructions_1"
+                    components={[
+                      <a href={inviteLink} className="ml-1 mr-1 text-orange-600 underline">
+                        Make Invite Link
+                      </a>,
+                    ]}
+                  />
+                </li>
+                <li>{t("make_setup_instructions_2")}</li>
+                <li>{t("make_setup_instructions_3")}</li>
+                <li>{t("make_setup_instructions_4")}</li>
+                <li>{t("make_setup_instructions_5")}</li>
+                <li>{t("make_setup_instructions_6")}</li>
               </ol>
               <Link href="/apps/installed/automation?hl=make" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>

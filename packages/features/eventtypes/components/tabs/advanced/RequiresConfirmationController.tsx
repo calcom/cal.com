@@ -166,67 +166,65 @@ export default function RequiresConfirmationController({
                               <ServerTrans
                                 t={t}
                                 i18nKey="when_booked_with_less_than_notice"
-                                components={{
-                                  time: (
-                                    <div className="mx-2 inline-flex items-center">
-                                      <Input
-                                        type="number"
-                                        min={1}
-                                        disabled={requiresConfirmationLockedProps.disabled}
-                                        onChange={(evt) => {
-                                          const val = Number(evt.target?.value);
+                                components={[
+                                  <div className="mx-2 inline-flex items-center">
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      disabled={requiresConfirmationLockedProps.disabled}
+                                      onChange={(evt) => {
+                                        const val = Number(evt.target?.value);
+                                        setRequiresConfirmationSetup({
+                                          unit:
+                                            requiresConfirmationSetup?.unit ??
+                                            defaultRequiresConfirmationSetup.unit,
+                                          time: val,
+                                        });
+                                        formMethods.setValue(
+                                          "metadata.requiresConfirmationThreshold.time",
+                                          val,
+                                          { shouldDirty: true }
+                                        );
+                                      }}
+                                      className={classNames(
+                                        "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                        customClassNames?.conditionalConfirmationRadio?.timeInput
+                                      )}
+                                      defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
+                                    />
+                                    <label
+                                      className={classNames(
+                                        requiresConfirmationLockedProps.disabled && "cursor-not-allowed"
+                                      )}>
+                                      <Select
+                                        inputId="notice"
+                                        options={options}
+                                        isSearchable={false}
+                                        isDisabled={requiresConfirmationLockedProps.disabled}
+                                        className={
+                                          customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
+                                        }
+                                        innerClassNames={{
+                                          control: "rounded-l-none max-h-4 px-3 bg-subtle",
+                                        }}
+                                        onChange={(opt) => {
                                           setRequiresConfirmationSetup({
-                                            unit:
-                                              requiresConfirmationSetup?.unit ??
-                                              defaultRequiresConfirmationSetup.unit,
-                                            time: val,
+                                            time:
+                                              requiresConfirmationSetup?.time ??
+                                              defaultRequiresConfirmationSetup.time,
+                                            unit: opt?.value as UnitTypeLongPlural,
                                           });
                                           formMethods.setValue(
-                                            "metadata.requiresConfirmationThreshold.time",
-                                            val,
+                                            "metadata.requiresConfirmationThreshold.unit",
+                                            opt?.value as UnitTypeLongPlural,
                                             { shouldDirty: true }
                                           );
                                         }}
-                                        className={classNames(
-                                          "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
-                                          customClassNames?.conditionalConfirmationRadio?.timeInput
-                                        )}
-                                        defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
+                                        defaultValue={defaultValue}
                                       />
-                                      <label
-                                        className={classNames(
-                                          requiresConfirmationLockedProps.disabled && "cursor-not-allowed"
-                                        )}>
-                                        <Select
-                                          inputId="notice"
-                                          options={options}
-                                          isSearchable={false}
-                                          isDisabled={requiresConfirmationLockedProps.disabled}
-                                          className={
-                                            customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
-                                          }
-                                          innerClassNames={{
-                                            control: "rounded-l-none max-h-4 px-3 bg-subtle",
-                                          }}
-                                          onChange={(opt) => {
-                                            setRequiresConfirmationSetup({
-                                              time:
-                                                requiresConfirmationSetup?.time ??
-                                                defaultRequiresConfirmationSetup.time,
-                                              unit: opt?.value as UnitTypeLongPlural,
-                                            });
-                                            formMethods.setValue(
-                                              "metadata.requiresConfirmationThreshold.unit",
-                                              opt?.value as UnitTypeLongPlural,
-                                              { shouldDirty: true }
-                                            );
-                                          }}
-                                          defaultValue={defaultValue}
-                                        />
-                                      </label>
-                                    </div>
-                                  ),
-                                }}
+                                    </label>
+                                  </div>,
+                                ]}
                               />
                             </>
                           }

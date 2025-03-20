@@ -99,10 +99,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               title={
                 <ServerTrans
                   t={t}
-                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
-                  {lockedText[0].toUpperCase()}
-                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                </ServerTrans>
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                />
               }
               actions={<div className="flex h-full items-center">{appsDisableProps.LockedIcon}</div>}
               message={
@@ -110,12 +108,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                   t={t}
                   i18nKey={`apps_${lockedText}_${
                     isManagedEventType ? "for_members" : "by_team_admins"
-                  }_description`}>
-                  {isManagedEventType ? "Members" : "You"}{" "}
-                  {appsDisableProps.isLocked
-                    ? "will be able to see the active apps but will not be able to edit any app settings"
-                    : "will be able to see the active apps and will be able to edit any app settings"}
-                </ServerTrans>
+                  }_description`}
+                />
               }
             />
           )}
@@ -165,12 +159,15 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                 {t("available_apps_lower_case")}
               </h2>
               <p className="text-default mb-6 text-sm font-normal">
-                <ServerTrans t={t} i18nKey="available_apps_desc">
-                  View popular apps below and explore more in our &nbsp;
-                  <Link className="cursor-pointer underline" href="/apps">
-                    App Store
-                  </Link>
-                </ServerTrans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="available_apps_desc"
+                  components={[
+                    <Link className="cursor-pointer underline" href="/apps">
+                      App Store
+                    </Link>,
+                  ]}
+                />
               </p>
             </>
           ) : null}

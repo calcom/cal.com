@@ -15,18 +15,20 @@ export function getEnumKeyByEnumValue(myEnum: any, enumValue: number | string): 
 
 const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number | null; t: TFunction }) => {
   return (
-    <ServerTrans i18nKey="broken_video_action" t={props.t}>
-      We could not add the <span>{props.location}</span> meeting link to your scheduled event. Contact your
-      invitees or update your calendar event to add the details. You can either&nbsp;
-      <a
-        href={
-          props.eventTypeId ? `${WEBAPP_URL}/event-types/${props.eventTypeId}` : `${WEBAPP_URL}/event-types`
-        }>
-        change your location on the event type
-      </a>
-      &nbsp;or try&nbsp;
-      <a href={`${WEBAPP_URL}/apps/installed`}>removing and adding the app again.</a>
-    </ServerTrans>
+    <ServerTrans
+      i18nKey="broken_video_action"
+      t={props.t}
+      values={{ location: props.location }}
+      components={[
+        <a
+          href={
+            props.eventTypeId ? `${WEBAPP_URL}/event-types/${props.eventTypeId}` : `${WEBAPP_URL}/event-types`
+          }>
+          change your location on the event type
+        </a>,
+        <a href={`${WEBAPP_URL}/apps/installed`}>removing and adding the app again.</a>,
+      ]}
+    />
   );
 };
 

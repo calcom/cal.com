@@ -91,20 +91,7 @@ export const AdminOrganizationNotificationEmail = ({
         <>{language("hi_admin")}!</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <ServerTrans i18nKey="admin_org_notification_email_body_part1" t={language} values={{ orgSlug }}>
-          An organization with slug {`"${orgSlug}"`} was created.
-          <br />
-          <br />
-          Please be sure to configure your DNS registry to point the subdomain corresponding to the new
-          organization to where the main app is running. Otherwise the organization will not work.
-          <br />
-          <br />
-          Here are just the very basic options to configure a subdomain to point to their app so it loads the
-          organization profile page.
-          <br />
-          <br />
-          You can do it either with the A Record:
-        </ServerTrans>
+        <ServerTrans i18nKey="admin_org_notification_email_body_part1" t={language} values={{ orgSlug }} />
       </p>
       {dnsTable("A", orgSlug, webappIPAddress, language)}
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>

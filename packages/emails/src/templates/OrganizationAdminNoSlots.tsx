@@ -34,25 +34,8 @@ export const OrganizationAdminNoSlotsEmail = (
         <ServerTrans
           t={props.language}
           i18nKey="org_admin_no_slots|content"
-          values={{ username: props.user, slug: props.slug }}>
-          Hello Organization Admins,
-          <br />
-          <br />
-          Please note: It has been brought to our attention that {props.user} has not had any availability
-          when a user has visited {props.teamSlug}/{props.slug}.
-          <br />
-          Start time: {props.startTime}
-          <br />
-          End time: {props.endTime}
-          <br />
-          <br />
-          There’s a few reasons why this could be happening:
-          <br />
-          <ul>
-            <li>The user does not have any calendars connected</li>
-            <li>Their schedules attached to this event are not enabled</li>
-          </ul>
-        </ServerTrans>
+          values={{ username: props.user, slug: props.slug }}
+        />
       </p>
       <div style={{ marginTop: "3rem", marginBottom: "0.75rem" }}>
         <CallToAction

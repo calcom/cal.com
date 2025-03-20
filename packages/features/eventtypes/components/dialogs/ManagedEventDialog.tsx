@@ -32,7 +32,11 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
         <p className="mt-5">
           <ServerTrans
             t={t}
-            i18nKey="managed_event_dialog_information"
+            i18nKey={
+              slugExistsChildrenDialogOpen.length > 1
+                ? "managed_event_dialog_information_other"
+                : "managed_event_dialog_information_one"
+            }
             values={{
               names: `${slugExistsChildrenDialogOpen
                 .map((ch) => ch.owner.name)
@@ -42,7 +46,6 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
               } ${slugExistsChildrenDialogOpen.map((ch) => ch.owner.name).slice(-1)}`,
               slug,
             }}
-            count={slugExistsChildrenDialogOpen.length}
           />
         </p>{" "}
         <p className="mt-5">{t("managed_event_dialog_clarification")}</p>

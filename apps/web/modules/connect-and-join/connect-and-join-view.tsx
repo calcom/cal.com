@@ -59,12 +59,15 @@ function ConnectAndJoin() {
             <div className="flex flex-col items-center justify-center	gap-4">
               {meetingUrl ? (
                 <div className="text-default flex flex-col items-center gap-2 text-center text-sm font-normal">
-                  <ServerTrans t={t} i18nKey="some_other_host_already_accepted_the_meeting">
-                    Some other host already accepted the meeting. Do you still want to join?
-                    <Link className="inline-block cursor-pointer underline" href={meetingUrl}>
-                      Continue to Meeting
-                    </Link>
-                  </ServerTrans>
+                  <ServerTrans
+                    t={t}
+                    i18nKey="some_other_host_already_accepted_the_meeting"
+                    components={[
+                      <Link className="inline-block cursor-pointer underline" href={meetingUrl}>
+                        Continue to Meeting
+                      </Link>,
+                    ]}
+                  />
                 </div>
               ) : (
                 <Button

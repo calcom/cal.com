@@ -205,10 +205,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         description={
           IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
-              <ServerTrans t={t} i18nKey="invite_new_member_description">
-                Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
-                on your subscription.
-              </ServerTrans>
+              <ServerTrans
+                t={t}
+                i18nKey="invite_new_member_description"
+                components={[<span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>]}
+              />
             </span>
           ) : null
         }>

@@ -254,10 +254,8 @@ function EventWorkflowsTab(props: Props) {
               title={
                 <ServerTrans
                   t={t}
-                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
-                  {lockedText[0].toUpperCase()}
-                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                </ServerTrans>
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                />
               }
               actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
               message={
@@ -265,12 +263,8 @@ function EventWorkflowsTab(props: Props) {
                   t={t}
                   i18nKey={`workflows_${lockedText}_${
                     isManagedEventType ? "for_members" : "by_team_admins"
-                  }_description`}>
-                  {isManagedEventType ? "Members" : "You"}{" "}
-                  {workflowsDisableProps.isLocked
-                    ? "will be able to see the active workflows but will not be able to edit any workflow settings"
-                    : "will be able to see the active workflow and will be able to edit any workflow settings"}
-                </ServerTrans>
+                  }_description`}
+                />
               }
             />
           )}

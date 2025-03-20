@@ -7,7 +7,6 @@ type ServerTransProps = {
   components?: ReactElement[] | Record<string, ReactElement>; // Components to inject
   t: TFunction;
   values?: Record<string, string | number>; // Values for interpolation
-  count?: number; // Count for pluralization
   children?: ReactNode; // Children as fallback content
   parent?: React.ElementType; // Parent element to wrap content in
 };
@@ -21,16 +20,10 @@ const ServerTrans: FC<ServerTransProps> = ({
   components = [],
   t,
   values = {},
-  count,
   children,
   parent,
 }) => {
-  // Get translated string with count if provided
   const translationOptions = { ...values };
-  if (count !== undefined) {
-    translationOptions.count = count;
-  }
-
   // Get translated content
   const content = t(i18nKey, translationOptions);
 

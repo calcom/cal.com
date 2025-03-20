@@ -124,10 +124,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     title={
                       <ServerTrans
                         t={t}
-                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
-                        {lockedText[0].toUpperCase()}
-                        {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                      </ServerTrans>
+                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                      />
                     }
                     actions={
                       <div className="flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
@@ -137,12 +135,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                         t={t}
                         i18nKey={`webhooks_${lockedText}_${
                           isManagedEventType ? "for_members" : "by_team_admins"
-                        }_description`}>
-                        {isManagedEventType ? "Members" : "You"}{" "}
-                        {webhooksDisableProps.isLocked
-                          ? "will be able to see the active webhooks but will not be able to edit any webhook settings"
-                          : "will be able to see the active webhooks and will be able to edit any webhook settings"}
-                      </ServerTrans>
+                        }_description`}
+                      />
                     }
                   />
                 )}
@@ -183,14 +177,17 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       </div>
 
                       <p className="text-default text-sm font-normal">
-                        <ServerTrans t={t} i18nKey="edit_or_manage_webhooks">
-                          If you wish to edit or manage your web hooks, please head over to &nbsp;
-                          <Link
-                            className="cursor-pointer font-semibold underline"
-                            href="/settings/developer/webhooks">
-                            webhooks settings
-                          </Link>
-                        </ServerTrans>
+                        <ServerTrans
+                          t={t}
+                          i18nKey="edit_or_manage_webhooks"
+                          components={[
+                            <Link
+                              className="cursor-pointer font-semibold underline"
+                              href="/settings/developer/webhooks">
+                              webhooks settings
+                            </Link>,
+                          ]}
+                        />
                       </p>
                     </div>
                   </>

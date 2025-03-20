@@ -443,14 +443,15 @@ const Locations: React.FC<LocationsProps> = ({
               <Icon name="check" className="h-3 w-3" />
             </div>
             <p className="text-default text-sm">
-              <ServerTrans t={t} i18nKey="event_type_requires_google_calendar">
-                The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
-                Connect it
-                <Link className="cursor-pointer text-blue-500 underline" href="/apps/google-calendar">
-                  here
-                </Link>
-                .
-              </ServerTrans>
+              <ServerTrans
+                t={t}
+                i18nKey="event_type_requires_google_calendar"
+                components={[
+                  <Link className="cursor-pointer text-blue-500 underline" href="/apps/google-calendar">
+                    here
+                  </Link>,
+                ]}
+              />
             </p>
           </div>
         )}
@@ -480,13 +481,15 @@ const Locations: React.FC<LocationsProps> = ({
       </ul>
       {props.showAppStoreLink && !isPlatorm && (
         <p className="text-default mt-2 text-sm">
-          <ServerTrans t={t} i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
-            Can&apos;t find the right conferencing app? Visit our
-            <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/conferencing">
-              App Store
-            </Link>
-            .
-          </ServerTrans>
+          <ServerTrans
+            t={t}
+            i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store"
+            components={[
+              <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/conferencing">
+                App Store
+              </Link>,
+            ]}
+          />
         </p>
       )}
     </div>
