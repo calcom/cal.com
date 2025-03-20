@@ -2,7 +2,8 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 
-import { type IconName, IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
 
 import { lucideIconList } from "../../../../packages/ui/components/icon/icon-list.mjs";
 import { IconGrid } from "./IconGrid";
