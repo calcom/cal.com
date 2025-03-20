@@ -16,7 +16,10 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, SkeletonText } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Checkbox } from "@calcom/ui/components/form";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -155,10 +158,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             </div>
           );
         },
-        filterFn: (rows, id, filterValue) => {
-          const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
-        },
       },
       {
         id: "role",
@@ -180,15 +179,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               {role}
             </Badge>
           );
-        },
-        filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
-          }
-
-          // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
         },
       },
       {
@@ -229,10 +219,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               ))}
             </div>
           );
-        },
-        filterFn: (rows, _, filterValue: string[]) => {
-          const teamNames = rows.original.teams.map((team) => team.name);
-          return filterValue.some((value: string) => teamNames.includes(value));
         },
       },
     ];
@@ -294,7 +280,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
 
   return (
     <>
-      <DataTableWrapper
+      <DataTableWrapper<PlatformManagedUserTableUser>
         testId="managed-user-list-data-table"
         table={table}
         isPending={isPending}
