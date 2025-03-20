@@ -542,7 +542,7 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
 };
 
-export const sendWorkflowEmail = async (emailData: WorkflowEmailDataType) => {
+export const sendCustomWorkflowEmail = async (emailData: WorkflowEmailDataType) => {
   await sendEmail(() => new WorkflowEmail(emailData));
 };
 

@@ -1,4 +1,4 @@
-import type { MailData } from "@sendgrid/helpers/classes/mail";
+import { sendOrScheduleWorkflowEmail } from "ee/workflows/lib/reminders/providers/emailProvider";
 import type { EventStatus } from "ics";
 import { v4 as uuidv4 } from "uuid";
 
@@ -47,7 +47,7 @@ export interface ScheduleReminderArgs {
 
 interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   evt: BookingInfo;
-  sendTo: MailData["to"];
+  sendTo: string[];
   action: ScheduleEmailReminderAction;
   emailSubject?: string;
   emailBody?: string;
@@ -86,7 +86,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
 
-  let attendeeEmailToBeUsedInMail: string | null = null;
   let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
   let name = "";
   let attendeeName = "";
@@ -106,28 +105,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       timeZone = evt.organizer.timeZone;
       break;
     case WorkflowActions.EMAIL_ATTENDEE:
-      //These type checks are required as sendTo is of type MailData["to"] which in turn is of string | {name?:string, email: string} | string | {name?:string, email: string}[0]
-      // and the email is being sent to the first attendee of event by default instead of the sendTo
-      // so check if first attendee can be extracted from sendTo -> attendeeEmailToBeUsedInMail
-      if (typeof sendTo === "string") {
-        attendeeEmailToBeUsedInMail = sendTo;
-      } else if (Array.isArray(sendTo)) {
-        // If it's an array, take the first entry (if it exists) and extract name and email (if object); otherwise, just put the email (if string)
-        const emailData = sendTo[0];
-        if (typeof emailData === "object" && emailData !== null) {
-          const { name, email } = emailData;
-          attendeeEmailToBeUsedInMail = email;
-        } else if (typeof emailData === "string") {
-          attendeeEmailToBeUsedInMail = emailData;
-        }
-      } else if (typeof sendTo === "object" && sendTo !== null) {
-        const { name, email } = sendTo;
-        attendeeEmailToBeUsedInMail = email;
-      }
-
       // check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
       const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
-        (attendee) => attendee.email === attendeeEmailToBeUsedInMail
+        (attendee) => attendee.email === sendTo[0]
       );
       attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
         ? attendeeEmailToBeUsedInMailFromEvt
@@ -219,9 +199,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
 
-  const batchId = await getBatchId();
-
-  async function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
+  async function prepareEmailData() {
     const status: EventStatus =
       triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ? "CANCELLED" : "CONFIRMED";
 
@@ -242,34 +220,48 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       attendees: [attendee],
     };
 
-    return sendSendgridMail(
-      {
-        to: data.to,
-        subject: emailContent.emailSubject,
-        html: emailContent.emailBody,
-        batchId,
-        replyTo: evt.organizer.email,
-        attachments: includeCalendarEvent
-          ? [
-              {
-                content: Buffer.from(
-                  generateIcsString({
-                    event: emailEvent,
-                    status,
-                  }) || ""
-                ).toString("base64"),
-                filename: "event.ics",
-                type: "text/calendar; method=REQUEST",
-                disposition: "attachment",
-                contentId: uuidv4(),
-              },
-            ]
-          : undefined,
-        sendAt: data.sendAt,
-      },
-      { sender }
-    );
+    const attachments = includeCalendarEvent
+      ? [
+          {
+            content: Buffer.from(
+              generateIcsString({
+                event: emailEvent,
+                status,
+              }) || ""
+            ).toString("base64"),
+            filename: "event.ics",
+            type: "text/calendar; method=REQUEST",
+            disposition: "attachment",
+            contentId: uuidv4(),
+          },
+        ]
+      : undefined;
+
+    return {
+      subject: emailContent.emailSubject,
+      html: emailContent.emailBody,
+      replyTo: evt.organizer.email,
+      attachments,
+      sender,
+    };
   }
+
+  const mailData = await prepareEmailData();
+
+  const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
+
+  if (!isSendgridEnabled) {
+    const promises = sendTo.map((email) =>
+      sendOrScheduleWorkflowEmail({ ...mailData, to: email, sendAt: scheduledDate?.toDate() })
+    );
+
+    const emailResults = await Promise.all(promises);
+    return;
+  }
+
+  /* Deprecated - Everything below is for Sendgrid not needed for SMTP */
+
+  const sendgridBatchId = isSendgridEnabled ? await getBatchId() : undefined;
 
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -277,11 +269,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
   ) {
     try {
-      if (!sendTo) throw new Error("No email addresses provided");
-      const addressees = Array.isArray(sendTo) ? sendTo : [sendTo];
-      const promises = addressees.map((email) => sendEmail({ to: email }, triggerEvent));
+      const promises = sendTo.map((email) => sendSendgridMail({ ...mailData, to: email }));
       // TODO: Maybe don't await for this?
-      await Promise.all(promises);
+      const emailResults = await Promise.all(promises);
     } catch (error) {
       log.error("Error sending Email");
     }
@@ -299,13 +289,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     ) {
       try {
         // If sendEmail failed then workflowReminer will not be created, failing E2E tests
-        await sendEmail(
-          {
-            to: sendTo,
-            sendAt: scheduledDate.unix(),
-          },
-          triggerEvent
-        );
+
+        await sendSendgridMail({ ...mailData, to: sendTo, sendAt: scheduledDate.unix() });
+
         if (!isMandatoryReminder) {
           await prisma.workflowReminder.create({
             data: {
