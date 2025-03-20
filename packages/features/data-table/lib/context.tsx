@@ -13,6 +13,7 @@ import {
   ZColumnVisibility,
   ZActiveFilter,
   ZColumnSizing,
+  ZSegmentStorage,
   type FilterSegmentOutput,
   type ActiveFilters,
 } from "./types";
@@ -64,6 +65,32 @@ interface DataTableProviderProps {
   defaultPageSize?: number;
 }
 
+const LOCAL_STORAGE_KEY = "data-table:segments";
+
+function getSegmentsFromLocalStorage() {
+  try {
+    return ZSegmentStorage.parse(JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) ?? "{}"));
+  } catch {
+    return {};
+  }
+}
+
+function saveSegmentToLocalStorage({
+  tableIdentifier,
+  segmentId,
+}: {
+  tableIdentifier: string;
+  segmentId: number | null;
+}) {
+  const segments = getSegmentsFromLocalStorage();
+  if (segmentId) {
+    segments[tableIdentifier] = { segmentId };
+  } else {
+    delete segments[tableIdentifier];
+  }
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(segments));
+}
+
 export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
@@ -113,6 +140,17 @@ export function DataTableProvider({
       }
     }
   }, [segments, segmentId, setSegmentId, isFetchingSegments]);
+
+  useEffect(() => {
+    // this hook doesn't include segmentId in the dependency array
+    // because we want to only run this once, when the component mounts
+    if (segmentId === -1) {
+      const segments = getSegmentsFromLocalStorage();
+      if (segments[tableIdentifier]) {
+        setSegmentId(segments[tableIdentifier].segmentId);
+      }
+    }
+  }, [tableIdentifier, setSegmentId]);
 
   useEffect(() => {
     if (selectedSegment) {
@@ -212,6 +250,14 @@ export function DataTableProvider({
     }
   }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, defaultPageSize]);
 
+  const setSegmentIdAndSaveToLocalStorage = useCallback(
+    (segmentId: number | null) => {
+      setSegmentId(segmentId);
+      saveSegmentToLocalStorage({ tableIdentifier, segmentId });
+    },
+    [tableIdentifier, setSegmentId]
+  );
+
   return (
     <DataTableContext.Provider
       value={{
@@ -236,7 +282,7 @@ export function DataTableProvider({
         segments: segments ?? [],
         selectedSegment,
         segmentId: segmentId || undefined,
-        setSegmentId,
+        setSegmentId: setSegmentIdAndSaveToLocalStorage,
         canSaveSegment,
       }}>
       {children}
