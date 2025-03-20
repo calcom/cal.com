@@ -10,21 +10,16 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  CheckboxField,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  EmailField,
-  Form,
-  Icon,
-  Input,
-  Label,
-  Select,
-  Tooltip,
-} from "@calcom/ui";
+import { EmailField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { onlyLettersNumbersSpaces } from "../lib/schema";

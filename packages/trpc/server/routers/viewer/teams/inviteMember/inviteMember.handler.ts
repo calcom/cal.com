@@ -9,7 +9,7 @@ import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 

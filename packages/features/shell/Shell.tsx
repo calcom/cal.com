@@ -13,8 +13,11 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
+import { HeadSeo } from "@calcom/ui/components/head-seo";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
@@ -213,7 +216,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="bg-default relative z-0 flex-1 focus:outline-none">
+    <main className="bg-default relative z-0 flex-1 pb-8 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:py-4 lg:px-6">
