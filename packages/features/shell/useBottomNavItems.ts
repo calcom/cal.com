@@ -2,7 +2,7 @@ import type { User as UserAuth } from "next-auth";
 
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { type NavigationItemType } from "./navigation/NavigationItem";
 

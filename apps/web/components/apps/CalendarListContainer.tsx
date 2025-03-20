@@ -6,16 +6,14 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
 import { SelectedCalendarsSettingsWebWrapper } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  EmptyScreen,
-  List,
-  ShellSubHeading,
-  AppSkeletonLoader as SkeletonLoader,
-  showToast,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { ShellSubHeading } from "@calcom/ui/components/layout";
+import { List } from "@calcom/ui/components/list";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";

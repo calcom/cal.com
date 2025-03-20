@@ -3,9 +3,11 @@ import { usePathname } from "next/navigation";
 import React, { Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Tooltip, Icon, SkeletonText } from "@calcom/ui";
-import type { IconName } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 

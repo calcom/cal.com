@@ -15,17 +15,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
-import { QueryCell } from "@lib/QueryCell";
-
-export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
+export function AvailabilityList() {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
+  const { data: availabilityData, isFetching: isFetchingAvailabilityData } =
+    trpc.viewer.availability.list.useQuery();
 
   const meQuery = trpc.viewer.me.get.useQuery();
 
@@ -121,9 +122,13 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
 
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
 
+  if (isFetchingAvailabilityData || !availabilityData) {
+    return <SkeletonLoader />;
+  }
+
   return (
     <>
-      {schedules.length === 0 ? (
+      {availabilityData.schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
             Icon="clock"
@@ -137,7 +142,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         <>
           <div className="border-subtle bg-default overflow-hidden rounded-md border">
             <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
-              {schedules.map((schedule) => (
+              {availabilityData.schedules.map((schedule) => (
                 <ScheduleListItem
                   displayOptions={{
                     hour12: meQuery.data?.timeFormat ? meQuery.data.timeFormat === 12 : undefined,
@@ -146,7 +151,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                   }}
                   key={schedule.id}
                   schedule={schedule}
-                  isDeletable={schedules.length !== 1}
+                  isDeletable={availabilityData.schedules.length !== 1}
                   updateDefault={updateMutation.mutate}
                   deleteFunction={deleteMutation.mutate}
                   duplicateFunction={duplicateMutation.mutate}
@@ -175,18 +180,6 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         </>
       )}
     </>
-  );
-}
-
-function AvailabilityListWithQuery() {
-  const query = trpc.viewer.availability.list.useQuery();
-
-  return (
-    <QueryCell
-      query={query}
-      success={({ data }) => <AvailabilityList {...data} />}
-      customLoader={<SkeletonLoader />}
-    />
   );
 }
 
@@ -245,6 +238,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const me = useMeQuery();
+
   const { data: _data } = trpc.viewer.organizations.listCurrent.useQuery(undefined, { enabled: !currentOrg });
   const data = currentOrg ?? _data;
 
@@ -264,6 +258,6 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   return searchParams?.get("type") === "team" && canViewTeamAvailability ? (
     <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} isOrg={isOrg} />
   ) : (
-    <AvailabilityListWithQuery />
+    <AvailabilityList />
   );
 }

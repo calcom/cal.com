@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
