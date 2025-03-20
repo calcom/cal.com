@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@calcom/ui/components/dialog";
 import { Form, Input, Label, Select, Switch } from "@calcom/ui/components/form";
-import { RadioGroup, RadioField } from "@calcom/ui/components/form/radio-area";
+import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useDataTable } from "../../hooks";
