@@ -20,11 +20,6 @@ import {
   DialogContent,
 } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const MultiplePrivateLinksController = ({
   team,
@@ -262,7 +257,7 @@ export const MultiplePrivateLinksController = ({
                       value="usage"
                       className="text-emphasis border-default h-4 w-4 cursor-pointer rounded-full"
                       checked={selectedType === "usage"}
-                      onChange={() => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setSelectedType("usage");
                         updateLinkSettings(currentLinkIndex, "usage");
                       }}
@@ -285,7 +280,7 @@ export const MultiplePrivateLinksController = ({
                     min={1}
                     disabled={selectedType !== "usage"}
                     value={maxUsageCount === null ? "" : maxUsageCount}
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value === "" ? null : parseInt(e.target.value);
                       if (e.target.value === "") {
                         setMaxUsageCount(null);
@@ -308,7 +303,7 @@ export const MultiplePrivateLinksController = ({
                       value="time"
                       className="text-emphasis border-default h-4 w-4 cursor-pointer rounded-full"
                       checked={selectedType === "time"}
-                      onChange={() => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setSelectedType("time");
                         updateLinkSettings(currentLinkIndex, "time");
                       }}
@@ -329,7 +324,7 @@ export const MultiplePrivateLinksController = ({
                   <DatePicker
                     disabled={selectedType !== "time"}
                     date={expiryDate}
-                    onDatesChange={(newDate) => {
+                    onDatesChange={(newDate: Date) => {
                       setExpiryDate(newDate);
                       updateLinkSettings(currentLinkIndex, "time", newDate);
                     }}

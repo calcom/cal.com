@@ -1,8 +1,7 @@
 import { prisma } from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
-
-import type { TrpcSessionUser } from "../../../trpc";
 
 type GetHashedLinkOptions = {
   ctx: {
