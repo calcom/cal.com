@@ -1,10 +1,18 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import { vi, describe, expect } from "vitest";
 
 import type { AppFrontendPayload } from "@calcom/types/App";
 
 import { AppCard } from "./AppCard";
+
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn().mockReturnValue({
+    push: vi.fn(),
+  }),
+  usePathname: vi.fn(),
+}));
 
 describe("Tests for AppCard component", () => {
   const mockApp: AppFrontendPayload = {
@@ -34,7 +42,7 @@ describe("Tests for AppCard component", () => {
   };
 
   describe("Tests for app description", () => {
-    test("Should render the app name correctly and display app logo with correct alt text", () => {
+    it("Should render the app name correctly and display app logo with correct alt text", () => {
       renderAppCard();
       const appLogo = screen.getByAltText("Test App Logo");
       const appName = screen.getByText("Test App");
@@ -43,14 +51,14 @@ describe("Tests for AppCard component", () => {
       expect(appName).toBeInTheDocument();
     });
 
-    test("Should render details button with correct href", () => {
+    it("Should render details button with correct href", () => {
       renderAppCard();
       const detailsButton = screen.getByText("details");
       expect(detailsButton).toBeInTheDocument();
       expect(detailsButton.closest("a")).toHaveAttribute("href", "/apps/test-app");
     });
 
-    test("Should highlight the app name based on searchText", () => {
+    it("Should highlight the app name based on searchText", () => {
       renderAppCard({}, { searchText: "test" });
       const highlightedText = screen.getByTestId("highlighted-text");
       expect(highlightedText).toBeInTheDocument();
@@ -58,13 +66,13 @@ describe("Tests for AppCard component", () => {
   });
 
   describe("Tests for app categories", () => {
-    test("Should show 'Template' badge if app is a template", () => {
+    it("Should show 'Template' badge if app is a template", () => {
       renderAppCard({ isTemplate: true });
       const templateBadge = screen.getByText("Template");
       expect(templateBadge).toBeInTheDocument();
     });
 
-    test("Should show 'default' badge if app is default or global", () => {
+    it("Should show 'default' badge if app is default or global", () => {
       renderAppCard({ isDefault: true });
       const defaultBadge = screen.getByText("default");
       expect(defaultBadge).toBeInTheDocument();
