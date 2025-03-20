@@ -160,7 +160,7 @@ export const TeamInviteEmail = (
                 <ServerTrans
                   t={props.language}
                   i18nKey="email_team_invite|content|added_to_org"
-                  values={{ teamName, invitedBy }}
+                  values={{ teamName, invitedBy, appName: APP_NAME }}
                 />{" "}
                 <ServerTrans
                   t={props.language}
@@ -184,7 +184,7 @@ export const TeamInviteEmail = (
                       </a>
                     ),
                   }}
-                  values={{ teamName }}
+                  values={{ teamName, appName: APP_NAME }}
                 />
               </>
             ) : (
@@ -192,12 +192,12 @@ export const TeamInviteEmail = (
                 <ServerTrans
                   t={props.language}
                   i18nKey="email_team_invite|content|invited_to_org"
-                  values={{ teamName, invitedBy }}
+                  values={{ teamName, invitedBy, appName: APP_NAME }}
                 />{" "}
                 <ServerTrans
                   t={props.language}
                   i18nKey="existing_user_added_link_will_change"
-                  values={{ teamName }}
+                  values={{ teamName, appName: APP_NAME }}
                 />
               </>
             )}
@@ -210,13 +210,13 @@ export const TeamInviteEmail = (
             <ServerTrans
               t={props.language}
               i18nKey="email_team_invite|content|added_to_org"
-              values={{ teamName, invitedBy }}
+              values={{ teamName, invitedBy, appName: APP_NAME }}
             />
           ) : (
             <ServerTrans
               t={props.language}
               i18nKey="email_team_invite|content|invited_to_org"
-              values={{ teamName, invitedBy }}
+              values={{ teamName, invitedBy, appName: APP_NAME }}
             />
           )}{" "}
           {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
@@ -232,13 +232,13 @@ export const TeamInviteEmail = (
             <ServerTrans
               t={props.language}
               i18nKey="email_team_invite|content|added_to_subteam"
-              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy }}
+              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy, appName: APP_NAME }}
             />
           ) : (
             <ServerTrans
               t={props.language}
               i18nKey="email_team_invite|content|invited_to_subteam"
-              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy }}
+              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy, appName: APP_NAME }}
             />
           )}{" "}
           {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
