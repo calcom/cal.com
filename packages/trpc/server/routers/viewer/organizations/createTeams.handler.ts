@@ -243,6 +243,9 @@ async function moveTeam({
       language: "en",
       inviterName: null,
       teamId: org.id,
+      // This is important so that if we re-invite existing users accidentally, we don't endup erroring out.
+      // Because this is a bulk action that could be taken from organization payment webhook, we could have cases where a user was just invited through another team migration in parallel.
+      isDirectUserAction: false,
     });
   }
 
