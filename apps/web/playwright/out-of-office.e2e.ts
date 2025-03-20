@@ -760,8 +760,8 @@ test.describe("Out of office", () => {
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
       await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
 
       //By Default future OOO will be displayed
       //1 OOO record should be visible for member3, end=currentDate+4days

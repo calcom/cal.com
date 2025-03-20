@@ -828,7 +828,11 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
+  const appRoutingFormsRespPromise = page.waitForResponse((response) =>
+    /\/api\/trpc\/appRoutingForms*/.test(response.url())
+  );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await appRoutingFormsRespPromise;
   await page.fill('[data-testid="description"]', form.description);
   await page.click('[data-testid="add-field"]');
 
