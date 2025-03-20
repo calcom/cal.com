@@ -1,19 +1,20 @@
-import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
-import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
+import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { userSchemaResponse } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../lib/api-versions";
+import { GetUser } from "../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../modules/auth/guards/permissions/permissions.guard";
+import { UpdateManagedUserInput } from "../../modules/users/inputs/update-managed-user.input";
+import { UsersService } from "../../modules/users/services/users.service";
+import { UserWithProfile, UsersRepository } from "../../modules/users/users.repository";
+import { GetMeOutput } from "../me/outputs/get-me.output";
+import { UpdateMeOutput } from "../me/outputs/update-me.output";
+import { SchedulesService_2024_04_15 } from "../schedules/schedules_2024_04_15/services/schedules.service";
 
 @Controller({
   path: "/v2/me",

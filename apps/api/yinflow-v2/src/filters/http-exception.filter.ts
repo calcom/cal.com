@@ -1,9 +1,10 @@
-import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from "@nestjs/common";
 import { Request } from "express";
 
 import { ERROR_STATUS } from "@calcom/platform-constants";
 import { Response } from "@calcom/platform-types";
+
+import { filterReqHeaders } from "../lib/filterReqHeaders";
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter<HttpException> {

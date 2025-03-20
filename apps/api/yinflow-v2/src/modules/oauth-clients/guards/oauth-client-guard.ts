@@ -1,7 +1,3 @@
-import { ApiAuthGuardRequest, ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Injectable,
   CanActivate,
@@ -10,6 +6,11 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Request } from "express";
+
+import { ApiAuthGuardRequest, ApiAuthGuardUser } from "../../auth/strategies/api-auth/api-auth.strategy";
+import { OAuthClientRepository } from "../../oauth-clients/oauth-client.repository";
+import { UsersService } from "../../users/services/users.service";
+import { UserWithProfile } from "../../users/users.repository";
 
 @Injectable()
 export class OAuthClientGuard implements CanActivate {

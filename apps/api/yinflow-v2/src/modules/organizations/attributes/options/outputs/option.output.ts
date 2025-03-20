@@ -1,6 +1,5 @@
-import { BaseOutputDTO } from "@/modules/organizations/attributes/index/outputs/base.output";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsInt, IsEnum, IsBoolean } from "class-validator";
+import { IsString } from "class-validator";
 
 export class OptionOutput {
   @IsString()

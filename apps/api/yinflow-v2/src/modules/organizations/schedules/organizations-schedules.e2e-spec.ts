@@ -1,8 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -27,6 +22,12 @@ import {
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
 import { User, Team, Membership, Profile } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../app";
+import { AppModule } from "../../../app.module";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { TokensModule } from "../../tokens/tokens.module";
+import { UsersModule } from "../../users/users.module";
 
 describe("Organizations Schedules Endpoints", () => {
   describe("User lacks required role", () => {

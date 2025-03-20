@@ -1,20 +1,8 @@
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
-import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
-import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GCalService } from "@/modules/apps/services/gcal.service";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import {
   BadRequestException,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Logger,
@@ -23,14 +11,26 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
-  Headers,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ApiExcludeController } from "@nestjs/swagger";
-import { ApiOperation } from "@nestjs/swagger";
+import { ApiExcludeController, ApiOperation } from "@nestjs/swagger";
 import { Request } from "express";
 
 import { APPS_READ, GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../lib/api-versions";
+import { GCalService } from "../../modules/apps/services/gcal.service";
+import { GetUser } from "../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../modules/auth/guards/permissions/permissions.guard";
+import { CredentialsRepository } from "../../modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "../../modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "../../modules/tokens/tokens.repository";
+import { CalendarsService } from "../calendars/services/calendars.service";
+import { GcalAuthUrlOutput } from "../gcal/outputs/auth-url.output";
+import { GcalCheckOutput } from "../gcal/outputs/check.output";
+import { GcalSaveRedirectOutput } from "../gcal/outputs/save-redirect.output";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",

@@ -1,16 +1,3 @@
-import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
-import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
-import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
-import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
-import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -43,8 +30,6 @@ import {
   GetBookingsOutput_2024_08_13,
   RescheduleBookingInput,
   RescheduleBookingInputPipe,
-} from "@calcom/platform-types";
-import {
   CreateBookingInputPipe,
   CreateBookingInput,
   GetBookingsInput_2024_08_13,
@@ -55,6 +40,20 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   DeclineBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+
+import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "../../../../lib/api-versions";
+import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "../../../../modules/users/users.repository";
+import { BookingUidGuard } from "../../../bookings/2024-08-13/guards/booking-uid.guard";
+import { CancelBookingOutput_2024_08_13 } from "../../../bookings/2024-08-13/outputs/cancel-booking.output";
+import { CreateBookingOutput_2024_08_13 } from "../../../bookings/2024-08-13/outputs/create-booking.output";
+import { MarkAbsentBookingOutput_2024_08_13 } from "../../../bookings/2024-08-13/outputs/mark-absent.output";
+import { ReassignBookingOutput_2024_08_13 } from "../../../bookings/2024-08-13/outputs/reassign-booking.output";
+import { RescheduleBookingOutput_2024_08_13 } from "../../../bookings/2024-08-13/outputs/reschedule-booking.output";
+import { BookingsService_2024_08_13 } from "../../../bookings/2024-08-13/services/bookings.service";
 
 @Controller({
   path: "/v2/bookings",

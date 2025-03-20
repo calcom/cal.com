@@ -1,7 +1,8 @@
-import { Locales } from "@/lib/enums/locales";
-import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl } from "class-validator";
+
+import { Locales } from "../../../lib/enums/locales";
+import { CapitalizeTimeZone } from "../../../lib/inputs/capitalize-timezone";
 
 export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
 export type TimeFormat = 12 | 24;

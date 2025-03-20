@@ -1,22 +1,22 @@
-import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
-import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { GetOrganizationsTeamsBookingsInput_2024_08_13 } from "@/modules/organizations/teams/bookings/inputs/get-organizations-teams-bookings.input";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
+import { Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
+
+import { BookingsService_2024_08_13 } from "../../../../ee/bookings/2024-08-13/services/bookings.service";
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../../auth/guards/teams/is-team-in-org.guard";
+import { GetOrganizationsTeamsBookingsInput_2024_08_13 } from "../../../organizations/teams/bookings/inputs/get-organizations-teams-bookings.input";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/bookings",

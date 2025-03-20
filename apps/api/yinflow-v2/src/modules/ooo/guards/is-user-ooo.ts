@@ -1,6 +1,7 @@
-import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
+
+import { UserOOORepository } from "../../ooo/repositories/ooo.repository";
 
 @Injectable()
 export class IsUserOOO implements CanActivate {

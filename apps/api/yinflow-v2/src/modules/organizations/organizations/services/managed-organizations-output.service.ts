@@ -1,7 +1,8 @@
-import { ManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/managed-organization.output";
 import { Injectable } from "@nestjs/common";
 
 import { Team } from "@calcom/prisma/client";
+
+import { ManagedOrganizationOutput } from "../../../organizations/organizations/outputs/managed-organization.output";
 
 @Injectable()
 export class ManagedOrganizationsOutputService {

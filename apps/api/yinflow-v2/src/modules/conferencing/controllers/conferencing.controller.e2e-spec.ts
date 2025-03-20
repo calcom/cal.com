@@ -1,9 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { ConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -23,6 +17,13 @@ import {
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
 import { ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
+
+import { bootstrap } from "../../../app";
+import { AppModule } from "../../../app.module";
+import { ConferencingAppsOutputDto } from "../../conferencing/outputs/get-conferencing-apps.output";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { TokensModule } from "../../tokens/tokens.module";
+import { UsersModule } from "../../users/users.module";
 
 describe("Conferencing Endpoints", () => {
   describe("conferencing controller e2e tests", () => {

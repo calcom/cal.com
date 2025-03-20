@@ -1,19 +1,20 @@
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { IsUserInOrgTeam } from "@/modules/auth/guards/users/is-user-in-org-team.guard";
 import { Controller, UseGuards, Get, Param, ParseIntPipe } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
+
+import { SchedulesService_2024_06_11 } from "../../../../ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../../auth/guards/teams/is-team-in-org.guard";
+import { IsUserInOrgTeam } from "../../../auth/guards/users/is-user-in-org-team.guard";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId",

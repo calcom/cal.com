@@ -1,10 +1,11 @@
-import { OrganizationAttributesService } from "@/modules/organizations/attributes/index/services/organization-attributes.service";
-import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
-import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
-import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
-import { OrganizationAttributeOptionRepository } from "@/modules/organizations/attributes/options/organization-attribute-options.repository";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+
+import { OrganizationAttributesService } from "../../../../organizations/attributes/index/services/organization-attributes.service";
+import { CreateOrganizationAttributeOptionInput } from "../../../../organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { AssignOrganizationAttributeOptionToUserInput } from "../../../../organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
+import { UpdateOrganizationAttributeOptionInput } from "../../../../organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
+import { OrganizationAttributeOptionRepository } from "../../../../organizations/attributes/options/organization-attribute-options.repository";
+import { OrganizationsMembershipService } from "../../../../organizations/memberships/services/organizations-membership.service";
 
 const TYPE_SUPPORTS_VALUE = new Set(["TEXT", "NUMBER"]);
 

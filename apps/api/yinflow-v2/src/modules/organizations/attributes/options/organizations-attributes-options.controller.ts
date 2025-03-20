@@ -1,28 +1,29 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
-import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
-import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
-import {
-  AssignOptionUserOutput,
-  UnassignOptionUserOutput,
-} from "@/modules/organizations/attributes/options/outputs/assign-option-user.output";
-import { CreateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/create-option.output";
-import { DeleteAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/delete-option.output";
-import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/outputs/get-option-user.output";
-import { GetAllAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/get-option.output";
-import { UpdateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/update-option.output";
-import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { CreateOrganizationAttributeOptionInput } from "../../../organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { AssignOrganizationAttributeOptionToUserInput } from "../../../organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
+import { UpdateOrganizationAttributeOptionInput } from "../../../organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
+import {
+  AssignOptionUserOutput,
+  UnassignOptionUserOutput,
+} from "../../../organizations/attributes/options/outputs/assign-option-user.output";
+import { CreateAttributeOptionOutput } from "../../../organizations/attributes/options/outputs/create-option.output";
+import { DeleteAttributeOptionOutput } from "../../../organizations/attributes/options/outputs/delete-option.output";
+import { GetOptionUserOutput } from "../../../organizations/attributes/options/outputs/get-option-user.output";
+import { GetAllAttributeOptionOutput } from "../../../organizations/attributes/options/outputs/get-option.output";
+import { UpdateAttributeOptionOutput } from "../../../organizations/attributes/options/outputs/update-option.output";
+import { OrganizationAttributeOptionService } from "../../../organizations/attributes/options/services/organization-attributes-option.service";
 
 @Controller({
   path: "/v2/organizations/:orgId",

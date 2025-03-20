@@ -1,12 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { SelectedCalendarOutputResponseDto } from "@/modules/selected-calendars/outputs/selected-calendars.output";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -21,6 +12,16 @@ import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 
 import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { bootstrap } from "../../../app";
+import { AppModule } from "../../../app.module";
+import { CalendarsService } from "../../../ee/calendars/services/calendars.service";
+import { HttpExceptionFilter } from "../../../filters/http-exception.filter";
+import { PrismaExceptionFilter } from "../../../filters/prisma-exception.filter";
+import { PermissionsGuard } from "../../auth/guards/permissions/permissions.guard";
+import { SelectedCalendarOutputResponseDto } from "../../selected-calendars/outputs/selected-calendars.output";
+import { TokensModule } from "../../tokens/tokens.module";
+import { UsersModule } from "../../users/users.module";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

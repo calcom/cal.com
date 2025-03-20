@@ -1,9 +1,10 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
+
+import { OrganizationsRepository } from "../../../organizations/index/organizations.repository";
+import { RedisService } from "../../../redis/redis.service";
 
 type CachedData = {
   org?: Team;

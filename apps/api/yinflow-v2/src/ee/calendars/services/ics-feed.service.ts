@@ -1,12 +1,13 @@
-import { ICSFeedCalendarApp } from "@/ee/calendars/calendars.interface";
-import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { BadRequestException, UnauthorizedException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, ICS_CALENDAR_TYPE, ICS_CALENDAR } from "@calcom/platform-constants";
 import { symmetricEncrypt, IcsFeedCalendarService } from "@calcom/platform-libraries";
+
+import { CredentialsRepository } from "../../../modules/credentials/credentials.repository";
+import { ICSFeedCalendarApp } from "../../calendars/calendars.interface";
+import { CreateIcsFeedOutputResponseDto } from "../../calendars/input/create-ics.output";
+import { CalendarsService } from "../../calendars/services/calendars.service";
 
 @Injectable()
 export class IcsFeedService implements ICSFeedCalendarApp {

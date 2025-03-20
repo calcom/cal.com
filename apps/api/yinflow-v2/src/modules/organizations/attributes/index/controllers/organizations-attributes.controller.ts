@@ -1,21 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/create-organization-attribute.input";
-import { UpdateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/update-organization-attribute.input";
-import { CreateOrganizationAttributesOutput } from "@/modules/organizations/attributes/index/outputs/create-organization-attributes.output";
-import { DeleteOrganizationAttributesOutput } from "@/modules/organizations/attributes/index/outputs/delete-organization-attributes.output";
-import {
-  GetOrganizationAttributesOutput,
-  GetSingleAttributeOutput,
-} from "@/modules/organizations/attributes/index/outputs/get-organization-attributes.output";
-import { UpdateOrganizationAttributesOutput } from "@/modules/organizations/attributes/index/outputs/update-organization-attributes.output";
-import { OrganizationAttributesService } from "@/modules/organizations/attributes/index/services/organization-attributes.service";
 import {
   Body,
   Controller,
@@ -32,6 +14,25 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../../lib/api-versions";
+import { PlatformPlan } from "../../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../../auth/guards/roles/roles.guard";
+import { CreateOrganizationAttributeInput } from "../../../../organizations/attributes/index/inputs/create-organization-attribute.input";
+import { UpdateOrganizationAttributeInput } from "../../../../organizations/attributes/index/inputs/update-organization-attribute.input";
+import { CreateOrganizationAttributesOutput } from "../../../../organizations/attributes/index/outputs/create-organization-attributes.output";
+import { DeleteOrganizationAttributesOutput } from "../../../../organizations/attributes/index/outputs/delete-organization-attributes.output";
+import {
+  GetOrganizationAttributesOutput,
+  GetSingleAttributeOutput,
+} from "../../../../organizations/attributes/index/outputs/get-organization-attributes.output";
+import { UpdateOrganizationAttributesOutput } from "../../../../organizations/attributes/index/outputs/update-organization-attributes.output";
+import { OrganizationAttributesService } from "../../../../organizations/attributes/index/services/organization-attributes.service";
 
 @Controller({
   path: "/v2/organizations/:orgId",

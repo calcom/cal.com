@@ -1,6 +1,3 @@
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
@@ -11,6 +8,10 @@ import {
   getApps,
   getUsersCredentials,
 } from "@calcom/platform-libraries";
+
+import { ConferencingRepository } from "../../conferencing/repositories/conferencing.repository";
+import { UserWithProfile } from "../../users/users.repository";
+import { UsersRepository } from "../../users/users.repository";
 
 @Injectable()
 export class ConferencingService {

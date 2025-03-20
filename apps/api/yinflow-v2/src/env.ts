@@ -1,4 +1,4 @@
-import { logLevels } from "@/lib/logger";
+import { logLevels } from "./lib/logger";
 
 export type Environment = {
   NODE_ENV: "development" | "production";

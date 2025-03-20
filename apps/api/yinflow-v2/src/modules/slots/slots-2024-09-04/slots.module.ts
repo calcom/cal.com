@@ -1,17 +1,18 @@
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { SlotsController_2024_09_04 } from "@/modules/slots/slots-2024-09-04/controllers/slots.controller";
-import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
-import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
-import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
-import { StripeModule } from "@/modules/stripe/stripe.module";
-import { TeamsModule } from "@/modules/teams/teams/teams.module";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
+
+import { EventTypesModule_2024_06_14 } from "../../../ee/event-types/event-types_2024_06_14/event-types.module";
+import { MembershipsModule } from "../../memberships/memberships.module";
+import { OrganizationsRepository } from "../../organizations/index/organizations.repository";
+import { OrganizationsUsersRepository } from "../../organizations/users/index/organizations-users.repository";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { SlotsController_2024_09_04 } from "../../slots/slots-2024-09-04/controllers/slots.controller";
+import { SlotsInputService_2024_09_04 } from "../../slots/slots-2024-09-04/services/slots-input.service";
+import { SlotsOutputService_2024_09_04 } from "../../slots/slots-2024-09-04/services/slots-output.service";
+import { SlotsService_2024_09_04 } from "../../slots/slots-2024-09-04/services/slots.service";
+import { SlotsRepository_2024_09_04 } from "../../slots/slots-2024-09-04/slots.repository";
+import { StripeModule } from "../../stripe/stripe.module";
+import { TeamsModule } from "../../teams/teams/teams.module";
+import { UsersRepository } from "../../users/users.repository";
 
 @Module({
   imports: [PrismaModule, EventTypesModule_2024_06_14, StripeModule, TeamsModule, MembershipsModule],

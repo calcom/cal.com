@@ -1,11 +1,3 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { MembershipsService } from "@/modules/memberships/services/memberships.service";
-import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
-import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
-import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import {
   BadRequestException,
   ForbiddenException,
@@ -20,6 +12,15 @@ import { z } from "zod";
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
+
+import { EventTypesRepository_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/event-types.repository";
+import { MembershipsRepository } from "../../../memberships/memberships.repository";
+import { MembershipsService } from "../../../memberships/services/memberships.service";
+import { TimeSlots } from "../../../slots/slots-2024-04-15/services/slots-output.service";
+import { SlotsInputService_2024_09_04 } from "../../../slots/slots-2024-09-04/services/slots-input.service";
+import { SlotsOutputService_2024_09_04 } from "../../../slots/slots-2024-09-04/services/slots-output.service";
+import { SlotsRepository_2024_09_04 } from "../../../slots/slots-2024-09-04/slots.repository";
+import { TeamsRepository } from "../../../teams/teams/teams.repository";
 
 const eventTypeMetadataSchema = z.object({
   multipleDuration: z.number().array().optional(),

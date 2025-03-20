@@ -1,11 +1,3 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import {
-  defaultBookingMetadata,
-  defaultBookingResponses,
-  defaultSeatedBookingData,
-  defaultSeatedBookingMetadata,
-} from "@/lib/safe-parse/default-responses-booking";
-import { safeParse } from "@/lib/safe-parse/safe-parse";
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
@@ -23,6 +15,15 @@ import {
   SeatedAttendee,
 } from "@calcom/platform-types";
 import { Booking, BookingSeat } from "@calcom/prisma/client";
+
+import {
+  defaultBookingMetadata,
+  defaultBookingResponses,
+  defaultSeatedBookingData,
+  defaultSeatedBookingMetadata,
+} from "../../../../lib/safe-parse/default-responses-booking";
+import { safeParse } from "../../../../lib/safe-parse/safe-parse";
+import { BookingsRepository_2024_08_13 } from "../../../bookings/2024-08-13/bookings.repository";
 
 export const bookingResponsesSchema = z
   .object({

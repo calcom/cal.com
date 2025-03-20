@@ -1,15 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { expectedSlotsUTC } from "@/modules/slots/slots-2024-09-04/controllers/e2e/expected-slots";
-import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
-import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
-import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -32,6 +20,19 @@ import {
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
 } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../../app";
+import { AppModule } from "../../../../../app.module";
+import { SchedulesModule_2024_06_11 } from "../../../../../ee/schedules/schedules_2024_06_11/schedules.module";
+import { SchedulesService_2024_06_11 } from "../../../../../ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { PermissionsGuard } from "../../../../auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "../../../../prisma/prisma.module";
+import { expectedSlotsUTC } from "../../../../slots/slots-2024-09-04/controllers/e2e/expected-slots";
+import { GetSlotsOutput_2024_09_04 } from "../../../../slots/slots-2024-09-04/outputs/get-slots.output";
+import { ReserveSlotOutputResponse_2024_09_04 } from "../../../../slots/slots-2024-09-04/outputs/reserve-slot.output";
+import { SlotsModule_2024_09_04 } from "../../../../slots/slots-2024-09-04/slots.module";
+import { TokensModule } from "../../../../tokens/tokens.module";
+import { UsersModule } from "../../../../users/users.module";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("Team event type slots", () => {

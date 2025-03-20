@@ -1,7 +1,8 @@
-import { RefreshApiKeyInput } from "@/modules/api-keys/inputs/refresh-api-key.input";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsObject, IsOptional, IsString, Length } from "class-validator";
+
+import { RefreshApiKeyInput } from "../../../api-keys/inputs/refresh-api-key.input";
 
 export class CreateOrganizationInput extends RefreshApiKeyInput {
   @IsString()

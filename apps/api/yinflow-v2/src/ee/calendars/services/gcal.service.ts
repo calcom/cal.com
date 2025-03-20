@@ -1,9 +1,3 @@
-import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { calendar_v3 } from "@googleapis/calendar";
 import { Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
@@ -15,6 +9,13 @@ import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
 
 import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
+
+import { AppsRepository } from "../../../modules/apps/apps.repository";
+import { CredentialsRepository } from "../../../modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "../../../modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "../../../modules/tokens/tokens.repository";
+import { OAuthCalendarApp } from "../../calendars/calendars.interface";
+import { CalendarsService } from "../../calendars/services/calendars.service";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",

@@ -1,10 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -36,6 +29,14 @@ import {
   GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { CreateBookingOutput_2024_08_13 } from "../../../../ee/bookings/2024-08-13/outputs/create-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "../../../../ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesService_2024_04_15 } from "../../../../ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "../../../auth/guards/permissions/permissions.guard";
+import { OrganizationsTeamsBookingsModule } from "../../../organizations/teams/bookings/organizations-teams-bookings.module";
 
 describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
   describe("Organization Team bookings", () => {

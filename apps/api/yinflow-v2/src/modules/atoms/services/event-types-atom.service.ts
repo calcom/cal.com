@@ -1,12 +1,3 @@
-import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
-import { AtomsRepository } from "@/modules/atoms/atoms.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 
 import {
@@ -32,6 +23,16 @@ import type {
   CredentialPayload,
 } from "@calcom/platform-libraries";
 import { PrismaClient } from "@calcom/prisma";
+
+import { EventTypesService_2024_06_14 } from "../../../ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { AtomsRepository } from "../../atoms/atoms.repository";
+import { CredentialsRepository } from "../../credentials/credentials.repository";
+import { MembershipsRepository } from "../../memberships/memberships.repository";
+import { PrismaReadService } from "../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../prisma/prisma-write.service";
+import { TeamsEventTypesService } from "../../teams/event-types/services/teams-event-types.service";
+import { UsersService } from "../../users/services/users.service";
+import { UserWithProfile } from "../../users/users.repository";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
@@ -190,12 +191,12 @@ export class EventTypesAtomService {
       const parentTeams: TeamQuery[] = [];
       // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
       if (teamId) {
-        teamsQuery.forEach((team) => {
+        teamsQuery.forEach((team: any) => {
           if (team?.parent) {
             const { parent, ...filteredTeam } = team;
             filteredTeams.push(filteredTeam);
             // Only add parent team if it's not already in teamsQuery
-            if (!teamsQuery.some((t) => t.id === parent.id)) {
+            if (!teamsQuery.some((t: any) => t.id === parent.id)) {
               parentTeams.push(parent);
             }
           }
@@ -226,15 +227,15 @@ export class EventTypesAtomService {
             ...app
           }: EnabledAppType) => {
             const userCredentialIds = credentials
-              .filter((c) => c.appId === app.slug && !c.teamId)
-              .map((c) => c.id);
+              .filter((c: any) => c.appId === app.slug && !c.teamId)
+              .map((c: any) => c.id);
             const invalidCredentialIds = credentials
-              .filter((c) => c.appId === app.slug && c.invalid)
-              .map((c) => c.id);
+              .filter((c: any) => c.appId === app.slug && c.invalid)
+              .map((c: any) => c.id);
             const teams = await Promise.all(
               credentials
-                .filter((c) => c.appId === app.slug && c.teamId)
-                .map(async (c) => {
+                .filter((c: any) => c.appId === app.slug && c.teamId)
+                .map(async (c: any) => {
                   const team = userTeams.find((team) => team.id === c.teamId);
                   if (!team) {
                     return null;

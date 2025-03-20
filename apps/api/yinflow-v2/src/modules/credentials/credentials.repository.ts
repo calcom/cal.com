@@ -1,10 +1,11 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
+
+import { PrismaReadService } from "../prisma/prisma-read.service";
+import { PrismaWriteService } from "../prisma/prisma-write.service";
 
 @Injectable()
 export class CredentialsRepository {

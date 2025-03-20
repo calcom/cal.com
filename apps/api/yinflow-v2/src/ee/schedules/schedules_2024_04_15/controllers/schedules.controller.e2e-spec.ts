@@ -1,14 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { CreateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/create-schedule.output";
-import { GetSchedulesOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-schedules.output";
-import { UpdateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/update-schedule.output";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -21,6 +10,18 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_04_15 } from "@calcom/platform-constants";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "../../../../modules/prisma/prisma.module";
+import { TokensModule } from "../../../../modules/tokens/tokens.module";
+import { UsersModule } from "../../../../modules/users/users.module";
+import { CreateScheduleInput_2024_04_15 } from "../../../schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { CreateScheduleOutput_2024_04_15 } from "../../../schedules/schedules_2024_04_15/outputs/create-schedule.output";
+import { GetSchedulesOutput_2024_04_15 } from "../../../schedules/schedules_2024_04_15/outputs/get-schedules.output";
+import { UpdateScheduleOutput_2024_04_15 } from "../../../schedules/schedules_2024_04_15/outputs/update-schedule.output";
+import { SchedulesModule_2024_04_15 } from "../../../schedules/schedules_2024_04_15/schedules.module";
 
 describe("Schedules Endpoints", () => {
   describe("User Authentication", () => {

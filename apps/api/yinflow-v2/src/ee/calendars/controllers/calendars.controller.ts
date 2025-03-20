@@ -1,38 +1,17 @@
-import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CreateIcsFeedInputDto } from "@/ee/calendars/input/create-ics.input";
-import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
-import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete-calendar-credentials.input";
-import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
-import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import {
-  DeletedCalendarCredentialsOutputResponseDto,
-  DeletedCalendarCredentialsOutputDto,
-} from "@/ee/calendars/outputs/delete-calendar-credentials.output";
-import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
-import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
-import { OutlookService } from "@/ee/calendars/services/outlook.service";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import {
+  BadRequestException,
+  Body,
   Controller,
   Get,
-  UseGuards,
-  Query,
-  HttpStatus,
-  HttpCode,
-  Req,
-  Param,
   Headers,
-  Redirect,
-  BadRequestException,
+  HttpCode,
+  HttpStatus,
+  Param,
   Post,
-  Body,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
@@ -40,16 +19,38 @@ import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
 
-import { APPS_READ } from "@calcom/platform-constants";
 import {
-  SUCCESS_STATUS,
+  APPLE_CALENDAR,
+  APPS_READ,
   CALENDARS,
+  CREDENTIAL_CALENDARS,
   GOOGLE_CALENDAR,
   OFFICE_365_CALENDAR,
-  APPLE_CALENDAR,
-  CREDENTIAL_CALENDARS,
+  SUCCESS_STATUS,
 } from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "../../../modules/users/users.repository";
+import { CalendarsRepository } from "../../calendars/calendars.repository";
+import { CreateIcsFeedInputDto } from "../../calendars/input/create-ics.input";
+import { CreateIcsFeedOutputResponseDto } from "../../calendars/input/create-ics.output";
+import { DeleteCalendarCredentialsInputBodyDto } from "../../calendars/input/delete-calendar-credentials.input";
+import { GetBusyTimesOutput } from "../../calendars/outputs/busy-times.output";
+import { ConnectedCalendarsOutput } from "../../calendars/outputs/connected-calendars.output";
+import {
+  DeletedCalendarCredentialsOutputDto,
+  DeletedCalendarCredentialsOutputResponseDto,
+} from "../../calendars/outputs/delete-calendar-credentials.output";
+import { AppleCalendarService } from "../../calendars/services/apple-calendar.service";
+import { CalendarsService } from "../../calendars/services/calendars.service";
+import { GoogleCalendarService } from "../../calendars/services/gcal.service";
+import { IcsFeedService } from "../../calendars/services/ics-feed.service";
+import { OutlookService } from "../../calendars/services/outlook.service";
 
 @Controller({
   path: "/v2/calendars",

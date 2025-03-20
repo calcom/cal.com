@@ -1,44 +1,43 @@
-import { VERSION_2024_09_04 } from "@/lib/api-versions";
-import { GetOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
-import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
-import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
-import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
-import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
-import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import {
-  Query,
   Body,
   Controller,
-  Get,
   Delete,
-  Post,
-  Param,
-  Res,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
+  Post,
+  Query,
   UseGuards,
-  BadRequestException,
 } from "@nestjs/common";
 import {
-  ApiOperation,
-  ApiTags as DocsTags,
   ApiHeader,
-  ApiResponse as DocsResponse,
+  ApiOperation,
   ApiQuery,
+  ApiResponse as DocsResponse,
+  ApiTags as DocsTags,
 } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
+  ApiResponse,
+  GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
   GetSlotsInput_2024_09_04,
   GetSlotsInputPipe,
   ReserveSlotInput_2024_09_04,
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputType_2024_09_04,
-  GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
 } from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
+
+import { VERSION_2024_09_04 } from "../../../../lib/api-versions";
+import { GetOptionalUser } from "../../../auth/decorators/get-optional-user/get-optional-user.decorator";
+import { OptionalApiAuthGuard } from "../../../auth/guards/optional-api-auth/optional-api-auth.guard";
+import { GetReservedSlotOutput_2024_09_04 } from "../../../slots/slots-2024-09-04/outputs/get-reserved-slot.output";
+import { GetSlotsOutput_2024_09_04 } from "../../../slots/slots-2024-09-04/outputs/get-slots.output";
+import { ReserveSlotOutputResponse_2024_09_04 } from "../../../slots/slots-2024-09-04/outputs/reserve-slot.output";
+import { SlotsService_2024_09_04 } from "../../../slots/slots-2024-09-04/services/slots.service";
 
 @Controller({
   path: "/v2/slots",

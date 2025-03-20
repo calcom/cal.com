@@ -1,9 +1,10 @@
-import { EventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/event-type.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, IsEnum, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+
+import { EventTypeOutput } from "../../../event-types/event-types_2024_04_15/outputs/event-type.output";
 
 class EventTypeGroup {
   @ValidateNested({ each: true })

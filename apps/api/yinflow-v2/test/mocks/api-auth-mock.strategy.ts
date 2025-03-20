@@ -1,9 +1,10 @@
-import { BaseStrategy } from "@/lib/passport/strategies/types";
-import { ApiAuthGuardRequest } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
+
+import { BaseStrategy } from "../../src/lib/passport/strategies/types";
+import { ApiAuthGuardRequest } from "../../src/modules/auth/strategies/api-auth/api-auth.strategy";
+import { UsersService } from "../../src/modules/users/services/users.service";
+import { UsersRepository } from "../../src/modules/users/users.repository";
 
 @Injectable()
 export class ApiAuthMockStrategy extends PassportStrategy(BaseStrategy, "api-auth") {

@@ -1,8 +1,9 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
 import { v4 as uuid } from "uuid";
+
+import { PrismaReadService } from "../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../prisma/prisma-write.service";
 
 @Injectable()
 export class SlotsRepository_2024_09_04 {

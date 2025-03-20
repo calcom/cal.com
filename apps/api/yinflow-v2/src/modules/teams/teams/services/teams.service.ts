@@ -1,10 +1,11 @@
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
-import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
-import { UpdateTeamDto } from "@/modules/teams/teams/inputs/update-team.input";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+
+import { StripeService } from "../../../stripe/stripe.service";
+import { TeamsMembershipsRepository } from "../../../teams/memberships/teams-memberships.repository";
+import { CreateTeamInput } from "../../../teams/teams/inputs/create-team.input";
+import { UpdateTeamDto } from "../../../teams/teams/inputs/update-team.input";
+import { TeamsRepository } from "../../../teams/teams/teams.repository";
 
 @Injectable()
 export class TeamsService {

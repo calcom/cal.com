@@ -1,10 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -20,6 +13,14 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { Team, PlatformOAuthClient, PlatformBilling } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../app";
+import { AppModule } from "../../../app.module";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { StripeService } from "../../stripe/stripe.service";
+import { TokensModule } from "../../tokens/tokens.module";
+import { UsersModule } from "../../users/users.module";
+import { UserWithProfile } from "../../users/users.repository";
 
 describe("Platform Billing Controller (e2e)", () => {
   let app: INestApplication;

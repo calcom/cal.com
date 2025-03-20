@@ -1,10 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { EmailService } from "@/modules/email/email.service";
-import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -20,6 +13,14 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { User, Team, EventType } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../../app";
+import { AppModule } from "../../../../../app.module";
+import { EmailService } from "../../../../email/email.service";
+import { GetOrgUsersWithProfileOutput } from "../../../../organizations/users/index/outputs/get-organization-users.output";
+import { PrismaModule } from "../../../../prisma/prisma.module";
+import { TokensModule } from "../../../../tokens/tokens.module";
+import { UsersModule } from "../../../../users/users.module";
 
 describe("Organizations Users Endpoints", () => {
   describe("Member role", () => {
@@ -175,7 +176,7 @@ describe("Organizations Users Endpoints", () => {
       );
       // create profiles of orgMember like they would be when being invied to the org
       await Promise.all(
-        orgMembers.map((member) =>
+        orgMembers.map((member: any) =>
           profileRepositoryFixture.create({
             uid: `usr-${member.id}`,
             username: member.username ?? `usr-${member.id}`,
@@ -216,7 +217,7 @@ describe("Organizations Users Endpoints", () => {
 
       await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
       await Promise.all(
-        orgMembers.map((member) => membershipFixtures.addUserToOrg(member, org, "MEMBER", true))
+        orgMembers.map((member: any) => membershipFixtures.addUserToOrg(member, org, "MEMBER", true))
       );
 
       app = moduleRef.createNestApplication();

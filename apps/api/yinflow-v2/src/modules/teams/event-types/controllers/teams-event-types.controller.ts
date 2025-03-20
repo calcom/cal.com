@@ -1,35 +1,17 @@
-import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
-import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
-import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
-import { CreateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/create-team-event-type.output";
-import { DeleteTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/delete-team-event-type.output";
-import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-team-event-type.output";
-import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/get-team-event-types.output";
-import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/update-team-event-type.output";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
-  Param,
-  ParseIntPipe,
   Body,
-  Patch,
+  Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -38,10 +20,28 @@ import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
-  SkipTakePagination,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+
+import { CreatePhoneCallInput } from "../../../../ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
+import { CreatePhoneCallOutput } from "../../../../ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { OutputTeamEventTypesResponsePipe } from "../../../organizations/event-types/pipes/team-event-types-response.transformer";
+import { InputOrganizationsEventTypesService } from "../../../organizations/event-types/services/input.service";
+import { DatabaseTeamEventType } from "../../../organizations/event-types/services/output.service";
+import { CreateTeamEventTypeOutput } from "../../../teams/event-types/outputs/create-team-event-type.output";
+import { DeleteTeamEventTypeOutput } from "../../../teams/event-types/outputs/delete-team-event-type.output";
+import { GetTeamEventTypeOutput } from "../../../teams/event-types/outputs/get-team-event-type.output";
+import { GetTeamEventTypesOutput } from "../../../teams/event-types/outputs/get-team-event-types.output";
+import { UpdateTeamEventTypeOutput } from "../../../teams/event-types/outputs/update-team-event-type.output";
+import { TeamsEventTypesService } from "../../../teams/event-types/services/teams-event-types.service";
+import { UserWithProfile } from "../../../users/users.repository";
 
 export type EventTypeHandlerResponse = {
   data: DatabaseTeamEventType[] | DatabaseTeamEventType;

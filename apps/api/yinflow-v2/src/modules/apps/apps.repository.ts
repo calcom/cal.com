@@ -1,7 +1,8 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { App, Prisma } from "@prisma/client";
+
+import { PrismaReadService } from "../prisma/prisma-read.service";
+import { PrismaWriteService } from "../prisma/prisma-write.service";
 
 @Injectable()
 export class AppsRepository {

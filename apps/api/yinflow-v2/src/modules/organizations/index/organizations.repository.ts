@@ -1,10 +1,11 @@
-import { PlatformPlan } from "@/modules/billing/types";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
 
 import { Prisma } from "@calcom/prisma/client";
+
+import { PlatformPlan } from "../../billing/types";
+import { PrismaReadService } from "../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../prisma/prisma-write.service";
+import { StripeService } from "../../stripe/stripe.service";
 
 @Injectable()
 export class OrganizationsRepository {

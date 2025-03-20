@@ -1,17 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
-import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
-import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
-import { DeleteTeamMembershipOutput } from "@/modules/teams/memberships/outputs/delete-team-membership.output";
-import { GetTeamMembershipOutput } from "@/modules/teams/memberships/outputs/get-team-membership.output";
-import { GetTeamMembershipsOutput } from "@/modules/teams/memberships/outputs/get-team-memberships.output";
-import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
-import { UpdateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/update-team-membership.output";
-import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
 import {
   Controller,
   UseGuards,
@@ -33,6 +19,21 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { TeamsEventTypesService } from "../../../teams/event-types/services/teams-event-types.service";
+import { CreateTeamMembershipInput } from "../../../teams/memberships/inputs/create-team-membership.input";
+import { UpdateTeamMembershipInput } from "../../../teams/memberships/inputs/update-team-membership.input";
+import { CreateTeamMembershipOutput } from "../../../teams/memberships/outputs/create-team-membership.output";
+import { DeleteTeamMembershipOutput } from "../../../teams/memberships/outputs/delete-team-membership.output";
+import { GetTeamMembershipOutput } from "../../../teams/memberships/outputs/get-team-membership.output";
+import { GetTeamMembershipsOutput } from "../../../teams/memberships/outputs/get-team-memberships.output";
+import { TeamMembershipOutput } from "../../../teams/memberships/outputs/team-membership.output";
+import { UpdateTeamMembershipOutput } from "../../../teams/memberships/outputs/update-team-membership.output";
+import { TeamsMembershipsService } from "../../../teams/memberships/services/teams-memberships.service";
 
 @Controller({
   path: "/v2/teams/:teamId/memberships",
@@ -102,7 +103,7 @@ export class TeamsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: orgTeamMemberships.map((membership) =>
+      data: orgTeamMemberships.map((membership: any) =>
         plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" })
       ),
     };

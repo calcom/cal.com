@@ -1,7 +1,8 @@
-import { NextAuthPassportStrategy } from "@/lib/passport/strategies/types";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
+
+import { NextAuthPassportStrategy } from "../../src/lib/passport/strategies/types";
+import { UsersRepository } from "../../src/modules/users/users.repository";
 
 @Injectable()
 export class NextAuthMockStrategy extends PassportStrategy(NextAuthPassportStrategy, "next-auth") {

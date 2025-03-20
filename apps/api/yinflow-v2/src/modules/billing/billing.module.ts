@@ -1,16 +1,17 @@
-import { BillingProcessor } from "@/modules/billing/billing.processor";
-import { BillingRepository } from "@/modules/billing/billing.repository";
-import { BillingController } from "@/modules/billing/controllers/billing.controller";
-import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
-import { BillingService } from "@/modules/billing/services/billing.service";
-import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
-import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OrganizationsModule } from "@/modules/organizations/organizations.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { StripeModule } from "@/modules/stripe/stripe.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { BullModule } from "@nestjs/bull";
 import { Module } from "@nestjs/common";
+
+import { BillingProcessor } from "../billing/billing.processor";
+import { BillingRepository } from "../billing/billing.repository";
+import { BillingController } from "../billing/controllers/billing.controller";
+import { BillingConfigService } from "../billing/services/billing.config.service";
+import { BillingService } from "../billing/services/billing.service";
+import { ManagedOrganizationsBillingService } from "../billing/services/managed-organizations.billing.service";
+import { MembershipsModule } from "../memberships/memberships.module";
+import { OrganizationsModule } from "../organizations/organizations.module";
+import { PrismaModule } from "../prisma/prisma.module";
+import { StripeModule } from "../stripe/stripe.module";
+import { UsersModule } from "../users/users.module";
 
 @Module({
   imports: [

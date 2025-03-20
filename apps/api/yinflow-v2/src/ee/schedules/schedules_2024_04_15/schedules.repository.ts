@@ -1,9 +1,10 @@
-import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+
+import { PrismaReadService } from "../../../modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "../../../modules/prisma/prisma-write.service";
+import { CreateAvailabilityInput_2024_04_15 } from "../../schedules/schedules_2024_04_15/inputs/create-availability.input";
+import { CreateScheduleInput_2024_04_15 } from "../../schedules/schedules_2024_04_15/inputs/create-schedule.input";
 
 @Injectable()
 export class SchedulesRepository_2024_04_15 {

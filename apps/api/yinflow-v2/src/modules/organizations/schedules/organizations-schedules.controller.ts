@@ -1,14 +1,3 @@
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
-import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
 import {
   Controller,
   UseGuards,
@@ -36,6 +25,18 @@ import {
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { SchedulesService_2024_06_11 } from "../../../ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { PlatformPlan } from "../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../auth/guards/roles/roles.guard";
+import { IsUserInOrg } from "../../auth/guards/users/is-user-in-org.guard";
+import { OrganizationsSchedulesService } from "../../organizations/schedules/services/organizations-schedules.service";
 
 @Controller({
   path: "/v2/organizations/:orgId",

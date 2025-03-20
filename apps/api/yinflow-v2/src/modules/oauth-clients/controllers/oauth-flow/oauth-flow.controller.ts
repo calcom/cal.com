@@ -1,16 +1,3 @@
-import { getEnv } from "@/env";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
-import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
-import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
-import { RefreshTokenInput } from "@/modules/oauth-clients/inputs/refresh-token.input";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import {
   BadRequestException,
   Body,
@@ -24,18 +11,27 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
-  ApiTags as DocsTags,
-  ApiExcludeController as DocsExcludeController,
-  ApiOperation as DocsOperation,
-  ApiOkResponse as DocsOkResponse,
-  ApiExcludeEndpoint as DocsExcludeEndpoint,
-  ApiBadRequestResponse as DocsBadRequestResponse,
-  ApiHeader as DocsHeader,
   ApiOperation,
+  ApiExcludeEndpoint as DocsExcludeEndpoint,
+  ApiHeader as DocsHeader,
+  ApiTags as DocsTags,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { isOriginAllowed } from "../../../../lib/is-origin-allowed/is-origin-allowed";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { NextAuthGuard } from "../../../auth/guards/next-auth/next-auth.guard";
+import { KeysResponseDto } from "../../../oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { OAuthAuthorizeInput } from "../../../oauth-clients/inputs/authorize.input";
+import { ExchangeAuthorizationCodeInput } from "../../../oauth-clients/inputs/exchange-code.input";
+import { RefreshTokenInput } from "../../../oauth-clients/inputs/refresh-token.input";
+import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "../../../oauth-clients/services/oauth-flow.service";
+import { TokensRepository } from "../../../tokens/tokens.repository";
 
 @Controller({
   path: "/v2/oauth/:clientId",

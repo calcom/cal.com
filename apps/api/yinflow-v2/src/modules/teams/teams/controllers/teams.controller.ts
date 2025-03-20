@@ -1,24 +1,25 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
-import { OrgTeamOutputResponseDto } from "@/modules/organizations/teams/index/outputs/organization-team.output";
-import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
-import { CreateTeamOutput } from "@/modules/teams/teams/outputs/teams/create-team.output";
-import { GetTeamOutput } from "@/modules/teams/teams/outputs/teams/get-team.output";
-import { GetTeamsOutput } from "@/modules/teams/teams/outputs/teams/get-teams.output";
-import { UpdateTeamOutput } from "@/modules/teams/teams/outputs/teams/update-team.output";
-import { TeamsService } from "@/modules/teams/teams/services/teams.service";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Delete, Patch, Post, Body } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { TeamOutputDto } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { UpdateOrgTeamDto } from "../../../organizations/teams/index/inputs/update-organization-team.input";
+import { OrgTeamOutputResponseDto } from "../../../organizations/teams/index/outputs/organization-team.output";
+import { CreateTeamInput } from "../../../teams/teams/inputs/create-team.input";
+import { CreateTeamOutput } from "../../../teams/teams/outputs/teams/create-team.output";
+import { GetTeamOutput } from "../../../teams/teams/outputs/teams/get-team.output";
+import { GetTeamsOutput } from "../../../teams/teams/outputs/teams/get-teams.output";
+import { UpdateTeamOutput } from "../../../teams/teams/outputs/teams/update-team.output";
+import { TeamsService } from "../../../teams/teams/services/teams.service";
+import { TeamsRepository } from "../../../teams/teams/teams.repository";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Controller({
   path: "/v2/teams",
@@ -72,7 +73,7 @@ export class TeamsController {
     const teams = await this.teamsService.getUserTeams(userId);
     return {
       status: SUCCESS_STATUS,
-      data: teams.map((team) => plainToClass(TeamOutputDto, team, { strategy: "excludeAll" })),
+      data: teams.map((team: any) => plainToClass(TeamOutputDto, team, { strategy: "excludeAll" })),
     };
   }
 

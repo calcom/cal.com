@@ -1,19 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
-import {
-  GetBookingsDataEntry,
-  GetBookingsOutput_2024_04_15,
-} from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { Locales } from "@/lib/enums/locales";
-import {
-  CreateManagedUserData,
-  CreateManagedUserOutput,
-} from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
-import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -32,6 +16,23 @@ import {
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { HttpExceptionFilter } from "../../../../filters/http-exception.filter";
+import { PrismaExceptionFilter } from "../../../../filters/prisma-exception.filter";
+import { Locales } from "../../../../lib/enums/locales";
+import {
+  CreateManagedUserData,
+  CreateManagedUserOutput,
+} from "../../../../modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { CreateManagedUserInput } from "../../../../modules/users/inputs/create-managed-user.input";
+import { UsersModule } from "../../../../modules/users/users.module";
+import { CreateBookingInput_2024_04_15 } from "../../../bookings/2024-04-15/inputs/create-booking.input";
+import {
+  GetBookingsDataEntry,
+  GetBookingsOutput_2024_04_15,
+} from "../../../bookings/2024-04-15/outputs/get-bookings.output";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 

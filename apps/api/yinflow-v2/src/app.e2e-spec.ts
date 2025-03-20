@@ -1,9 +1,3 @@
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { CustomThrottlerGuard } from "@/lib/throttler-guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
@@ -18,6 +12,13 @@ import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
+
+import { AppModule } from "./app.module";
+import { SchedulesModule_2024_04_15 } from "./ee/schedules/schedules_2024_04_15/schedules.module";
+import { CustomThrottlerGuard } from "./lib/throttler-guard";
+import { PrismaModule } from "./modules/prisma/prisma.module";
+import { TokensModule } from "./modules/tokens/tokens.module";
+import { UsersModule } from "./modules/users/users.module";
 
 describe("AppController", () => {
   describe("Rate limiting", () => {

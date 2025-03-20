@@ -1,4 +1,3 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
@@ -14,6 +13,8 @@ import {
   SlotsOutput_2024_09_04,
 } from "@calcom/platform-types";
 import { SelectedSlots } from "@calcom/prisma/client";
+
+import { EventTypesRepository_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/event-types.repository";
 
 type GetAvailableSlots = {
   slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>;

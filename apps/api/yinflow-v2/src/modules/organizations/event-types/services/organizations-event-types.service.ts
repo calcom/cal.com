@@ -1,14 +1,15 @@
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger } from "@nestjs/common";
 
 import { createEventType } from "@calcom/platform-libraries";
 import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
+
+import { MembershipsRepository } from "../../../memberships/memberships.repository";
+import { OrganizationsEventTypesRepository } from "../../../organizations/event-types/organizations-event-types.repository";
+import { DatabaseTeamEventType } from "../../../organizations/event-types/services/output.service";
+import { PrismaWriteService } from "../../../prisma/prisma-write.service";
+import { TeamsEventTypesService } from "../../../teams/event-types/services/teams-event-types.service";
+import { UsersService } from "../../../users/services/users.service";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Injectable()
 export class OrganizationsEventTypesService {

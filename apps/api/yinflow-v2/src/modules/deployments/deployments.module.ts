@@ -1,7 +1,7 @@
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { RedisService } from "@/modules/redis/redis.service";
 import { Module } from "@nestjs/common";
 
+import { PrismaModule } from "../prisma/prisma.module";
+import { RedisService } from "../redis/redis.service";
 import { DeploymentsRepository } from "./deployments.repository";
 import { DeploymentsService } from "./deployments.service";
 

@@ -1,4 +1,4 @@
-import type { Environment } from "@/env";
+import type { Environment } from "../src/env";
 
 const env: Partial<Omit<Environment, "NODE_ENV">> = {
   API_URL: "http://localhost",

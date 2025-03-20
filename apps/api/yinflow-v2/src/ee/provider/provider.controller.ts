@@ -1,10 +1,3 @@
-import { ProviderVerifyAccessTokenOutput } from "@/ee/provider/outputs/verify-access-token.output";
-import { ProviderVerifyClientOutput } from "@/ee/provider/outputs/verify-client.output";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   BadRequestException,
   Controller,
@@ -19,6 +12,14 @@ import {
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../lib/api-versions";
+import { GetUser } from "../../modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../modules/auth/guards/api-auth/api-auth.guard";
+import { OAuthClientRepository } from "../../modules/oauth-clients/oauth-client.repository";
+import { UserWithProfile } from "../../modules/users/users.repository";
+import { ProviderVerifyAccessTokenOutput } from "../provider/outputs/verify-access-token.output";
+import { ProviderVerifyClientOutput } from "../provider/outputs/verify-client.output";
 
 @Controller({
   path: "/v2/provider",

@@ -1,13 +1,14 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { StripeController } from "@/modules/stripe/controllers/stripe.controller";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+
+import { AppsRepository } from "../apps/apps.repository";
+import { CredentialsRepository } from "../credentials/credentials.repository";
+import { MembershipsRepository } from "../memberships/memberships.repository";
+import { PrismaModule } from "../prisma/prisma.module";
+import { StripeController } from "../stripe/controllers/stripe.controller";
+import { StripeService } from "../stripe/stripe.service";
+import { TokensRepository } from "../tokens/tokens.repository";
+import { UsersModule } from "../users/users.module";
 
 @Module({
   imports: [ConfigModule, PrismaModule, UsersModule],

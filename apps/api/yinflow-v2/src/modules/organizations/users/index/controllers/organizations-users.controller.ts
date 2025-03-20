@@ -1,24 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
-import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
-import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
-import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
-import {
-  GetOrganizationUsersResponseDTO,
-  GetOrgUsersWithProfileOutput,
-} from "@/modules/organizations/users/index/outputs/get-organization-users.output";
-import { GetOrganizationUserOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
-import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -38,6 +17,28 @@ import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Team } from "@calcom/prisma/client";
+
+import { API_VERSIONS_VALUES } from "../../../../../lib/api-versions";
+import { PlatformPlan } from "../../../../auth/decorators/billing/platform-plan.decorator";
+import { GetOrg } from "../../../../auth/decorators/get-org/get-org.decorator";
+import { GetUser } from "../../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../../auth/guards/roles/roles.guard";
+import { IsUserInOrg } from "../../../../auth/guards/users/is-user-in-org.guard";
+import { CreateOrganizationUserInput } from "../../../../organizations/users/index/inputs/create-organization-user.input";
+import { GetOrganizationsUsersInput } from "../../../../organizations/users/index/inputs/get-organization-users.input";
+import { UpdateOrganizationUserInput } from "../../../../organizations/users/index/inputs/update-organization-user.input";
+import {
+  GetOrganizationUsersResponseDTO,
+  GetOrgUsersWithProfileOutput,
+} from "../../../../organizations/users/index/outputs/get-organization-users.output";
+import { GetOrganizationUserOutput } from "../../../../organizations/users/index/outputs/get-organization-users.output";
+import { OrganizationsUsersService } from "../../../../organizations/users/index/services/organizations-users-service";
+import { UserWithProfile } from "../../../../users/users.repository";
 
 @Controller({
   path: "/v2/organizations/:orgId/users",
@@ -67,7 +68,7 @@ export class OrganizationsUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: users.map((user) =>
+      data: users.map((user: any) =>
         plainToInstance(
           GetOrgUsersWithProfileOutput,
           { ...user, profile: user?.profiles?.[0] ?? {} },

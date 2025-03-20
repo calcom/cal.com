@@ -1,7 +1,8 @@
-import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
-import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
-import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
+
+import { CreateTeamMembershipInput } from "../../../teams/memberships/inputs/create-team-membership.input";
+import { UpdateTeamMembershipInput } from "../../../teams/memberships/inputs/update-team-membership.input";
+import { TeamsMembershipsRepository } from "../../../teams/memberships/teams-memberships.repository";
 
 @Injectable()
 export class TeamsMembershipsService {

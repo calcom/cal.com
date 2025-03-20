@@ -1,5 +1,3 @@
-import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
@@ -16,6 +14,9 @@ import { getAvailableSlots } from "@calcom/platform-libraries";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
 import { RemoveSelectedSlotInput_2024_04_15, ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform-types";
+
+import { SlotsOutputService_2024_04_15 } from "../../../slots/slots-2024-04-15/services/slots-output.service";
+import { SlotsService_2024_04_15 } from "../../../slots/slots-2024-04-15/services/slots.service";
 
 @Controller({
   path: "/v2/slots",

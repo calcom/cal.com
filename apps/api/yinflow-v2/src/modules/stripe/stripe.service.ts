@@ -1,12 +1,3 @@
-import { AppConfig } from "@/config/type";
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
-import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
-import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Injectable,
   NotFoundException,
@@ -21,6 +12,15 @@ import { z } from "zod";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
+import { AppConfig } from "../../config/type";
+import { AppsRepository } from "../apps/apps.repository";
+import { CredentialsRepository } from "../credentials/credentials.repository";
+import { MembershipsRepository } from "../memberships/memberships.repository";
+import { getReturnToValueFromQueryState } from "../stripe/utils/getReturnToValueFromQueryState";
+import { stripeInstance } from "../stripe/utils/newStripeInstance";
+import { StripeData } from "../stripe/utils/stripeDataSchemas";
+import { TokensRepository } from "../tokens/tokens.repository";
+import { UsersRepository } from "../users/users.repository";
 import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 
 import stringify = require("qs-stringify");

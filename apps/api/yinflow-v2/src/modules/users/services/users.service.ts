@@ -1,7 +1,8 @@
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { User } from "@calcom/prisma/client";
+
+import { UsersRepository, UserWithProfile } from "../../users/users.repository";
 
 @Injectable()
 export class UsersService {
@@ -25,7 +26,7 @@ export class UsersService {
   getUserMainProfile(user: UserWithProfile) {
     return (
       user?.movedToProfile ||
-      user.profiles?.find((p) => p.organizationId === user.organizationId) ||
+      user.profiles?.find((p: any) => p.organizationId === user.organizationId) ||
       user.profiles?.[0]
     );
   }
@@ -35,6 +36,6 @@ export class UsersService {
   }
 
   getUserProfileByOrgId(user: UserWithProfile, organizationId: number) {
-    return user.profiles?.find((p) => p.organizationId === organizationId);
+    return user.profiles?.find((p: any) => p.organizationId === organizationId);
   }
 }

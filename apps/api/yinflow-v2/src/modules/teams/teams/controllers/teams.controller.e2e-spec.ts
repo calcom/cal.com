@@ -1,12 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
-import { UpdateTeamDto } from "@/modules/teams/teams/inputs/update-team.input";
-import { CreateTeamOutput } from "@/modules/teams/teams/outputs/teams/create-team.output";
-import { GetTeamOutput } from "@/modules/teams/teams/outputs/teams/get-team.output";
-import { GetTeamsOutput } from "@/modules/teams/teams/outputs/teams/get-teams.output";
-import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -21,6 +12,16 @@ import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { TeamOutputDto } from "@calcom/platform-types";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { StripeService } from "../../../stripe/stripe.service";
+import { CreateTeamInput } from "../../../teams/teams/inputs/create-team.input";
+import { UpdateTeamDto } from "../../../teams/teams/inputs/update-team.input";
+import { CreateTeamOutput } from "../../../teams/teams/outputs/teams/create-team.output";
+import { GetTeamOutput } from "../../../teams/teams/outputs/teams/get-team.output";
+import { GetTeamsOutput } from "../../../teams/teams/outputs/teams/get-teams.output";
+import { TeamsModule } from "../../../teams/teams/teams.module";
 
 describe("Teams endpoint", () => {
   let app: INestApplication;

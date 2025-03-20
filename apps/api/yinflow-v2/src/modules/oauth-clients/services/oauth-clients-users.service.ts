@@ -1,13 +1,14 @@
-import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
-import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
+
+import { EventTypesService_2024_04_15 } from "../../../ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { SchedulesService_2024_04_15 } from "../../../ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { TokensRepository } from "../../tokens/tokens.repository";
+import { CreateManagedUserInput } from "../../users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "../../users/inputs/update-managed-user.input";
+import { UsersRepository } from "../../users/users.repository";
 
 @Injectable()
 export class OAuthClientUsersService {

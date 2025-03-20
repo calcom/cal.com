@@ -1,15 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import {
-  StripConnectOutputDto,
-  StripConnectOutputResponseDto,
-  StripCredentialsCheckOutputResponseDto,
-  StripCredentialsSaveOutputResponseDto,
-} from "@/modules/stripe/outputs/stripe.output";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Query,
@@ -29,6 +17,19 @@ import { Request } from "express";
 import { stringify } from "querystring";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import {
+  StripConnectOutputDto,
+  StripConnectOutputResponseDto,
+  StripCredentialsCheckOutputResponseDto,
+  StripCredentialsSaveOutputResponseDto,
+} from "../../stripe/outputs/stripe.output";
+import { StripeService } from "../../stripe/stripe.service";
+import { getOnErrorReturnToValueFromQueryState } from "../../stripe/utils/getReturnToValueFromQueryState";
+import { UserWithProfile } from "../../users/users.repository";
 
 @Controller({
   path: "/v2/stripe",

@@ -1,22 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
-import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
-import {
-  OrgTeamMembershipOutputDto,
-  OrgTeamMembershipsOutputResponseDto,
-  OrgTeamMembershipOutputResponseDto,
-} from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
-import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import {
   Controller,
   UseGuards,
@@ -39,6 +20,26 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../../auth/guards/teams/is-team-in-org.guard";
+import { OrganizationsRepository } from "../../../organizations/index/organizations.repository";
+import { CreateOrgTeamMembershipDto } from "../../../organizations/teams/memberships/inputs/create-organization-team-membership.input";
+import { UpdateOrgTeamMembershipDto } from "../../../organizations/teams/memberships/inputs/update-organization-team-membership.input";
+import {
+  OrgTeamMembershipOutputDto,
+  OrgTeamMembershipsOutputResponseDto,
+  OrgTeamMembershipOutputResponseDto,
+} from "../../../organizations/teams/memberships/outputs/organization-teams-memberships.output";
+import { OrganizationsTeamsMembershipsService } from "../../../organizations/teams/memberships/services/organizations-teams-memberships.service";
+import { TeamsEventTypesService } from "../../../teams/event-types/services/teams-event-types.service";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/memberships",
@@ -75,7 +76,7 @@ export class OrganizationsTeamsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: orgTeamMemberships.map((membership) =>
+      data: orgTeamMemberships.map((membership: any) =>
         plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" })
       ),
     };

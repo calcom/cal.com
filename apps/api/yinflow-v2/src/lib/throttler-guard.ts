@@ -1,6 +1,3 @@
-import { getEnv } from "@/env";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -15,6 +12,10 @@ import { Request, Response } from "express";
 import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+
+import { getEnv } from "../env";
+import { PrismaReadService } from "../modules/prisma/prisma-read.service";
+import { hashAPIKey, isApiKey, stripApiKey } from "./api-key";
 
 const rateLimitSchema = z.object({
   name: z.string(),

@@ -1,7 +1,3 @@
-import { isApiKey } from "@/lib/api-key";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
@@ -9,6 +5,11 @@ import { getToken } from "next-auth/jwt";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { hasPermissions } from "@calcom/platform-utils";
+
+import { isApiKey } from "../../../../lib/api-key";
+import { Permissions } from "../../../auth/decorators/permissions/permissions.decorator";
+import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
+import { TokensRepository } from "../../../tokens/tokens.repository";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {

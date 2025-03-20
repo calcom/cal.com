@@ -1,19 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
-import { IsUserWebhookGuard } from "@/modules/webhooks/guards/is-user-webhook-guard";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import {
-  UserWebhookOutputDto,
-  UserWebhookOutputResponseDto,
-  UserWebhooksOutputResponseDto,
-} from "@/modules/webhooks/outputs/user-webhook.output";
-import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
-import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import { UserWebhooksService } from "@/modules/webhooks/services/user-webhooks.service";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";
@@ -21,6 +5,23 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { UserWithProfile } from "../../users/users.repository";
+import { GetWebhook } from "../../webhooks/decorators/get-webhook-decorator";
+import { IsUserWebhookGuard } from "../../webhooks/guards/is-user-webhook-guard";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../webhooks/inputs/webhook.input";
+import {
+  UserWebhookOutputDto,
+  UserWebhookOutputResponseDto,
+  UserWebhooksOutputResponseDto,
+} from "../../webhooks/outputs/user-webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "../../webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "../../webhooks/pipes/WebhookOutputPipe";
+import { UserWebhooksService } from "../../webhooks/services/user-webhooks.service";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Controller({
   path: "/v2/webhooks",
@@ -97,7 +98,7 @@ export class WebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: webhooks.map((webhook) =>
+      data: webhooks.map((webhook: any) =>
         plainToClass(UserWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
           strategy: "excludeAll",
         })

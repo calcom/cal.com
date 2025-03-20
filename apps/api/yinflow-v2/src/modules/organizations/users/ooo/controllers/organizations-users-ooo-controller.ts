@@ -1,26 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
-import { IsUserOOO } from "@/modules/ooo/guards/is-user-ooo";
-import {
-  CreateOutOfOfficeEntryDto,
-  UpdateOutOfOfficeEntryDto,
-  GetOutOfOfficeEntryFiltersDTO,
-  GetOrgUsersOutOfOfficeEntryFiltersDTO,
-} from "@/modules/ooo/inputs/ooo.input";
-import {
-  UserOooOutputDto,
-  UserOooOutputResponseDto,
-  UserOoosOutputResponseDto,
-} from "@/modules/ooo/outputs/ooo.output";
-import { UserOOOService } from "@/modules/ooo/services/ooo.service";
-import { OrgUsersOOOService } from "@/modules/organizations/users/ooo/services/organization-users-ooo.service";
 import {
   Controller,
   UseGuards,
@@ -39,6 +16,30 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../../../../lib/api-versions";
+import { PlatformPlan } from "../../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../../auth/guards/roles/roles.guard";
+import { IsUserInOrg } from "../../../../auth/guards/users/is-user-in-org.guard";
+import { IsUserOOO } from "../../../../ooo/guards/is-user-ooo";
+import {
+  CreateOutOfOfficeEntryDto,
+  UpdateOutOfOfficeEntryDto,
+  GetOutOfOfficeEntryFiltersDTO,
+  GetOrgUsersOutOfOfficeEntryFiltersDTO,
+} from "../../../../ooo/inputs/ooo.input";
+import {
+  UserOooOutputDto,
+  UserOooOutputResponseDto,
+  UserOoosOutputResponseDto,
+} from "../../../../ooo/outputs/ooo.output";
+import { UserOOOService } from "../../../../ooo/services/ooo.service";
+import { OrgUsersOOOService } from "../../../../organizations/users/ooo/services/organization-users-ooo.service";
 
 @Controller({
   path: "/v2/organizations/:orgId",
@@ -68,7 +69,7 @@ export class OrganizationsUsersOOOController {
 
     return {
       status: SUCCESS_STATUS,
-      data: ooos.map((ooo) => plainToInstance(UserOooOutputDto, ooo, { strategy: "excludeAll" })),
+      data: ooos.map((ooo: any) => plainToInstance(UserOooOutputDto, ooo, { strategy: "excludeAll" })),
     };
   }
 
@@ -136,7 +137,7 @@ export class OrganizationsUsersOOOController {
 
     return {
       status: SUCCESS_STATUS,
-      data: ooos.map((ooo) => plainToInstance(UserOooOutputDto, ooo, { strategy: "excludeAll" })),
+      data: ooos.map((ooo: any) => plainToInstance(UserOooOutputDto, ooo, { strategy: "excludeAll" })),
     };
   }
 }

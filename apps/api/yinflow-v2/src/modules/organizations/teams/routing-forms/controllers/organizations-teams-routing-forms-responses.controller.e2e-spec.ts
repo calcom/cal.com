@@ -1,9 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { GetRoutingFormResponsesOutput } from "@/modules/organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -20,6 +14,13 @@ import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../../app";
+import { AppModule } from "../../../../../app.module";
+import { GetRoutingFormResponsesOutput } from "../../../../organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
+import { PrismaModule } from "../../../../prisma/prisma.module";
+import { TokensModule } from "../../../../tokens/tokens.module";
+import { UsersModule } from "../../../../users/users.module";
 
 describe("Organizations Teams Routing Forms Responses", () => {
   let app: INestApplication;

@@ -1,13 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import {
-  BulkUpdateEventTypeToDefaultLocationDto,
-  EventTypesAppInput,
-} from "@/modules/atoms/inputs/event-types-app.input";
-import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
-import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Get,
@@ -26,6 +16,17 @@ import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { UpdateEventTypeReturn } from "@calcom/platform-libraries";
 import { ConnectedApps } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import {
+  BulkUpdateEventTypeToDefaultLocationDto,
+  EventTypesAppInput,
+} from "../../atoms/inputs/event-types-app.input";
+import { ConferencingAtomsService } from "../../atoms/services/conferencing-atom.service";
+import { EventTypesAtomService } from "../../atoms/services/event-types-atom.service";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { UserWithProfile } from "../../users/users.repository";
 
 /*
 

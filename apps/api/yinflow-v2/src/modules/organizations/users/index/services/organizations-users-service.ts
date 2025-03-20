@@ -1,14 +1,15 @@
-import { EmailService } from "@/modules/email/email.service";
-import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
-import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
-import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
-import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
-import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
 import { Team, CreationSource } from "@prisma/client";
 import { plainToInstance } from "class-transformer";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
+
+import { EmailService } from "../../../../email/email.service";
+import { OrganizationsTeamsService } from "../../../../organizations/teams/index/services/organizations-teams.service";
+import { CreateOrganizationUserInput } from "../../../../organizations/users/index/inputs/create-organization-user.input";
+import { UpdateOrganizationUserInput } from "../../../../organizations/users/index/inputs/update-organization-user.input";
+import { OrganizationsUsersRepository } from "../../../../organizations/users/index/organizations-users.repository";
+import { CreateUserInput } from "../../../../users/inputs/create-user.input";
 
 @Injectable()
 export class OrganizationsUsersService {

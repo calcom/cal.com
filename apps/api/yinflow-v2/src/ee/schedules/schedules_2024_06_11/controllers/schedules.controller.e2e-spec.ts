@@ -1,10 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -24,6 +17,14 @@ import {
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
 import { UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "../../../../modules/prisma/prisma.module";
+import { TokensModule } from "../../../../modules/tokens/tokens.module";
+import { UsersModule } from "../../../../modules/users/users.module";
+import { SchedulesModule_2024_06_11 } from "../../../schedules/schedules_2024_06_11/schedules.module";
 
 describe("Schedules Endpoints", () => {
   describe("User Authentication", () => {

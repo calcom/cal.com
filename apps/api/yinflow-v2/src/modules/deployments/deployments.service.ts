@@ -1,7 +1,8 @@
-import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
-import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+
+import { DeploymentsRepository } from "../deployments/deployments.repository";
+import { RedisService } from "../redis/redis.service";
 
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
 

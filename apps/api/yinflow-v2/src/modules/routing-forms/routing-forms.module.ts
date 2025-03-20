@@ -1,6 +1,7 @@
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { RoutingFormsRepository } from "@/modules/routing-forms/routing-forms.repository";
 import { Module } from "@nestjs/common";
+
+import { PrismaModule } from "../prisma/prisma.module";
+import { RoutingFormsRepository } from "../routing-forms/routing-forms.repository";
 
 @Module({
   imports: [PrismaModule],

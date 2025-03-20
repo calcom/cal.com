@@ -1,17 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/update-delegation-credential.input";
-import { CreateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/create-delegation-credential.output";
-import { DelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/delegation-credential.output";
-import { UpdateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/update-delegation-credential.output";
-import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
 import {
   Controller,
   UseGuards,
@@ -29,6 +15,20 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { PlatformPlan } from "../../auth/decorators/billing/platform-plan.decorator";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../auth/guards/roles/roles.guard";
+import { UpdateDelegationCredentialInput } from "../../organizations/delegation-credentials/inputs/update-delegation-credential.input";
+import { CreateDelegationCredentialOutput } from "../../organizations/delegation-credentials/outputs/create-delegation-credential.output";
+import { DelegationCredentialOutput } from "../../organizations/delegation-credentials/outputs/delegation-credential.output";
+import { UpdateDelegationCredentialOutput } from "../../organizations/delegation-credentials/outputs/update-delegation-credential.output";
+import { OrganizationsDelegationCredentialService } from "../../organizations/delegation-credentials/services/organizations-delegation-credential.service";
 import { CreateDelegationCredentialInput } from "./inputs/create-delegation-credential.input";
 
 @Controller({

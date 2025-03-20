@@ -1,11 +1,3 @@
-import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
@@ -13,6 +5,15 @@ import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-librarie
 import { dynamicEvent } from "@calcom/platform-libraries";
 import { GetEventTypesQuery_2024_06_14, InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
+
+import { MembershipsRepository } from "../../../../modules/memberships/memberships.repository";
+import { PrismaWriteService } from "../../../../modules/prisma/prisma-write.service";
+import { SelectedCalendarsRepository } from "../../../../modules/selected-calendars/selected-calendars.repository";
+import { UsersService } from "../../../../modules/users/services/users.service";
+import { UserWithProfile, UsersRepository } from "../../../../modules/users/users.repository";
+import { DEFAULT_EVENT_TYPES } from "../../../event-types/event-types_2024_06_14/constants/constants";
+import { EventTypesRepository_2024_06_14 } from "../../../event-types/event-types_2024_06_14/event-types.repository";
+import { SchedulesRepository_2024_06_11 } from "../../../schedules/schedules_2024_06_11/schedules.repository";
 
 @Injectable()
 export class EventTypesService_2024_06_14 {
@@ -142,7 +143,7 @@ export class EventTypesService_2024_06_14 {
   async getUserEventTypes(userId: number) {
     const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId);
 
-    return eventTypes.map((eventType) => {
+    return eventTypes.map((eventType: any) => {
       return { ownerId: userId, ...eventType };
     });
   }

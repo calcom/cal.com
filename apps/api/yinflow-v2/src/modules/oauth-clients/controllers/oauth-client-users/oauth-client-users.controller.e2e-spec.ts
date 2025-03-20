@@ -1,15 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_04_15/constants/constants";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { Locales } from "@/lib/enums/locales";
-import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
-import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
-import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
-import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
-import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -26,6 +14,19 @@ import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { DEFAULT_EVENT_TYPES } from "../../../../ee/event-types/event-types_2024_04_15/constants/constants";
+import { HttpExceptionFilter } from "../../../../filters/http-exception.filter";
+import { PrismaExceptionFilter } from "../../../../filters/prisma-exception.filter";
+import { Locales } from "../../../../lib/enums/locales";
+import { CreateManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { GetManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
+import { GetManagedUsersOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
+import { CreateManagedUserInput } from "../../../users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "../../../users/inputs/update-managed-user.input";
+import { UsersModule } from "../../../users/users.module";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 
@@ -274,7 +275,7 @@ describe("OAuth Client Users Endpoints", () => {
 
     async function userConnectedToOAuth(oAuthClientId: string, userEmail: string) {
       const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClientId);
-      const newOAuthUser = oAuthUsers?.find((user) => user.email === userEmail);
+      const newOAuthUser = oAuthUsers?.find((user: any) => user.email === userEmail);
 
       expect(oAuthUsers?.length).toEqual(1);
       expect(newOAuthUser?.email).toEqual(userEmail);
@@ -286,16 +287,20 @@ describe("OAuth Client Users Endpoints", () => {
       // note(Lauris): to determine count see default event types created in EventTypesService.createUserDefaultEventTypes
       expect(defaultEventTypes?.length).toEqual(4);
       expect(
-        defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
+        defaultEventTypes?.find((eventType: any) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
       ).toBeTruthy();
       expect(
-        defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
+        defaultEventTypes?.find((eventType: any) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
       ).toBeTruthy();
       expect(
-        defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug)
+        defaultEventTypes?.find(
+          (eventType: any) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug
+        )
       ).toBeTruthy();
       expect(
-        defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutesVideo.slug)
+        defaultEventTypes?.find(
+          (eventType: any) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutesVideo.slug
+        )
       ).toBeTruthy();
     }
 

@@ -1,21 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
-import { UpdateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/update-organization-membership.input";
-import { CreateOrgMembershipOutput } from "@/modules/organizations/memberships/outputs/create-membership.output";
-import { DeleteOrgMembership } from "@/modules/organizations/memberships/outputs/delete-membership.output";
-import { GetAllOrgMemberships } from "@/modules/organizations/memberships/outputs/get-all-memberships.output";
-import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
-import { OrgMembershipOutputDto } from "@/modules/organizations/memberships/outputs/membership.output";
-import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import {
   Controller,
   UseGuards,
@@ -35,6 +17,25 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { PlatformPlan } from "../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../auth/guards/billing/platform-plan.guard";
+import { IsMembershipInOrg } from "../../auth/guards/memberships/is-membership-in-org.guard";
+import { IsAdminAPIEnabledGuard } from "../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../auth/guards/roles/roles.guard";
+import { CreateOrgMembershipDto } from "../../organizations/memberships/inputs/create-organization-membership.input";
+import { UpdateOrgMembershipDto } from "../../organizations/memberships/inputs/update-organization-membership.input";
+import { CreateOrgMembershipOutput } from "../../organizations/memberships/outputs/create-membership.output";
+import { DeleteOrgMembership } from "../../organizations/memberships/outputs/delete-membership.output";
+import { GetAllOrgMemberships } from "../../organizations/memberships/outputs/get-all-memberships.output";
+import { GetOrgMembership } from "../../organizations/memberships/outputs/get-membership.output";
+import { OrgMembershipOutputDto } from "../../organizations/memberships/outputs/membership.output";
+import { UpdateOrgMembership } from "../../organizations/memberships/outputs/update-membership.output";
+import { OrganizationsMembershipService } from "../../organizations/memberships/services/organizations-membership.service";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",
@@ -62,7 +63,7 @@ export class OrganizationsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: memberships.map((membership) =>
+      data: memberships.map((membership: any) =>
         plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" })
       ),
     };

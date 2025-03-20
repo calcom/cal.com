@@ -1,11 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -17,6 +9,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
+
+import { bootstrap } from "../../app";
+import { AppModule } from "../../app.module";
+import { HttpExceptionFilter } from "../../filters/http-exception.filter";
+import { PrismaExceptionFilter } from "../../filters/prisma-exception.filter";
+import { PermissionsGuard } from "../../modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "../../modules/tokens/tokens.module";
+import { UsersModule } from "../../modules/users/users.module";
+import { CalendarsService } from "../calendars/services/calendars.service";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

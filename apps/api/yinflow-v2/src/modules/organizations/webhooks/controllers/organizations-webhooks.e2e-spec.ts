@@ -1,14 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import {
-  TeamWebhookOutputResponseDto,
-  TeamWebhooksOutputResponseDto,
-} from "@/modules/webhooks/outputs/team-webhook.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -21,6 +10,18 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { Team, Webhook } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { PrismaModule } from "../../../prisma/prisma.module";
+import { TokensModule } from "../../../tokens/tokens.module";
+import { UsersModule } from "../../../users/users.module";
+import { UserWithProfile } from "../../../users/users.repository";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../../webhooks/inputs/webhook.input";
+import {
+  TeamWebhookOutputResponseDto,
+  TeamWebhooksOutputResponseDto,
+} from "../../../webhooks/outputs/team-webhook.output";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;

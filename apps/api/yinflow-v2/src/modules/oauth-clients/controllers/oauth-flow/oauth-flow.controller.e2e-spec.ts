@@ -1,14 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
-import { AuthModule } from "@/modules/auth/auth.module";
-import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
-import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
-import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -23,6 +12,18 @@ import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { HttpExceptionFilter } from "../../../../filters/http-exception.filter";
+import { PrismaExceptionFilter } from "../../../../filters/prisma-exception.filter";
+import { ZodExceptionFilter } from "../../../../filters/zod-exception.filter";
+import { AuthModule } from "../../../auth/auth.module";
+import { OAuthAuthorizeInput } from "../../../oauth-clients/inputs/authorize.input";
+import { ExchangeAuthorizationCodeInput } from "../../../oauth-clients/inputs/exchange-code.input";
+import { OAuthClientModule } from "../../../oauth-clients/oauth-client.module";
+import { PrismaModule } from "../../../prisma/prisma.module";
+import { UsersModule } from "../../../users/users.module";
 
 describe("OAuthFlow Endpoints", () => {
   describe("User Not Authenticated", () => {

@@ -1,23 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { IsWebhookInOrg } from "@/modules/auth/guards/organizations/is-webhook-in-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooks.service";
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import {
-  TeamWebhookOutputDto as OrgWebhookOutputDto,
-  TeamWebhookOutputResponseDto as OrgWebhookOutputResponseDto,
-  TeamWebhooksOutputResponseDto as OrgWebhooksOutputResponseDto,
-} from "@/modules/webhooks/outputs/team-webhook.output";
-import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
-import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   Controller,
   UseGuards,
@@ -37,6 +17,27 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { IsWebhookInOrg } from "../../../auth/guards/organizations/is-webhook-in-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { OrganizationsWebhooksService } from "../../../organizations/webhooks/services/organizations-webhooks.service";
+import { CreateWebhookInputDto } from "../../../webhooks/inputs/webhook.input";
+import { UpdateWebhookInputDto } from "../../../webhooks/inputs/webhook.input";
+import {
+  TeamWebhookOutputDto as OrgWebhookOutputDto,
+  TeamWebhookOutputResponseDto as OrgWebhookOutputResponseDto,
+  TeamWebhooksOutputResponseDto as OrgWebhooksOutputResponseDto,
+} from "../../../webhooks/outputs/team-webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "../../../webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "../../../webhooks/pipes/WebhookOutputPipe";
+import { WebhooksService } from "../../../webhooks/services/webhooks.service";
 
 @Controller({
   path: "/v2/organizations/:orgId/webhooks",
@@ -67,7 +68,7 @@ export class OrganizationsWebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: webhooks.map((webhook) =>
+      data: webhooks.map((webhook: any) =>
         plainToClass(OrgWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
           strategy: "excludeAll",
         })

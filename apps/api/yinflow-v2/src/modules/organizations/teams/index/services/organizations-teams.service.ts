@@ -1,9 +1,10 @@
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
-import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
+
+import { MembershipsRepository } from "../../../../memberships/memberships.repository";
+import { CreateOrgTeamDto } from "../../../../organizations/teams/index/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "../../../../organizations/teams/index/inputs/update-organization-team.input";
+import { OrganizationsTeamsRepository } from "../../../../organizations/teams/index/organizations-teams.repository";
+import { UserWithProfile } from "../../../../users/users.repository";
 
 @Injectable()
 export class OrganizationsTeamsService {

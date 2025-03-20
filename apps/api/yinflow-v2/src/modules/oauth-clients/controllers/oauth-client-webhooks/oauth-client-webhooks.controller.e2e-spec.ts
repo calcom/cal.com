@@ -1,14 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import {
-  OAuthClientWebhooksOutputResponseDto,
-  OAuthClientWebhookOutputResponseDto,
-} from "@/modules/webhooks/outputs/oauth-client-webhook.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -24,6 +13,18 @@ import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { PrismaModule } from "../../../prisma/prisma.module";
+import { TokensModule } from "../../../tokens/tokens.module";
+import { UsersModule } from "../../../users/users.module";
+import { UserWithProfile } from "../../../users/users.repository";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../../webhooks/inputs/webhook.input";
+import {
+  OAuthClientWebhooksOutputResponseDto,
+  OAuthClientWebhookOutputResponseDto,
+} from "../../../webhooks/outputs/oauth-client-webhook.output";
 
 describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;

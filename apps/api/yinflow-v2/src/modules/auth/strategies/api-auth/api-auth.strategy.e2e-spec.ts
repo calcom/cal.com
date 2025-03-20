@@ -1,17 +1,3 @@
-import appConfig from "@/config/app";
-import { AuthMethods } from "@/lib/enums/auth-methods";
-import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
-import { DeploymentsService } from "@/modules/deployments/deployments.service";
-import { JwtService } from "@/modules/jwt/jwt.service";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { ProfilesModule } from "@/modules/profiles/profiles.module";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { ExecutionContext, HttpException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ConfigModule } from "@nestjs/config";
@@ -30,6 +16,20 @@ import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
+import appConfig from "../../../../config/app";
+import { AuthMethods } from "../../../../lib/enums/auth-methods";
+import { ApiKeysRepository } from "../../../api-keys/api-keys-repository";
+import { DeploymentsRepository } from "../../../deployments/deployments.repository";
+import { DeploymentsService } from "../../../deployments/deployments.service";
+import { JwtService } from "../../../jwt/jwt.service";
+import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "../../../oauth-clients/services/oauth-flow.service";
+import { PrismaReadService } from "../../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../../prisma/prisma-write.service";
+import { ProfilesModule } from "../../../profiles/profiles.module";
+import { TokensRepository } from "../../../tokens/tokens.repository";
+import { UsersService } from "../../../users/services/users.service";
+import { UsersRepository } from "../../../users/users.repository";
 import { ApiAuthGuardRequest } from "./api-auth.strategy";
 import { ApiAuthStrategy } from "./api-auth.strategy";
 

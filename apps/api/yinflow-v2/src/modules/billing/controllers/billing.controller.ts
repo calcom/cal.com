@@ -1,31 +1,32 @@
-import { AppConfig } from "@/config/type";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
-import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
-import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
-import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
-import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
-import { BillingService } from "@/modules/billing/services/billing.service";
-import { StripeService } from "@/modules/stripe/stripe.service";
 import {
   Body,
   Controller,
   Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
   Headers,
   HttpCode,
   HttpStatus,
   Logger,
+  Param,
+  Post,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
 import { Request } from "express";
 
 import { ApiResponse } from "@calcom/platform-types";
+
+import { AppConfig } from "../../../config/type";
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { MembershipRoles } from "../../auth/decorators/roles/membership-roles.decorator";
+import { NextAuthGuard } from "../../auth/guards/next-auth/next-auth.guard";
+import { OrganizationRolesGuard } from "../../auth/guards/organization-roles/organization-roles.guard";
+import { SubscribeToPlanInput } from "../../billing/controllers/inputs/subscribe-to-plan.input";
+import { CheckPlatformBillingResponseDto } from "../../billing/controllers/outputs/CheckPlatformBillingResponse.dto";
+import { SubscribeTeamToBillingResponseDto } from "../../billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
+import { BillingService } from "../../billing/services/billing.service";
+import { StripeService } from "../../stripe/stripe.service";
 
 @Controller({
   path: "/v2/billing",

@@ -1,7 +1,8 @@
-import { CreateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/create-organization-attribute.input";
-import { UpdateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/update-organization-attribute.input";
-import { OrganizationAttributesRepository } from "@/modules/organizations/attributes/index/organization-attributes.repository";
 import { Injectable } from "@nestjs/common";
+
+import { CreateOrganizationAttributeInput } from "../../../../organizations/attributes/index/inputs/create-organization-attribute.input";
+import { UpdateOrganizationAttributeInput } from "../../../../organizations/attributes/index/inputs/update-organization-attribute.input";
+import { OrganizationAttributesRepository } from "../../../../organizations/attributes/index/organization-attributes.repository";
 
 @Injectable()
 export class OrganizationAttributesService {

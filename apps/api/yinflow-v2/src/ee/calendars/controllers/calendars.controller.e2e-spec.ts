@@ -1,17 +1,7 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
-import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
+import { Credential, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -22,16 +12,28 @@ import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { IcsCalendarServiceMock } from "test/mocks/ics-calendar-service-mock";
 import { randomString } from "test/utils/randomString";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   GOOGLE_CALENDAR,
-  OFFICE_365_CALENDAR,
-  GOOGLE_CALENDAR_TYPE,
   GOOGLE_CALENDAR_ID,
+  GOOGLE_CALENDAR_TYPE,
+  OFFICE_365_CALENDAR,
+  OFFICE_365_CALENDAR_ID,
+  OFFICE_365_CALENDAR_TYPE,
+  SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { ICS_CALENDAR } from "@calcom/platform-constants/apps";
 import { IcsFeedCalendarService } from "@calcom/platform-libraries";
+
+import { bootstrap } from "../../../app";
+import { AppModule } from "../../../app.module";
+import { HttpExceptionFilter } from "../../../filters/http-exception.filter";
+import { PrismaExceptionFilter } from "../../../filters/prisma-exception.filter";
+import { PermissionsGuard } from "../../../modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "../../../modules/tokens/tokens.module";
+import { UsersModule } from "../../../modules/users/users.module";
+import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "../../calendars/input/create-ics.output";
+import { DeletedCalendarCredentialsOutputResponseDto } from "../../calendars/outputs/delete-calendar-credentials.output";
+import { CalendarsService } from "../../calendars/services/calendars.service";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

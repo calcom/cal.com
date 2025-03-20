@@ -1,7 +1,3 @@
-import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { transformTeamLocationsApiToInternal } from "@calcom/platform-libraries";
@@ -11,6 +7,11 @@ import {
   HostPriority,
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/client";
+
+import { InputEventTypesService_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { TeamsEventTypesRepository } from "../../../teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "../../../teams/teams/teams.repository";
+import { UsersRepository } from "../../../users/users.repository";
 
 @Injectable()
 export class InputOrganizationsEventTypesService {
@@ -213,7 +214,7 @@ export class InputOrganizationsEventTypesService {
     const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
     const isFixed = schedulingType === "COLLECTIVE" ? true : false;
 
-    return membersIds.map((id) => ({
+    return membersIds.map((id: any) => ({
       userId: id,
       isFixed,
       priority: 2,

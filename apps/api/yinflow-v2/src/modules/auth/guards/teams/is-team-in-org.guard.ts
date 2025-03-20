@@ -1,4 +1,3 @@
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import {
   Injectable,
   CanActivate,
@@ -9,6 +8,8 @@ import {
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
+
+import { OrganizationsTeamsRepository } from "../../../organizations/teams/index/organizations-teams.repository";
 
 @Injectable()
 export class IsTeamInOrg implements CanActivate {

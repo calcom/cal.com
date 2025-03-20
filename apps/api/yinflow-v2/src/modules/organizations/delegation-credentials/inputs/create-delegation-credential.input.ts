@@ -1,11 +1,12 @@
-import {
-  GoogleServiceAccountKeyInput,
-  ServiceAccountKeyValidator,
-  MicrosoftServiceAccountKeyInput,
-} from "@/modules/organizations/delegation-credentials/inputs/service-account-key.input";
 import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, Validate } from "class-validator";
+import { IsNotEmpty, IsString, Validate } from "class-validator";
+
+import {
+  GoogleServiceAccountKeyInput,
+  MicrosoftServiceAccountKeyInput,
+  ServiceAccountKeyValidator,
+} from "../../../organizations/delegation-credentials/inputs/service-account-key.input";
 
 export class CreateDelegationCredentialInput {
   @IsString()

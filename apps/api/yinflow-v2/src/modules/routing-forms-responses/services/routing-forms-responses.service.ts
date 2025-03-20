@@ -1,6 +1,6 @@
-import { RoutingFormsResponsesOutputService } from "@/modules/routing-forms-responses/services/routing-forms-responses-output.service";
 import { Injectable } from "@nestjs/common";
 
+import { RoutingFormsResponsesOutputService } from "../../routing-forms-responses/services/routing-forms-responses-output.service";
 import { RoutingFormsResponsesRepository } from "../routing-forms-responses.repository";
 
 @Injectable()

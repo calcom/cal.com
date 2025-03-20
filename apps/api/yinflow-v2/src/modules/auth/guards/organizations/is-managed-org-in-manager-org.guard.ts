@@ -1,4 +1,3 @@
-import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import {
   Injectable,
   CanActivate,
@@ -9,6 +8,8 @@ import {
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
+
+import { ManagedOrganizationsRepository } from "../../../organizations/organizations/managed-organizations.repository";
 
 @Injectable()
 export class IsManagedOrgInManagerOrg implements CanActivate {

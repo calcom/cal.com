@@ -1,8 +1,9 @@
-import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { SlotFormat } from "@calcom/platform-enums";
+
+import { EventTypesRepository_2024_04_15 } from "../../../../ee/event-types/event-types_2024_04_15/event-types.repository";
 
 export type TimeSlots = {
   slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>;

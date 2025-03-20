@@ -1,15 +1,3 @@
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
-import { AuthMethods } from "@/lib/enums/auth-methods";
-import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
-import { BaseStrategy } from "@/lib/passport/strategies/types";
-import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { DeploymentsService } from "@/modules/deployments/deployments.service";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
@@ -17,6 +5,19 @@ import type { Request } from "express";
 import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+
+import { hashAPIKey, isApiKey, stripApiKey } from "../../../../lib/api-key";
+import { AuthMethods } from "../../../../lib/enums/auth-methods";
+import { isOriginAllowed } from "../../../../lib/is-origin-allowed/is-origin-allowed";
+import { BaseStrategy } from "../../../../lib/passport/strategies/types";
+import { ApiKeysRepository } from "../../../api-keys/api-keys-repository";
+import { DeploymentsService } from "../../../deployments/deployments.service";
+import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "../../../oauth-clients/services/oauth-flow.service";
+import { ProfilesRepository } from "../../../profiles/profiles.repository";
+import { TokensRepository } from "../../../tokens/tokens.repository";
+import { UsersService } from "../../../users/services/users.service";
+import { UserWithProfile, UsersRepository } from "../../../users/users.repository";
 
 export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
 export type ApiAuthGuardRequest = Request & {

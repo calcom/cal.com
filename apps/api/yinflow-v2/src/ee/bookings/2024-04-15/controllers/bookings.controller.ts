@@ -1,21 +1,3 @@
-import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
-import { CreateRecurringBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-recurring-booking.input";
-import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark-no-show.input";
-import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
-import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
-import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
-import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
-import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { BillingService } from "@/modules/billing/services/billing.service";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import {
   Controller,
   Post,
@@ -62,6 +44,25 @@ import {
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+
+import { hashAPIKey, isApiKey, stripApiKey } from "../../../../lib/api-key";
+import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "../../../../lib/api-versions";
+import { ApiKeysRepository } from "../../../../modules/api-keys/api-keys-repository";
+import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { BillingService } from "../../../../modules/billing/services/billing.service";
+import { OAuthClientRepository } from "../../../../modules/oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "../../../../modules/oauth-clients/services/oauth-flow.service";
+import { PrismaReadService } from "../../../../modules/prisma/prisma-read.service";
+import { CreateBookingInput_2024_04_15 } from "../../../bookings/2024-04-15/inputs/create-booking.input";
+import { CreateRecurringBookingInput_2024_04_15 } from "../../../bookings/2024-04-15/inputs/create-recurring-booking.input";
+import { MarkNoShowInput_2024_04_15 } from "../../../bookings/2024-04-15/inputs/mark-no-show.input";
+import { GetBookingOutput_2024_04_15 } from "../../../bookings/2024-04-15/outputs/get-booking.output";
+import { GetBookingsOutput_2024_04_15 } from "../../../bookings/2024-04-15/outputs/get-bookings.output";
+import { MarkNoShowOutput_2024_04_15 } from "../../../bookings/2024-04-15/outputs/mark-no-show.output";
+import { PlatformBookingsService } from "../../../bookings/shared/platform-bookings.service";
 
 type BookingRequest = Request & {
   userId?: number;

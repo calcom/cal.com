@@ -1,46 +1,46 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
-import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { BillingService } from "@/modules/billing/services/billing.service";
-import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { Request } from "express";
 import { z } from "zod";
 
 import {
-  handleNewRecurringBooking,
-  getAllUserBookings,
-  handleInstantMeeting,
-  handleCancelBooking,
-  roundRobinReassignment,
-  roundRobinManualReassignment,
-  handleMarkNoShow,
   confirmBookingHandler,
+  getAllUserBookings,
+  handleCancelBooking,
+  handleInstantMeeting,
+  handleMarkNoShow,
+  handleNewBooking,
+  handleNewRecurringBooking,
+  roundRobinManualReassignment,
+  roundRobinReassignment,
 } from "@calcom/platform-libraries";
-import { handleNewBooking } from "@calcom/platform-libraries";
 import {
-  CreateBookingInput_2024_08_13,
+  BookingOutput_2024_08_13,
+  CancelBookingInput,
   CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
   ReassignToUserBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
   RescheduleBookingInput,
-  CancelBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 import { EventType } from "@calcom/prisma/client";
+
+import { BillingService } from "../../../../modules/billing/services/billing.service";
+import { BookingSeatRepository } from "../../../../modules/booking-seat/booking-seat.repository";
+import { PrismaReadService } from "../../../../modules/prisma/prisma-read.service";
+import { UsersService } from "../../../../modules/users/services/users.service";
+import { UsersRepository, UserWithProfile } from "../../../../modules/users/users.repository";
+import { BookingsRepository_2024_08_13 } from "../../../bookings/2024-08-13/bookings.repository";
+import { InputBookingsService_2024_08_13 } from "../../../bookings/2024-08-13/services/input.service";
+import { OutputBookingsService_2024_08_13 } from "../../../bookings/2024-08-13/services/output.service";
+import { PlatformBookingsService } from "../../../bookings/shared/platform-bookings.service";
+import { EventTypesRepository_2024_06_14 } from "../../../event-types/event-types_2024_06_14/event-types.repository";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -213,7 +213,7 @@ export class BookingsService_2024_08_13 {
     if (!recurringBooking.length) {
       throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
-    const ids = recurringBooking.map((booking) => booking.id);
+    const ids = recurringBooking.map((booking: any) => booking.id);
     const isRecurringSeated = !!recurringBooking[0].eventType?.seatsPerTimeSlot;
     if (isRecurringSeated) {
       return this.outputService.getOutputRecurringSeatedBookings(ids);
@@ -240,7 +240,7 @@ export class BookingsService_2024_08_13 {
     const ids = fetchedBookings.bookings.map((booking) => booking.id);
     const bookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(ids);
 
-    const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
+    const bookingMap = new Map(bookings.map((booking: any) => [booking.id, booking]));
     const orderedBookings = ids.map((id) => bookingMap.get(id));
 
     const formattedBookings: (

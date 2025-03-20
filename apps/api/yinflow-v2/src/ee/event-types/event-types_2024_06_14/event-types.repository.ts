@@ -1,9 +1,9 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UsersService } from "@/modules/users/services/users.service";
 import { Injectable } from "@nestjs/common";
 
 import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
+
+import { PrismaReadService } from "../../../modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "../../../modules/prisma/prisma-write.service";
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {

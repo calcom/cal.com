@@ -1,7 +1,3 @@
-import { Editable } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/editable";
-import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
-import { Frequency } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/frequency";
-import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -16,6 +12,11 @@ import {
   IsDate,
   IsNumber,
 } from "class-validator";
+
+import { Editable } from "../../../event-types/event-types_2024_04_15/inputs/enums/editable";
+import { BaseField } from "../../../event-types/event-types_2024_04_15/inputs/enums/field-type";
+import { Frequency } from "../../../event-types/event-types_2024_04_15/inputs/enums/frequency";
+import { EventTypeLocation_2024_04_15 } from "../../../event-types/event-types_2024_04_15/inputs/event-type-location.input";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.
@@ -352,7 +353,7 @@ export class UpdateEventTypeInput_2024_04_15 {
 
   // @IsEnum(PeriodType)
   // @IsOptional()
-  // periodType?: PeriodType; -> import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
+  // periodType?: PeriodType; -> import { PeriodType } from "../../../event-types/inputs/enums/period-type";
 
   // @IsDate()
   // @IsOptional()
@@ -432,7 +433,7 @@ export class UpdateEventTypeInput_2024_04_15 {
 
   // @IsEnum(SchedulingType)
   // @IsOptional()
-  // schedulingType?: SchedulingType; -> import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
+  // schedulingType?: SchedulingType; -> import { SchedulingType } from "../../../event-types/inputs/enums/scheduling-type";
 
   // @IsInt()
   // @IsOptional()

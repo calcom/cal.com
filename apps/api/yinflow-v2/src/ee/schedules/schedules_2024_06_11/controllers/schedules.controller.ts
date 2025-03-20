@@ -1,10 +1,3 @@
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { VERSION_2024_06_14, VERSION_2024_06_11 } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -30,6 +23,14 @@ import {
   DeleteScheduleOutput_2024_06_11,
   GetSchedulesOutput_2024_06_11,
 } from "@calcom/platform-types";
+
+import { VERSION_2024_06_14, VERSION_2024_06_11 } from "../../../../lib/api-versions";
+import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "../../../../modules/users/users.repository";
+import { SchedulesService_2024_06_11 } from "../../../schedules/schedules_2024_06_11/services/schedules.service";
 
 @Controller({
   path: "/v2/schedules",

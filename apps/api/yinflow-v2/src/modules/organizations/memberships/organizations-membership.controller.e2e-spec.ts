@@ -1,10 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
-import { UpdateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/update-organization-membership.input";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -20,6 +13,14 @@ import { withApiAuth } from "test/utils/withApiAuth";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Membership, Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../app";
+import { AppModule } from "../../../app.module";
+import { CreateOrgMembershipDto } from "../../organizations/memberships/inputs/create-organization-membership.input";
+import { UpdateOrgMembershipDto } from "../../organizations/memberships/inputs/update-organization-membership.input";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { TokensModule } from "../../tokens/tokens.module";
+import { UsersModule } from "../../users/users.module";
 
 describe("Organizations Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

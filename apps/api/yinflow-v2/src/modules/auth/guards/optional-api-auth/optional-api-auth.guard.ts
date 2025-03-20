@@ -1,5 +1,5 @@
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { NO_AUTH_PROVIDED_MESSAGE } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { NO_AUTH_PROVIDED_MESSAGE } from "../../../auth/strategies/api-auth/api-auth.strategy";
 
 export class OptionalApiAuthGuard extends ApiAuthGuard {
   handleRequest(error: Error, user: any) {

@@ -1,4 +1,3 @@
-import { RoutingFormsRepository } from "@/modules/routing-forms/routing-forms.repository";
 import {
   Injectable,
   CanActivate,
@@ -9,6 +8,8 @@ import {
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
+
+import { RoutingFormsRepository } from "../../../routing-forms/routing-forms.repository";
 
 @Injectable()
 export class IsRoutingFormInTeam implements CanActivate {

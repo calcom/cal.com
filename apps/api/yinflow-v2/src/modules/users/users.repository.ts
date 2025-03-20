@@ -1,10 +1,11 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
-import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { Profile, User, Team, Prisma } from "@prisma/client";
 import { CreationSource } from "@prisma/client";
+
+import { PrismaReadService } from "../prisma/prisma-read.service";
+import { PrismaWriteService } from "../prisma/prisma-write.service";
+import { CreateManagedUserInput } from "../users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "../users/inputs/update-managed-user.input";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;

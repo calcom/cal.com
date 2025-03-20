@@ -1,15 +1,12 @@
-import type { AppConfig } from "@/config/type";
-import { getEnv } from "@/env";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import {
+  OperationObject,
   PathItemObject,
   PathsObject,
-  OperationObject,
-  TagObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import "dotenv/config";
 import * as fs from "fs";
@@ -18,6 +15,8 @@ import { WinstonModule } from "nest-winston";
 
 import { bootstrap } from "./app";
 import { AppModule } from "./app.module";
+import type { AppConfig } from "./config/type";
+import { getEnv } from "./env";
 import { loggerConfig } from "./lib/logger";
 
 const HttpMethods: (keyof PathItemObject)[] = ["get", "post", "put", "delete", "patch", "options", "head"];

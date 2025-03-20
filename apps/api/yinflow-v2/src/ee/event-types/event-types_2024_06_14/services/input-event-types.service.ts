@@ -1,7 +1,3 @@
-import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import {
@@ -33,6 +29,10 @@ import {
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
+import { UserWithProfile } from "../../../../modules/users/users.repository";
+import { ConnectedCalendarsData } from "../../../calendars/outputs/connected-calendars.output";
+import { CalendarsService } from "../../../calendars/services/calendars.service";
+import { EventTypesRepository_2024_06_14 } from "../../../event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
 interface ValidationContext {

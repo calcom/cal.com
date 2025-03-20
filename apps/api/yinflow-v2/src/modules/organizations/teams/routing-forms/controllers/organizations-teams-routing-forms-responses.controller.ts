@@ -1,12 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
@@ -14,6 +5,15 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { RoutingFormResponseOutput } from "@calcom/platform-types";
 
+import { API_VERSIONS_VALUES } from "../../../../../lib/api-versions";
+import { PlatformPlan } from "../../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../../auth/guards/organizations/is-org.guard";
+import { IsRoutingFormInTeam } from "../../../../auth/guards/routing-forms/is-routing-form-in-team.guard";
+import { IsTeamInOrg } from "../../../../auth/guards/teams/is-team-in-org.guard";
 import { RoutingFormsResponsesService } from "../../../../routing-forms-responses/services/routing-forms-responses.service";
 import { GetRoutingFormResponsesOutput } from "../outputs/get-routing-form-responses.output";
 

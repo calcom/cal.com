@@ -1,18 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
-import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
-import { OrgTeamMembershipOutputDto } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
-import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
-import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
-import { GetTeamMembershipOutput } from "@/modules/teams/memberships/outputs/get-team-membership.output";
-import { GetTeamMembershipsOutput } from "@/modules/teams/memberships/outputs/get-team-memberships.output";
-import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
-import { UpdateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/update-team-membership.output";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -27,10 +12,23 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { api } from "@calcom/app-store/alby";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Membership, Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { OrgTeamMembershipOutputDto } from "../../../organizations/teams/memberships/outputs/organization-teams-memberships.output";
+import { PrismaModule } from "../../../prisma/prisma.module";
+import { CreateTeamMembershipInput } from "../../../teams/memberships/inputs/create-team-membership.input";
+import { UpdateTeamMembershipInput } from "../../../teams/memberships/inputs/update-team-membership.input";
+import { CreateTeamMembershipOutput } from "../../../teams/memberships/outputs/create-team-membership.output";
+import { GetTeamMembershipOutput } from "../../../teams/memberships/outputs/get-team-membership.output";
+import { GetTeamMembershipsOutput } from "../../../teams/memberships/outputs/get-team-memberships.output";
+import { TeamMembershipOutput } from "../../../teams/memberships/outputs/team-membership.output";
+import { UpdateTeamMembershipOutput } from "../../../teams/memberships/outputs/update-team-membership.output";
+import { TokensModule } from "../../../tokens/tokens.module";
+import { UsersModule } from "../../../users/users.module";
 
 describe("Teams Memberships Endpoints", () => {
   describe("User Authentication - User is Team Admin", () => {
@@ -244,11 +242,15 @@ describe("Teams Memberships Endpoints", () => {
       const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
       expect(managedEventTypes?.length).toEqual(1);
       expect(teamEventTypes?.length).toEqual(2);
-      const collectiveEvenType = teamEventTypes?.find((eventType) => eventType.slug === teamEventType.slug);
+      const collectiveEvenType = teamEventTypes?.find(
+        (eventType: any) => eventType.slug === teamEventType.slug
+      );
       expect(collectiveEvenType).toBeTruthy();
-      const userHost = collectiveEvenType?.hosts.find((host) => host.userId === userId);
+      const userHost = collectiveEvenType?.hosts.find((host: any) => host.userId === userId);
       expect(userHost).toBeTruthy();
-      expect(managedEventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+      expect(
+        managedEventTypes?.find((eventType: any) => eventType.slug === managedEventType.slug)
+      ).toBeTruthy();
     }
 
     it("should update the membership of the org's team", async () => {

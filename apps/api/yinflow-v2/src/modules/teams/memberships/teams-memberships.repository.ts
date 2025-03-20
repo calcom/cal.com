@@ -1,8 +1,9 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
-import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { Injectable } from "@nestjs/common";
+
+import { PrismaReadService } from "../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../prisma/prisma-write.service";
+import { CreateTeamMembershipInput } from "../../teams/memberships/inputs/create-team-membership.input";
+import { UpdateTeamMembershipInput } from "../../teams/memberships/inputs/update-team-membership.input";
 
 @Injectable()
 export class TeamsMembershipsRepository {

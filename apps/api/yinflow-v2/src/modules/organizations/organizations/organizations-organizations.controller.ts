@@ -1,20 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsManagedOrgInManagerOrg } from "@/modules/auth/guards/organizations/is-managed-org-in-manager-org.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
-import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
-import { CreateManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/create-managed-organization.output";
-import { GetManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/get-managed-organization.output";
-import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
-import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managed-organizations.service";
 import {
   Controller,
   UseGuards,
@@ -31,6 +14,24 @@ import {
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { PlatformPlan } from "../../auth/decorators/billing/platform-plan.decorator";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsManagedOrgInManagerOrg } from "../../auth/guards/organizations/is-managed-org-in-manager-org.guard";
+import { IsOrgGuard } from "../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../auth/guards/roles/roles.guard";
+import { ApiAuthGuardUser } from "../../auth/strategies/api-auth/api-auth.strategy";
+import { CreateOrganizationInput } from "../../organizations/organizations/inputs/create-managed-organization.input";
+import { UpdateOrganizationInput } from "../../organizations/organizations/inputs/update-managed-organization.input";
+import { CreateManagedOrganizationOutput } from "../../organizations/organizations/outputs/create-managed-organization.output";
+import { GetManagedOrganizationOutput } from "../../organizations/organizations/outputs/get-managed-organization.output";
+import { GetManagedOrganizationsOutput } from "../../organizations/organizations/outputs/get-managed-organizations.output";
+import { ManagedOrganizationsService } from "../../organizations/organizations/services/managed-organizations.service";
 
 const SCALE = "SCALE";
 

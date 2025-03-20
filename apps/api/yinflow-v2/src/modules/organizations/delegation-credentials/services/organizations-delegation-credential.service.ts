@@ -1,19 +1,19 @@
-import { CreateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/create-delegation-credential.input";
-import {
-  GoogleServiceAccountKeyInput,
-  MicrosoftServiceAccountKeyInput,
-} from "@/modules/organizations/delegation-credentials/inputs/service-account-key.input";
-import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/update-delegation-credential.input";
-import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
-import { DelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/delegation-credential.output";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import {
   addDelegationCredential,
-  toggleDelegationCredentialEnabled,
   encryptServiceAccountKey,
+  toggleDelegationCredentialEnabled,
 } from "@calcom/platform-libraries";
+
+import { CreateDelegationCredentialInput } from "../../../organizations/delegation-credentials/inputs/create-delegation-credential.input";
+import {
+  GoogleServiceAccountKeyInput,
+  MicrosoftServiceAccountKeyInput,
+} from "../../../organizations/delegation-credentials/inputs/service-account-key.input";
+import { UpdateDelegationCredentialInput } from "../../../organizations/delegation-credentials/inputs/update-delegation-credential.input";
+import { OrganizationsDelegationCredentialRepository } from "../../../organizations/delegation-credentials/organizations-delegation-credential.repository";
 
 @Injectable()
 export class OrganizationsDelegationCredentialService {

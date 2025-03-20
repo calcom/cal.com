@@ -1,15 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -25,24 +13,32 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
-  OrganizerScheduledEmail,
-  AttendeeScheduledEmail,
-  OrganizerRescheduledEmail,
-  AttendeeRescheduledEmail,
-  OrganizerCancelledEmail,
   AttendeeCancelledEmail,
-  AttendeeRequestEmail,
-  OrganizerRequestEmail,
   AttendeeDeclinedEmail,
+  AttendeeRequestEmail,
+  AttendeeRescheduledEmail,
+  AttendeeScheduledEmail,
+  OrganizerCancelledEmail,
+  OrganizerRequestEmail,
+  OrganizerRescheduledEmail,
+  OrganizerScheduledEmail,
 } from "@calcom/platform-libraries";
 import {
-  CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
   GetBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../../../app";
+import { AppModule } from "../../../../../../app.module";
+import { PermissionsGuard } from "../../../../../../modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "../../../../../../modules/prisma/prisma.module";
+import { UsersModule } from "../../../../../../modules/users/users.module";
+import { CreateBookingOutput_2024_08_13 } from "../../../../../bookings/2024-08-13/outputs/create-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "../../../../../schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "../../../../../schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "../../../../../schedules/schedules_2024_04_15/services/schedules.service";
 
 jest
   .spyOn(AttendeeScheduledEmail.prototype, "getHtml")

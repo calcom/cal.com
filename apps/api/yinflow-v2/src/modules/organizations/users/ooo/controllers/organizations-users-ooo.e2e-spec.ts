@@ -1,9 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { UserOooOutputDto } from "@/modules/ooo/outputs/ooo.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -19,6 +13,13 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../../app";
+import { AppModule } from "../../../../../app.module";
+import { UserOooOutputDto } from "../../../../ooo/outputs/ooo.output";
+import { PrismaModule } from "../../../../prisma/prisma.module";
+import { TokensModule } from "../../../../tokens/tokens.module";
+import { UsersModule } from "../../../../users/users.module";
 
 describe("Organizations User OOO Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

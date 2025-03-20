@@ -1,8 +1,9 @@
-import { CreateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/create-organization-attribute.input";
-import { UpdateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/update-organization-attribute.input";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+
+import { CreateOrganizationAttributeInput } from "../../../organizations/attributes/index/inputs/create-organization-attribute.input";
+import { UpdateOrganizationAttributeInput } from "../../../organizations/attributes/index/inputs/update-organization-attribute.input";
+import { PrismaReadService } from "../../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../../prisma/prisma-write.service";
 
 @Injectable()
 export class OrganizationAttributesRepository {

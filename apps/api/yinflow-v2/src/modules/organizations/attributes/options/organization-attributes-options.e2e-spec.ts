@@ -1,11 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
-import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
-import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -19,6 +11,15 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { User, Team, Membership } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { CreateOrganizationAttributeOptionInput } from "../../../organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { AssignOrganizationAttributeOptionToUserInput } from "../../../organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
+import { UpdateOrganizationAttributeOptionInput } from "../../../organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
+import { PrismaModule } from "../../../prisma/prisma.module";
+import { TokensModule } from "../../../tokens/tokens.module";
+import { UsersModule } from "../../../users/users.module";
 
 describe("Organizations Attributes Options Endpoints", () => {
   describe("User lacks required role", () => {

@@ -1,5 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { Controller, Req, NotFoundException, Param, Post, Body } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { Request } from "express";
@@ -9,6 +7,9 @@ import {
   getTeamMemberEmailForResponseOrContactUsingUrlQuery,
 } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { TeamsEventTypesRepository } from "../../teams/event-types/teams-event-types.repository";
 
 @Controller({
   path: "/v2/router",

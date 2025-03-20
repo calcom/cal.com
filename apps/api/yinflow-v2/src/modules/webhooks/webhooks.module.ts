@@ -1,10 +1,10 @@
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { EventTypeWebhooksController } from "@/modules/event-types/controllers/event-types-webhooks.controller";
-import { OAuthClientWebhooksController } from "@/modules/oauth-clients/controllers/oauth-client-webhooks/oauth-client-webhooks.controller";
-import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { Module } from "@nestjs/common";
 
+import { EventTypesModule_2024_06_14 } from "../../ee/event-types/event-types_2024_06_14/event-types.module";
+import { EventTypeWebhooksController } from "../event-types/controllers/event-types-webhooks.controller";
 import { MembershipsModule } from "../memberships/memberships.module";
+import { OAuthClientWebhooksController } from "../oauth-clients/controllers/oauth-client-webhooks/oauth-client-webhooks.controller";
+import { OAuthClientModule } from "../oauth-clients/oauth-client.module";
 import { OrganizationsModule } from "../organizations/organizations.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { UsersModule } from "../users/users.module";

@@ -1,8 +1,9 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
+
+import { OrganizationsRepository } from "../../../organizations/index/organizations.repository";
 
 @Injectable()
 export class IsUserInOrg implements CanActivate {

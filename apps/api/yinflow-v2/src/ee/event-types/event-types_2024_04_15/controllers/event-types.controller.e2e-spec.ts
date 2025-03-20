@@ -1,18 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { Editable } from "@/ee/event-types/event-types_2024_04_15//inputs/enums/editable";
-import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
-import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
-import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
-import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
-import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -26,10 +11,10 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
-  SUCCESS_STATUS,
-  VERSION_2024_06_11,
-  VERSION_2024_04_15,
   CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_04_15,
+  VERSION_2024_06_11,
 } from "@calcom/platform-constants";
 import {
   EventTypesByViewer,
@@ -38,6 +23,22 @@ import {
   eventTypeLocations,
 } from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { HttpExceptionFilter } from "../../../../filters/http-exception.filter";
+import { PrismaExceptionFilter } from "../../../../filters/prisma-exception.filter";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "../../../../modules/tokens/tokens.module";
+import { UsersModule } from "../../../../modules/users/users.module";
+import { Editable } from "../../../event-types/event-types_2024_04_15//inputs/enums/editable";
+import { EventTypesModule_2024_04_15 } from "../../../event-types/event-types_2024_04_15/event-types.module";
+import { CreateEventTypeInput_2024_04_15 } from "../../../event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { BaseField } from "../../../event-types/event-types_2024_04_15/inputs/enums/field-type";
+import { UpdateEventTypeInput_2024_04_15 } from "../../../event-types/event-types_2024_04_15/inputs/update-event-type.input";
+import { GetEventTypePublicOutput } from "../../../event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+import { GetEventTypeOutput } from "../../../event-types/event-types_2024_04_15/outputs/get-event-type.output";
+import { GetEventTypesPublicOutput } from "../../../event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
 
 describe("Event types Endpoints", () => {
   describe("Not authenticated", () => {

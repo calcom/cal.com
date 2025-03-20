@@ -1,7 +1,8 @@
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { RouterController } from "@/modules/router/controllers/router.controller";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { Module } from "@nestjs/common";
+
+import { PrismaModule } from "../prisma/prisma.module";
+import { RouterController } from "../router/controllers/router.controller";
+import { TeamsEventTypesRepository } from "../teams/event-types/teams-event-types.repository";
 
 @Module({
   imports: [PrismaModule],

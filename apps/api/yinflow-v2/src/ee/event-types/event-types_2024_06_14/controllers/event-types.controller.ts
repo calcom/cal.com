@@ -1,17 +1,3 @@
-import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
-import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
-import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
-import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
-import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/update-event-type.output";
-import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
-import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
-import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -36,6 +22,21 @@ import {
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
+
+import { VERSION_2024_06_14_VALUE } from "../../../../lib/api-versions";
+import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "../../../../modules/users/users.repository";
+import { CreateEventTypeOutput_2024_06_14 } from "../../../event-types/event-types_2024_06_14/outputs/create-event-type.output";
+import { DeleteEventTypeOutput_2024_06_14 } from "../../../event-types/event-types_2024_06_14/outputs/delete-event-type.output";
+import { GetEventTypeOutput_2024_06_14 } from "../../../event-types/event-types_2024_06_14/outputs/get-event-type.output";
+import { GetEventTypesOutput_2024_06_14 } from "../../../event-types/event-types_2024_06_14/outputs/get-event-types.output";
+import { UpdateEventTypeOutput_2024_06_14 } from "../../../event-types/event-types_2024_06_14/outputs/update-event-type.output";
+import { EventTypeResponseTransformPipe } from "../../../event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
+import { EventTypesService_2024_06_14 } from "../../../event-types/event-types_2024_06_14/services/event-types.service";
+import { InputEventTypesService_2024_06_14 } from "../../../event-types/event-types_2024_06_14/services/input-event-types.service";
 
 @Controller({
   path: "/v2/event-types",
@@ -115,18 +116,18 @@ export class EventTypesController_2024_06_14 {
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
     const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
-    const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
+    const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType: any) => {
       return {
         ...eventType,
         bookingFields: Array.isArray(eventType?.bookingFields)
           ? eventType?.bookingFields
-              .map((field) => {
+              .map((field: any) => {
                 if ("hidden" in field) {
                   return field.hidden !== true ? field : null;
                 }
                 return field;
               })
-              .filter((f) => f)
+              .filter((f: any) => f)
           : [],
       };
     }) as EventTypeOutput_2024_06_14[];

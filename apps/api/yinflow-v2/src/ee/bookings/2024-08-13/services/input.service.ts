@@ -1,14 +1,3 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import {
-  bookingResponsesSchema,
-  seatedBookingDataSchema,
-} from "@/ee/bookings/2024-08-13/services/output.service";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
-import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -34,6 +23,18 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
+
+import { hashAPIKey, isApiKey, stripApiKey } from "../../../../lib/api-key";
+import { ApiKeysRepository } from "../../../../modules/api-keys/api-keys-repository";
+import { BookingSeatRepository } from "../../../../modules/booking-seat/booking-seat.repository";
+import { OAuthFlowService } from "../../../../modules/oauth-clients/services/oauth-flow.service";
+import { BookingsRepository_2024_08_13 } from "../../../bookings/2024-08-13/bookings.repository";
+import {
+  bookingResponsesSchema,
+  seatedBookingDataSchema,
+} from "../../../bookings/2024-08-13/services/output.service";
+import { PlatformBookingsService } from "../../../bookings/shared/platform-bookings.service";
+import { EventTypesRepository_2024_06_14 } from "../../../event-types/event-types_2024_06_14/event-types.repository";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -359,7 +360,7 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const { responses: bookingResponses } = seatedBookingDataSchema.parse(seat.data);
-    const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
+    const attendee = booking.attendees.find((attendee: any) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
       throw new NotFoundException(
@@ -398,7 +399,7 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const bookingResponses = bookingResponsesSchema.parse(booking.responses);
-    const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
+    const attendee = booking.attendees.find((attendee: any) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
       throw new NotFoundException(

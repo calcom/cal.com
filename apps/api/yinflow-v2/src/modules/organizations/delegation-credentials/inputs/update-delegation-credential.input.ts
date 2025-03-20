@@ -1,11 +1,12 @@
+import { ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { Expose, plainToClass, Transform, Type } from "class-transformer";
+import { IsBoolean, IsOptional, Validate, ValidateNested } from "class-validator";
+
 import {
   GoogleServiceAccountKeyInput,
   MicrosoftServiceAccountKeyInput,
   ServiceAccountKeyValidator,
-} from "@/modules/organizations/delegation-credentials/inputs/service-account-key.input";
-import { ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Expose, plainToClass, Transform, Type } from "class-transformer";
-import { IsBoolean, IsOptional, Validate, ValidateNested } from "class-validator";
+} from "../../../organizations/delegation-credentials/inputs/service-account-key.input";
 
 export class UpdateDelegationCredentialInput {
   @IsBoolean()

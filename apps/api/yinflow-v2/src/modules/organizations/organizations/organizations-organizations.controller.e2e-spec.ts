@@ -1,19 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { getEnv } from "@/env";
-import { hashAPIKey, stripApiKey } from "@/lib/api-key";
-import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
-import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
-import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
-import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
-import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
-import {
-  ManagedOrganizationWithApiKeyOutput,
-  ManagedOrganizationOutput,
-} from "@/modules/organizations/organizations/outputs/managed-organization.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -48,6 +32,23 @@ import {
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../app";
+import { AppModule } from "../../../app.module";
+import { getEnv } from "../../../env";
+import { hashAPIKey, stripApiKey } from "../../../lib/api-key";
+import { RefreshApiKeyOutput } from "../../api-keys/outputs/refresh-api-key.output";
+import { CreateOAuthClientResponseDto } from "../../oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import { GetOAuthClientResponseDto } from "../../oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
+import { CreateOrganizationInput } from "../../organizations/organizations/inputs/create-managed-organization.input";
+import { UpdateOrganizationInput } from "../../organizations/organizations/inputs/update-managed-organization.input";
+import {
+  ManagedOrganizationWithApiKeyOutput,
+  ManagedOrganizationOutput,
+} from "../../organizations/organizations/outputs/managed-organization.output";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { TokensModule } from "../../tokens/tokens.module";
+import { UsersModule } from "../../users/users.module";
 
 describe("Organizations Organizations Endpoints", () => {
   let app: INestApplication;

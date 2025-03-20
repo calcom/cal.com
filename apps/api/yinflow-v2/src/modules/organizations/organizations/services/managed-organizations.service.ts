@@ -1,14 +1,15 @@
-import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
-import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
-import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
-import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+
+import { ApiKeysService } from "../../../api-keys/services/api-keys.service";
+import { ApiAuthGuardUser } from "../../../auth/strategies/api-auth/api-auth.strategy";
+import { ManagedOrganizationsBillingService } from "../../../billing/services/managed-organizations.billing.service";
+import { OrganizationsRepository } from "../../../organizations/index/organizations.repository";
+import { OrganizationsMembershipService } from "../../../organizations/memberships/services/organizations-membership.service";
+import { CreateOrganizationInput } from "../../../organizations/organizations/inputs/create-managed-organization.input";
+import { UpdateOrganizationInput } from "../../../organizations/organizations/inputs/update-managed-organization.input";
+import { ManagedOrganizationsRepository } from "../../../organizations/organizations/managed-organizations.repository";
+import { ManagedOrganizationsOutputService } from "../../../organizations/organizations/services/managed-organizations-output.service";
+import { ProfilesRepository } from "../../../profiles/profiles.repository";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -98,11 +99,11 @@ export class ManagedOrganizationsService {
       managerOrganizationId
     );
     const managedOrganizationsIds = managedOrganizations.map(
-      (managedOrganization) => managedOrganization.managedOrganizationId
+      (managedOrganization: any) => managedOrganization.managedOrganizationId
     );
 
     const organizations = await this.organizationsRepository.findByIds(managedOrganizationsIds);
-    return organizations.map((organization) =>
+    return organizations.map((organization: any) =>
       this.managedOrganizationsOutputService.getOutputManagedOrganization(organization)
     );
   }

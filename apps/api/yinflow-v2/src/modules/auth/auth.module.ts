@@ -1,17 +1,18 @@
-import { ApiKeysModule } from "@/modules/api-keys/api-keys.module";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
-import { ApiAuthStrategy } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { NextAuthStrategy } from "@/modules/auth/strategies/next-auth/next-auth.strategy";
-import { DeploymentsModule } from "@/modules/deployments/deployments.module";
-import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { ProfilesModule } from "@/modules/profiles/profiles.module";
-import { RedisModule } from "@/modules/redis/redis.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 import { PassportModule } from "@nestjs/passport";
+
+import { ApiKeysModule } from "../api-keys/api-keys.module";
+import { ApiAuthGuard } from "../auth/guards/api-auth/api-auth.guard";
+import { NextAuthGuard } from "../auth/guards/next-auth/next-auth.guard";
+import { ApiAuthStrategy } from "../auth/strategies/api-auth/api-auth.strategy";
+import { NextAuthStrategy } from "../auth/strategies/next-auth/next-auth.strategy";
+import { DeploymentsModule } from "../deployments/deployments.module";
+import { MembershipsModule } from "../memberships/memberships.module";
+import { OAuthFlowService } from "../oauth-clients/services/oauth-flow.service";
+import { ProfilesModule } from "../profiles/profiles.module";
+import { RedisModule } from "../redis/redis.module";
+import { TokensModule } from "../tokens/tokens.module";
+import { UsersModule } from "../users/users.module";
 
 @Module({
   imports: [

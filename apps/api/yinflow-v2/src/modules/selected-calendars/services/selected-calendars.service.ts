@@ -1,15 +1,16 @@
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import {
-  SelectedCalendarsInputDto,
-  SelectedCalendarsQueryParamsInputDto,
-} from "@/modules/selected-calendars/inputs/selected-calendars.input";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { SelectedCalendarRepository } from "@calcom/platform-libraries";
+
+import { CalendarsService } from "../../../ee/calendars/services/calendars.service";
+import { OrganizationsDelegationCredentialRepository } from "../../organizations/delegation-credentials/organizations-delegation-credential.repository";
+import { OrganizationsMembershipService } from "../../organizations/memberships/services/organizations-membership.service";
+import {
+  SelectedCalendarsInputDto,
+  SelectedCalendarsQueryParamsInputDto,
+} from "../../selected-calendars/inputs/selected-calendars.input";
+import { SelectedCalendarsRepository } from "../../selected-calendars/selected-calendars.repository";
+import { UserWithProfile } from "../../users/users.repository";
 
 type SelectedCalendarsInputDelegationCredential = SelectedCalendarsInputDto & {
   delegationCredentialId: string;

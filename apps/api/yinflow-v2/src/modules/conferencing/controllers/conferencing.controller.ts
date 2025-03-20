@@ -1,24 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import {
-  ConferencingAppsOauthUrlOutputDto,
-  GetConferencingAppsOauthUrlResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
-import {
-  ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
-  ConferencingAppsOutputDto,
-  DisconnectConferencingAppOutputResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps.output";
-import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
-import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
-import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
-import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Get,
@@ -41,6 +20,28 @@ import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
 import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO } from "@calcom/platform-constants";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import {
+  ConferencingAppsOauthUrlOutputDto,
+  GetConferencingAppsOauthUrlResponseDto,
+} from "../../conferencing/outputs/get-conferencing-apps-oauth-url";
+import {
+  ConferencingAppsOutputResponseDto,
+  ConferencingAppOutputResponseDto,
+  ConferencingAppsOutputDto,
+  DisconnectConferencingAppOutputResponseDto,
+} from "../../conferencing/outputs/get-conferencing-apps.output";
+import { GetDefaultConferencingAppOutputResponseDto } from "../../conferencing/outputs/get-default-conferencing-app.output";
+import { SetDefaultConferencingAppOutputResponseDto } from "../../conferencing/outputs/set-default-conferencing-app.output";
+import { ConferencingService } from "../../conferencing/services/conferencing.service";
+import { GoogleMeetService } from "../../conferencing/services/google-meet.service";
+import { Office365VideoService } from "../../conferencing/services/office365-video.service";
+import { ZoomVideoService } from "../../conferencing/services/zoom-video.service";
+import { TokensRepository } from "../../tokens/tokens.repository";
+import { UserWithProfile } from "../../users/users.repository";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -184,7 +185,7 @@ export class ConferencingController {
   ): Promise<ConferencingAppsOutputResponseDto> {
     const conferencingApps = await this.conferencingService.getConferencingApps(userId);
 
-    const data = conferencingApps.map((conferencingApps) =>
+    const data = conferencingApps.map((conferencingApps: any) =>
       plainToInstance(ConferencingAppsOutputDto, conferencingApps)
     );
 

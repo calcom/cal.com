@@ -1,12 +1,13 @@
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
 import type { PrismaClient } from "@calcom/prisma";
+
+import { PrismaReadService } from "../../../modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "../../../modules/prisma/prisma-write.service";
+import { UsersService } from "../../../modules/users/services/users.service";
+import { UserWithProfile } from "../../../modules/users/users.repository";
+import { CreateEventTypeInput_2024_04_15 } from "../../event-types/event-types_2024_04_15/inputs/create-event-type.input";
 
 @Injectable()
 export class EventTypesRepository_2024_04_15 {

@@ -1,6 +1,7 @@
-import { RefreshApiKeyInput } from "@/modules/api-keys/inputs/refresh-api-key.input";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsInt, IsOptional, IsString } from "class-validator";
+
+import { RefreshApiKeyInput } from "../../api-keys/inputs/refresh-api-key.input";
 
 export class CreateApiKeyInput extends RefreshApiKeyInput {
   @IsOptional()

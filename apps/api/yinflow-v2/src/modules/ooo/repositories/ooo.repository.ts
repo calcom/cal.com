@@ -1,9 +1,9 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 
 import { Prisma } from "@calcom/prisma/client";
 
+import { PrismaReadService } from "../../prisma/prisma-read.service";
 import { PrismaWriteService } from "../../prisma/prisma-write.service";
 
 type OOOInputData = Omit<Prisma.OutOfOfficeEntryCreateInput, "user" | "toUser" | "reason" | "uuid"> & {

@@ -1,7 +1,3 @@
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   BadRequestException,
   CanActivate,
@@ -13,6 +9,11 @@ import {
 import { Request } from "express";
 
 import { PlatformOAuthClient, Webhook } from "@calcom/prisma/client";
+
+import { ApiAuthGuardUser } from "../../auth/strategies/api-auth/api-auth.strategy";
+import { OAuthClientRepository } from "../../oauth-clients/oauth-client.repository";
+import { UsersService } from "../../users/services/users.service";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsOAuthClientWebhookGuard implements CanActivate {

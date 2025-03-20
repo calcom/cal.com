@@ -1,12 +1,13 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
 import { GetSlotsInput_2024_09_04 } from "@calcom/platform-types";
+
+import { EventTypesRepository_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/event-types.repository";
+import { OrganizationsRepository } from "../../../organizations/index/organizations.repository";
+import { OrganizationsUsersRepository } from "../../../organizations/users/index/organizations-users.repository";
+import { UsersRepository } from "../../../users/users.repository";
 
 @Injectable()
 export class SlotsInputService_2024_09_04 {

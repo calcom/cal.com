@@ -1,25 +1,3 @@
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { EventTypeIdParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-id.input";
-import { GetPublicEventTypeQueryParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/get-public-event-type-query-params.input";
-import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
-import { CreateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/create-event-type.output";
-import { DeleteEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/delete-event-type.output";
-import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
-import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
-import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
-import {
-  GetEventTypesData,
-  GetEventTypesOutput,
-} from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types.output";
-import { UpdateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/update-event-type.output";
-import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
-import { VERSION_2024_04_15, VERSION_2024_06_11 } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -41,6 +19,29 @@ import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
 import { PrismaClient } from "@calcom/prisma";
+
+import { VERSION_2024_04_15, VERSION_2024_06_11 } from "../../../../lib/api-versions";
+import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
+import { PrismaReadService } from "../../../../modules/prisma/prisma-read.service";
+import { UserWithProfile } from "../../../../modules/users/users.repository";
+import { CreateEventTypeInput_2024_04_15 } from "../../../event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { EventTypeIdParams_2024_04_15 } from "../../../event-types/event-types_2024_04_15/inputs/event-type-id.input";
+import { GetPublicEventTypeQueryParams_2024_04_15 } from "../../../event-types/event-types_2024_04_15/inputs/get-public-event-type-query-params.input";
+import { UpdateEventTypeInput_2024_04_15 } from "../../../event-types/event-types_2024_04_15/inputs/update-event-type.input";
+import { CreateEventTypeOutput } from "../../../event-types/event-types_2024_04_15/outputs/create-event-type.output";
+import { DeleteEventTypeOutput } from "../../../event-types/event-types_2024_04_15/outputs/delete-event-type.output";
+import { GetEventTypePublicOutput } from "../../../event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+import { GetEventTypeOutput } from "../../../event-types/event-types_2024_04_15/outputs/get-event-type.output";
+import { GetEventTypesPublicOutput } from "../../../event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
+import {
+  GetEventTypesData,
+  GetEventTypesOutput,
+} from "../../../event-types/event-types_2024_04_15/outputs/get-event-types.output";
+import { UpdateEventTypeOutput } from "../../../event-types/event-types_2024_04_15/outputs/update-event-type.output";
+import { EventTypesService_2024_04_15 } from "../../../event-types/event-types_2024_04_15/services/event-types.service";
 
 @Controller({
   path: "/v2/event-types",

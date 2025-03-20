@@ -1,4 +1,3 @@
-import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
 import {
@@ -18,6 +17,8 @@ import {
   NOT_FOUND,
 } from "@calcom/platform-constants";
 import { Response } from "@calcom/platform-types";
+
+import { filterReqHeaders } from "../lib/filterReqHeaders";
 
 type PrismaError =
   | PrismaClientInitializationError

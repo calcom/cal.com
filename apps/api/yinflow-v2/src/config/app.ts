@@ -1,5 +1,4 @@
-import { getEnv } from "@/env";
-
+import { getEnv } from "../env";
 import type { AppConfig } from "./type";
 
 const loadConfig = (): AppConfig => {

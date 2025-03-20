@@ -1,18 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
-import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import {
-  EventTypeWebhookOutputResponseDto,
-  EventTypeWebhookOutputDto,
-  EventTypeWebhooksOutputResponseDto,
-} from "@/modules/webhooks/outputs/event-type-webhook.output";
-import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
-import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
-import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import { EventTypeWebhooksService } from "@/modules/webhooks/services/event-type-webhooks.service";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   Controller,
   Post,
@@ -31,6 +16,22 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { GetWebhook } from "../../webhooks/decorators/get-webhook-decorator";
+import { IsUserEventTypeWebhookGuard } from "../../webhooks/guards/is-user-event-type-webhook-guard";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../webhooks/inputs/webhook.input";
+import {
+  EventTypeWebhookOutputResponseDto,
+  EventTypeWebhookOutputDto,
+  EventTypeWebhooksOutputResponseDto,
+} from "../../webhooks/outputs/event-type-webhook.output";
+import { DeleteManyWebhooksOutputResponseDto } from "../../webhooks/outputs/webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "../../webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "../../webhooks/pipes/WebhookOutputPipe";
+import { EventTypeWebhooksService } from "../../webhooks/services/event-type-webhooks.service";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/webhooks",
@@ -104,7 +105,7 @@ export class EventTypeWebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: webhooks.map((webhook) =>
+      data: webhooks.map((webhook: any) =>
         plainToClass(EventTypeWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
           strategy: "excludeAll",
         })

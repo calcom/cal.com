@@ -1,12 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -28,6 +19,16 @@ import {
 } from "@calcom/platform-types";
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../../app";
+import { AppModule } from "../../../../../app.module";
+import { PermissionsGuard } from "../../../../../modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "../../../../../modules/prisma/prisma.module";
+import { UsersModule } from "../../../../../modules/users/users.module";
+import { CreateBookingOutput_2024_08_13 } from "../../../../bookings/2024-08-13/outputs/create-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "../../../../schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "../../../../schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "../../../../schedules/schedules_2024_04_15/services/schedules.service";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Creating recurring bookings", () => {
@@ -504,31 +505,31 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
             expect(data.length).toEqual(4);
 
-            const firstRecurrence = data.find((booking) => booking.uid === recurringBooking[0].uid);
+            const firstRecurrence = data.find((booking: any) => booking.uid === recurringBooking[0].uid);
             expect(firstRecurrence).toBeDefined();
             expect(firstRecurrence?.status).toEqual("accepted");
 
-            const secondRecurrence = data.find((booking) => booking.uid === recurringBooking[1].uid);
+            const secondRecurrence = data.find((booking: any) => booking.uid === recurringBooking[1].uid);
             expect(secondRecurrence).toBeDefined();
             expect(secondRecurrence?.status).toEqual("accepted");
 
-            const thirdRecurrence = data.find((booking) => booking.uid === thirdRecurrenceUid);
+            const thirdRecurrence = data.find((booking: any) => booking.uid === thirdRecurrenceUid);
             expect(thirdRecurrence).toBeDefined();
             expect(thirdRecurrence?.status).toEqual("cancelled");
 
-            const fourthRecurrence = data.find((booking) => booking.uid === fourthRecurringUid);
+            const fourthRecurrence = data.find((booking: any) => booking.uid === fourthRecurringUid);
             expect(fourthRecurrence).toBeDefined();
             expect(fourthRecurrence?.status).toEqual("cancelled");
 
             const bookings = await bookingsRepositoryFixture.getByRecurringBookingUid(recurringBookingUid);
 
-            const bookingFirst = bookings.find((booking) => booking.uid === recurringBooking[0].uid);
+            const bookingFirst = bookings.find((booking: any) => booking.uid === recurringBooking[0].uid);
             expect(bookingFirst?.status).toEqual("ACCEPTED");
-            const bookingSecond = bookings.find((booking) => booking.uid === recurringBooking[1].uid);
+            const bookingSecond = bookings.find((booking: any) => booking.uid === recurringBooking[1].uid);
             expect(bookingSecond?.status).toEqual("ACCEPTED");
-            const bookingThird = bookings.find((booking) => booking.uid === recurringBooking[2].uid);
+            const bookingThird = bookings.find((booking: any) => booking.uid === recurringBooking[2].uid);
             expect(bookingThird?.status).toEqual("CANCELLED");
-            const bookingFourth = bookings.find((booking) => booking.uid === recurringBooking[3].uid);
+            const bookingFourth = bookings.find((booking: any) => booking.uid === recurringBooking[3].uid);
             expect(bookingFourth?.status).toEqual("CANCELLED");
           } else {
             throw new Error(

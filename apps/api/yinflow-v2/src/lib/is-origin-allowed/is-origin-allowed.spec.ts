@@ -1,4 +1,4 @@
-import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
+import { isOriginAllowed } from "../is-origin-allowed/is-origin-allowed";
 
 describe("isOriginAllowed", () => {
   describe("is allowed", () => {

@@ -1,25 +1,3 @@
-import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
-import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
-import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
-import { OrganizationsEventTypesService } from "@/modules/organizations/event-types/services/organizations-event-types.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
-import { CreateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/create-team-event-type.output";
-import { DeleteTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/delete-team-event-type.output";
-import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-team-event-type.output";
-import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/get-team-event-types.output";
-import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/update-team-event-type.output";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -46,6 +24,29 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+
+import { CreatePhoneCallInput } from "../../../ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
+import { CreatePhoneCallOutput } from "../../../ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { PlatformPlan } from "../../auth/decorators/billing/platform-plan.decorator";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../auth/guards/teams/is-team-in-org.guard";
+import { OutputTeamEventTypesResponsePipe } from "../../organizations/event-types/pipes/team-event-types-response.transformer";
+import { InputOrganizationsEventTypesService } from "../../organizations/event-types/services/input.service";
+import { OrganizationsEventTypesService } from "../../organizations/event-types/services/organizations-event-types.service";
+import { DatabaseTeamEventType } from "../../organizations/event-types/services/output.service";
+import { CreateTeamEventTypeOutput } from "../../teams/event-types/outputs/create-team-event-type.output";
+import { DeleteTeamEventTypeOutput } from "../../teams/event-types/outputs/delete-team-event-type.output";
+import { GetTeamEventTypeOutput } from "../../teams/event-types/outputs/get-team-event-type.output";
+import { GetTeamEventTypesOutput } from "../../teams/event-types/outputs/get-team-event-types.output";
+import { UpdateTeamEventTypeOutput } from "../../teams/event-types/outputs/update-team-event-type.output";
+import { UserWithProfile } from "../../users/users.repository";
 
 export type EventTypeHandlerResponse = {
   data: DatabaseTeamEventType[] | DatabaseTeamEventType;

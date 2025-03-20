@@ -1,10 +1,3 @@
-import { AppConfig } from "@/config/type";
-import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
-import { BillingRepository } from "@/modules/billing/billing.repository";
-import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
-import { PlatformPlan } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { StripeService } from "@/modules/stripe/stripe.service";
 import { InjectQueue } from "@nestjs/bull";
 import {
   Injectable,
@@ -17,6 +10,14 @@ import { ConfigService } from "@nestjs/config";
 import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
+
+import { AppConfig } from "../../../config/type";
+import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "../../billing/billing.processor";
+import { BillingRepository } from "../../billing/billing.repository";
+import { BillingConfigService } from "../../billing/services/billing.config.service";
+import { PlatformPlan } from "../../billing/types";
+import { OrganizationsRepository } from "../../organizations/index/organizations.repository";
+import { StripeService } from "../../stripe/stripe.service";
 
 @Injectable()
 export class BillingService implements OnModuleDestroy {

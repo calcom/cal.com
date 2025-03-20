@@ -1,24 +1,3 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
-import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
-import {
-  OrgMeTeamOutputDto,
-  OrgMeTeamsOutputResponseDto,
-  OrgTeamOutputResponseDto,
-  OrgTeamsOutputResponseDto,
-} from "@/modules/organizations/teams/index/outputs/organization-team.output";
-import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -39,6 +18,28 @@ import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { OrgTeamOutputDto } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { GetTeam } from "../../../auth/decorators/get-team/get-team.decorator";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../../auth/guards/teams/is-team-in-org.guard";
+import { CreateOrgTeamDto } from "../../../organizations/teams/index/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "../../../organizations/teams/index/inputs/update-organization-team.input";
+import {
+  OrgMeTeamOutputDto,
+  OrgMeTeamsOutputResponseDto,
+  OrgTeamOutputResponseDto,
+  OrgTeamsOutputResponseDto,
+} from "../../../organizations/teams/index/outputs/organization-team.output";
+import { OrganizationsTeamsService } from "../../../organizations/teams/index/services/organizations-teams.service";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams",
@@ -62,7 +63,7 @@ export class OrganizationsTeamsController {
     const teams = await this.organizationsTeamsService.getPaginatedOrgTeams(orgId, skip ?? 0, take ?? 250);
     return {
       status: SUCCESS_STATUS,
-      data: teams.map((team) => plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" })),
+      data: teams.map((team: any) => plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" })),
     };
   }
 
@@ -84,8 +85,8 @@ export class OrganizationsTeamsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: teams.map((team) => {
-        const me = team.members.find((member) => member.userId === user.id);
+      data: teams.map((team: any) => {
+        const me = team.members.find((member: any) => member.userId === user.id);
         return plainToClass(
           OrgMeTeamOutputDto,
           me ? { ...team, role: me.role, accepted: me.accepted } : team,

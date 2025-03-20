@@ -1,11 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
-import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
-import { OrgTeamMembershipOutputDto } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -23,6 +15,15 @@ import { withApiAuth } from "test/utils/withApiAuth";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Membership, Team } from "@calcom/prisma/client";
+
+import { bootstrap } from "../../../../app";
+import { AppModule } from "../../../../app.module";
+import { CreateOrgTeamMembershipDto } from "../../../organizations/teams/memberships/inputs/create-organization-team-membership.input";
+import { UpdateOrgTeamMembershipDto } from "../../../organizations/teams/memberships/inputs/update-organization-team-membership.input";
+import { OrgTeamMembershipOutputDto } from "../../../organizations/teams/memberships/outputs/organization-teams-memberships.output";
+import { PrismaModule } from "../../../prisma/prisma.module";
+import { TokensModule } from "../../../tokens/tokens.module";
+import { UsersModule } from "../../../users/users.module";
 
 describe("Organizations Teams Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
