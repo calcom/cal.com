@@ -23,7 +23,7 @@ import { Select } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -205,10 +205,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         description={
           IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
-              <CustomTrans t={t} i18nKey="invite_new_member_description">
+              <ServerTrans t={t} i18nKey="invite_new_member_description">
                 Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
                 on your subscription.
-              </CustomTrans>
+              </ServerTrans>
             </span>
           ) : null
         }>

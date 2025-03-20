@@ -22,7 +22,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
@@ -252,16 +252,16 @@ function EventWorkflowsTab(props: Props) {
               severity={workflowsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
-                <CustomTrans
+                <ServerTrans
                   t={t}
                   i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
                   {lockedText[0].toUpperCase()}
                   {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                </CustomTrans>
+                </ServerTrans>
               }
               actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
               message={
-                <CustomTrans
+                <ServerTrans
                   t={t}
                   i18nKey={`workflows_${lockedText}_${
                     isManagedEventType ? "for_members" : "by_team_admins"
@@ -270,7 +270,7 @@ function EventWorkflowsTab(props: Props) {
                   {workflowsDisableProps.isLocked
                     ? "will be able to see the active workflows but will not be able to edit any workflow settings"
                     : "will be able to see the active workflow and will be able to edit any workflow settings"}
-                </CustomTrans>
+                </ServerTrans>
               }
             />
           )}

@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { getSubject, getTypeOfInvite } from "../../templates/team-invite-email";
 import { V2BaseEmailHtml, CallToAction } from "../components";
@@ -157,10 +157,10 @@ export const TeamInviteEmail = (
           <>
             {autoJoinType == "added" ? (
               <>
-                <CustomTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
+                <ServerTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
                   {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-                </CustomTrans>{" "}
-                <CustomTrans
+                </ServerTrans>{" "}
+                <ServerTrans
                   t={props.language}
                   i18nKey="email_team_invite|content_addition|existing_user_added"
                   values={{
@@ -185,14 +185,14 @@ export const TeamInviteEmail = (
                   <br />
                   Enjoy your new clean link:{" "}
                   <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-                </CustomTrans>
+                </ServerTrans>
               </>
             ) : (
               <>
-                <CustomTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
+                <ServerTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
                   {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-                </CustomTrans>{" "}
-                <CustomTrans
+                </ServerTrans>{" "}
+                <ServerTrans
                   t={props.language}
                   i18nKey="existing_user_added_link_will_change"
                   values={{
@@ -209,7 +209,7 @@ export const TeamInviteEmail = (
                   <br />
                   <br />
                   For personal events we recommend creating a new account with a personal email address.
-                </CustomTrans>
+                </ServerTrans>
               </>
             )}
           </>
@@ -218,13 +218,13 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <CustomTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
+            <ServerTrans t={props.language} i18nKey="email_team_invite|content|added_to_org">
               {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-            </CustomTrans>
+            </ServerTrans>
           ) : (
-            <CustomTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
+            <ServerTrans t={props.language} i18nKey="email_team_invite|content|invited_to_org">
               {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-            </CustomTrans>
+            </ServerTrans>
           )}{" "}
           {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
           without the email tennis.
@@ -236,15 +236,15 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <CustomTrans t={props.language} i18nKey="email_team_invite|content|added_to_subteam">
+            <ServerTrans t={props.language} i18nKey="email_team_invite|content|added_to_subteam">
               {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
               <strong>{parentTeamName}</strong>.
-            </CustomTrans>
+            </ServerTrans>
           ) : (
-            <CustomTrans t={props.language} i18nKey="email_team_invite|content|invited_to_subteam">
+            <ServerTrans t={props.language} i18nKey="email_team_invite|content|invited_to_subteam">
               {invitedBy} has invited you to the team <strong>{teamName}</strong> in their organization{" "}
               <strong>{parentTeamName}</strong>.
-            </CustomTrans>
+            </ServerTrans>
           )}{" "}
           {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
           without the email tennis.

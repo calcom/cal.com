@@ -16,7 +16,7 @@ import { CheckboxField } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -163,7 +163,7 @@ export default function RequiresConfirmationController({
                           )}
                           label={
                             <>
-                              <CustomTrans
+                              <ServerTrans
                                 t={t}
                                 i18nKey="when_booked_with_less_than_notice"
                                 components={{

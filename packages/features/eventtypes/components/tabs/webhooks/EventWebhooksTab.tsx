@@ -17,7 +17,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -122,18 +122,18 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     severity={webhooksDisableProps.isLocked ? "neutral" : "info"}
                     className="mb-2"
                     title={
-                      <CustomTrans
+                      <ServerTrans
                         t={t}
                         i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
                         {lockedText[0].toUpperCase()}
                         {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                      </CustomTrans>
+                      </ServerTrans>
                     }
                     actions={
                       <div className="flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
                     }
                     message={
-                      <CustomTrans
+                      <ServerTrans
                         t={t}
                         i18nKey={`webhooks_${lockedText}_${
                           isManagedEventType ? "for_members" : "by_team_admins"
@@ -142,7 +142,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                         {webhooksDisableProps.isLocked
                           ? "will be able to see the active webhooks but will not be able to edit any webhook settings"
                           : "will be able to see the active webhooks and will be able to edit any webhook settings"}
-                      </CustomTrans>
+                      </ServerTrans>
                     }
                   />
                 )}
@@ -183,14 +183,14 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       </div>
 
                       <p className="text-default text-sm font-normal">
-                        <CustomTrans t={t} i18nKey="edit_or_manage_webhooks">
+                        <ServerTrans t={t} i18nKey="edit_or_manage_webhooks">
                           If you wish to edit or manage your web hooks, please head over to &nbsp;
                           <Link
                             className="cursor-pointer font-semibold underline"
                             href="/settings/developer/webhooks">
                             webhooks settings
                           </Link>
-                        </CustomTrans>
+                        </ServerTrans>
                       </p>
                     </div>
                   </>

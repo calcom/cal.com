@@ -12,7 +12,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { useBookerStore } from "../../store";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -141,12 +141,12 @@ export const BookEventForm = ({
               severity="info"
               title={t("unavailable_timeslot_title")}
               message={
-                <CustomTrans t={t} i18nKey="timeslot_unavailable_book_a_new_time">
+                <ServerTrans t={t} i18nKey="timeslot_unavailable_book_a_new_time">
                   The selected time slot is no longer available.{" "}
                   <button type="button" className="underline" onClick={onCancel}>
                     Please select a new time
                   </button>
-                </CustomTrans>
+                </ServerTrans>
               }
             />
           </div>
@@ -154,7 +154,7 @@ export const BookEventForm = ({
 
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
-            <CustomTrans
+            <ServerTrans
               t={t}
               i18nKey="signing_up_terms"
               components={[

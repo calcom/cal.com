@@ -27,7 +27,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
@@ -443,14 +443,14 @@ const Locations: React.FC<LocationsProps> = ({
               <Icon name="check" className="h-3 w-3" />
             </div>
             <p className="text-default text-sm">
-              <CustomTrans t={t} i18nKey="event_type_requires_google_calendar">
+              <ServerTrans t={t} i18nKey="event_type_requires_google_calendar">
                 The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                 Connect it
                 <Link className="cursor-pointer text-blue-500 underline" href="/apps/google-calendar">
                   here
                 </Link>
                 .
-              </CustomTrans>
+              </ServerTrans>
             </p>
           </div>
         )}
@@ -480,13 +480,13 @@ const Locations: React.FC<LocationsProps> = ({
       </ul>
       {props.showAppStoreLink && !isPlatorm && (
         <p className="text-default mt-2 text-sm">
-          <CustomTrans t={t} i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
+          <ServerTrans t={t} i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
             Can&apos;t find the right conferencing app? Visit our
             <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/conferencing">
               App Store
             </Link>
             .
-          </CustomTrans>
+          </ServerTrans>
         </p>
       )}
     </div>

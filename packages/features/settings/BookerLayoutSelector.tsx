@@ -11,7 +11,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import SectionBottomActions from "./SectionBottomActions";
 
@@ -229,7 +229,7 @@ const BookerLayoutFields = ({
       </div>
       {disableFields && (
         <p className="text-sm">
-          <CustomTrans t={t} i18nKey="bookerlayout_override_global_settings">
+          <ServerTrans t={t} i18nKey="bookerlayout_override_global_settings">
             You can manage this for all your event types in Settings {"-> "}
             <Link target="_blank" href="/settings/my-account/appearance" className="underline">
               Appearance
@@ -242,7 +242,7 @@ const BookerLayoutFields = ({
               Override
             </Button>{" "}
             for this event only.
-          </CustomTrans>
+          </ServerTrans>
         </p>
       )}
     </div>

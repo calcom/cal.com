@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -91,7 +91,7 @@ export const AdminOrganizationNotificationEmail = ({
         <>{language("hi_admin")}!</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <CustomTrans i18nKey="admin_org_notification_email_body_part1" t={language} values={{ orgSlug }}>
+        <ServerTrans i18nKey="admin_org_notification_email_body_part1" t={language} values={{ orgSlug }}>
           An organization with slug {`"${orgSlug}"`} was created.
           <br />
           <br />
@@ -104,7 +104,7 @@ export const AdminOrganizationNotificationEmail = ({
           <br />
           <br />
           You can do it either with the A Record:
-        </CustomTrans>
+        </ServerTrans>
       </p>
       {dnsTable("A", orgSlug, webappIPAddress, language)}
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>

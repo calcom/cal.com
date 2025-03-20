@@ -8,7 +8,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
@@ -251,7 +251,7 @@ const DeleteOrgDialog = ({
         cancelBtnText={t("cancel")}
         variety="danger"
         onConfirm={onConfirm}>
-        <CustomTrans
+        <ServerTrans
           t={t}
           i18nKey="admin_delete_organization_description"
           components={{ li: <li />, ul: <ul className="ml-4 mt-5 list-disc space-y-2" /> }}>
@@ -265,7 +265,7 @@ const DeleteOrgDialog = ({
             </li>
             <li>Usernames would be changed to allow them to exist outside the organization</li>
           </ul>
-        </CustomTrans>
+        </ServerTrans>
       </ConfirmationDialogContent>
     </Dialog>
   );

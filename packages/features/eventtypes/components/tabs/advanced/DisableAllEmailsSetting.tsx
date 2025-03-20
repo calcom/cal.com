@@ -7,7 +7,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { InputField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {
@@ -53,7 +53,7 @@ export const DisableAllEmailsSetting = ({
           className={customClassNames?.confirmationDialog?.container}>
           <p
             className={classNames("text-default text-sm", customClassNames?.confirmationDialog?.description)}>
-            <CustomTrans t={t} i18nKey="disable_attendees_emails_description">
+            <ServerTrans t={t} i18nKey="disable_attendees_emails_description">
               This will disable all emails to {recipient}. This includes booking confirmations, requests,
               reschedules and reschedule requests, cancellation emails, and any other emails related to
               booking updates.
@@ -61,7 +61,7 @@ export const DisableAllEmailsSetting = ({
               <br />
               It is your responsibility to ensure that your {recipient} are aware of any bookings and changes
               to their bookings.
-            </CustomTrans>
+            </ServerTrans>
           </p>
           <p
             className={classNames(

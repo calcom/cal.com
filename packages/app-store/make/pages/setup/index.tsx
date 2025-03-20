@@ -10,7 +10,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import type { getServerSideProps } from "./_getServerSideProps";
 
@@ -115,7 +115,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
               </>
 
               <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
-                <CustomTrans t={t} i18nKey="make_setup_instructions">
+                <ServerTrans t={t} i18nKey="make_setup_instructions">
                   <li>
                     Go to
                     <a href={inviteLink} className="ml-1 mr-1 text-orange-600 underline">
@@ -128,7 +128,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
                   <li>Choose your account and then enter your Unique API Key.</li>
                   <li>Test your Trigger.</li>
                   <li>You&apos;re set!</li>
-                </CustomTrans>
+                </ServerTrans>
               </ol>
               <Link href="/apps/installed/automation?hl=make" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>

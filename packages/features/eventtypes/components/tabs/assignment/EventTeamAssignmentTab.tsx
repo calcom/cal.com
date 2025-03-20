@@ -28,7 +28,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 import WeightDescription from "../../WeightDescription";
@@ -117,7 +117,7 @@ const ChildrenEventTypesList = ({
 };
 
 const FixedHostHelper = ({ t }: { t: TFunction }) => (
-  <CustomTrans t={t} i18nKey="fixed_host_helper">
+  <ServerTrans t={t} i18nKey="fixed_host_helper">
     Add anyone who needs to attend the event.
     <Link
       className="underline underline-offset-2"
@@ -125,7 +125,7 @@ const FixedHostHelper = ({ t }: { t: TFunction }) => (
       href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
       Learn more
     </Link>
-  </CustomTrans>
+  </ServerTrans>
 );
 
 type FixedHostsCustomClassNames = SettingsToggleClassNames & {

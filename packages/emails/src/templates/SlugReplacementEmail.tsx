@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -21,22 +21,22 @@ export const SlugReplacementEmail = (
       headerType="teamCircle"
       title={t("event_replaced_notice")}>
       <>
-        <CustomTrans t={t} i18nKey="hi_user_name" values={{ name }}>
+        <ServerTrans t={t} i18nKey="hi_user_name" values={{ name }}>
           <p style={{ fontWeight: 400, lineHeight: "24px", display: "inline-block" }}>Hi {name}</p>
           <p style={{ display: "inline" }}>,</p>
-        </CustomTrans>
-        <CustomTrans i18nKey="email_body_slug_replacement_notice" t={t} values={{ slug }}>
+        </ServerTrans>
+        <ServerTrans i18nKey="email_body_slug_replacement_notice" t={t} values={{ slug }}>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>
             An administrator on the <strong>{teamName}</strong> team has replaced your event type{" "}
             <strong>/{slug}</strong> with a managed event type that they control.
           </p>
-        </CustomTrans>
-        <CustomTrans i18nKey="email_body_slug_replacement_info" t={t}>
+        </ServerTrans>
+        <ServerTrans i18nKey="email_body_slug_replacement_info" t={t}>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>
             Your link will continue to work but some settings for it may have changed. You can review it in
             event types.
           </p>
-        </CustomTrans>
+        </ServerTrans>
         <table
           role="presentation"
           border={0}
@@ -62,7 +62,7 @@ export const SlugReplacementEmail = (
             width: "100%",
           }}
         />
-        <CustomTrans i18nKey="email_body_slug_replacement_suggestion" t={t}>
+        <ServerTrans i18nKey="email_body_slug_replacement_suggestion" t={t}>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>
             If you have any questions about the event type, please reach out to your administrator.
             <br />
@@ -70,7 +70,7 @@ export const SlugReplacementEmail = (
             Happy scheduling, <br />
             The Cal.com team
           </p>
-        </CustomTrans>
+        </ServerTrans>
         {/*<p style={{ fontWeight: 400, lineHeight: "24px" }}>
           <>{t("email_body_slug_replacement_suggestion")}</>
         </p>*/}

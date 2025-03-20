@@ -23,7 +23,7 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
@@ -302,7 +302,7 @@ export const EditWeightsForAllTeamMembers = ({
             <SheetHeader>
               <SheetTitle>{t("edit_team_member_weights")}</SheetTitle>
               <div className="text-subtle text-sm">
-                <CustomTrans t={t} i18nKey="weights_description">
+                <ServerTrans t={t} i18nKey="weights_description">
                   Weights determine how meetings are distributed among hosts.
                   <Link
                     className="underline underline-offset-2"
@@ -310,7 +310,7 @@ export const EditWeightsForAllTeamMembers = ({
                     href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
                     Learn more
                   </Link>
-                </CustomTrans>
+                </ServerTrans>
               </div>
             </SheetHeader>
 

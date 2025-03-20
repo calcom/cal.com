@@ -5,7 +5,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 interface IOutOfOfficeInSlotsProps {
   date: string;
@@ -42,7 +42,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
 
           {fromUser?.displayName && toUser?.displayName && (
             <p className="text-center text-sm">
-              <CustomTrans
+              <ServerTrans
                 t={t}
                 i18nKey="ooo_slots_returning"
                 values={{ displayName: toUser.displayName }}

@@ -9,7 +9,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export interface IZapierSetupProps {
   inviteLink?: string;
@@ -124,13 +124,13 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                     </a>
                   </li>
                 )}
-                <CustomTrans t={t} i18nKey="zapier_setup_instructions">
+                <ServerTrans t={t} i18nKey="zapier_setup_instructions">
                   <li>Log into your Zapier account and create a new Zap.</li>
                   <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
                   <li>Choose your account and then enter your Unique API Key.</li>
                   <li>Test your Trigger.</li>
                   <li>You&apos;re set!</li>
-                </CustomTrans>
+                </ServerTrans>
               </ol>
               <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>

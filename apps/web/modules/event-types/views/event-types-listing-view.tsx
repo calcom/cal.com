@@ -58,7 +58,7 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -806,7 +806,7 @@ export const InfiniteEventTypeList = ({
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
-            <CustomTrans
+            <ServerTrans
               t={t}
               i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
               components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
@@ -816,7 +816,7 @@ export const InfiniteEventTypeList = ({
                   Anyone who they&apos;ve shared their link with will no longer be able to book using it.
                 </li>
               </ul>
-            </CustomTrans>
+            </ServerTrans>
           </p>
         </ConfirmationDialogContent>
       </Dialog>

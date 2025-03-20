@@ -1,7 +1,7 @@
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 interface ManagedEventDialogProps {
   slugExistsChildrenDialogOpen: ChildrenEventType[];
@@ -30,7 +30,7 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
         cancelBtnText={t("go_back")}
         onConfirm={onConfirm}>
         <p className="mt-5">
-          <CustomTrans
+          <ServerTrans
             t={t}
             i18nKey="managed_event_dialog_information"
             values={{

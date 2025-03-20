@@ -15,7 +15,7 @@ type CustomTransProps = {
  * A custom Trans component that doesn't use React Context
  * Supports various Trans component use cases
  */
-const CustomTrans: FC<CustomTransProps> = ({ i18nKey, components = [], t, values = {}, count, children }) => {
+const ServerTrans: FC<CustomTransProps> = ({ i18nKey, components = [], t, values = {}, count, children }) => {
   // Get translated string with count if provided
   const translationOptions = { ...values };
   if (count !== undefined) {
@@ -113,4 +113,4 @@ const CustomTrans: FC<CustomTransProps> = ({ i18nKey, components = [], t, values
   return <>{result}</>;
 };
 
-export default CustomTrans;
+export default ServerTrans;

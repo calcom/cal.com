@@ -44,7 +44,7 @@ import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -598,7 +598,7 @@ export default function Signup({
                   </Link>
                 </div>
                 <div className="text-subtle">
-                  <CustomTrans
+                  <ServerTrans
                     t={t}
                     i18nKey="signing_up_terms"
                     components={[

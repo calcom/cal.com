@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import { AppStoreLocationType } from "@calcom/app-store/locations";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { BaseScheduledEmail } from "./BaseScheduledEmail";
 
@@ -15,7 +15,7 @@ export function getEnumKeyByEnumValue(myEnum: any, enumValue: number | string): 
 
 const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number | null; t: TFunction }) => {
   return (
-    <CustomTrans i18nKey="broken_video_action" t={props.t}>
+    <ServerTrans i18nKey="broken_video_action" t={props.t}>
       We could not add the <span>{props.location}</span> meeting link to your scheduled event. Contact your
       invitees or update your calendar event to add the details. You can either&nbsp;
       <a
@@ -26,7 +26,7 @@ const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number 
       </a>
       &nbsp;or try&nbsp;
       <a href={`${WEBAPP_URL}/apps/installed`}>removing and adding the app again.</a>
-    </CustomTrans>
+    </ServerTrans>
   );
 };
 

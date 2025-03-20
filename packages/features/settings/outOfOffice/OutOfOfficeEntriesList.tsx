@@ -31,7 +31,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -197,7 +197,7 @@ function OutOfOfficeEntriesListContent() {
                       </p>
                       <p className="px-2">
                         {item.toUser?.username ? (
-                          <CustomTrans
+                          <ServerTrans
                             t={t}
                             i18nKey="ooo_forwarding_to"
                             values={{

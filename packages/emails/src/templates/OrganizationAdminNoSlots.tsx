@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-import CustomTrans from "@calcom/web/components/CustomTrans";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -31,7 +31,7 @@ export const OrganizationAdminNoSlotsEmail = (
         <>{props.language("org_admin_no_slots|heading", { name: props.user })}</>
       </p>
       <p style={{ fontWeight: 400, fontSize: "16px", lineHeight: "24px" }}>
-        <CustomTrans
+        <ServerTrans
           t={props.language}
           i18nKey="org_admin_no_slots|content"
           values={{ username: props.user, slug: props.slug }}>
@@ -52,7 +52,7 @@ export const OrganizationAdminNoSlotsEmail = (
             <li>The user does not have any calendars connected</li>
             <li>Their schedules attached to this event are not enabled</li>
           </ul>
-        </CustomTrans>
+        </ServerTrans>
       </p>
       <div style={{ marginTop: "3rem", marginBottom: "0.75rem" }}>
         <CallToAction
