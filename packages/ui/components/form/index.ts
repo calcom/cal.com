@@ -1,5 +1,5 @@
 export { Checkbox, MultiSelectCheckbox, CheckboxField } from "./checkbox";
-export type { Option } from "./checkbox";
+export type { Option as MultiSelectCheckboxesOptionType } from "./checkbox";
 export { HintsOrErrors } from "./inputs/HintOrErrors";
 export {
   EmailField,
@@ -15,7 +15,7 @@ export {
 } from "./inputs/Input";
 
 export { InputFieldWithSelect } from "./inputs/InputFieldWithSelect";
-
+export type { InputFieldProps, InputProps } from "./inputs/types";
 export { InputField, Input, TextField, inputStyles } from "./inputs/TextField";
 export { InputError } from "./inputs/InputError";
 export { Form } from "./inputs/Form";

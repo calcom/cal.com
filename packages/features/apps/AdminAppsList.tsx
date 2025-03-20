@@ -16,25 +16,23 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import cs from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
-  ConfirmationDialogContent,
   Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
-  EmptyScreen,
-  Form,
-  Icon,
-  List,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  Switch,
-  TextField,
-} from "@calcom/ui";
-import cs from "@calcom/ui/classNames";
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { List } from "@calcom/ui/components/list";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 

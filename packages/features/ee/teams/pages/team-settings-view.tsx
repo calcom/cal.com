@@ -14,8 +14,12 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
 import RoundRobinResetInterval from "../components/RoundRobinResetInterval";

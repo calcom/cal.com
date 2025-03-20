@@ -2,7 +2,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Icon, List } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { List } from "@calcom/ui/components/list";
 import classNames from "@calcom/ui/classNames";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
