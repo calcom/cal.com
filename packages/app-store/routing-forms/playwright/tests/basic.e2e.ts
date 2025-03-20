@@ -829,8 +829,8 @@ async function addAllTypesOfFieldsAndSaveForm(
   form: { description: string; label: string }
 ) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await page.click('[data-testid="add-field"]');
   await page.fill('[data-testid="description"]', form.description);
+  await page.click('[data-testid="add-field"]');
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
