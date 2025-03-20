@@ -1,6 +1,8 @@
+import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -24,6 +26,7 @@ type SubmenuItem = {
   labelKey: string;
   onClick: (segment: FilterSegmentOutput) => void;
   isDestructive?: boolean;
+  adminOnly: boolean;
 };
 
 export function FilterSegmentSelect() {
@@ -38,17 +41,20 @@ export function FilterSegmentSelect() {
       iconName: "square-pen",
       labelKey: "rename",
       onClick: (segment) => setSegmentToRename(segment),
+      adminOnly: true,
     },
     {
       iconName: "copy",
       labelKey: "duplicate",
       onClick: (segment) => setSegmentToDuplicate(segment),
+      adminOnly: false,
     },
     {
       iconName: "trash-2",
       labelKey: "delete",
       onClick: (segment) => setSegmentToDelete(segment),
       isDestructive: true,
+      adminOnly: true,
     },
   ];
 
@@ -163,6 +169,21 @@ function DropdownItemWithSubmenu({
 }) {
   const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
+  const session = useSession();
+  const orgRole = session?.data?.user?.org?.role;
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
+
+  // Filter submenu items based on segment type and user role
+  const filteredSubmenuItems = submenuItems.filter((item) => {
+    if (!segment.team) {
+      // Personal segments: show all actions
+      return true;
+    }
+
+    // Team segments: show if not admin-only or if user is admin/owner
+    return !item.adminOnly || isAdminOrOwner;
+  });
+
   return (
     <DropdownMenuItem className="cursor-pointer" onSelect={onSelect}>
       <div className="flex items-center">
@@ -174,7 +195,7 @@ function DropdownItemWithSubmenu({
           </DropdownMenuTrigger>
           <DropdownMenuPortal>
             <DropdownMenuContent align="start" side="right" sideOffset={8}>
-              {submenuItems.map((item, index) => (
+              {filteredSubmenuItems.map((item, index) => (
                 <DropdownMenuItem key={index}>
                   <DropdownItem
                     color={item.isDestructive ? "destructive" : undefined}
