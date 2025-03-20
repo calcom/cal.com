@@ -16,7 +16,7 @@ vi.mock("@calcom/lib/service/attribute/server/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui", () => ({}));
+
 const orgId = 1001;
 function mockAttributesScenario({
   attributes,
