@@ -92,7 +92,7 @@ const processHtmlAndComponents = (
         placeholders[placeholder] = React.cloneElement(
           component,
           {
-            ...component.props,
+            ...(component.props || {}),
             key: component.key || `comp-${index}`,
           },
           innerContent
@@ -114,7 +114,7 @@ const processHtmlAndComponents = (
         placeholders[placeholder] = React.cloneElement(
           component,
           {
-            ...component.props,
+            ...(component.props || {}),
             key: component.key || `comp-${tag}`,
           },
           innerContent
@@ -127,7 +127,7 @@ const processHtmlAndComponents = (
       processedText = processedText.replace(selfClosingPattern, () => {
         const placeholder = `__COMPONENT_OBJECT_SELF_${tag}_${Math.random().toString(36).substring(2)}__`;
         placeholders[placeholder] = React.cloneElement(component, {
-          ...component.props,
+          ...(component.props || {}),
           key: component.key || `comp-self-${tag}`,
         });
         return placeholder;
@@ -138,7 +138,7 @@ const processHtmlAndComponents = (
       processedText = processedText.replace(interpolationPattern, () => {
         const placeholder = `__COMPONENT_INTERPOLATION_${tag}_${Math.random().toString(36).substring(2)}__`;
         placeholders[placeholder] = React.cloneElement(component, {
-          ...component.props,
+          ...(component.props || {}),
           key: component.key || `interp-${tag}`,
         });
         return placeholder;
