@@ -3,8 +3,8 @@ import { Controller, useFormContext } from "react-hook-form";
 
 import type { FormValues, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SettingsToggle } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 const AssignAllTeamMembers = ({
   assignAllTeamMembers,

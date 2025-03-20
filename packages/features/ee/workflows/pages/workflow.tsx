@@ -16,9 +16,13 @@ import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Badge, Button, Form, showToast } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";

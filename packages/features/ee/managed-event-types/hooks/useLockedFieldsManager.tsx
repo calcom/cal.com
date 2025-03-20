@@ -10,8 +10,11 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
-import { Badge, Icon, Switch, Tooltip } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const LockedSwitch = (
   isManagedEventType: boolean,

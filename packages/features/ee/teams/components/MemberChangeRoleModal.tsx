@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, DialogFooter, Select } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Select } from "@calcom/ui/components/form";
 
 type MembershipRoleOption = {
   label: string;

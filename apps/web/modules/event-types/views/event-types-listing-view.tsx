@@ -33,13 +33,15 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
+import { UserAvatarGroup } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  ConfirmationDialogContent,
-  Dialog,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -47,19 +49,16 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  EmptyScreen,
-  HorizontalTabs,
-  Icon,
-  Label,
-  showToast,
-  Skeleton,
-  Switch,
-  TextField,
-  Tooltip,
-  ArrowButton,
-  UserAvatarGroup,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { Skeleton } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

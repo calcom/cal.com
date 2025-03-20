@@ -8,8 +8,8 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
-import { Alert } from "../components/alert";
-import { showToast } from "../components/toast";
+import { Alert } from "../alert";
+import { showToast } from "../toast";
 
 type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
 

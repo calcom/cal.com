@@ -1,7 +1,10 @@
 import type { Directory } from "@boxyhq/saml-jackson";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, showToast, Label, Tooltip } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Label } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const DirectoryInfo = ({ directory }: { directory: Directory }) => {
   const { t } = useLocale();

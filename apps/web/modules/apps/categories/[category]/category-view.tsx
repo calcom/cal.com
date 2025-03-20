@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AppCard } from "@calcom/features/apps/components/AppCard";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
 

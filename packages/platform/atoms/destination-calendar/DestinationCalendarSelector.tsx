@@ -6,8 +6,9 @@ import { SingleValueComponent } from "@calcom/features/calendars/DestinationCale
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
-import { Badge, Select } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Select } from "@calcom/ui/components/form";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 

@@ -3,7 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, ConfirmationDialogContent, showToast } from "@calcom/ui";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 
