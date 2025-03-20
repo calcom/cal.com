@@ -833,7 +833,6 @@ async function addAllTypesOfFieldsAndSaveForm(
   );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await appRoutingFormsRespPromise;
-  await page.fill('[data-testid="description"]', form.description);
   await page.click('[data-testid="add-field"]');
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
@@ -880,6 +879,7 @@ async function addAllTypesOfFieldsAndSaveForm(
     fields.push({ identifier: identifier, label, type: fieldTypeLabel });
   }
 
+  await page.fill('[data-testid="description"]', form.description);
   await saveCurrentForm(page);
   return {
     fieldTypesList,
