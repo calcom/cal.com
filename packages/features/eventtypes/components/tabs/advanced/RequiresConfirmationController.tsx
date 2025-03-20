@@ -10,8 +10,12 @@ import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Select } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { RadioField } from "@calcom/ui/components/radio";
 import CustomTrans from "@calcom/web/components/CustomTrans";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {

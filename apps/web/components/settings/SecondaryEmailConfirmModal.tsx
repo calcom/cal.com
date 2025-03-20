@@ -1,5 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import CustomTrans from "@calcom/web/components/CustomTrans";
 
 interface SecondaryEmailConfirmModalProps {

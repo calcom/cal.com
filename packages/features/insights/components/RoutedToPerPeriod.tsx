@@ -7,26 +7,21 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import {
-  Avatar,
-  ToggleGroup,
-  Badge,
-  Tooltip,
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-  Input,
-  Button,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ToggleGroup, Input } from "@calcom/ui/components/form";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@calcom/ui/components/hover-card";
 import {
-  Table,
+  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@calcom/ui/components/table/TableNew";
+} from "@calcom/ui/components/table";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 
@@ -390,7 +385,7 @@ export function RoutedToPerPeriod() {
           <div
             className="scrollbar-thin border-subtle relaitve relative h-[80dvh] overflow-auto rounded-md border"
             ref={tableContainerRef}>
-            <Table className="border-0">
+            <TableNew className="border-0">
               <TableHeader className="bg-subtle sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="bg-subtle sticky left-0 z-30 w-[200px]">{t("user")}</TableHead>
@@ -458,7 +453,7 @@ export function RoutedToPerPeriod() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </TableNew>
           </div>
         </div>
       </FormCard>

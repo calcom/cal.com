@@ -10,7 +10,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import type { PlatformTabs } from "../../event-types/wrappers/types";
 

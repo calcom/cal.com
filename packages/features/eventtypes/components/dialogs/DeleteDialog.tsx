@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { DialogProps } from "@calcom/ui";
-import { ConfirmationDialogContent, Dialog } from "@calcom/ui";
+import type { DialogProps } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import CustomTrans from "@calcom/web/components/CustomTrans";
 
 export function DeleteDialog({

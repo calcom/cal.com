@@ -1,6 +1,6 @@
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ConfirmationDialogContent, Dialog } from "@calcom/ui";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import CustomTrans from "@calcom/web/components/CustomTrans";
 
 interface ManagedEventDialogProps {

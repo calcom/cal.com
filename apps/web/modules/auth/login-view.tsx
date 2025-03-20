@@ -20,7 +20,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
+import { EmailField } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { PasswordField } from "@calcom/ui/components/form";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";

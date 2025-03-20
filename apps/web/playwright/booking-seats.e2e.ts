@@ -229,6 +229,8 @@ test.describe("Reschedule for booking with seats", () => {
     );
     await page.waitForSelector("text=Reason for cancellation");
 
+    await expect(page.locator('text="Cancel event"')).toBeVisible();
+
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
     await page.locator('[data-testid="confirm_cancel"]').click();

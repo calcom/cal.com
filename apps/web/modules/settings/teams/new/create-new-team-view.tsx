@@ -11,7 +11,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout } from "@calcom/ui/components/layout";
 
 const querySchema = z.object({
   returnTo: z.string().optional(),
