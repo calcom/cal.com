@@ -530,7 +530,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("get team bookings", () => {
-      it("should should get bookings by teamId", async () => {
+      it("should get bookings by teamId", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?teamId=${team1.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -549,7 +549,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by teamId", async () => {
+      it("should get bookings by teamId", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?teamId=${team2.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -605,7 +605,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by teamIds", async () => {
+      it("should get bookings by teamIds", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?teamIds=${team1.id},${team2.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -627,7 +627,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("reschedule", () => {
-      it("should should reschedule phone based booking", async () => {
+      it("should reschedule phone based booking", async () => {
         const body: RescheduleBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2035, 0, 8, 14, 0, 0)).toISOString(),
           reschedulingReason: "Flying to mars that day",
