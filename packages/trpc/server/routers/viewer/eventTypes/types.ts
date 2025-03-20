@@ -72,7 +72,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     assignRRMembersUsingSegment: z.boolean().optional(),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
     useEventLevelSelectedCalendars: z.boolean().optional(),
-    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).optional(),
+    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);
