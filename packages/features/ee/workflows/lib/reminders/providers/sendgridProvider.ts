@@ -1,3 +1,4 @@
+/* deprecated - use smtp with tasker instead */
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
