@@ -9,7 +9,10 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
+import { Form } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { useBookerStore } from "../../store";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -31,6 +34,11 @@ type BookEventFormProps = {
   isVerificationCodeSending: boolean;
   isTimeslotUnavailable: boolean;
   shouldRenderCaptcha?: boolean;
+  confirmButtonDisabled?: boolean;
+  classNames?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
 };
 
 export const BookEventForm = ({
@@ -49,6 +57,8 @@ export const BookEventForm = ({
   isPlatform = false,
   isTimeslotUnavailable,
   shouldRenderCaptcha,
+  confirmButtonDisabled,
+  classNames,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -195,7 +205,12 @@ export const BookEventForm = ({
           ) : (
             <>
               {!!onCancel && (
-                <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                <Button
+                  color="minimal"
+                  type="button"
+                  onClick={onCancel}
+                  data-testid="back"
+                  className={classNames?.backButton}>
                   {t("back")}
                 </Button>
               )}
@@ -203,12 +218,15 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={(!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable}
+                disabled={
+                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+                }
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
                   isVerificationCodeSending
                 }
+                className={classNames?.confirmButton}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>

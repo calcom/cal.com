@@ -9,7 +9,8 @@ import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 

@@ -10,25 +10,27 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
-import type { ButtonProps } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
-  ConfirmationDialogContent,
   Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Form,
-  showToast,
-  Switch,
-  TextAreaField,
-  TextField,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/dropdown";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 

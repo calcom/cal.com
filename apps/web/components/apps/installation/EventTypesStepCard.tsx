@@ -6,7 +6,10 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { ScrollableArea, Badge, Button, Avatar } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ScrollableArea } from "@calcom/ui/components/scrollable";
 
 import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
 
