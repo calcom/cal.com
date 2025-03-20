@@ -1,5 +1,5 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { z } from "zod";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
@@ -142,15 +142,18 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type AppRouterRequest = { appDirRequestBody: unknown };
-export type CustomRequest = (NextApiRequest | AppRouterRequest) & {
-  userId?: number;
-  bookingToDelete?: BookingToDelete;
+type PlatformParams = {
   platformClientId?: string;
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
   platformBookingUrl?: string;
   arePlatformEmailsEnabled?: boolean;
 };
+
+export type CancelBookingInput = {
+  userId?: number;
+  bookingData: z.infer<typeof bookingCancelInput>;
+} & PlatformParams;
 
 export type HandleCancelBookingResponse = {
   success: boolean;
@@ -160,8 +163,8 @@ export type HandleCancelBookingResponse = {
   bookingUid: string;
 };
 
-async function handler(req: CustomRequest) {
-  const body = (req as AppRouterRequest).appDirRequestBody ?? (req as NextApiRequest).body;
+async function handler(input: CancelBookingInput) {
+  const body = input.bookingData;
   const {
     id,
     uid,
@@ -172,22 +175,21 @@ async function handler(req: CustomRequest) {
     cancelSubsequentBookings,
     internalNote,
   } = bookingCancelInput.parse(body);
-  req.bookingToDelete = await getBookingToDelete(id, uid);
+  const bookingToDelete = await getBookingToDelete(id, uid);
   const {
-    bookingToDelete,
     userId,
     platformBookingUrl,
     platformCancelUrl,
     platformClientId,
     platformRescheduleUrl,
     arePlatformEmailsEnabled,
-  } = req;
+  } = input;
 
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (!platformClientId && !cancellationReason && req.bookingToDelete.userId == userId) {
+  if (!platformClientId && !cancellationReason && bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
@@ -360,7 +362,10 @@ async function handler(req: CustomRequest) {
 
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
-    req,
+    {
+      seatReferenceUid: seatReferenceUid ?? "",
+      bookingToDelete,
+    },
     dataForWebhooks,
     bookingToDelete?.eventType?.metadata as EventTypeMetadata
   );
@@ -589,7 +594,6 @@ async function handler(req: CustomRequest) {
   } catch (error) {
     console.error("Error deleting event", error);
   }
-  (req as NextApiRequest).statusCode = 200;
   return {
     success: true,
     message: "Booking successfully cancelled.",
