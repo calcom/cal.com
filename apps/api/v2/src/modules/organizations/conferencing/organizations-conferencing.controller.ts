@@ -37,11 +37,11 @@ import {
   Req,
   ParseIntPipe,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -65,6 +65,12 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET],
+    required: true,
+  })
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/teams/:teamId/conferencing/:app/connect")
   @HttpCode(HttpStatus.OK)
@@ -85,6 +91,12 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
@@ -143,6 +155,12 @@ export class OrganizationsConferencingController {
   @Post("/teams/:teamId/conferencing/:app/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set team default conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
+    required: true,
+  })
   async setTeamDefaultApp(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("app") app: string
@@ -161,6 +179,12 @@ export class OrganizationsConferencingController {
   @Get("/teams/:teamId/conferencing/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get team default conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
+    required: true,
+  })
   async getTeamDefaultApp(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number
@@ -178,6 +202,12 @@ export class OrganizationsConferencingController {
   @Delete("/teams/:teamId/conferencing/:app/disconnect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Disconnect team conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   async disconnectTeamApp(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
