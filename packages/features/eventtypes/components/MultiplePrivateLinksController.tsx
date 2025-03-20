@@ -246,92 +246,93 @@ export const MultiplePrivateLinksController = ({
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent title={t("link_settings")} type="creation">
           <div className="mb-4 space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="flex h-4 w-4 items-center justify-center">
-                  <input
-                    type="radio"
-                    id="usage-radio"
-                    name="link-type"
-                    value="usage"
-                    className="text-emphasis border-default h-4 w-4 cursor-pointer rounded-full"
-                    checked={selectedType === "usage"}
-                    onChange={() => {
-                      setSelectedType("usage");
-                      updateLinkSettings(currentLinkIndex, "usage");
+            <div className="space-y-4">
+              <div className="flex items-center justify-between space-x-2">
+                <div className="flex items-center space-x-2">
+                  <div className="flex h-4 w-4 items-center justify-center">
+                    <input
+                      type="radio"
+                      id="usage-radio"
+                      name="link-type"
+                      value="usage"
+                      className="text-emphasis border-default h-4 w-4 cursor-pointer rounded-full"
+                      checked={selectedType === "usage"}
+                      onChange={() => {
+                        setSelectedType("usage");
+                        updateLinkSettings(currentLinkIndex, "usage");
+                      }}
+                    />
+                    {selectedType === "usage" && (
+                      <div className="pointer-events-none absolute flex items-center justify-center">
+                        <div className="h-2 w-2 rounded-full bg-black" />
+                      </div>
+                    )}
+                  </div>
+                  <Label
+                    htmlFor="usage-radio"
+                    className="text-emphasis mb-0 cursor-pointer text-sm font-medium">
+                    {t("usage_based_expiration")}
+                  </Label>
+                </div>
+                <div className="w-[180px]">
+                  <NumberInput
+                    required
+                    min={1}
+                    disabled={selectedType !== "usage"}
+                    value={maxUsageCount === null ? "" : maxUsageCount}
+                    onChange={(e) => {
+                      const value = e.target.value === "" ? null : parseInt(e.target.value);
+                      if (e.target.value === "") {
+                        setMaxUsageCount(null);
+                      } else if (!isNaN(Number(value)) && Number(value) > 0) {
+                        setMaxUsageCount(value);
+                        updateLinkSettings(currentLinkIndex, "usage", undefined, value);
+                      }
                     }}
                   />
-                  {selectedType === "usage" && (
-                    <div className="pointer-events-none absolute flex items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-black" />
-                    </div>
-                  )}
                 </div>
-                <Label
-                  htmlFor="usage-radio"
-                  className="text-emphasis mb-0 cursor-pointer text-sm font-medium">
-                  {t("usage_based_expiration")}
-                </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="flex h-4 w-4 items-center justify-center">
-                  <input
-                    type="radio"
-                    id="time-radio"
-                    name="link-type"
-                    value="time"
-                    className="text-emphasis border-default h-4 w-4 cursor-pointer rounded-full"
-                    checked={selectedType === "time"}
-                    onChange={() => {
-                      setSelectedType("time");
-                      updateLinkSettings(currentLinkIndex, "time");
+
+              <div className="flex items-center justify-between space-x-2">
+                <div className="flex items-center space-x-2">
+                  <div className="flex h-4 w-4 items-center justify-center">
+                    <input
+                      type="radio"
+                      id="time-radio"
+                      name="link-type"
+                      value="time"
+                      className="text-emphasis border-default h-4 w-4 cursor-pointer rounded-full"
+                      checked={selectedType === "time"}
+                      onChange={() => {
+                        setSelectedType("time");
+                        updateLinkSettings(currentLinkIndex, "time");
+                      }}
+                    />
+                    {selectedType === "time" && (
+                      <div className="pointer-events-none absolute flex items-center justify-center">
+                        <div className="h-2 w-2 rounded-full bg-black" />
+                      </div>
+                    )}
+                  </div>
+                  <Label
+                    htmlFor="time-radio"
+                    className="text-emphasis mb-0 cursor-pointer text-sm font-medium">
+                    {t("time_based_expiration")}
+                  </Label>
+                </div>
+                <div className="w-[180px]">
+                  <DatePicker
+                    disabled={selectedType !== "time"}
+                    date={expiryDate}
+                    onDatesChange={(newDate) => {
+                      setExpiryDate(newDate);
+                      updateLinkSettings(currentLinkIndex, "time", newDate);
                     }}
                   />
-                  {selectedType === "time" && (
-                    <div className="pointer-events-none absolute flex items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-black" />
-                    </div>
-                  )}
                 </div>
-                <Label htmlFor="time-radio" className="text-emphasis mb-0 cursor-pointer text-sm font-medium">
-                  {t("time_based_expiration")}
-                </Label>
               </div>
             </div>
           </div>
-
-          {selectedType === "time" && (
-            <div className="mb-4">
-              <Label>{t("expires_on")}</Label>
-              <DatePicker
-                date={expiryDate}
-                onDatesChange={(newDate) => {
-                  setExpiryDate(newDate);
-                  updateLinkSettings(currentLinkIndex, "time", newDate);
-                }}
-              />
-            </div>
-          )}
-
-          {selectedType === "usage" && (
-            <div className="mb-4">
-              <Label>{t("max_usage_count")}</Label>
-              <NumberInput
-                required
-                min={1}
-                value={maxUsageCount === null ? "" : maxUsageCount}
-                onChange={(e) => {
-                  const value = e.target.value === "" ? null : parseInt(e.target.value);
-                  if (e.target.value === "") {
-                    setMaxUsageCount(null);
-                  } else if (!isNaN(Number(value)) && Number(value) > 0) {
-                    setMaxUsageCount(value);
-                    updateLinkSettings(currentLinkIndex, "usage", undefined, value);
-                  }
-                }}
-              />
-            </div>
-          )}
 
           <div className="mb-4 mt-4 flex justify-end">
             <Button type="button" color="primary" onClick={() => setIsDialogOpen(false)}>
