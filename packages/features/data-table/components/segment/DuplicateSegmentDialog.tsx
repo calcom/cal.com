@@ -1,12 +1,15 @@
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useDataTable } from "../../hooks";
 import type { FilterSegmentOutput } from "../../lib/types";
 
 type FormValues = {
@@ -26,12 +29,17 @@ export function DuplicateSegmentDialog({
       name: "",
     },
   });
+  const { setSegmentId } = useDataTable();
   const utils = trpc.useUtils();
+  const session = useSession();
+  const orgRole = session?.data?.user?.org?.role;
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   const { mutate: createSegment, isPending } = trpc.viewer.filterSegments.create.useMutation({
-    onSuccess: () => {
+    onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_duplicated"), "success");
+      setSegmentId(id);
       onClose();
     },
     onError: () => {
@@ -45,7 +53,7 @@ export function DuplicateSegmentDialog({
     }
     const { id: _id, name: _name, team: _team, teamId, ...rest } = segment;
 
-    if (segment.scope === "TEAM") {
+    if (segment.scope === "TEAM" && isAdminOrOwner) {
       createSegment({
         ...rest,
         teamId: teamId ?? 0,

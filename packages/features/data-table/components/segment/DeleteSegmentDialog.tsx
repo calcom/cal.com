@@ -4,6 +4,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useDataTable } from "../../hooks";
 import type { FilterSegmentOutput } from "../../lib/types";
 
 export function DeleteSegmentDialog({
@@ -15,11 +16,15 @@ export function DeleteSegmentDialog({
 }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const { segmentId, setSegmentId } = useDataTable();
 
   const { mutate: deleteSegment, isPending } = trpc.viewer.filterSegments.delete.useMutation({
-    onSuccess: () => {
+    onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_deleted"), "success");
+      if (segmentId === id) {
+        setSegmentId(null);
+      }
       onClose();
     },
     onError: () => {

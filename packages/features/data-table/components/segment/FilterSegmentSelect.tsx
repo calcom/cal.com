@@ -28,7 +28,7 @@ type SubmenuItem = {
 
 export function FilterSegmentSelect() {
   const { t } = useLocale();
-  const { segments, selectedSegment, segmentId, setSegment } = useDataTable();
+  const { segments, selectedSegment, segmentId, setSegmentId } = useDataTable();
   const [segmentToRename, setSegmentToRename] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDuplicate, setSegmentToDuplicate] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
@@ -117,9 +117,9 @@ export function FilterSegmentSelect() {
                     segment={segment}
                     onSelect={() => {
                       if (segmentId === segment.id) {
-                        setSegment(undefined);
+                        setSegmentId(null);
                       } else {
-                        setSegment(segment);
+                        setSegmentId(segment.id);
                       }
                     }}>
                     {segment.id === segmentId && <Icon name="check" className="ml-3 h-4 w-4" />}

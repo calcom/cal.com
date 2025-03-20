@@ -50,6 +50,7 @@ export function SaveFilterSegmentButton() {
     columnSizing,
     selectedSegment,
     canSaveSegment,
+    setSegmentId,
   } = useDataTable();
 
   const [saveMode, setSaveMode] = useState<"create" | "update">(() =>
@@ -59,9 +60,10 @@ export function SaveFilterSegmentButton() {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
 
   const { mutate: createSegment } = trpc.viewer.filterSegments.create.useMutation({
-    onSuccess: () => {
+    onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_saved"), "success");
+      setSegmentId(id);
       setIsOpen(false);
     },
     onError: () => {
@@ -157,7 +159,7 @@ export function SaveFilterSegmentButton() {
         <Form form={form} handleSubmit={onSubmit}>
           {selectedSegment ? (
             <div className="mb-4">
-              <RadioGroup.Root
+              <RadioGroup
                 defaultValue="update"
                 onValueChange={(value: string) => setSaveMode(value as "create" | "update")}
                 className="space-y-2">
@@ -167,7 +169,7 @@ export function SaveFilterSegmentButton() {
                   value="update"
                 />
                 <RadioField id="create_segment" label={t("create_new_segment")} value="create" />
-              </RadioGroup.Root>
+              </RadioGroup>
             </div>
           ) : null}
 

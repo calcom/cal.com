@@ -46,7 +46,7 @@ export type DataTableContextType = {
   segments: FilterSegmentOutput[];
   selectedSegment: FilterSegmentOutput | undefined;
   segmentId: number | undefined;
-  setSegment: (segment: FilterSegmentOutput | undefined) => void;
+  setSegmentId: (id: number | null) => void;
   canSaveSegment: boolean;
 };
 
@@ -94,14 +94,16 @@ export function DataTableProvider({
   if (!tableIdentifier) {
     throw new Error("tableIdentifier is required");
   }
-  const { data: segments } = trpc.viewer.filterSegments.list.useQuery({ tableIdentifier });
+  const { data: segments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery({
+    tableIdentifier,
+  });
   const selectedSegment = useMemo(
     () => segments?.find((segment) => segment.id === segmentId),
     [segments, segmentId]
   );
 
   useEffect(() => {
-    if (segments && segmentId > 0) {
+    if (segments && segmentId > 0 && !isFetchingSegments) {
       const segment = segments.find((segment) => segment.id === segmentId);
       if (!segment) {
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
@@ -110,7 +112,7 @@ export function DataTableProvider({
         setSegmentId(null);
       }
     }
-  }, [segments, segmentId, setSegmentId]);
+  }, [segments, segmentId, setSegmentId, isFetchingSegments]);
 
   useEffect(() => {
     if (selectedSegment) {
@@ -188,13 +190,6 @@ export function DataTableProvider({
     [setPageSize, setPageIndex]
   );
 
-  const setSegment = useCallback(
-    (segment: FilterSegmentOutput | undefined) => {
-      setSegmentId(segment?.id || null);
-    },
-    [setSegmentId]
-  );
-
   const canSaveSegment = useMemo(() => {
     if (!selectedSegment) {
       // if no segment is selected, we can save the segment if there are any active filters, sorting, etc.
@@ -241,7 +236,7 @@ export function DataTableProvider({
         segments: segments ?? [],
         selectedSegment,
         segmentId: segmentId || undefined,
-        setSegment,
+        setSegmentId,
         canSaveSegment,
       }}>
       {children}
