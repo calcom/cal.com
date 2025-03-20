@@ -20,7 +20,7 @@ import type { BookingToDelete } from "../../handleCancelBooking";
 
 async function cancelAttendeeSeat(
   data: {
-    seatReferenceUid: string;
+    seatReferenceUid?: string;
     bookingToDelete: BookingToDelete;
   },
   dataForWebhooks: {
@@ -36,7 +36,9 @@ async function cancelAttendeeSeat(
   },
   eventTypeMetadata: EventTypeMetadata
 ) {
-  const input = bookingCancelAttendeeSeatSchema.safeParse(data);
+  const input = bookingCancelAttendeeSeatSchema.safeParse({
+    seatReferenceUid: data.seatReferenceUid,
+  });
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
   if (!input.success) return;
   const { seatReferenceUid } = input.data;
@@ -50,6 +52,7 @@ async function cancelAttendeeSeat(
   const seatReference = bookingToDelete.seatsReferences.find(
     (reference) => reference.referenceUid === seatReferenceUid
   );
+  console.log("seatReference", seatReference);
 
   if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
 

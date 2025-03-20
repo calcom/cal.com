@@ -363,7 +363,7 @@ async function handler(input: CancelBookingInput) {
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
     {
-      seatReferenceUid: seatReferenceUid ?? "",
+      seatReferenceUid: seatReferenceUid,
       bookingToDelete,
     },
     dataForWebhooks,
