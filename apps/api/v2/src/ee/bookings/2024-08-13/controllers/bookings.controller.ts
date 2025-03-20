@@ -95,6 +95,10 @@ export class BookingsController_2024_08_13 {
       For team event types it is possible to create instant meeting. To do that just pass \`"instant": true\` to the request body.
 
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
+
+      Finally, there are 2 ways to book an event type:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`username\` and optionally \`organizationSlug\` if the user with the username is within an organization.
       `,
   })
   @ApiBody({
