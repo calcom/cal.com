@@ -55,9 +55,21 @@ export const OrganizationCreationEmail = (
             t={props.language}
             i18nKey="email|existing_user_added_link_changed"
             components={{
-              a0: <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a>,
-              a1: <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a>,
-              a2: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>,
+              a0: (
+                <a className="cursor-pointer text-blue-500 underline" href={prevLink ?? ""}>
+                  {prevLinkWithoutProtocol}
+                </a>
+              ),
+              a1: (
+                <a className="cursor-pointer text-blue-500 underline" href={newLink ?? ""}>
+                  {newLinkWithoutProtocol}
+                </a>
+              ),
+              a2: (
+                <a className="cursor-pointer text-blue-500 underline" href={`${newLink}?orgRedirection=true`}>
+                  {newLinkWithoutProtocol}
+                </a>
+              ),
             }}
             values={{ teamName }}
           />
