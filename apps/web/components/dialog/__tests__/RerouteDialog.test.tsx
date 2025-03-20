@@ -82,15 +82,9 @@ vi.mock("@calcom/web/lib/hooks/useRouterQuery", () => ({
   }),
 }));
 
-vi.mock("@calcom/ui", async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const actual = await importOriginal<any>("@calcom/ui");
-  return {
-    ...actual,
-    Tooltip: vi.fn(({ children }) => <div data-testid="mock-tooltip">{children}</div>),
-  };
-});
+vi.mock("@calcom/ui/components/tooltip", () => ({
+  Tooltip: vi.fn(({ children }) => <div data-testid="mock-tooltip">{children}</div>),
+}));
 
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
