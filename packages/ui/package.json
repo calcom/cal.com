@@ -5,7 +5,6 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "exports": {
-    ".": "./index.ts",
     "./classNames": "./classNames.ts",
     "./styles": "./styles/index.ts",
     "./components/address": "./components/address/index.ts",
