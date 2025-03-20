@@ -8,8 +8,8 @@ import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
-import { getReactSelectProps, inputStyles } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
@@ -48,9 +48,11 @@ export function TimezoneSelect(props: TimezoneSelectProps) {
       trpc: { context: { skipBatch: true } },
     }
   );
+  const cityTimezonesFormatted = data.map(({ city, timezone }) => ({ label: city, timezone }));
+
   return (
     <TimezoneSelectComponent
-      data={data.map(({ city, timezone }) => ({ label: city, timezone }))}
+      data={[...cityTimezonesFormatted, ...SELECT_SEARCH_DATA]}
       isPending={isPending}
       {...props}
     />
@@ -64,6 +66,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
   timezoneSelectCustomClassname?: string;
   size?: "sm" | "md";
   grow?: boolean;
+  isWebTimezoneSelect?: boolean;
 };
 
 // TODO: I wonder if we move this to ui package, and keep the TRPC version in features
@@ -77,9 +80,10 @@ export function TimezoneSelectComponent({
   value,
   size = "md",
   grow = false,
+  isWebTimezoneSelect = true,
   ...props
 }: TimezoneSelectComponentProps) {
-  const data = [...(props.data || []), ...SELECT_SEARCH_DATA];
+  const data = [...(props.data || [])];
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
@@ -108,7 +112,7 @@ export function TimezoneSelectComponent({
       {...reactSelectProps}
       timezones={{
         ...(props.data ? addTimezonesToDropdown(data) : {}),
-        ...addTimezonesToDropdown(additionalTimezones),
+        ...(isWebTimezoneSelect ? addTimezonesToDropdown(additionalTimezones) : {}),
       }}
       styles={{
         control: (base) => ({

@@ -58,6 +58,8 @@ export const BookerPlatformWrapper = (
     preventEventTypeRedirect,
     onBookerStateChange,
     allowUpdatingUrlParams = false,
+    confirmButtonDisabled,
+    isBookingDryRun,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -291,7 +293,9 @@ export const BookerPlatformWrapper = (
 
     const _cacheParam = searchParams?.get("cal.cache");
     const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
-    const isBookingDryRun = searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true";
+    const isBookingDryRun =
+      searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
+      searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
@@ -486,6 +490,7 @@ export const BookerPlatformWrapper = (
   return (
     <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
+        timeZones={props.timeZones}
         teamMemberEmail={teamMemberEmail}
         crmAppSlug={crmAppSlug}
         crmOwnerRecordType={crmOwnerRecordType}
@@ -504,6 +509,7 @@ export const BookerPlatformWrapper = (
         rescheduledBy={props.rescheduledBy ?? null}
         bookingUid={props.bookingUid ?? null}
         isRedirect={false}
+        confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""
         hasSession={hasSession}
         onGoBackInstantMeeting={function (): void {
@@ -573,7 +579,7 @@ export const BookerPlatformWrapper = (
         verifyCode={undefined}
         isPlatform
         hasValidLicense={true}
-        isBookingDryRun={routingParams?.isBookingDryRun}
+        isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
       />
     </AtomsWrapper>
   );

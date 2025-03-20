@@ -4973,7 +4973,11 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "google-meet"
+              ],
               "type": "string"
             }
           }
@@ -5012,7 +5016,12 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "zoom",
+                "msteams"
+              ],
               "type": "string"
             }
           },
@@ -5067,7 +5076,12 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "zoom",
+                "msteams"
+              ],
               "type": "string"
             }
           },
@@ -5121,7 +5135,14 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams",
+                "daily-video"
+              ],
               "type": "string"
             }
           }
@@ -5174,7 +5195,13 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams"
+              ],
               "type": "string"
             }
           }
