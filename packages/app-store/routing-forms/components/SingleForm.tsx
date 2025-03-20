@@ -1,4 +1,3 @@
-import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -35,25 +34,13 @@ import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { findMatchingRoute } from "../lib/processRoute";
-import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
+import type { FormResponse, NonRouterRoute, RoutingFormWithResponseCount, RoutingForm } from "../types/types";
 import type { NewFormDialogState } from "./FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
-
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-
-export type RoutingFormWithResponseCount = RoutingForm & {
-  team: {
-    slug: Team["slug"];
-    name: Team["name"];
-  } | null;
-  _count: {
-    responses: number;
-  };
-};
 
 const Actions = ({
   form,
