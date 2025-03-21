@@ -70,6 +70,7 @@ test.describe("Bookings", () => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       await page.goto(`/bookings/upcoming`);
+      await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
@@ -233,6 +234,7 @@ test.describe("Bookings", () => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       await page.goto(`/bookings/past`);
+      await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
@@ -339,7 +341,11 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.goto(`/bookings/upcoming`);
+    await bookingsGetResponse;
 
     await page.locator('[data-testid="add-filter-button"]').click();
     await page.locator('[data-testid="add-filter-item-userId"]').click();

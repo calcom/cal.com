@@ -1,5 +1,4 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
@@ -9,7 +8,11 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Form } from "@calcom/ui/components/form";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { useBookerStore } from "../../store";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -31,6 +34,11 @@ type BookEventFormProps = {
   isVerificationCodeSending: boolean;
   isTimeslotUnavailable: boolean;
   shouldRenderCaptcha?: boolean;
+  confirmButtonDisabled?: boolean;
+  classNames?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
 };
 
 export const BookEventForm = ({
@@ -49,6 +57,8 @@ export const BookEventForm = ({
   isPlatform = false,
   isTimeslotUnavailable,
   shouldRenderCaptcha,
+  confirmButtonDisabled,
+  classNames,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -131,12 +141,19 @@ export const BookEventForm = ({
               severity="info"
               title={t("unavailable_timeslot_title")}
               message={
-                <Trans i18nKey="timeslot_unavailable_book_a_new_time">
-                  The selected time slot is no longer available.{" "}
-                  <button type="button" className="underline" onClick={onCancel}>
-                    Please select a new time
-                  </button>
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="timeslot_unavailable_book_a_new_time"
+                  components={[
+                    <button
+                      key="please-select-a-new-time-button"
+                      type="button"
+                      className="underline"
+                      onClick={onCancel}>
+                      Please select a new time
+                    </button>,
+                  ]}
+                />
               }
             />
           </div>
@@ -144,7 +161,8 @@ export const BookEventForm = ({
 
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
-            <Trans
+            <ServerTrans
+              t={t}
               i18nKey="signing_up_terms"
               components={[
                 <Link
@@ -195,7 +213,12 @@ export const BookEventForm = ({
           ) : (
             <>
               {!!onCancel && (
-                <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                <Button
+                  color="minimal"
+                  type="button"
+                  onClick={onCancel}
+                  data-testid="back"
+                  className={classNames?.backButton}>
                   {t("back")}
                 </Button>
               )}
@@ -203,12 +226,15 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={(!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable}
+                disabled={
+                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+                }
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
                   isVerificationCodeSending
                 }
+                className={classNames?.confirmButton}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>

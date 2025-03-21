@@ -26,6 +26,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
@@ -228,6 +229,9 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      const [emailUser, emailDomain] = responseBody.data.user.email.split("@");
+      const [domainName, TLD] = emailDomain.split(".");
+      expect(responseBody.data.user.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
@@ -546,6 +550,9 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.email).toEqual(
         OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, userUpdatedEmail)
       );
+      const [emailUser, emailDomain] = responseBody.data.email.split("@");
+      const [domainName, TLD] = emailDomain.split(".");
+      expect(responseBody.data.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
       expect(responseBody.data.locale).toEqual(Locales.PT_BR);
     });
 

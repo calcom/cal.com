@@ -5,8 +5,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { sendDailyVideoRecordingEmails } from "@calcom/emails";
-import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
+import {
+  sendDailyVideoRecordingEmails,
+  sendDailyVideoTranscriptEmails,
+} from "@calcom/emails/daily-video-emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -60,7 +62,7 @@ export async function postHandler(request: NextRequest) {
     return NextResponse.json({ message: "Test request successful" });
   }
 
-  const headersList = headers();
+  const headersList = await headers();
   const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
   if (!testMode) {
