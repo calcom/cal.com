@@ -490,7 +490,7 @@ export const roundRobinReassignment = async ({
         });
       }
 
-      await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+      await deleteScheduledEmailReminder(workflowReminder.id);
     }
     // Send new event workflows to new organizer
     const newEventWorkflows = await prisma.workflow.findMany({

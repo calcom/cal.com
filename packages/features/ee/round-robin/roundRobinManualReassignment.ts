@@ -462,7 +462,7 @@ async function handleWorkflowsUpdate({
       });
     }
 
-    await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+    await deleteScheduledEmailReminder(workflowReminder.id);
   }
 
   // Send new event workflows to new organizer

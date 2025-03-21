@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
+import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -17,7 +18,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { sendOrScheduleWorkflowEmail } from "./providers/emailProvider";
+import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
@@ -251,11 +252,26 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
 
   if (!isSendgridEnabled) {
-    const promises = sendTo.map((email) =>
-      sendOrScheduleWorkflowEmail({ ...mailData, to: email, sendAt: scheduledDate?.toDate() })
-    );
+    //test if mandatory reminders work
 
-    const emailResults = await Promise.all(promises);
+    const taskId = await sendOrScheduleWorkflowEmails({
+      ...mailData,
+      to: sendTo,
+      sendAt: scheduledDate?.toDate(),
+    });
+
+    if (taskId && scheduledDate) {
+      await prisma.workflowReminder.create({
+        data: {
+          bookingUid: uid,
+          workflowStepId,
+          method: WorkflowMethods.EMAIL,
+          scheduledDate: scheduledDate.toDate(),
+          scheduled: true,
+          taskId,
+        },
+      });
+    }
     return;
   }
 
@@ -348,7 +364,27 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   }
 };
 
-export const deleteScheduledEmailReminder = async (reminderId: number, referenceId: string | null) => {
+export const deleteScheduledEmailReminder = async (reminderId: number) => {
+  const workflowReminder = await prisma.workflowReminder.findUnique({
+    where: {
+      id: reminderId,
+    },
+  });
+
+  if (!workflowReminder) {
+    console.error("Workflow reminder not found");
+    return;
+  }
+
+  const { taskId, referenceId } = workflowReminder;
+
+  if (taskId) {
+    await tasker.cancel(taskId);
+    return;
+  }
+
+  /* Deprecated - Everything below is for Sendgrid not needed for SMTP */
+
   try {
     if (!referenceId) {
       await prisma.workflowReminder.delete({
