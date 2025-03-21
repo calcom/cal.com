@@ -3,11 +3,7 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import {
-  bookTimeSlot,
-  gotoWhenIdle,
-  selectSecondAvailableTimeSlotNextMonth,
-} from "@calcom/web/playwright/lib/testUtils";
+import { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
@@ -24,7 +20,7 @@ export const createBookingAndFetchGCalEvent = async (
   qaGCalCredential: Prisma.CredentialGetPayload<{ select: { id: true } }> | null,
   qaUsername: string
 ) => {
-  await gotoWhenIdle(page, `/${qaUsername}/15min`);
+  await page.goto(`/${qaUsername}/15min`);
   await selectSecondAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
