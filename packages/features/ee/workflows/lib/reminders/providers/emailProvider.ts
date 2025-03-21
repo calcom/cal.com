@@ -6,7 +6,8 @@ type EmailData = WorkflowEmailData & { sendAt?: Date; includeCalendarEvent?: boo
 
 export async function sendOrScheduleWorkflowEmail(mailData: EmailData) {
   if (mailData.sendAt) {
-    await tasker.create("scheduleWorkflowEmail", mailData, { scheduledAt: mailData.sendAt });
+    const {sendAt, ...taskerData} = mailData;
+    await tasker.create("sendWorkflowEmail", taskerData, { scheduledAt: sendAt });
   } else {
     sendCustomWorkflowEmail({
       to: mailData.to,
