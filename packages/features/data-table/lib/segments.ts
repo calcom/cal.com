@@ -1,4 +1,6 @@
 import type { SortingState, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import { isEqual } from "lodash";
 import { useCallback, useMemo, useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
@@ -104,11 +106,11 @@ export function useSegments({
     } else {
       // if a segment is selected, we can save the segment if the active filters, sorting, etc. are different from the segment
       return (
-        activeFilters !== selectedSegment.activeFilters ||
-        sorting !== selectedSegment.sorting ||
-        columnVisibility !== selectedSegment.columnVisibility ||
-        columnSizing !== selectedSegment.columnSizing ||
-        pageSize !== selectedSegment.perPage
+        !isEqual(activeFilters, selectedSegment.activeFilters) ||
+        !isEqual(sorting, selectedSegment.sorting) ||
+        !isEqual(columnVisibility, selectedSegment.columnVisibility) ||
+        !isEqual(columnSizing, selectedSegment.columnSizing) ||
+        !isEqual(pageSize, selectedSegment.perPage)
       );
     }
   }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, defaultPageSize]);
