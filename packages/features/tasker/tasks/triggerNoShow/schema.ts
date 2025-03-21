@@ -7,6 +7,8 @@ const commonSchema = z.object({
   triggerEvent: z.enum([
     WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+    WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW,
+    WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW,
   ]),
   bookingId: z.number(),
 });
