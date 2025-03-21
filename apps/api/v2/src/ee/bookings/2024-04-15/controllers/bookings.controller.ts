@@ -176,17 +176,9 @@ export class BookingsController_2024_04_15 {
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
     try {
-      const oAuthParams = await this.getOAuthClientsParams(
-        oAuthClientId || "",
-        this.transformToBoolean(isEmbed)
+      const booking = await handleNewBooking(
+        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed)
       );
-      const booking = await handleNewBooking({
-        bookingData: body,
-        userId: req.userId,
-        hostname: req.headers.host,
-        forcedSlug: orgSlug,
-        ...oAuthParams,
-      });
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
           uid: booking.uid,
