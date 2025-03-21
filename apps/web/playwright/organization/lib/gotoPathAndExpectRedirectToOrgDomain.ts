@@ -17,7 +17,7 @@ export async function gotoPathAndExpectRedirectToOrgDomain({
   if (!org.slug) {
     throw new Error("Org slug is not defined");
   }
-  await page.goto(path).catch((e) => {
+  page.goto(path).catch((e) => {
     console.log("Expected navigation error to happen");
   });
 
