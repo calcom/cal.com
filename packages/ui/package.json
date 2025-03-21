@@ -64,6 +64,9 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint:fix": "eslint . --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json",
+    "dx": "node ./scripts/build-icons.mjs",
+    "dev": "node ./scripts/build-icons.mjs",
+    "build": "node ./scripts/build-icons.mjs",
     "build:icons": "node ./scripts/build-icons.mjs"
   },
   "dependencies": {
