@@ -2,21 +2,17 @@ import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import {
   OperationObject,
   PathItemObject,
   PathsObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import "dotenv/config";
-import * as fs from "fs";
-import { Server } from "http";
 import { WinstonModule } from "nest-winston";
 
 import { bootstrap } from "./app";
 import { AppModule } from "./app.module";
 import type { AppConfig } from "./config/type";
-import { getEnv } from "./env";
 import { loggerConfig } from "./lib/logger";
 
 const HttpMethods: (keyof PathItemObject)[] = ["get", "post", "put", "delete", "patch", "options", "head"];
@@ -32,7 +28,6 @@ const run = async () => {
   try {
     bootstrap(app);
     const port = app.get(ConfigService<AppConfig, true>).get("api.port", { infer: true });
-    void generateSwagger(app);
     await app.listen(port);
     logger.log(`Application started on port: ${port}`);
   } catch (error) {
@@ -97,38 +92,6 @@ function groupAndSortPathsByFirstTag(paths: PathsObject): PathsObject {
   });
 
   return sortedPaths;
-}
-
-async function generateSwagger(app: NestExpressApplication<Server>) {
-  const logger = new Logger("App");
-  logger.log(`Generating Swagger documentation...\n`);
-
-  const config = new DocumentBuilder().setTitle("Cal.com API v2").build();
-  const document = SwaggerModule.createDocument(app, config);
-  document.paths = groupAndSortPathsByFirstTag(document.paths);
-
-  const swaggerOutputFile = "./swagger/documentation.json";
-  const docsOutputFile = "../../../docs/api-reference/v2/openapi.json";
-  const stringifiedContents = JSON.stringify(document, null, 2);
-
-  if (fs.existsSync(swaggerOutputFile)) {
-    fs.unlinkSync(swaggerOutputFile);
-  }
-
-  fs.writeFileSync(swaggerOutputFile, stringifiedContents, { encoding: "utf8" });
-
-  if (fs.existsSync(docsOutputFile) && getEnv("NODE_ENV") === "development") {
-    fs.unlinkSync(docsOutputFile);
-    fs.writeFileSync(docsOutputFile, stringifiedContents, { encoding: "utf8" });
-  }
-
-  if (!process.env.DOCS_URL) {
-    SwaggerModule.setup("docs", app, document, {
-      customCss: ".swagger-ui .topbar { display: none }",
-    });
-
-    logger.log(`Swagger documentation available in the "/docs" endpoint\n`);
-  }
 }
 
 run().catch((error: Error) => {
