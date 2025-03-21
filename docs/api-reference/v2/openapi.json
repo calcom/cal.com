@@ -12396,7 +12396,10 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
           "schedulingType": {
-            "type": "object"
+            "type": "string",
+            "enum": ["collective", "roundRobin", "managed"],
+            "example": "collective",
+            "description": "The scheduling type for the team event - collective, roundRobin or managed."
           },
           "hosts": {
             "type": "array",
@@ -12800,8 +12803,7 @@
           },
           "schedulingType": {
             "type": "string",
-            "nullable": true,
-            "enum": ["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]
+            "enum": ["roundRobin", "collective", "managed"]
           },
           "team": {
             "$ref": "#/components/schemas/EventTypeTeam"
