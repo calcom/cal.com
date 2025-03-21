@@ -285,9 +285,19 @@ export class BookingsController_2024_04_15 {
         }
       }
 
-      const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        await this.createNextApiRecurringBookingRequest(req, oAuthClientId, undefined, isEmbed)
-      );
+      const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+
+      const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers.host || "",
+        forcedSlug: orgSlug,
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
 
       createdBookings.forEach(async (booking) => {
         if (booking.userId && booking.uid && booking.startTime) {

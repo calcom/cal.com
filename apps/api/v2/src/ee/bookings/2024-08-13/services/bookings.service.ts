@@ -146,14 +146,34 @@ export class BookingsService_2024_08_13 {
 
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
-    const bookings = await handleNewRecurringBooking(bookingRequest);
+    const bookings = await handleNewRecurringBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers.host || "",
+      forcedSlug: orgSlug,
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
   async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
-    const bookings = await handleNewRecurringBooking(bookingRequest);
+    const bookings = await handleNewRecurringBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers.host || "",
+      forcedSlug: orgSlug,
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
     );
