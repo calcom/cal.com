@@ -13,6 +13,7 @@ async function loadFallbackTranslations() {
   } catch {
     console.error("Could not fetch fallback translations.");
   }
+  return;
 }
 
 async function loadTranslations(locale: string, ns: string) {
