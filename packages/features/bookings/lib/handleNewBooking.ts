@@ -24,6 +24,7 @@ import {
   sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
@@ -991,16 +992,28 @@ async function handler(
     };
 
   const eventName = getEventName(eventNameObject);
-  let evt: CalendarEvent = {
-    bookerUrl,
-    type: eventType.slug,
-    title: eventName, //this needs to be either forced in english, or fetched for each attendee and organizer separately
-    description: eventType.description,
-    additionalNotes,
-    customInputs,
-    startTime: dayjs(reqBody.start).utc().format(),
-    endTime: dayjs(reqBody.end).utc().format(),
-    organizer: {
+
+  let evt: CalendarEvent = new CalendarEventBuilder()
+    .withBasicDetails({
+      bookerUrl,
+      title: eventName,
+      startTime: dayjs(reqBody.start).utc().format(),
+      endTime: dayjs(reqBody.end).utc().format(),
+      additionalNotes,
+    })
+    .withEventType({
+      slug: eventType.slug,
+      description: eventType.description,
+      id: eventType.id,
+      hideCalendarNotes: eventType.hideCalendarNotes,
+      hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+      schedulingType: eventType.schedulingType,
+      seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+      // if seats are not enabled we should default true
+      seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
+      seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
+    })
+    .withOrganizer({
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
@@ -1008,39 +1021,42 @@ async function handler(
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
-    },
-    responses: reqBody.calEventResponses || null,
-    userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
-    attendees: attendeesList,
-    location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
-    conferenceCredentialId,
-    destinationCalendar,
-    hideCalendarNotes: eventType.hideCalendarNotes,
-    hideCalendarEventDetails: eventType.hideCalendarEventDetails,
-    requiresConfirmation: !isConfirmedByDefault,
-    eventTypeId: eventType.id,
-    // if seats are not enabled we should default true
-    seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
-    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
-    seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
-    schedulingType: eventType.schedulingType,
-    iCalUID,
-    iCalSequence,
-    platformClientId,
-    platformRescheduleUrl,
-    platformCancelUrl,
-    platformBookingUrl,
-    oneTimePassword: isConfirmedByDefault ? null : undefined,
-  };
+    })
+    .withAttendees(attendeesList)
+    .withMetadataAndResponses({
+      additionalNotes,
+      customInputs,
+      responses: reqBody.calEventResponses || null,
+      userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
+    })
+    .withLocation({
+      location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
+      conferenceCredentialId,
+    })
+    .withDestinationCalendar(destinationCalendar)
+    .withIdentifiers({ iCalUID, iCalSequence })
+    .withConfirmation({
+      requiresConfirmation: !isConfirmedByDefault,
+      isConfirmedByDefault,
+    })
+    .withPlatformVariables({
+      platformClientId,
+      platformRescheduleUrl,
+      platformCancelUrl,
+      platformBookingUrl,
+    })
+    .build();
 
   if (input.bookingData.thirdPartyRecurringEventId) {
-    evt.existingRecurringEvent = {
-      recurringEventId: input.bookingData.thirdPartyRecurringEventId,
-    };
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+      .build();
   }
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
-    evt.destinationCalendar?.push(...teamDestinationCalendars);
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
+      .build();
   }
 
   // data needed for triggering webhooks
@@ -1102,11 +1118,13 @@ async function handler(
   );
 
   if (isTeamEventType) {
-    evt.team = {
-      members: teamMembers,
-      name: eventType.team?.name || "Nameless",
-      id: eventType.team?.id ?? 0,
-    };
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withTeam({
+        members: teamMembers,
+        name: eventType.team?.name || "Nameless",
+        id: eventType.team?.id ?? 0,
+      })
+      .build();
   }
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -1166,9 +1184,13 @@ async function handler(
       // Rescheduling logic for the original seated event was handled in handleSeats
       // We want to use new booking logic for the new time slot
       originalRescheduledBooking = null;
-      evt.iCalUID = getICalUID({
-        attendeeId: bookingSeat?.attendeeId,
-      });
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withIdentifiers({
+          iCalUID: getICalUID({
+            attendeeId: bookingSeat?.attendeeId,
+          }),
+        })
+        .build();
     }
   }
 
@@ -1258,8 +1280,14 @@ async function handler(
         }
       }
 
-      evt.uid = booking.uid ?? null;
-      evt.oneTimePassword = booking.oneTimePassword ?? null;
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withUid(booking.uid ?? null)
+        .build();
+
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withOneTimePassword(booking.oneTimePassword ?? null)
+        .build();
+
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
           (attendee) =>
@@ -1353,9 +1381,13 @@ async function handler(
       evt.iCalUID = undefined;
     } else {
       // In case of rescheduling, we need to keep the previous host destination calendar
-      evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
-        ? [originalRescheduledBooking?.destinationCalendar]
-        : evt.destinationCalendar;
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withDestinationCalendar(
+          originalRescheduledBooking?.destinationCalendar
+            ? [originalRescheduledBooking?.destinationCalendar]
+            : evt.destinationCalendar
+        )
+        .build();
     }
 
     const updateManager = await eventManager.reschedule(
