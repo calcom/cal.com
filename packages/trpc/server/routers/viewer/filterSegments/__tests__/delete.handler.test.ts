@@ -164,6 +164,6 @@ describe("deleteHandler", () => {
         ctx: { user: mockUser },
         input,
       })
-    ).rejects.toThrow("You must be a team admin or owner to delete team filter segments");
+    ).rejects.toThrow("Filter segment not found or you don't have permission to delete it");
   });
 });
