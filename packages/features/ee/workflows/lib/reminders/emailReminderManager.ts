@@ -380,6 +380,13 @@ export const deleteScheduledEmailReminder = async (reminderId: number) => {
 
   if (taskId) {
     await tasker.cancel(taskId);
+
+    await prisma.workflowReminder.delete({
+      where: {
+        id: reminderId,
+      },
+    });
+
     return;
   }
 
