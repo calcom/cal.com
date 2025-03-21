@@ -17,15 +17,15 @@ import type { OrganizationRepository } from "@calcom/lib/server/repository/organ
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 export function AvailabilityList() {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
-  const { data: availabilityData, isFetching: isFetchingAvailabilityData } =
-    trpc.viewer.availability.list.useQuery();
-
+  const { data: availabilityData } = trpc.viewer.availability.list.useQuery();
   const meQuery = trpc.viewer.me.get.useQuery();
 
   const router = useRouter();
@@ -120,7 +120,7 @@ export function AvailabilityList() {
 
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
 
-  if (isFetchingAvailabilityData || !availabilityData) {
+  if (!availabilityData) {
     return <SkeletonLoader />;
   }
 
