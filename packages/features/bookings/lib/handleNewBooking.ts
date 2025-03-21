@@ -121,7 +121,7 @@ type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
 };
 
 const maskEmail = (organizerUser: { id: number; name: string | null }) => {
-  return `${organizerUser.id}@noreply.cal.com`;
+  return `${organizerUser.id}@private.cal.com`;
 };
 
 function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
