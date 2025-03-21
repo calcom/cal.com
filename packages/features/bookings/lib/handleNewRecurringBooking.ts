@@ -1,5 +1,5 @@
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
-import type { RecurringBookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
@@ -21,7 +21,7 @@ export type BookingHandlerInput = {
 } & PlatformParams;
 
 export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
-  const data: RecurringBookingCreateBody[] = input.bookingData;
+  const data = input.bookingData;
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
     return { start: booking.start, end: booking.end };
