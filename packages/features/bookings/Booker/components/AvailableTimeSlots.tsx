@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
@@ -115,10 +115,6 @@ export const AvailableTimeSlots = ({
     }
     return [];
   }, [date, extraDays, nonEmptyScheduleDaysFromSelectedDate]);
-
-  useEffect(() => {
-    console.log("event test", props);
-  }, [props]);
 
   const therapyIds = [1375, 1379, 1383, 1389, 1523, 1518];
 
