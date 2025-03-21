@@ -4,11 +4,9 @@ import type { Table } from "@tanstack/react-table";
 import { forwardRef } from "react";
 import { createPortal } from "react-dom";
 
-import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
-import type { IconName } from "@calcom/ui/components/icon";
+import { Button, type ButtonProps } from "@calcom/ui/components/button";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 export type ActionItem<TData> =
   | {

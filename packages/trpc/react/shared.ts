@@ -34,4 +34,5 @@ export const ENDPOINTS = [
   "delegationCredential",
   "routingForms",
   "delegationCredential",
+  "filterSegments",
 ] as const;

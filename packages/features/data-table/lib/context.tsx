@@ -1,21 +1,25 @@
 "use client";
 
-import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
+import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
 import { createContext, useCallback } from "react";
-import { z } from "zod";
 
-import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./types";
-
-const ZActiveFilter = z.object({
-  f: z.string(),
-  v: ZFilterValue.optional(),
-});
-
-type ActiveFilter = z.infer<typeof ZActiveFilter>;
+import { useSegments } from "./segments";
+import {
+  type FilterValue,
+  ZSorting,
+  ZColumnVisibility,
+  ZActiveFilter,
+  ZColumnSizing,
+  type FilterSegmentOutput,
+  type ActiveFilters,
+} from "./types";
 
 export type DataTableContextType = {
-  activeFilters: ActiveFilter[];
+  tableIdentifier: string;
+
+  activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
   addFilter: (columnId: string) => void;
   updateFilter: (columnId: string, value: FilterValue) => void;
@@ -27,6 +31,9 @@ export type DataTableContextType = {
   columnVisibility: VisibilityState;
   setColumnVisibility: OnChangeFn<VisibilityState>;
 
+  columnSizing: ColumnSizingState;
+  setColumnSizing: OnChangeFn<ColumnSizingState>;
+
   pageIndex: number;
   pageSize: number;
   setPageIndex: (pageIndex: number) => void;
@@ -34,21 +41,33 @@ export type DataTableContextType = {
 
   offset: number;
   limit: number;
+
+  segments: FilterSegmentOutput[];
+  selectedSegment: FilterSegmentOutput | undefined;
+  segmentId: number | undefined;
+  setSegmentId: (id: number | null) => void;
+  canSaveSegment: boolean;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
-const DEFAULT_ACTIVE_FILTERS: ActiveFilter[] = [];
+const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [];
 const DEFAULT_SORTING: SortingState = [];
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
 const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
+  tableIdentifier?: string;
   children: React.ReactNode;
   defaultPageSize?: number;
 }
 
-export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZE }: DataTableProviderProps) {
+export function DataTableProvider({
+  tableIdentifier: _tableIdentifier,
+  children,
+  defaultPageSize = DEFAULT_PAGE_SIZE,
+}: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
@@ -61,13 +80,25 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
     "cols",
     parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
   );
-
+  const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>(
+    "widths",
+    parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING)
+  );
+  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
+
+  const pathname = usePathname() as string | null;
+  const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
+  if (!tableIdentifier) {
+    throw new Error("tableIdentifier is required");
+  }
 
   const addFilter = useCallback(
     (columnId: string) => {
       if (!activeFilters?.some((filter) => filter.f === columnId)) {
+        // do not reset the page to 0 here,
+        // because we don't have the filter value yet (`v: undefined`)
         setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
       }
     },
@@ -79,7 +110,7 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
       setPageIndex(0);
       setActiveFilters((prev) => prev.filter((filter) => exclude?.includes(filter.f)));
     },
-    [setActiveFilters]
+    [setActiveFilters, setPageIndex]
   );
 
   const updateFilter = useCallback(
@@ -100,7 +131,7 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
         return newFilters;
       });
     },
-    [setActiveFilters]
+    [setActiveFilters, setPageIndex]
   );
 
   const removeFilter = useCallback(
@@ -108,7 +139,7 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
       setPageIndex(0);
       setActiveFilters((prev) => prev.filter((filter) => filter.f !== columnId));
     },
-    [setActiveFilters]
+    [setActiveFilters, setPageIndex]
   );
 
   const setPageSizeAndGoToFirstPage = useCallback(
@@ -119,9 +150,28 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
     [setPageSize, setPageIndex]
   );
 
+  const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
+    tableIdentifier,
+    activeFilters,
+    sorting,
+    columnVisibility,
+    columnSizing,
+    pageSize,
+    defaultPageSize,
+    segmentId,
+    setSegmentId,
+    setActiveFilters,
+    setSorting,
+    setColumnVisibility,
+    setColumnSizing,
+    setPageSize,
+    setPageIndex,
+  });
+
   return (
     <DataTableContext.Provider
       value={{
+        tableIdentifier,
         activeFilters,
         addFilter,
         clearAll,
@@ -131,12 +181,19 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
         setSorting,
         columnVisibility,
         setColumnVisibility,
+        columnSizing,
+        setColumnSizing,
         pageIndex,
         pageSize,
         setPageIndex,
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
+        segments,
+        selectedSegment,
+        segmentId: segmentId || undefined,
+        setSegmentId: setSegmentIdAndSaveToLocalStorage,
+        canSaveSegment,
       }}>
       {children}
     </DataTableContext.Provider>
