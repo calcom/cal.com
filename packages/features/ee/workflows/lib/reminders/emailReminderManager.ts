@@ -1,5 +1,4 @@
-import { sendOrScheduleWorkflowEmail } from "ee/workflows/lib/reminders/providers/emailProvider";import type { EventStatus } from "ics";
-
+import type { EventStatus } from "ics";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
@@ -18,6 +17,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { sendOrScheduleWorkflowEmail } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
@@ -299,7 +299,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
               method: WorkflowMethods.EMAIL,
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
-              referenceId: batchId,
+              referenceId: sendgridBatchId,
               seatReferenceId: seatReferenceUid,
             },
           });
@@ -310,7 +310,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
               method: WorkflowMethods.EMAIL,
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
-              referenceId: batchId,
+              referenceId: sendgridBatchId,
               seatReferenceId: seatReferenceUid,
               isMandatoryReminder: true,
             },

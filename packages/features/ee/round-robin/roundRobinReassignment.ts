@@ -479,7 +479,7 @@ export const roundRobinReassignment = async ({
             time: workflow.time,
             timeUnit: workflow.timeUnit,
           },
-          sendTo: reassignedRRHost.email,
+          sendTo: [reassignedRRHost.email],
           template: workflowStep.template,
           emailSubject: workflowStep.emailSubject || undefined,
           emailBody: workflowStep.reminderBody || undefined,

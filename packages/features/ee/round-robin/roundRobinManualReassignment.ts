@@ -451,7 +451,7 @@ async function handleWorkflowsUpdate({
           time: workflow.time,
           timeUnit: workflow.timeUnit,
         },
-        sendTo: newUser.email,
+        sendTo: [newUser.email],
         template: workflowStep.template,
         emailSubject: workflowStep.emailSubject || undefined,
         emailBody: workflowStep.reminderBody || undefined,
