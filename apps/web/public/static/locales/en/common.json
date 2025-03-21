@@ -2445,7 +2445,7 @@
   "create_your_enterprise_description": "Upgrade to Enterprise and get access to Active Directory Sync, SCIM Automatic User provisioning, Cal.ai Voice Agents, Admin APIs and more!",
   "other_payment_app_enabled": "You can only enable one payment app per event type",
   "admin_delete_organization_description_1": "Teams that are member of this organization will also be deleted along with their event-types",
-  "admin_delete_organization_description_2": "Users that were part of the organization will not be deleted but their usernames would be changed to allow them to exist outside the organization",
+  "admin_delete_organization_description_2": "Users that were part of the organization will not be deleted but their usernames could be changed, in case of username conflicts, to allow them to exist outside the organization",
   "admin_delete_organization_description_3": "User event-types created after the user was in the organization will be deleted",
   "admin_delete_organization_description_4": "Migrated user event-types will not be deleted",
   "admin_delete_organization_title": "Delete {{organizationName}}?",
@@ -3036,5 +3036,6 @@
   "tip_username_plus": "Tip: You can a '+' between usernames: cal.com/anna+brian to make a dynamic group meeting",
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
+  "these_users_will_be_renamed_to_avoid_username_conflicts": "These users will be renamed to avoid username conflicts",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -5,10 +5,10 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
@@ -31,10 +31,6 @@ export function AdminOrgTable() {
   });
 
   const deleteMutation = trpc.viewer.organizations.adminDelete.useMutation({
-    onSuccess: async (res, variables) => {
-      showToast(res.message, "success");
-      await invalidateQueries(utils, variables);
-    },
     onError: (err) => {
       console.error(err.message);
       showToast(t("org_error_processing"), "error");
@@ -53,7 +49,14 @@ export function AdminOrgTable() {
     });
   };
 
-  const [orgToDelete, setOrgToDelete] = useState<(typeof data)[number] | null>(null);
+  const [orgDeletionState, setOrgDeletionState] = useState<{
+    org: (typeof data)[number];
+    requireUserRenamingConfirmation?: boolean;
+    usersToRename?: {
+      id: number;
+      username: string;
+    }[];
+  } | null>(null);
   return (
     <div>
       <Table>
@@ -196,7 +199,9 @@ export function AdminOrgTable() {
                         id: "delete",
                         label: t("delete"),
                         onClick: () => {
-                          setOrgToDelete(org);
+                          setOrgDeletionState({
+                            org,
+                          });
                         },
                         icon: "trash" as const,
                       },
@@ -208,55 +213,183 @@ export function AdminOrgTable() {
           ))}
         </Body>
       </Table>
-      <DeleteOrgDialog
-        org={orgToDelete}
-        onClose={() => setOrgToDelete(null)}
-        onConfirm={() => {
-          if (!orgToDelete) return;
-          deleteMutation.mutate({
-            orgId: orgToDelete.id,
-          });
-        }}
-      />
+      {orgDeletionState && orgDeletionState.org ? (
+        orgDeletionState.requireUserRenamingConfirmation ? (
+          <UserRenamingConfirmationDialog
+            orgDeletionState={orgDeletionState}
+            onConfirm={async () => {
+              if (!orgDeletionState.org) return;
+              const res = await deleteMutation.mutateAsync({
+                orgId: orgDeletionState.org.id,
+                userRenamingAcknowledged: true,
+              });
+              showToast(res.message, "success");
+              setOrgDeletionState(null);
+              await invalidateQueries(utils, {
+                orgId: orgDeletionState.org.id,
+              });
+            }}
+            onClose={() => {
+              setOrgDeletionState(null);
+            }}
+          />
+        ) : (
+          <DeleteOrgDialog
+            orgDeletionState={orgDeletionState}
+            onClose={() => {
+              setOrgDeletionState(null);
+            }}
+            onConfirm={async () => {
+              if (!orgDeletionState.org) return;
+              const res = await deleteMutation.mutateAsync({
+                orgId: orgDeletionState.org.id,
+              });
+              if (res.requireUserRenamingConfirmation) {
+                setOrgDeletionState((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    requireUserRenamingConfirmation: true,
+                    usersToRename: res.usersToRename,
+                  };
+                });
+              } else {
+                showToast(res.message, "success");
+                setOrgDeletionState(null);
+                await invalidateQueries(utils, {
+                  orgId: orgDeletionState.org.id,
+                });
+              }
+            }}
+          />
+        )
+      ) : null}
     </div>
   );
 }
 
 export default AdminOrgTable;
+const ConfirmButton = ({
+  onConfirm,
+  confirmBtnText,
+  loadingText,
+}: {
+  onConfirm: () => Promise<void>;
+  confirmBtnText: string;
+  loadingText: string;
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+  return (
+    <Button
+      color="primary"
+      loading={isLoading}
+      onClick={async (e) => {
+        setIsLoading(true);
+        await onConfirm();
+        setIsLoading(false);
+      }}
+      data-testid="dialog-confirmation">
+      {isLoading ? loadingText : confirmBtnText}
+    </Button>
+  );
+};
 
 const DeleteOrgDialog = ({
-  org,
+  orgDeletionState,
   onConfirm,
   onClose,
 }: {
-  org: {
-    id: number;
-    name: string;
+  orgDeletionState: {
+    org: {
+      id: number;
+      name: string;
+    };
+    requireUserRenamingConfirmation?: boolean;
   } | null;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   onClose: () => void;
 }) => {
   const { t } = useLocale();
-  if (!org) {
-    return null;
-  }
+  if (!orgDeletionState) return null;
   return (
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
-    <Dialog name="delete-user" open={!!org.id} onOpenChange={(open) => (open ? () => {} : onClose())}>
+    <Dialog
+      name="delete-user"
+      open={!orgDeletionState.requireUserRenamingConfirmation}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose?.();
+        }
+      }}>
       <ConfirmationDialogContent
         title={t("admin_delete_organization_title", {
-          organizationName: org.name,
+          organizationName: orgDeletionState.org.name,
         })}
-        confirmBtnText={t("delete")}
         cancelBtnText={t("cancel")}
         variety="danger"
-        onConfirm={onConfirm}>
+        confirmBtn={
+          <ConfirmButton onConfirm={onConfirm} confirmBtnText={t("delete")} loadingText={t("deleting")} />
+        }>
         <ul className="ml-4 mt-5 list-disc space-y-2">
           <li>{t("admin_delete_organization_description_1")}</li>
           <li>{t("admin_delete_organization_description_2")}</li>
           <li>{t("admin_delete_organization_description_3")}</li>
           <li>{t("admin_delete_organization_description_4")}</li>
         </ul>
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+};
+
+const UserRenamingConfirmationDialog = ({
+  orgDeletionState,
+  onConfirm,
+  onClose,
+}: {
+  orgDeletionState: {
+    org: {
+      id: number;
+      name: string;
+    };
+    requireUserRenamingConfirmation?: boolean;
+    usersToRename?: {
+      id: number;
+      username: string;
+    }[];
+  } | null;
+  onConfirm: () => Promise<void>;
+  onClose: () => void;
+}) => {
+  const { t } = useLocale();
+  if (!orgDeletionState) return null;
+  return (
+    <Dialog
+      name="delete-user"
+      open={orgDeletionState.requireUserRenamingConfirmation}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose?.();
+        }
+      }}>
+      <ConfirmationDialogContent
+        title={t("admin_delete_organization_title", {
+          organizationName: orgDeletionState.org.name,
+        })}
+        cancelBtnText={t("cancel")}
+        variety="danger"
+        confirmBtn={
+          <ConfirmButton
+            onConfirm={onConfirm}
+            confirmBtnText={t("confirm_user_renaming_and_delete")}
+            loadingText={t("deleting")}
+          />
+        }>
+        <span className="flex flex-col gap-2">
+          <span className="text-muted-foreground text-sm">
+            {t("these_users_will_be_renamed_to_avoid_username_conflicts")}
+          </span>
+          {orgDeletionState.usersToRename.map((user) => `${user.username} (ID: ${user.id})`).join(", ")}
+        </span>
       </ConfirmationDialogContent>
     </Dialog>
   );
