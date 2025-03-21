@@ -522,8 +522,8 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
 }
 
 export async function gotoWhenIdle(page: Page, url: string) {
-  await page.waitForLoadState("networkidle");
   return page.goto(url);
+  await page.waitForLoadState("networkidle");
 }
 
 export async function bookTeamEvent({
