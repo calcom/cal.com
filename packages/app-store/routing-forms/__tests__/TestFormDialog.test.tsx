@@ -37,10 +37,6 @@ function mockEventTypeRedirectUrlMatchingRoute() {
 /**
  * fixes the error due to Formbricks
  */
-vi.mock("@calcom/ui", async (importOriginal) => ({
-  ...(await importOriginal<Record<string, unknown>>()),
-}));
-
 vi.mock("@calcom/features/shell/Shell", () => ({
   ShellMain: vi.fn(),
 }));
