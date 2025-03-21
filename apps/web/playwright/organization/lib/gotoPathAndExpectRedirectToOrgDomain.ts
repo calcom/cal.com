@@ -1,6 +1,5 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
@@ -18,7 +17,7 @@ export async function gotoPathAndExpectRedirectToOrgDomain({
   if (!org.slug) {
     throw new Error("Org slug is not defined");
   }
-  await gotoAndWaitForIdle(page, path).catch((e) => {
+  await page.goto(path).catch((e) => {
     console.log("Expected navigation error to happen");
   });
 
