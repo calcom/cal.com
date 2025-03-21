@@ -323,30 +323,28 @@ export async function handler(req: NextRequest) {
           };
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-                attachments: reminder.workflowStep.includeCalendarEvent
-                  ? [
-                      {
-                        content: Buffer.from(
-                          generateIcsString({ event, status: "CONFIRMED" }) || ""
-                        ).toString("base64"),
-                        filename: "event.ics",
-                        type: "text/calendar; method=REQUEST",
-                        disposition: "attachment",
-                        contentId: uuidv4(),
-                      },
-                    ]
-                  : undefined,
-              },
-              { sender: reminder.workflowStep.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              attachments: reminder.workflowStep.includeCalendarEvent
+                ? [
+                    {
+                      content: Buffer.from(generateIcsString({ event, status: "CONFIRMED" }) || "").toString(
+                        "base64"
+                      ),
+                      filename: "event.ics",
+                      type: "text/calendar; method=REQUEST",
+                      disposition: "attachment",
+                      contentId: uuidv4(),
+                    },
+                  ]
+                : undefined,
+              sender: reminder.workflowStep.sender,
+            })
           );
 
           await prisma.workflowReminder.update({
@@ -399,17 +397,15 @@ export async function handler(req: NextRequest) {
           const batchId = await getBatchId();
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-              },
-              { sender: reminder.workflowStep?.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              sender: reminder.workflowStep?.sender,
+            })
           );
 
           await prisma.workflowReminder.update({
