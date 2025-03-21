@@ -11,11 +11,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (session?.user?.id) SentrySetUser({ id: session.user.id });
 
-  return (
-    <Shell withoutSeo={true} withoutMain={true}>
-      {children}
-    </Shell>
-  );
+  return <Shell withoutMain={true}>{children}</Shell>;
 };
 
 export default Layout;
