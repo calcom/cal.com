@@ -120,6 +120,10 @@ type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
 
+const maskEmail = (organizerUser: { id: number; name: string | null }) => {
+  return `${organizerUser.id}@noreply.cal.com`;
+};
+
 function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
   if (arr.length === 0) {
     throw new Error("Array should have at least one item, but it's empty");
@@ -757,10 +761,18 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
+  type organizerWithUnMaskedEmail = (typeof users)[number] & { unMaskedEmail?: string };
+
   // If the team member is requested then they should be the organizer
-  const organizerUser = reqBody.teamMemberEmail
+  const organizerUser: organizerWithUnMaskedEmail = reqBody.teamMemberEmail
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
     : users[0];
+
+  const hideOrganizerEmail = eventType.team?.hideOrganizerEmail;
+  if (hideOrganizerEmail) {
+    organizerUser.unMaskedEmail = organizerUser.email;
+    organizerUser.email = maskEmail(organizerUser);
+  }
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
@@ -881,7 +893,7 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users
-    .filter((user) => user.email !== organizerUser.email)
+    .filter((user) => user.email !== (hideOrganizerEmail ? organizerUser.unMaskedEmail : organizerUser.email))
     .map(async (user) => {
       // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
       // push to teamDestinationCalendars if it's a team event but collective only
