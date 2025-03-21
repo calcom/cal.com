@@ -43,7 +43,7 @@ const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile")
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy").then((mod) => mod.default));
 const UnpublishedEntity = dynamic(() =>
-  import("@calcom/ui/components/unpublished-entity/UnpublishedEntity").then((mod) => mod.UnpublishedEntity)
+  import("@calcom/ui/components/unpublished-entity").then((mod) => mod.UnpublishedEntity)
 );
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
@@ -82,6 +82,8 @@ const BookerComponent = ({
   isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
   hashedLink,
+  confirmButtonDisabled,
+  timeZones,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -131,6 +133,7 @@ const BookerComponent = ({
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
+
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
@@ -169,7 +172,8 @@ const BookerComponent = ({
     bookerState,
     isInstantMeeting,
     layout == BookerLayouts.WEEK_VIEW,
-    event?.data?.bookingFields
+    event?.data?.bookingFields,
+    event?.data?.locations
   );
 
   // Cloudflare Turnstile Captcha
@@ -230,7 +234,7 @@ const BookerComponent = ({
         onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
-        isTimeslotUnavailable={unavailableTimeSlots.includes(selectedTimeslot || "")}
+        isTimeslotUnavailable={!isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "")}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}
@@ -238,6 +242,11 @@ const BookerComponent = ({
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
+        confirmButtonDisabled={confirmButtonDisabled}
+        classNames={{
+          confirmButton: customClassNames?.confirmStep?.confirmButton,
+          backButton: customClassNames?.confirmStep?.backButton,
+        }}
         isPlatform={isPlatform}>
         <>
           {!isPlatform && (
@@ -396,6 +405,7 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
+                  timeZones={timeZones}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
@@ -482,6 +492,8 @@ const BookerComponent = ({
                 skipConfirmStep={skipConfirmStep}
                 shouldRenderCaptcha={shouldRenderCaptcha}
                 watchedCfToken={watchedCfToken}
+                confirmButtonDisabled={confirmButtonDisabled}
+                confirmStepClassNames={customClassNames?.confirmStep}
               />
             </BookerSection>
           </AnimatePresence>

@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -52,61 +53,56 @@ const createSessionGetter = (userId: number) => async () => {
   };
 };
 
-export async function GET(request: NextRequest) {
+async function handler(request: NextRequest) {
   const url = new URL(request.url);
   const searchParams = request.nextUrl.searchParams;
 
+  const { action, token, reason } = querySchema.parse(Object.fromEntries(searchParams.entries()));
+
+  const decryptedData = JSON.parse(
+    symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
+
+  const { bookingUid, userId } = decryptedSchema.parse(decryptedData);
+
+  const booking = await prisma.booking.findUniqueOrThrow({
+    where: { uid: bookingUid },
+  });
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+  });
+
+  // Use the factory function instead of declaring inside the block
+  const sessionGetter = createSessionGetter(userId);
+
   try {
-    const { action, token, reason } = querySchema.parse(Object.fromEntries(searchParams.entries()));
+    /** @see https://trpc.io/docs/server-side-calls */
+    // Create a legacy request object for compatibility
+    const legacyReq = buildLegacyRequest(await headers(), await cookies());
+    const res = {} as any; // Response is still mocked as it's not used in this context
 
-    const decryptedData = JSON.parse(
-      symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || "")
-    );
-
-    const { bookingUid, userId } = decryptedSchema.parse(decryptedData);
-
-    const booking = await prisma.booking.findUniqueOrThrow({
-      where: { uid: bookingUid },
+    const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
+    const caller = bookingsRouter.createCaller({
+      ...ctx,
+      req: legacyReq,
+      res,
+      user: { ...user, locale: user?.locale ?? "en" },
     });
 
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: userId },
+    await caller.confirm({
+      bookingId: booking.id,
+      recurringEventId: booking.recurringEventId || undefined,
+      confirmed: action === DirectAction.ACCEPT,
+      reason,
     });
-
-    // Use the factory function instead of declaring inside the block
-    const sessionGetter = createSessionGetter(userId);
-
-    try {
-      /** @see https://trpc.io/docs/server-side-calls */
-      // Create a legacy request object for compatibility
-      const legacyReq = buildLegacyRequest(headers(), cookies());
-      const res = {} as any; // Response is still mocked as it's not used in this context
-
-      const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
-      const caller = bookingsRouter.createCaller({
-        ...ctx,
-        req: legacyReq,
-        res,
-        user: { ...user, locale: user?.locale ?? "en" },
-      });
-
-      await caller.confirm({
-        bookingId: booking.id,
-        recurringEventId: booking.recurringEventId || undefined,
-        confirmed: action === DirectAction.ACCEPT,
-        reason,
-      });
-    } catch (e) {
-      let message = "Error confirming booking";
-      if (e instanceof TRPCError) message = (e as TRPCError).message;
-      return NextResponse.redirect(
-        `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`
-      );
-    }
-
-    return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
-  } catch (error) {
-    console.error("Error processing link request:", error);
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  } catch (e) {
+    let message = "Error confirming booking";
+    if (e instanceof TRPCError) message = (e as TRPCError).message;
+    return NextResponse.redirect(`${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
   }
+
+  return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
 }
+
+export const GET = defaultResponderForAppDir(handler);

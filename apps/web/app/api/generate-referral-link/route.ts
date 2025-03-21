@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -7,9 +8,9 @@ import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export async function POST() {
-  const headersList = headers();
-  const cookiesList = cookies();
+async function postHandler() {
+  const headersList = await headers();
+  const cookiesList = await cookies();
   const legacyReq = buildLegacyRequest(headersList, cookiesList);
 
   const session = await getServerSession({ req: legacyReq });
@@ -51,3 +52,5 @@ export async function POST() {
 
   return NextResponse.json({ shortLink });
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

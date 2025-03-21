@@ -1,4 +1,3 @@
-import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -8,33 +7,26 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { IS_CALCOM } from "@calcom/lib/constants";
-import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
-import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DropdownMenuSeparator,
-  Form,
-  SettingsToggle,
-  showToast,
-  TextAreaField,
-  TextField,
-  Tooltip,
-  VerticalDivider,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { VerticalDivider } from "@calcom/ui/components/divider";
+import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
+import { Form } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TRPCClientError } from "@trpc/react-query";
 
@@ -42,25 +34,13 @@ import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { findMatchingRoute } from "../lib/processRoute";
-import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
+import type { FormResponse, NonRouterRoute, RoutingFormWithResponseCount, RoutingForm } from "../types/types";
 import type { NewFormDialogState } from "./FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
-
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-
-export type RoutingFormWithResponseCount = RoutingForm & {
-  team: {
-    slug: Team["slug"];
-    name: Team["name"];
-  } | null;
-  _count: {
-    responses: number;
-  };
-};
 
 const Actions = ({
   form,
@@ -72,7 +52,6 @@ const Actions = ({
   };
 }) => {
   const { t } = useLocale();
-  const { data: typeformApp } = useApp("typeform");
 
   return (
     <div className="flex items-center">
@@ -135,19 +114,6 @@ const Actions = ({
           tooltip={t("delete")}
           tooltipSide="bottom"
         />
-        {typeformApp?.isInstalled ? (
-          <FormActionsDropdown>
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("copy_redirect_url")}
-            </FormAction>
-          </FormActionsDropdown>
-        ) : null}
       </ButtonGroup>
 
       <div className="flex md:hidden">
@@ -189,17 +155,6 @@ const Actions = ({
             StartIcon="code">
             {t("embed")}
           </FormAction>
-          {typeformApp ? (
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("Copy Typeform Redirect Url")}
-            </FormAction>
-          ) : null}
           <DropdownMenuSeparator className="hidden sm:block" />
           <FormAction
             action="_delete"

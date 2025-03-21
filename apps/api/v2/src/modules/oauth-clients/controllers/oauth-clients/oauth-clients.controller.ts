@@ -29,18 +29,11 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import {
-  ApiOperation as DocsOperation,
-  ApiCreatedResponse as DocsCreatedResponse,
-  ApiTags,
-} from "@nestjs/swagger";
+import { ApiCreatedResponse as DocsCreatedResponse, ApiTags } from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput, UpdateOAuthClientInput, Pagination } from "@calcom/platform-types";
-
-const AUTH_DOCUMENTATION = `⚠️ First, this endpoint requires \`Cookie: next-auth.session-token=eyJhbGciOiJ\` header. Log into Cal web app using owner of organization that was created after visiting \`/settings/organizations/new\`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.
-Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.`;
 
 @Controller({
   path: "/v2/oauth-clients",
@@ -61,7 +54,6 @@ export class OAuthClientsController {
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @DocsOperation({ description: AUTH_DOCUMENTATION })
   @DocsCreatedResponse({
     description: "Create an OAuth client",
     type: CreateOAuthClientResponseDto,
@@ -90,7 +82,6 @@ export class OAuthClientsController {
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @DocsOperation({ description: AUTH_DOCUMENTATION })
   async getOAuthClients(@GetOrgId() organizationId: number): Promise<GetOAuthClientsResponseDto> {
     const clients = await this.oAuthClientsService.getOAuthClients(organizationId);
     return { status: SUCCESS_STATUS, data: clients };
@@ -99,7 +90,6 @@ export class OAuthClientsController {
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @DocsOperation({ description: AUTH_DOCUMENTATION })
   @UseGuards(OAuthClientGuard)
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     const client = await this.oAuthClientsService.getOAuthClientById(clientId);
@@ -109,7 +99,6 @@ export class OAuthClientsController {
   @Get("/:clientId/managed-users")
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @DocsOperation({ description: AUTH_DOCUMENTATION })
   @UseGuards(OAuthClientGuard)
   async getOAuthClientManagedUsersById(
     @Param("clientId") clientId: string,
@@ -128,7 +117,6 @@ export class OAuthClientsController {
   @Patch("/:clientId")
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @DocsOperation({ description: AUTH_DOCUMENTATION })
   @UseGuards(OAuthClientGuard)
   async updateOAuthClient(
     @Param("clientId") clientId: string,
@@ -142,7 +130,6 @@ export class OAuthClientsController {
   @Delete("/:clientId")
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @DocsOperation({ description: AUTH_DOCUMENTATION })
   @UseGuards(OAuthClientGuard)
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
