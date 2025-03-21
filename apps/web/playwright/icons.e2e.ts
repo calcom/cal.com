@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -9,7 +9,7 @@ test.use({
 });
 
 test("Icons render properly", async ({ page }) => {
-  await gotoWhenIdle(page, "/icons");
+  await gotoAndWaitForIdle(page, "/icons");
   await expect(page).toHaveScreenshot("icons.png", {
     maxDiffPixelRatio: 0.05,
     fullPage: true,

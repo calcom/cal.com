@@ -5,7 +5,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
-import { getInviteLink, gotoWhenIdle, localize } from "../lib/testUtils";
+import { getInviteLink, gotoAndWaitForIdle, localize } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -20,7 +20,7 @@ test.describe("Team", () => {
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await gotoWhenIdle(page, `/settings/teams/${team.id}/members`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${team.id}/members`);
 
     await test.step("To the team by email (external user)", async () => {
       const invitedUserEmail = users.trackEmail({
@@ -49,7 +49,7 @@ test.describe("Team", () => {
       // Follow invite link to new window
       const context = await browser.newContext();
       const newPage = await context.newPage();
-      await gotoWhenIdle(newPage, inviteLink);
+      await gotoAndWaitForIdle(newPage, inviteLink);
       await expect(newPage.locator("text=Create your account")).toBeVisible();
 
       // Check required fields
@@ -65,7 +65,7 @@ test.describe("Team", () => {
 
       // Check newly invited member is not pending anymore
       await page.bringToFront();
-      await gotoWhenIdle(page, `/settings/teams/${team.id}/members`);
+      await gotoAndWaitForIdle(page, `/settings/teams/${team.id}/members`);
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);
@@ -82,7 +82,7 @@ test.describe("Team", () => {
 
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
-      await gotoWhenIdle(inviteLinkPage, inviteLink);
+      await gotoAndWaitForIdle(inviteLinkPage, inviteLink);
       await inviteLinkPage.waitForLoadState("domcontentloaded");
 
       await inviteLinkPage.locator("button[type=submit]").click();
@@ -101,7 +101,7 @@ test.describe("Team", () => {
     const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await gotoWhenIdle(page, `/settings/teams/${team.id}/members`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${team.id}/members`);
 
     await test.step("To the organization by email (internal user)", async () => {
       const invitedUserEmail = users.trackEmail({
@@ -152,17 +152,17 @@ test.describe("Team", () => {
     const { team } = await teamOwner.getFirstTeamMembership();
 
     await teamOwner.apiLogin();
-    await gotoWhenIdle(page, `/settings/teams/${team.id}/members`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${team.id}/members`);
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     await page.getByText(t("send_invite")).click();
 
     await invitedMember.apiLogin();
-    await gotoWhenIdle(page, `/teams`);
+    await gotoAndWaitForIdle(page, `/teams`);
     await page.getByTestId(`accept-invitation-${team.id}`).click();
     const response = await page.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
     expect(response.status()).toBe(200);
-    await gotoWhenIdle(page, `/event-types`);
+    await gotoAndWaitForIdle(page, `/event-types`);
 
     //ensure managed event-type is created for the invited member
     await expect(page.locator(`text="${teamEventSlugAndTitle}"`)).toBeVisible();

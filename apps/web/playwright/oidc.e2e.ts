@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -34,7 +34,7 @@ test.describe("OIDC", () => {
     const samlAdminUser = await users.create({ email: SAML_ADMIN_EMAIL, password: SAML_ADMIN_PASSWORD });
     await samlAdminUser.apiLogin();
     await test.step("Connect with OIDC Provider", async () => {
-      await gotoWhenIdle(page, "/settings/security/sso");
+      await gotoAndWaitForIdle(page, "/settings/security/sso");
       await page.click('[data-testid="sso-oidc-configure"]');
       await page.fill('[data-testid="sso-oidc-client-id"]', OIDC_CLIENT_ID);
       await page.fill('[data-testid="sso-oidc-client-secret"]', OIDC_CLIENT_SECRET);
@@ -50,7 +50,7 @@ test.describe("OIDC", () => {
     await test.step("Login using the OIDC provider", async () => {
       // Login a user using the OIDC provider.
       // The credentials are handled by the provider, so we don't need to create a user in the db.
-      await gotoWhenIdle(page, "/auth/login");
+      await gotoAndWaitForIdle(page, "/auth/login");
       await page.click('[data-testid="samlAndOidc"]');
       // Redirected outide of the app, the user would be redirected to the OIDC provider.
       await page.waitForURL(/https:\/\/[^/]+\/oauth2\/v1\/authorize\?.*/);
@@ -61,10 +61,10 @@ test.describe("OIDC", () => {
       await page.waitForURL("getting-started", { waitUntil: "load" });
     });
     // Logout the user.
-    await gotoWhenIdle(page, "/auth/logout");
+    await gotoAndWaitForIdle(page, "/auth/logout");
     await test.step("Disconnect OIDC Provider", async () => {
       samlAdminUser.apiLogin();
-      await gotoWhenIdle(page, "/settings/security/sso");
+      await gotoAndWaitForIdle(page, "/settings/security/sso");
       await page.getByTestId("delete-oidc-sso-connection").click();
       await page.getByRole("button", { name: "Yes, delete OIDC configuration" }).click();
       await page.waitForSelector('[data-testid="toast-success"]');

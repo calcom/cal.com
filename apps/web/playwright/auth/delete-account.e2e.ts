@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { test } from "../lib/fixtures";
 
@@ -10,7 +10,7 @@ test("Can delete user account", async ({ page, users }) => {
     username: "delete-me",
   });
   await user.apiLogin();
-  await gotoWhenIdle(page, `/settings/my-account/profile`);
+  await gotoAndWaitForIdle(page, `/settings/my-account/profile`);
   await page.waitForSelector("[data-testid=dashboard-shell]");
 
   await page.click("[data-testid=delete-account]");

@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { doOnOrgDomain, gotoWhenIdle } from "playwright/lib/testUtils";
+import { doOnOrgDomain, gotoAndWaitForIdle } from "playwright/lib/testUtils";
 import { v4 as uuid } from "uuid";
 
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -98,7 +98,7 @@ test.describe("Organization Settings", () => {
 
     test("Disabling SEO indexing updates settings and meta tags", async ({ page }) => {
       await test.step("Disable 'Allow search engine indexing' for organization", async () => {
-        await gotoWhenIdle(page, `/settings/organizations/profile`);
+        await gotoAndWaitForIdle(page, `/settings/organizations/profile`);
         const seoSwitch = await page.getByTestId(`${ctx.org.id}-seo-indexing-switch`);
         await expect(seoSwitch).toBeChecked({ checked: false });
       });
@@ -121,7 +121,7 @@ test.describe("Organization Settings", () => {
 
     test("Enabling SEO indexing updates settings and meta tags", async ({ page }) => {
       await test.step("Enable 'Allow search engine indexing' for organization", async () => {
-        await gotoWhenIdle(page, `/settings/organizations/profile`);
+        await gotoAndWaitForIdle(page, `/settings/organizations/profile`);
         await toggleSeoSwitch({
           page,
           switchTestId: `${ctx.org.id}-seo-indexing-switch`,
@@ -148,7 +148,7 @@ test.describe("Organization Settings", () => {
 
     test("Organization settings override user settings", async ({ page }) => {
       await test.step("Disable 'Allow search engine indexing' for organization", async () => {
-        await gotoWhenIdle(page, `/settings/organizations/profile`);
+        await gotoAndWaitForIdle(page, `/settings/organizations/profile`);
         const seoSwitch = await page.getByTestId(`${ctx.org.id}-seo-indexing-switch`);
         await expect(seoSwitch).toBeChecked({ checked: false });
       });

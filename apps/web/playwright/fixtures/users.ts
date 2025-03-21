@@ -18,7 +18,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
 import {
-  gotoWhenIdle,
+  gotoAndWaitForIdle,
   selectFirstAvailableTimeSlotNextMonth,
   teamEventSlug,
   teamEventTitle,
@@ -683,7 +683,7 @@ export const createUsersFixture = (
     },
     get: () => store.users,
     logout: async () => {
-      await gotoWhenIdle(page, "/auth/logout");
+      await gotoAndWaitForIdle(page, "/auth/logout");
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
@@ -772,7 +772,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
      */
     login: async () => login({ ...(await self()), password: user.username }, store.page),
     logout: async () => {
-      await gotoWhenIdle(page, "/auth/logout");
+      await gotoAndWaitForIdle(page, "/auth/logout");
     },
     getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
@@ -1047,7 +1047,7 @@ export async function login(
   const signInLocator = loginLocator.locator('[type="submit"]');
 
   //login
-  await gotoWhenIdle(page, "/");
+  await gotoAndWaitForIdle(page, "/");
   await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
@@ -1083,7 +1083,7 @@ export async function apiLogin(
 }
 
 export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, slug: string, page: Page) {
-  await gotoWhenIdle(page, `/event-types/${eventType?.id}?tabName=apps`);
+  await gotoAndWaitForIdle(page, `/event-types/${eventType?.id}?tabName=apps`);
   await page.locator(`[data-testid='${slug}-app-switch']`).first().click();
   await page.getByPlaceholder("Price").fill("100");
   await page.getByTestId("update-eventtype").click();
@@ -1095,7 +1095,7 @@ export async function bookAndPayEvent(
   page: Page
 ) {
   // booking process with stripe integration
-  await gotoWhenIdle(page, `${user.username}/${eventType?.slug}`);
+  await gotoAndWaitForIdle(page, `${user.username}/${eventType?.slug}`);
   await selectFirstAvailableTimeSlotNextMonth(page);
   // --- fill form
   await page.fill('[name="name"]', "Stripe Stripeson");
@@ -1138,7 +1138,7 @@ const installStripe = async ({
   redirectUrl,
   buttonSelector,
 }: InstallStripeParams) => {
-  await gotoWhenIdle(page, "/apps/stripe");
+  await gotoAndWaitForIdle(page, "/apps/stripe");
   /** We start the Stripe flow */
   await page.click('[data-testid="install-app-button"]');
   await page.click(buttonSelector);
@@ -1161,7 +1161,7 @@ const installStripe = async ({
   await page.click(`[data-testid="configure-step-save"]`);
   await page.waitForURL(`event-types`);
   for (let index = 0; index < eventTypeIds.length; index++) {
-    await gotoWhenIdle(page, `event-types/${eventTypeIds[index]}?tabName=apps`);
+    await gotoAndWaitForIdle(page, `event-types/${eventTypeIds[index]}?tabName=apps`);
     await expect(page.getByTestId(`stripe-app-switch`)).toBeChecked();
     await expect(page.getByTestId(`stripe-price-input`)).toHaveValue(`1${index}`);
   }

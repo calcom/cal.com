@@ -14,7 +14,7 @@ import {
   confirmBooking,
   confirmReschedule,
   expectSlotNotAllowedToBook,
-  gotoWhenIdle,
+  gotoAndWaitForIdle,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -34,7 +34,7 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const responsePromise = page.waitForResponse(
     (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
   );
-  await gotoWhenIdle(page, `/${user.username}/30-min`);
+  await gotoAndWaitForIdle(page, `/${user.username}/30-min`);
   await page.content();
   const response = await responsePromise;
   const ssrResponse = await response.text();
@@ -68,13 +68,13 @@ todo("check SSR and OG - Team Event Type");
 test.describe("user with a special character in the username", () => {
   test("/[user] page shouldn't 404", async ({ page, users }) => {
     const user = await users.create({ username: "franz-janßen" });
-    const response = await gotoWhenIdle(page, `/${user.username}`);
+    const response = await gotoAndWaitForIdle(page, `/${user.username}`);
     expect(response?.status()).not.toBe(404);
   });
 
   test("/[user]/[type] page shouldn't 404", async ({ page, users }) => {
     const user = await users.create({ username: "franz-janßen" });
-    const response = await gotoWhenIdle(page, `/${user.username}/30-min`);
+    const response = await gotoAndWaitForIdle(page, `/${user.username}/30-min`);
     expect(response?.status()).not.toBe(404);
   });
 
@@ -94,7 +94,7 @@ test.describe("user with a special character in the username", () => {
       overrideDefaultEventTypes: true,
     });
     // This redirects to /[user]/[type] because this user has only 1 event-type
-    const response = await gotoWhenIdle(page, `/${benny.username}`);
+    const response = await gotoAndWaitForIdle(page, `/${benny.username}`);
     expect(response?.status()).not.toBe(500);
   });
 });
@@ -102,7 +102,7 @@ test.describe("user with a special character in the username", () => {
 test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
-    await gotoWhenIdle(page, `/${free.username}`);
+    await gotoAndWaitForIdle(page, `/${free.username}`);
   });
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
@@ -126,7 +126,7 @@ test.describe("free user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    await gotoWhenIdle(page, bookingUrl);
+    await gotoAndWaitForIdle(page, bookingUrl);
 
     await expectSlotNotAllowedToBook(page);
   });
@@ -135,7 +135,7 @@ test.describe("free user", () => {
 test.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
-    await gotoWhenIdle(page, `/${pro.username}`);
+    await gotoAndWaitForIdle(page, `/${pro.username}`);
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
@@ -153,7 +153,7 @@ test.describe("pro user", () => {
     await bookings.create(pro.id, pro.username, eventType.id);
 
     await pro.apiLogin();
-    await gotoWhenIdle(page, "/bookings/upcoming");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
@@ -179,7 +179,10 @@ test.describe("pro user", () => {
     const bookingFixture = await bookings.create(pro.id, pro.username, eventType.id);
 
     // open the wrong eventType (rescheduleUid created for /30min event)
-    await gotoWhenIdle(page, `${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
+    await gotoAndWaitForIdle(
+      page,
+      `${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`
+    );
 
     await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
   });
@@ -187,7 +190,7 @@ test.describe("pro user", () => {
   test("it returns a 404 when a requested event type does not exist", async ({ page, users }) => {
     const [pro] = users.get();
     const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
-    const response = await gotoWhenIdle(page, unexistingPageUrl.href);
+    const response = await gotoAndWaitForIdle(page, unexistingPageUrl.href);
     expect(response?.status()).toBe(404);
   });
 
@@ -204,7 +207,7 @@ test.describe("pro user", () => {
     const [pro] = users.get();
     await pro.apiLogin();
 
-    await gotoWhenIdle(page, "/bookings/upcoming");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
@@ -219,7 +222,7 @@ test.describe("pro user", () => {
     await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
-    await gotoWhenIdle(page, `/${pro.username}`);
+    await gotoAndWaitForIdle(page, `/${pro.username}`);
     await bookFirstEvent(page);
   });
 
@@ -236,7 +239,7 @@ test.describe("pro user", () => {
     const [pro] = users.get();
     await pro.apiLogin();
 
-    await gotoWhenIdle(page, "/bookings/upcoming");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
@@ -247,7 +250,7 @@ test.describe("pro user", () => {
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
     await expect(cancelledHeadline).toBeVisible();
     const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
-    await gotoWhenIdle(page, `/reschedule/${bookingCancelledId}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${bookingCancelledId}`);
     // Should be redirected to the booking details page which shows the cancelled headline
     await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
   });
@@ -260,7 +263,7 @@ test.describe("pro user", () => {
     const [pro] = users.get();
     await pro.apiLogin();
 
-    await gotoWhenIdle(page, "/bookings/unconfirmed");
+    await gotoAndWaitForIdle(page, "/bookings/unconfirmed");
     await Promise.all([
       page.click('[data-testid="confirm"]'),
       page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
@@ -279,7 +282,7 @@ test.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // go back to the booking page to re-book.
-    await gotoWhenIdle(page, pageUrl);
+    await gotoAndWaitForIdle(page, pageUrl);
     await bookTimeSlot(page, { email: "test2@example.com" });
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
@@ -292,7 +295,7 @@ test.describe("pro user", () => {
 
     await bookTimeSlot(page);
     // go back to the booking page to re-book.
-    await gotoWhenIdle(page, pageUrl);
+    await gotoAndWaitForIdle(page, pageUrl);
 
     await bookTimeSlot(page, { expectedStatusCode: 409 });
     await expect(page.getByText("Could not book the meeting.")).toBeVisible();
@@ -384,7 +387,7 @@ test.describe("prefill", () => {
   test("logged in", async ({ page, users }) => {
     const prefill = await users.create({ name: "Prefill User" });
     await prefill.apiLogin();
-    await gotoWhenIdle(page, "/pro/30min");
+    await gotoAndWaitForIdle(page, "/pro/30min");
 
     await test.step("from session", async () => {
       await selectFirstAvailableTimeSlotNextMonth(page);
@@ -396,7 +399,7 @@ test.describe("prefill", () => {
       const url = new URL(page.url());
       url.searchParams.set("name", testName);
       url.searchParams.set("email", testEmail);
-      await gotoWhenIdle(page, url.toString());
+      await gotoAndWaitForIdle(page, url.toString());
 
       await expect(page.locator('[name="name"]')).toHaveValue(testName);
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
@@ -407,7 +410,7 @@ test.describe("prefill", () => {
     page,
     users,
   }) => {
-    await gotoWhenIdle(page, "/pro/30min");
+    await gotoAndWaitForIdle(page, "/pro/30min");
     await selectFirstAvailableTimeSlotNextMonth(page);
     await page.fill('[name="name"]', "John Doe");
     await page.fill('[name="email"]', "john@example.com");
@@ -421,7 +424,7 @@ test.describe("prefill", () => {
   });
 
   test("logged out", async ({ page, users }) => {
-    await gotoWhenIdle(page, "/pro/30min");
+    await gotoAndWaitForIdle(page, "/pro/30min");
 
     await test.step("from query params", async () => {
       await selectFirstAvailableTimeSlotNextMonth(page);
@@ -429,7 +432,7 @@ test.describe("prefill", () => {
       const url = new URL(page.url());
       url.searchParams.set("name", testName);
       url.searchParams.set("email", testEmail);
-      await gotoWhenIdle(page, url.toString());
+      await gotoAndWaitForIdle(page, url.toString());
 
       await expect(page.locator('[name="name"]')).toHaveValue(testName);
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
@@ -437,14 +440,14 @@ test.describe("prefill", () => {
   });
 
   test("skip confirm step if all fields are prefilled from query params", async ({ page }) => {
-    await gotoWhenIdle(page, "/pro/30min");
+    await gotoAndWaitForIdle(page, "/pro/30min");
     const url = new URL(page.url());
     url.searchParams.set("name", testName);
     url.searchParams.set("email", testEmail);
     url.searchParams.set("guests", "guest1@example.com");
     url.searchParams.set("guests", "guest2@example.com");
     url.searchParams.set("notes", "This is an additional note");
-    await gotoWhenIdle(page, url.toString());
+    await gotoAndWaitForIdle(page, url.toString());
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     await expect(page.locator('[data-testid="skip-confirm-book-button"]')).toBeVisible();
@@ -457,7 +460,7 @@ test.describe("prefill", () => {
 test.describe("Booking on different layouts", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
-    await gotoWhenIdle(page, `/${user.username}`);
+    await gotoAndWaitForIdle(page, `/${user.username}`);
   });
 
   test("Book on week layout", async ({ page }) => {
@@ -525,7 +528,7 @@ test.describe("Booking round robin event", () => {
       }
     );
     const team = await testUser.getFirstTeamMembership();
-    await gotoWhenIdle(page, `/team/${team.team.slug}`);
+    await gotoAndWaitForIdle(page, `/team/${team.team.slug}`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -562,7 +565,7 @@ test.describe("Booking round robin event", () => {
     expect(hostName).toBe("teammate-1");
 
     // make another booking to see if also for the second booking teammate-1 is booked
-    await gotoWhenIdle(page, `/team/${team.team.slug}`);
+    await gotoAndWaitForIdle(page, `/team/${team.team.slug}`);
 
     await page.click('[data-testid="event-type-link"]');
 

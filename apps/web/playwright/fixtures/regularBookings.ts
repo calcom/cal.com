@@ -2,7 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 
-import { gotoWhenIdle, localize, submitAndWaitForResponse } from "../lib/testUtils";
+import { gotoAndWaitForIdle, localize, submitAndWaitForResponse } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 export const scheduleSuccessfullyText = "This meeting is scheduled";
@@ -37,7 +37,7 @@ export function createBookingPageFixture(page: Page) {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
     },
     goToEventTypesPage: async () => {
-      await gotoWhenIdle(page, "/event-types");
+      await gotoAndWaitForIdle(page, "/event-types");
     },
     updateEventType: async () => {
       await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {

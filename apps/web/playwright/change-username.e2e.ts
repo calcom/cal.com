@@ -6,7 +6,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import { moveUserToOrg } from "./lib/orgMigration";
-import { gotoWhenIdle, IS_STRIPE_ENABLED, submitAndWaitForResponse } from "./lib/testUtils";
+import { gotoAndWaitForIdle, IS_STRIPE_ENABLED, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -35,7 +35,7 @@ test.describe("Change username on settings", () => {
       const user = await users.create();
       await user.apiLogin();
       // Try to go homepage
-      await gotoWhenIdle(page, "/settings/my-account/profile");
+      await gotoAndWaitForIdle(page, "/settings/my-account/profile");
       // Change username from normal to normal
       const usernameInput = page.locator("[data-testid=username-input]");
 
@@ -65,7 +65,7 @@ test.describe("Change username on settings", () => {
     await stripe.customers.create({ email: `${user?.username}@example.com` });
 
     await user.apiLogin();
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
 
     // Change username from normal to premium
     const usernameInput = page.locator("[data-testid=username-input]");
@@ -129,7 +129,7 @@ test.describe("Change username on settings", () => {
       const user = await users.create();
       await user.apiLogin();
 
-      await gotoWhenIdle(page, "/settings/my-account/profile");
+      await gotoAndWaitForIdle(page, "/settings/my-account/profile");
       const usernameInput = page.locator("[data-testid=username-input]");
 
       await usernameInput.fill(previousUsername);

@@ -9,7 +9,7 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import { test } from "../lib/fixtures";
-import { fillStripeTestCheckout, gotoWhenIdle } from "../lib/testUtils";
+import { fillStripeTestCheckout, gotoAndWaitForIdle } from "../lib/testUtils";
 import { getEmailsReceivedByUser } from "../lib/testUtils";
 
 async function expectEmailWithSubject(
@@ -129,7 +129,7 @@ test.describe("Organization", () => {
     const orgOwnerUsernameInOrg = orgOwnerEmail.split("@")[0];
     const orgName = capitalize(`${orgOwnerUser.username}`);
     const orgSlug = `myOrg-${uuid()}`.toLowerCase();
-    await gotoWhenIdle(page, "/settings/organizations/new");
+    await gotoAndWaitForIdle(page, "/settings/organizations/new");
 
     await test.step("Basic info", async () => {
       // Check required fields
@@ -163,7 +163,7 @@ test.describe("Organization", () => {
       domain: `example.com`,
     });
 
-    await gotoWhenIdle(page, "/settings/organizations/new");
+    await gotoAndWaitForIdle(page, "/settings/organizations/new");
 
     await test.step("Basic info", async () => {
       // Check required fields
@@ -203,7 +203,7 @@ test.describe("Organization", () => {
 
     await orgOwnerUser.apiLogin();
     const orgName = capitalize(`${orgOwnerUsername}`);
-    await gotoWhenIdle(page, "/settings/organizations/new");
+    await gotoAndWaitForIdle(page, "/settings/organizations/new");
 
     await test.step("Basic info", async () => {
       // These values are inferred due to an existing user being signed
@@ -279,7 +279,7 @@ test.describe("Organization", () => {
       // eslint-disable-next-line playwright/no-skipped-test
       test.skip(!IS_TEAM_BILLING_ENABLED, "Skipping paying for org as stripe is disabled");
       await orgOwnerUser.apiLogin();
-      await gotoWhenIdle(page, "/event-types");
+      await gotoAndWaitForIdle(page, "/event-types");
       const upgradeButton = await page.getByTestId("upgrade_org_banner_button");
 
       await expect(upgradeButton).toBeVisible();
@@ -326,7 +326,7 @@ test.describe("Organization", () => {
 
     await orgOwnerUser.apiLogin();
 
-    await gotoWhenIdle(page, "/teams");
+    await gotoAndWaitForIdle(page, "/teams");
 
     await test.step("Has org self serve banner", async () => {
       // These values are inferred due to an existing user being signed
@@ -421,7 +421,7 @@ test.describe("Organization", () => {
       // eslint-disable-next-line playwright/no-skipped-test
       test.skip(!IS_TEAM_BILLING_ENABLED, "Skipping paying for org as stripe is disabled");
       await orgOwnerUser.apiLogin();
-      await gotoWhenIdle(page, "/event-types");
+      await gotoAndWaitForIdle(page, "/event-types");
       const upgradeButton = await page.getByTestId("upgrade_org_banner_button");
 
       await expect(upgradeButton).toBeVisible();
@@ -444,7 +444,7 @@ test.describe("Organization", () => {
 
     await test.step("Ensure correctnumberOfTeams are migrated", async () => {
       // eslint-disable-next-line playwright/no-skipped-test
-      await gotoWhenIdle(page, "/teams");
+      await gotoAndWaitForIdle(page, "/teams");
       const teamListItems = await page.getByTestId("team-list-item-link").all();
 
       // Number of teams migrated + the two created in the create teams step

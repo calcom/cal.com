@@ -7,7 +7,7 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import type { createEmailsFixture } from "./fixtures/emails";
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser, gotoWhenIdle, submitAndWaitForResponse } from "./lib/testUtils";
+import { getEmailsReceivedByUser, gotoAndWaitForIdle, submitAndWaitForResponse } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -26,7 +26,7 @@ test.describe("Teams", () => {
       teammates: teamMatesObj,
     });
     await owner.apiLogin();
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
 
     // check if user avatar is loaded
     await page.getByTestId("profile-upload-avatar").isVisible();
@@ -52,7 +52,7 @@ test.describe("Update Profile", () => {
     const email = `${emailInfo}-updated@${emailDomain}`;
 
     await user.apiLogin();
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -84,13 +84,13 @@ test.describe("Update Profile", () => {
 
     const verifyUrl = `${WEBAPP_URL}/auth/verify-email-change?${params.toString()}`;
 
-    await gotoWhenIdle(page, verifyUrl);
+    await gotoAndWaitForIdle(page, verifyUrl);
 
     const errorLocator = await page.getByTestId("toast-error");
 
     expect(errorLocator).toBeDefined();
 
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
     const emailInputUpdated = page.getByTestId("profile-form-email-0");
     expect(await emailInputUpdated.inputValue()).toEqual(user.email);
   });
@@ -110,7 +110,7 @@ test.describe("Update Profile", () => {
     const email = `${emailInfo}-updated@${emailDomain}`;
 
     await user.apiLogin();
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -138,14 +138,14 @@ test.describe("Update Profile", () => {
 
     const verifyUrl = `${WEBAPP_URL}/auth/verify-email-change?${params.toString()}`;
 
-    await gotoWhenIdle(page, verifyUrl);
+    await gotoAndWaitForIdle(page, verifyUrl);
 
     await expect(page.getByTestId("toast-success")).toContainText(email);
 
     // After email verification is successful. user is sent to /event-types
     await page.waitForURL("/event-types");
 
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
     const emailInputUpdated = await page.getByTestId("profile-form-email-0");
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
@@ -163,7 +163,7 @@ test.describe("Update Profile", () => {
     const email = `${emailInfo}-updated@${emailDomain}`;
 
     await user.apiLogin();
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -218,7 +218,7 @@ test.describe("Update Profile", () => {
     const [emailInfo, emailDomain] = user.email.split("@");
 
     await user.apiLogin();
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
 
     await page.getByTestId("add-secondary-email").click();
 
@@ -280,7 +280,7 @@ test.describe("Update Profile", () => {
     const email = `${emailInfo}@${emailDomain}`;
 
     await user.apiLogin();
-    await gotoWhenIdle(page, "/settings/my-account/profile");
+    await gotoAndWaitForIdle(page, "/settings/my-account/profile");
 
     await page.getByTestId("add-secondary-email").click();
 
@@ -328,7 +328,7 @@ test.describe("Update Profile", () => {
 
     const verifyUrl = `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`;
 
-    await gotoWhenIdle(page, verifyUrl);
+    await gotoAndWaitForIdle(page, verifyUrl);
 
     await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
     await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
@@ -364,7 +364,7 @@ test.describe("Update Profile", () => {
 
     const verifyUrl = `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`;
 
-    await gotoWhenIdle(page, verifyUrl);
+    await gotoAndWaitForIdle(page, verifyUrl);
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
     await page.getByTestId("secondary-email-make-primary-button").click();
 
@@ -404,7 +404,7 @@ test.describe("Update Profile", () => {
         identifier: secondaryEmail,
       },
     });
-    await gotoWhenIdle(page, `${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
+    await gotoAndWaitForIdle(page, `${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
 
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
     await expect(page.locator("button[data-testid=resend-verify-email-button]")).toBeHidden();

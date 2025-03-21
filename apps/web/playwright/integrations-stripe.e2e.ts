@@ -9,7 +9,7 @@ import { test, todo } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
 import {
   confirmReschedule,
-  gotoWhenIdle,
+  gotoAndWaitForIdle,
   IS_STRIPE_ENABLED,
   selectFirstAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
@@ -36,7 +36,7 @@ test.describe("Stripe integration skip true", () => {
   test("when enabling Stripe, credentialId is included", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: true });
 
@@ -109,7 +109,7 @@ test.describe("Stripe integration skip true", () => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: true });
     await user.setupEventWithPrice(eventType, "stripe");
@@ -122,13 +122,13 @@ test.describe("Stripe integration skip true", () => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: true });
     await user.setupEventWithPrice(eventType, "stripe");
 
     // booking process without payment
-    await gotoWhenIdle(page, `${user.username}/${eventType?.slug}`);
+    await gotoAndWaitForIdle(page, `${user.username}/${eventType?.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.fill('[name="name"]', "Stripe Stripeson");
@@ -136,7 +136,7 @@ test.describe("Stripe integration skip true", () => {
 
     await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
-    await gotoWhenIdle(page, `/bookings/upcoming`);
+    await gotoAndWaitForIdle(page, `/bookings/upcoming`);
 
     await expect(page.getByText("Unconfirmed")).toBeVisible();
     await expect(page.getByText("Pending payment").last()).toBeVisible();
@@ -146,7 +146,7 @@ test.describe("Stripe integration skip true", () => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: true });
     await user.setupEventWithPrice(eventType, "stripe");
@@ -169,7 +169,7 @@ test.describe("Stripe integration skip true", () => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: true });
     await user.setupEventWithPrice(eventType, "stripe");
@@ -189,7 +189,7 @@ test.describe("Stripe integration skip true", () => {
       user = await users.create();
       eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
       await user.apiLogin();
-      await gotoWhenIdle(page, "/apps/installed");
+      await gotoAndWaitForIdle(page, "/apps/installed");
 
       await user.installStripePersonal({ skip: true });
       await user.setupEventWithPrice(eventType, "stripe");
@@ -198,7 +198,7 @@ test.describe("Stripe integration skip true", () => {
     });
 
     test("Payment should confirm pending payment booking", async ({ page, users }) => {
-      await gotoWhenIdle(page, "/bookings/upcoming");
+      await gotoAndWaitForIdle(page, "/bookings/upcoming");
 
       const paidBadge = page.locator('[data-testid="paid_badge"]').first();
 
@@ -228,7 +228,7 @@ test.describe("Stripe integration skip true", () => {
       await user.installStripePersonal({ skip: true });
 
       // Edit currency inside event type page
-      await gotoWhenIdle(page, `/event-types/${eventType?.id}?tabName=apps`);
+      await gotoAndWaitForIdle(page, `/event-types/${eventType?.id}?tabName=apps`);
 
       // Enable Stripe
       await page.locator("#event-type-form").getByRole("switch").click();
@@ -244,7 +244,7 @@ test.describe("Stripe integration skip true", () => {
       await page.getByTestId("update-eventtype").click();
 
       // Book event
-      await gotoWhenIdle(page, `${user.username}/${eventType?.slug}`);
+      await gotoAndWaitForIdle(page, `${user.username}/${eventType?.slug}`);
 
       // Confirm MXN currency it's displayed use expect
       await expect(page.getByText("MX$200.00")).toBeVisible();
@@ -277,7 +277,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
   test("when enabling Stripe, credentialId is included skip false", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
     const eventTypes = await user.getUserEventsAsOwner();
     const eventTypeIds = eventTypes.map((item) => item.id);
 
@@ -344,7 +344,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: false, eventTypeIds: [eventType.id] });
     await user.bookAndPayEvent(eventType);
@@ -355,12 +355,12 @@ test.describe("Stripe integration with the new app install flow skip false", () 
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: false, eventTypeIds: [eventType.id] });
 
     // booking process without payment
-    await gotoWhenIdle(page, `${user.username}/${eventType?.slug}`);
+    await gotoAndWaitForIdle(page, `${user.username}/${eventType?.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.fill('[name="name"]', "Stripe Stripeson");
@@ -368,7 +368,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
 
     await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
-    await gotoWhenIdle(page, `/bookings/upcoming`);
+    await gotoAndWaitForIdle(page, `/bookings/upcoming`);
 
     await expect(page.getByText("Unconfirmed")).toBeVisible();
     await expect(page.getByText("Pending payment").last()).toBeVisible();
@@ -378,7 +378,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: false, eventTypeIds: [eventType.id] });
     await user.bookAndPayEvent(eventType);
@@ -400,7 +400,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
 
     await user.installStripePersonal({ skip: false, eventTypeIds: [eventType.id] });
     await user.bookAndPayEvent(eventType);
@@ -419,7 +419,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
       user = await users.create();
       eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
       await user.apiLogin();
-      await gotoWhenIdle(page, "/apps/installed");
+      await gotoAndWaitForIdle(page, "/apps/installed");
 
       await user.installStripePersonal({ skip: false, eventTypeIds: [eventType.id] });
       await user.bookAndPayEvent(eventType);
@@ -427,7 +427,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
     });
 
     test("Payment should confirm pending payment booking skip false", async ({ page, users }) => {
-      await gotoWhenIdle(page, "/bookings/upcoming");
+      await gotoAndWaitForIdle(page, "/bookings/upcoming");
 
       const paidBadge = page.locator('[data-testid="paid_badge"]').first();
 
@@ -457,7 +457,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
       const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
       await user.apiLogin();
 
-      await gotoWhenIdle(page, "/apps/stripe");
+      await gotoAndWaitForIdle(page, "/apps/stripe");
       /** We start the Stripe flow */
       await page.click('[data-testid="install-app-button"]');
       await page.click('[data-testid="install-app-button-personal"]');
@@ -479,7 +479,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
       await page.waitForURL(`event-types`);
 
       // Book event
-      await gotoWhenIdle(page, `${user.username}/${eventType?.slug}`);
+      await gotoAndWaitForIdle(page, `${user.username}/${eventType?.slug}`);
 
       // Confirm MXN currency it's displayed use expect
       await expect(page.getByText("MX$200.00")).toBeVisible();

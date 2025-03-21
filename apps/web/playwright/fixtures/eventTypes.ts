@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-import { gotoWhenIdle, localize } from "../lib/testUtils";
+import { gotoAndWaitForIdle, localize } from "../lib/testUtils";
 
 export function createEventTypeFixture(page: Page) {
   return {
@@ -11,7 +11,7 @@ export function createEventTypeFixture(page: Page) {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
     },
     goToEventTypesPage: async () => {
-      await gotoWhenIdle(page, "/event-types");
+      await gotoAndWaitForIdle(page, "/event-types");
     },
     checkAvailabilityTab: async () => {
       const editAvailability = (await localize("en"))("edit_availability");
@@ -24,7 +24,7 @@ export function createEventTypeFixture(page: Page) {
     goToAvailabilityPage: async () => {
       const workingHours = (await localize("en"))("default_schedule_name");
 
-      await gotoWhenIdle(page, "/availability");
+      await gotoAndWaitForIdle(page, "/availability");
       await page
         .getByTestId("schedules")
         .locator("div")

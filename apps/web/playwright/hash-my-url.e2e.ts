@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
-  gotoWhenIdle,
+  gotoAndWaitForIdle,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -20,7 +20,7 @@ test.describe("hash my url", () => {
     await users.deleteAll();
   });
   test("generate url hash", async ({ page }) => {
-    await gotoWhenIdle(page, "/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
     await page.locator("ul[data-testid=event-types] > li a").first().click();
@@ -38,14 +38,14 @@ test.describe("hash my url", () => {
     await page.locator('[data-testid="update-eventtype"]').press("Enter");
 
     // book using generated url hash
-    await gotoWhenIdle(page, $url);
+    await gotoAndWaitForIdle(page, $url);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // hash regenerates after successful booking
-    await gotoWhenIdle(page, "/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
     await page.locator("ul[data-testid=event-types] > li a").first().click();

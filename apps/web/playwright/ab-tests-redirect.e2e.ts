@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -11,7 +11,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/installed/messaging");
+    await gotoAndWaitForIdle(page, "/apps/installed/messaging");
 
     const locator = page.getByRole("heading", { name: "Messaging" });
 
@@ -23,7 +23,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/telegram");
+    await gotoAndWaitForIdle(page, "/apps/telegram");
 
     const locator = page.getByRole("heading", { name: "Telegram" });
 
@@ -35,7 +35,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/apple-calendar/setup");
+    await gotoAndWaitForIdle(page, "/apps/apple-calendar/setup");
 
     const locator = page.getByRole("heading", { name: "Connect to Apple Server" });
 
@@ -47,7 +47,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/categories");
+    await gotoAndWaitForIdle(page, "/apps/categories");
 
     const locator = page.getByTestId("app-store-category-messaging");
 
@@ -59,7 +59,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/categories/messaging");
+    await gotoAndWaitForIdle(page, "/apps/categories/messaging");
 
     const locator = page.getByText(/messaging apps/i);
 
@@ -71,7 +71,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/bookings/upcoming/");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming/");
 
     const locator = page.getByTestId("horizontal-tab-upcoming");
 
@@ -83,7 +83,7 @@ test.describe("apps/ A/B tests", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/getting-started/connected-calendar");
+    await gotoAndWaitForIdle(page, "/getting-started/connected-calendar");
 
     const locator = page.getByText("Apple Calendar");
 

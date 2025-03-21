@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@calcom/prisma";
 
 import { test, todo } from "./lib/fixtures";
-import { gotoWhenIdle, submitAndWaitForJsonResponse } from "./lib/testUtils";
+import { gotoAndWaitForIdle, submitAndWaitForJsonResponse } from "./lib/testUtils";
 
 declare let global: {
   E2E_EMAILS?: ({ text: string } | Record<string, unknown>)[];
@@ -68,7 +68,7 @@ const addOauthBasedIntegration = async function ({
     })
   );
 
-  await gotoWhenIdle(page, `/apps/${slug}`);
+  await gotoAndWaitForIdle(page, `/apps/${slug}`);
   await page.click('[data-testid="install-app-button"]');
 };
 
@@ -105,7 +105,7 @@ async function bookEvent(page: Page, calLink: string) {
   // It would also allow correct snapshot to be taken for current month.
   // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(1000);
-  await gotoWhenIdle(page, `/${calLink}`);
+  await gotoAndWaitForIdle(page, `/${calLink}`);
 
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
   page.locator('[data-testid="time"]').nth(0).click();

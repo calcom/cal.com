@@ -1,4 +1,4 @@
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -7,7 +7,7 @@ test.describe("AppListCard", async () => {
     const user = await users.create({});
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/installed/conferencing?hl=daily-video");
+    await gotoAndWaitForIdle(page, "/apps/installed/conferencing?hl=daily-video");
 
     await page.waitForLoadState();
 

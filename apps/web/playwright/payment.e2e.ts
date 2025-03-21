@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 
 import {
   bookTimeSlot,
-  gotoWhenIdle,
+  gotoAndWaitForIdle,
   selectFirstAvailableTimeSlotNextMonth,
 } from "@calcom/web/playwright/lib/testUtils";
 
@@ -21,7 +21,7 @@ test.describe("Payment", () => {
 
       const user = await users.create();
       await user.apiLogin();
-      await gotoWhenIdle(page, "/apps");
+      await gotoAndWaitForIdle(page, "/apps");
 
       await page.getByPlaceholder("Search").click();
       await page.getByPlaceholder("Search").fill("mock");
@@ -43,7 +43,7 @@ test.describe("Payment", () => {
 
       await page.getByTestId("update-eventtype").click();
 
-      await gotoWhenIdle(page, `${user.username}/30-min`);
+      await gotoAndWaitForIdle(page, `${user.username}/30-min`);
 
       await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);

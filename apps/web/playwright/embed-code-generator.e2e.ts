@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { Linter } from "eslint";
 import { parse } from "node-html-parser";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
@@ -28,7 +28,7 @@ test.describe("Embed Code Generator Tests", () => {
 
     test.describe("Event Types Page", () => {
       test.beforeEach(async ({ page }) => {
-        await gotoWhenIdle(page, "/event-types");
+        await gotoAndWaitForIdle(page, "/event-types");
       });
 
       test("open Embed Dialog and choose Inline for First Event Type", async ({ page, users }) => {
@@ -147,7 +147,7 @@ test.describe("Embed Code Generator Tests", () => {
     });
     test.describe("Event Type Edit Page", () => {
       test.beforeEach(async ({ page }) => {
-        await gotoWhenIdle(page, `/event-types`);
+        await gotoAndWaitForIdle(page, `/event-types`);
         await Promise.all([
           page.locator('a[href*="/event-types/"]').first().click(),
           page.waitForURL((url) => url.pathname.startsWith("/event-types/")),
@@ -200,7 +200,7 @@ test.describe("Embed Code Generator Tests", () => {
     });
     test.describe("Event Types Page", () => {
       test.beforeEach(async ({ page }) => {
-        await gotoWhenIdle(page, "/event-types");
+        await gotoAndWaitForIdle(page, "/event-types");
       });
 
       test("open Embed Dialog and choose Inline for First Event Type", async ({ page, users }) => {

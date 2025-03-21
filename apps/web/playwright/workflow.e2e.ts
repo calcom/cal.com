@@ -2,14 +2,14 @@ import { MembershipRole, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import { loginUser, loginUserWithTeam } from "./fixtures/regularBookings";
 import { test } from "./lib/fixtures";
-import { bookEventOnThisPage, gotoWhenIdle } from "./lib/testUtils";
+import { bookEventOnThisPage, gotoAndWaitForIdle } from "./lib/testUtils";
 
 test.describe("Workflow Tab - Event Type", () => {
   test.describe("Check the functionalities of the Workflow Tab", () => {
     test.describe("User Workflows", () => {
       test.beforeEach(async ({ page, users }) => {
         await loginUser(users);
-        await gotoWhenIdle(page, "/workflows");
+        await gotoAndWaitForIdle(page, "/workflows");
       });
 
       test("Creating a new workflow", async ({ workflowPage }) => {
@@ -48,7 +48,7 @@ test.describe("Workflow Tab - Event Type", () => {
         const [eventType] = user.eventTypes;
 
         await createWorkflow({ name: "A New Workflow", trigger: WorkflowTriggerEvents.NEW_EVENT });
-        await gotoWhenIdle(page, `/${user.username}/${eventType.slug}`);
+        await gotoAndWaitForIdle(page, `/${user.username}/${eventType.slug}`);
         await page.click('[data-testid="incrementMonth"]');
         await bookEventOnThisPage(page);
         await assertWorkflowReminders(eventType.id, 1);
@@ -60,7 +60,7 @@ test.describe("Workflow Tab - Event Type", () => {
         const { createWorkflow, assertListCount } = workflowPage;
 
         await loginUserWithTeam(users, MembershipRole.ADMIN);
-        await gotoWhenIdle(page, "/workflows");
+        await gotoAndWaitForIdle(page, "/workflows");
 
         await createWorkflow({ name: "A New Workflow", isTeam: true });
         await assertListCount(4);
@@ -70,7 +70,7 @@ test.describe("Workflow Tab - Event Type", () => {
         const { hasReadonlyBadge, selectedWorkflowPage, workflowOptionsAreDisabled } = workflowPage;
 
         await loginUserWithTeam(users, MembershipRole.MEMBER);
-        await gotoWhenIdle(page, "/workflows");
+        await gotoAndWaitForIdle(page, "/workflows");
 
         await workflowOptionsAreDisabled("Team Workflow");
         await selectedWorkflowPage("Team Workflow");

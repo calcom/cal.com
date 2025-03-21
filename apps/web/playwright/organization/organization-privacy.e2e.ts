@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import prisma from "@calcom/prisma";
 
@@ -47,7 +47,7 @@ test.describe("Organization - Privacy", () => {
     });
 
     await owner.apiLogin();
-    await gotoWhenIdle(page, `/settings/organizations/${org.slug}/members`);
+    await gotoAndWaitForIdle(page, `/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
 
     const tableLocator = await page.getByTestId("user-list-data-table");
@@ -55,7 +55,7 @@ test.describe("Organization - Privacy", () => {
     await expect(tableLocator).toBeVisible();
 
     await memberInOrg.apiLogin();
-    await gotoWhenIdle(page, `/settings/organizations/${org.slug}/members`);
+    await gotoAndWaitForIdle(page, `/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
     const userDataTable = await page.getByTestId("user-list-data-table");
     const membersPrivacyWarning = await page.getByTestId("members-privacy-warning");
@@ -94,7 +94,7 @@ test.describe("Organization - Privacy", () => {
     const teamId = membership.team.id;
 
     // Update team to be private
-    await gotoWhenIdle(page, `/settings/teams/${teamId}/members`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
     const togglePrivateSwitch = await page.getByTestId("make-team-private-check");
     await togglePrivateSwitch.click();
@@ -122,7 +122,7 @@ test.describe("Organization - Privacy", () => {
     const memberOfTeam = await users.set(memberUser?.user.email);
     await memberOfTeam.apiLogin();
 
-    await gotoWhenIdle(page, `/settings/teams/${teamId}/members`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
 
     // As a user we can not see the user list when a team is private
@@ -160,7 +160,7 @@ test.describe("Organization - Privacy", () => {
     const teamId = membership.team.id;
 
     // Update team to be private
-    await gotoWhenIdle(page, `/settings/teams/${teamId}/members`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
 
     // As admin/owner we can see the user list
@@ -186,7 +186,7 @@ test.describe("Organization - Privacy", () => {
     const memberOfTeam = await users.set(memberUser?.user.email);
     await memberOfTeam.apiLogin();
 
-    await gotoWhenIdle(page, `/settings/teams/${teamId}/members`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
 
     // As a user we can not see the user list when a team is private

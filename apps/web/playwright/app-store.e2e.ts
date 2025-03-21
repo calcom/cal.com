@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { gotoWhenIdle, installAppleCalendar } from "./lib/testUtils";
+import { gotoAndWaitForIdle, installAppleCalendar } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -13,7 +13,7 @@ test.describe("App Store - Authed", () => {
 
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/");
+    await gotoAndWaitForIdle(page, "/apps/");
 
     await page.waitForLoadState();
 
@@ -35,7 +35,7 @@ test.describe("App Store - Authed", () => {
     const user = await users.create();
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/apps/google-calendar");
+    await gotoAndWaitForIdle(page, "/apps/google-calendar");
 
     await page.getByTestId("install-app-button").click();
 
@@ -47,7 +47,7 @@ test.describe("App Store - Authed", () => {
   test("Installed Apps - Navigation", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
-    await gotoWhenIdle(page, "/apps/installed");
+    await gotoAndWaitForIdle(page, "/apps/installed");
     await page.waitForSelector('[data-testid="connect-calendar-apps"]');
     await page.click('[data-testid="vertical-tab-payment"]');
     await page.waitForSelector('[data-testid="connect-payment-apps"]');

@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
@@ -25,7 +25,7 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
 
     await user1NotMemberOfOrg1.apiLogin();
 
-    await gotoWhenIdle(page, `/settings/teams/${team1MemberOfOrg1.id}/profile`);
+    await gotoAndWaitForIdle(page, `/settings/teams/${team1MemberOfOrg1.id}/profile`);
     const domain = await page.locator(".testid-leading-text-team-url").textContent();
     expect(domain).toContain(org.slug);
   });
@@ -47,7 +47,7 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
     await moveTeamToOrg({ team: team1MemberOfOrg1, org });
 
     await user1NotMemberOfOrg1.apiLogin();
-    await gotoWhenIdle(page, "/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
 
     await page.waitForSelector(`[data-testid="event-types"] [data-testid="preview-link-button"]`, {
       timeout: 5000,
@@ -63,7 +63,7 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
       expect(href).toContain(WEBAPP_URL);
     }
 
-    await gotoWhenIdle(page, `/event-types?teamId=${team1MemberOfOrg1.id}`);
+    await gotoAndWaitForIdle(page, `/event-types?teamId=${team1MemberOfOrg1.id}`);
 
     await page.waitForSelector(`[data-testid="event-types"] [data-testid="preview-link-button"]`, {
       timeout: 5000,

@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import _dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
@@ -40,7 +40,7 @@ test.describe("Wipe my Cal App Test", () => {
     await bookings.create(pro.id, pro.username, eventType.id, {});
     await bookings.create(pro.id, pro.username, eventType.id, {});
     await pro.apiLogin();
-    await gotoWhenIdle(page, "/bookings/upcoming");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming");
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
     const $nonTodayBookingCount = await page.locator('[data-today="false"]').count();

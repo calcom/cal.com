@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { gotoWhenIdle } from "playwright/lib/testUtils";
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -20,7 +20,7 @@ test.describe("Unpublished", () => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true });
     const { team } = await owner.getFirstTeamMembership();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
-    await gotoWhenIdle(page, `/team/${requestedSlug}`);
+    await gotoAndWaitForIdle(page, `/team/${requestedSlug}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(team.name)}")`)).toHaveCount(1);
     await expect(page.locator(`div:text("${description("team")}")`)).toHaveCount(1);
@@ -36,7 +36,7 @@ test.describe("Unpublished", () => {
     const { team } = await owner.getFirstTeamMembership();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
     const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
-    await gotoWhenIdle(page, `/team/${requestedSlug}/${teamEventSlug}`);
+    await gotoAndWaitForIdle(page, `/team/${requestedSlug}/${teamEventSlug}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(team.name)}")`)).toHaveCount(1);
     await expect(page.locator(`div:text("${description("team")}")`)).toHaveCount(1);
@@ -47,7 +47,7 @@ test.describe("Unpublished", () => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
-    await gotoWhenIdle(page, `/org/${requestedSlug}`);
+    await gotoAndWaitForIdle(page, `/org/${requestedSlug}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
     await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
@@ -64,7 +64,7 @@ test.describe("Unpublished", () => {
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug }] = org.children as { slug: string }[];
-    await gotoWhenIdle(page, `/org/${requestedSlug}/team/${subteamSlug}`);
+    await gotoAndWaitForIdle(page, `/org/${requestedSlug}/team/${subteamSlug}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
     await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
@@ -82,7 +82,7 @@ test.describe("Unpublished", () => {
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug, id: subteamId }] = org.children as { slug: string; id: number }[];
     const { slug: subteamEventSlug } = await owner.getFirstTeamEvent(subteamId);
-    await gotoWhenIdle(page, `/org/${requestedSlug}/team/${subteamSlug}/${subteamEventSlug}`);
+    await gotoAndWaitForIdle(page, `/org/${requestedSlug}/team/${subteamSlug}/${subteamEventSlug}`);
 
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
@@ -94,7 +94,7 @@ test.describe("Unpublished", () => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
-    await gotoWhenIdle(page, `/org/${requestedSlug}/${owner.username}`);
+    await gotoAndWaitForIdle(page, `/org/${requestedSlug}/${owner.username}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
     await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);
@@ -106,7 +106,7 @@ test.describe("Unpublished", () => {
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: ownerEventType }] = owner.eventTypes;
-    await gotoWhenIdle(page, `/org/${requestedSlug}/${owner.username}/${ownerEventType}`);
+    await gotoAndWaitForIdle(page, `/org/${requestedSlug}/${owner.username}/${ownerEventType}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(org.name)}")`)).toHaveCount(1);
     await expect(page.locator(`div:text("${description("organization")}")`)).toHaveCount(1);

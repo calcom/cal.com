@@ -13,7 +13,7 @@ import { test } from "./lib/fixtures";
 import {
   createHttpServer,
   createNewEventType,
-  gotoWhenIdle,
+  gotoAndWaitForIdle,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -181,7 +181,7 @@ test.describe("Manage Booking Questions", () => {
           prefillUrl.searchParams.append("email", "john@example.com");
           prefillUrl.searchParams.append("guests", "guest1@example.com");
           prefillUrl.searchParams.append("guests", "guest2@example.com");
-          await gotoWhenIdle(page, prefillUrl.toString());
+          await gotoAndWaitForIdle(page, prefillUrl.toString());
           await bookTimeSlot({ page, skipSubmission: true });
           await expectSystemFieldsToBeThereOnBookingPage({
             page,
@@ -618,7 +618,7 @@ async function doOnFreshPreviewWithSearchParams(
     previewUrlObj.searchParams.append(key, value);
   });
   const previewTabPage = await context.newPage();
-  await gotoWhenIdle(previewTabPage, previewUrlObj.toString());
+  await gotoAndWaitForIdle(previewTabPage, previewUrlObj.toString());
   await callback(previewTabPage);
   if (!persistTab) {
     await previewTabPage.close();
@@ -661,7 +661,7 @@ async function createAndLoginUserWithEventTypes({
     hasTeam: true,
   });
   await user.apiLogin();
-  await gotoWhenIdle(page, "/event-types");
+  await gotoAndWaitForIdle(page, "/event-types");
   // We wait until loading is finished
   await page.waitForSelector('[data-testid="event-types"]');
   return user;
@@ -749,7 +749,7 @@ test.describe("Text area min and max characters text", () => {
     const user = await users.create();
     await user.apiLogin();
 
-    await gotoWhenIdle(page, "/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
 
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
@@ -847,7 +847,7 @@ test.describe("Text area min and max characters text", () => {
       // Get the url of data-testid="preview-button"
       const previewButton = await page.locator('[data-testid="preview-button"]');
       const previewButtonHref = (await previewButton.getAttribute("href")) ?? "";
-      await gotoWhenIdle(page, previewButtonHref);
+      await gotoAndWaitForIdle(page, previewButtonHref);
 
       // wait until the button with data-testid="time" is visible
       await page.locator('[data-testid="time"]').isVisible();

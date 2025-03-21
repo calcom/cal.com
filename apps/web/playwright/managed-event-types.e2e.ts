@@ -8,7 +8,7 @@ import {
   submitAndWaitForResponse,
   selectFirstAvailableTimeSlotNextMonth,
   setupManagedEvent,
-  gotoWhenIdle,
+  gotoAndWaitForIdle,
 } from "./lib/testUtils";
 
 test.afterEach(async ({ users }) => {
@@ -31,7 +31,7 @@ test.describe("Managed Event Types", () => {
     await adminUser.apiLogin();
     // Let's create a team
     // Going to create an event type
-    await gotoWhenIdle(page, "/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
     await page.getByTestId("new-event-type").click();
     await page.getByTestId("option-team-1").click();
     // Expecting we can add a managed event type as team owner
@@ -51,7 +51,7 @@ test.describe("Managed Event Types", () => {
   test("Has unlocked fields for admin", async ({ page, users }) => {
     const { adminUser, managedEvent } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
-    await gotoWhenIdle(page, `/event-types/${managedEvent.id}?tabName=setup`);
+    await gotoAndWaitForIdle(page, `/event-types/${managedEvent.id}?tabName=setup`);
     await page.getByTestId("update-eventtype").waitFor();
     await expect(page.locator('input[name="title"]')).toBeEditable();
     await expect(page.locator('input[name="slug"]')).toBeEditable();
@@ -63,7 +63,7 @@ test.describe("Managed Event Types", () => {
       users,
     });
     await memberUser.apiLogin();
-    await gotoWhenIdle(page, "/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
     await expect(
       page.getByTestId("event-types").locator("div").filter({ hasText: teamEventTitle }).nth(1)
     ).toBeVisible();
@@ -72,7 +72,7 @@ test.describe("Managed Event Types", () => {
   test("Can use Organizer's default app as location", async ({ page, users }) => {
     const { adminUser, managedEvent } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
-    await gotoWhenIdle(page, `/event-types/${managedEvent.id}?tabName=setup`);
+    await gotoAndWaitForIdle(page, `/event-types/${managedEvent.id}?tabName=setup`);
     await page.locator("#location-select").click();
     const optionText = await getByKey(page, "organizer_default_conferencing_app");
     await expect(optionText).toBeVisible();
@@ -93,7 +93,7 @@ test.describe("Managed Event Types", () => {
     });
     await memberUser.apiLogin();
     const managedEvent = await memberUser.getFirstEventAsOwner();
-    await gotoWhenIdle(page, `/event-types/${managedEvent.id}?tabName=setup`);
+    await gotoAndWaitForIdle(page, `/event-types/${managedEvent.id}?tabName=setup`);
     await page.waitForURL("event-types/**");
 
     await expect(page.locator('input[name="title"]')).not.toBeEditable();
@@ -106,7 +106,7 @@ test.describe("Managed Event Types", () => {
     await adminUser.apiLogin();
     const teamMembership = await adminUser.getFirstTeamMembership();
 
-    await gotoWhenIdle(page, `/event-types?teamId=${teamMembership.team.id}`);
+    await gotoAndWaitForIdle(page, `/event-types?teamId=${teamMembership.team.id}`);
 
     await page.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await page.waitForURL("event-types/**");
@@ -134,7 +134,7 @@ test.describe("Managed Event Types", () => {
       },
     });
     await memberUser.apiLogin();
-    await gotoWhenIdle(page, "/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
     await page.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await page.waitForURL("event-types/**");
 
@@ -153,7 +153,7 @@ test.describe("Managed Event Types", () => {
       },
     });
     await memberUser.apiLogin();
-    await gotoWhenIdle(memberPage, "/event-types");
+    await gotoAndWaitForIdle(memberPage, "/event-types");
     await memberPage.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await memberPage.waitForURL("event-types/**");
     await expect(memberPage.locator('input[name="title"]')).toBeEditable();
@@ -162,14 +162,14 @@ test.describe("Managed Event Types", () => {
 
     // We edit the managed event as original owner
     const [adminContext, adminPage] = await adminUser.apiLoginOnNewBrowser(browser);
-    await gotoWhenIdle(adminPage, `/event-types?teamId=${teamId}`);
+    await gotoAndWaitForIdle(adminPage, `/event-types?teamId=${teamId}`);
     await adminPage.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await adminPage.waitForURL("event-types/**");
     await adminPage.locator('input[name="length"]').fill(`45`);
     await saveAndWaitForResponse(adminPage);
     await adminContext.close();
 
-    await gotoWhenIdle(memberPage, "/event-types");
+    await gotoAndWaitForIdle(memberPage, "/event-types");
     await memberPage.getByTestId("event-types").locator('a[title="Managed Event Title"]').click();
     await memberPage.waitForURL("event-types/**");
     //match length
@@ -218,7 +218,7 @@ test.describe("Managed Event Types", () => {
       const { adminUser, managedEvent } = await setupManagedEvent({ users });
       // First we work with owner user, logging in
       await adminUser.apiLogin();
-      await gotoWhenIdle(page, `/event-types/${managedEvent.id}?tabName=${tab.slug}`);
+      await gotoAndWaitForIdle(page, `/event-types/${managedEvent.id}?tabName=${tab.slug}`);
       await expect(await tab.locator(page)).toBeVisible();
     });
   });
@@ -227,7 +227,7 @@ test.describe("Managed Event Types", () => {
 async function gotoBookingPage(page: Page) {
   const previewLink = await page.getByTestId("preview-button").getAttribute("href");
 
-  await gotoWhenIdle(page, previewLink ?? "");
+  await gotoAndWaitForIdle(page, previewLink ?? "");
 }
 
 async function saveAndWaitForResponse(page: Page) {
