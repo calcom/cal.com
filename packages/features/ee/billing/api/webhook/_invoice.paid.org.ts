@@ -39,6 +39,12 @@ async function handlePaymentReceivedForOnboarding({
 }
 
 async function increaseRatelimitForOrganizationOwner(orgOwnerEmail: string) {
+  const { UNKEY_ROOT_KEY } = process.env;
+  if (!UNKEY_ROOT_KEY) {
+    logger.warn("UNKEY_ROOT_KEY is not set");
+    return;
+  }
+
   const user = await prisma.user.findUnique({
     where: { email: orgOwnerEmail },
     select: {
@@ -47,12 +53,6 @@ async function increaseRatelimitForOrganizationOwner(orgOwnerEmail: string) {
   });
   if (!user) {
     logger.error(`User not found for email: ${orgOwnerEmail}`);
-    return;
-  }
-
-  const { UNKEY_ROOT_KEY } = process.env;
-  if (!UNKEY_ROOT_KEY) {
-    logger.warn("UNKEY_ROOT_KEY is not set");
     return;
   }
 
