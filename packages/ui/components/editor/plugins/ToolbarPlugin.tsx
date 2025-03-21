@@ -470,6 +470,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         <>
           {!props.excludedToolbarItems?.includes("bold") && (
             <Button
+              aria-label="Bold"
               color="minimal"
               variant="icon"
               type="button"
@@ -482,6 +483,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           )}
           {!props.excludedToolbarItems?.includes("italic") && (
             <Button
+              aria-label="Italic"
               color="minimal"
               variant="icon"
               type="button"
@@ -495,6 +497,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           {!props.excludedToolbarItems?.includes("link") && (
             <>
               <Button
+                aria-label="Link"
                 color="minimal"
                 variant="icon"
                 type="button"
