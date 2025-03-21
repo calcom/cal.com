@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 
 import { test, todo } from "@calcom/web/playwright/lib/fixtures";
-import { gotoWhenIdle } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   assertNoRequestIsBlocked,
@@ -57,7 +56,7 @@ test.describe("Inline Iframe", () => {
     const calNamespace = "autoScrollTest";
     await embeds.gotoPlayground({ calNamespace, url: `?only=ns:autoScrollTest` });
     const calLink = `${user.username}/multiple-duration`;
-    await gotoWhenIdle(page, `/?only=ns:autoScrollTest&cal-link=${calLink}`);
+    await page.goto(`/?only=ns:autoScrollTest&cal-link=${calLink}`);
     const embedIframe = await ensureEmbedIframe({ calNamespace, page, pathname: `/${calLink}` });
     const finalScrollPosition = await page.evaluate(() => window.scrollY);
     expect(finalScrollPosition).toBe(0);

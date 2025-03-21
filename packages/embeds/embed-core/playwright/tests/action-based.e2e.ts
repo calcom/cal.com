@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 
 import { test, todo } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
-import { gotoWhenIdle, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   getEmbedIframe,
@@ -26,12 +26,12 @@ async function bookFirstFreeUserEventThroughEmbed({
   getActionFiredDetails: Fixtures["embeds"]["getActionFiredDetails"];
 }) {
   const embedButtonLocator = page.locator('[data-cal-link="free"]').first();
-  await gotoWhenIdle(page, "/");
+  await page.goto("/");
   // Obtain cal namespace from the element being clicked itself, so that addEmbedListeners always listen to correct namespace
   const calNamespace = (await embedButtonLocator.getAttribute("data-cal-namespace")) || "";
   await addEmbedListeners(calNamespace);
   // Goto / again so that initScript attached using addEmbedListeners can work now.
-  await gotoWhenIdle(page, "/");
+  await page.goto("/");
 
   await embedButtonLocator.click();
 
@@ -92,7 +92,7 @@ test.describe("Popup Tests", () => {
     await test.step("Reschedule the booking", async () => {
       const calNamespace = "popupRescheduleWithReschedulePath";
       await addEmbedListeners(calNamespace);
-      await gotoWhenIdle(page, `/?popupRescheduleUid=${booking.uid}`);
+      await page.goto(`/?popupRescheduleUid=${booking.uid}`);
       await page.click(`[data-cal-namespace="${calNamespace}"]`);
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: booking.eventSlug });
       if (!embedIframe) {
@@ -112,7 +112,7 @@ test.describe("Popup Tests", () => {
 
     const calNamespace = "routingFormAuto";
     await addEmbedListeners(calNamespace);
-    await gotoWhenIdle(page, "/?only=prerender-test");
+    await page.goto("/?only=prerender-test");
     await page.click(
       `[data-cal-namespace=${calNamespace}][data-cal-link="forms/948ae412-d995-4865-875a-48302588de03"]`
     );
@@ -138,7 +138,7 @@ test.describe("Popup Tests", () => {
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
-        await gotoWhenIdle(page, "/?only=ns:floatingButton");
+        await page.goto("/?only=ns:floatingButton");
 
         await page.click('[data-cal-namespace="floatingButton"] > button');
 
@@ -169,7 +169,7 @@ test.describe("Popup Tests", () => {
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
-        await gotoWhenIdle(page, "/?only=ns:floatingButton");
+        await page.goto("/?only=ns:floatingButton");
 
         await page.click('[data-cal-namespace="floatingButton"] > button');
 
@@ -196,7 +196,7 @@ test.describe("Popup Tests", () => {
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
-        await gotoWhenIdle(page, "/?only=ns:floatingButton&theme=dark");
+        await page.goto("/?only=ns:floatingButton&theme=dark");
 
         await page.click('[data-cal-namespace="floatingButton"] > button');
 
@@ -219,7 +219,7 @@ test.describe("Popup Tests", () => {
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
-        await gotoWhenIdle(page, "/?only=ns:floatingButton&cal-link=pro/30min&theme=dark");
+        await page.goto("/?only=ns:floatingButton&cal-link=pro/30min&theme=dark");
 
         await page.click('[data-cal-namespace="floatingButton"] > button');
 
