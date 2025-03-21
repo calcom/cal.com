@@ -157,6 +157,7 @@
     "filter": "^(?!@calcom).*",
     "semverRange": "",
     "ignore": [
+      "example-apps/**/package.json",
       "packages/platform/examples/**/package.json"
     ]
   }
