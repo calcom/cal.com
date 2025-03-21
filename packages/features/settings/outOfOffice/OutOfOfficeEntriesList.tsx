@@ -86,7 +86,7 @@ function OutOfOfficeEntriesListContent() {
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
   const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
-    trpc.viewer.outOfOfficeEntriesList.useInfiniteQuery(
+    trpc.viewer.ooo.outOfOfficeEntriesList.useInfiniteQuery(
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
@@ -319,7 +319,7 @@ function OutOfOfficeEntriesListContent() {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);
