@@ -41,7 +41,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
   const FinalComponent = () => (
     <FormProvider>
-      <Component {...props as any} />
+      <Component {...(props as any)} />
     </FormProvider>
   );
 
