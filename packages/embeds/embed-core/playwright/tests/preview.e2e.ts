@@ -29,7 +29,7 @@ test.describe("Preview", () => {
 
   test("Preview - embed-core should load from embedLibUrl", async ({ page }) => {
     // Intentionally pass a URL that will not load to be able to easily test that the embed was loaded from there
-    await page.goto(
+    page.goto(
       "http://localhost:3000/embed/preview.html?embedLibUrl=http://localhost:3000/embed/embed-not-found.js&bookerUrl=http://localhost:3000&calLink=pro/30min"
     );
 
