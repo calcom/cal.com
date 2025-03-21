@@ -50,13 +50,13 @@ export function RenameSegmentDialog({
         teamId: segment.teamId ?? 0,
         name: data.name,
       });
-    } else {
-      updateSegment({
-        ...segment,
-        scope: "USER",
-        name: data.name,
-      });
+      return;
     }
+    updateSegment({
+      ...segment,
+      scope: "USER",
+      name: data.name,
+    });
   };
 
   return (

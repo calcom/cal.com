@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -82,15 +82,6 @@ export function SaveFilterSegmentButton() {
     },
   });
 
-  useEffect(() => {
-    if (!isOpen) {
-      setIsTeamSegment(false);
-      setSelectedTeamId(undefined);
-      setSaveMode(selectedSegment ? "update" : "create");
-      form.reset();
-    }
-  }, [isOpen, form, selectedSegment]);
-
   const onSubmit = (values: FormValues) => {
     if (isTeamSegment && !selectedTeamId) {
       showToast(t("please_select_team"), "error");
@@ -147,8 +138,19 @@ export function SaveFilterSegmentButton() {
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Reset form state when dialog closes
+      setIsTeamSegment(false);
+      setSelectedTeamId(undefined);
+      setSaveMode(selectedSegment ? "update" : "create");
+      form.reset();
+    }
+    setIsOpen(open);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button StartIcon="bookmark" color="secondary" disabled={!canSaveSegment}>
           {t("save")}
