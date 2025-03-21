@@ -21,7 +21,10 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 export const MultiplePrivateLinksController = ({
   team,
   bookerUrl,
-}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl">): JSX.Element => {
+  setMultiplePrivateLinksVisible,
+}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl"> & {
+  setMultiplePrivateLinksVisible?: (isVisible: boolean) => void;
+}): JSX.Element => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
@@ -133,6 +136,12 @@ export const MultiplePrivateLinksController = ({
             const newValue = [...convertedValue];
             newValue.splice(index, 1);
             onChange(newValue);
+
+            // If we're removing the last link and the toggle control is passed,
+            // turn off the private links toggle
+            if (newValue.length === 0 && setMultiplePrivateLinksVisible) {
+              setMultiplePrivateLinksVisible(false);
+            }
           };
 
           return (
@@ -208,20 +217,18 @@ export const MultiplePrivateLinksController = ({
                         <Button
                           type="button"
                           color="minimal"
-                          size="sm"
+                          variant="icon"
                           StartIcon="settings"
                           onClick={() => openSettingsDialog(key, val)}
                         />
-                        {convertedValue.length > 1 && (
-                          <Button
-                            data-testid={`remove-single-use-link-${key}`}
-                            variant="icon"
-                            StartIcon="trash-2"
-                            color="destructive"
-                            className="ml-1 border-none"
-                            onClick={() => removePrivateLink(key)}
-                          />
-                        )}
+                        <Button
+                          data-testid={`remove-single-use-link-${key}`}
+                          variant="icon"
+                          StartIcon="trash-2"
+                          color="destructive"
+                          className="ml-1 border-none"
+                          onClick={() => removePrivateLink(key)}
+                        />
                       </div>
                     </div>
                     <div className="mt-1 text-sm text-gray-500">{linkDescription}</div>
