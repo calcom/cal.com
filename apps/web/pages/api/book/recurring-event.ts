@@ -10,7 +10,22 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+type PlatformParams = {
+  platformClientId?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  platformRescheduleUrl?: string;
+  platformBookingLocation?: string;
+};
+
+type RequestMeta = {
+  userId?: number;
+  hostname?: string;
+  forcedSlug?: string;
+  noEmail?: boolean;
+} & PlatformParams;
+
+async function handler(req: NextApiRequest & RequestMeta) {
   const userIp = getIP(req);
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
