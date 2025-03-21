@@ -30,32 +30,6 @@ vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", 
   createTeamsHandler: vi.fn(),
 }));
 
-vi.mock("next-i18next", () => ({
-  serverSideTranslations: vi.fn().mockImplementation(async () => {
-    return {
-      _nextI18Next: {
-        initialI18nStore: {
-          en: {
-            common: {},
-          },
-        },
-        userConfig: {
-          i18n: {
-            defaultLocale: "en",
-            locales: ["en"],
-          },
-        },
-      },
-    };
-  }),
-  i18n: {
-    language: "en",
-    languages: ["en"],
-    defaultLocale: "en",
-    getFixedT: () => (key: string) => key,
-  },
-}));
-
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
