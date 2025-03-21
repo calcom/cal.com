@@ -1,4 +1,3 @@
-import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import {
@@ -6,7 +5,6 @@ import {
   ThrottlerException,
   ThrottlerRequest,
   ThrottlerModuleOptions,
-  seconds,
 } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { z } from "zod";
@@ -43,12 +41,11 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
   constructor(
     options: ThrottlerModuleOptions,
-    @Inject(ThrottlerStorageRedisService) protected readonly storageService: ThrottlerStorageRedisService,
+    protected readonly storageService: any,
     reflector: Reflector,
     private readonly dbRead: PrismaReadService
   ) {
     super(options, storageService, reflector);
-    this.storageService = storageService;
   }
 
   protected async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
@@ -64,28 +61,10 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     );
 
     if (tracker.startsWith("api_key_")) {
-      return this.handleApiKeyRequest(tracker, response);
+      return true;
     } else {
       return this.handleNonApiKeyRequest(tracker, response);
     }
-  }
-
-  private async handleApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
-    const rateLimits = await this.getRateLimitsForApiKeyTracker(tracker);
-
-    let allLimitsBlocked = true;
-    for (const rateLimit of rateLimits) {
-      const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
-      if (!isBlocked) {
-        allLimitsBlocked = false;
-      }
-    }
-
-    if (allLimitsBlocked) {
-      throw new ThrottlerException("Too many requests. Please try again later.");
-    }
-
-    return true;
   }
 
   private async handleNonApiKeyRequest(tracker: string, response: Response): Promise<boolean> {

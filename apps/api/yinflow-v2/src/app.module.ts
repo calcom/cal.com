@@ -1,11 +1,10 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { SentryGlobalFilter, SentryModule } from "@sentry/nestjs/setup";
 
 import { AppController } from "./app.controller";
 import appConfig from "./config/app";
-import { CustomThrottlerGuard } from "./lib/throttler-guard";
 import { AppLoggerMiddleware } from "./middleware/app.logger.middleware";
 import { RedirectsMiddleware } from "./middleware/app.redirects.middleware";
 import { RewriterMiddleware } from "./middleware/app.rewrites.middleware";
@@ -43,10 +42,6 @@ import { RedisModule } from "./modules/redis/redis.module";
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: CustomThrottlerGuard,
     },
   ],
 })
