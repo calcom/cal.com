@@ -58,12 +58,17 @@ async function increaseRatelimitForOrganizationOwner(orgOwnerEmail: string) {
 
   const unkeyClient = new Unkey({ rootKey: UNKEY_ROOT_KEY });
 
-  await unkeyClient.ratelimit.setOverride({
+  const res = await unkeyClient.ratelimit.setOverride({
     identifier: user.id,
     limit: API_KEY_RATE_LIMIT * 2,
     duration: 60000,
     namespaceName: "api",
   });
+
+  if (res.error) {
+    logger.error(`Error increasing API ratelimit for user ${user.id}: ${res.error}`);
+    return;
+  }
 
   logger.info(`Increased API ratelimit for user ${user.id} to ${API_KEY_RATE_LIMIT * 2}`);
 }
