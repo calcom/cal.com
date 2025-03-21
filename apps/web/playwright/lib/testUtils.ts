@@ -522,9 +522,11 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
 }
 
 export async function gotoAndWaitForIdle(page: Page, url: string) {
-  return page.goto(url);
+  const response = await page.goto(url);
   await page.waitForLoadState("networkidle");
+  return response;
 }
+
 
 export async function bookTeamEvent({
   page,
