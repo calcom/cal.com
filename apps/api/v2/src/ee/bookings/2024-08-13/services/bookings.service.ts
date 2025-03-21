@@ -161,7 +161,16 @@ export class BookingsService_2024_08_13 {
 
   async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    const booking = await handleNewBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -177,7 +186,16 @@ export class BookingsService_2024_08_13 {
 
   async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    const booking = await handleNewBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -288,7 +306,16 @@ export class BookingsService_2024_08_13 {
         bookingUid,
         body
       );
-      const booking = await handleNewBooking(bookingRequest);
+      const booking = await handleNewBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
       if (!booking.uid) {
         throw new Error("Booking missing uid");
       }
