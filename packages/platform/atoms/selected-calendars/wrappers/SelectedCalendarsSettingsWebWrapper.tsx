@@ -7,7 +7,9 @@ import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Select, List } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Select } from "@calcom/ui/components/form";
+import { List } from "@calcom/ui/components/list";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
@@ -65,8 +67,8 @@ const ConnectedCalendarList = ({
               description={connectedCalendar.primary?.email ?? connectedCalendar.integration.description}
               className="border-subtle mt-4 rounded-lg border"
               actions={
-                // DWD credential can't be disconnected
-                !connectedCalendar.domainWideDelegationCredentialId &&
+                // Delegation credential can't be disconnected
+                !connectedCalendar.delegationCredentialId &&
                 !disableConnectionModification && (
                   <div className="flex w-32 justify-end">
                     <DisconnectIntegration
@@ -95,9 +97,7 @@ const ConnectedCalendarList = ({
                           destination={cal.externalId === destinationCalendarId}
                           credentialId={cal.credentialId}
                           eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
-                          domainWideDelegationCredentialId={
-                            connectedCalendar.domainWideDelegationCredentialId
-                          }
+                          delegationCredentialId={connectedCalendar.delegationCredentialId}
                         />
                       ))}
                     </ul>
@@ -122,8 +122,8 @@ const ConnectedCalendarList = ({
             }
             iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
             actions={
-              // DWD credential can't be disconnected
-              !connectedCalendar.domainWideDelegationCredentialId && (
+              // Delegation credential can't be disconnected
+              !connectedCalendar.delegationCredentialId && (
                 <div className="flex w-32 justify-end">
                   <DisconnectIntegration
                     credentialId={connectedCalendar.credentialId}

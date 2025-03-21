@@ -12,7 +12,7 @@ export class SelectedCalendarsInputDto {
 
   @IsString()
   @IsOptional()
-  readonly domainWideDelegationCredentialId?: string;
+  readonly delegationCredentialId?: string;
 }
 
 export class SelectedCalendarsQueryParamsInputDto {
@@ -27,5 +27,5 @@ export class SelectedCalendarsQueryParamsInputDto {
 
   @IsString()
   @IsOptional()
-  readonly domainWideDelegationCredentialId?: string;
+  readonly delegationCredentialId?: string;
 }

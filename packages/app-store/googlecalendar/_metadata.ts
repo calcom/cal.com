@@ -19,7 +19,7 @@ export const metadata = {
   email: "help@cal.com",
   dirName: "googlecalendar",
   isOAuth: true,
-  domainWideDelegation: {
+  delegationCredential: {
     // This is unused at the moment but should be used in future
     // For now, we have hardcoded imports in the codebase that are supported with Google Workspace(i.e. Google Calendar and Google Meet)
     workspacePlatformSlug: "google",

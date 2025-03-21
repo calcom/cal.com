@@ -7,7 +7,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Badge, Button, Icon, showToast } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 
 interface IAppConnectionItem {
   title: string;
@@ -25,7 +28,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
   const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation({
+  const setDefaultConferencingApp = trpc.viewer.apps.setDefaultConferencingApp.useMutation({
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
     },
@@ -54,7 +57,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                 setDefaultConferencingApp.mutate({ slug });
               }
               setInstalling(false);
-              utils.viewer.integrations.invalidate();
+              utils.viewer.apps.integrations.invalidate();
               showToast(t("app_successfully_installed"), "success");
             },
             onError: (error) => {
@@ -113,7 +116,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
             </Button>
           )}
         />
-        {/* It is possible that app is already installed here during onboarding due to Domain Wide Delegation enabled at organization level. We allow the user to set it as default */}
+        {/* It is possible that app is already installed here during onboarding due to Delegation Credential enabled at organization level. We allow the user to set it as default */}
         {installed && !isDefault && (
           <Button
             color="secondary"

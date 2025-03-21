@@ -1,4 +1,4 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -15,7 +15,7 @@ async function handler(req: NextRequest) {
   } catch (error) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const result = await handleCancelBooking({
     appDirRequestBody,
     userId: session?.user?.id || -1,
@@ -26,7 +26,5 @@ async function handler(req: NextRequest) {
   return NextResponse.json(result, { status: statusCode });
 }
 
-const deleteHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
-const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
-
-export { deleteHandler as DELETE, postHandler as POST };
+export const DELETE = defaultResponderForAppDir(handler);
+export const POST = defaultResponderForAppDir(handler);
