@@ -2,6 +2,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
+
 @Injectable()
 export class BookingsRepository_2024_08_13 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -63,6 +64,17 @@ export class BookingsRepository_2024_08_13 {
       },
       include: {
         user: true,
+      },
+    });
+  }
+
+  async getByUidWithReferences(uid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid,
+      },
+      include: {
+        references: true,
       },
     });
   }
