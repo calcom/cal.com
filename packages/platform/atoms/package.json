@@ -7,7 +7,7 @@
   "version": "1.0.52",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
+    "build": "NODE_OPTIONS='--max_old_space_size=8192' yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
     "publish": "rm -rf dist && yarn build && npm publish --access public",
     "test": "jest"
   },
