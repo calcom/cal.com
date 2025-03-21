@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { Trans } from "react-i18next";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -23,6 +22,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
@@ -102,9 +102,9 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="border-subtle w-full overflow-hidden rounded-md border p-6 px-3 md:p-6">
+    <div className="w-full p-6 px-3 overflow-hidden border rounded-md border-subtle md:p-6">
       <div className="flex items-center ">
-        <div className="bg-subtle mr-4 flex h-10 w-10 items-center justify-center rounded-full text-xs font-medium">
+        <div className="flex items-center justify-center w-10 h-10 mr-4 text-xs font-medium rounded-full bg-subtle">
           {getActionIcon(
             workflow.steps,
             isActive ? "h-6 w-6 stroke-[1.5px] text-default" : "h-6 w-6 stroke-[1.5px] text-muted"
@@ -156,7 +156,7 @@ const WorkflowListItem = (props: ItemProps) => {
           }>
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
             {workflow.readOnly && props.isChildrenManagedEventType && (
-              <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <Icon name="lock" className="w-4 h-4 text-subtle ltr:mr-2 rtl:ml-2" />
             )}
             <Switch
               checked={isActive}
@@ -252,22 +252,19 @@ function EventWorkflowsTab(props: Props) {
               severity={workflowsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
-                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
-                  {lockedText[0].toUpperCase()}
-                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                />
               }
-              actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
+              actions={<div className="flex items-center h-full">{workflowsDisableProps.LockedIcon}</div>}
               message={
-                <Trans
+                <ServerTrans
+                  t={t}
                   i18nKey={`workflows_${lockedText}_${
                     isManagedEventType ? "for_members" : "by_team_admins"
-                  }_description`}>
-                  {isManagedEventType ? "Members" : "You"}{" "}
-                  {workflowsDisableProps.isLocked
-                    ? "will be able to see the active workflows but will not be able to edit any workflow settings"
-                    : "will be able to see the active workflow and will be able to edit any workflow settings"}
-                </Trans>
+                  }_description`}
+                />
               }
             />
           )}

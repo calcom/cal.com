@@ -1,4 +1,3 @@
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useFormContext } from "react-hook-form";
 
@@ -13,6 +12,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -97,22 +97,19 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               severity={appsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
-                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
-                  {lockedText[0].toUpperCase()}
-                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                />
               }
-              actions={<div className="flex h-full items-center">{appsDisableProps.LockedIcon}</div>}
+              actions={<div className="flex items-center h-full">{appsDisableProps.LockedIcon}</div>}
               message={
-                <Trans
+                <ServerTrans
+                  t={t}
                   i18nKey={`apps_${lockedText}_${
                     isManagedEventType ? "for_members" : "by_team_admins"
-                  }_description`}>
-                  {isManagedEventType ? "Members" : "You"}{" "}
-                  {appsDisableProps.isLocked
-                    ? "will be able to see the active apps but will not be able to edit any app settings"
-                    : "will be able to see the active apps and will be able to edit any app settings"}
-                </Trans>
+                  }_description`}
+                />
               }
             />
           )}
@@ -155,23 +152,26 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         </div>
       </div>
       {!appsDisableProps.disabled && (
-        <div className="bg-muted mt-6 rounded-md p-8">
+        <div className="p-8 mt-6 rounded-md bg-muted">
           {!isPending && notInstalledApps?.length ? (
             <>
               <h2 className="text-emphasis mb-2 text-xl font-semibold leading-5 tracking-[0.01em]">
                 {t("available_apps_lower_case")}
               </h2>
-              <p className="text-default mb-6 text-sm font-normal">
-                <Trans i18nKey="available_apps_desc">
-                  View popular apps below and explore more in our &nbsp;
-                  <Link className="cursor-pointer underline" href="/apps">
-                    App Store
-                  </Link>
-                </Trans>
+              <p className="mb-6 text-sm font-normal text-default">
+                <ServerTrans
+                  t={t}
+                  i18nKey="available_apps_desc"
+                  components={[
+                    <Link key="available_apps_desc" className="underline cursor-pointer" href="/apps">
+                      App Store
+                    </Link>,
+                  ]}
+                />
               </p>
             </>
           ) : null}
-          <div className="bg-default border-subtle divide-subtle divide-y rounded-md border before:border-0">
+          <div className="border divide-y rounded-md bg-default border-subtle divide-subtle before:border-0">
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}

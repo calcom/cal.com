@@ -1,4 +1,3 @@
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -10,6 +9,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export interface IZapierSetupProps {
   inviteLink?: string;
@@ -64,11 +64,11 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   }
 
   if (integrations.isPending) {
-    return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
+    return <div className="absolute z-50 flex items-center w-full h-screen bg-emphasis" />;
   }
 
   return (
-    <div className="bg-emphasis flex h-screen">
+    <div className="flex h-screen bg-emphasis">
       {showContent ? (
         <div className="bg-default m-auto max-w-[43em] overflow-auto rounded pb-10 md:p-10">
           <div className="md:flex md:flex-row">
@@ -81,14 +81,14 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               <>
                 <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
                 {!teams ? (
-                  <Button color="secondary" onClick={() => createApiKey()} className="mb-4 mt-2">
+                  <Button color="secondary" onClick={() => createApiKey()} className="mt-2 mb-4">
                     {t("generate_api_key")}
                   </Button>
                 ) : (
                   <>
                     <div className="mt-8 text-sm font-semibold">Your event types:</div>
                     {!newApiKeys[""] ? (
-                      <Button color="secondary" onClick={() => generateApiKey()} className="mb-4 mt-2">
+                      <Button color="secondary" onClick={() => generateApiKey()} className="mt-2 mb-4">
                         {t("generate_api_key")}
                       </Button>
                     ) : (
@@ -102,7 +102,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                             <Button
                               color="secondary"
                               onClick={() => generateApiKey(team.id)}
-                              className="mb-4 mt-2">
+                              className="mt-2 mb-4">
                               {t("generate_api_key")}
                             </Button>
                           ) : (
@@ -115,7 +115,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 )}
               </>
 
-              <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
+              <ol className="mt-5 mb-5 ml-5 list-decimal ltr:mr-5 rtl:ml-5">
                 {isCalDev && (
                   <li>
                     {t("go_to")}
@@ -124,13 +124,19 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                     </a>
                   </li>
                 )}
-                <Trans i18nKey="zapier_setup_instructions">
-                  <li>Log into your Zapier account and create a new Zap.</li>
-                  <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
-                  <li>Choose your account and then enter your Unique API Key.</li>
-                  <li>Test your Trigger.</li>
-                  <li>You&apos;re set!</li>
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="zapier_setup_instructions"
+                  components={[
+                    <li key="instruction_1">Log into your Zapier account and create a new Zap.</li>,
+                    <li key="instruction_2">
+                      Select Cal.com as your Trigger app. Also choose a Trigger event.
+                    </li>,
+                    <li key="instruction_3">Choose your account and then enter your Unique API Key.</li>,
+                    <li key="instruction_4">Test your Trigger.</li>,
+                    <li key="instruction_5">You&apos;re set!</li>,
+                  ]}
+                />
               </ol>
               <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>
@@ -150,7 +156,7 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
   const { t } = useLocale();
   return (
     <div>
-      <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
+      <div className="flex-wrap my-2 mt-3 sm:flex sm:flex-nowrap">
         <code className="bg-subtle h-full w-full whitespace-pre-wrap rounded-md py-[6px] pl-2 pr-2 sm:rounded-r-none sm:pr-5">
           {apiKey}
         </code>
@@ -162,12 +168,12 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
             }}
             type="button"
             className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-            <Icon name="clipboard" className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            <Icon name="clipboard" className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
             {t("copy")}
           </Button>
         </Tooltip>
       </div>
-      <div className="text-subtle mb-5 mt-2 text-sm">{t("copy_somewhere_safe")}</div>
+      <div className="mt-2 mb-5 text-sm text-subtle">{t("copy_somewhere_safe")}</div>
     </div>
   );
 };

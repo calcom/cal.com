@@ -341,7 +341,11 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.goto(`/bookings/upcoming`);
+    await bookingsGetResponse;
 
     await page.locator('[data-testid="add-filter-button"]').click();
     await page.locator('[data-testid="add-filter-item-userId"]').click();

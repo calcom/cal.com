@@ -1,5 +1,4 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
@@ -13,6 +12,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { useBookerStore } from "../../store";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -105,9 +105,9 @@ export const BookEventForm = ({
   const watchedCfToken = bookingForm.watch("cfToken");
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-col h-full">
       <Form
-        className="flex h-full flex-col"
+        className="flex flex-col h-full"
         onChange={() => {
           // Form data is saved in store. This way when user navigates back to
           // still change the timeslot, and comes back to the form, all their values
@@ -141,20 +141,28 @@ export const BookEventForm = ({
               severity="info"
               title={t("unavailable_timeslot_title")}
               message={
-                <Trans i18nKey="timeslot_unavailable_book_a_new_time">
-                  The selected time slot is no longer available.{" "}
-                  <button type="button" className="underline" onClick={onCancel}>
-                    Please select a new time
-                  </button>
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="timeslot_unavailable_book_a_new_time"
+                  components={[
+                    <button
+                      key="please-select-a-new-time-button"
+                      type="button"
+                      className="underline"
+                      onClick={onCancel}>
+                      Please select a new time
+                    </button>,
+                  ]}
+                />
               }
             />
           </div>
         ) : null}
 
         {!isPlatform && (
-          <div className="text-subtle my-3 w-full text-xs">
-            <Trans
+          <div className="w-full my-3 text-xs text-subtle">
+            <ServerTrans
+              t={t}
               i18nKey="signing_up_terms"
               components={[
                 <Link
@@ -177,7 +185,7 @@ export const BookEventForm = ({
         )}
 
         {isPlatformBookerEmbed && (
-          <div className="text-subtle my-3 w-full text-xs">
+          <div className="w-full my-3 text-xs text-subtle">
             {t("proceeding_agreement")}{" "}
             <Link
               className="text-emphasis hover:underline"
@@ -197,7 +205,7 @@ export const BookEventForm = ({
             .
           </div>
         )}
-        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+        <div className="flex justify-end mt-auto space-x-2 modalsticky rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
               {isPaidEvent ? t("pay_and_book") : t("confirm")}

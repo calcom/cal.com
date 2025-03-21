@@ -7,7 +7,6 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Trans } from "next-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
@@ -32,6 +31,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -138,7 +138,7 @@ function OutOfOfficeEntriesListContent() {
               size: 300,
               cell: ({ row }) => {
                 if (!row.original || !row.original.user || isPending || isFetching) {
-                  return <SkeletonText className="h-8 w-full" />;
+                  return <SkeletonText className="w-full h-8" />;
                 }
                 const { avatarUrl, username, email, name } = row.original.user;
                 const memberName =
@@ -159,12 +159,12 @@ function OutOfOfficeEntriesListContent() {
                     <div className="">
                       <div
                         data-testid={`ooo-member-${username}-username`}
-                        className="text-emphasis text-sm font-medium leading-none">
+                        className="text-sm font-medium leading-none text-emphasis">
                         {memberName}
                       </div>
                       <div
                         data-testid={`ooo-member-${username}-email`}
-                        className="text-subtle mt-1 text-sm leading-none">
+                        className="mt-1 text-sm leading-none text-subtle">
                         {email}
                       </div>
                     </div>
@@ -187,24 +187,23 @@ function OutOfOfficeEntriesListContent() {
                   className="flex flex-row justify-between p-2"
                   data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
                   <div className="flex flex-row items-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50">
                       {item?.reason?.emoji || "🏝️"}
                     </div>
 
-                    <div className="ml-2 flex flex-col">
+                    <div className="flex flex-col ml-2">
                       <p className="px-2 font-bold">
                         {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
                       </p>
                       <p className="px-2">
                         {item.toUser?.username ? (
-                          <Trans
+                          <ServerTrans
+                            t={t}
                             i18nKey="ooo_forwarding_to"
                             values={{
                               username: item.toUser?.username,
                             }}
-                            components={{
-                              span: <span className="text-subtle font-bold" />,
-                            }}
+                            components={[<span key="ooo-username" className="font-bold text-subtle" />]}
                           />
                         ) : (
                           <>{t("ooo_not_forwarding")}</>
@@ -222,7 +221,7 @@ function OutOfOfficeEntriesListContent() {
                   </div>
                 </div>
               ) : (
-                <SkeletonText className="h-8 w-full" />
+                <SkeletonText className="w-full h-8" />
               )}
             </>
           );
@@ -239,7 +238,7 @@ function OutOfOfficeEntriesListContent() {
                 <div className="flex flex-row items-center justify-end gap-x-2">
                   <Tooltip content={t("edit")}>
                     <Button
-                      className="self-center rounded-lg border"
+                      className="self-center border rounded-lg"
                       type="button"
                       color="secondary"
                       variant="icon"
@@ -275,7 +274,7 @@ function OutOfOfficeEntriesListContent() {
                   </Tooltip>
                   <Tooltip content={t("delete")}>
                     <Button
-                      className="self-center rounded-lg border"
+                      className="self-center border rounded-lg"
                       type="button"
                       color="destructive"
                       variant="icon"
@@ -297,7 +296,7 @@ function OutOfOfficeEntriesListContent() {
                   </Tooltip>
                 </div>
               ) : (
-                <SkeletonText className="h-8 w-full" />
+                <SkeletonText className="w-full h-8" />
               )}
             </>
           );
@@ -364,7 +363,7 @@ function OutOfOfficeEntriesListContent() {
             buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
             customIcon={
               <div className="mt-4 h-[102px]">
-                <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
+                <div className="flex flex-col items-center justify-center h-full p-2 md:mt-0 md:p-0">
                   <div className="relative">
                     <div className="dark:bg-darkgray-50 absolute -left-3 -top-3 -z-20 h-[70px] w-[70px] -rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-40 dark:opacity-80">
                       <div className="w-12" />
@@ -375,7 +374,7 @@ function OutOfOfficeEntriesListContent() {
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
                       <Icon name="clock" size={28} />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
-                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+                      <span className="absolute font-sans text-sm font-extrabold right-4 top-3">z</span>
                     </div>
                   </div>
                 </div>

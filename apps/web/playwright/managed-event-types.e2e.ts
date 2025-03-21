@@ -34,10 +34,11 @@ test.describe("Managed Event Types", () => {
     await page.getByTestId("new-event-type").click();
     await page.getByTestId("option-team-1").click();
     // Expecting we can add a managed event type as team owner
-    await expect(page.locator('button[value="MANAGED"]')).toBeVisible();
+    const locator = page.locator('div:has(input[value="MANAGED"]) > button');
 
+    await expect(locator).toBeVisible();
     // Actually creating a managed event type to test things further
-    await page.click('button[value="MANAGED"]');
+    await locator.click();
     await page.fill("[name=title]", "managed");
     await page.click("[type=submit]");
 

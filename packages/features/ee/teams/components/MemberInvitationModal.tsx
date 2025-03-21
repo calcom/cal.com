@@ -1,5 +1,4 @@
 import { useSession } from "next-auth/react";
-import { Trans } from "next-i18next";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -24,6 +23,7 @@ import { Select } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -205,10 +205,15 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         description={
           IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
-              <Trans i18nKey="invite_new_member_description">
-                Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
-                on your subscription.
-              </Trans>
+              <ServerTrans
+                t={t}
+                i18nKey="invite_new_member_description"
+                components={[
+                  <span key="invite_new_member_description" className="text-emphasis font-medium">
+                    cost an extra seat ($15/m)
+                  </span>,
+                ]}
+              />
             </span>
           ) : null
         }>

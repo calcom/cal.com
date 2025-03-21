@@ -30,8 +30,8 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import type { SetNewFormDialogState, NewFormDialogState } from "../../components/FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {

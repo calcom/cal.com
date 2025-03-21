@@ -114,7 +114,6 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   return {
     props: {
-      trpcState: await ssr.dehydrate(),
       form: await getSerializableForm({ form: formWithoutProfileInfo }),
       enrichedWithUserProfileForm: await getSerializableForm({
         form: enrichFormWithMigrationData(formWithUserInfoProfile),

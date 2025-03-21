@@ -44,4 +44,3 @@ export default async function IconsPage() {
     </div>
   );
 }
-export const dynamic = "force-static";
