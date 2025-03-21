@@ -223,7 +223,13 @@ export class InputBookingsService_2024_08_13 {
       creationSource: CreationSource.API_V2,
     }));
 
-    return newRequest as unknown as BookingRequest;
+    return {
+      ...newRequest,
+      headers: {
+        hostname: request.headers["host"] || "",
+        forcedSlug: request.headers["x-cal-force-slug"] as string | undefined,
+      },
+    } as unknown as BookingRequest;
   }
 
   transformLocation(location: string | BookingInputLocation_2024_08_13): {
