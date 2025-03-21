@@ -19,7 +19,9 @@ export class CalendarsProcessor {
   async handleEnsureDefaultCalendars(job: Job<DefaultCalendarsJobDataType>) {
     const { userId } = job.data;
     try {
-      this.calendarsService.getCalendars(userId);
+      // getCalendars calls getConnectedDestinationCalendarsAndEnsureDefaultsInDb from platform libraries
+      // which gets the calendars from third party providers and ensure default calendars are set in DB
+      await this.calendarsService.getCalendars(userId);
     } catch (err) {
       this.logger.error(`Failed to load default calendars of user with id: ${userId}`, {
         userId,
