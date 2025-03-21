@@ -1,6 +1,5 @@
 "use client";
 
-import { Trans } from "next-i18next";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,6 +8,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
@@ -251,20 +251,12 @@ const DeleteOrgDialog = ({
         cancelBtnText={t("cancel")}
         variety="danger"
         onConfirm={onConfirm}>
-        <Trans
-          i18nKey="admin_delete_organization_description"
-          components={{ li: <li />, ul: <ul className="ml-4 mt-5 list-disc space-y-2" /> }}>
-          <ul>
-            <li>
-              Teams that are member of this organization will also be deleted along with their event-types
-            </li>
-            <li>
-              Users that were part of the organization will not be deleted and their event-types will also
-              remain intact.
-            </li>
-            <li>Usernames would be changed to allow them to exist outside the organization</li>
-          </ul>
-        </Trans>
+        <ul className="ml-4 mt-5 list-disc space-y-2">
+          <li>{t("admin_delete_organization_description_1")}</li>
+          <li>{t("admin_delete_organization_description_2")}</li>
+          <li>{t("admin_delete_organization_description_3")}</li>
+          <li>{t("admin_delete_organization_description_4")}</li>
+        </ul>
       </ConfirmationDialogContent>
     </Dialog>
   );
