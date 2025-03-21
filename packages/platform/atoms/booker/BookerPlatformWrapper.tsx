@@ -1,5 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useEffect, useCallback, useState } from "react";
+// eslint-disable-next-line no-restricted-imports
+import debounce from "lodash/debounce";
+import { useMemo, useEffect, useCallback, useState, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -40,6 +42,7 @@ import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
+  BookerStoreValues,
 } from "./types";
 
 export const BookerPlatformWrapper = (
@@ -53,6 +56,10 @@ export const BookerPlatformWrapper = (
     crmAppSlug,
     crmOwnerRecordType,
     preventEventTypeRedirect,
+    onBookerStateChange,
+    allowUpdatingUrlParams = false,
+    confirmButtonDisabled,
+    isBookingDryRun,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -70,6 +77,48 @@ export const BookerPlatformWrapper = (
   const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(
     Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
   );
+  const prevStateRef = useRef<BookerStoreValues | null>(null);
+  const getStateValues = useCallback(
+    (state: ReturnType<typeof useBookerStore.getState>): BookerStoreValues => {
+      return Object.fromEntries(
+        Object.entries(state).filter(([_, value]) => typeof value !== "function")
+      ) as BookerStoreValues;
+    },
+    []
+  );
+  const debouncedStateChange = useMemo(() => {
+    return debounce(
+      (currentStateValues: BookerStoreValues, callback: (values: BookerStoreValues) => void) => {
+        const prevState = prevStateRef.current;
+        const stateChanged = !prevState || JSON.stringify(prevState) !== JSON.stringify(currentStateValues);
+
+        if (stateChanged) {
+          callback(currentStateValues);
+          prevStateRef.current = currentStateValues;
+        }
+      },
+      50
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!onBookerStateChange) return;
+
+    const unsubscribe = useBookerStore.subscribe((state) => {
+      const currentStateValues = getStateValues(state);
+      debouncedStateChange(currentStateValues, onBookerStateChange);
+    });
+
+    // Initial call with current state
+    const initialState = getStateValues(useBookerStore.getState());
+    onBookerStateChange(initialState);
+    prevStateRef.current = initialState;
+
+    return () => {
+      unsubscribe();
+      debouncedStateChange.cancel();
+    };
+  }, [onBookerStateChange, getStateValues, debouncedStateChange]);
 
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -166,6 +215,8 @@ export const BookerPlatformWrapper = (
     org: props.entity?.orgSlug,
     username,
     bookingData,
+    isPlatform: true,
+    allowUpdatingUrlParams,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -242,7 +293,9 @@ export const BookerPlatformWrapper = (
 
     const _cacheParam = searchParams?.get("cal.cache");
     const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
-    const isBookingDryRun = searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true";
+    const isBookingDryRun =
+      searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
+      searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
@@ -397,6 +450,13 @@ export const BookerPlatformWrapper = (
     },
     [setIsOverlayCalendarEnabled]
   );
+  const selectedDateProp = useMemo(
+    () => dayjs(props.selectedDate).format("YYYY-MM-DD"),
+    [props.selectedDate]
+  );
+  useEffect(() => {
+    setSelectedDate(selectedDateProp, true);
+  }, [selectedDateProp]);
 
   useEffect(() => {
     // reset booker whenever it's unmounted
@@ -408,7 +468,6 @@ export const BookerPlatformWrapper = (
       setSelectedDuration(null);
       setOrg(null);
       setSelectedMonth(null);
-      setSelectedDuration(null);
       if (props.rescheduleUid) {
         // clean booking data from cache
         queryClient.removeQueries({
@@ -431,6 +490,7 @@ export const BookerPlatformWrapper = (
   return (
     <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
+        timeZones={props.timeZones}
         teamMemberEmail={teamMemberEmail}
         crmAppSlug={crmAppSlug}
         crmOwnerRecordType={crmOwnerRecordType}
@@ -446,9 +506,10 @@ export const BookerPlatformWrapper = (
           }
         }
         rescheduleUid={props.rescheduleUid ?? null}
-        rescheduledBy={props.rescheduledBy}
+        rescheduledBy={props.rescheduledBy ?? null}
         bookingUid={props.bookingUid ?? null}
         isRedirect={false}
+        confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""
         hasSession={hasSession}
         onGoBackInstantMeeting={function (): void {
@@ -518,7 +579,7 @@ export const BookerPlatformWrapper = (
         verifyCode={undefined}
         isPlatform
         hasValidLicense={true}
-        isBookingDryRun={routingParams?.isBookingDryRun}
+        isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
       />
     </AtomsWrapper>
   );

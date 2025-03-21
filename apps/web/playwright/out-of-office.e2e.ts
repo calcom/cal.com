@@ -653,6 +653,9 @@ test.describe("Out of office", () => {
       await user.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
       await expect(
@@ -667,6 +670,9 @@ test.describe("Out of office", () => {
       await user.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
       await page.locator('[data-testid="add-filter-button"]').click();
@@ -754,8 +760,8 @@ test.describe("Out of office", () => {
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
       await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
 
       //By Default future OOO will be displayed
       //1 OOO record should be visible for member3, end=currentDate+4days
@@ -765,13 +771,12 @@ test.describe("Out of office", () => {
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
         await page.locator('[data-testid="add-filter-button"]').click();
-        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-        await page.locator('[data-testid="add-filter-button"]').click();
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.locator('[data-testid="add-filter-button"]').click();
+        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
         await entriesListRespPromise;
+        await page.locator('[data-testid="add-filter-button"]').click(); //close popover
 
         //1 OOO record should be visible for member3, end=currentDate-4days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
@@ -787,7 +792,6 @@ test.describe("Out of office", () => {
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
         await page.locator(`[data-testid="date-range-options-t"]`).click();
-        await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
         await entriesListRespPromise;
 
         //2 OOO records should be visible end=currentDate-4days, end=currentDate-12days

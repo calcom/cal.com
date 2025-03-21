@@ -355,31 +355,32 @@ model User {
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
 
   // Used to lock the user account
-  locked                     Boolean                      @default(false)
-  platformOAuthClients       PlatformOAuthClient[]
-  AccessToken                AccessToken[]
-  RefreshToken               RefreshToken[]
-  PlatformAuthorizationToken PlatformAuthorizationToken[]
-  profiles                   Profile[]
-  movedToProfileId           Int?
-  movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
-  secondaryEmails            SecondaryEmail[]
-  isPlatformManaged          Boolean                      @default(false)
-  OutOfOfficeReasons         OutOfOfficeReason[]
-  smsLockState               SMSLockState                 @default(UNLOCKED)
-  smsLockReviewedByAdmin     Boolean                      @default(false)
-  NotificationsSubscriptions NotificationsSubscriptions[]
-  referralLinkId             String?
-  features                   UserFeatures[]
-  reassignedBookings         Booking[]                    @relation("reassignByUser")
-  createdAttributeToUsers    AttributeToUser[]            @relation("createdBy")
-  updatedAttributeToUsers    AttributeToUser[]            @relation("updatedBy")
-  createdTranslations        EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
-  updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
-  createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
-  updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
-  BookingInternalNote        BookingInternalNote[]
-  creationSource             CreationSource?
+  locked                         Boolean                      @default(false)
+  platformOAuthClients           PlatformOAuthClient[]
+  AccessToken                    AccessToken[]
+  RefreshToken                   RefreshToken[]
+  PlatformAuthorizationToken     PlatformAuthorizationToken[]
+  profiles                       Profile[]
+  movedToProfileId               Int?
+  movedToProfile                 Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
+  secondaryEmails                SecondaryEmail[]
+  isPlatformManaged              Boolean                      @default(false)
+  OutOfOfficeReasons             OutOfOfficeReason[]
+  smsLockState                   SMSLockState                 @default(UNLOCKED)
+  smsLockReviewedByAdmin         Boolean                      @default(false)
+  NotificationsSubscriptions     NotificationsSubscriptions[]
+  referralLinkId                 String?
+  features                       UserFeatures[]
+  reassignedBookings             Booking[]                    @relation("reassignByUser")
+  createdAttributeToUsers        AttributeToUser[]            @relation("createdBy")
+  updatedAttributeToUsers        AttributeToUser[]            @relation("updatedBy")
+  createdTranslations            EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
+  updatedTranslations            EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
+  createdWatchlists              Watchlist[]                  @relation("CreatedWatchlists")
+  updatedWatchlists              Watchlist[]                  @relation("UpdatedWatchlists")
+  BookingInternalNote            BookingInternalNote[]
+  creationSource                 CreationSource?
+  createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
 
   @@unique([email])
   @@unique([email, username])
@@ -429,6 +430,8 @@ model Team {
   id                     Int                     @id @default(autoincrement())
   /// @zod.min(1)
   name                   String
+  // It is unique across teams and organizations. We don't have a strong reason for organization and team slug to be conflicting, could be fixed.
+  // Sub-teams could have same slug across different organizations but not within the same organization.
   /// @zod.min(1)
   slug                   String?
   logoUrl                String?
@@ -490,8 +493,9 @@ model Team {
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
-  includeManagedEventsInLimits Boolean              @default(false)
+  includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
+  organizationOnboarding       OrganizationOnboarding?
 
   // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
   // it means that it is an organization managed by another organization.
@@ -695,6 +699,7 @@ model Booking {
   assignmentReason             AssignmentReason[]
   internalNote                 BookingInternalNote[]
   creationSource               CreationSource?
+  tracking                     Tracking?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -703,6 +708,19 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+}
+
+model Tracking {
+  id           Int     @id @default(autoincrement())
+  bookingId    Int
+  booking      Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  utm_source   String?
+  utm_medium   String?
+  utm_campaign String?
+  utm_term     String?
+  utm_content  String?
+
+  @@unique([bookingId])
 }
 
 model Schedule {
@@ -1076,6 +1094,11 @@ view RoutingFormResponse {
   bookingStartTime                 DateTime?
   bookingEndTime                   DateTime?
   createdAt                        DateTime
+  utm_source                       String?
+  utm_medium                       String?
+  utm_campaign                     String?
+  utm_term                         String?
+  utm_content                      String?
 }
 
 model Feedback {
@@ -1892,6 +1915,65 @@ model Watchlist {
 
   @@unique([type, value])
   @@index([type, value])
+}
+
+enum BillingPeriod {
+  MONTHLY
+  ANNUALLY
+}
+
+model OrganizationOnboarding {
+  // TODO: Use uuid for id
+  id String @id @default(uuid())
+
+  // User who started the onboarding. It is different from orgOwnerEmail in case Cal.com admin is doing the onboarding for someone else.
+  createdBy   User     @relation("CreatedOrganizationOnboardings", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById Int
+  createdAt   DateTime @default(now())
+
+  // We keep the email only here and don't need to connect it with user because on User deletion, we don't delete the entry here.
+  // It is unique because an email can be the owner of only one organization at a time.
+  orgOwnerEmail String  @unique
+  error         String?
+
+  updatedAt DateTime @updatedAt
+  // TODO: updatedBy to be added when we support marking updatedBy using webhook too, as webhook also updates it
+
+  // Set after organization payment is done and the organization is created
+  organizationId Int?  @unique
+  organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  billingPeriod BillingPeriod
+  pricePerSeat  Float
+  seats         Int
+
+  isPlatform Boolean @default(false)
+
+  // Organization info
+  name               String
+  // We don't keep it unique because we don't want self-serve flows to block a slug if it isn't paid for yet.
+  slug               String
+  logo               String?
+  bio                String?
+  isDomainConfigured Boolean @default(false)
+
+  // Set when payment intent is there.
+  stripeCustomerId         String? @unique
+  // TODO: Can we make it required
+  stripeSubscriptionId     String?
+  stripeSubscriptionItemId String?
+
+  /// @zod.custom(imports.orgOnboardingInvitedMembersSchema)
+  invitedMembers Json @default("[]")
+
+  /// @zod.custom(imports.orgOnboardingTeamsSchema)
+  teams Json @default("[]")
+
+  // Completion status
+  isComplete Boolean @default(false)
+
+  @@index([orgOwnerEmail])
+  @@index([stripeCustomerId])
 }
 
 enum IncompleteBookingActionType {
