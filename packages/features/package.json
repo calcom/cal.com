@@ -15,6 +15,7 @@
     "@lexical/react": "^0.9.0",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.10.9",
+    "@unkey/api": "^0.34.0",
     "@vercel/functions": "^1.4.0",
     "class-variance-authority": "^0.7.1",
     "framer-motion": "^10.12.8",
