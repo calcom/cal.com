@@ -1,8 +1,10 @@
 "use client";
 
+import { DubEmbed } from "@dub/embed-react";
+import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 
-import ReferralClient from "@calcom/features/dub/ReferralClient";
+import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   SkeletonAvatar,
@@ -32,10 +34,11 @@ const fetchReferralsToken = async () => {
 };
 
 // The enabled referrals page implementation
-export const EnabledReferralsPage = () => {
+export const DubReferralsPage = () => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { t } = useLocale();
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const getToken = async () => {
@@ -52,6 +55,10 @@ export const EnabledReferralsPage = () => {
 
     getToken();
   }, []);
+
+  if (!IS_DUB_REFERRALS_ENABLED) {
+    return null;
+  }
 
   if (loading || !token) {
     return (
@@ -114,5 +121,18 @@ export const EnabledReferralsPage = () => {
     );
   }
 
-  return <ReferralClient publicToken={token} />;
+  const theme = resolvedTheme === "dark" ? "dark" : "light";
+
+  return (
+    <DubEmbed
+      data="referrals"
+      token={token}
+      options={{
+        theme,
+        themeOptions: {
+          backgroundColor: `${theme === "dark" ? "#0F0F0F" : "#FFFFFF"}`,
+        },
+      }}
+    />
+  );
 };

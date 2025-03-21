@@ -16,7 +16,7 @@ export const GET = async () => {
   }
 
   try {
-    const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+    const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
