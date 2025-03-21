@@ -229,6 +229,7 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
+    await page.waitForSelector("text=Reason for cancellation");
 
     await expect(page.locator('text="Cancel event"')).toBeVisible();
 

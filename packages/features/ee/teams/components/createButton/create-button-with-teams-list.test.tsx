@@ -5,6 +5,20 @@ import { vi } from "vitest";
 import type { CreateBtnProps } from "./CreateButton";
 import { CreateButtonWithTeamsList } from "./CreateButtonWithTeamsList";
 
+const mockRouter = {
+  push: vi.fn((path: string) => {
+    return;
+  }),
+};
+
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => mockRouter),
+  };
+});
+
 const runtimeMock = async (data: Array<any>) => {
   const updatedTrpc = {
     viewer: {
