@@ -242,3 +242,16 @@ export type FilterSegmentOutput = {
   teamId: number | null;
   team: { id: number; name: string } | null;
 };
+
+export type SegmentStorage = {
+  [tableIdentifier: string]: {
+    segmentId: number;
+  };
+};
+
+export const ZSegmentStorage = z.record(
+  z.string(),
+  z.object({
+    segmentId: z.number(),
+  })
+) satisfies z.ZodType<SegmentStorage>;

@@ -3,10 +3,9 @@
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback, useMemo, useEffect } from "react";
+import { createContext, useCallback } from "react";
 
-import { trpc } from "@calcom/trpc/react";
-
+import { useSegments } from "./segments";
 import {
   type FilterValue,
   ZSorting,
@@ -94,45 +93,6 @@ export function DataTableProvider({
   if (!tableIdentifier) {
     throw new Error("tableIdentifier is required");
   }
-  const { data: segments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery({
-    tableIdentifier,
-  });
-  const selectedSegment = useMemo(
-    () => segments?.find((segment) => segment.id === segmentId),
-    [segments, segmentId]
-  );
-
-  useEffect(() => {
-    if (segments && segmentId > 0 && !isFetchingSegments) {
-      const segment = segments.find((segment) => segment.id === segmentId);
-      if (!segment) {
-        // If segmentId is invalid (or not found), clear the segmentId from the query params,
-        // but we still keep all the other states like activeFilters, etc.
-        // This is useful when someone shares a URL that is inaccessible to someone else.
-        setSegmentId(null);
-      }
-    }
-  }, [segments, segmentId, setSegmentId, isFetchingSegments]);
-
-  useEffect(() => {
-    if (selectedSegment) {
-      // segment is selected, so we apply the filters, sorting, etc. from the segment
-      setActiveFilters(selectedSegment.activeFilters);
-      setSorting(selectedSegment.sorting);
-      setColumnVisibility(selectedSegment.columnVisibility);
-      setColumnSizing(selectedSegment.columnSizing);
-      setPageSize(selectedSegment.perPage);
-      setPageIndex(0);
-    }
-  }, [
-    selectedSegment,
-    setActiveFilters,
-    setSorting,
-    setColumnVisibility,
-    setColumnSizing,
-    setPageSize,
-    setPageIndex,
-  ]);
 
   const addFilter = useCallback(
     (columnId: string) => {
@@ -190,27 +150,23 @@ export function DataTableProvider({
     [setPageSize, setPageIndex]
   );
 
-  const canSaveSegment = useMemo(() => {
-    if (!selectedSegment) {
-      // if no segment is selected, we can save the segment if there are any active filters, sorting, etc.
-      return (
-        activeFilters.length > 0 ||
-        sorting.length > 0 ||
-        Object.keys(columnVisibility).length > 0 ||
-        Object.keys(columnSizing).length > 0 ||
-        pageSize !== defaultPageSize
-      );
-    } else {
-      // if a segment is selected, we can save the segment if the active filters, sorting, etc. are different from the segment
-      return (
-        activeFilters !== selectedSegment.activeFilters ||
-        sorting !== selectedSegment.sorting ||
-        columnVisibility !== selectedSegment.columnVisibility ||
-        columnSizing !== selectedSegment.columnSizing ||
-        pageSize !== selectedSegment.perPage
-      );
-    }
-  }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, defaultPageSize]);
+  const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
+    tableIdentifier,
+    activeFilters,
+    sorting,
+    columnVisibility,
+    columnSizing,
+    pageSize,
+    defaultPageSize,
+    segmentId,
+    setSegmentId,
+    setActiveFilters,
+    setSorting,
+    setColumnVisibility,
+    setColumnSizing,
+    setPageSize,
+    setPageIndex,
+  });
 
   return (
     <DataTableContext.Provider
@@ -233,10 +189,10 @@ export function DataTableProvider({
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
-        segments: segments ?? [],
+        segments,
         selectedSegment,
         segmentId: segmentId || undefined,
-        setSegmentId,
+        setSegmentId: setSegmentIdAndSaveToLocalStorage,
         canSaveSegment,
       }}>
       {children}
