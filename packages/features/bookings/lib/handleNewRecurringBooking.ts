@@ -1,22 +1,27 @@
-import type { NextApiRequest } from "next";
-
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { RecurringBookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-export const handleNewRecurringBooking = async (
-  req: NextApiRequest & {
-    userId?: number | undefined;
-    platformClientId?: string;
-    platformRescheduleUrl?: string;
-    platformCancelUrl?: string;
-    platformBookingUrl?: string;
-    platformBookingLocation?: string;
-    noEmail?: boolean;
-  }
-): Promise<BookingResponse[]> => {
-  const data: RecurringBookingCreateBody[] = req.body;
+export type PlatformParams = {
+  platformClientId?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  platformRescheduleUrl?: string;
+  platformBookingLocation?: string;
+};
+
+export type BookingHandlerInput = {
+  bookingData: Record<string, any>[];
+  userId?: number;
+  // These used to come from headers but now we're passing them as params
+  hostname?: string;
+  forcedSlug?: string;
+  noEmail?: boolean;
+} & PlatformParams;
+
+export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
+  const data: RecurringBookingCreateBody[] = input.bookingData;
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
     return { start: booking.start, end: booking.end };
@@ -34,19 +39,16 @@ export const handleNewRecurringBooking = async (
   let luckyUsers = undefined;
 
   const handleBookingMeta = {
-    userId: req.userId,
-    platformClientId: req.platformClientId,
-    platformRescheduleUrl: req.platformRescheduleUrl,
-    platformCancelUrl: req.platformCancelUrl,
-    platformBookingUrl: req.platformBookingUrl,
-    platformBookingLocation: req.platformBookingLocation,
-    noEmail: req.noEmail,
+    userId: input.userId,
+    platformClientId: input.platformClientId,
+    platformRescheduleUrl: input.platformRescheduleUrl,
+    platformCancelUrl: input.platformCancelUrl,
+    platformBookingUrl: input.platformBookingUrl,
+    platformBookingLocation: input.platformBookingLocation,
   };
 
   if (isRoundRobin) {
-    const recurringEventReq: NextApiRequest & { userId?: number } = req;
-
-    recurringEventReq.body = {
+    const recurringEventData = {
       ...firstBooking,
       appsStatus,
       allRecurringDates,
@@ -54,13 +56,13 @@ export const handleNewRecurringBooking = async (
       thirdPartyRecurringEventId,
       numSlotsToCheckForAvailability,
       currentRecurringIndex: 0,
-      noEmail: req.noEmail !== undefined ? req.noEmail : false,
+      noEmail: input.noEmail !== undefined ? input.noEmail : false,
     };
 
     const firstBookingResult = await handleNewBooking({
-      bookingData: req.body,
-      hostname: req.headers.host || "",
-      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      bookingData: recurringEventData,
+      hostname: input.hostname || "",
+      forcedSlug: input.forcedSlug as string | undefined,
       ...handleBookingMeta,
     });
     luckyUsers = firstBookingResult.luckyUsers;
@@ -86,9 +88,7 @@ export const handleNewRecurringBooking = async (
     //   appsStatus = Object.values(calcAppsStatus);
     // }
 
-    const recurringEventReq: NextApiRequest & { userId?: number } = req;
-
-    recurringEventReq.body = {
+    const recurringEventData = {
       ...booking,
       appsStatus,
       allRecurringDates,
@@ -96,14 +96,14 @@ export const handleNewRecurringBooking = async (
       thirdPartyRecurringEventId,
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
-      noEmail: req.noEmail !== undefined ? req.noEmail : key !== 0,
+      noEmail: input.noEmail !== undefined ? input.noEmail : key !== 0,
       luckyUsers,
     };
 
     const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking({
-      hostname: req.headers.host || "",
-      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-      bookingData: recurringEventReq.body,
+      hostname: input.hostname || "",
+      forcedSlug: input.forcedSlug as string | undefined,
+      bookingData: recurringEventData,
       ...handleBookingMeta,
     });
 

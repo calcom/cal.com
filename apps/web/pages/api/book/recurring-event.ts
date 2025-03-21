@@ -26,9 +26,17 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   });
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
-  req.userId = session?.user?.id || -1;
 
-  const createdBookings: BookingResponse[] = await handleNewRecurringBooking(req);
+  const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+    bookingData: req.body,
+    userId: session?.user?.id || -1,
+    platformClientId: req.platformClientId,
+    platformCancelUrl: req.platformCancelUrl,
+    platformBookingUrl: req.platformBookingUrl,
+    platformRescheduleUrl: req.platformRescheduleUrl,
+    platformBookingLocation: req.platformBookingLocation,
+    noEmail: req.noEmail,
+  });
 
   return createdBookings;
 }
