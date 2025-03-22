@@ -13,8 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Input } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
+import { Input } from "@calcom/ui/components/form";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 

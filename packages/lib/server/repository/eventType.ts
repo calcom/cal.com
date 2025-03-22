@@ -152,7 +152,15 @@ export class EventTypeRepository {
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: {
+        select: {
+          id: true,
+          link: true,
+          expiresAt: true,
+          maxUsageCount: true,
+          usageCount: true,
+        },
+      },
       users: { select: userSelect },
       children: {
         include: {
@@ -267,7 +275,15 @@ export class EventTypeRepository {
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: {
+        select: {
+          id: true,
+          link: true,
+          expiresAt: true,
+          maxUsageCount: true,
+          usageCount: true,
+        },
+      },
     };
 
     log.debug(
@@ -378,7 +394,15 @@ export class EventTypeRepository {
 
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: {
+        select: {
+          id: true,
+          link: true,
+          expiresAt: true,
+          maxUsageCount: true,
+          usageCount: true,
+        },
+      },
       users: { select: userSelect, take: 5 },
       children: {
         include: {
@@ -507,7 +531,15 @@ export class EventTypeRepository {
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
-      hashedLink: true,
+      hashedLink: {
+        select: {
+          id: true,
+          link: true,
+          expiresAt: true,
+          maxUsageCount: true,
+          usageCount: true,
+        },
+      },
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
