@@ -24,12 +24,10 @@ export class SlotsInputService_2024_09_04 {
     }
     const isTeamEvent = !!eventType?.teamId;
 
-    const startTime = query.start;
+    const startTime = this.adjustStartTime(query.start);
     const endTime = this.adjustEndTime(query.end);
     const duration = query.duration;
     const eventTypeId = eventType.id;
-    const eventTypeSlug = eventType.slug;
-    const usernameList = "usernames" in query ? query.usernames : [];
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
 
@@ -39,8 +37,6 @@ export class SlotsInputService_2024_09_04 {
       endTime,
       duration,
       eventTypeId,
-      eventTypeSlug,
-      usernameList,
       timeZone,
       orgSlug,
     };
@@ -80,6 +76,20 @@ export class SlotsInputService_2024_09_04 {
 
       return await this.usersRepository.findByUsername(input.username);
     }
+  }
+
+  private adjustStartTime(startTime: string) {
+    let dateTime = DateTime.fromISO(startTime, { zone: "utc" });
+    if (dateTime.hour === 0 && dateTime.minute === 0 && dateTime.second === 0) {
+      dateTime = dateTime.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    }
+
+    const ISOStartTime = dateTime.toISO();
+    if (ISOStartTime === null) {
+      throw new BadRequestException("Invalid start date");
+    }
+
+    return ISOStartTime;
   }
 
   private adjustEndTime(endTime: string) {
