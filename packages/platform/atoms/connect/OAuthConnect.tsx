@@ -76,7 +76,12 @@ export const OAuthConnect: FC<
           tooltipSide={tooltipSide}
           tooltipOffset={10}
           tooltipClassName="p-0 text-inherit bg-inherit"
-          className={cn("", !isDisabled && "cursor-pointer", "border-none md:rounded-md", className)}
+          className={cn(
+            "",
+            !isDisabled && "cursor-pointer",
+            "border-none dark:bg-white md:rounded-md",
+            className
+          )}
           onTouchEnd={() => {
             connect();
             onSuccess?.();
@@ -101,8 +106,11 @@ export const OAuthConnect: FC<
           "",
           isDisabled && "cursor-not-allowed",
           !isDisabled && "cursor-pointer",
-          "border-none md:rounded-md",
-          className
+          // "dark:bg-white dark:text-black md:rounded-md",
+          // "border-none bg-black text-white dark:bg-white dark:text-black md:rounded-md",
+          className,
+          "dark:bg-white dark:text-black md:rounded-md"
+          // "dark:bg-white"
         )}
         onTouchEnd={() => {
           connect();
