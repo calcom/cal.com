@@ -3492,6 +3492,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
     "@calcom/types": "*"
+    "@jetstreamapp/soql-parser-js": ^6.1.0
     "@jsforce/jsforce-node": ^3.6.3
   languageName: unknown
   linkType: soft
@@ -5943,6 +5944,19 @@ __metadata:
     "@types/yargs": ^17.0.8
     chalk: ^4.0.0
   checksum: a0bcf15dbb0eca6bdd8ce61a3fb055349d40268622a7670a3b2eb3c3dbafe9eb26af59938366d520b86907b9505b0f9b29b85cec11579a9e580694b87cd90fcc
+  languageName: node
+  linkType: hard
+
+"@jetstreamapp/soql-parser-js@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@jetstreamapp/soql-parser-js@npm:6.1.0"
+  dependencies:
+    chevrotain: ^10.5.0
+    commander: ^2.20.3
+    lodash.get: ^4.4.2
+  bin:
+    soql-parser-js: bin/soql-parser-js
+  checksum: 4110e2c19c29ff8ae60efa70bd5ae1f81dca289af0fdc8fd29e8f9e03171c1b5beadfb57d8a39506b8d9e909dd0d3fb21408a06c2238661fc4dd4a9d60fc4142
   languageName: node
   linkType: hard
 
@@ -17809,6 +17823,7 @@ __metadata:
   dependencies:
     "@changesets/cli": ^2.26.1
     "@daily-co/daily-js": ^0.59.0
+    "@jetstreamapp/soql-parser-js": ^6.1.0
     "@next/third-parties": ^14.2.5
     "@playwright/test": ^1.45.3
     "@snaplet/copycat": ^4.1.0
@@ -18817,7 +18832,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^2.20.0, commander@npm:^2.7.1, commander@npm:^2.9.0":
+"commander@npm:^2.20.0, commander@npm:^2.20.3, commander@npm:^2.7.1, commander@npm:^2.9.0":
   version: 2.20.3
   resolution: "commander@npm:2.20.3"
   checksum: ab8c07884e42c3a8dbc5dd9592c606176c7eb5c1ca5ff274bcf907039b2c41de3626f684ea75ccf4d361ba004bbaff1f577d5384c155f3871e456bdf27becf9e
