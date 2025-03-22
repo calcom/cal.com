@@ -114,6 +114,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -169,6 +170,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -273,6 +275,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -329,6 +332,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -392,6 +396,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -415,6 +420,7 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
         useEventTypeDestinationCalendarEmail: false,
+        showOptimizedSlots: false,
         workflows: [],
         parentId: 1,
         locations: [],
