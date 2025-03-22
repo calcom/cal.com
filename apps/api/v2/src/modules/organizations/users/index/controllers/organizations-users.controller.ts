@@ -82,7 +82,6 @@ export class OrganizationsUsersController {
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a user" })
   async createOrganizationUser(
-    @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput,
     @GetUser() inviter: UserWithProfile
@@ -110,7 +109,6 @@ export class OrganizationsUsersController {
   async updateOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
-    @GetOrg() org: Team,
     @Body() input: UpdateOrganizationUserInput
   ): Promise<GetOrganizationUserOutput> {
     const user = await this.organizationsUsersService.updateUser(orgId, userId, input);

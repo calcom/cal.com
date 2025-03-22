@@ -118,7 +118,7 @@ export class SlotsController_2024_09_04 {
     name: "eventTypeSlug",
     required: false,
     description:
-      "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too.",
+      "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too and if relevant organizationSlug too.",
     example: "event-type-slug",
   })
   @ApiQuery({
@@ -126,6 +126,12 @@ export class SlotsController_2024_09_04 {
     required: false,
     description: "The username of the user to get event types for.",
     example: "bob",
+  })
+  @ApiQuery({
+    name: "organizationSlug",
+    required: false,
+    description: "The slug of the organization to which user with username belongs.",
+    example: "org-slug",
   })
   @ApiQuery({
     name: "end",

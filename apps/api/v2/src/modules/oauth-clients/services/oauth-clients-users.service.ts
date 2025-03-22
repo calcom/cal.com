@@ -71,6 +71,8 @@ export class OAuthClientUsersService {
         name: body.name,
         locale: body.locale,
         avatarUrl: body.avatarUrl,
+        bio: body.bio,
+        metadata: body.metadata,
       });
       user.locale = updatedUser.locale;
       user.name = updatedUser.name;

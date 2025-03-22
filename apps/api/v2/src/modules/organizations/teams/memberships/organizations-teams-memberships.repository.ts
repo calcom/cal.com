@@ -2,6 +2,7 @@ import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/member
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
@@ -16,7 +17,7 @@ export class OrganizationsTeamsMembershipsRepository {
           parentId: organizationId,
         },
       },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
       skip,
       take,
     });
@@ -31,7 +32,7 @@ export class OrganizationsTeamsMembershipsRepository {
           parentId: organizationId,
         },
       },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
     });
   }
   async deleteOrgTeamMembershipById(organizationId: number, teamId: number, membershipId: number) {
@@ -43,6 +44,7 @@ export class OrganizationsTeamsMembershipsRepository {
           parentId: organizationId,
         },
       },
+      include: { user: { select: MembershipUserSelect } },
     });
   }
 
@@ -61,14 +63,14 @@ export class OrganizationsTeamsMembershipsRepository {
           parentId: organizationId,
         },
       },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
     });
   }
 
   async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
     return this.dbWrite.prisma.membership.create({
       data: { ...data, teamId: teamId },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
     });
   }
 }
