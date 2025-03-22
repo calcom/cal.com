@@ -26,6 +26,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { BookerI18nextProvider } from "@calcom/lib/bookerI18nextProvider";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
@@ -98,7 +99,27 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-export default function Success(props: PageProps) {
+export default function SuccessWrapper(props: PageProps) {
+  const { data: session } = useSession();
+
+  const interfaceLanguage = props.eventType.interfaceLanguage;
+
+  const shouldUseCustomInterfaceLanguage = interfaceLanguage && interfaceLanguage !== session?.user.locale;
+
+  return (
+    <>
+      {shouldUseCustomInterfaceLanguage ? (
+        <BookerI18nextProvider locale={interfaceLanguage}>
+          <Success {...props} />
+        </BookerI18nextProvider>
+      ) : (
+        <Success {...props} />
+      )}
+    </>
+  );
+}
+
+function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
