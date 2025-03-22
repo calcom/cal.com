@@ -11,6 +11,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   slug: true,
   length: true,
   title: true,
+  disableConflictingBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
