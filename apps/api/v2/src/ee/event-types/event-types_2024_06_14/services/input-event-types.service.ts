@@ -1,6 +1,7 @@
 import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
@@ -49,13 +50,15 @@ interface ValidationContext {
 export class InputEventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly calendarsService: CalendarsService
+    private readonly calendarsService: CalendarsService,
+    private readonly conferencingService: ConferencingService
   ) {}
 
   async transformAndValidateCreateEventTypeInput(
-    userId: UserWithProfile["id"],
+    user: UserWithProfile,
     inputEventType: CreateEventTypeInput_2024_06_14
   ) {
+    await this.validateInputLocations(user, inputEventType.locations);
     const transformedBody = this.transformInputCreateEventType(inputEventType);
 
     await this.validateEventTypeInputs({
@@ -66,19 +69,21 @@ export class InputEventTypesService_2024_06_14 {
     });
 
     transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
 
     transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(userId));
+      (await this.validateInputUseDestinationCalendarEmail(user.id));
 
     return transformedBody;
   }
 
   async transformAndValidateUpdateEventTypeInput(
     inputEventType: UpdateEventTypeInput_2024_06_14,
-    userId: UserWithProfile["id"],
+    user: UserWithProfile,
     eventTypeId: number
   ) {
+    await this.validateInputLocations(user, inputEventType.locations);
+
     const transformedBody = await this.transformInputUpdateEventType(inputEventType, eventTypeId);
 
     await this.validateEventTypeInputs({
@@ -90,10 +95,10 @@ export class InputEventTypesService_2024_06_14 {
     });
 
     transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
 
     transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(userId));
+      (await this.validateInputUseDestinationCalendarEmail(user.id));
 
     return transformedBody;
   }
@@ -447,5 +452,21 @@ export class InputEventTypesService_2024_06_14 {
     }
 
     return;
+  }
+
+  async validateInputLocations(
+    user: UserWithProfile,
+    inputLocations: CreateEventTypeInput_2024_06_14["locations"] | undefined
+  ) {
+    await Promise.all(
+      inputLocations?.map(async (location) => {
+        if (location.type === "integration") {
+          // cal-video is global, so we can skip this check
+          if (location.integration !== "cal-video") {
+            await this.conferencingService.checkAppIsValidAndConnected(user, location.integration);
+          }
+        }
+      }) ?? []
+    );
   }
 }

@@ -84,7 +84,10 @@ export class GoogleCalendarService implements OAuthCalendarApp {
   }
 
   async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
+    const gcalCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
+      "google_calendar",
+      userId
+    );
 
     if (!gcalCredentials) {
       throw new BadRequestException("Credentials for google_calendar not found.");

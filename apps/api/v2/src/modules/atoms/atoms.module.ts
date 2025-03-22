@@ -8,6 +8,7 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisService } from "@/modules/redis/redis.service";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -24,6 +25,7 @@ import { Module } from "@nestjs/common";
     AtomsRepository,
     UsersService,
     SchedulesRepository_2024_06_11,
+    RedisService,
   ],
   exports: [EventTypesAtomService],
   controllers: [AtomsController],

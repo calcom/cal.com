@@ -3,6 +3,8 @@ import { z } from "zod";
 const integrationsApiAvailable = {
   "cal-video": z.literal("integrations:daily"),
   "google-meet": z.literal("integrations:google:meet"),
+  zoom: z.literal("integrations:zoom"),
+  "office365-video": z.literal("integrations:office365_video"),
 };
 
 // note(Lauris): these are read only aka they exist in database and are to be returned by a READ operation
