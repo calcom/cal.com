@@ -34,7 +34,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     });
   }
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), existingOrg.metadata);
+  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), existingOrg.metadata || {});
 
   const data: Prisma.TeamUpdateArgs["data"] = restInput;
 
