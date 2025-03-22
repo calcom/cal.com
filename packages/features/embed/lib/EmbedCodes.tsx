@@ -113,6 +113,39 @@ export const Codes = {
 	  >Click me</button>;
   };`;
     },
+    "react-atom": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState["inline"];
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
+      return code`
+  import Cal, { getCalApi } from "@calcom/embed-react";
+  import { useEffect } from "react";
+  export default function MyApp() {
+    useEffect(() => {
+      (async function () {
+        const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+        ${uiInstructionCode}
+      })();
+    }, []);
+    return <Cal
+      calLink="${calLink}"
+      ${namespace ? `namespace="${namespace}"` : ""}
+      ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+      style={{ width: "100%", height: "100%", overflow: "scroll" }}
+      config={${JSON.stringify(previewState.config)}}
+    />;
+  };`;
+    },
   },
   HTML: {
     inline: ({
