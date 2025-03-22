@@ -546,6 +546,7 @@ export const getOptions = ({
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
+          orgAwareUsername: profileOrg ? profile.username : existingUser.username,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
           // platform org user don't need profiles nor domains
@@ -580,6 +581,7 @@ export const getOptions = ({
           id: user.id,
           name: user.name,
           username: user.username,
+          orgAwareUsername: user?.org ? user.profile?.username : user.username,
           email: user.email,
           role: user.role,
           impersonatedBy: user.impersonatedBy,
@@ -684,6 +686,7 @@ export const getOptions = ({
           impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
+          orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
         } as JWT;
       }
@@ -709,6 +712,7 @@ export const getOptions = ({
           id: token.id as number,
           name: token.name,
           username: token.username as string,
+          orgAwareUsername: token.orgAwareUsername,
           role: token.role as UserPermissionRole,
           impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
