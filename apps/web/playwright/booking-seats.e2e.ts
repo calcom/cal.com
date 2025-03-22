@@ -10,6 +10,7 @@ import {
   confirmReschedule,
   createNewSeatedEventType,
   createUserWithSeatedEventAndAttendees,
+  gotoAndWaitForIdle,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -21,7 +22,7 @@ test.describe("Booking with Seats", () => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
     await user.apiLogin();
-    await page.goto("/event-types");
+    await gotoAndWaitForIdle(page, "/event-types");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
     const eventTitle = "My 2-seated event";
@@ -62,13 +63,13 @@ test.describe("Booking with Seats", () => {
     });
 
     await test.step("Attendee #2 shouldn't be able to cancel booking using only booking/uid", async () => {
-      await page.goto(`/booking/${booking.uid}`);
+      await gotoAndWaitForIdle(page, `/booking/${booking.uid}`);
 
       await expect(page.locator("[text=Cancel]")).toHaveCount(0);
     });
 
     await test.step("Attendee #2 shouldn't be able to cancel booking using randomString for seatReferenceUId", async () => {
-      await page.goto(`/booking/${booking.uid}?seatReferenceUid=${randomString(10)}`);
+      await gotoAndWaitForIdle(page, `/booking/${booking.uid}?seatReferenceUid=${randomString(10)}`);
 
       // expect cancel button to don't be in the page
       await expect(page.locator("[text=Cancel]")).toHaveCount(0);
@@ -81,7 +82,7 @@ test.describe("Booking with Seats", () => {
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await page.goto(`/booking/${booking.uid}?cancel=true`);
+    await gotoAndWaitForIdle(page, `/booking/${booking.uid}?cancel=true`);
     await expect(page.locator("[text=Cancel]")).toHaveCount(0);
 
     // expect login text to be in the page, not data-testid
@@ -96,7 +97,7 @@ test.describe("Booking with Seats", () => {
     await user.apiLogin();
 
     // manual redirect to booking page
-    await page.goto(`/booking/${booking.uid}?cancel=true`);
+    await gotoAndWaitForIdle(page, `/booking/${booking.uid}?cancel=true`);
 
     // expect login button to don't be in the page
     await expect(page.locator("text=Login")).toHaveCount(0);
@@ -158,7 +159,8 @@ test.describe("Reschedule for booking with seats", () => {
       where: { bookingId: booking.id },
     });
 
-    await page.goto(
+    await gotoAndWaitForIdle(
+      page,
       `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
     );
 
@@ -176,7 +178,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     expect(oldBooking?.status).toBe(BookingStatus.ACCEPTED);
 
-    await page.goto(`/reschedule/${references[1].referenceUid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${references[1].referenceUid}`);
 
     await page.click('[data-testid="incrementMonth"]');
 
@@ -224,7 +226,8 @@ test.describe("Reschedule for booking with seats", () => {
 
     // Now we cancel the booking as the first attendee
     // booking/${bookingUid}?cancel=true&allRemainingBookings=false&seatReferenceUid={bookingSeat.referenceUid}
-    await page.goto(
+    await gotoAndWaitForIdle(
+      page,
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
     await page.waitForSelector("text=Reason for cancellation");
@@ -237,7 +240,8 @@ test.describe("Reschedule for booking with seats", () => {
 
     await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
 
-    await page.goto(
+    await gotoAndWaitForIdle(
+      page,
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
     );
 
@@ -302,7 +306,7 @@ test.describe("Reschedule for booking with seats", () => {
     });
 
     // Go to cancel page and see that attendees are listed and myself as I'm owner of the booking
-    await page.goto(`/booking/${booking.uid}?cancel=true&allRemainingBookings=false`);
+    await gotoAndWaitForIdle(page, `/booking/${booking.uid}?cancel=true&allRemainingBookings=false`);
 
     const foundFirstAttendeeAsOwner = await page.locator(
       'p[data-testid="attendee-email-first+seats@cal.com"]'
@@ -313,13 +317,14 @@ test.describe("Reschedule for booking with seats", () => {
     );
     await expect(foundSecondAttendeeAsOwner).toHaveCount(1);
 
-    await page.goto("auth/logout");
+    await gotoAndWaitForIdle(page, "auth/logout");
     await page.getByTestId("logout-btn").click();
     await expect(page).toHaveURL(/login/);
 
     // Now we cancel the booking as the first attendee
     // booking/${bookingUid}?cancel=true&allRemainingBookings=false&seatReferenceUid={bookingSeat.referenceUid}
-    await page.goto(
+    await gotoAndWaitForIdle(
+      page,
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
 
@@ -339,7 +344,8 @@ test.describe("Reschedule for booking with seats", () => {
       },
     });
 
-    await page.goto(
+    await gotoAndWaitForIdle(
+      page,
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
     );
 
@@ -365,7 +371,7 @@ test.describe("Reschedule for booking with seats", () => {
     ]);
     const getBooking = await booking.self();
 
-    await page.goto(`/booking/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/booking/${booking.uid}`);
     await expect(page.locator('[data-testid="reschedule"]')).toHaveCount(0);
 
     // expect login text to be in the page, not data-testid
@@ -380,7 +386,7 @@ test.describe("Reschedule for booking with seats", () => {
     await user.apiLogin();
 
     // manual redirect to booking page
-    await page.goto(`/booking/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/booking/${booking.uid}`);
 
     // expect login button to don't be in the page
     await expect(page.locator("text=Login")).toHaveCount(0);
@@ -434,7 +440,10 @@ test.describe("Reschedule for booking with seats", () => {
     ]);
     const getBooking = await booking.self();
 
-    await page.goto(`/${user.username}/seats?rescheduleUid=${getBooking?.uid}&bookingUid=null`);
+    await gotoAndWaitForIdle(
+      page,
+      `/${user.username}/seats?rescheduleUid=${getBooking?.uid}&bookingUid=null`
+    );
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -448,7 +457,10 @@ test.describe("Reschedule for booking with seats", () => {
     // now login and try again
     await user.apiLogin();
 
-    await page.goto(`/${user.username}/seats?rescheduleUid=${getBooking?.uid}&bookingUid=null`);
+    await gotoAndWaitForIdle(
+      page,
+      `/${user.username}/seats?rescheduleUid=${getBooking?.uid}&bookingUid=null`
+    );
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
