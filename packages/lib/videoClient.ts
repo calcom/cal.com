@@ -1,7 +1,6 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import appStore from "@calcom/app-store";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
@@ -12,9 +11,11 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+
+import { ConferencingVideoAdapterMap } from "../app-store/conferencing.videoAdapters.generated";
 
 const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
@@ -27,23 +28,20 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-    const appImportFn = appStore[appName as keyof typeof appStore];
+    const videoAdapterFactory = await ConferencingVideoAdapterMap[
+      appName as keyof typeof ConferencingVideoAdapterMap
+    ];
 
-    // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
-    const app = appImportFn ? await appImportFn() : null;
-
-    if (!app) {
+    if (!videoAdapterFactory.default) {
       log.error(`Couldn't get adapter for ${appName}`);
       continue;
     }
 
-    if ("lib" in app && "VideoApiAdapter" in app.lib) {
-      const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
-      const videoAdapter = makeVideoApiAdapter(cred);
-      videoAdapters.push(videoAdapter);
-    } else {
-      log.error(`App ${appName} doesn't have 'lib.VideoApiAdapter' defined`);
-    }
+    // INFO: Casting this as CredentialForCalendarServiceWithTenantId because unfortunately
+    // the office365video adapter was changed to take different params than the rest of the adapters.
+    // This will leave "delegatedTo" as null which is fine for the adapters that don't need it.
+    const videoAdapter = videoAdapterFactory.default(cred as CredentialForCalendarServiceWithTenantId);
+    videoAdapters.push(videoAdapter);
   }
 
   return videoAdapters;
