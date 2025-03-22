@@ -44,6 +44,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           bookingLimits: true,
           includeManagedEventsInLimits: true,
           rrResetInterval: true,
+          hideOrganizerEmail: true,
         },
       },
       bookingFields: true,

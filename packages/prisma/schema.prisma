@@ -494,6 +494,7 @@ model Team {
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean                 @default(false)
+  hideOrganizerEmail           Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
   organizationOnboarding       OrganizationOnboarding?
 
