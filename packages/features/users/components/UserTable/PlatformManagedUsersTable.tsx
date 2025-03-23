@@ -16,10 +16,10 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/components/badge";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -33,6 +33,9 @@ const initialState: UserTableState = {
     showModal: false,
   },
   impersonateMember: {
+    showModal: false,
+  },
+  importMembers: {
     showModal: false,
   },
   inviteMember: {
@@ -269,6 +272,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
           deleteMember: { showModal: false },
           impersonateMember: { showModal: false },
           inviteMember: { showModal: false },
+          importMembers: { showModal: false },
           editSheet: { showModal: false },
         };
       default:
