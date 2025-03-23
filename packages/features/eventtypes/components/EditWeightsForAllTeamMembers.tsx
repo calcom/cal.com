@@ -1,6 +1,5 @@
 "use client";
 
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
@@ -24,6 +23,7 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
@@ -302,15 +302,19 @@ export const EditWeightsForAllTeamMembers = ({
             <SheetHeader>
               <SheetTitle>{t("edit_team_member_weights")}</SheetTitle>
               <div className="text-subtle text-sm">
-                <Trans i18nKey="weights_description">
-                  Weights determine how meetings are distributed among hosts.
-                  <Link
-                    className="underline underline-offset-2"
-                    target="_blank"
-                    href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
-                    Learn more
-                  </Link>
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="weights_description"
+                  components={[
+                    <Link
+                      key="weights_description"
+                      className="underline underline-offset-2"
+                      target="_blank"
+                      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
+                      Learn more
+                    </Link>,
+                  ]}
+                />
               </div>
             </SheetHeader>
 
