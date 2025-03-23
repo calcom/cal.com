@@ -1,5 +1,5 @@
 import { ErrorMessage } from "@hookform/error-message";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 

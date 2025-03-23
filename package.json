@@ -107,7 +107,8 @@
     "typescript": "^4.9.4",
     "vitest": "^2.1.1",
     "vitest-fetch-mock": "^0.3.0",
-    "vitest-mock-extended": "^2.0.2"
+    "vitest-mock-extended": "^2.0.2",
+    "@jetstreamapp/soql-parser-js": "^6.1.0"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.59.0",
