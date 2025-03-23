@@ -38,6 +38,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   tooltipSide = "bottom",
   isClickable,
   onSuccess,
+  isDryRun = false,
 }) => {
   const { t } = useLocale();
   const form = useForm({
