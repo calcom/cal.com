@@ -33,12 +33,14 @@ type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
+  isDryRun?: boolean;
 };
 
 export const SelectedCalendarsSettingsPlatformWrapper = ({
   classNames = "mx-5 mb-6",
   calendarRedirectUrls,
   allowDelete,
+  isDryRun,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -54,7 +56,10 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
             if (!data.connectedCalendars.length) {
               return (
                 <SelectedCalendarsSettings classNames={classNames}>
-                  <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
+                  <SelectedCalendarsSettingsHeading
+                    calendarRedirectUrls={calendarRedirectUrls}
+                    isDryRun={isDryRun}
+                  />
                   <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
                 </SelectedCalendarsSettings>
               );
@@ -62,7 +67,10 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 
             return (
               <SelectedCalendarsSettings classNames={classNames}>
-                <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
+                <SelectedCalendarsSettingsHeading
+                  calendarRedirectUrls={calendarRedirectUrls}
+                  isDryRun={isDryRun}
+                />
                 <List noBorderTreatment className="p-6 pt-2">
                   {data.connectedCalendars.map((connectedCalendar) => {
                     if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
@@ -147,8 +155,10 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 
 const SelectedCalendarsSettingsHeading = ({
   calendarRedirectUrls,
+  isDryRun,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
+  isDryRun?: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -161,7 +171,10 @@ const SelectedCalendarsSettingsHeading = ({
         </div>
         <div className="flex flex-col xl:flex-row xl:space-x-5">
           <div className="flex items-center">
-            <PlatformAdditionalCalendarSelector calendarRedirectUrls={calendarRedirectUrls} />
+            <PlatformAdditionalCalendarSelector
+              calendarRedirectUrls={calendarRedirectUrls}
+              isDryRun={isDryRun}
+            />
           </div>
         </div>
       </div>
@@ -285,8 +298,10 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
 
 const PlatformAdditionalCalendarSelector = ({
   calendarRedirectUrls,
+  isDryRun,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
+  isDryRun?: boolean;
 }) => {
   const { t } = useLocale();
   const { refetch } = useConnectedCalendars({});
@@ -302,6 +317,7 @@ const PlatformAdditionalCalendarSelector = ({
         <div>
           <div>
             <Connect.GoogleCalendar
+              isDryRun={isDryRun}
               isMultiCalendar={true}
               isClickable={true}
               tooltip={<></>}
@@ -314,6 +330,7 @@ const PlatformAdditionalCalendarSelector = ({
           </div>
           <div>
             <Connect.OutlookCalendar
+              isDryRun={isDryRun}
               isMultiCalendar={true}
               isClickable={true}
               tooltip={<></>}
@@ -326,6 +343,7 @@ const PlatformAdditionalCalendarSelector = ({
           </div>
           <div>
             <AppleConnect
+              isDryRun={isDryRun}
               onSuccess={refetch}
               isClickable={true}
               isMultiCalendar={true}

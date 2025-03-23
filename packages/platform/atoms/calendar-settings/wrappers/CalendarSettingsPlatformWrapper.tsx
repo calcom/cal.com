@@ -10,12 +10,14 @@ type CalendarSettingsPlatformWrapperProps = {
   };
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
+  isDryRun?: boolean;
 };
 
 export const CalendarSettingsPlatformWrapper = ({
   classNames,
   calendarRedirectUrls,
   allowDelete = true,
+  isDryRun = false,
 }: CalendarSettingsPlatformWrapperProps) => {
   return (
     <div className={classNames?.calendarSettingsCustomClassnames}>
@@ -27,6 +29,7 @@ export const CalendarSettingsPlatformWrapper = ({
         classNames={classNames?.selectedCalendarSettingsCustomClassnames}
         calendarRedirectUrls={calendarRedirectUrls}
         allowDelete={allowDelete}
+        isDryRun={isDryRun}
       />
     </div>
   );
