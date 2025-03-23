@@ -22,6 +22,7 @@ export type UserTableState = {
   deleteMember: UserTablePayload;
   impersonateMember: UserTablePayload;
   inviteMember: UserTablePayload;
+  importMembers: UserTablePayload;
   editSheet: UserTablePayload & { user?: UserTableUser };
 };
 
@@ -36,6 +37,7 @@ export type UserTableAction =
         | "SET_DELETE_ID"
         | "SET_IMPERSONATE_ID"
         | "INVITE_MEMBER"
+        | "IMPORT_MEMBERS"
         | "EDIT_USER_SHEET"
         | "INVITE_MEMBER";
       payload: UserTablePayload;

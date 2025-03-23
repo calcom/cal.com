@@ -48,10 +48,10 @@ export const ZInviteMemberInputSchema = z.object({
     )
     .refine(
       (value) => {
-        if (Array.isArray(value)) {
-          return !value.some((email) => !emailSchema.safeParse(email).success);
-        }
-        return true;
+        // Case when value is string or array of invitation objects {email: string, role: MembershipRole}
+        if (!Array.isArray(value) || (value.length > 0 && typeof value[0] === "object")) return true;
+
+        return !value.some((email) => !emailSchema.safeParse(email).success);
       },
       { message: "Bulk invitations are restricted to email addresses only." }
     ),

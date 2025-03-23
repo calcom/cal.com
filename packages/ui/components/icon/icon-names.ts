@@ -67,6 +67,7 @@ export type IconName =
   | "eye"
   | "file-down"
   | "file-text"
+  | "file-up"
   | "file"
   | "filter"
   | "fingerprint"

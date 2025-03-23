@@ -3036,5 +3036,13 @@
   "tip_username_plus": "Tip: You can a '+' between usernames: cal.com/anna+brian to make a dynamic group meeting",
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
+  "import_team_members": "Import team members",
+  "default_role_for_imported_users": "Default role for imported users",
+  "role_applied_if_not_specified_in_csv": "Role applied if not specified in CSV",
+  "csv_format_info": "CSV format",
+  "required_columns": "Required columns",
+  "optional_columns": "Optional columns",
+  "csv_file_must_have_members_column": "CSV file must have a 'Members' column",
+  "no_valid_email_addresses_found": "No valid email addresses found",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

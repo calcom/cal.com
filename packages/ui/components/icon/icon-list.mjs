@@ -64,6 +64,7 @@ export const lucideIconList = new Set([
   "eye-off",
   "eye",
   "file-down",
+  "file-up",
   "file-text",
   "file",
   "filter",
