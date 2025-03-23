@@ -135,7 +135,15 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
             handleSubmit={async (values) => {
               const { username, password } = values;
 
-              await saveCredentials({ calendar: "apple", username, password });
+              if (isDryRun) {
+                form.reset();
+                setIsDialogOpen(false);
+                toast({
+                  description: "Calendar credentials added successfully",
+                });
+              } else {
+                await saveCredentials({ calendar: "apple", username, password });
+              }
             }}>
             <fieldset
               className="space-y-4"
