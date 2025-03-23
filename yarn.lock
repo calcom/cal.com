@@ -3809,7 +3809,7 @@ __metadata:
     "@radix-ui/react-toggle-group": ^1.0.0
     "@radix-ui/react-tooltip": ^1.0.0
     "@replexica/sdk": ^0.7.0
-    "@sentry/nextjs": 9.8.0
+    "@sentry/nextjs": ^9.8.0
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
     "@tanstack/react-query": ^5.17.15
@@ -12705,30 +12705,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/nextjs@npm:9.8.0":
-  version: 9.8.0
-  resolution: "@sentry/nextjs@npm:9.8.0"
-  dependencies:
-    "@opentelemetry/api": ^1.9.0
-    "@opentelemetry/semantic-conventions": ^1.30.0
-    "@rollup/plugin-commonjs": 28.0.1
-    "@sentry-internal/browser-utils": 9.8.0
-    "@sentry/core": 9.8.0
-    "@sentry/node": 9.8.0
-    "@sentry/opentelemetry": 9.8.0
-    "@sentry/react": 9.8.0
-    "@sentry/vercel-edge": 9.8.0
-    "@sentry/webpack-plugin": 3.2.2
-    chalk: 3.0.0
-    resolve: 1.22.8
-    rollup: 4.35.0
-    stacktrace-parser: ^0.1.10
-  peerDependencies:
-    next: ^13.2.0 || ^14.0 || ^15.0.0-rc.0
-  checksum: ff053128a03cf13aa1757b2b7b019a25a64a00e39789a61163e41b1a862b6e59b624cc628da39ba11be1f9a6357cff515a14009cec3f4b34eeb0358d96225544
-  languageName: node
-  linkType: hard
-
 "@sentry/nextjs@npm:^8.8.0":
   version: 8.8.0
   resolution: "@sentry/nextjs@npm:8.8.0"
@@ -12755,6 +12731,30 @@ __metadata:
     webpack:
       optional: true
   checksum: 66922dc2f21d71aea9f90e53a6245630ad8f57095f9854d400640768cbca4ff077dcab0b043c3e01a5bf6f7657fc19c5a79cc4ae84c3758296556714b47e81dc
+  languageName: node
+  linkType: hard
+
+"@sentry/nextjs@npm:^9.8.0":
+  version: 9.8.0
+  resolution: "@sentry/nextjs@npm:9.8.0"
+  dependencies:
+    "@opentelemetry/api": ^1.9.0
+    "@opentelemetry/semantic-conventions": ^1.30.0
+    "@rollup/plugin-commonjs": 28.0.1
+    "@sentry-internal/browser-utils": 9.8.0
+    "@sentry/core": 9.8.0
+    "@sentry/node": 9.8.0
+    "@sentry/opentelemetry": 9.8.0
+    "@sentry/react": 9.8.0
+    "@sentry/vercel-edge": 9.8.0
+    "@sentry/webpack-plugin": 3.2.2
+    chalk: 3.0.0
+    resolve: 1.22.8
+    rollup: 4.35.0
+    stacktrace-parser: ^0.1.10
+  peerDependencies:
+    next: ^13.2.0 || ^14.0 || ^15.0.0-rc.0
+  checksum: ff053128a03cf13aa1757b2b7b019a25a64a00e39789a61163e41b1a862b6e59b624cc628da39ba11be1f9a6357cff515a14009cec3f4b34eeb0358d96225544
   languageName: node
   linkType: hard
 
