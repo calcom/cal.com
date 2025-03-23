@@ -809,7 +809,7 @@ test.describe("Out of office", () => {
 });
 
 async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
-  await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/ooo/outOfOfficeCreateOrUpdate?batch=1", {
     action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
     expectedStatusCode,
   });
