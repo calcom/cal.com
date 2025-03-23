@@ -10,7 +10,10 @@ export default function Calendars(props: { calUsername: string; calEmail: string
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
       <Navbar username={props.calUsername} />
       <div>
-        <CalendarSettings allowDelete={true} />
+        <CalendarSettings
+          allowDelete={true}
+          // isDryRun
+        />
       </div>
     </main>
   );
