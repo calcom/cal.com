@@ -186,20 +186,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <div className="flex flex-row">
+                      <div className="flex gap-3">
                         <span className="text-default">{user.name}</span>
-                        <span className="ml-3">/{user.username}</span>
+                        <span>/{user.username}</span>
                         {user.profiles[0]?.username && (
-                          <span className="ml-3 flex items-center">
-                            <Icon name="building" className="text-subtle size-5 mr-1" />
-                            <span className="ml-1">{user.profiles[0]?.username}</span>
+                          <span className="flex items-center gap-1">
+                            <Icon name="building" className="text-subtle size-5" />
+                            <span>{user.profiles[0]?.username}</span>
                           </span>
                         )}
-                        {user.locked && (
-                          <span className="ml-3">
-                            <Icon name="lock" />
-                          </span>
-                        )}
+                        {user.locked && <Icon name="lock" />}
                         <br />
                       </div>
                       <span className="break-all">{user.email}</span>
