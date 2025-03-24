@@ -48,9 +48,11 @@ export function TimezoneSelect(props: TimezoneSelectProps) {
       trpc: { context: { skipBatch: true } },
     }
   );
+  const cityTimezonesFormatted = data.map(({ city, timezone }) => ({ label: city, timezone }));
+
   return (
     <TimezoneSelectComponent
-      data={data.map(({ city, timezone }) => ({ label: city, timezone }))}
+      data={[...cityTimezonesFormatted, ...SELECT_SEARCH_DATA]}
       isPending={isPending}
       {...props}
     />
@@ -64,6 +66,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
   timezoneSelectCustomClassname?: string;
   size?: "sm" | "md";
   grow?: boolean;
+  isWebTimezoneSelect?: boolean;
 };
 
 // TODO: I wonder if we move this to ui package, and keep the TRPC version in features
@@ -77,9 +80,10 @@ export function TimezoneSelectComponent({
   value,
   size = "md",
   grow = false,
+  isWebTimezoneSelect = true,
   ...props
 }: TimezoneSelectComponentProps) {
-  const data = [...(props.data || []), ...SELECT_SEARCH_DATA];
+  const data = [...(props.data || [])];
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
@@ -108,7 +112,7 @@ export function TimezoneSelectComponent({
       {...reactSelectProps}
       timezones={{
         ...(props.data ? addTimezonesToDropdown(data) : {}),
-        ...addTimezonesToDropdown(additionalTimezones),
+        ...(isWebTimezoneSelect ? addTimezonesToDropdown(additionalTimezones) : {}),
       }}
       styles={{
         control: (base) => ({
@@ -149,7 +153,7 @@ export function TimezoneSelectComponent({
                 : "px-3 h-fit"
               : size === "sm"
               ? "h-7 px-2"
-              : "h-9 px-3",
+              : "h-9 py-0 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             timezoneClassNames?.control && timezoneClassNames.control(state)

@@ -34,6 +34,15 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
             contains: searchTerm.toLocaleLowerCase(),
           },
         },
+        {
+          profiles: {
+            some: {
+              username: {
+                contains: searchTerm.toLowerCase(),
+              },
+            },
+          },
+        },
       ],
     };
   } else {
@@ -58,6 +67,11 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
       name: true,
       timeZone: true,
       role: true,
+      profiles: {
+        select: {
+          username: true,
+        },
+      },
     },
   });
 
