@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.1.4",
+  "version": "5.1.5",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -67,7 +67,7 @@
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
     "@replexica/sdk": "^0.7.0",
-    "@sentry/nextjs": "^8.8.0",
+    "@sentry/nextjs": "^9.8.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^5.17.15",
@@ -101,7 +101,7 @@
     "memory-cache": "^0.2.0",
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
-    "next": "^15.1.6",
+    "next": "^15.2.3",
     "next-auth": "^4.22.1",
     "next-axiom": "^0.17.0",
     "next-collect": "^0.2.1",
