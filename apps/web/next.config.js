@@ -187,11 +187,6 @@ const nextConfig = {
     optimizePackageImports: ["@calcom/ui"],
     turbo: {},
   },
-  i18n: {
-    defaultLocale: "en",
-    locales: ["en"],
-    localeDetection: false,
-  },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
   typescript: {
@@ -293,6 +288,10 @@ const nextConfig = {
   async rewrites() {
     const { orgSlug } = nextJsOrgRewriteConfig;
     const beforeFiles = [
+      {
+        source: "/en/:path*",
+        destination: "/:path*",
+      },
       {
         source: "/forms/:formQuery*",
         destination: "/apps/routing-forms/routing-link/:formQuery*",
