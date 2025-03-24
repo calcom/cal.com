@@ -43,6 +43,7 @@ import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
+import { ImportMembersModal } from "./ImportMembersModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
@@ -58,6 +59,9 @@ const initialState: UserTableState = {
     showModal: false,
   },
   inviteMember: {
+    showModal: false,
+  },
+  importMembers: {
     showModal: false,
   },
   editSheet: {
@@ -83,6 +87,8 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
       return { ...state, impersonateMember: action.payload };
     case "INVITE_MEMBER":
       return { ...state, inviteMember: action.payload };
+    case "IMPORT_MEMBERS":
+      return { ...state, importMembers: action.payload };
     case "EDIT_USER_SHEET":
       return { ...state, editSheet: action.payload };
     case "CLOSE_MODAL":
@@ -92,6 +98,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
         deleteMember: { showModal: false },
         impersonateMember: { showModal: false },
         inviteMember: { showModal: false },
+        importMembers: { showModal: false },
         editSheet: { showModal: false },
       };
     default:
@@ -532,6 +539,23 @@ function UserListTableContent() {
         }
         ToolbarRight={
           <>
+            {adminOrOwner && (
+              <DataTableToolbar.CTA
+                type="button"
+                color="secondary"
+                StartIcon="file-up"
+                onClick={() =>
+                  dispatch({
+                    type: "IMPORT_MEMBERS",
+                    payload: {
+                      showModal: true,
+                    },
+                  })
+                }
+                data-testid="import-members-button">
+                {t("import")}
+              </DataTableToolbar.CTA>
+            )}
             <DataTableToolbar.CTA
               type="button"
               color="secondary"
@@ -600,6 +624,7 @@ function UserListTableContent() {
 
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
+      {state.importMembers.showModal && <ImportMembersModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
       {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
