@@ -30,7 +30,7 @@ export default function UpgradePage() {
   const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
 
   return (
-    <Shell withoutSeo={true}>
+    <Shell >
       <div className="max-w-screen-lg">
         {doesUserHaveOrgToUpgrade.data ? (
           <EmptyScreen
