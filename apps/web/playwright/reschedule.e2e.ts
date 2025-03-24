@@ -13,6 +13,7 @@ import {
   confirmReschedule,
   doOnOrgDomain,
   goToUrlWithErrorHandling,
+  gotoAndWaitForIdle,
   IS_STRIPE_ENABLED,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
@@ -31,7 +32,7 @@ test.describe("Reschedule Tests", async () => {
     });
 
     await user.apiLogin();
-    await page.goto("/bookings/upcoming");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming");
 
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
 
@@ -73,7 +74,7 @@ test.describe("Reschedule Tests", async () => {
     });
 
     await user.apiLogin();
-    await page.goto("/bookings/past");
+    await gotoAndWaitForIdle(page, "/bookings/past");
 
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
 
@@ -105,7 +106,7 @@ test.describe("Reschedule Tests", async () => {
       rescheduled: true,
     });
 
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -122,7 +123,7 @@ test.describe("Reschedule Tests", async () => {
     });
 
     await user.apiLogin();
-    await page.goto("/bookings/cancelled");
+    await gotoAndWaitForIdle(page, "/bookings/cancelled");
 
     const requestRescheduleSentElement = page.locator('[data-testid="request_reschedule_sent"]').nth(1);
     await expect(requestRescheduleSentElement).toBeVisible();
@@ -137,7 +138,7 @@ test.describe("Reschedule Tests", async () => {
       rescheduled: true,
     });
 
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -191,7 +192,7 @@ test.describe("Reschedule Tests", async () => {
       },
     });
     const payment = await payments.create(booking.id);
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -221,7 +222,7 @@ test.describe("Reschedule Tests", async () => {
     });
 
     const payment = await payments.create(booking.id);
-    await page.goto(`/reschedule/${booking?.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking?.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -238,7 +239,7 @@ test.describe("Reschedule Tests", async () => {
       status: BookingStatus.ACCEPTED,
     });
 
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -260,7 +261,7 @@ test.describe("Reschedule Tests", async () => {
     });
     await user.apiLogin();
 
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -279,7 +280,7 @@ test.describe("Reschedule Tests", async () => {
     const booking = await bookings.create(user.id, user.username, eventType.id);
 
     // Go to attendee's reschedule link
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -314,7 +315,7 @@ test.describe("Reschedule Tests", async () => {
 
     const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
 
-    await page.goto(`/reschedule/${booking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -335,14 +336,14 @@ test.describe("Reschedule Tests", async () => {
 
     const confirmBooking = async (bookingId: number) => {
       const [authedContext, authedPage] = await user.apiLoginOnNewBrowser(browser);
-      await authedPage.goto("/bookings/upcoming");
+      await gotoAndWaitForIdle(authedPage, "/bookings/upcoming");
       await submitAndWaitForResponse(authedPage, "/api/trpc/bookings/confirm?batch=1", {
         action: () => authedPage.locator(`[data-bookingid="${bookingId}"][data-testid="confirm"]`).click(),
       });
       await authedContext.close();
     };
 
-    await page.goto(`/${user.username}/${eventType.slug}`);
+    await gotoAndWaitForIdle(page, `/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -355,7 +356,7 @@ test.describe("Reschedule Tests", async () => {
     expect(currentBooking).not.toBeUndefined();
     await confirmBooking(currentBooking.id);
 
-    await page.goto(`/reschedule/${currentBooking.uid}`);
+    await gotoAndWaitForIdle(page, `/reschedule/${currentBooking.uid}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     await confirmReschedule(page);
@@ -377,7 +378,7 @@ test.describe("Reschedule Tests", async () => {
     // eslint-disable-next-line playwright/no-conditional-in-test
     if (!locationVideoCallUrl) return;
     expect(locationVideoCallUrl).not.toBeUndefined();
-    await page.goto(locationVideoCallUrl);
+    await gotoAndWaitForIdle(page, locationVideoCallUrl);
     await expect(page.frameLocator("iFrame").locator('text="Continue"')).toBeVisible();
   });
 
@@ -425,7 +426,7 @@ test.describe("Reschedule Tests", async () => {
           });
 
           const rescheduleUrlToBeOpenedInOrgContext = getNonOrgUrlFromOrgUrl(result.url, orgSlug);
-          await page.goto(rescheduleUrlToBeOpenedInOrgContext);
+          await gotoAndWaitForIdle(page, rescheduleUrlToBeOpenedInOrgContext);
           await expectSuccessfulReschedule(page, orgSlug);
           return { url: result.url };
         }
@@ -460,7 +461,7 @@ test.describe("Reschedule Tests", async () => {
           page,
         },
         async ({ page }) => {
-          await page.goto(getNonOrgUrlFromOrgUrl(result.url, orgSlug));
+          await gotoAndWaitForIdle(page, getNonOrgUrlFromOrgUrl(result.url, orgSlug));
           await expectSuccessfulReschedule(page, orgSlug);
         }
       );
