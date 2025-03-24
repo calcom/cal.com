@@ -1,5 +1,3 @@
-// if you decide to use global config, it must be imported once in your project before "arktype"
-// import "./ark-config";
 import { type } from "arktype";
 
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";

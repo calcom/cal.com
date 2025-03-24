@@ -13,3 +13,6 @@ configure({
   // though it may be worthwhile to have stricter rules around optionality in the future.
   exactOptionalPropertyTypes: true,
 });
+
+// If you decide to use global config, this file must be imported once in your
+// project before the main `arktype` entrypoint.

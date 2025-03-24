@@ -296,7 +296,7 @@ export const getPublicEvent = async (
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
-        bookerLayouts: bookerLayoutsSchema(
+        bookerLayouts: bookerLayoutsSchema.assert(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
         ...(orgDetails
