@@ -7,7 +7,9 @@ import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Select, List } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Select } from "@calcom/ui/components/form";
+import { List } from "@calcom/ui/components/list";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
@@ -197,28 +199,28 @@ export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
       <div className="border-subtle border-b p-6">
         <div className="flex items-center justify-between">
           <div>
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-4 w-48 animate-pulse rounded-md" />
           </div>
-          <div className="h-8 w-32 animate-pulse rounded-md bg-gray-200" />
+          <div className="bg-emphasis h-8 w-32 animate-pulse rounded-md" />
         </div>
       </div>
       <div className="p-6 pt-2">
         <div className="border-subtle mt-4 rounded-lg border p-4">
           <div className="flex items-center">
-            <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-10 w-10 animate-pulse rounded-md" />
             <div className="ml-4 space-y-2">
-              <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-              <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+              <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+              <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
             </div>
           </div>
           <div className="border-subtle mt-4 space-y-4 border-t pt-4">
-            <div className="h-4 w-64 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-64 animate-pulse rounded-md" />
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center justify-between">
-                  <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
-                  <div className="h-6 w-10 animate-pulse rounded-md bg-gray-200" />
+                  <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
+                  <div className="bg-emphasis h-6 w-10 animate-pulse rounded-md" />
                 </div>
               ))}
             </div>

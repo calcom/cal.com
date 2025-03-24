@@ -187,7 +187,7 @@ class BaseCreateEventTypeInput {
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, person booking this event't cant add guests via their emails.",
+    description: "If true, person booking this event can't add guests via their emails.",
   })
   disableGuests?: boolean;
 
@@ -211,7 +211,7 @@ class BaseCreateEventTypeInput {
   @IsInt()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "Time spaces that can be pre-pended before an event to give more time before it.",
+    description: "Time spaces that can be prepended before an event to give more time before it.",
   })
   beforeEventBuffer?: number;
 
@@ -460,7 +460,11 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
     return value;
   })
   @IsEnum(SchedulingType)
-  @DocsProperty()
+  @DocsProperty({
+    enum: ["collective", "roundRobin", "managed"],
+    example: "collective",
+    description: "The scheduling type for the team event - collective, roundRobin or managed.",
+  })
   schedulingType!: keyof typeof SchedulingType;
 
   @ValidateNested({ each: true })

@@ -1,5 +1,6 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
@@ -7,7 +8,6 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -31,16 +31,15 @@ import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function handler(req: NextRequest) {
+  const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    res.status(405).json({ message: "No SendGrid API key or email" });
-    return;
+    return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
   }
 
   // delete batch_ids with already past scheduled date from scheduled_sends
@@ -105,8 +104,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const unscheduledReminders: PartialWorkflowReminder[] = await getAllUnscheduledReminders();
 
   if (!unscheduledReminders.length) {
-    res.status(200).json({ message: "No Emails to schedule" });
-    return;
+    return NextResponse.json({ message: "No Emails to schedule" }, { status: 200 });
   }
 
   for (const reminder of unscheduledReminders) {
@@ -320,6 +318,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               language: { translate: t, locale: booking.user?.locale ?? "en" },
             },
             attendees,
+            location: bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl || booking.location,
+            title: booking.title || booking.eventType?.title || "",
           };
 
           sendEmailPromises.push(
@@ -436,9 +436,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   });
 
-  res.status(200).json({ message: `${unscheduledReminders.length} Emails to schedule` });
+  return NextResponse.json({ message: `${unscheduledReminders.length} Emails to schedule` }, { status: 200 });
 }
-
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});

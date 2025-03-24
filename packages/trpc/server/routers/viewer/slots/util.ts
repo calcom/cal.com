@@ -9,7 +9,6 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -19,6 +18,8 @@ import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -39,9 +40,9 @@ import type { CredentialPayload, CredentialForCalendarService } from "@calcom/ty
 
 import { TRPCError } from "@trpc/server";
 
-import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
+import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {

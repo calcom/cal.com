@@ -8,9 +8,9 @@ import { createServer } from "http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
@@ -429,7 +429,7 @@ export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: strin
 }
 
 /**
- * Within this function's callback if a non-org domain is opened, it is considered an org domain identfied from `orgSlug`
+ * Within this function's callback if a non-org domain is opened, it is considered an org domain identified from `orgSlug`
  */
 export async function doOnOrgDomain(
   { orgSlug, page }: { orgSlug: string | null; page: Page },
