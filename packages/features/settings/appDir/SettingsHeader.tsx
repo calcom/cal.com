@@ -1,13 +1,14 @@
 import React, { Suspense } from "react";
 
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
 
 interface HeaderProps {
   children: React.ReactNode;
   title?: string;
   description?: string;
   CTA?: React.ReactNode;
+  ctaClassName?: string;
   borderInShellHeader?: boolean;
   backButton?: boolean;
 }
@@ -17,6 +18,7 @@ export default function Header({
   title,
   description,
   CTA,
+  ctaClassName,
   borderInShellHeader,
   backButton,
 }: HeaderProps) {
@@ -48,7 +50,7 @@ export default function Header({
               <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
             )}
           </div>
-          <div className="ms-auto flex-shrink-0">{CTA}</div>
+          <div className={classNames("ms-auto flex-shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
       <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>

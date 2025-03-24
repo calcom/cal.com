@@ -11,6 +11,8 @@ import NoPlatformPlan from "@calcom/web/components/settings/platform/dashboard/N
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
+const ACTIONS_CONTAINER_CLASS_NAME = "org_members_header_cta";
+
 const PlatformMembersView = () => {
   const { t } = useLocale();
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
@@ -50,7 +52,7 @@ const PlatformMembersView = () => {
     );
 
   return (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider defaultPageSize={25} toolbarContainerClassName={ACTIONS_CONTAINER_CLASS_NAME}>
       <Shell
         heading={
           <div className="flex">
@@ -69,12 +71,7 @@ const PlatformMembersView = () => {
         subtitle={t("platform_members_description")}
         withoutMain={false}
         isPlatformUser={true}
-        CTA={
-          <>
-            <p>hello</p>
-            <p>world</p>
-          </>
-        }>
+        actions={<div className={ACTIONS_CONTAINER_CLASS_NAME} />}>
         <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
       </Shell>
     </DataTableProvider>

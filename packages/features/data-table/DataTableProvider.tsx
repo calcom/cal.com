@@ -2,7 +2,7 @@
 
 import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback } from "react";
+import { createContext, useCallback, useRef, useEffect } from "react";
 import { z } from "zod";
 
 import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./lib/types";
@@ -15,6 +15,8 @@ const ZActiveFilter = z.object({
 type ActiveFilter = z.infer<typeof ZActiveFilter>;
 
 export type DataTableContextType = {
+  toolbarContainerRef?: React.RefObject<HTMLDivElement>;
+
   activeFilters: ActiveFilter[];
   clearAll: (exclude?: string[]) => void;
   addFilter: (columnId: string) => void;
@@ -45,10 +47,15 @@ const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
   children: React.ReactNode;
+  toolbarContainerClassName?: string;
   defaultPageSize?: number;
 }
 
-export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZE }: DataTableProviderProps) {
+export function DataTableProvider({
+  children,
+  defaultPageSize = DEFAULT_PAGE_SIZE,
+  toolbarContainerClassName,
+}: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
@@ -119,9 +126,18 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
     [setPageSize, setPageIndex]
   );
 
+  const toolbarContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (toolbarContainerClassName) {
+      const element = document.getElementsByClassName(toolbarContainerClassName)[0] as HTMLDivElement;
+      toolbarContainerRef.current = element;
+    }
+  }, [toolbarContainerClassName]);
+
   return (
     <DataTableContext.Provider
       value={{
+        toolbarContainerRef,
         activeFilters,
         addFilter,
         clearAll,

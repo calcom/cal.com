@@ -11,20 +11,17 @@ export const generateMetadata = async () =>
     (t) => t("organization_description")
   );
 
+const CTA_CLASS_NAME = "org_members_header_cta";
+
 const Page = async () => {
   const t = await getTranslate();
 
   const children = (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider defaultPageSize={25} toolbarContainerClassName={CTA_CLASS_NAME}>
       <SettingsHeader
         title={t("organization_members")}
         description={t("organization_description")}
-        CTA={
-          <>
-            <p>hello</p>
-            <p>world</p>
-          </>
-        }>
+        ctaClassName={CTA_CLASS_NAME}>
         <LegacyPage />
       </SettingsHeader>
     </DataTableProvider>
