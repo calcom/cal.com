@@ -16,6 +16,12 @@ import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
 import { loadJSON } from "./loadJSON";
 
+declare global {
+  interface Window {
+    __trpcRequests: Set<string>;
+  }
+}
+
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
 type RequestHandler = (opts: RequestHandlerOptions) => void;
