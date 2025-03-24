@@ -91,6 +91,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <>
             <Booker
+              // timeZones={["Europe/London", "Asia/Kolkata"]}
+              // isBookingDryRun={true}
               bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
               eventSlug={eventTypeSlug}
               onCreateBookingSuccess={(data) => {

@@ -279,19 +279,19 @@ const destinationCalendarComponents = {
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="flex w-full flex-col">
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-4 w-48 animate-pulse rounded-md" />
           </div>
           <div className="w-full">
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
           </div>
         </div>
         <div className="space-y-2">
-          <div className="h-6 w-64 animate-pulse rounded-md bg-gray-200" />
-          <div className="h-10 w-full animate-pulse rounded-md bg-gray-200" />
-          <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+          <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
+          <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
+          <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
         </div>
       </div>
     );
