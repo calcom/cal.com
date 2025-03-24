@@ -71,6 +71,11 @@ export async function scanWorkflowBody(payload: string) {
       timeFormat,
     });
 
+    if (!defaultTemplate) {
+      log.error(`Template not found for action ${workflowStep.action}, template ${workflowStep.template}`);
+      continue;
+    }
+
     if (
       compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: defaultTemplate })
     ) {
