@@ -294,11 +294,6 @@ const nextConfig = {
     const { orgSlug } = nextJsOrgRewriteConfig;
     const beforeFiles = [
       {
-        // This should be the first item in `beforeFiles` to take precedence over other rewrites
-        source: "/en/:path*",
-        destination: "/:path*",
-      },
-      {
         source: "/forms/:formQuery*",
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
