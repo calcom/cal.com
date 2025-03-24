@@ -6,6 +6,9 @@ const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const {
+  i18n: { locales },
+} = require("./next-i18next.config");
+const {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
   orgUserTypeRoutePath,
@@ -290,7 +293,7 @@ const nextConfig = {
     const beforeFiles = [
       {
         // This should be the first item in `beforeFiles` to take precedence over other rewrites
-        source: "/en/:path*",
+        source: `/(${locales.join("|")})/:path*`,
         destination: "/:path*",
       },
       {
