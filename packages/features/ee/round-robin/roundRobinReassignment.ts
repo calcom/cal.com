@@ -133,7 +133,8 @@ export const roundRobinReassignment = async ({
     return availableUsers;
   }, [] as IsFixedAwareUser[]);
 
-  let requestedHost: IsFixedAwareUser | null;
+  let requestedHost: IsFixedAwareUser | undefined;
+
   if (teamMemberEmail) {
     roundRobinReassignLogger.info(`Looking for host with email: ${teamMemberEmail}`);
     requestedHost = availableEventTypeUsers.find(
