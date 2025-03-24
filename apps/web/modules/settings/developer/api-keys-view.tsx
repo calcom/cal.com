@@ -9,7 +9,10 @@ import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListIt
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 const SkeletonLoader = () => {
   return (

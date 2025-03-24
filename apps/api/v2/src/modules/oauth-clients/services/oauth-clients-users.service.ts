@@ -1,3 +1,4 @@
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
@@ -5,18 +6,21 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
 import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
+  private readonly logger = new Logger("OAuthClientUsersService");
+
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly schedulesService: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly calendarsService: CalendarsService
   ) {}
 
   async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
@@ -85,6 +89,13 @@ export class OAuthClientUsersService {
     if (body.timeZone) {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
       user.defaultScheduleId = defaultSchedule.id;
+    }
+
+    try {
+      this.logger.log(`Setting default calendars in db for user with id ${user.id}`);
+      await this.calendarsService.getCalendars(user.id);
+    } catch (err) {
+      this.logger.error(`Could not get calendars of new managed user with id ${user.id}`);
     }
 
     return {

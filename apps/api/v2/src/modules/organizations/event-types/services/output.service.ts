@@ -100,7 +100,9 @@ export class OutputOrganizationsEventTypesService {
       teamId,
       ownerId: userId,
       parentEventTypeId: parentId,
-      schedulingType: databaseEventType.schedulingType,
+      schedulingType: databaseEventType.schedulingType
+        ? this.getResponseSchedulingType(databaseEventType.schedulingType)
+        : databaseEventType.schedulingType,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
       team: {
         id: teamId,
@@ -114,6 +116,19 @@ export class OutputOrganizationsEventTypesService {
         theme: databaseEventType?.team?.theme,
       },
     };
+  }
+
+  getResponseSchedulingType(schedulingType: SchedulingType) {
+    if (schedulingType === SchedulingType.COLLECTIVE) {
+      return "collective";
+    }
+    if (schedulingType === SchedulingType.ROUND_ROBIN) {
+      return "roundRobin";
+    }
+    if (schedulingType === SchedulingType.MANAGED) {
+      return "managed";
+    }
+    return schedulingType;
   }
 
   async getManagedEventTypeHosts(eventTypeId: number) {
@@ -144,7 +159,7 @@ export class OutputOrganizationsEventTypesService {
         transformedHosts.push({
           userId: databaseHost.userId,
           name: databaseUser?.name || "",
-          mandatory: databaseHost.isFixed,
+          mandatory: !!databaseHost.isFixed,
           priority: getPriorityLabel(databaseHost.priority || 2),
           avatarUrl: databaseUser?.avatarUrl,
         });
