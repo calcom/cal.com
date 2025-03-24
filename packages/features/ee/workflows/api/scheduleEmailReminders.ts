@@ -393,7 +393,7 @@ export async function handler(req: NextRequest) {
           meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
           otherPerson: attendeeName || "",
           name: name || "",
-          hideBranding: brandingDisabled,
+          isBrandingDisabled: brandingDisabled,
         });
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
