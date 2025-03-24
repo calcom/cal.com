@@ -522,25 +522,12 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
 }
 
 export async function gotoAndWaitForIdle(page: Page, url: string) {
-  const response = await page.goto(url);
-  const trpcRequests = new Set();
-
-  page.on("request", (request) => {
-    if (request.url().includes("/api/trpc/")) {
-      trpcRequests.add(request);
-    }
+  const response = await page.goto(url, { 
+    waitUntil: "networkidle"
   });
-
-  page.on("response", (response) => {
-    if (response.url().includes("/api/trpc/")) {
-      trpcRequests.delete(response.request());
-    }
-  });
-
-  await page.waitForFunction(() => trpcRequests.size === 0);
+  
   return response;
 }
-
 
 export async function bookTeamEvent({
   page,
