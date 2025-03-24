@@ -10,13 +10,11 @@ import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/h
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
-import { HeadSeo } from "@calcom/ui/components/head-seo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { SideBarContainer } from "./SideBar";
@@ -30,19 +28,11 @@ const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
-  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-  const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
 
   useFormbricks();
 
   return (
     <>
-      {!withoutSeo && (
-        <HeadSeo
-          title={pageTitle ?? APP_NAME}
-          description={props.description ?? props.subtitle?.toString() ?? ""}
-        />
-      )}
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -91,8 +81,6 @@ export type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
-  // Gives you the option to skip HeadSEO and render your own.
-  withoutSeo?: boolean;
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
   beforeCTAactions?: JSX.Element;
