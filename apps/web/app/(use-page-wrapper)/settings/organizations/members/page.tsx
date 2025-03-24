@@ -1,6 +1,7 @@
 import SettingsLayoutAppDir from "app/(use-page-wrapper)/settings/(settings-layout)/layout";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import LegacyPage from "@calcom/features/ee/organizations/pages/members";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -14,9 +15,19 @@ const Page = async () => {
   const t = await getTranslate();
 
   const children = (
-    <SettingsHeader title={t("organization_members")} description={t("organization_description")}>
-      <LegacyPage />
-    </SettingsHeader>
+    <DataTableProvider defaultPageSize={25}>
+      <SettingsHeader
+        title={t("organization_members")}
+        description={t("organization_description")}
+        CTA={
+          <>
+            <p>hello</p>
+            <p>world</p>
+          </>
+        }>
+        <LegacyPage />
+      </SettingsHeader>
+    </DataTableProvider>
   );
   return await SettingsLayoutAppDir({ children, containerClassName: "lg:max-w-screen-2xl" });
 };

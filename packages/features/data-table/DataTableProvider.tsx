@@ -5,7 +5,7 @@ import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs
 import { createContext, useCallback } from "react";
 import { z } from "zod";
 
-import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./types";
+import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./lib/types";
 
 const ZActiveFilter = z.object({
   f: z.string(),

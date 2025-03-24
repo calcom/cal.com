@@ -8,7 +8,6 @@ import { useMemo, useReducer, useState } from "react";
 
 import {
   DataTableWrapper,
-  DataTableProvider,
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
@@ -100,14 +99,6 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 }
 
 export function UserListTable() {
-  return (
-    <DataTableProvider defaultPageSize={25}>
-      <UserListTableContent />
-    </DataTableProvider>
-  );
-}
-
-function UserListTableContent() {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;

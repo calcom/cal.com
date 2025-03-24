@@ -1,5 +1,6 @@
 "use client";
 
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import Shell from "@calcom/features/shell/Shell";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -49,26 +50,34 @@ const PlatformMembersView = () => {
     );
 
   return (
-    <Shell
-      heading={
-        <div className="flex">
-          <h1>Member management</h1>
-          <Button
-            tooltip="Only teammates invited as admins can create OAuth clients while teammates invited as members have read only access"
-            tooltipSide="right"
-            className="mx-2 hover:bg-transparent"
-            color="minimal"
-            variant="icon"
-            StartIcon="info"
-          />
-        </div>
-      }
-      title={t("platform_members")}
-      subtitle={t("platform_members_description")}
-      withoutMain={false}
-      isPlatformUser={true}>
-      <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
-    </Shell>
+    <DataTableProvider defaultPageSize={25}>
+      <Shell
+        heading={
+          <div className="flex">
+            <h1>Member management</h1>
+            <Button
+              tooltip="Only teammates invited as admins can create OAuth clients while teammates invited as members have read only access"
+              tooltipSide="right"
+              className="mx-2 hover:bg-transparent"
+              color="minimal"
+              variant="icon"
+              StartIcon="info"
+            />
+          </div>
+        }
+        title={t("platform_members")}
+        subtitle={t("platform_members_description")}
+        withoutMain={false}
+        isPlatformUser={true}
+        CTA={
+          <>
+            <p>hello</p>
+            <p>world</p>
+          </>
+        }>
+        <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
+      </Shell>
+    </DataTableProvider>
   );
 };
 
