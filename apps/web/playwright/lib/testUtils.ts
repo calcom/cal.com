@@ -522,10 +522,28 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
 }
 
 export async function gotoAndWaitForIdle(page: Page, url: string) {
-  const response = await page.goto(url, { 
-    waitUntil: "networkidle"
+  const response = await page.goto(url);
+  await page.evaluate(() => {
+    window.__trpcRequests = new Set();
   });
-  
+
+  page.on("request", (request) => {
+    if (request.url().includes("/api/trpc/")) {
+      page.evaluate((url) => {
+        window.__trpcRequests.add(url);
+      }, request.url());
+    }
+  });
+
+  page.on("response", (response) => {
+    if (response.url().includes("/api/trpc/")) {
+      page.evaluate((url) => {
+        window.__trpcRequests.delete(url);
+      }, response.url());
+    }
+  });
+
+  await page.waitForFunction(() => window.__trpcRequests.size === 0);
   return response;
 }
 
