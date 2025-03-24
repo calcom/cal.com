@@ -25,6 +25,8 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
+  console.log("calendarType", calendarType);
+  console.log("CalendarServiceMap", CalendarServiceMap);
   const calendarService = await CalendarServiceMap[
     calendarType.split("_").join("") as keyof typeof CalendarServiceMap
   ];

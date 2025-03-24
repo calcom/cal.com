@@ -6,45 +6,27 @@ import type * as VideoAdaptersMap from "../../../packages/app-store/conferencing
 import type * as CrmServicesMap from "../../../packages/app-store/crm.services.generated";
 import type * as PaymentAppsMap from "../../../packages/app-store/payment.apps.generated";
 
-vi.mock("@calcom/app-store/calendar.services.generated", () => calendarServicesMapMock);
-vi.mock("@calcom/app-store/crm.services.generated", () => crmServicesMapMock);
-vi.mock("@calcom/app-store/conferencing.videoAdapters.generated", () => videoAdaptersMapMock);
-vi.mock("@calcom/app-store/payment.apps.generated", () => paymentAppMapMock);
+vi.mock("@calcom/app-store/calendar.services.generated", () => ({
+  CalendarServiceMap: calendarServicesMapMock,
+}));
+vi.mock("@calcom/app-store/crm.services.generated", () => ({
+  CrmServiceMap: crmServicesMapMock,
+}));
+vi.mock("@calcom/app-store/conferencing.videoAdapters.generated", () => ({
+  VideoAdapterMap: videoAdaptersMapMock,
+}));
+vi.mock("@calcom/app-store/payment.apps.generated", () => ({
+  PaymentAppMap: paymentAppMapMock,
+}));
 
 beforeEach(() => {
   mockReset(calendarServicesMapMock);
+  mockReset(crmServicesMapMock);
+  mockReset(paymentAppMapMock);
+  mockReset(videoAdaptersMapMock);
 });
 
-export const calendarServicesMapMock = mockDeep<typeof CalendarServicesMap>({
-  fallbackMockImplementation: () => {
-    console.log("Not implemented");
-    // throw new Error(
-    //   "Unimplemented calendarServicesMapMock. You seem to have mocked the app that you are trying to use"
-    // );
-  },
-});
-
-export const crmServicesMapMock = mockDeep<typeof CrmServicesMap>({
-  fallbackMockImplementation: () => {
-    throw new Error(
-      "Unimplemented crmServicesMapMock. You seem to have mocked the app that you are trying to use"
-    );
-  },
-});
-
-export const paymentAppMapMock = mockDeep<typeof PaymentAppsMap>({
-  fallbackMockImplementation: () => {
-    throw new Error(
-      "Unimplemented paymentAppMapMock. You seem to have mocked the app that you are trying to use"
-    );
-  },
-});
-
-export const videoAdaptersMapMock = mockDeep<typeof VideoAdaptersMap>({
-  fallbackMockImplementation: () => {
-    console.log("videoApiAdaptor Not implemented");
-    // throw new Error(
-    //   "Unimplemented videoAdaptersMapMock. You seem to have mocked the app that you are trying to use"
-    // );
-  },
-});
+export const calendarServicesMapMock = mockDeep<typeof CalendarServicesMap.CalendarServiceMap>();
+export const crmServicesMapMock = mockDeep<typeof CrmServicesMap.CrmServiceMap>();
+export const paymentAppMapMock = mockDeep<typeof PaymentAppsMap.PaymentAppMap>();
+export const videoAdaptersMapMock = mockDeep<typeof VideoAdaptersMap.ConferencingVideoAdapterMap>();
