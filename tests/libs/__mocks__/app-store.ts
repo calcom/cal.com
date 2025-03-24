@@ -13,7 +13,7 @@ vi.mock("@calcom/app-store/crm.services.generated", () => ({
   CrmServiceMap: crmServicesMapMock,
 }));
 vi.mock("@calcom/app-store/conferencing.videoAdapters.generated", () => ({
-  VideoAdapterMap: videoAdaptersMapMock,
+  ConferencingVideoAdapterMap: videoAdaptersMapMock,
 }));
 vi.mock("@calcom/app-store/payment.apps.generated", () => ({
   PaymentAppMap: paymentAppMapMock,
