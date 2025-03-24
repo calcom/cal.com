@@ -150,7 +150,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
                 visibility: "hidden",
               }
-            : {}
+            : {
+                visibility: "visible",
+              }
         }>
         <IconSprites />
         {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
