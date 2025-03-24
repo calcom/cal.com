@@ -17,13 +17,11 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import {
-  type BookerLayoutSettings,
+  BookerLayoutSettings,
   BookerLayouts,
-  bookerLayoutOptions,
-  bookerLayoutsSchema,
-  customInputSchema,
-  teamMetadataSchema,
-  userMetadataSchema,
+  TeamMetadata,
+  UserMetadata,
+  CustomInput,
 } from "@calcom/prisma/ark-utils";
 import type { Team } from "@calcom/prisma/client";
 // this schema is still handled by Zod since it references
@@ -214,7 +212,7 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
-const customInputsSchema = customInputSchema.array();
+const CustomInputs = CustomInput.array();
 
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
@@ -241,7 +239,7 @@ export const getPublicEvent = async (
     let locations = defaultEvent.locations ? (defaultEvent.locations as LocationObject[]) : [];
 
     // Get the preferred location type from the first user
-    const firstUsersMetadata = userMetadataSchema.assert(users[0].metadata || {});
+    const firstUsersMetadata = UserMetadata.assert(users[0].metadata || {});
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
     if (preferedLocationType?.appSlug) {
@@ -254,10 +252,10 @@ export const getPublicEvent = async (
       }
     }
 
-    const defaultEventBookerLayouts = {
-      enabledLayouts: [...bookerLayoutOptions],
+    const defaultEventBookerLayouts: BookerLayoutSettings = {
+      enabledLayouts: [...Object.values(BookerLayouts)],
       defaultLayout: BookerLayouts.MONTH_VIEW,
-    } as BookerLayoutSettings;
+    };
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
@@ -296,7 +294,7 @@ export const getPublicEvent = async (
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
-        bookerLayouts: bookerLayoutsSchema.assert(
+        bookerLayouts: BookerLayoutSettings.assert(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
         ...(orgDetails
@@ -384,7 +382,7 @@ export const getPublicEvent = async (
   if (!event) return null;
 
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
-  const teamMetadata = teamMetadataSchema.assert(event.team?.metadata || {});
+  const teamMetadata = TeamMetadata.assert(event.team?.metadata || {});
   const usersAsHosts = event.hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
@@ -477,10 +475,10 @@ export const getPublicEvent = async (
   }
   return {
     ...eventWithUserProfiles,
-    bookerLayouts: bookerLayoutsSchema.assert(eventMetaData?.bookerLayouts || null),
+    bookerLayouts: BookerLayoutSettings.assert(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(eventWithUserProfiles.description),
     metadata: eventMetaData,
-    customInputs: customInputsSchema.assert(event.customInputs || []),
+    customInputs: CustomInputs.assert(event.customInputs || []),
     locations: privacyFilteredLocations((eventWithUserProfiles.locations || []) as LocationObject[]),
     bookingFields: getBookingFieldsWithSystemFields(event),
     recurringEvent: isRecurringEvent(eventWithUserProfiles.recurringEvent)
@@ -540,7 +538,7 @@ function getProfileFromEvent(event: GetProfileFromEventInput) {
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
-  const userMetaData = userMetadataSchema.assert(profile.metadata || {});
+  const userMetaData = UserMetadata.assert(profile.metadata || {});
 
   return {
     username,
@@ -554,7 +552,7 @@ function getProfileFromEvent(event: GetProfileFromEventInput) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
-    bookerLayouts: bookerLayoutsSchema.assert(
+    bookerLayouts: BookerLayoutSettings.assert(
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
     ),

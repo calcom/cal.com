@@ -9,7 +9,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
-import type { teamMetadataSchema } from "./ark-utils";
+import type { TeamMetadata } from "./ark-utils";
 
 export async function createUserAndEventType({
   user,
@@ -204,7 +204,7 @@ export async function createTeamAndAddUsers(
   };
   const createTeam = async (team: Prisma.TeamCreateInput) => {
     try {
-      const requestedSlug = (team.metadata as typeof teamMetadataSchema.inferIn)?.requestedSlug;
+      const requestedSlug = (team.metadata as typeof TeamMetadata.inferIn)?.requestedSlug;
       if (requestedSlug) {
         const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
         if (unpublishedTeam) {

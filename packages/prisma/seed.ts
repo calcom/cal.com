@@ -14,7 +14,7 @@ import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@ca
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
-import type { teamMetadataSchema } from "./ark-utils";
+import type { TeamMetadata } from "./ark-utils";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
@@ -97,7 +97,7 @@ const setupPlatformUser = async (user: PlatformUser) => {
 
 const createTeam = async (team: Prisma.TeamCreateInput) => {
   try {
-    const requestedSlug = (team.metadata as typeof teamMetadataSchema.inferIn)?.requestedSlug;
+    const requestedSlug = (team.metadata as typeof TeamMetadata.inferIn)?.requestedSlug;
     if (requestedSlug) {
       const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
       if (unpublishedTeam) {
@@ -213,7 +213,7 @@ async function createTeamAndAddUsers(
   };
   const createTeam = async (team: Prisma.TeamCreateInput) => {
     try {
-      const requestedSlug = (team.metadata as typeof teamMetadataSchema.inferIn)?.requestedSlug;
+      const requestedSlug = (team.metadata as typeof TeamMetadata.inferIn)?.requestedSlug;
       if (requestedSlug) {
         const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
         if (unpublishedTeam) {

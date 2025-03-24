@@ -2,80 +2,89 @@ import { type } from "arktype";
 
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
-import { BillingPeriod, bookerLayoutOptions } from "./zod-utils.js";
+enum BillingPeriod {
+  MONTHLY = "MONTHLY",
+  ANNUALLY = "ANNUALLY",
+}
 
-const layoutOptionsSchema = type.enumerated(...bookerLayoutOptions);
+export enum BookerLayouts {
+  MONTH_VIEW = "month_view",
+  WEEK_VIEW = "week_view",
+  COLUMN_VIEW = "column_view",
+}
 
-export const bookerLayoutsSchema = type({
-  enabledLayouts: layoutOptionsSchema.array(),
-  defaultLayout: layoutOptionsSchema,
+const LayoutOption = type.valueOf(BookerLayouts);
+
+export const BookerLayoutSettings = type({
+  enabledLayouts: LayoutOption.array(),
+  defaultLayout: LayoutOption,
 });
 
-export type BookerLayoutSettings = typeof bookerLayoutsSchema.infer;
+export type BookerLayoutSettings = typeof BookerLayoutSettings.infer;
 
-export const vitalSettingsUpdateSchema = type({
+export const VitalSettingsUpdate = type({
   connected: "boolean?",
   selectedParam: "string?",
   sleepValue: "number?",
 });
 
-const defaultConferencingAppSchema = type({
+const DefaultConferencingApp = type({
   appSlug: "string = 'daily-video'",
   appLink: "string?",
 });
 
-export type DefaultConferencingApp = typeof defaultConferencingAppSchema.infer;
+export type DefaultConferencingApp = typeof DefaultConferencingApp.infer;
 
-const baseMigrationSourceSchema = type({
+const BaseMigrationSource = type({
   lastMigrationTime: "string?",
   reverted: "boolean?",
   revertTime: "string?",
 });
 
-const userMigrationSourceSchema = baseMigrationSourceSchema.merge({ username: "string | null?" });
+const UserMigrationSource = BaseMigrationSource.merge({ username: "string | null?" });
 
-export const userMetadataSchema = type({
+export const UserMetadata = type({
   proPaidForByTeamId: "number?",
   stripeCustomerId: "string?",
-  vitalSettings: vitalSettingsUpdateSchema.optional(),
+  vitalSettings: VitalSettingsUpdate.optional(),
   isPremium: "boolean?",
   /** Minutes */
   sessionTimeout: "number?",
-  defaultConferencingApp: defaultConferencingAppSchema.or("null").optional(),
-  defaultBookerLayouts: bookerLayoutsSchema.or("null").optional(),
+  defaultConferencingApp: DefaultConferencingApp.or("null").optional(),
+  defaultBookerLayouts: BookerLayoutSettings.or("null").optional(),
   emailChangeWaitingForVerification: "string.lower?",
-  migratedToOrgFrom: userMigrationSourceSchema.optional(),
+  migratedToOrgFrom: UserMigrationSource.optional(),
 });
 
-const teamMigrationSourceSchema = baseMigrationSourceSchema.merge({
+const TeamMigrationSource = BaseMigrationSource.merge({
   teamSlug: "string | null?",
 });
 
-export const teamMetadataSchema = type({
+export const TeamMetadata = type({
   requestedSlug: "string | null",
   paymentId: "string",
   subscriptionId: "string | null",
   subscriptionItemId: "string | null",
   orgSeats: "string | null",
   orgPricePerSeat: "string | null",
-  migratedToOrgFrom: teamMigrationSourceSchema.optional(),
-  billinPeriod: type.valueOf(BillingPeriod),
+  migratedToOrgFrom: TeamMigrationSource.optional(),
+  billingPeriod: type.valueOf(BillingPeriod),
 }).partial();
 
-export const customInputOptionSchema = type({
+export const CustomInputOptions = type({
   label: "string",
   type: "string",
 }).array();
 
-export const customInputSchema = type({
+export const CustomInput = type({
   id: "number",
   eventTypeId: "number",
   label: "string",
   type: type.valueOf(EventTypeCustomInputType),
-  options: customInputOptionSchema.or("null").optional(),
+  options: CustomInputOptions.or("null").optional(),
   required: "boolean",
   placeholder: "string",
   hasToBeCreated: "boolean?",
 });
 
-export type CustomInputSchema = typeof customInputSchema.infer;
+export type CustomInput = typeof CustomInput.infer;

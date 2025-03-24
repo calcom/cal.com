@@ -2,46 +2,57 @@ import z from "zod";
 
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
-import { BillingPeriod, bookerLayoutOptions, type bookerLayouts } from "./zod-utils.js";
+enum BillingPeriod {
+  MONTHLY = "MONTHLY",
+  ANNUALLY = "ANNUALLY",
+}
 
-const zodLayoutOptionsSchema = z.union([
+enum BookerLayouts {
+  MONTH_VIEW = "month_view",
+  WEEK_VIEW = "week_view",
+  COLUMN_VIEW = "column_view",
+}
+
+const bookerLayoutOptions = [BookerLayouts.MONTH_VIEW, BookerLayouts.WEEK_VIEW, BookerLayouts.COLUMN_VIEW];
+
+const layoutOptionsSchema = z.union([
   z.literal(bookerLayoutOptions[0]),
   z.literal(bookerLayoutOptions[1]),
   z.literal(bookerLayoutOptions[2]),
 ]);
 
-export const zodBookerLayoutsSchema = z
+export const bookerLayoutsSchema = z
   .object({
-    enabledLayouts: z.array(zodLayoutOptionsSchema),
-    defaultLayout: zodLayoutOptionsSchema,
+    enabledLayouts: z.array(layoutOptionsSchema),
+    defaultLayout: layoutOptionsSchema,
   })
   .nullable();
 
-export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
+export type BookerLayoutSettings = z.infer<typeof bookerLayoutsSchema>;
 
-export const zodVitalSettingsUpdateSchema = z.object({
+export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
   selectedParam: z.string().optional(),
   sleepValue: z.number().optional(),
 });
 
-const zodSchemaDefaultConferencingApp = z.object({
+const defaultConferencingAppSchema = z.object({
   appSlug: z.string().default("daily-video").optional(),
   appLink: z.string().optional(),
 });
 
-export type DefaultConferencingApp = z.infer<typeof zodSchemaDefaultConferencingApp>;
+export type DefaultConferencingApp = z.infer<typeof defaultConferencingAppSchema>;
 
-export const userMetadata = z
+export const userMetadataSchema = z
   .object({
     proPaidForByTeamId: z.number().optional(),
     stripeCustomerId: z.string().optional(),
-    vitalSettings: zodVitalSettingsUpdateSchema.optional(),
+    vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
     /** Minutes */
     sessionTimeout: z.number().optional(),
-    defaultConferencingApp: zodSchemaDefaultConferencingApp.optional(),
-    defaultBookerLayouts: zodBookerLayoutsSchema.optional(),
+    defaultConferencingApp: defaultConferencingAppSchema.optional(),
+    defaultBookerLayouts: bookerLayoutsSchema.optional(),
     emailChangeWaitingForVerification: z
       .string()
       .transform((data) => data.toLowerCase())
