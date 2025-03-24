@@ -2033,6 +2033,7 @@ async function handler(
         eventTypeId,
         teamId,
         orgId,
+        oAuthClientId: platformClientId,
         isDryRun,
       });
     }
