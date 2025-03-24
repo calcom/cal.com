@@ -71,6 +71,8 @@ export const TeamMetadata = type({
   billingPeriod: type.valueOf(BillingPeriod),
 }).partial();
 
+export type TeamMetadata = typeof TeamMetadata.infer;
+
 export const CustomInputOptions = type({
   label: "string",
   type: "string",

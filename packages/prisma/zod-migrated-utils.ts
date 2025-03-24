@@ -89,6 +89,8 @@ export const teamMetadataSchema = z
   .partial()
   .nullable();
 
+export type TeamMetadata = z.infer<typeof teamMetadataSchema>;
+
 export const customInputOptionSchema = z.array(
   z.object({
     label: z.string(),

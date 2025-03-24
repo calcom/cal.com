@@ -204,7 +204,7 @@ export async function createTeamAndAddUsers(
   };
   const createTeam = async (team: Prisma.TeamCreateInput) => {
     try {
-      const requestedSlug = (team.metadata as typeof TeamMetadata.inferIn)?.requestedSlug;
+      const requestedSlug = (team.metadata as TeamMetadata)?.requestedSlug;
       if (requestedSlug) {
         const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
         if (unpublishedTeam) {
