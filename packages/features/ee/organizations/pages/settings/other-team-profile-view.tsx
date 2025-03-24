@@ -15,7 +15,7 @@ import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -281,7 +281,7 @@ const OtherTeamProfileView = () => {
                     <div
                       className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                       // eslint-disable-next-line react/no-danger
-                      dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
+                      dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(team.bio) }}
                     />
                   </>
                 )}

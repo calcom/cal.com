@@ -169,7 +169,7 @@ export const EventMeta = ({
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
-                  __html: markdownToSafeHTML(translatedDescription ?? event.description),
+                  __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
                 }}
               />
             </EventMetaBlock>

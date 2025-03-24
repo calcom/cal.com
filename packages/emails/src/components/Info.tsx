@@ -1,4 +1,4 @@
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 
 const Spacer = () => <p style={{ height: 6 }} />;
 
@@ -13,8 +13,8 @@ export const Info = (props: {
 }) => {
   if (!props.description || props.description === "") return null;
 
-  const safeDescription = markdownToSafeHTML(props.description.toString()) || "";
-  const safeLabel = markdownToSafeHTML(props.label.toString());
+  const safeDescription = markdownToSafeHTMLClient(props.description.toString()) || "";
+  const safeLabel = markdownToSafeHTMLClient(props.label.toString());
 
   const StyledHtmlContent = ({ htmlContent }: { htmlContent: string }) => {
     const css = "color: '#101010'; font-weight: 400; line-height: 24px; margin: 0;";
