@@ -191,8 +191,8 @@ function UsersTableBare() {
                         <span className="ml-3">/{user.username}</span>
                         {user.profiles[0]?.username && (
                           <span className="ml-3 flex items-center">
-                            <Icon name="building" className="text-subtle mr-1 h-5 w-5" />
-                            <span className="ml-3">{user.profiles[0]?.username}</span>
+                            <Icon name="building" className="text-subtle size-5 mr-1" />
+                            <span className="ml-1">{user.profiles[0]?.username}</span>
                           </span>
                         )}
                         {user.locked && (
