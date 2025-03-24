@@ -57,8 +57,8 @@ const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
 const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
 
 <Booker
-    rescheduleUid={queryParamRescheduleUid}
-    eventSlug={queryParamEventTypeSlug}
+    rescheduleUid={rescheduleUid}
+    eventSlug={eventTypeSlugQueryParam}
     username={calUsername}
 />
 ```
