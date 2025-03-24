@@ -17,7 +17,7 @@ import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
-import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity/UnpublishedEntity";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
