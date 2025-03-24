@@ -429,7 +429,7 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  async reassignBooking(bookingUid: string, requestUser: UserWithProfile, request: Request) {
+  async reassignBooking(bookingUid: string, requestUser: UserWithProfile, teamMemberEmail: string | null) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
@@ -448,8 +448,7 @@ export class BookingsService_2024_08_13 {
       orgId: profile?.organizationId || null,
       emailsEnabled,
       platformClientParams,
-      teamMemberEmail:
-        typeof request.query.teamMemberEmail === "string" ? request.query.teamMemberEmail : undefined,
+      teamMemberEmail: teamMemberEmail || undefined,
     });
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
