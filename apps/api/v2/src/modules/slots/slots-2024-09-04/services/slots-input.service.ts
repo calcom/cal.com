@@ -28,6 +28,8 @@ export class SlotsInputService_2024_09_04 {
     const endTime = this.adjustEndTime(query.end);
     const duration = query.duration;
     const eventTypeId = eventType.id;
+    const eventTypeSlug = eventType.slug;
+    const usernameList = "usernames" in query ? query.usernames : [];
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
 
@@ -37,6 +39,8 @@ export class SlotsInputService_2024_09_04 {
       endTime,
       duration,
       eventTypeId,
+      eventTypeSlug,
+      usernameList,
       timeZone,
       orgSlug,
     };
