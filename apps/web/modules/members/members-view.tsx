@@ -11,7 +11,6 @@ const MembersPage: React.FC = () => {
       withoutMain={false}
       title={t("organization_members")}
       description={t("organization_description")}
-      withoutSeo
       subtitle={t("organization_description")}>
       <MembersView />
     </Shell>

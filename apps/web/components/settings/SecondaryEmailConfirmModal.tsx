@@ -1,7 +1,6 @@
-import { Trans } from "react-i18next";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 interface SecondaryEmailConfirmModalProps {
   email: string;
@@ -15,7 +14,7 @@ const SecondaryEmailConfirmModal = ({ email, onCancel }: SecondaryEmailConfirmMo
     <Dialog open={true}>
       <DialogContent
         title={t("confirm_email")}
-        description={<Trans i18nKey="confirm_email_description" values={{ email }} />}
+        description={<ServerTrans t={t} i18nKey="confirm_email_description" values={{ email }} />}
         type="creation"
         data-testid="secondary-email-confirm-dialog">
         <DialogFooter>
