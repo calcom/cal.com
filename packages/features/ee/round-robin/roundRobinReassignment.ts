@@ -53,7 +53,7 @@ export const roundRobinReassignment = async ({
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
-  teamMemberEmail?: string;
+  teamMemberEmail: string | null;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -133,7 +133,7 @@ export const roundRobinReassignment = async ({
     return availableUsers;
   }, [] as IsFixedAwareUser[]);
 
-  let requestedHost: IsFixedAwareUser | undefined;
+  let requestedHost: IsFixedAwareUser | null;
   if (teamMemberEmail) {
     roundRobinReassignLogger.info(`Looking for host with email: ${teamMemberEmail}`);
     requestedHost = availableEventTypeUsers.find(
