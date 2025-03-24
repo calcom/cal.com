@@ -1321,9 +1321,8 @@ export default class SalesforceCRMService implements CRM {
   }) {
     const log = logger.getSubLogger({ prefix: [`[getPicklistFieldValue] ${contactId}`] });
 
-    const picklistValues = salesforceField.picklistValues;
-
-    if (!picklistValues || !picklistValues.length) {
+    const picklistOptions = salesforceField.picklistValues;
+    if (!picklistOptions || !picklistOptions.length) {
       log.warn(`No picklist values found for field ${salesforceField.name}`);
       return null;
     }
@@ -1340,11 +1339,10 @@ export default class SalesforceCRMService implements CRM {
       log.warn(`No text value found for field ${salesforceField.name}`);
       return null;
     }
-
     // Get the picklist value from the field
-    const picklistValue = picklistValues.find((value) => value.label === fieldTextValue);
+    const picklistValue = picklistOptions.find((option) => option.active && option.value === fieldTextValue);
     if (!picklistValue) {
-      log.warn(`No picklist value found for field ${salesforceField.name}`);
+      log.warn(`No picklist value found for field ${salesforceField.name} and value ${fieldTextValue}`);
       return null;
     }
 
