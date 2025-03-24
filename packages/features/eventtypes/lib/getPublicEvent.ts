@@ -16,17 +16,20 @@ import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Team } from "@calcom/prisma/client";
-import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
-  eventTypeMetaDataSchemaWithTypedApps,
+  type BookerLayoutSettings,
   BookerLayouts,
   bookerLayoutOptions,
   bookerLayoutsSchema,
   customInputSchema,
   teamMetadataSchema,
-  userMetadata as userMetadataSchema,
-} from "@calcom/prisma/zod-utils";
+  userMetadataSchema,
+} from "@calcom/prisma/ark-utils";
+import type { Team } from "@calcom/prisma/client";
+// this schema is still handled by Zod since it references
+// many app schemas. those could either be migrated to ArkType
+// directly or by wrapping the Zod schemas as an intermediate solution.
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -211,6 +214,8 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
+const customInputsSchema = customInputSchema.array();
+
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
@@ -236,7 +241,7 @@ export const getPublicEvent = async (
     let locations = defaultEvent.locations ? (defaultEvent.locations as LocationObject[]) : [];
 
     // Get the preferred location type from the first user
-    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
+    const firstUsersMetadata = userMetadataSchema.assert(users[0].metadata || {});
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
     if (preferedLocationType?.appSlug) {
@@ -379,7 +384,7 @@ export const getPublicEvent = async (
   if (!event) return null;
 
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
-  const teamMetadata = teamMetadataSchema(event.team?.metadata || {});
+  const teamMetadata = teamMetadataSchema.assert(event.team?.metadata || {});
   const usersAsHosts = event.hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
@@ -472,10 +477,10 @@ export const getPublicEvent = async (
   }
   return {
     ...eventWithUserProfiles,
-    bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
+    bookerLayouts: bookerLayoutsSchema.assert(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(eventWithUserProfiles.description),
     metadata: eventMetaData,
-    customInputs: customInputSchema.array().parse(event.customInputs || []),
+    customInputs: customInputsSchema.assert(event.customInputs || []),
     locations: privacyFilteredLocations((eventWithUserProfiles.locations || []) as LocationObject[]),
     bookingFields: getBookingFieldsWithSystemFields(event),
     recurringEvent: isRecurringEvent(eventWithUserProfiles.recurringEvent)
@@ -535,7 +540,7 @@ function getProfileFromEvent(event: GetProfileFromEventInput) {
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
-  const userMetaData = userMetadataSchema.parse(profile.metadata || {});
+  const userMetaData = userMetadataSchema.assert(profile.metadata || {});
 
   return {
     username,
@@ -549,7 +554,7 @@ function getProfileFromEvent(event: GetProfileFromEventInput) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
-    bookerLayouts: bookerLayoutsSchema.parse(
+    bookerLayouts: bookerLayoutsSchema.assert(
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
     ),

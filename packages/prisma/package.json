@@ -21,6 +21,7 @@
     "seed-insights": "ts-node --transpile-only ./seed-insights.ts"
   },
   "devDependencies": {
+    "@calcom/tsconfig": "*",
     "@faker-js/faker": "9.2.0",
     "npm-run-all": "^4.1.5"
   },
@@ -29,7 +30,7 @@
     "@prisma/client": "^5.4.2",
     "@prisma/extension-accelerate": "^0.6.2",
     "@prisma/generator-helper": "^5.4.2",
-    "arktype": "^2.1.9",
+    "arktype": "^2.1.12",
     "prisma": "^5.4.2",
     "prisma-kysely": "^1.7.1",
     "ts-node": "^10.9.1",
