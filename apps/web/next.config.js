@@ -187,6 +187,10 @@ const nextConfig = {
     optimizePackageImports: ["@calcom/ui"],
     turbo: {},
   },
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en"],
+  },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
   typescript: {
