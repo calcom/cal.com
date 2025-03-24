@@ -1,8 +1,8 @@
-import { Trans } from "next-i18next";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import type { DialogProps } from "@calcom/ui/components/dialog";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export function DeleteDialog({
   isManagedEvent,
@@ -32,14 +32,14 @@ export function DeleteDialog({
           onDelete(eventTypeId);
         }}>
         <p className="mt-5">
-          <Trans
-            i18nKey={`delete${isManagedEvent}_event_type_description`}
-            components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-            <ul>
-              <li>Members assigned to this event type will also have their event types deleted.</li>
-              <li>Anyone who they&apos;ve shared their link with will no longer be able to book using it.</li>
+          {isManagedEvent ? (
+            <ul className="ml-4 list-disc">
+              <li>{t("delete_managed_event_type_description_1")}</li>
+              <li>{t("delete_managed_event_type_description_2")}</li>
             </ul>
-          </Trans>
+          ) : (
+            t("delete_event_type_description")
+          )}
         </p>
       </ConfirmationDialogContent>
     </Dialog>

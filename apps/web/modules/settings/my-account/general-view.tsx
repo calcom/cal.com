@@ -63,7 +63,7 @@ const SkeletonLoader = () => {
 interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"]["get"];
-  travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules: RouterOutputs["viewer"]["travelSchedules"]["get"];
   revalidatePage: GeneralQueryViewProps["revalidatePage"];
 }
 
@@ -77,7 +77,7 @@ const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
   const { data: user, isPending } = trpc.viewer.me.get.useQuery();
 
   const { data: travelSchedules, isPending: isPendingTravelSchedules } =
-    trpc.viewer.getTravelSchedules.useQuery();
+    trpc.viewer.travelSchedules.get.useQuery();
 
   if (isPending || isPendingTravelSchedules) return <SkeletonLoader />;
   if (!user) {

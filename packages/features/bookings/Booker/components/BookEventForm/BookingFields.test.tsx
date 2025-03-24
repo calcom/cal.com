@@ -3,8 +3,7 @@ import { render, fireEvent, screen } from "@testing-library/react";
 import * as React from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
-import { expect } from "vitest";
-import { vi } from "vitest";
+import { expect, vi } from "vitest";
 
 import PhoneInput from "@calcom/features/components/phone-input/PhoneInput";
 
