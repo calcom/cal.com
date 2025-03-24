@@ -522,7 +522,10 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
 }
 
 export async function gotoAndWaitForIdle(page: Page, url: string) {
-  const response = await page.goto(url, url === "/" ? {} : { waitUntil: "networkidle" });
+  const response = await page.goto(url);
+  await page.waitForResponse((res) =>
+    res.url().includes("/api/trpc/i18n/get")
+  );
   return response;
 }
 
