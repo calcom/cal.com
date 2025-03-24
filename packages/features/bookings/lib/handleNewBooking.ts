@@ -1064,7 +1064,7 @@ async function handler(
 
   subscriberOptions.triggerEvent = eventTrigger;
 
-  const subscriberOptionsMeetingEnded = {
+  const subscriberOptionsMeetingEnded: GetSubscriberOptions = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -1073,7 +1073,7 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const subscriberOptionsMeetingStarted = {
+  const subscriberOptionsMeetingStarted: GetSubscriberOptions = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
