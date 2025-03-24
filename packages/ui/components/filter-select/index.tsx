@@ -1,10 +1,8 @@
-import { classNames } from "@calcom/lib";
-import type { IconName } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+
+import { Badge } from "../badge/Badge";
+import { Button } from "../button/Button";
 import {
-  Button,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
   Command,
   CommandInput,
   CommandList,
@@ -12,9 +10,10 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-  Badge,
-  Icon,
-} from "@calcom/ui";
+} from "../command/Command";
+import type { IconName } from "../icon/Icon";
+import { Icon } from "../icon/Icon";
+import { Popover, PopoverTrigger, PopoverContent } from "../popover/Popover";
 
 export interface FilterOption {
   value: string | number;

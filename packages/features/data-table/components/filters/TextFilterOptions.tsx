@@ -3,7 +3,10 @@
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, Input, Select, Button } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
@@ -65,7 +68,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
             )}
           />
 
-          <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
+          <div className="bg-subtle -mx-3 my-2 h-px" role="separator" />
 
           <div className="flex items-center justify-between">
             <Button

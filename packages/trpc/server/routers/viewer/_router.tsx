@@ -15,19 +15,23 @@ import { attributesRouter } from "./attributes/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
+import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
-import { domainWideDelegationRouter } from "./domainWideDelegation/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { highPerfRouter } from "./highPerf/_router";
+import { i18nRouter } from "./i18n/_router";
+import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
+import { oooRouter } from "./ooo/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
+import { travelSchedulesRouter } from "./travelSchedules/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
@@ -35,7 +39,8 @@ export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
 
   router({
-    loggedInViewerRouter,
+    apps: appsRouter,
+    me: meRouter,
     public: publicViewerRouter,
     auth: authRouter,
     deploymentSetup: deploymentSetupRouter,
@@ -45,13 +50,14 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     timezones: timezonesRouter,
     organizations: viewerOrganizationsRouter,
-    domainWideDelegation: domainWideDelegationRouter,
+    delegationCredential: delegationCredentialRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
     slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
     dsync: dsyncRouter,
+    i18n: i18nRouter,
     insights: insightsRouter,
     payments: paymentsRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
@@ -59,7 +65,6 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     appBasecamp3: app_Basecamp3,
     features: featureFlagRouter,
-    appsRouter,
     users: userAdminRouter,
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,
@@ -67,5 +72,7 @@ export const viewerRouter = mergeRouters(
     attributes: attributesRouter,
     highPerf: highPerfRouter,
     routingForms: routingFormsRouter,
+    ooo: oooRouter,
+    travelSchedules: travelSchedulesRouter,
   })
 );

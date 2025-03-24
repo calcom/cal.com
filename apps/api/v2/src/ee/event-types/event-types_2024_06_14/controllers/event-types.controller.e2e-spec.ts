@@ -116,6 +116,7 @@ describe("Event types Endpoints", () => {
       slug: "email",
       required: true,
       disableOnPrefill: false,
+      hidden: false,
     };
 
     const defaultResponseBookingFieldLocation = {
@@ -336,6 +337,46 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
+    it("should not be able to create phone-only event type", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Phone coding consultation",
+        slug: "phone-coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+            hidden: true,
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+            hidden: false,
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+
+      expect(response.body.error.message).toBe(
+        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+      );
+    });
+
     it("should create an event type", async () => {
       const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
@@ -374,6 +415,15 @@ describe("Event types Endpoints", () => {
             required: true,
             placeholder: "select language",
             options: ["javascript", "python", "cobol"],
+            disableOnPrefill: true,
+            hidden: false,
+          },
+          {
+            type: "url",
+            label: "Video Url",
+            slug: "video-url",
+            required: true,
+            placeholder: "add video url",
             disableOnPrefill: true,
             hidden: false,
           },
@@ -474,6 +524,16 @@ describe("Event types Endpoints", () => {
               required: true,
               placeholder: "select language",
               options: ["javascript", "python", "cobol"],
+              disableOnPrefill: true,
+              hidden: false,
+              isDefault: false,
+            },
+            {
+              type: "url",
+              label: "Video Url",
+              slug: "video-url",
+              required: true,
+              placeholder: "add video url",
               disableOnPrefill: true,
               hidden: false,
               isDefault: false,
@@ -1172,7 +1232,14 @@ describe("Event types Endpoints", () => {
 
     const expectedReturnSystemFields = [
       { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
-      { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+      {
+        isDefault: true,
+        required: true,
+        slug: "email",
+        type: "email",
+        disableOnPrefill: false,
+        hidden: false,
+      },
       {
         isDefault: true,
         type: "radioInput",
@@ -1625,6 +1692,7 @@ describe("Event types Endpoints", () => {
               slug: "email",
               required: true,
               disableOnPrefill: false,
+              hidden: false,
             },
             {
               isDefault: true,
@@ -1826,7 +1894,6 @@ describe("Event types Endpoints", () => {
       await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
-        await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
       } catch (e) {
         // Event type might have been deleted by the test
       }

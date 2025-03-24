@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
@@ -9,8 +11,9 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast } from "@calcom/ui";
-import { Spinner } from "@calcom/ui/components/icon/Spinner";
+import { Button } from "@calcom/ui/components/button";
+import { Spinner } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface IAlbyPaymentComponentProps {
   payment: {

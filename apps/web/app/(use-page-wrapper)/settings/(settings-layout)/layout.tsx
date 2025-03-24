@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import React from "react";
 
@@ -8,15 +7,12 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
-
-const SettingsLayoutAppDirClient = dynamic(() => import("./SettingsLayoutAppDirClient"), {
-  ssr: false,
-});
+import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
 type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
 
 export default async function SettingsLayoutAppDir(props: SettingsLayoutAppDirProps) {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   const userId = session?.user?.id ?? -1;
   const orgId = session?.user?.org?.id ?? -1;

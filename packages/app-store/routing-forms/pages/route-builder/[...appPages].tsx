@@ -8,29 +8,25 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
+import type { z } from "zod";
 
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
-import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import {
-  SelectField,
-  FormCard,
-  SelectWithValidation as Select,
-  TextArea,
-  TextField,
-  Badge,
-  Divider,
-  SettingsToggle,
-} from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { FormCard } from "@calcom/ui/components/card";
+import { Divider } from "@calcom/ui/components/divider";
+import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SelectField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
@@ -49,7 +45,7 @@ import {
   isDynamicOperandField,
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
-import type { SerializableForm } from "../../types/types";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 import type {
   GlobalRoute,
   LocalRoute,
@@ -58,6 +54,7 @@ import type {
   EditFormRoute,
   AttributeRoutingConfig,
 } from "../../types/types";
+import type { zodRoutes } from "../../zod";
 import { RouteActionType } from "../../zod";
 
 type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
@@ -912,7 +909,7 @@ const Routes = ({
 
   const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
 
-  const notHaveAttributesQuery = ({ form }: { form: SerializableForm<App_RoutingForms_Form> }) => {
+  const notHaveAttributesQuery = ({ form }: { form: { routes: z.infer<typeof zodRoutes> } }) => {
     return form.routes?.every((route) => {
       if (isRouter(route)) {
         return true;
@@ -952,7 +949,24 @@ const Routes = ({
         };
       }) || [];
 
-  const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
+  // const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const routers: any[] = [];
+  /* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */
+  // const routers = availableRouters.map((r) => {
+  //   // Reset disabled state
+  //   r.isDisabled = false;
+
+  //   // Can't select a form as router that is already a connected form. It avoids cyclic dependency
+  //   if (isConnectedForm(r.value)) {
+  //     r.isDisabled = true;
+  //   }
+  //   // A route that's already used, can't be reselected
+  //   if (routes.find((route) => route.id === r.value)) {
+  //     r.isDisabled = true;
+  //   }
+  //   return r;
+  // });
 
   const routerOptions = (
     [
@@ -969,22 +983,7 @@ const Routes = ({
       description: string | null;
       isDisabled?: boolean;
     }[]
-  ).concat(
-    availableRouters.map((r) => {
-      // Reset disabled state
-      r.isDisabled = false;
-
-      // Can't select a form as router that is already a connected form. It avoids cyclic dependency
-      if (isConnectedForm(r.value)) {
-        r.isDisabled = true;
-      }
-      // A route that's already used, can't be reselected
-      if (routes.find((route) => route.id === r.value)) {
-        r.isDisabled = true;
-      }
-      return r;
-    })
-  );
+  ).concat(routers);
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 

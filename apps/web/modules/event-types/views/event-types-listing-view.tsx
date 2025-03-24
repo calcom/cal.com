@@ -1,21 +1,24 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState, useMemo } from "react";
+import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import {
+  InfiniteSkeletonLoader,
+  EventTypesSkeletonLoader,
+} from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { classNames, parseEventTypeColor } from "@calcom/lib";
+import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -28,15 +31,16 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
+import { UserAvatarGroup } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  ConfirmationDialogContent,
-  CreateButton,
-  Dialog,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -44,20 +48,21 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  EmptyScreen,
-  HorizontalTabs,
-  Icon,
-  Label,
-  showToast,
-  Skeleton,
-  Switch,
-  TextField,
-  Tooltip,
-  ArrowButton,
-  UserAvatarGroup,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { Skeleton } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
+
+import { TRPCClientError } from "@trpc/client";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -801,16 +806,14 @@ export const InfiniteEventTypeList = ({
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
-            <Trans
-              i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
-              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-              <ul>
-                <li>Members assigned to this event type will also have their event types deleted.</li>
-                <li>
-                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                </li>
+            {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
+              <ul className="ml-4 list-disc">
+                <li>{t("delete_managed_event_type_description_1")}</li>
+                <li>{t("delete_managed_event_type_description_2")}</li>
               </ul>
-            </Trans>
+            ) : (
+              t("delete_event_type_description")
+            )}
           </p>
         </ConfirmationDialogContent>
       </Dialog>
@@ -903,31 +906,21 @@ const InfiniteScrollMain = ({
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
-  const tabs = useMemo(() => {
-    return (
-      eventTypeGroups?.map((item, index) => {
-        let href = item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam";
-        // If it's the first tab and no teamId is in the URL, set href to just /event-types
-        if (index === 0 && searchParams && !searchParams.has("teamId") && !searchParams.has("noTeam")) {
-          href = "/event-types";
-        }
-        return {
-          name: item.profile.name ?? "",
-          href,
-          avatar: item.profile.image,
-          "data-testid": item.profile.name ?? "",
-        };
-      }) ?? []
-    );
-  }, [eventTypeGroups, searchParams]);
-
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
 
   if (!eventTypeGroups || !profiles || status === "pending") {
-    return <InfiniteSkeletonLoader />;
+    return <EventTypesSkeletonLoader />;
   }
+
+  const tabs = eventTypeGroups.map((item) => ({
+    name: item.profile.name ?? "",
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
+    avatar: item.profile.image,
+    "data-testid": item.profile.name ?? "",
+    matchFullPath: true,
+  }));
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];

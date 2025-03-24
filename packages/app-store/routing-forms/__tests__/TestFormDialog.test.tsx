@@ -37,10 +37,6 @@ function mockEventTypeRedirectUrlMatchingRoute() {
 /**
  * fixes the error due to Formbricks
  */
-vi.mock("@calcom/ui", async (importOriginal) => ({
-  ...(await importOriginal<Record<string, unknown>>()),
-}));
-
 vi.mock("@calcom/features/shell/Shell", () => ({
   ShellMain: vi.fn(),
 }));
@@ -112,7 +108,7 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-const mockTeamForm = {
+const mockSubTeamForm = {
   id: "routing-form-id",
   teamId: "test-team-id",
   name: "Test Form",
@@ -152,6 +148,16 @@ const mockTeamForm = {
       },
     },
   ],
+  team: {
+    parentId: "org-1",
+  },
+} as any;
+
+const mockRegularTeamForm = {
+  ...mockSubTeamForm,
+  team: {
+    parentId: null,
+  },
 } as any;
 
 describe("TestFormDialog", () => {
@@ -163,7 +169,7 @@ describe("TestFormDialog", () => {
   it("renders the dialog when open", () => {
     render(
       <TestFormDialog
-        form={mockTeamForm}
+        form={mockSubTeamForm}
         isTestPreviewOpen={true}
         setIsTestPreviewOpen={() => {
           return;
@@ -178,7 +184,7 @@ describe("TestFormDialog", () => {
   it("doesn't render the dialog when closed", () => {
     render(
       <TestFormDialog
-        form={mockTeamForm}
+        form={mockSubTeamForm}
         isTestPreviewOpen={false}
         setIsTestPreviewOpen={() => {
           return;
@@ -192,7 +198,7 @@ describe("TestFormDialog", () => {
   it("renders form fields", () => {
     render(
       <TestFormDialog
-        form={mockTeamForm}
+        form={mockSubTeamForm}
         isTestPreviewOpen={true}
         setIsTestPreviewOpen={() => {
           return;
@@ -203,12 +209,13 @@ describe("TestFormDialog", () => {
     expect(screen.getByTestId("form-field-name")).toBeInTheDocument();
   });
 
-  describe("Team Form", () => {
+  describe("Sub-Team Form", () => {
+    const form = mockSubTeamForm;
     it("submits the form and shows test results for Custom Page", async () => {
       mockCustomPageMessageMatchingRoute();
       render(
         <TestFormDialog
-          form={mockTeamForm}
+          form={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -227,7 +234,7 @@ describe("TestFormDialog", () => {
       mockEventTypeRedirectUrlMatchingRoute();
       render(
         <TestFormDialog
-          form={mockTeamForm}
+          form={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -257,7 +264,7 @@ describe("TestFormDialog", () => {
       });
       render(
         <TestFormDialog
-          form={mockTeamForm}
+          form={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -287,7 +294,7 @@ describe("TestFormDialog", () => {
       });
       render(
         <TestFormDialog
-          form={mockTeamForm}
+          form={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -313,7 +320,7 @@ describe("TestFormDialog", () => {
       });
       render(
         <TestFormDialog
-          form={mockTeamForm}
+          form={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -339,7 +346,7 @@ describe("TestFormDialog", () => {
       });
       render(
         <TestFormDialog
-          form={mockTeamForm}
+          form={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -356,11 +363,53 @@ describe("TestFormDialog", () => {
     });
   });
 
+  describe("Regular Team Form", () => {
+    const form = mockRegularTeamForm;
+    it("submits the form and shows test results for Custom Page", async () => {
+      mockCustomPageMessageMatchingRoute();
+      render(
+        <TestFormDialog
+          form={mockRegularTeamForm}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
+      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.click(screen.getByText("test_routing"));
+
+      expect(screen.getByText("route_to:")).toBeInTheDocument();
+      expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Custom Page");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("Thank you for submitting!");
+    });
+
+    it("submits the form and shows test results for Event Type", async () => {
+      mockEventTypeRedirectUrlMatchingRoute();
+      render(
+        <TestFormDialog
+          form={form}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
+      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.click(screen.getByText("test_routing"));
+      expect(screen.getByText("route_to:")).toBeInTheDocument();
+      expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Event Redirect");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
+      // When we support showing matching route we can add this back
+      // expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 2");
+    });
+  });
+
   it("closes the dialog when close button is clicked", () => {
     const setIsTestPreviewOpen = vi.fn();
     render(
       <TestFormDialog
-        form={mockTeamForm}
+        form={mockSubTeamForm}
         isTestPreviewOpen={true}
         setIsTestPreviewOpen={setIsTestPreviewOpen}
       />

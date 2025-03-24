@@ -1,3 +1,4 @@
+import type { IncomingMessage } from "http";
 import { z } from "zod";
 
 export const getScheduleSchema = z
@@ -56,6 +57,7 @@ export const reserveSlotSchema = z
     // endTime ISOString
     slotUtcEndDate: z.string(),
     bookingUid: z.string().optional(),
+    _isDryRun: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
@@ -73,3 +75,15 @@ export type Slot = {
 export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
 });
+
+export interface ContextForGetSchedule extends Record<string, unknown> {
+  req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+}
+
+export type TGetScheduleInputSchema = z.infer<typeof getScheduleSchema>;
+export const ZGetScheduleInputSchema = getScheduleSchema;
+
+export type GetScheduleOptions = {
+  ctx?: ContextForGetSchedule;
+  input: TGetScheduleInputSchema;
+};

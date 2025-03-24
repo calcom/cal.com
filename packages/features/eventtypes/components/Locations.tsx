@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
@@ -8,7 +7,8 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import PhoneInput from "@calcom/features/components/phone-input";
 import type {
   LocationFormValues,
   EventTypeSetupProps,
@@ -20,10 +20,14 @@ import type {
   SingleValueLocationOption,
 } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Input, PhoneInput, Button, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
@@ -439,14 +443,18 @@ const Locations: React.FC<LocationsProps> = ({
               <Icon name="check" className="h-3 w-3" />
             </div>
             <p className="text-default text-sm">
-              <Trans i18nKey="event_type_requires_google_calendar">
-                The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
-                Connect it
-                <Link className="cursor-pointer text-blue-500 underline" href="/apps/google-calendar">
-                  here
-                </Link>
-                .
-              </Trans>
+              <ServerTrans
+                t={t}
+                i18nKey="event_type_requires_google_calendar"
+                components={[
+                  <Link
+                    key="event_type_requires_google_calendar"
+                    className="cursor-pointer text-blue-500 underline"
+                    href="/apps/google-calendar">
+                    here
+                  </Link>,
+                ]}
+              />
             </p>
           </div>
         )}
@@ -476,13 +484,18 @@ const Locations: React.FC<LocationsProps> = ({
       </ul>
       {props.showAppStoreLink && !isPlatorm && (
         <p className="text-default mt-2 text-sm">
-          <Trans i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
-            Can&apos;t find the right conferencing app? Visit our
-            <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/conferencing">
-              App Store
-            </Link>
-            .
-          </Trans>
+          <ServerTrans
+            t={t}
+            i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store"
+            components={[
+              <Link
+                key="cant_find_the_right_conferencing_app_visit_our_app_store"
+                className="cursor-pointer text-blue-500 underline"
+                href="/apps/categories/conferencing">
+                App Store
+              </Link>,
+            ]}
+          />
         </p>
       )}
     </div>

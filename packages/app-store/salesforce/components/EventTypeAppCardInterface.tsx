@@ -8,7 +8,12 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Switch, Alert, Select, Button, InputField, showToast } from "@calcom/ui";
+import { InputField } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Select } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import {
   SalesforceRecordEnum,
@@ -209,7 +214,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("value")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToEventObjectMap).map((key) => (
+                {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
                   <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />
@@ -303,7 +308,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("when_to_write")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToRecordFields).map((key) => (
+                {Object.keys(onBookingWriteToRecordFields).map((key) => (
                   <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />
