@@ -3842,6 +3842,7 @@ __metadata:
     ical.js: ^1.4.0
     ics: ^2.37.0
     jose: ^4.13.1
+    jotai: ^2.12.2
     jsdom: ^22.0.0
     kbar: ^0.1.0-beta.36
     libphonenumber-js: ^1.11.18
@@ -27838,6 +27839,21 @@ __metadata:
   version: 6.0.10
   resolution: "jose@npm:6.0.10"
   checksum: 11481dc955fd466d51a58cfe59e8fff9f402f091793c917e424de6e4c6e6d58952405705a643fb4613fb85ba99025cbff573da81f9bc7a005b49b590ca329ccf
+  languageName: node
+  linkType: hard
+
+"jotai@npm:^2.12.2":
+  version: 2.12.2
+  resolution: "jotai@npm:2.12.2"
+  peerDependencies:
+    "@types/react": ">=17.0.0"
+    react: ">=17.0.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+  checksum: 8af476c442a09be12fa5b09e2d20e47905575123a98ccb16981ee5f280af1da23a23095ee4f33fde799aed568ecee8971a39f9ed29f9ec4687f2e54180b97191
   languageName: node
   linkType: hard
 
