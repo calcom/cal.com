@@ -77,7 +77,7 @@ describe("Plain Integration API", () => {
     const userData = { id: 1, email: `${tier}@example.com`, name: `${tier} User` };
     (getServerSession as any).mockResolvedValue({ user: userData });
     prismaMock.user.findUnique.mockResolvedValue({ ...userData, teams });
-    const params = Promise.resolve<Params>({})
+    const params = Promise.resolve<Params>({});
 
     const data = await (await POST({} as NextRequest, { params })).json();
     expect(data).toMatchObject({ userTier: tier, email: userData.email, fullName: userData.name });
@@ -85,7 +85,7 @@ describe("Plain Integration API", () => {
 
   it("should return 401 when no session exists", async () => {
     (getServerSession as any).mockResolvedValue(null);
-    const params = Promise.resolve<Params>({})
+    const params = Promise.resolve<Params>({});
 
     expect((await POST({} as NextRequest, { params })).status).toBe(401);
   });
