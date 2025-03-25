@@ -33,6 +33,11 @@ vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
 const mockWorkflowStep = {
   id: 1,
   reminderBody: "Test reminder body",
+  workflow: {
+    user: {
+      timeFormat: 24,
+    },
+  },
 };
 
 const mockWorkflow = {
