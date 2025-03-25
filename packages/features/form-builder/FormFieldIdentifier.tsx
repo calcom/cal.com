@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Tooltip } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const FormFieldIdentifier = ({
   fieldIdentifier,
