@@ -53,7 +53,7 @@ export type DatePickerProps = {
   >;
 };
 
-export const Day = ({
+const Day = ({
   date,
   active,
   disabled,
@@ -310,7 +310,11 @@ const DatePicker = ({
     };
     scrollToTimeSlots?: () => void;
   }) => {
-  const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const minDate = passThroughProps.minDate;
+  const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const browsingDate =
+    minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
+
   const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
@@ -331,7 +335,7 @@ const DatePicker = ({
       <div className="mb-1 flex items-center justify-between text-xl">
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
-            <>
+            <time dateTime={browsingDate.format("YYYY-MM")} data-testid="selected-month-label">
               <strong
                 className={classNames(`text-emphasis font-semibold`, customClassNames?.datePickerTitle)}>
                 {month}
@@ -339,7 +343,7 @@ const DatePicker = ({
               <span className={classNames(`text-subtle font-medium`, customClassNames?.datePickerTitle)}>
                 {browsingDate.format("YYYY")}
               </span>
-            </>
+            </time>
           ) : (
             <SkeletonText className="h-8 w-24" />
           )}
@@ -409,4 +413,5 @@ const DatePicker = ({
   );
 };
 
+export { DatePicker, Day };
 export default DatePicker;
