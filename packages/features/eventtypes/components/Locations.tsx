@@ -20,7 +20,6 @@ import type {
   SingleValueLocationOption,
 } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -28,6 +27,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
