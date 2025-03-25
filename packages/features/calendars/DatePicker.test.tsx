@@ -38,12 +38,4 @@ describe("Tests for DatePicker Component", () => {
     const selectedMonthLabel = getByTestId("selected-month-label");
     await expect(selectedMonthLabel).toHaveAttribute("dateTime", testDate.format("YYYY-MM"));
   });
-
-  // ideally this logic lives in the Booker component.
-  test("Should skip to next month if no availability", async () => {
-    const testDate = dayjs("2025-03-20");
-    const { getByTestId } = render(
-      <DatePicker onChange={noop} locale="en" browsingDate={testDate} />
-    ).debug();
-  });
 });
