@@ -529,9 +529,9 @@ function UserListTableContent() {
             <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
             <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
-            <DataTableFilters.ClearFiltersButton />
           </>
-        }>
+        }
+        ToolbarRight={<DataTableFilters.ClearFiltersButton />}>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
