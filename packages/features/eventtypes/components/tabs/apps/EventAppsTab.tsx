@@ -12,7 +12,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
