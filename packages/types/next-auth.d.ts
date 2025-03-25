@@ -35,6 +35,7 @@ declare module "next-auth" {
       role: MembershipRole;
     };
     username?: PrismaUser["username"];
+    orgAwareUsername?: PrismaUser["username"];
     avatarUrl?: PrismaUser["avatarUrl"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
@@ -66,6 +67,7 @@ declare module "next-auth/jwt" {
       domainSuffix: string;
       role: MembershipRole;
     };
+    orgAwareUsername?: PrismaUser["username"];
     organizationId?: number | null;
     locale?: string;
   }
