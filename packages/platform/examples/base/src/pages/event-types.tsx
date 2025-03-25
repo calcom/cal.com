@@ -722,6 +722,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   },
                 },
               }}
+              // isDryRun={true}
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
@@ -748,6 +749,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <div className="flex w-[30vw] flex-col gap-2">
               <h1 className="font-semibold">Create Event Type</h1>
               <CreateEventType
+                // isDryRun={true}
                 customClassNames={{
                   atomsWrapper: "border p-4 shadow-md rounded-md",
                   buttons: { container: "justify-center", submit: "bg-red-500", cancel: "bg-gray-300" },
@@ -762,6 +764,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               <h1 className="font-semibold">Create Team Event Type</h1>
               {teams?.[0]?.id && (
                 <CreateEventType
+                  // isDryRun={true}
                   customClassNames={{
                     atomsWrapper: "border shadow-md p-4 rounded-md ",
                     buttons: {

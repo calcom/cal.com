@@ -21,10 +21,12 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
           </p>
           <div className="flex flex-row gap-4">
             <Connect.GoogleCalendar
+              // isDryRun={true}
               redir="http://localhost:4321/calendars"
               className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
             />
             <Connect.OutlookCalendar
+              // isDryRun={true}
               isMultiCalendar={true}
               redir="http://localhost:4321/calendars"
               className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
