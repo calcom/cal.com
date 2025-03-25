@@ -20,7 +20,7 @@ export const OutlookConnect: FC<Partial<OAuthConnectProps>> = ({
   tooltipSide,
   tooltip,
   isClickable,
-  isDryRun = false,
+  isDryRun,
 }) => {
   const { t } = useLocale();
   return (

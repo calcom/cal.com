@@ -25,7 +25,7 @@ export const useGetRedirectUrl = (
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ authUrl: string }>>(
-          `/calendars/${calendar}/connect${redir ? `?redir=${redir}` : ""}`
+          `/calendars/${calendar}/connect?redir=${redir ?? ""}&isDryRun=${isDryRun ?? ""}`
         )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {

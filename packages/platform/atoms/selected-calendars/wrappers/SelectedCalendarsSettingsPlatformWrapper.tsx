@@ -93,6 +93,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                   trashIcon
                                   buttonProps={{ className: "border border-default" }}
                                   slug={connectedCalendar.integration.slug}
+                                  isDryRun={isDryRun}
                                 />
                               )}
                             </div>
@@ -113,6 +114,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                     credentialId={cal.credentialId}
                                     delegationCredentialId={connectedCalendar.delegationCredentialId}
                                     eventTypeId={null}
+                                    isDryRun={isDryRun}
                                   />
                                 );
                               })}
@@ -136,6 +138,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                 trashIcon
                                 buttonProps={{ className: "border border-default" }}
                                 slug={connectedCalendar.integration.slug}
+                                isDryRun={isDryRun}
                               />
                             </div>
                           )
@@ -190,6 +193,7 @@ const PlatformDisconnectIntegration = (props: {
   isGlobal?: boolean;
   onSuccess?: () => void;
   buttonProps?: ButtonProps;
+  isDryRun?: boolean;
 }) => {
   const { t } = useLocale();
   const { onSuccess, credentialId, slug } = props;
@@ -215,11 +219,19 @@ const PlatformDisconnectIntegration = (props: {
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={async () => {
-        slug &&
-          (await deleteCalendarCredentials({
+        if (props.isDryRun) {
+          setModalOpen(false);
+          toast({
+            description: t("app_removed_successfully"),
+          });
+        }
+
+        if (!props.isDryRun && slug) {
+          await deleteCalendarCredentials({
             calendar: slug.split("-")[0] as unknown as (typeof CALENDARS)[number],
             id: credentialId,
-          }));
+          });
+        }
       }}
       {...props}
       isModalOpen={modalOpen}
@@ -228,7 +240,7 @@ const PlatformDisconnectIntegration = (props: {
   );
 };
 
-const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
+const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boolean }) => {
   const { isChecked, title, credentialId, type, externalId, delegationCredentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const { toast } = useToast();
@@ -284,12 +296,15 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
         id={externalId}
         onCheckedChange={async () => {
           setCheckedInternal((prevValue) => !prevValue);
-          await toggleSelectedCalendars({
-            isOn: !checkedInternal,
-            credentialId,
-            externalId,
-            integration: type,
-          });
+
+          if (!props.isDryRun) {
+            await toggleSelectedCalendars({
+              isOn: !checkedInternal,
+              credentialId,
+              externalId,
+              integration: type,
+            });
+          }
         }}
       />
     </CalendarSwitchComponent>

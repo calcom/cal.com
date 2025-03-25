@@ -17,13 +17,14 @@ export const CalendarSettingsPlatformWrapper = ({
   classNames,
   calendarRedirectUrls,
   allowDelete = true,
-  isDryRun = false,
+  isDryRun,
 }: CalendarSettingsPlatformWrapperProps) => {
   return (
     <div className={classNames?.calendarSettingsCustomClassnames}>
       <DestinationCalendarSettingsPlatformWrapper
         statusLoader={<></>}
         classNames={classNames?.destinationCalendarSettingsCustomClassnames}
+        isDryRun={isDryRun}
       />
       <SelectedCalendarsSettingsPlatformWrapper
         classNames={classNames?.selectedCalendarSettingsCustomClassnames}
