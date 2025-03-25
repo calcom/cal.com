@@ -12,7 +12,6 @@ const MembersPage: React.FC = () => {
       withoutMain={false}
       title={t("organization_members")}
       description={t("organization_description")}
-      withoutSeo
       heading={t("organization_members")}
       subtitle={t("organization_description")}
       headerClassName="hidden md:block"

@@ -8,7 +8,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
