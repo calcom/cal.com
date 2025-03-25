@@ -1,4 +1,3 @@
-// Statically import all the modules at the top
 import * as alby from "./alby";
 import * as applecalendar from "./applecalendar";
 import * as aroundvideo from "./around";
@@ -44,7 +43,6 @@ import * as zohocalendar from "./zohocalendar";
 import * as zohocrm from "./zohocrm";
 import * as zoomvideo from "./zoomvideo";
 
-// Create a non-dynamic version of appStore with all static imports
 const appStore = {
   alby,
   applecalendar,
