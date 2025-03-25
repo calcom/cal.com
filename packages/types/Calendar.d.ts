@@ -6,8 +6,8 @@ import type {
   SelectedCalendar as _SelectedCalendar,
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
-import type { Time } from "ical.js";
 import type { TFunction } from "i18next";
+import type { Time } from "ical.js";
 import type { Frequency } from "rrule";
 import type z from "zod";
 
@@ -33,6 +33,7 @@ type PaymentInfo = {
 export type Person = {
   name: string;
   email: string;
+  unMaskedEmail?: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;

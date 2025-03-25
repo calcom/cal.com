@@ -121,7 +121,8 @@ type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
 };
 
 const maskEmail = (organizerUser: { id: number; name: string | null }) => {
-  return `${organizerUser.id}@private.cal.com`;
+  const name = organizerUser?.name?.split(" ")[0] ?? "name";
+  return `${name}-${organizerUser.id}@private.cal.com`;
 };
 
 function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
@@ -768,6 +769,8 @@ async function handler(
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
     : users[0];
 
+  console.log("organizerUser", organizerUser);
+
   const hideOrganizerEmail = eventType.team?.hideOrganizerEmail;
   if (hideOrganizerEmail) {
     organizerUser.unMaskedEmail = organizerUser.email;
@@ -893,7 +896,7 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users
-    .filter((user) => user.email !== (hideOrganizerEmail ? organizerUser.unMaskedEmail : organizerUser.email))
+    .filter((user) => user.email !== organizerUser.email)
     .map(async (user) => {
       // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
       // push to teamDestinationCalendars if it's a team event but collective only
@@ -917,6 +920,7 @@ async function handler(
         },
       };
     });
+
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1002,6 +1006,7 @@ async function handler(
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
+      unMaskedEmail: organizerUser.unMaskedEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },

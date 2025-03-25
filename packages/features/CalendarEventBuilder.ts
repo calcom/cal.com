@@ -72,6 +72,7 @@ export class CalendarEventBuilder {
     id: number;
     name: string | null;
     email: string;
+    unMaskedEmail?: string;
     username?: string;
     timeZone: string;
     timeFormat?: TimeFormat;
@@ -86,6 +87,7 @@ export class CalendarEventBuilder {
         id: organizer.id,
         name: organizer.name || "Nameless",
         email: organizer.email,
+        unMaskedEmail: organizer.unMaskedEmail,
         username: organizer.username,
         timeZone: organizer.timeZone,
         language: organizer.language,

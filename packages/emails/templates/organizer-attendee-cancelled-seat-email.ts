@@ -5,7 +5,7 @@ import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    const toAddresses = [this.calEvent.organizer.email];
+    const toAddresses = [this.calEvent.organizer?.unMaskedEmail ?? this.calEvent.organizer.email];
     if (this.calEvent.team) {
       this.calEvent.team.members.forEach((member) => {
         const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.email === member.email);

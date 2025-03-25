@@ -6,7 +6,12 @@ import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
+    const toAddresses = [
+      this.teamMember?.unMaskedEmail ??
+        this.teamMember?.email ??
+        this.calEvent.organizer?.unMaskedEmail ??
+        this.calEvent.organizer.email,
+    ];
 
     return {
       icalEvent: generateIcsFile({

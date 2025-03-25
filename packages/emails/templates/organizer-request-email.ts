@@ -15,7 +15,12 @@ async function getOrganizerRequestTemplate(userId?: number) {
 
 export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
+    const toAddresses = [
+      this.teamMember?.unMaskedEmail ??
+        this.teamMember?.email ??
+        this.calEvent.organizer?.unMaskedEmail ??
+        this.calEvent.organizer.email,
+    ];
     const template = await getOrganizerRequestTemplate(this.calEvent.organizer.id);
 
     return {
