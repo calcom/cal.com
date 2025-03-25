@@ -2,7 +2,7 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { lockUser } from "@calcom/lib/autoLock";
+import { lockUser, LockReason } from "@calcom/lib/autoLock";
 import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { scanWorkflowBody } from "./scanWorkflowBody";
@@ -22,9 +22,13 @@ vi.mock("akismet-api", () => {
   };
 });
 
-vi.mock("@calcom/lib/autoLock", () => ({
-  lockUser: vi.fn(),
-}));
+vi.mock("@calcom/lib/autoLock", async (importActual) => {
+  const actual = await importActual<typeof import("@calcom/lib/autoLock")>();
+  return {
+    ...actual, // Keep all original exports
+    lockUser: vi.fn(), // Override just the lockUser function
+  };
+});
 
 vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
   scheduleWorkflowNotifications: vi.fn(),
@@ -121,7 +125,7 @@ describe("scanWorkflowBody", () => {
 
     expect(mockAkismetCheckSpam).toHaveBeenCalled();
     expect(prismaMock.workflowStep.update).not.toHaveBeenCalled();
-    expect(lockUser).toHaveBeenCalledWith("userId", "1");
+    expect(lockUser).toHaveBeenCalledWith("userId", "1", LockReason.SPAM_WORKFLOW_BODY);
   });
 
   it("should schedule workflow notifications after successful scan", async () => {
