@@ -5,7 +5,7 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import BillingService from "@calcom/features/ee/billing";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
@@ -37,7 +37,7 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
-  const billingService = new BillingService();
+  const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");

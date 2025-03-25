@@ -5,7 +5,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
-import BillingService from "@calcom/features/ee/billing";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
@@ -39,6 +39,8 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       token: true,
     })
     .parse(req.body);
+
+  const billingService = new StripeBillingService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
 
@@ -97,7 +99,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
 
   // Create the customer in Stripe
 
-  const customer = await BillingService.createCustomer({
+  const customer = await billingService.createCustomer({
     email,
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
@@ -109,7 +111,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
 
   // Pro username, must be purchased
   if (req.usernameStatus.statusCode === 402) {
-    const checkoutSession = await BillingService.createSubscriptionCheckout({
+    const checkoutSession = await billingService.createSubscriptionCheckout({
       mode: "subscription",
       customerId: customer.id,
       successUrl: returnUrl,
