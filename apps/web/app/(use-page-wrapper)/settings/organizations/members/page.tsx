@@ -1,7 +1,7 @@
 import SettingsLayoutAppDir from "app/(use-page-wrapper)/settings/(settings-layout)/layout";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import { TOOLBAR_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
+import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import LegacyPage from "@calcom/features/ee/organizations/pages/members";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -18,7 +18,7 @@ const Page = async () => {
     <SettingsHeader
       title={t("organization_members")}
       description={t("organization_description")}
-      ctaClassName={TOOLBAR_CONTAINER_CLASS_NAME}>
+      ctaClassName={CTA_CONTAINER_CLASS_NAME}>
       <LegacyPage />
     </SettingsHeader>
   );

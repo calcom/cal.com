@@ -165,4 +165,4 @@ export const convertMapToFacetedValues = (map: Map<FacetedValue, number> | undef
   });
 };
 
-export const TOOLBAR_CONTAINER_CLASS_NAME = "data_table_toolbar_container";
+export const CTA_CONTAINER_CLASS_NAME = "data_table_cta_container";

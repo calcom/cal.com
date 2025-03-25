@@ -1,6 +1,6 @@
 "use client";
 
-import { TOOLBAR_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
+import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import MembersView from "@calcom/features/ee/organizations/pages/members";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +16,7 @@ const MembersPage: React.FC = () => {
       heading={t("organization_members")}
       subtitle={t("organization_description")}
       headerClassName="hidden md:block"
-      actions={<div className={`mb-2 ${TOOLBAR_CONTAINER_CLASS_NAME}`} />}>
+      actions={<div className={`mb-2 ${CTA_CONTAINER_CLASS_NAME}`} />}>
       <MembersView />
     </Shell>
   );

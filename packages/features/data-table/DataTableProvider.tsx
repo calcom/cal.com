@@ -15,7 +15,7 @@ const ZActiveFilter = z.object({
 type ActiveFilter = z.infer<typeof ZActiveFilter>;
 
 export type DataTableContextType = {
-  toolbarContainerRef?: React.RefObject<HTMLDivElement>;
+  ctaContainerRef?: React.RefObject<HTMLDivElement>;
 
   activeFilters: ActiveFilter[];
   clearAll: (exclude?: string[]) => void;
@@ -47,14 +47,14 @@ const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
   children: React.ReactNode;
-  toolbarContainerClassName?: string;
+  ctaContainerClassName?: string;
   defaultPageSize?: number;
 }
 
 export function DataTableProvider({
   children,
   defaultPageSize = DEFAULT_PAGE_SIZE,
-  toolbarContainerClassName,
+  ctaContainerClassName,
 }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
@@ -126,18 +126,18 @@ export function DataTableProvider({
     [setPageSize, setPageIndex]
   );
 
-  const toolbarContainerRef = useRef<HTMLDivElement | null>(null);
+  const ctaContainerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    if (toolbarContainerClassName) {
-      const element = document.getElementsByClassName(toolbarContainerClassName)[0] as HTMLDivElement;
-      toolbarContainerRef.current = element;
+    if (ctaContainerClassName) {
+      const element = document.getElementsByClassName(ctaContainerClassName)[0] as HTMLDivElement;
+      ctaContainerRef.current = element;
     }
-  }, [toolbarContainerClassName]);
+  }, [ctaContainerClassName]);
 
   return (
     <DataTableContext.Provider
       value={{
-        toolbarContainerRef,
+        ctaContainerRef,
         activeFilters,
         addFilter,
         clearAll,

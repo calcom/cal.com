@@ -17,7 +17,7 @@ import {
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
-  TOOLBAR_CONTAINER_CLASS_NAME,
+  CTA_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -103,7 +103,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider defaultPageSize={25} toolbarContainerClassName={TOOLBAR_CONTAINER_CLASS_NAME}>
+    <DataTableProvider defaultPageSize={25} ctaContainerClassName={CTA_CONTAINER_CLASS_NAME}>
       <UserListTableContent />
     </DataTableProvider>
   );
@@ -140,7 +140,7 @@ function UserListTableContent() {
 
   const columnFilters = useColumnFilters();
 
-  const { limit, offset, toolbarContainerRef } = useDataTable();
+  const { limit, offset, ctaContainerRef } = useDataTable();
 
   const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
@@ -575,7 +575,7 @@ function UserListTableContent() {
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
       {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
 
-      {toolbarContainerRef?.current &&
+      {ctaContainerRef?.current &&
         createPortal(
           <div className="flex items-center gap-2">
             <DataTableToolbar.CTA
@@ -606,7 +606,7 @@ function UserListTableContent() {
               </DataTableToolbar.CTA>
             )}
           </div>,
-          toolbarContainerRef.current
+          ctaContainerRef.current
         )}
     </>
   );
