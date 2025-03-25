@@ -18,7 +18,8 @@ const MembersPage: React.FC = () => {
         withoutSeo
         heading={t("organization_members")}
         subtitle={t("organization_description")}
-        actions={<div className={ACTIONS_CONTAINER_CLASS_NAME} />}>
+        headerClassName="hidden md:block"
+        actions={<div className={`mb-2 ${ACTIONS_CONTAINER_CLASS_NAME}`} />}>
         <MembersView />
       </Shell>
     </DataTableProvider>
