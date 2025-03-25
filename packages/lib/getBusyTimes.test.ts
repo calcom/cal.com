@@ -5,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { getBusyTimes } from "./getBusyTimes";
 
 const startOfTomorrow = dayjs().add(1, "day").startOf("day");
+const tomorrowDate = startOfTomorrow.format("YYYY-MM-DD");
 
 const mockBookings = ({
   beforeEventBuffer = 0,
@@ -70,14 +71,14 @@ describe("getBusyTimes", () => {
     });
     expect(busyTimes).toEqual([
       expect.objectContaining({
-        start: new Date("2025-03-21T10:00:00.000Z"),
-        end: new Date("2025-03-21T11:00:00.000Z"),
+        start: new Date(`${tomorrowDate}T10:00:00.000Z`),
+        end: new Date(`${tomorrowDate}T11:00:00.000Z`),
         source: "eventType-1-booking-1",
         title: "Booking Between X and Y",
       }),
       expect.objectContaining({
-        start: new Date("2025-03-21T14:00:00.000Z"),
-        end: new Date("2025-03-21T15:00:00.000Z"),
+        start: new Date(`${tomorrowDate}T14:00:00.000Z`),
+        end: new Date(`${tomorrowDate}T15:00:00.000Z`),
         source: "eventType-1-booking-2",
         title: "Booking Between X and Y",
       }),
@@ -97,8 +98,8 @@ describe("getBusyTimes", () => {
     });
     expect(busyTimes).toEqual([
       expect.objectContaining({
-        start: new Date("2025-03-21T09:50:00.000Z"),
-        end: new Date("2025-03-21T11:00:00.000Z"),
+        start: new Date(`${tomorrowDate}T09:50:00.000Z`),
+        end: new Date(`${tomorrowDate}T11:00:00.000Z`),
         source: "eventType-1-booking-1",
         title: "Booking Between X and Y",
       }),
@@ -119,8 +120,8 @@ describe("getBusyTimes", () => {
     });
     expect(busyTimes).toEqual([
       expect.objectContaining({
-        start: new Date("2025-03-21T09:50:00.000Z"),
-        end: new Date("2025-03-21T10:00:00.000Z"),
+        start: new Date(`${tomorrowDate}T09:50:00.000Z`),
+        end: new Date(`${tomorrowDate}T10:00:00.000Z`),
       }),
     ]);
   });
