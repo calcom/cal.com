@@ -65,7 +65,6 @@
     "@radix-ui/react-slider": "^1.0.0",
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
-    "@radix-ui/react-tooltip": "^1.0.0",
     "@replexica/sdk": "^0.7.0",
     "@sentry/nextjs": "^9.8.0",
     "@stripe/react-stripe-js": "^1.10.0",

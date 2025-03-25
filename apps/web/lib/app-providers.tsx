@@ -1,4 +1,3 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -17,6 +16,7 @@ import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/p
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import { TooltipProvider } from "@calcom/ui/components/tooltip";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithLocaleProps } from "@lib/withLocale";
