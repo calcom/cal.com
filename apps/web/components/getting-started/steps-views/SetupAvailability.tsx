@@ -51,13 +51,13 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       handleSubmit={async (values) => {
         try {
           if (defaultScheduleId) {
-            await updateSchedule.mutate({
+            await updateSchedule.mutateAsync({
               scheduleId: defaultScheduleId,
               name: t("default_schedule_name"),
               ...values,
             });
           } else {
-            await createSchedule.mutate({
+            await createSchedule.mutateAsync({
               name: t("default_schedule_name"),
               ...values,
             });
