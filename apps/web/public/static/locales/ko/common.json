@@ -2659,7 +2659,7 @@
   "no_availability_shown_to_bookers": "이 이벤트에 아무도 할당하지 않으면 예약자에게 이용 가능 시간이 표시되지 않습니다.",
   "go_back_and_assign": "돌아가서 할당하기",
   "leave_without_assigning": "할당하지 않고 나가기",
-  "signing_up_terms": "계속 진행하면 <0>약관</0> 및 <1>개인정보 보호정책<1>에 동의하는 것입니다.",
+  "signing_up_terms": "계속 진행하면 <0>약관</0> 및 <1>개인정보 보호정책</1>에 동의하는 것입니다.",
   "proceeding_agreement": "계속 진행하시면 당사의",
   "terms": "이용약관",
   "always_show_x_days": "항상 {{x}}일 사용 가능",
