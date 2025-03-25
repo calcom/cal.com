@@ -1,6 +1,6 @@
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 interface SecondaryEmailConfirmModalProps {
   email: string;
