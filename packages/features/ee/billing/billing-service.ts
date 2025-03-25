@@ -30,6 +30,20 @@ export interface BillingService {
     quantity: number;
     metadata?: Record<string, string | number>;
     mode?: "subscription" | "setup" | "payment";
+    allowPromotionCodes?: boolean;
+    customerUpdate?: {
+      address?: "auto" | "never";
+    };
+    automaticTax?: {
+      enabled: boolean;
+    };
+    discounts?: Array<{
+      coupon: string;
+    }>;
+    subscriptionData?: {
+      metadata?: Record<string, string | number>;
+      trial_period_days?: number;
+    };
   }): Promise<{ checkoutUrl: string | null; sessionId: string }>;
 
   // Price management
@@ -42,4 +56,9 @@ export interface BillingService {
     metadata?: Record<string, string | number>;
   }): Promise<{ priceId: string }>;
   getSubscriptionStatus(subscriptionId: string): Promise<Stripe.Subscription.Status | null>;
+
+  getCheckoutSession(checkoutSessionId: string): Promise<Stripe.Checkout.Session | null>;
+  getCustomer(customerId: string): Promise<Stripe.Customer | null>;
+  getSubscriptions(customerId: string): Promise<Stripe.Subscription[] | null>;
+  updateCustomer(args: { customerId: string; email: string }): Promise<void>;
 }
