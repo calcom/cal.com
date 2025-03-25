@@ -4,7 +4,7 @@ import z from "zod";
 
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
-import { lockUser } from "@calcom/lib/autoLock";
+import { lockUser, LockReason } from "@calcom/lib/autoLock";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -100,7 +100,7 @@ export async function scanWorkflowBody(payload: string) {
     if (isSpam) {
       // We won't delete the workflow step incase it is flagged as a false positive
       log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
-      await lockUser("userId", userId.toString());
+      await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
 
       // Return early if spam is detected
       return;
