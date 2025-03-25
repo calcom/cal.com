@@ -1,3 +1,4 @@
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type {
   AppGetServerSidePropsContext,
   AppPrisma,
@@ -104,8 +105,6 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
         }
       : null,
   };
-
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
 
   const formWithUserInfoProfile = {
     ...form,

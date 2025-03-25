@@ -18,6 +18,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { TRPCError } from "@trpc/server";
 
@@ -71,7 +72,6 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
     };
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
     ...form,

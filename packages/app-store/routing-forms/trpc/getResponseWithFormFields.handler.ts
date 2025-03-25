@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -82,7 +83,6 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
     });
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const formWithUserProfile = {
     ...form,
     user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
