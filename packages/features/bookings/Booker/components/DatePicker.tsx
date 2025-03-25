@@ -15,11 +15,21 @@ const useMoveToNextMonthOnNoAvailability = ({
   browsingDate,
   nonEmptyScheduleDays,
   onMonthChange,
+  isLoading,
 }: {
   browsingDate: Dayjs;
   nonEmptyScheduleDays: string[];
+  isLoading: boolean;
   onMonthChange: (date: Dayjs) => void;
 }) => {
+  if (isLoading) {
+    return {
+      moveToNextMonthOnNoAvailability: () => {
+        /* return noop until ready */
+      },
+    };
+  }
+
   const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter((date) =>
     dayjs(date).isSame(browsingDate, "month")
   );
@@ -27,10 +37,6 @@ const useMoveToNextMonthOnNoAvailability = ({
   const moveToNextMonthOnNoAvailability = () => {
     const currentMonth = dayjs().startOf("month").format("YYYY-MM");
     const browsingMonth = browsingDate.format("YYYY-MM");
-    // Insufficient data case
-    if (Object.keys(nonEmptyScheduleDays).length === 0) {
-      return;
-    }
     // Not meeting the criteria to move to next month
     // Has to be currentMonth and it must have all days unbookable
     if (currentMonth != browsingMonth || nonEmptyScheduleDaysInBrowsingMonth.length) {
@@ -81,10 +87,12 @@ export const DatePicker = ({
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
+
   const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
     browsingDate,
     nonEmptyScheduleDays,
     onMonthChange,
+    isLoading: isLoading ?? true,
   });
   moveToNextMonthOnNoAvailability();
   return (
