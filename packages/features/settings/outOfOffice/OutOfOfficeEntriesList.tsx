@@ -31,7 +31,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
