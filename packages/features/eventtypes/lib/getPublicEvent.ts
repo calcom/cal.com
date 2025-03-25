@@ -139,6 +139,8 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
         timeZone: true,
       },
     },
+    periodType: true,
+    periodDays: true,
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,

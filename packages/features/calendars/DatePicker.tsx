@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -10,9 +10,11 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { Button } from "@calcom/ui/components/button";
+import type { PeriodType } from "@calcom/platform-enums/event-types/period-type";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -52,6 +54,8 @@ export type DatePickerProps = {
       emoji?: string;
     }[]
   >;
+  periodDays?: number;
+  periodType?: PeriodType;
 };
 
 export const Day = ({
@@ -114,19 +118,72 @@ export const Day = ({
 const NoAvailabilityOverlay = ({
   month,
   nextMonthButton,
+  browsingDate,
+  periodDays,
+  periodType,
 }: {
   month: string | null;
   nextMonthButton: () => void;
+  browsingDate: Dayjs;
+  periodDays?: number;
+  periodType?: PeriodType;
 }) => {
   const { t } = useLocale();
+  const [isOpenDialog, setIsOpenDialog] = useState(true);
 
+  const PeriodEndsInMonth = () => {
+    if (!periodDays || periodType !== "ROLLING") return false;
+    const periodEnd = dayjs().add(periodDays, "days");
+    return periodEnd.isSame(browsingDate, "month");
+  };
+
+  const noFutureAvailability = () => {
+    if (!periodDays || periodType !== "ROLLING") return true;
+    const periodEnd = dayjs().add(periodDays, "days");
+    return periodEnd.isBefore(browsingDate, "month") || periodEnd.isSame(browsingDate, "month");
+  };
+
+  const closeDialog = () => {
+    setIsOpenDialog(false);
+  };
   return (
-    <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
-      <h4 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon="arrow-right" data-testid="view_next_month">
-        {t("view_next_month")}
-      </Button>
-    </div>
+    <Dialog
+      open={isOpenDialog}
+      onOpenChange={(open) => {
+        setIsOpenDialog(open);
+      }}>
+      <DialogContent
+        title={t("no_availability_in_month", { month: month })}
+        type="creation"
+        description={
+          noFutureAvailability() ? `Scheduling is only available up to ${periodDays} days in advance` : ""
+        }
+        preventCloseOnOutsideClick={false}>
+        <DialogFooter>
+          <DialogClose
+            color={noFutureAvailability() ? "primary" : "secondary"}
+            onClick={closeDialog}
+            data-testid="view_next_month">
+            {t("ok")}
+          </DialogClose>
+          {!noFutureAvailability && (
+            <Button
+              color="primary"
+              onClick={nextMonthButton}
+              data-testid="view_next_month"
+              EndIcon="arrow-right">
+              {t("view_next_month")}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    // <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
+    //   <h2 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h2>
+    //   <Button onClick={nextMonthButton} color="primary" EndIcon="arrow-right" data-testid="view_next_month">
+    //     {t("view_next_month")}
+    //   </Button>
+    // </div>
   );
 };
 
@@ -143,6 +200,8 @@ const Days = ({
   slots,
   customClassName,
   isBookingInPast,
+  periodDays,
+  periodType,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -156,6 +215,8 @@ const Days = ({
   };
   scrollToTimeSlots?: () => void;
   isBookingInPast: boolean;
+  periodDays?: number;
+  periodType?: PeriodType;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -284,7 +345,13 @@ const Days = ({
       ))}
 
       {!props.isPending && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
+        <NoAvailabilityOverlay
+          month={month}
+          nextMonthButton={nextMonthButton}
+          browsingDate={browsingDate}
+          periodDays={periodDays}
+          periodType={periodType}
+        />
       )}
     </>
   );
@@ -299,6 +366,8 @@ const DatePicker = ({
   slots,
   customClassNames,
   includedDates,
+  periodDays,
+  periodType,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -404,6 +473,8 @@ const DatePicker = ({
           slots={slots}
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
+          periodDays={periodDays}
+          periodType={periodType}
         />
       </div>
     </div>
