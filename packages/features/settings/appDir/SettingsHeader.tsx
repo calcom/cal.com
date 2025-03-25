@@ -30,7 +30,7 @@ export default function Header({
           borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
-        <div className="flex w-full flex-col gap-2 sm:flex-row">
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex w-full items-center">
             {backButton && (
               <a href="javascript:history.back()">

@@ -1,5 +1,3 @@
-"use client";
-
 import type {
   SingleSelectFilterValue,
   MultiSelectFilterValue,
@@ -166,3 +164,5 @@ export const convertMapToFacetedValues = (map: Map<FacetedValue, number> | undef
     return { label: option.label as string, value: option.value as string | number, section: option.section };
   });
 };
+
+export const TOOLBAR_CONTAINER_CLASS_NAME = "data_table_toolbar_container";

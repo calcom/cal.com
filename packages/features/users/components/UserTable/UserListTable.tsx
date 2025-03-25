@@ -8,6 +8,7 @@ import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
+  DataTableProvider,
   DataTableWrapper,
   DataTableToolbar,
   DataTableSelectionBar,
@@ -16,6 +17,7 @@ import {
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
+  TOOLBAR_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -100,6 +102,14 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 }
 
 export function UserListTable() {
+  return (
+    <DataTableProvider defaultPageSize={25} toolbarContainerClassName={TOOLBAR_CONTAINER_CLASS_NAME}>
+      <UserListTableContent />
+    </DataTableProvider>
+  );
+}
+
+function UserListTableContent() {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
