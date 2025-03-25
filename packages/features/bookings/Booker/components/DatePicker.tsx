@@ -8,19 +8,21 @@ import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 
+import type { Slots } from "../../types";
 import { useBookerStore } from "../store";
-import type { useScheduleForEventReturnType } from "../utils/event";
 
 export const DatePicker = ({
   event,
-  schedule,
+  slots = {},
+  isLoading,
   classNames,
   scrollToTimeSlots,
 }: {
   event: {
     data?: { subsetOfUsers: Pick<User, "weekStart">[] } | null;
   };
-  schedule: useScheduleForEventReturnType;
+  slots?: Slots;
+  isLoading?: boolean;
   classNames?: {
     datePickerContainer?: string;
     datePickerTitle?: string;
@@ -37,7 +39,7 @@ export const DatePicker = ({
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
     shallow
   );
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter((date) =>
@@ -53,9 +55,8 @@ export const DatePicker = ({
   const moveToNextMonthOnNoAvailability = () => {
     const currentMonth = dayjs().startOf("month").format("YYYY-MM");
     const browsingMonth = browsingDate.format("YYYY-MM");
-
     // Insufficient data case
-    if (!schedule?.data?.slots) {
+    if (Object.keys(slots).length === 0) {
       return;
     }
 
@@ -80,7 +81,7 @@ export const DatePicker = ({
         datePickerToggle: classNames?.datePickerToggle,
       }}
       className={classNames?.datePickerContainer}
-      isPending={schedule.isPending}
+      isLoading={isLoading}
       onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
@@ -90,7 +91,7 @@ export const DatePicker = ({
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
-      slots={schedule?.data?.slots}
+      slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
     />
   );

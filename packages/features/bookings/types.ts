@@ -26,6 +26,20 @@ type BookerEventUser = Pick<
 
 type BookerEventProfile = Pick<PublicEvent["profile"], "name" | "image" | "bookerLayouts">;
 
+export type Slots = Record<
+  string,
+  {
+    time: string;
+    attendees?: number | undefined;
+    bookingUid?: string | undefined;
+    away?: boolean | undefined;
+    fromUser?: IFromUser | undefined;
+    toUser?: IToUser | undefined;
+    reason?: string | undefined;
+    emoji?: string | undefined;
+  }[]
+>;
+
 export type BookerEvent = Pick<
   PublicEvent,
   | "id"
