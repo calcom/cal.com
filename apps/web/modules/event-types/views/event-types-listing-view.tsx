@@ -1,7 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -806,16 +805,14 @@ export const InfiniteEventTypeList = ({
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
-            <Trans
-              i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
-              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-              <ul>
-                <li>Members assigned to this event type will also have their event types deleted.</li>
-                <li>
-                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                </li>
+            {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
+              <ul className="ml-4 list-disc">
+                <li>{t("delete_managed_event_type_description_1")}</li>
+                <li>{t("delete_managed_event_type_description_2")}</li>
               </ul>
-            </Trans>
+            ) : (
+              t("delete_event_type_description")
+            )}
           </p>
         </ConfirmationDialogContent>
       </Dialog>
