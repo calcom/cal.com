@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
-import { keyBy } from "lodash";
+import keyBy from "lodash/keyBy";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";

@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";

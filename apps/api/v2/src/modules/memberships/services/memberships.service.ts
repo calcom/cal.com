@@ -1,6 +1,6 @@
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { Injectable } from "@nestjs/common";
-import { intersectionBy } from "lodash";
+import intersectionBy from "lodash/intersectionBy";
 
 @Injectable()
 export class MembershipsService {

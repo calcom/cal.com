@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 

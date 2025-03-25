@@ -1,6 +1,6 @@
 "use client";
 
-// import { debounce } from "lodash";
+// import debounce from "lodash/debounce";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";

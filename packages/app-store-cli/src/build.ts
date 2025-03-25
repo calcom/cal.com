@@ -1,7 +1,7 @@
 import chokidar from "chokidar";
 import fs from "fs";
 // eslint-disable-next-line no-restricted-imports
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import path from "path";
 import prettier from "prettier";
 

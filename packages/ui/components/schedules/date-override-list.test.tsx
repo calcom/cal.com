@@ -1,7 +1,7 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, renderHook, screen } from "@testing-library/react";
 // eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
+import noop from "lodash/noop";
 import { useFieldArray, useForm, FormProvider } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";

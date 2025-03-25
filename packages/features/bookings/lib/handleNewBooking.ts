@@ -1,6 +1,6 @@
 import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";

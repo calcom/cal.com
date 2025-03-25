@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosRequestConfig } from "axios";
 // eslint-disable-next-line no-restricted-imports
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { useEffect, useState } from "react";
 import usePrevious from "react-use/lib/usePrevious";
 

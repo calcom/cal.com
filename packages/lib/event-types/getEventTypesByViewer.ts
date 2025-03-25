@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { orderBy } from "lodash";
+import orderBy from "lodash/orderBy";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";

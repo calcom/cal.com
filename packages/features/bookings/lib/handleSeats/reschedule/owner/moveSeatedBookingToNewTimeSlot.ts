@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/lib/EventManager";

@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { sortBy } from "lodash";
+import sortBy from "lodash/sortBy";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";

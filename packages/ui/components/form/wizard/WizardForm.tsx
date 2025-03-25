@@ -1,7 +1,7 @@
 "use client";
 
 // eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
+import noop from "lodash/noop";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";

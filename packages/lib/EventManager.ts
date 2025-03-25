@@ -1,6 +1,8 @@
 import type { DestinationCalendar, BookingReference } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep, merge } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
+// eslint-disable-next-line no-restricted-imports
+import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
