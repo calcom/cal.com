@@ -3,7 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DialogContent, Button, DialogFooter } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 
 interface InfoLostWarningDialog {
   isOpenInfoLostDialog: boolean;

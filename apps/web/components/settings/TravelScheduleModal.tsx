@@ -6,16 +6,9 @@ import { useTimePreferences } from "@calcom/features/bookings/lib/timePreference
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  Button,
-  Label,
-  DateRangePicker,
-  SettingsToggle,
-  DatePicker,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Label, SettingsToggle, DateRangePicker, DatePicker } from "@calcom/ui/components/form";
 
 import type { FormValues } from "~/settings/my-account/general-view";
 

@@ -10,19 +10,14 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import {
-  Button,
-  Form,
-  Switch,
-  showToast,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  TextField,
-  TextAreaField,
-  Table,
-  DropdownActions,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Form } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { DropdownActions, Table } from "@calcom/ui/components/table";
+import { showToast } from "@calcom/ui/components/toast";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 

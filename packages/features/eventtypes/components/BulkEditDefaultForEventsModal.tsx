@@ -4,7 +4,10 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DialogContent, Form, DialogFooter, DialogClose, Button, CheckboxField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Form } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
 
 export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),

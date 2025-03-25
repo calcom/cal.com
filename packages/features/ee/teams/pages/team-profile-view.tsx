@@ -25,23 +25,21 @@ import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button, LinkIconButton } from "@calcom/ui/components/button";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
-  Avatar,
-  Button,
-  ConfirmationDialogContent,
-  DialogTrigger,
-  Editor,
-  Form,
-  ImageUploader,
-  Label,
-  LinkIconButton,
-  showToast,
-  SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
-} from "@calcom/ui";
+  SkeletonAvatar,
+} from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 

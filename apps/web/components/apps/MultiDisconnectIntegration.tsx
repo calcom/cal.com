@@ -4,17 +4,17 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import { Button } from "@calcom/ui/components/button";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
-  Button,
   Dropdown,
-  DropdownMenuTrigger,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuItem,
-  DropdownItem,
-  ConfirmationDialogContent,
-  showToast,
-} from "@calcom/ui";
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { inferRouterOutputs } from "@trpc/server";
 

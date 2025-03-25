@@ -1,5 +1,3 @@
-import { Trans } from "next-i18next";
-import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -12,10 +10,15 @@ import type {
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DialogContent, DialogFooter, DialogClose, Button, Label, Select, TextField } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
+import WeightDescription from "./WeightDescription";
 
 interface IDialog {
   isOpenDialog: boolean;
@@ -96,18 +99,6 @@ export const PriorityDialog = (
   );
 };
 
-export const weightDescription = (
-  <Trans i18nKey="weights_description">
-    Weights determine how meetings are distributed among hosts.
-    <Link
-      className="underline underline-offset-2"
-      target="_blank"
-      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
-      Learn more
-    </Link>
-  </Trans>
-);
-
 export function sortHosts(
   hostA: { priority: number | null; weight: number | null },
   hostB: { priority: number | null; weight: number | null },
@@ -164,7 +155,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title={t("set_weight")} description={weightDescription}>
+      <DialogContent title={t("set_weight")} description={<WeightDescription t={t} />}>
         <div className={classNames("mb-4 mt-2", customClassNames?.container)}>
           <Label className={customClassNames?.label}>
             {t("weight_for_user", { userName: option.label })}

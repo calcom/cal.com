@@ -5,7 +5,9 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DialogContent, DialogFooter, Select } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Select } from "@calcom/ui/components/form";
 
 type MembershipRoleOption = {
   label: string;

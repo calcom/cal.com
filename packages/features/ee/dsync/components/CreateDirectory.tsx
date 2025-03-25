@@ -4,7 +4,10 @@ import { Controller, useForm } from "react-hook-form";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DialogContent, SelectField, Form, TextField, DialogFooter, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Form, TextField, SelectField } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { directoryProviders } from "../lib/directoryProviders";
 

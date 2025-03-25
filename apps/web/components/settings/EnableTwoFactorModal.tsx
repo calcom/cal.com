@@ -6,7 +6,10 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, DialogContent, DialogFooter, Form, PasswordField, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Form, PasswordField } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import TwoFactor from "@components/auth/TwoFactor";
 

@@ -5,7 +5,9 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { showToast, SettingsToggle, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 const SkeletonLoader = () => {
   return (

@@ -3,7 +3,8 @@ import type { Dispatch } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 import type { UserTableAction, UserTableState } from "./types";
 
