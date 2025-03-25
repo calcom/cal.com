@@ -219,8 +219,8 @@ const PlatformDisconnectIntegration = (props: {
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={async () => {
+        !props.isDryRun && setModalOpen(false);
         if (props.isDryRun) {
-          setModalOpen(false);
           toast({
             description: t("app_removed_successfully"),
           });
