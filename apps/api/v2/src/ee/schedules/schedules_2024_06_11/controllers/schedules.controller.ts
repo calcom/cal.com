@@ -39,8 +39,12 @@ import {
 @DocsTags("Schedules")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to \`2024-06-11\``,
+  description: `Must be set to ${VERSION_2024_06_11}`,
+  example: VERSION_2024_06_11,
   required: true,
+  schema: {
+    default: VERSION_2024_06_11,
+  },
 })
 @ApiHeader({
   name: "Authorization",

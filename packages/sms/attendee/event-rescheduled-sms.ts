@@ -10,11 +10,21 @@ export default class EventSuccessfullyReScheduledSMS extends SMSManager {
 
   getMessage(attendee: Person) {
     const t = attendee.language.translate;
-    return `${t("hey_there")} ${attendee.name}, ${t("event_type_has_been_rescheduled_on_time_date", {
+
+    const bookerUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`;
+    const bookerUrlText = t("you_can_view_booking_details_with_this_url", {
+      url: bookerUrl,
+    });
+
+    const eventTypeHasBeenRescheduledOnTimeDateText = t("event_type_has_been_rescheduled_on_time_date", {
       title: this.calEvent.title,
       date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
-    })} \n\n ${t("you_can_view_booking_details_with_this_url", {
-      url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`,
-    })}`;
+    });
+
+    const messageText = `${t("hey_there")} ${
+      attendee.name
+    }, ${eventTypeHasBeenRescheduledOnTimeDateText} \n\n${bookerUrlText}`;
+
+    return messageText;
   }
 }

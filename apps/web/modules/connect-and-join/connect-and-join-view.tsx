@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,8 +9,12 @@ import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-para
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { TRPCClientError } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Alert } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
+
+import { TRPCClientError } from "@trpc/client";
 
 function ConnectAndJoin() {
   const { t } = useLocale();
@@ -56,12 +59,18 @@ function ConnectAndJoin() {
             <div className="flex flex-col items-center justify-center	gap-4">
               {meetingUrl ? (
                 <div className="text-default flex flex-col items-center gap-2 text-center text-sm font-normal">
-                  <Trans i18nKey="some_other_host_already_accepted_the_meeting">
-                    Some other host already accepted the meeting. Do you still want to join?
-                    <Link className="inline-block cursor-pointer underline" href={meetingUrl}>
-                      Continue to Meeting
-                    </Link>
-                  </Trans>
+                  <ServerTrans
+                    t={t}
+                    i18nKey="some_other_host_already_accepted_the_meeting"
+                    components={[
+                      <Link
+                        key="continue-to-meeting-link"
+                        className="inline-block cursor-pointer underline"
+                        href={meetingUrl}>
+                        Continue to Meeting
+                      </Link>,
+                    ]}
+                  />
                 </div>
               ) : (
                 <Button
@@ -84,7 +93,5 @@ function ConnectAndJoin() {
     </div>
   );
 }
-
-ConnectAndJoin.requiresLicense = true;
 
 export default ConnectAndJoin;

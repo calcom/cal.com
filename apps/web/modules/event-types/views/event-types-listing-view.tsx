@@ -1,25 +1,25 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
+import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import {
+  InfiniteSkeletonLoader,
+  EventTypesSkeletonLoader,
+} from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import Shell from "@calcom/features/shell/Shell";
-import { classNames, parseEventTypeColor } from "@calcom/lib";
+import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -31,15 +31,16 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
+import { UserAvatarGroup } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  ConfirmationDialogContent,
-  CreateButton,
-  Dialog,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -47,22 +48,20 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  EmptyScreen,
-  HeadSeo,
-  HorizontalTabs,
-  Icon,
-  Label,
-  showToast,
-  Skeleton,
-  Switch,
-  TextField,
-  Tooltip,
-  ArrowButton,
-  UserAvatarGroup,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { Skeleton } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { AppProps } from "@lib/app-providers";
 import useMeQuery from "@lib/hooks/useMeQuery";
+
+import { TRPCClientError } from "@trpc/client";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -125,9 +124,8 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   return (
     <div>
       <TextField
-        className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
+        className="max-w-64"
         addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        addOnClassname="!border-muted"
         containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
         type="search"
         value={searchTerm}
@@ -257,7 +255,7 @@ export const InfiniteEventTypeList = ({
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { copyToClipboard } = useCopy();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -374,7 +372,7 @@ export const InfiniteEventTypeList = ({
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: InfiniteEventType, group: InfiniteEventTypeGroup) => {
-    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
+    const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
@@ -462,9 +460,9 @@ export const InfiniteEventTypeList = ({
     if (isPending) return <InfiniteSkeletonLoader />;
 
     return group.teamId ? (
-      <EmptyEventTypeList group={group} />
+      <EmptyEventTypeList group={group} searchTerm={debouncedSearchTerm} />
     ) : !group.profile.eventTypesLockedByOrg ? (
-      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} searchTerm={debouncedSearchTerm} />
     ) : (
       <></>
     );
@@ -605,7 +603,8 @@ export const InfiniteEventTypeList = ({
                                   variant="icon"
                                   color="secondary"
                                   StartIcon="ellipsis"
-                                  className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
+                                  // Unsual practice to use radix state open but for some reason this dropdown and only thi dropdown clears the border radius of this button.
+                                  className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
                                 />
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
@@ -806,16 +805,14 @@ export const InfiniteEventTypeList = ({
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
-            <Trans
-              i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
-              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-              <ul>
-                <li>Members assigned to this event type will also have their event types deleted.</li>
-                <li>
-                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                </li>
+            {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
+              <ul className="ml-4 list-disc">
+                <li>{t("delete_managed_event_type_description_1")}</li>
+                <li>{t("delete_managed_event_type_description_2")}</li>
               </ul>
-            </Trans>
+            ) : (
+              t("delete_event_type_description")
+            )}
           </p>
         </ConfirmationDialogContent>
       </Dialog>
@@ -823,13 +820,13 @@ export const InfiniteEventTypeList = ({
   );
 };
 
-const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
+const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTerm?: string }) => {
   const { t } = useLocale();
 
   return (
     <EmptyScreen
       Icon="link"
-      headline={t("new_event_type_heading")}
+      headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
       buttonRaw={
@@ -868,12 +865,18 @@ const CTA = ({
   );
 };
 
-const EmptyEventTypeList = ({ group }: { group: EventTypeGroup | InfiniteEventTypeGroup }) => {
+const EmptyEventTypeList = ({
+  group,
+  searchTerm,
+}: {
+  group: EventTypeGroup | InfiniteEventTypeGroup;
+  searchTerm?: string;
+}) => {
   const { t } = useLocale();
   return (
     <>
       <EmptyScreen
-        headline={t("team_no_event_types")}
+        headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
@@ -898,7 +901,7 @@ const InfiniteScrollMain = ({
   eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
   profiles: GetUserEventGroupsResponse["profiles"] | undefined;
 }) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
@@ -907,13 +910,15 @@ const InfiniteScrollMain = ({
   }
 
   if (!eventTypeGroups || !profiles || status === "pending") {
-    return <InfiniteSkeletonLoader />;
+    return <EventTypesSkeletonLoader />;
   }
 
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
     avatar: item.profile.image,
+    "data-testid": item.profile.name ?? "",
+    matchFullPath: true,
   }));
 
   const activeEventTypeGroup =
@@ -933,12 +938,8 @@ const InfiniteScrollMain = ({
 
   return (
     <>
-      {eventTypeGroups.length >= 1 && (
-        <>
-          <HorizontalTabs tabs={tabs} />
-          <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
-        </>
-      )}
+      {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
+      {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
@@ -946,16 +947,39 @@ const InfiniteScrollMain = ({
   );
 };
 
-const EventTypesPage: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-  getLayout?: AppProps["Component"]["getLayout"];
-} = () => {
-  const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
-  const { open } = useIntercom();
+export const EventTypesCTA = () => {
+  const { data: user } = useMeQuery();
+  const routerQuery = useRouterQuery();
+  const filters = getTeamsFiltersFromQuery(routerQuery);
+  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
+    filters && { filters },
+    {
+      refetchOnWindowFocus: false,
+      gcTime: 1 * 60 * 60 * 1000,
+      staleTime: 1 * 60 * 60 * 1000,
+    }
+  );
+  const profileOptions =
+    getUserEventGroupsData?.profiles
+      ?.filter((profile) => !profile.readOnly)
+      ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.map((profile) => {
+        return {
+          teamId: profile.teamId,
+          label: profile.name || profile.slug,
+          image: profile.image,
+          membershipRole: profile.membershipRole,
+          slug: profile.slug,
+        };
+      }) ?? [];
+
+  return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
+};
+
+const EventTypesPage: React.FC = () => {
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [showProfileBanner, setShowProfileBanner] = useState(false);
+  const [_showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
@@ -973,9 +997,6 @@ const EventTypesPage: React.FC & {
   });
 
   useEffect(() => {
-    if (searchParams?.get("openIntercom") === "true") {
-      open();
-    }
     /**
      * During signup, if the account already exists, we redirect the user to /event-types instead of onboarding.
      * Adding this redirection logic here as well to ensure the user is redirected to the correct redirectUrl.
@@ -992,42 +1013,13 @@ const EventTypesPage: React.FC & {
     );
   }, [orgBranding, user]);
 
-  const profileOptions =
-    getUserEventGroupsData?.profiles
-      ?.filter((profile) => !profile.readOnly)
-      ?.filter((profile) => !profile.eventTypesLockedByOrg)
-      ?.map((profile) => {
-        return {
-          teamId: profile.teamId,
-          label: profile.name || profile.slug,
-          image: profile.image,
-          membershipRole: profile.membershipRole,
-          slug: profile.slug,
-        };
-      }) ?? [];
-
   return (
-    <Shell
-      withoutMain={false}
-      title="Event Types"
-      description="Create events to share for people to book on your calendar."
-      withoutSeo
-      heading={t("event_types_page_title")}
-      hideHeadingOnMobile
-      subtitle={t("event_types_page_subtitle")}
-      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
-      <HeadSeo
-        title="Event Types"
-        description="Create events to share for people to book on your calendar."
-      />
-
-      <InfiniteScrollMain
-        profiles={getUserEventGroupsData?.profiles}
-        eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
-        status={getUserEventGroupsStatus}
-        errorMessage={getUserEventGroupsStatusError?.message}
-      />
-    </Shell>
+    <InfiniteScrollMain
+      profiles={getUserEventGroupsData?.profiles}
+      eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
+      status={getUserEventGroupsStatus}
+      errorMessage={getUserEventGroupsStatusError?.message}
+    />
   );
 };
 

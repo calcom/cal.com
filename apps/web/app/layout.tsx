@@ -5,11 +5,16 @@ import { headers, cookies } from "next/headers";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
+import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
-import { prepareRootMetadata } from "@lib/metadata";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import { ssrInit } from "@server/lib/ssr";
 
 import "../styles/globals.css";
+import { SpeculationRules } from "./SpeculationRules";
+import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -20,15 +25,60 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: false,
-      follow: false,
+export const viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: [
+    {
+      media: "(prefers-color-scheme: light)",
+      color: "#f9fafb",
     },
-  });
+    {
+      media: "(prefers-color-scheme: dark)",
+      color: "#1C1C1C",
+    },
+  ],
+};
+
+export const metadata = {
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/api/logo?type=apple-touch-icon",
+    other: [
+      {
+        rel: "icon-mask",
+        url: "/safari-pinned-tab.svg",
+        color: "#000000",
+      },
+      {
+        url: "/api/logo?type=favicon-16",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: "/api/logo?type=favicon-32",
+        sizes: "32x32",
+        type: "image/png",
+      },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  other: {
+    "application-TileColor": "#ff0000",
+  },
+  twitter: {
+    site: "@calcom",
+    creator: "@calcom",
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
@@ -36,7 +86,7 @@ const getInitialProps = async (url: string) => {
   const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
-  const req = { headers: headers(), cookies: cookies() };
+  const req = { headers: await headers(), cookies: await cookies() };
   const newLocale = await getLocale(req);
   const direction = dir(newLocale);
 
@@ -51,7 +101,7 @@ const getFallbackProps = () => ({
 });
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const h = headers();
+  const h = await headers();
 
   const fullUrl = h.get("x-url") ?? "";
   const nonce = h.get("x-csp") ?? "";
@@ -62,6 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
+  const ssr = await ssrInit(buildLegacyCtx(h, await cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -86,10 +137,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        <IconSprites />
       </head>
       <body
-        className="dark:bg-darkgray-50 bg-subtle antialiased"
+        className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed
             ? {
@@ -100,8 +150,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
                 visibility: "hidden",
               }
-            : {}
+            : {
+                visibility: "visible",
+              }
         }>
+        <IconSprites />
         {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
           <script
             nonce={nonce}
@@ -112,7 +165,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        {children}
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
+        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        {!isEmbed && <NotificationSoundHandler />}
+        <NotificationSoundHandler />
       </body>
     </html>
   );

@@ -1,14 +1,18 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Form } from "@calcom/ui/components/form";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import { useBookerStore } from "../../store";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -28,6 +32,13 @@ type BookEventFormProps = {
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
+  isTimeslotUnavailable: boolean;
+  shouldRenderCaptcha?: boolean;
+  confirmButtonDisabled?: boolean;
+  classNames?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
 };
 
 export const BookEventForm = ({
@@ -44,6 +55,10 @@ export const BookEventForm = ({
   extraOptions,
   isVerificationCodeSending,
   isPlatform = false,
+  isTimeslotUnavailable,
+  shouldRenderCaptcha,
+  confirmButtonDisabled,
+  classNames,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -58,6 +73,7 @@ export const BookEventForm = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -86,6 +102,8 @@ export const BookEventForm = ({
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
+  const watchedCfToken = bookingForm.watch("cfToken");
+
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -107,7 +125,7 @@ export const BookEventForm = ({
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
         />
-        {(errors.hasFormErrors || errors.hasDataErrors) && (
+        {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}
@@ -117,10 +135,34 @@ export const BookEventForm = ({
               message={getError(errors.formErrors, errors.dataErrors, t, responseVercelIdHeader)}
             />
           </div>
-        )}
+        ) : isTimeslotUnavailable ? (
+          <div data-testid="slot-not-allowed-to-book">
+            <Alert
+              severity="info"
+              title={t("unavailable_timeslot_title")}
+              message={
+                <ServerTrans
+                  t={t}
+                  i18nKey="timeslot_unavailable_book_a_new_time"
+                  components={[
+                    <button
+                      key="please-select-a-new-time-button"
+                      type="button"
+                      className="underline"
+                      onClick={onCancel}>
+                      Please select a new time
+                    </button>,
+                  ]}
+                />
+              }
+            />
+          </div>
+        ) : null}
+
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
-            <Trans
+            <ServerTrans
+              t={t}
               i18nKey="signing_up_terms"
               components={[
                 <Link
@@ -141,6 +183,28 @@ export const BookEventForm = ({
             />
           </div>
         )}
+
+        {isPlatformBookerEmbed && (
+          <div className="text-subtle my-3 w-full text-xs">
+            {t("proceeding_agreement")}{" "}
+            <Link
+              className="text-emphasis hover:underline"
+              key="terms"
+              href={`${WEBSITE_TERMS_URL}`}
+              target="_blank">
+              {t("terms")}
+            </Link>{" "}
+            {t("and")}{" "}
+            <Link
+              className="text-emphasis hover:underline"
+              key="privacy"
+              href={`${WEBSITE_PRIVACY_POLICY_URL}`}
+              target="_blank">
+              {t("privacy_policy")}
+            </Link>
+            .
+          </div>
+        )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
@@ -149,18 +213,28 @@ export const BookEventForm = ({
           ) : (
             <>
               {!!onCancel && (
-                <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                <Button
+                  color="minimal"
+                  type="button"
+                  onClick={onCancel}
+                  data-testid="back"
+                  className={classNames?.backButton}>
                   {t("back")}
                 </Button>
               )}
+
               <Button
                 type="submit"
                 color="primary"
+                disabled={
+                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+                }
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
                   isVerificationCodeSending
                 }
+                className={classNames?.confirmButton}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>
@@ -170,7 +244,7 @@ export const BookEventForm = ({
                   ? isPaidEvent
                     ? t("pay_and_book")
                     : t("confirm")
-                  : t("verify_email_email_button")}
+                  : t("verify_email_button")}
               </Button>
             </>
           )}

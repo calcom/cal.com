@@ -102,7 +102,7 @@ describe("PermissionsGuard", () => {
     });
   });
 
-  describe("when oauth id is provided", () => {
+  describe("when OAuth id is provided", () => {
     it("should return true for valid permissions", async () => {
       const mockContext = createMockExecutionContext({ "x-cal-client-id": "100" });
       jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE]);

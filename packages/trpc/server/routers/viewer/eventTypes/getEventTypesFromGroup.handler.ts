@@ -7,7 +7,7 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { mapEventType } from "./util";
 
@@ -172,6 +172,7 @@ export const getEventTypesFromGroup = async ({
     mappedEventTypes.forEach((evType) => {
       evType.users = [];
       evType.hosts = [];
+      evType.children = [];
     });
 
   return { eventTypes: mappedEventTypes, nextCursor: nextCursor ?? undefined };

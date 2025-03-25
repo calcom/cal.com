@@ -185,6 +185,8 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        "platform/setup",
+        "platform/quickstart",
         {
           "group": "Atoms",
           "icon": "atom",
@@ -196,7 +198,18 @@
             "platform/atoms/booker",
             "platform/atoms/event-type",
             "platform/atoms/calendar-settings",
-            "platform/atoms/payment-form"
+            "platform/atoms/payment-form",
+            "platform/atoms/conferencing-apps"
+          ]
+        },
+        {
+          "group": "Hooks",
+          "icon": "brackets-curly",
+          "pages": [
+            "platform/bookings-hooks",
+            "platform/event-types-hooks",
+            "platform/calendars-hooks",
+            "platform/user-or-team-related-hooks"
           ]
         },
         {
@@ -205,10 +218,10 @@
           "pages": [
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
-            "platform/guides/booking-redirects"
+            "platform/guides/booking-redirects",
+            "platform/guides/teams-setup"
           ]
         },
-        "platform/quickstart",
         "platform/faq"
       ]
     },

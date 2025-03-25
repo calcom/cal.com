@@ -10,11 +10,11 @@ import {
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import type { NewBookingEventType } from "./types";
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
@@ -49,7 +49,17 @@ export const loadUsers = async ({
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
 
-    return getRoutedUsersWithContactOwnerAndFixedUsers({ users, routedTeamMemberIds, contactOwnerEmail });
+    const routedUsers = getRoutedUsersWithContactOwnerAndFixedUsers({
+      users,
+      routedTeamMemberIds,
+      contactOwnerEmail,
+    });
+
+    if (routedUsers.length) {
+      return routedUsers;
+    }
+
+    return users;
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -65,7 +75,7 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
   });
   const matchingHosts = await findMatchingHostsWithEventSegment({
     eventType,
-    normalizedHosts: hosts ?? fallbackHosts,
+    hosts: hosts ?? fallbackHosts,
   });
   return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
     ...user,
@@ -113,7 +123,8 @@ export const findUsersByUsername = async ({
         metadata: true,
       },
     })
-  ).map((user) => {
+  ).map((_user) => {
+    const user = withSelectedCalendars(_user);
     const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
     return {
       ...user,
@@ -124,3 +135,8 @@ export const findUsersByUsername = async ({
 };
 
 export type LoadedUsers = Awaited<ReturnType<typeof loadUsers>>;
+
+export type OrganizerUser = LoadedUsers[number] & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+};

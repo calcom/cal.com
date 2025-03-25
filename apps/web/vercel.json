@@ -23,6 +23,12 @@
     },
     "pages/api/trpc/appRoutingForms/[trpc].ts": {
       "memory": 2048
+    },
+    "pages/router/embed.tsx": {
+      "memory": 2048
+    },
+    "pages/api/book/event.ts": {
+      "memory": 2048
     }
   }
 }

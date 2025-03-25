@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -21,10 +21,27 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
     this.t = attendee.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const attachments = await Promise.all(
+      this.transcriptDownloadLinks.map(async (url, index) => {
+        const response = await fetch(url);
+        const buffer = await response.arrayBuffer();
+        return {
+          filename: `transcript-${index + 1}.vtt`,
+          content: Buffer.from(buffer),
+          contentType: "text/vtt",
+        };
+      })
+    );
+
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
+      replyTo: [
+        ...this.calEvent.attendees
+          .filter(({ email }) => email !== this.attendee.email)
+          .map(({ email }) => email),
+        this.calEvent.organizer.email,
+      ],
       subject: `${this.t("download_transcript_email_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
@@ -36,6 +53,7 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
         language: this.t,
         name: this.attendee.name,
       }),
+      attachments,
     };
   }
 

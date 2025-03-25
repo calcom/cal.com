@@ -7,18 +7,18 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Switch,
   Dropdown,
-  Button,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownItem,
   DropdownMenuItem,
-  Icon,
-  showToast,
-  useMeta,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
@@ -74,6 +74,12 @@ function AttributeItem({
             <>
               <span className="text-muted">•</span>
               <span>{t("number_of_options", { count: attribute.options.length })}</span>
+            </>
+          )}
+          {attribute.isWeightsEnabled && (
+            <>
+              <span className="text-muted">•</span>
+              <Badge>{t("attribute_weight_enabled")}</Badge>
             </>
           )}
         </p>

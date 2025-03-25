@@ -117,13 +117,16 @@ export const generateCsvRawForMembersTable = (
     const { email, role, teams, username, attributes } = row;
 
     // Create a map of attributeId to array of values
-    const attributeMap = attributes.reduce((acc, attr) => {
+    const attributeMap = (attributes ?? []).reduce((acc, attr) => {
       if (!acc[attr.attributeId]) {
         acc[attr.attributeId] = [];
       }
-      acc[attr.attributeId].push(attr.value);
+      acc[attr.attributeId].push({
+        value: attr.value,
+        weight: attr.weight ?? undefined,
+      });
       return acc;
-    }, {} as Record<string, string[]>);
+    }, {} as Record<string, { value: string; weight: number | undefined }[]>);
 
     const requiredColumns = [
       email, // Members column
@@ -133,9 +136,14 @@ export const generateCsvRawForMembersTable = (
     ];
 
     // Add attribute columns
-    const attributeColumns = ATTRIBUTE_IDS.map((attrId) =>
-      attributeMap[attrId] ? sanitizeValue(attributeMap[attrId].join(",")) : ""
-    );
+    const attributeColumns = ATTRIBUTE_IDS.map((attrId) => {
+      const attributes = attributeMap[attrId];
+      if (!attributes?.length) return "";
+
+      return sanitizeValue(
+        attributes.map((attr) => (attr.weight ? `${attr.value} (${attr.weight}%)` : attr.value)).join(",")
+      );
+    });
 
     return [...requiredColumns, ...attributeColumns];
   });

@@ -8,28 +8,22 @@ import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import FormFieldIdentifier from "@calcom/features/form-builder/FormFieldIdentifier";
-import Shell from "@calcom/features/shell/Shell";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  BooleanToggleGroupField,
-  Button,
-  EmptyScreen,
-  FormCard,
-  Icon,
-  Label,
-  SelectField,
-  Skeleton,
-  TextField,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { FormCard } from "@calcom/ui/components/card";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label, BooleanToggleGroupField, SelectField, TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Skeleton } from "@calcom/ui/components/skeleton";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 
 export { getServerSideProps };
 type SelectOption = { label: string; id: string | null };
@@ -94,7 +88,7 @@ function Field({
     }) || [];
 
   const setOptions = (updatedOptions: SelectOption[]) => {
-    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
+    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions, { shouldDirty: true });
   };
 
   const handleRemoveOptions = (index: number) => {
@@ -209,6 +203,9 @@ function Field({
               defaultValue={label || routerField?.label || ""}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
+              onChange={(e) => {
+                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+              }}
             />
           </div>
           <div className="mb-6 w-full ">
@@ -483,11 +480,3 @@ export default function FormEditPage({
     />
   );
 }
-
-FormEditPage.getLayout = (page: React.ReactElement) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};

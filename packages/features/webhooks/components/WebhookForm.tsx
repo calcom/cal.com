@@ -7,7 +7,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
+import { TextArea } from "@calcom/ui/components/form";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
 
 import SectionBottomActions from "../../settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
@@ -121,18 +128,20 @@ const WebhookForm = (props: {
     },
   });
 
-  const [useCustomTemplate, setUseCustomTemplate] = useState(false);
+  const showTimeSection = formMethods
+    .watch("eventTriggers")
+    ?.find(
+      (trigger) =>
+        trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+    );
+
+  const [useCustomTemplate, setUseCustomTemplate] = useState(
+    props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
+  );
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
-
-  const [showTimeSection, setShowTimeSection] = useState(
-    !!triggerOptions.find(
-      (trigger) =>
-        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    )
-  );
 
   useEffect(() => {
     if (changeSecret) {
@@ -144,7 +153,7 @@ const WebhookForm = (props: {
     <Form
       form={formMethods}
       handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-      <div className="border-subtle border-x p-6">
+      <div className="border-subtle border p-6">
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -197,6 +206,7 @@ const WebhookForm = (props: {
                   <>{t("event_triggers")}</>
                 </Label>
                 <Select
+                  grow
                   options={translatedTriggerOptions}
                   isMulti
                   value={selectValue}
@@ -217,8 +227,6 @@ const WebhookForm = (props: {
                       formMethods.setValue("time", undefined, { shouldDirty: true });
                       formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
                     }
-
-                    setShowTimeSection(noShowWebhookTriggerExists);
                   }}
                 />
               </div>
@@ -229,7 +237,7 @@ const WebhookForm = (props: {
         {showTimeSection && (
           <div className="mt-5">
             <Label>{t("how_long_after_user_no_show_minutes")}</Label>
-            <TimeTimeUnitInput disabled={false} />
+            <TimeTimeUnitInput disabled={false} defaultTime={5} />
           </div>
         )}
 
@@ -353,7 +361,7 @@ const WebhookForm = (props: {
         </Button>
       </SectionBottomActions>
 
-      <div className="mt-6 rounded-md">
+      <div className="mb-4 mt-6 rounded-md">
         <WebhookTestDisclosure />
       </div>
     </Form>

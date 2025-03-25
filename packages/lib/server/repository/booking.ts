@@ -44,10 +44,8 @@ const buildWhereClauseForActiveBookings = ({
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
-      user: {
-        id: {
-          in: users.map((user) => user.id),
-        },
+      userId: {
+        in: users.map((user) => user.id),
       },
       OR: [
         {
@@ -331,6 +329,23 @@ export class BookingRepository {
                     accepted: true,
                     role: {
                       in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            eventType: {
+              parent: {
+                team: {
+                  members: {
+                    some: {
+                      userId,
+                      accepted: true,
+                      role: {
+                        in: ["ADMIN", "OWNER"],
+                      },
                     },
                   },
                 },

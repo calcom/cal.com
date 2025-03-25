@@ -12,7 +12,7 @@ import {
   IntervalLimits_2024_04_15,
   RecurringEvent_2024_04_15,
 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
-import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -29,23 +29,23 @@ import {
 
 export class EventTypeOutput {
   @IsInt()
-  @DocsProperty({ example: 1 })
+  @ApiProperty({ example: 1 })
   id!: number;
 
   @IsInt()
-  @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   length!: number;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
   slug!: string;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
   title!: string;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE })
+  @ApiProperty({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE, nullable: true })
   description!: string | null;
 
   @IsBoolean()
@@ -55,6 +55,7 @@ export class EventTypeOutput {
   @ValidateNested({ each: true })
   @Type(() => EventTypeLocation_2024_04_15)
   @IsArray()
+  @ApiProperty({ type: [EventTypeLocation_2024_04_15], nullable: true })
   locations!: EventTypeLocation_2024_04_15[] | null;
 
   @IsInt()

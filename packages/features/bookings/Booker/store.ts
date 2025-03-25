@@ -32,9 +32,12 @@ type StoreInitializeType = {
   durationConfig?: number[] | null;
   org?: string | null;
   isInstantMeeting?: boolean;
+  timezone?: string | null;
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  isPlatform?: boolean;
+  allowUpdatingUrlParams?: boolean;
 };
 
 type SeatedEventData = {
@@ -79,7 +82,7 @@ export type BookerStore = {
    * Date selected by user (exact day). Format is YYYY-MM-DD.
    */
   selectedDate: string | null;
-  setSelectedDate: (date: string | null) => void;
+  setSelectedDate: (date: string | null, omitUpdatingParams?: boolean) => void;
   addToSelectedDate: (days: number) => void;
   /**
    * Multiple Selected Dates and Times
@@ -101,6 +104,8 @@ export type BookerStore = {
    */
   selectedTimeslot: string | null;
   setSelectedTimeslot: (timeslot: string | null) => void;
+  tentativeSelectedTimeslots: string[];
+  setTentativeSelectedTimeslots: (slots: string[]) => void;
   /**
    * Number of recurring events to create.
    */
@@ -133,7 +138,7 @@ export type BookerStore = {
   initialize: (data: StoreInitializeType) => void;
   /**
    * Stored form state, used when user navigates back and
-   * forth between timeslots and form. Get's cleared on submit
+   * forth between timeslots and form. Gets cleared on submit
    * to prevent sticky data.
    */
   formValues: Record<string, any>;
@@ -152,9 +157,14 @@ export type BookerStore = {
   org?: string | null;
   setOrg: (org: string | null | undefined) => void;
 
+  timezone: string | null;
+  setTimezone: (timezone: string | null) => void;
+
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  isPlatform?: boolean;
+  allowUpdatingUrlParams?: boolean;
 };
 
 /**
@@ -174,11 +184,13 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
-    updateQueryParam("layout", layout);
+    if (!get().isPlatform || get().allowUpdatingUrlParams) {
+      updateQueryParam("layout", layout);
+    }
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
-  setSelectedDate: (selectedDate: string | null) => {
+  setSelectedDate: (selectedDate: string | null, omitUpdatingParams = false) => {
     // unset selected date
     if (!selectedDate) {
       removeQueryParam("date");
@@ -188,12 +200,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     const currentSelection = dayjs(get().selectedDate);
     const newSelection = dayjs(selectedDate);
     set({ selectedDate });
-    updateQueryParam("date", selectedDate ?? "");
+    if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
+      updateQueryParam("date", selectedDate ?? "");
+    }
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      updateQueryParam("month", newSelection.format("YYYY-MM"));
+      if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
+        updateQueryParam("month", newSelection.format("YYYY-MM"));
+      }
     }
   },
   selectedDatesAndTimes: null,
@@ -202,16 +218,26 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
-    const newSelection = currentSelection.add(days, "day");
+    let newSelection = currentSelection.add(days, "day");
+
+    // If newSelection is before the current date, set it to today
+    if (newSelection.isBefore(dayjs(), "day")) {
+      newSelection = dayjs();
+    }
+
     const newSelectionFormatted = newSelection.format("YYYY-MM-DD");
 
     if (newSelection.month() !== currentSelection.month()) {
       set({ month: newSelection.format("YYYY-MM") });
-      updateQueryParam("month", newSelection.format("YYYY-MM"));
+      if (!get().isPlatform || get().allowUpdatingUrlParams) {
+        updateQueryParam("month", newSelection.format("YYYY-MM"));
+      }
     }
 
     set({ selectedDate: newSelectionFormatted });
-    updateQueryParam("date", newSelectionFormatted);
+    if (!get().isPlatform || get().allowUpdatingUrlParams) {
+      updateQueryParam("date", newSelectionFormatted);
+    }
   },
   username: null,
   eventSlug: null,
@@ -221,14 +247,21 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setVerifiedEmail: (email: string | null) => {
     set({ verifiedEmail: email });
   },
-  month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
+  month:
+    getQueryParam("month") ||
+    (getQueryParam("date") && dayjs(getQueryParam("date")).isValid()
+      ? dayjs(getQueryParam("date")).format("YYYY-MM")
+      : null) ||
+    dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     if (!month) {
       removeQueryParam("month");
       return;
     }
     set({ month, selectedTimeslot: null });
-    updateQueryParam("month", month ?? "");
+    if (!get().isPlatform || get().allowUpdatingUrlParams) {
+      updateQueryParam("month", month ?? "");
+    }
     get().setSelectedDate(null);
   },
   dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
@@ -244,7 +277,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   setSeatedEventData: (seatedEventData: SeatedEventData) => {
     set({ seatedEventData });
-    updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
+    if (!get().isPlatform || get().allowUpdatingUrlParams) {
+      updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
+    }
+  },
+  // This is different from timeZone in timePreferencesStore, because timeZone in timePreferencesStore is the preferred timezone of the booker,
+  // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
+  // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
+  timezone: getQueryParam("cal.tz") ?? null,
+  setTimezone: (timezone: string | null) => {
+    set({ timezone });
   },
   initialize: ({
     username,
@@ -260,9 +302,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     durationConfig,
     org,
     isInstantMeeting,
+    timezone = null,
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    isPlatform = false,
+    allowUpdatingUrlParams = true,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -275,6 +320,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout &&
+      get().timezone === timezone &&
       get().rescheduledBy === rescheduledBy &&
       get().teamMemberEmail === teamMemberEmail &&
       get().crmOwnerRecordType === crmOwnerRecordType &&
@@ -293,6 +339,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       layout: layout || BookerLayouts.MONTH_VIEW,
       isTeamEvent: isTeamEvent || false,
       durationConfig,
+      timezone,
       // Preselect today's date in week / column view, since they use this to show the week title.
       selectedDate:
         selectedDateInStore ||
@@ -300,6 +347,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      isPlatform,
+      allowUpdatingUrlParams,
     });
 
     if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -323,7 +372,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         "minutes"
       );
       set({ selectedDuration: originalBookingLength });
-      updateQueryParam("duration", originalBookingLength ?? "");
+      if (!isPlatform || allowUpdatingUrlParams) {
+        updateQueryParam("duration", originalBookingLength ?? "");
+      }
     }
     if (month) set({ month });
 
@@ -337,9 +388,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         selectedTimeslot,
         isInstantMeeting,
       });
-      updateQueryParam("month", month);
-      updateQueryParam("date", selectedDate ?? "");
-      updateQueryParam("slot", selectedTimeslot ?? "", false);
+
+      if (!isPlatform || allowUpdatingUrlParams) {
+        updateQueryParam("month", month);
+        updateQueryParam("date", selectedDate ?? "");
+        updateQueryParam("slot", selectedTimeslot ?? "", false);
+      }
     }
     //removeQueryParam("layout");
   },
@@ -347,7 +401,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   selectedDuration: null,
   setSelectedDuration: (selectedDuration: number | null) => {
     set({ selectedDuration });
-    updateQueryParam("duration", selectedDuration ?? "");
+    if (!get().isPlatform || get().allowUpdatingUrlParams) {
+      updateQueryParam("duration", selectedDuration ?? "");
+    }
   },
   setBookingData: (bookingData: GetBookingType | null | undefined) => {
     set({ bookingData: bookingData ?? null });
@@ -360,9 +416,15 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   bookingData: null,
   bookingUid: null,
   selectedTimeslot: getQueryParam("slot") || null,
+  tentativeSelectedTimeslots: [],
+  setTentativeSelectedTimeslots: (tentativeSelectedTimeslots: string[]) => {
+    set({ tentativeSelectedTimeslots });
+  },
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
-    updateQueryParam("slot", selectedTimeslot ?? "", false);
+    if (!get().isPlatform || get().allowUpdatingUrlParams) {
+      updateQueryParam("slot", selectedTimeslot ?? "", false);
+    }
   },
   formValues: {},
   setFormValues: (formValues: Record<string, any>) => {
@@ -372,6 +434,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setOrg: (org: string | null | undefined) => {
     set({ org });
   },
+  isPlatform: false,
+  allowUpdatingUrlParams: true,
 }));
 
 export const useInitializeBookerStore = ({
@@ -388,9 +452,12 @@ export const useInitializeBookerStore = ({
   durationConfig,
   org,
   isInstantMeeting,
+  timezone = null,
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  isPlatform = false,
+  allowUpdatingUrlParams = true,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -408,9 +475,12 @@ export const useInitializeBookerStore = ({
       verifiedEmail,
       durationConfig,
       isInstantMeeting,
+      timezone,
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      isPlatform,
+      allowUpdatingUrlParams,
     });
   }, [
     initializeStore,
@@ -427,8 +497,11 @@ export const useInitializeBookerStore = ({
     verifiedEmail,
     durationConfig,
     isInstantMeeting,
+    timezone,
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    isPlatform,
+    allowUpdatingUrlParams,
   ]);
 };

@@ -4,11 +4,14 @@ import type { Table } from "@tanstack/react-table";
 import { useEffect, useState, forwardRef } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonProps } from "@calcom/ui";
-import { Button, Input } from "@calcom/ui";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Input } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
+
+import { useColumnFilters } from "../hooks";
 
 interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
@@ -50,7 +53,7 @@ function SearchBarComponent<TData>(
     return (
       <Input
         ref={ref}
-        className={`max-w-64 mb-0 mr-auto rounded-md ${className ?? ""}`}
+        className={`max-w-48 ${className ?? ""}`}
         placeholder="Search"
         value={searchTerm}
         onChange={(event) => setSearchTerm(event.target.value.trim())}
@@ -66,7 +69,7 @@ function SearchBarComponent<TData>(
   return (
     <Input
       ref={ref}
-      className="max-w-64 mb-0 mr-auto rounded-md"
+      className="max-w-48"
       placeholder="Search"
       value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
       onChange={(event) => {
@@ -89,7 +92,8 @@ function ClearFiltersButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const columnFilters = useColumnFilters();
+  const isFiltered = columnFilters.length > 0;
   if (!isFiltered) return null;
   return (
     <Button

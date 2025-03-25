@@ -7,9 +7,12 @@ import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/c
 import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
+import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
+
+export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
 export interface BookerProps {
   eventSlug: string;
@@ -92,6 +95,7 @@ export interface BookerProps {
   crmAppSlug?: string | null;
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
+  hasValidLicense?: boolean;
 }
 
 export type WrappedBookerPropsMain = {
@@ -117,16 +121,21 @@ export type WrappedBookerPropsMain = {
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
+  isBookingDryRun?: boolean;
+  renderCaptcha?: boolean;
+  confirmButtonDisabled?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   isPlatform: true;
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
+  timeZones?: Timezone[];
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
+  timeZones?: Timezone[];
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
@@ -136,6 +145,7 @@ export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
+  bookerWrapper?: string;
   bookerContainer?: string;
   eventMetaCustomClassNames?: {
     eventMetaContainer?: string;
@@ -158,4 +168,8 @@ export type CustomClassNames = {
     availableTimes?: string;
   };
   atomsWrapper?: string;
+  confirmStep?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
 };

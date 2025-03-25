@@ -4,7 +4,7 @@ import type { NextApiResponse } from "next";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
 
@@ -18,9 +18,14 @@ interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
 }
 
 export const findTeamMembersMatchingAttributeLogicHandler = async ({
+  ctx,
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
   const { teamId, attributesQueryValue, _enablePerf, _concurrency } = input;
+  const orgId = ctx.user.organizationId;
+  if (!orgId) {
+    throw new Error("You must be in an organization to use this feature");
+  }
   const {
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     mainAttributeLogicBuildingWarnings: mainWarnings,
@@ -30,6 +35,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     {
       teamId,
       attributesQueryValue,
+      orgId,
     },
     {
       enablePerf: _enablePerf,

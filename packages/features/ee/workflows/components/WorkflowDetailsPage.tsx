@@ -9,16 +9,19 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField, InfoBadge } from "@calcom/ui";
+import { InfoBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
+import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
+import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
-type User = RouterOutputs["viewer"]["me"];
+type User = RouterOutputs["viewer"]["me"]["get"];
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -83,7 +86,7 @@ export default function WorkflowDetailsPage(props: Props) {
       workflowId: workflowId,
       reminderBody: null,
       emailSubject: null,
-      template: isWhatsappAction(action) ? WorkflowTemplates.REMINDER : WorkflowTemplates.CUSTOM,
+      template: WorkflowTemplates.REMINDER,
       numberRequired: numberRequired || false,
       sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
@@ -122,7 +125,7 @@ export default function WorkflowDetailsPage(props: Props) {
             control={form.control}
             render={() => {
               return (
-                <MultiSelectCheckboxes
+                <MultiSelectCheckbox
                   options={allOptions}
                   isDisabled={props.readOnly || form.getValues("selectAll")}
                   className="w-full md:w-64"

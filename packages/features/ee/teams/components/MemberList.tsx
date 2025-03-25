@@ -1,7 +1,6 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -19,10 +18,12 @@ import type { Dispatch, SetStateAction } from "react";
 
 import {
   DataTable,
+  DataTableProvider,
   DataTableToolbar,
   DataTableFilters,
   DataTableSelectionBar,
   useFetchMoreOnBottomReached,
+  useColumnFilters,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
@@ -32,17 +33,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
-  Avatar,
-  Badge,
-  Button,
-  ButtonGroup,
-  Checkbox,
-  ConfirmationDialogContent,
   Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import {
   Dropdown,
   DropdownItem,
   DropdownMenuPortal,
@@ -50,9 +52,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
-  Tooltip,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Checkbox } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
@@ -150,6 +153,14 @@ interface Props {
 }
 
 export default function MemberList(props: Props) {
+  return (
+    <DataTableProvider>
+      <MemberListContent {...props} />
+    </DataTableProvider>
+  );
+}
+
+function MemberListContent(props: Props) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
@@ -162,24 +173,26 @@ export default function MemberList(props: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchTerm: debouncedSearchTerm,
-      teamId: props.team.id,
-    },
-    {
-      enabled: !!props.team.id,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      placeholderData: keepPreviousData,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-    }
-  );
+  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
+    trpc.viewer.teams.listMembers.useInfiniteQuery(
+      {
+        limit: 10,
+        searchTerm: debouncedSearchTerm,
+        teamId: props.team.id,
+        // TODO: send `columnFilters` to server for server side filtering
+        // filters: columnFilters,
+      },
+      {
+        enabled: !!props.team.id,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        staleTime: 0,
+      }
+    );
 
-  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const columnFilters = useColumnFilters();
   const [rowSelection, setRowSelection] = useState({});
 
   const removeMemberFromCache = ({
@@ -275,7 +288,7 @@ export default function MemberList(props: Props) {
       isOrg: checkIsOrg(props.team),
     });
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
@@ -284,6 +297,7 @@ export default function MemberList(props: Props) {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         header: ({ table }) => (
           <Checkbox
@@ -306,7 +320,7 @@ export default function MemberList(props: Props) {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        header: `Member (${totalDBRowCount})`,
+        header: "Member",
         size: 250,
         cell: ({ row }) => {
           const { username, email, avatarUrl, accepted, name } = row.original;
@@ -339,8 +353,9 @@ export default function MemberList(props: Props) {
           );
         },
         filterFn: (rows, id, filterValue) => {
+          const { data } = filterValue;
           const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
+          return data.includes(userEmail);
         },
       },
       {
@@ -375,13 +390,14 @@ export default function MemberList(props: Props) {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
+          const { data } = filterValue;
+          if (data.includes("PENDING")) {
+            if (data.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || data.includes(rows.getValue(id));
           }
 
           // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
+          return data.includes(rows.getValue(id));
         },
       },
       {
@@ -391,10 +407,8 @@ export default function MemberList(props: Props) {
       },
       {
         id: "actions",
-        size: 80,
-        meta: {
-          sticky: { position: "right" },
-        },
+        size: 90,
+        enableResizing: false,
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
@@ -606,10 +620,9 @@ export default function MemberList(props: Props) {
     ];
 
     return cols;
-  }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
+  }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
-  const totalFetched = flatData.length;
 
   const table = useReactTable({
     data: flatData,
@@ -619,12 +632,14 @@ export default function MemberList(props: Props) {
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        right: ["actions"],
+      },
     },
     state: {
       columnFilters,
       rowSelection,
     },
-    onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -633,35 +648,34 @@ export default function MemberList(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
   return (
     <>
       <DataTable
-        data-testid="team-member-list-container"
+        testId="team-member-list-container"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
           <div className="flex w-full gap-2">
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            <DataTableFilters.FilterButton table={table} />
+            <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             {isAdminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                className="rounded-md"
                 onClick={() => props.setShowMemberInvitationModal(true)}
                 data-testid="new-member-button">
                 {t("add")}
@@ -685,6 +699,7 @@ export default function MemberList(props: Props) {
             </p>
             {numberOfSelectedRows >= 2 && (
               <DataTableSelectionBar.Button
+                color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
                 icon="handshake">
                 {t("group_meeting")}

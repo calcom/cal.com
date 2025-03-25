@@ -1,17 +1,20 @@
-import type { Payment } from "@prisma/client";
-import type { EventType } from "@prisma/client";
+"use client";
+
+import type { EventType, Payment } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import type { StripeElementLocale, StripeElements } from "@stripe/stripe-js";
+import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PaymentOption } from "@calcom/prisma/enums";
-import { Button, CheckboxField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { CheckboxField } from "@calcom/ui/components/form";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -63,6 +66,10 @@ export const PaymentFormComponent = (
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
   const disableButtons = isCanceling || !holdAcknowledged || ["processing", "error"].includes(state.status);
 
+  const paymentElementOptions = {
+    layout: "accordion",
+  } as StripePaymentElementOptions;
+
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
   }, [elements, i18n.language]);
@@ -70,7 +77,7 @@ export const PaymentFormComponent = (
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={props.onSubmit}>
       <div>
-        <PaymentElement onChange={() => onPaymentElementChange()} />
+        <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
       </div>
       {paymentOption === "HOLD" && (
         <div className="bg-info mb-5 mt-2 rounded-md p-3">
@@ -174,6 +181,9 @@ const PaymentForm = (props: Props) => {
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
+        confirmParams: {
+          return_url: `${WEBAPP_URL}/booking/${params.uid}`,
+        },
         redirect: "if_required",
       });
       if (payload.paymentIntent) {

@@ -9,17 +9,12 @@ import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListIt
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  EmptyScreen,
-  Meta,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
       <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
@@ -72,12 +67,7 @@ const ApiKeysView = () => {
   }, []);
 
   if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("api_keys")}
-        description={t("create_first_api_key_description", { appName: APP_NAME })}
-      />
-    );
+    return <SkeletonLoader />;
   }
 
   return (

@@ -1,30 +1,23 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 
 import {
-  DataTable,
+  DataTableWrapper,
+  DataTableProvider,
   DataTableToolbar,
-  DataTableFilters,
   DataTableSelectionBar,
-  DataTablePagination,
+  DataTableFilters,
   useColumnFilters,
-  useFetchMoreOnBottomReached,
-  textFilter,
-  isTextFilterValue,
+  ColumnFilterType,
+  convertFacetedValuesToMap,
+  useDataTable,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
   downloadAsCsv,
@@ -34,7 +27,11 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Checkbox } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -103,6 +100,14 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 }
 
 export function UserListTable() {
+  return (
+    <DataTableProvider defaultPageSize={25}>
+      <UserListTableContent />
+    </DataTableProvider>
+  );
+}
+
+function UserListTableContent() {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -110,12 +115,22 @@ export function UserListTable() {
 
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
-  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
-  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
-  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
-  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery();
+  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
+  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
@@ -123,40 +138,27 @@ export function UserListTable() {
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, fetchNextPage, isFetching } =
-    trpc.viewer.organizations.listMembers.useInfiniteQuery(
-      {
-        limit: 30,
-        searchTerm: debouncedSearchTerm,
-        expand: ["attributes"],
-        filters: columnFilters,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-      }
-    );
+  const { limit, offset } = useDataTable();
 
-  const exportQuery = trpc.viewer.organizations.listMembers.useInfiniteQuery(
+  const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
-      limit: 100, // Max limit
+      limit,
+      offset,
       searchTerm: debouncedSearchTerm,
       expand: ["attributes"],
       filters: columnFilters,
     },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      enabled: false,
+      placeholderData: keepPreviousData,
     }
   );
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
-  const totalFetched = flatData.length;
+  const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -169,55 +171,82 @@ export function UserListTable() {
       if (!attributes?.length) {
         return [];
       }
-      return (
-        (attributes?.map((attribute) => ({
-          id: attribute.id,
-          header: attribute.name,
-          meta: {
-            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
-          },
-          size: 120,
-          accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
-          cell: ({ row }) => {
-            const attributeValues = row.original.attributes.filter(
-              (attr) => attr.attributeId === attribute.id
-            );
-            if (attributeValues.length === 0) return null;
-            return (
-              <div className={classNames(attribute.type === "NUMBER" ? "flex w-full justify-center" : "")}>
-                {attributeValues.map((attributeValue, index) => (
-                  <Badge key={index} variant="gray" className="mr-1">
-                    {attributeValue.value}
-                  </Badge>
-                ))}
-              </div>
-            );
-          },
-          filterFn: (row, id, filterValue) => {
-            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
+      const attributeColumns: ColumnDef<UserTableUser>[] =
+        attributes?.map((attribute) => {
+          // TODO: We need to normalize AttributeOption table first
+          // so that we can have `number_value` column for numeric operations.
+          // Currently, `value` column is used for both text and number attributes.
+          //
+          // const isNumber = attribute.type === "NUMBER";
+          const isNumber = false;
+          const isText = attribute.type === "TEXT";
+          const isSingleSelect = attribute.type === "SINGLE_SELECT";
+          // const isMultiSelect = attribute.type === "MULTI_SELECT";
+          const filterType = isNumber
+            ? ColumnFilterType.NUMBER
+            : isText
+            ? ColumnFilterType.TEXT
+            : isSingleSelect
+            ? ColumnFilterType.SINGLE_SELECT
+            : ColumnFilterType.MULTI_SELECT;
 
-            if (isTextFilterValue(filterValue)) {
-              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
-            }
+          return {
+            id: attribute.id,
+            header: attribute.name,
+            meta: {
+              filter: { type: filterType },
+            },
+            size: 120,
+            accessorFn: (data) => data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
+            cell: ({ row }) => {
+              const attributeValues = row.original.attributes?.filter(
+                (attr) => attr.attributeId === attribute.id
+              );
+              if (attributeValues?.length === 0) return null;
+              return (
+                <div className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}>
+                  {attributeValues?.map((attributeValue) => {
+                    const isAGroupOption = attributeValue.contains?.length > 0;
+                    const suffix = attribute.isWeightsEnabled
+                      ? `${attributeValue.weight || 100}%`
+                      : undefined;
+                    return (
+                      <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
+                        <Badge
+                          variant={isAGroupOption ? "orange" : "gray"}
+                          className={classNames(suffix && "rounded-r-none")}>
+                          {attributeValue.value}
+                        </Badge>
 
-            if (attributeValues.length === 0) return false;
-            return attributeValues.some((attr) => filterValue.includes(attr.value));
-          },
-        })) as ColumnDef<UserTableUser>[]) ?? []
-      );
+                        {suffix ? (
+                          <Badge
+                            variant={isAGroupOption ? "orange" : "gray"}
+                            style={{
+                              backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                            }}
+                            className="rounded-l-none">
+                            {suffix}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            },
+          };
+        }) ?? [];
+      return attributeColumns;
     };
+
     const cols: ColumnDef<UserTableUser>[] = [
       // Disabling select for this PR: Will work on actions etc in a follow up
       {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
-        meta: {
-          sticky: {
-            position: "left",
-          },
-        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -239,13 +268,9 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        enableColumnFilter: false,
         size: 200,
-        header: () => {
-          return `Members`;
-        },
-        meta: {
-          sticky: { position: "left", gap: 24 },
-        },
+        header: "Members",
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -272,10 +297,6 @@ export function UserListTable() {
             </div>
           );
         },
-        filterFn: (rows, id, filterValue) => {
-          const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
-        },
       },
       {
         id: "role",
@@ -294,15 +315,6 @@ export function UserListTable() {
               {role}
             </Badge>
           );
-        },
-        filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
-          }
-
-          // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
         },
       },
       {
@@ -341,10 +353,6 @@ export function UserListTable() {
             </div>
           );
         },
-        filterFn: (rows, _, filterValue: string[]) => {
-          const teamNames = rows.original.teams.map((team) => team.name);
-          return filterValue.some((value: string) => teamNames.includes(value));
-        },
       },
       ...generateAttributeColumns(),
       {
@@ -355,10 +363,9 @@ export function UserListTable() {
       {
         id: "actions",
         enableHiding: false,
+        enableSorting: false,
+        enableResizing: false,
         size: 80,
-        meta: {
-          sticky: { position: "right" },
-        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
@@ -386,27 +393,27 @@ export function UserListTable() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount, attributes]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate]);
 
   const table = useReactTable({
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
-    debugTable: true,
     manualPagination: true,
+    state: {
+      rowSelection,
+    },
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        left: ["select", "member"],
+        right: ["actions"],
+      },
     },
     defaultColumn: {
       size: 150,
     },
-    state: {
-      columnFilters,
-      rowSelection,
-    },
     getCoreRowModel: getCoreRowModel(),
-    // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => `${row.id}`,
@@ -414,13 +421,28 @@ export function UserListTable() {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
-            return new Map(facetedTeamValues.roles.map((role) => [role, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.roles.map((role) => ({
+                label: role,
+                value: role,
+              }))
+            );
           case "teams":
-            return new Map(facetedTeamValues.teams.map((team) => [team.name, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.teams.map((team) => ({
+                label: team.name,
+                value: team.name,
+              }))
+            );
           default:
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
-              return new Map(attribute?.options.map(({ value }) => [value, 1]) ?? []);
+              return convertFacetedValuesToMap(
+                attribute?.options.map(({ value }) => ({
+                  label: value,
+                  value,
+                })) ?? []
+              );
             }
             return new Map();
         }
@@ -429,13 +451,7 @@ export function UserListTable() {
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
-    tableContainerRef,
-    fetchNextPage,
-    isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  const utils = trpc.useUtils();
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -450,30 +466,35 @@ export function UserListTable() {
         throw new Error("Header is missing.");
       }
 
-      const result = await exportQuery.refetch();
-      if (!result.data) {
-        throw new Error("There are no members found.");
-      }
-      const allMembers = result.data.pages.flatMap((page) => page.rows ?? []) ?? [];
-      let lastPage = result.data.pages[result.data.pages.length - 1];
+      // Fetch all pages
+      let allRows: UserTableUser[] = [];
+      let offset: number | undefined = 0;
+      const limit = 100;
 
-      while (lastPage.nextCursor) {
-        const nextPage = await exportQuery.fetchNextPage();
-        if (!nextPage.data) {
-          break;
+      while (offset !== undefined) {
+        const result = await utils.viewer.organizations.listMembers.fetch({
+          limit,
+          offset,
+          searchTerm: debouncedSearchTerm,
+          expand: ["attributes"],
+          filters: columnFilters,
+        });
+
+        if (!result.rows?.length) {
+          offset = undefined;
+          continue;
         }
-        const latestPageItems = nextPage.data.pages[nextPage.data.pages.length - 1].rows ?? [];
-        allMembers.push(...latestPageItems);
-        lastPage = nextPage.data.pages[nextPage.data.pages.length - 1];
+
+        allRows = [...allRows, ...result.rows];
+        offset = offset + limit;
+      }
+
+      if (!allRows.length) {
+        throw new Error("There are no members found.");
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(
-        headers,
-        allMembers as UserTableUser[],
-        ATTRIBUTE_IDS,
-        domain
-      );
+      const csvRaw = generateCsvRawForMembersTable(headers, allRows, ATTRIBUTE_IDS, domain);
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }
@@ -487,74 +508,71 @@ export function UserListTable() {
     }
   };
 
+  if (!isPlatformUser && !isSuccessAttributes) {
+    // do not render the table until the attributes are fetched
+    return null;
+  }
+
   return (
     <>
-      <DataTable
-        data-testid="user-list-data-table"
-        // className="lg:max-w-screen-lg"
+      <DataTableWrapper<UserTableUser>
+        testId="user-list-data-table"
         table={table}
-        tableContainerRef={tableContainerRef}
         isPending={isPending}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root className="lg:max-w-screen-2xl">
-          <div className="flex w-full flex-col gap-2 sm:flex-row">
-            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
-              <DataTableToolbar.SearchBar
-                table={table}
-                onSearch={(value) => setDebouncedSearchTerm(value)}
-                className="sm:max-w-64 max-w-full"
-              />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
+        totalRowCount={data?.meta?.totalRowCount}
+        paginationMode="standard"
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
+            <DataTableFilters.ActiveFilters table={table} />
+            <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+            <DataTableFilters.ClearFiltersButton />
+          </>
+        }
+        ToolbarRight={
+          <>
+            <DataTableToolbar.CTA
+              type="button"
+              color="secondary"
+              StartIcon="file-down"
+              loading={isDownloading}
+              onClick={() => handleDownload()}
+              data-testid="export-members-button">
+              {t("download")}
+            </DataTableToolbar.CTA>
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
-                color="secondary"
-                StartIcon="file-down"
-                loading={isDownloading}
-                onClick={() => handleDownload()}
-                data-testid="export-members-button">
-                {t("download")}
+                color="primary"
+                StartIcon="plus"
+                onClick={() =>
+                  dispatch({
+                    type: "INVITE_MEMBER",
+                    payload: {
+                      showModal: true,
+                    },
+                  })
+                }
+                data-testid="new-organization-member-button">
+                {t("add")}
               </DataTableToolbar.CTA>
-              {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.FilterButton table={table} omit={["member"]} />
-              <DataTableFilters.ColumnVisibilityButton table={table} />
-              {adminOrOwner && (
-                <DataTableToolbar.CTA
-                  type="button"
-                  color="primary"
-                  StartIcon="plus"
-                  className="rounded-md"
-                  onClick={() =>
-                    dispatch({
-                      type: "INVITE_MEMBER",
-                      payload: {
-                        showModal: true,
-                      },
-                    })
-                  }
-                  data-testid="new-organization-member-button">
-                  {t("add")}
-                </DataTableToolbar.CTA>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2 justify-self-start">
-            <DataTableFilters.ActiveFilters table={table} />
-          </div>
-        </DataTableToolbar.Root>
-
-        <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
-        </div>
-
+            )}
+          </>
+        }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
-            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+          <DataTableSelectionBar.Root
+            className="justify-center"
+            style={{
+              width: "max-content",
+            }}>
+            <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {!isPlatformUser ? (
@@ -562,6 +580,7 @@ export function UserListTable() {
                 <TeamListBulkAction table={table} />
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
+                    color="secondary"
                     onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
                     icon="handshake">
                     {t("group_meeting")}
@@ -577,7 +596,8 @@ export function UserListTable() {
             />
           </DataTableSelectionBar.Root>
         )}
-      </DataTable>
+      </DataTableWrapper>
+
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}

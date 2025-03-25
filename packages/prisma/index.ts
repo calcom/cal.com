@@ -81,6 +81,15 @@ if (process.env.NODE_ENV !== "production") {
 
 type PrismaClientWithExtensions = typeof prismaWithClientExtensions;
 export type PrismaClient = PrismaClientWithExtensions;
+
+type OmitPrismaClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
+
+// we cant pass tx to functions as types miss match since we have a custom prisma client https://github.com/prisma/prisma/discussions/20924#discussioncomment-10077649
+export type PrismaTransaction = OmitPrismaClient;
+
 export default prisma;
 
 export * from "./selects";

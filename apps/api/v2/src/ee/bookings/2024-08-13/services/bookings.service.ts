@@ -1,6 +1,8 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
@@ -13,8 +15,8 @@ import { Request } from "express";
 import { z } from "zod";
 
 import {
-  handleNewBooking,
   handleNewRecurringBooking,
+  getTranslation,
   getAllUserBookings,
   handleInstantMeeting,
   handleCancelBooking,
@@ -22,7 +24,9 @@ import {
   roundRobinManualReassignment,
   handleMarkNoShow,
   confirmBookingHandler,
+  getCalendarLinks,
 } from "@calcom/platform-libraries";
+import { handleNewBooking } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -67,7 +71,8 @@ export class BookingsService_2024_08_13 {
     private readonly prismaReadService: PrismaReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly platformBookingsService: PlatformBookingsService
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -224,8 +229,7 @@ export class BookingsService_2024_08_13 {
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
-      // note(Lauris): we substract -1 because getAllUSerBookings child function adds +1 for some reason
-      take: queryParams.take ? queryParams.take - 1 : 100,
+      take: queryParams.take ?? 100,
       filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
         user,
@@ -340,7 +344,10 @@ export class BookingsService_2024_08_13 {
     }
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
-    await handleCancelBooking(bookingRequest);
+    const res = await handleCancelBooking(bookingRequest);
+    if (!res.onlyRemovedAttendee) {
+      await this.billingService.cancelUsageByBookingUid(res.bookingUid);
+    }
 
     if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
       return this.getAllRecurringBookingsByIndividualUid(bookingUid);
@@ -365,7 +372,7 @@ export class BookingsService_2024_08_13 {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
     const platformClientParams = bookingBefore?.eventTypeId
-      ? await this.inputService.getOAuthClientParams(bookingBefore.eventTypeId)
+      ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
       : undefined;
 
     await handleMarkNoShow({
@@ -429,7 +436,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
@@ -468,7 +475,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
@@ -495,7 +502,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
@@ -523,7 +530,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.inputService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
@@ -543,5 +550,35 @@ export class BookingsService_2024_08_13 {
     });
 
     return this.getBooking(bookingUid);
+  }
+
+  async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
+    }
+
+    if (!booking.eventTypeId) {
+      throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
+    }
+
+    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(
+      booking.eventTypeId
+    );
+    if (!eventType) {
+      throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
+    }
+    // TODO: Maybe we should get locale from query params?
+    return getCalendarLinks({
+      booking,
+      eventType: {
+        ...eventType,
+        // TODO: Support dynamic event bookings later. It would require a slug input it seems
+        isDynamic: false,
+      },
+      // It can be made customizable through the API endpoint later.
+      t: await getTranslation("en", "common"),
+    });
   }
 }

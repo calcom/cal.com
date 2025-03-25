@@ -13,6 +13,8 @@ type DestinationCalendar = {
   userId: number | null;
   eventTypeId: number | null;
   credentialId: number | null;
+  delegationCredentialId: string | null;
+  domainWideDelegationCredentialId: string | null;
 } | null;
 
 type Attendee = {

@@ -7,7 +7,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import {
   useOAuthClientWebhooks,
@@ -96,10 +96,10 @@ export default function EditOAuthClientWebhooks() {
                         webhookId,
                         body,
                       });
-                      showToast("Webhook updated successfully.", "success");
+                      showToast(t("webhook_updated_successfully"), "success");
                     } else {
                       await createWebhook(body);
-                      showToast("Webhook created successfully.", "success");
+                      showToast(t("webhook_created_successfully"), "success");
                     }
                     await refetchWebhooks();
                     router.push("/settings/platform/");
@@ -126,7 +126,7 @@ export default function EditOAuthClientWebhooks() {
 
   return (
     <div>
-      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

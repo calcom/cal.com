@@ -3,7 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 import type { MutableRefObject } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogContent, Button, DialogFooter } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 
 interface AssignmentWarningDialogProps {
   isOpenAssignmentWarnDialog: boolean;
