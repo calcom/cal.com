@@ -1,11 +1,11 @@
 import type { NextApiResponse } from "next";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import BillingService from "@calcom/features/ee/billing";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
@@ -96,7 +96,8 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   }
 
   // Create the customer in Stripe
-  const customer = await stripe.customers.create({
+
+  const customer = await BillingService.createCustomer({
     email,
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
@@ -108,18 +109,14 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
 
   // Pro username, must be purchased
   if (req.usernameStatus.statusCode === 402) {
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await BillingService.createSubscriptionCheckout({
       mode: "subscription",
-      customer: customer.id,
-      line_items: [
-        {
-          price: getPremiumMonthlyPlanPriceId(),
-          quantity: 1,
-        },
-      ],
-      success_url: returnUrl,
-      cancel_url: returnUrl,
-      allow_promotion_codes: true,
+      customerId: customer.id,
+      successUrl: returnUrl,
+      cancelUrl: returnUrl,
+      priceId: getPremiumMonthlyPlanPriceId(),
+      quantity: 1,
+      allowPromotionCodes: true,
     });
 
     /** We create a username-less user until he pays */

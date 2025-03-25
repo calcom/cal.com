@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 
 import { stripeWebhookHandler, HttpCode } from "./__handler";
 

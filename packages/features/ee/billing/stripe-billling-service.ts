@@ -150,4 +150,9 @@ export class StripeBillingService implements BillingService {
     const { customerId, email } = args;
     await this.stripe.customers.update(customerId, { email });
   }
+
+  async getPrice(priceId: string) {
+    const price = await this.stripe.prices.retrieve(priceId);
+    return price;
+  }
 }

@@ -55,6 +55,7 @@ export interface BillingService {
     productId: string;
     metadata?: Record<string, string | number>;
   }): Promise<{ priceId: string }>;
+  getPrice(priceId: string): Promise<Stripe.Price | null>;
   getSubscriptionStatus(subscriptionId: string): Promise<Stripe.Subscription.Status | null>;
 
   getCheckoutSession(checkoutSessionId: string): Promise<Stripe.Checkout.Session | null>;
