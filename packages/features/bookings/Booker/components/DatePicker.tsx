@@ -38,12 +38,11 @@ export const DatePicker = ({
     shallow
   );
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter((date) =>
     dayjs(date).isSame(browsingDate, "month")
   );
-
-  const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const onMonthChange = (date: Dayjs) => {
     setMonth(date.format("YYYY-MM"));
