@@ -10,7 +10,7 @@ export enum ColumnFilterType {
   DATE_RANGE = "dr",
 }
 
-const textFilterOperators = [
+export const textFilterOperators = [
   "equals",
   "notEquals",
   "contains",
@@ -113,14 +113,24 @@ export type DateRangeFilterOptions = {
   range: "past" | "custom";
 };
 
+export type TextFilterOptions = {
+  allowedOperators?: TextFilterOperator[];
+  placeholder?: string;
+};
+
 export type ColumnFilterMeta =
   | {
       type: ColumnFilterType.DATE_RANGE;
       icon?: IconName;
-      dateRangeOptions: DateRangeFilterOptions;
+      dateRangeOptions?: DateRangeFilterOptions;
     }
   | {
-      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE>;
+      type: ColumnFilterType.TEXT;
+      icon?: IconName;
+      textOptions?: TextFilterOptions;
+    }
+  | {
+      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE | ColumnFilterType.TEXT>;
       icon?: IconName;
     };
 
@@ -139,6 +149,7 @@ export type FilterableColumn = {
     }
   | {
       type: ColumnFilterType.TEXT;
+      textOptions?: TextFilterOptions;
     }
   | {
       type: ColumnFilterType.NUMBER;
