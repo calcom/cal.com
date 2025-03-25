@@ -25,7 +25,7 @@ export type TaskHandler = (payload: string) => Promise<void>;
 export type TaskerCreate = <TaskKey extends keyof TaskPayloads>(
   type: TaskKey,
   payload: TaskPayloads[TaskKey],
-  options?: { scheduledAt?: Date; maxAttempts?: number }
+  options?: { scheduledAt?: Date; maxAttempts?: number; referenceUid?: string }
 ) => Promise<string>;
 export interface Tasker {
   /** Create a new task with the given type and payload. */

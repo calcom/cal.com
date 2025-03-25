@@ -1,6 +1,6 @@
+import type { TFunction } from "i18next";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
-import type { TFunction } from "i18next";
 import type { z } from "zod";
 
 import type BaseEmail from "@calcom/emails/templates/_base-email";
@@ -543,7 +543,6 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
 };
 
 export const sendCustomWorkflowEmail = async (emailData: WorkflowEmailData) => {
-  console.log("send email now")
   await sendEmail(() => new WorkflowEmail(emailData));
 };
 

@@ -4,12 +4,15 @@ import tasker from "@calcom/features/tasker";
 
 type EmailData = Omit<WorkflowEmailData, "to"> & {
   to: string[];
-} & { sendAt?: Date; includeCalendarEvent?: boolean };
+} & { sendAt?: Date; includeCalendarEvent?: boolean; referenceUid?: string };
 
 export async function sendOrScheduleWorkflowEmails(mailData: EmailData) {
   if (mailData.sendAt) {
-    const { sendAt, ...taskerData } = mailData;
-    return await tasker.create("sendWorkflowEmails", taskerData, { scheduledAt: sendAt });
+    const { sendAt, referenceUid, ...taskerData } = mailData;
+    return await tasker.create("sendWorkflowEmails", taskerData, {
+      scheduledAt: sendAt,
+      referenceUid,
+    });
   } else {
     await Promise.all(
       mailData.to.map((to) =>

@@ -253,25 +253,27 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   if (!isSendgridEnabled) {
     //test if mandatory reminders work
-
-    const taskId = await sendOrScheduleWorkflowEmails({
-      ...mailData,
-      to: sendTo,
-      sendAt: scheduledDate?.toDate(),
-    });
-
-    if (taskId && scheduledDate) {
-      await prisma.workflowReminder.create({
+    let reminderUid;
+    if (scheduledDate) {
+      const reminder = await prisma.workflowReminder.create({
         data: {
           bookingUid: uid,
           workflowStepId,
           method: WorkflowMethods.EMAIL,
           scheduledDate: scheduledDate.toDate(),
           scheduled: true,
-          taskId,
         },
       });
+      reminderUid = reminder.uuid;
     }
+
+    await sendOrScheduleWorkflowEmails({
+      ...mailData,
+      to: sendTo,
+      sendAt: scheduledDate?.toDate(),
+      referenceUid: reminderUuid,
+    });
+
     return;
   }
 
@@ -376,10 +378,16 @@ export const deleteScheduledEmailReminder = async (reminderId: number) => {
     return;
   }
 
-  const { taskId, referenceId } = workflowReminder;
+  const { uuid, referenceId } = workflowReminder;
 
-  if (taskId) {
-    await tasker.cancel(taskId);
+  const task = await prisma.task.findFirst({
+    where: {
+      referenceUid: uuid,
+    },
+  });
+
+  if (task) {
+    await tasker.cancel(task.id);
 
     await prisma.workflowReminder.delete({
       where: {
