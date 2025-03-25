@@ -84,6 +84,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
+    "@jetstreamapp/soql-parser-js": "^6.1.0",
     "@playwright/test": "^1.45.3",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",

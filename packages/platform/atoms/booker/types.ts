@@ -1,5 +1,6 @@
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
+import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
   ApiSuccessResponse,
@@ -73,6 +74,9 @@ export type BookerPlatformWrapperAtomProps = Omit<
   hostsLimit?: number;
   preventEventTypeRedirect?: boolean;
   allowUpdatingUrlParams?: boolean;
+  confirmButtonDisabled?: boolean;
+  timeZones?: Timezone[];
+  isBookingDryRun?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;

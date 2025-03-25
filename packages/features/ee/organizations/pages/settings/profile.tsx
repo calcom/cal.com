@@ -18,25 +18,24 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { LinkIconButton } from "@calcom/ui/components/button";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
+// if I include this in the above barrel import, I get a runtime error that the component is not exported.
+import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import {
-  Avatar,
-  BannerUploader,
-  Button,
-  Editor,
-  Form,
-  ImageUploader,
-  Label,
-  LinkIconButton,
-  showToast,
-  SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
-} from "@calcom/ui";
-// if I include this in the above barrel import, I get a runtime error that the component is not exported.
-import { OrgBanner } from "@calcom/ui";
+  SkeletonAvatar,
+} from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 

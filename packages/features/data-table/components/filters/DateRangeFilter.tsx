@@ -4,21 +4,18 @@ import { useState, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
-  DateRangePicker,
-  Button,
-  Icon,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Command,
   CommandList,
   CommandItem,
   CommandGroup,
   CommandSeparator,
-  buttonClasses,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/command";
+import { DateRangePicker } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {

@@ -1580,7 +1580,6 @@ export function mockNoTranslations() {
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
-      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });
