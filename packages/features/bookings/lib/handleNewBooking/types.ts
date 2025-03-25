@@ -1,6 +1,6 @@
 import type { App } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -43,3 +43,11 @@ export type IsFixedAwareUser = User & {
 };
 
 export type { PaymentAppData };
+
+export type Tracking = {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+};

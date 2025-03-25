@@ -9,22 +9,15 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import {
-  Button,
-  DateRangePicker,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  Select,
-  showToast,
-  Switch,
-  TextArea,
-  UpgradeTeamsBadge,
-  Label,
-  Input,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
@@ -129,7 +122,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   }, document.querySelector('[role="dialog"]'));
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
-    trpc.viewer.outOfOfficeReasonList.useQuery();
+    trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
     value: reason.id,
@@ -165,7 +158,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
 
-  const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
+  const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
         currentlyEditingOutOfOfficeEntry
@@ -173,7 +166,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      utils.viewer.outOfOfficeEntriesList.invalidate();
+      utils.viewer.ooo.outOfOfficeEntriesList.invalidate();
       closeModal();
     },
     onError: (error) => {

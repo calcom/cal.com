@@ -2,7 +2,7 @@ import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getO
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 

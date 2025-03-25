@@ -10,7 +10,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import { Badge, Icon } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -197,6 +198,76 @@ export const useInsightsColumns = ({
         cell: (info) => {
           const assignmentReason = info.getValue();
           return <div className="max-w-[250px]">{assignmentReason}</div>;
+        },
+      }),
+      columnHelper.accessor("utm_source", {
+        id: "utm_source",
+        header: t("utm_source"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_medium", {
+        id: "utm_medium",
+        header: "utm_medium",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_term", {
+        id: "utm_term",
+        header: "utm_term",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_content", {
+        id: "utm_content",
+        header: "utm_content",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_campaign", {
+        id: "utm_campaign",
+        header: "utm_campaign",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
         },
       }),
       columnHelper.accessor("createdAt", {

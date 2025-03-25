@@ -2,16 +2,12 @@ import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
-  Icon,
-  Label,
-  showToast,
-  Tooltip,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export default function ConnectionInfo({
   teamId,
