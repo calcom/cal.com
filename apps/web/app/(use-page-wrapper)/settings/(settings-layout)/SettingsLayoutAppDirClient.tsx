@@ -740,7 +740,6 @@ export default function SettingsLayoutAppDirClient({
 
   return (
     <Shell
-      withoutSeo={true}
       flexChildrenContainer
       {...rest}
       SidebarContainer={
