@@ -9,6 +9,7 @@ import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
+import { prisma } from "@calcom/prisma";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
 async function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
@@ -21,7 +22,6 @@ async function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
   // Still allow signups if there is a team invite
   if (token) return;
 
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || signupDisabled) {
