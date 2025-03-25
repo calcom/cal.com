@@ -21,6 +21,7 @@ import * as jellyconferencing from "./jelly";
 import * as jitsivideo from "./jitsivideo";
 import * as larkcalendar from "./larkcalendar";
 import * as make from "./make";
+import * as mockPaymentApp from "./mock-payment-app";
 import * as nextcloudtalkvideo from "./nextcloudtalk";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
@@ -90,16 +91,12 @@ const appStore = {
   hitpay,
 };
 
-// Handle the mock-payment-app if enabled
 const exportedAppStore: typeof appStore & {
   ["mock-payment-app"]?: typeof mockPaymentApp;
 } = { ...appStore };
 
 if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
-  // Import mock-payment-app statically as well
-  import("./mock-payment-app/index").then((mockPaymentApp) => {
-    exportedAppStore["mock-payment-app"] = mockPaymentApp;
-  });
+  exportedAppStore["mock-payment-app"] = mockPaymentApp;
 }
 
 export default exportedAppStore;
