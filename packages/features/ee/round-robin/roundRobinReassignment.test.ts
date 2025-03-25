@@ -292,4 +292,75 @@ describe("roundRobinReassignment test", () => {
 
     expect(attendees.some((attendee) => attendee.email === newHost.email)).toBe(true);
   });
+  test("reassign to a specific team member when teamMemberEmail is provided", async ({ emails }) => {
+    const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
+    const EventManager = (await import("@calcom/lib/EventManager")).default;
+
+    const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
+
+    const users = testUsers;
+    const originalHost = users[0];
+    const specificTeamMember = users[2];
+
+    const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
+    const bookingToReassignUid = "booking-to-reassign-specific";
+
+    const bookingData = await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "round-robin-event",
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            length: 45,
+            users: users.map((user) => {
+              return {
+                id: user.id,
+              };
+            }),
+            hosts: users.map((user) => {
+              return {
+                userId: user.id,
+                isFixed: false,
+              };
+            }),
+          },
+        ],
+        bookings: [
+          {
+            id: 123,
+            eventTypeId: 1,
+            userId: originalHost.id,
+            uid: bookingToReassignUid,
+            status: BookingStatus.ACCEPTED,
+            startTime: `${dateStringPlusOne}T05:00:00.000Z`,
+            endTime: `${dateStringPlusOne}T05:15:00.000Z`,
+            attendees: [
+              getMockBookingAttendee({
+                id: 2,
+                name: "attendee",
+                email: "attendee@test.com",
+                locale: "en",
+                timeZone: "Asia/Kolkata",
+              }),
+            ],
+          },
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinReassignment({
+      bookingId: 123,
+      teamMemberEmail: specificTeamMember.email,
+    });
+
+    // Verify that the booking is reassigned to the specific team member
+    expectBookingToBeInDatabase({
+      uid: bookingToReassignUid,
+      userId: specificTeamMember.id,
+    });
+  });
 });
