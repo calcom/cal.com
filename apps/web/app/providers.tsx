@@ -12,7 +12,7 @@ import PlainChat from "@lib/plain/dynamicProvider";
 
 type ProvidersProps = {
   children: React.ReactNode;
-  dehydratedState: DehydratedState;
+  dehydratedState: DehydratedState | undefined;
 };
 export function Providers({ children, dehydratedState }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();

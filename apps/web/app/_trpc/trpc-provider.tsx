@@ -44,7 +44,7 @@ const isTRPCClientError = (cause: unknown): cause is TRPCClientError<AppRouter> 
 
 type Props = {
   children: React.ReactNode;
-  dehydratedState: DehydratedState;
+  dehydratedState: DehydratedState | undefined;
 };
 
 export const TrpcProvider = ({ children, dehydratedState }: Props) => {

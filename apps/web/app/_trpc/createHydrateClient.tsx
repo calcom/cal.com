@@ -11,11 +11,11 @@ type DataTransformer = {
 };
 
 export function createHydrateClient(opts: { transformer: DataTransformer }) {
-  return function HydrateClient(props: { children: React.ReactNode; state: DehydratedState }) {
+  return function HydrateClient(props: { children: React.ReactNode; state: DehydratedState | undefined }) {
     const { state, children } = props;
 
     const transformedState: DehydratedState = useMemo(() => {
-      if (opts.transformer) {
+      if (opts.transformer && !!state) {
         return opts.transformer.deserialize(state);
       }
       return state;
