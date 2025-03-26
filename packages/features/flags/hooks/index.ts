@@ -15,7 +15,7 @@ const initialData: AppFlags = {
   "disable-signup": false,
   attributes: false,
   "organizer-request-email-v2": false,
-  "domain-wide-delegation": false,
+  "delegation-credential": false,
   "salesforce-crm-tasker": false,
 };
 

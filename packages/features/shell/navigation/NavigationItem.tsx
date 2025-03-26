@@ -2,10 +2,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { Fragment } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Tooltip, Icon, SkeletonText } from "@calcom/ui";
-import type { IconName } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 
@@ -57,13 +59,6 @@ export const NavigationItem: React.FC<{
         <Link
           data-test-id={item.name}
           href={item.href}
-          onClick={(e) => {
-            // Prevents weird crash when navigating from /routing to /routing/forms
-            if (item.href.startsWith("/routing")) {
-              e.preventDefault();
-              window.location.href = item.href;
-            }
-          }}
           aria-label={t(item.name)}
           target={item.target}
           className={classNames(
