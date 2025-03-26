@@ -121,16 +121,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
-          <script
-            nonce={nonce}
-            id="injected-head-scripts"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{
-              __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
-            }}
-          />
-        )}
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
@@ -155,16 +145,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
         }>
         <IconSprites />
-        {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
-          <script
-            nonce={nonce}
-            id="injected-head-scripts"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{
-              __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
-            }}
-          />
-        )}
         <SpeculationRules
           // URLs In Navigation
           prerenderPathsOnHover={[
