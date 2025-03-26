@@ -4,17 +4,26 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const i18nInstanceCache = new Map<string, any>();
 
+async function loadFallbackTranslations() {
+  try {
+    const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`);
+    if (res) {
+      return await res.json();
+    }
+  } catch {
+    console.error("Could not fetch fallback translations.");
+  }
+  return;
+}
+
 async function loadTranslations(locale: string, ns: string) {
   try {
     const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
     const response = await fetch(url);
     return await response.json();
   } catch (error) {
-    const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`);
-    if (res) {
-      return await res.json();
-    }
-    return {};
+    const fallbackTranslations = await loadFallbackTranslations();
+    return fallbackTranslations ?? {};
   }
 }
 

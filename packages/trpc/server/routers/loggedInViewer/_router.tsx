@@ -10,9 +10,6 @@ import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schem
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
-import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
-import { ZOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
-import { ZOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
@@ -40,12 +37,7 @@ type AppsRouterHandlerCache = {
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
-  outOfOfficeCreateOrUpdate?: typeof import("./outOfOfficeCreateOrUpdate.handler").outOfOfficeCreateOrUpdate;
-  outOfOfficeEntriesList?: typeof import("./outOfOfficeEntriesList.handler").outOfOfficeEntriesList;
-  outOfOfficeEntryDelete?: typeof import("./outOfOfficeEntryDelete.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
-  getTravelSchedules?: typeof import("./getTravelSchedules.handler").getTravelSchedulesHandler;
-  outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
   addNotificationsSubscription?: typeof import("./addNotificationsSubscription.handler").addNotificationsSubscriptionHandler;
   removeNotificationsSubscription?: typeof import("./removeNotificationsSubscription.handler").removeNotificationsSubscriptionHandler;
   markNoShow?: typeof import("./markNoShow.handler").markNoShow;
@@ -257,50 +249,6 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.connectAndJoin({ ctx, input });
   }),
-  outOfOfficeCreateOrUpdate: authedProcedure
-    .input(ZOutOfOfficeInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate) {
-        UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate = (
-          await import("./outOfOfficeCreateOrUpdate.handler")
-        ).outOfOfficeCreateOrUpdate;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate({ ctx, input });
-    }),
-  outOfOfficeEntriesList: authedProcedure.input(ZOutOfOfficeEntriesListSchema).query(async (opts) => {
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
-      UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList = (
-        await import("./outOfOfficeEntriesList.handler")
-      ).outOfOfficeEntriesList;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList(opts);
-  }),
-  outOfOfficeEntryDelete: authedProcedure.input(ZOutOfOfficeDelete).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete) {
-      UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete = (
-        await import("./outOfOfficeEntryDelete.handler")
-      ).outOfOfficeEntryDelete;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete({ ctx, input });
-  }),
   addSecondaryEmail: authedProcedure.input(ZAddSecondaryEmailInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.addSecondaryEmail) {
       UNSTABLE_HANDLER_CACHE.addSecondaryEmail = (
@@ -314,34 +262,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.addSecondaryEmail({ ctx, input });
-  }),
-  getTravelSchedules: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getTravelSchedules) {
-      UNSTABLE_HANDLER_CACHE.getTravelSchedules = (
-        await import("./getTravelSchedules.handler")
-      ).getTravelSchedulesHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getTravelSchedules) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getTravelSchedules({ ctx });
-  }),
-  outOfOfficeReasonList: authedProcedure.query(async () => {
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList) {
-      UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList = (
-        await import("./outOfOfficeReasons.handler")
-      ).outOfOfficeReasonList;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList();
   }),
   addNotificationsSubscription: authedProcedure
     .input(ZAddNotificationsSubscriptionInputSchema)
