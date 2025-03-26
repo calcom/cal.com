@@ -3016,5 +3016,6 @@
   "tip_username_plus": "ヒント：ユーザー名の間に '+'を入れることで動的なグループミーティングを作成できます：cal.com/anna+brian",
   "user_has_no_team_yet": "まだチームがありません",
   "no_team_members": "まだチームメンバーがいません",
+  "picklist": "選択リスト",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

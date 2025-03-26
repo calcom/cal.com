@@ -2659,7 +2659,7 @@
   "no_availability_shown_to_bookers": "Bu etkinlik için kimseyi atamazsanız, rezervasyon yapanlara uygunluk gösterilmeyecektir.",
   "go_back_and_assign": "Geri dön ve Ata",
   "leave_without_assigning": "Atama yapmadan ayrıl",
-  "signing_up_terms": "Devam ederek <0>Şartlar</0> ve <1>Gizlilik Politikası<1>'nı kabul etmiş olursunuz",
+  "signing_up_terms": "Devam ederek <0>Şartlar</0> ve <1>Gizlilik Politikası</1>'nı kabul etmiş olursunuz",
   "proceeding_agreement": "Devam ederek",
   "terms": "Koşullarımızı",
   "always_show_x_days": "Her zaman {{x}} gün mevcut",
@@ -3016,5 +3016,6 @@
   "tip_username_plus": "İpucu: Dinamik bir grup toplantısı oluşturmak için kullanıcı adları arasına '+' ekleyebilirsiniz: cal.com/anna+brian",
   "user_has_no_team_yet": "Henüz bir ekibiniz yok",
   "no_team_members": "Henüz ekip üyeniz yok",
+  "picklist": "Seçim listesi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
