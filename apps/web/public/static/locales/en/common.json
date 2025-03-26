@@ -2452,7 +2452,6 @@
   "published": "Published",
   "unpublished": "Unpublished",
   "publish": "Publish",
-  "org_publish_error": "Organization could not be published",
   "troubleshooter_tooltip": "Open the troubleshooter and figure out what is wrong with your schedule",
   "need_help": "Need help?",
   "troubleshooter": "Troubleshooter",
@@ -3037,6 +3036,7 @@
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
   "display": "Display",
+  "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
   "picklist": "Picklist",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
