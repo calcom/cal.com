@@ -528,6 +528,7 @@ function UserListTableContent() {
         ToolbarLeft={
           <>
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
             <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
             <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
@@ -537,6 +538,7 @@ function UserListTableContent() {
           <>
             <DataTableFilters.ClearFiltersButton />
             <SaveFilterSegmentButton />
+            <FilterSegmentSelect />
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
@@ -585,7 +587,6 @@ function UserListTableContent() {
       {ctaContainerRef?.current &&
         createPortal(
           <div className="flex items-center gap-2">
-            <FilterSegmentSelect />
             <DataTableToolbar.CTA
               type="button"
               color="secondary"
@@ -595,7 +596,6 @@ function UserListTableContent() {
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            <DataTableFilters.ColumnVisibilityButton table={table} />
             {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
