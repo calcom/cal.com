@@ -426,9 +426,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     }
   }, [editor, isLink]);
 
-  if (!props.editable) return <></>;
+  if (!props.editable) return null;
   return (
-    <div className="toolbar flex justify-end" ref={toolbarRef}>
+    <div className="toolbar flex" ref={toolbarRef}>
       <>
         {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
           <>
