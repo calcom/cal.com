@@ -3036,5 +3036,6 @@
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
   "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
+  "picklist": "Picklist",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -11,7 +11,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import SectionBottomActions from "./SectionBottomActions";
 

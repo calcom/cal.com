@@ -948,7 +948,7 @@ export default class SalesforceCRMService implements CRM {
     log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+      `SELECT Id, OwnerId, Owner.Email, Owner.Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
         emailDomain
       )}) LIMIT 1`
     );
@@ -963,7 +963,13 @@ export default class SalesforceCRMService implements CRM {
 
       log.info(
         "Found account matching email domain",
-        safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
+        safeStringify({
+          emailDomain,
+          accountWebsite: account.Website,
+          accountOwnerEmail: account.Owner?.Email,
+          accountOwnerId: account.OwnerId,
+          accountId: account.Id,
+        })
       );
 
       return {
@@ -1145,6 +1151,18 @@ export default class SalesforceCRMService implements CRM {
             writeOnRecordBody[field.name] = dateValue;
             continue;
           }
+        } else if (field.type === SalesforceFieldType.PICKLIST) {
+          const picklistValue = await this.getPicklistFieldValue({
+            fieldConfigValue: fieldConfig.value,
+            salesforceField: field,
+            calEventResponses,
+            bookingUid,
+            contactId,
+          });
+          if (picklistValue) {
+            writeOnRecordBody[field.name] = picklistValue;
+            continue;
+          }
         }
       }
 
@@ -1286,6 +1304,49 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return null;
+  }
+
+  private async getPicklistFieldValue({
+    fieldConfigValue,
+    salesforceField,
+    calEventResponses,
+    bookingUid,
+    contactId,
+  }: {
+    fieldConfigValue: string;
+    salesforceField: Field;
+    calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
+    contactId: string;
+  }) {
+    const log = logger.getSubLogger({ prefix: [`[getPicklistFieldValue] ${contactId}`] });
+
+    const picklistOptions = salesforceField.picklistValues;
+    if (!picklistOptions || !picklistOptions.length) {
+      log.warn(`No picklist values found for field ${salesforceField.name}`);
+      return null;
+    }
+
+    // Get the text value from the field
+    const fieldTextValue = await this.getTextFieldValue({
+      fieldValue: fieldConfigValue,
+      fieldLength: salesforceField.length,
+      calEventResponses,
+      bookingUid,
+    });
+
+    if (!fieldTextValue) {
+      log.warn(`No text value found for field ${salesforceField.name}`);
+      return null;
+    }
+    // Get the picklist value from the field
+    const picklistValue = picklistOptions.find((option) => option.active && option.value === fieldTextValue);
+    if (!picklistValue) {
+      log.warn(`No picklist value found for field ${salesforceField.name} and value ${fieldTextValue}`);
+      return null;
+    }
+
+    return picklistValue.value;
   }
 
   private async fetchPersonRecord(
