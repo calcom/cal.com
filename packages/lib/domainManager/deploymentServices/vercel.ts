@@ -11,7 +11,7 @@ const vercelDomainApiResponseSchema = z.object({
   error: z
     .object({
       code: z.string().nullish(),
-      domain: z.string().nullish(),
+      domain: z.any().nullish(),
     })
     .optional(),
 });
@@ -28,13 +28,28 @@ export const createDomain = async (domain: string) => {
     method: "POST",
   });
 
-  const data = vercelDomainApiResponseSchema.parse(await response.json());
+  const responseJson = await response.json();
 
-  if (!data.error) {
+  const parsedResponse = vercelDomainApiResponseSchema.safeParse(responseJson);
+
+  if (!parsedResponse.success) {
+    // Looks like Vercel changed the response format, so sometimes zod parsing fails
+    log.error(
+      safeStringify({
+        errorMessage: "Failed to parse Vercel domain creation response",
+        zodError: parsedResponse.error,
+        response: responseJson,
+      })
+    );
+    // Let's consider domain creation failed
+    return false;
+  }
+
+  if (!parsedResponse.data.error) {
     return true;
   }
 
-  return handleDomainCreationError(data.error);
+  return handleDomainCreationError(parsedResponse.data.error);
 };
 
 export const deleteDomain = async (domain: string) => {
