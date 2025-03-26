@@ -9,11 +9,14 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert, Select, SettingsToggle, TextField } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import classNames from "@calcom/ui/classNames";
 
 export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;

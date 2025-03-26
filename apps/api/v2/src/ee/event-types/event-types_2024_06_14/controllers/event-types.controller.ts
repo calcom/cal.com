@@ -29,7 +29,12 @@ import {
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  SUCCESS_STATUS,
+  VERSION_2024_06_14,
+} from "@calcom/platform-constants";
 import {
   UpdateEventTypeInput_2024_06_14,
   GetEventTypesQuery_2024_06_14,
@@ -45,8 +50,12 @@ import {
 @DocsTags("Event Types")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to \`2024-06-14\``,
+  description: `Must be set to ${VERSION_2024_06_14}`,
+  example: VERSION_2024_06_14,
   required: true,
+  schema: {
+    default: VERSION_2024_06_14,
+  },
 })
 export class EventTypesController_2024_06_14 {
   constructor(

@@ -1,18 +1,13 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 import { useState } from "react";
 
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
-import {
-  SettingsToggle,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  InputField,
-  DialogClose,
-  Button,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { InputField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {
@@ -58,15 +53,7 @@ export const DisableAllEmailsSetting = ({
           className={customClassNames?.confirmationDialog?.container}>
           <p
             className={classNames("text-default text-sm", customClassNames?.confirmationDialog?.description)}>
-            <Trans i18nKey="disable_attendees_emails_description">
-              This will disable all emails to {recipient}. This includes booking confirmations, requests,
-              reschedules and reschedule requests, cancellation emails, and any other emails related to
-              booking updates.
-              <br />
-              <br />
-              It is your responsibility to ensure that your {recipient} are aware of any bookings and changes
-              to their bookings.
-            </Trans>
+            <ServerTrans t={t} i18nKey="disable_attendees_emails_description" values={{ recipient }} />
           </p>
           <p
             className={classNames(

@@ -1,9 +1,9 @@
 import type { FC } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
-import type { IconName } from "@calcom/ui";
-import type { ButtonColor } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import type { ButtonColor } from "@calcom/ui/components/button";
+import type { IconName } from "@calcom/ui/components/icon";
 
 import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";
 import { useTeamCheck, useCheck } from "../../hooks/stripe/useCheck";
@@ -77,6 +77,7 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
         disabled={isClickable ? false : isDisabled}
         className={cn(
           "",
+          "md:rounded-md",
           className,
           isChecking && "animate-pulse",
           isDisabled && "cursor-not-allowed",

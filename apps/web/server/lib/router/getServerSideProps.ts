@@ -1,7 +1,7 @@
 import { wrapGetServerSidePropsWithSentry } from "@sentry/nextjs";
 import type { GetServerSidePropsContext } from "next";
 
-import { getRoutedUrl } from "@calcom/lib/server";
+import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 
 export const getServerSideProps = wrapGetServerSidePropsWithSentry(async function getServerSideProps(
   context: GetServerSidePropsContext

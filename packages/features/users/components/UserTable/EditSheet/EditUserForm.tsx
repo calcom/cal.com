@@ -5,29 +5,26 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Divider } from "@calcom/ui/components/divider";
 import {
-  Form,
-  TextField,
-  ToggleGroup,
   InputField,
   TextAreaField,
-  TimezoneSelect,
-  Label,
-  showToast,
-  Avatar,
-  ImageUploader,
   SelectField,
-  SheetHeader,
-  SheetBody,
-  SheetFooter,
-  Button,
-  SheetTitle,
-  Divider,
-} from "@calcom/ui";
+  Form,
+  Label,
+  TextField,
+  ToggleGroup,
+} from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { SheetHeader, SheetBody, SheetFooter, SheetTitle } from "@calcom/ui/components/sheet";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
@@ -159,7 +156,7 @@ export function EditForm({
             avatar: values.avatar,
             bio: values.bio,
             timeZone: values.timeZone,
-            // @ts-expect-error theyre there in local types but for some reason it errors?
+            // @ts-expect-error they're there in local types but for some reason it errors?
             attributeOptions: values.attributes
               ? // @ts-expect-error  same as above
                 { userId: selectedUser?.id ?? "", attributes: values.attributes }
@@ -195,10 +192,10 @@ export function EditForm({
             />
           </div>
           <Divider />
-          <TextField label={t("name")} {...form.register("name")} />
-          <TextField label={t("username")} {...form.register("username")} />
-          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24" />
-          <div>
+          <TextField label={t("name")} {...form.register("name")} className="mb-6" />
+          <TextField label={t("username")} {...form.register("username")} className="mb-6" />
+          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24 mb-6" />
+          <div className="mb-6">
             <Label>{t("role")}</Label>
             <ToggleGroup
               isFullWidth
@@ -210,7 +207,7 @@ export function EditForm({
               }}
             />
           </div>
-          <div className="mb-4">
+          <div className="mb-6">
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>

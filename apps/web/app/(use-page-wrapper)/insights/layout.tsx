@@ -8,7 +8,7 @@ export default async function InsightsLayout({ children }: { children: React.Rea
   const t = await getTranslate();
   return (
     <div>
-      <Shell withoutMain={false} withoutSeo={true} heading={t("insights")} subtitle={t("insights_subtitle")}>
+      <Shell withoutMain={false} heading={t("insights")} subtitle={t("insights_subtitle")}>
         <UpgradeTipWrapper>{children}</UpgradeTipWrapper>
       </Shell>
     </div>

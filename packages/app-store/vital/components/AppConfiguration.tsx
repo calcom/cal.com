@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 
-import { Button, Select, showToast } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 export interface IAppConfigurationProps {
   credentialIds: number[];
@@ -154,7 +156,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
               await saveSettings({ parameter: selectedParam, sleepValue: sleepValue });
               showToast("Success saving your Vital Configurations", "success");
             } catch (error) {
-              showToast("An error ocurred saving your Vital Configurations", "error");
+              showToast("An error occurred saving your Vital Configurations", "error");
               setSaveLoading(false);
             }
             setTouchedForm(false);

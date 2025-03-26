@@ -6,7 +6,7 @@ import type {
   WidgetProps,
 } from "react-awesome-query-builder";
 
-import { EmailField as EmailWidget } from "@calcom/ui";
+import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 
 import widgetsComponents from "../widgets";
 import type { Widgets, WidgetsWithoutFactory } from "./types";
@@ -71,7 +71,7 @@ const EmailFactory = (props: WidgetProps | undefined) => {
         props.setValue(val);
       }}
       containerClassName="w-full"
-      className="dark:placeholder:text-darkgray-600 focus:border-brand border-subtle dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-default focus:border-brand border-subtle dark:text-default disabled:dark:text-muted block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
       {...props}
     />
   );

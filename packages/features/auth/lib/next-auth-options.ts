@@ -41,6 +41,7 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
+import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
@@ -545,6 +546,7 @@ export const getOptions = ({
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
+          orgAwareUsername: profileOrg ? profile.username : existingUser.username,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
           // platform org user don't need profiles nor domains
@@ -579,6 +581,7 @@ export const getOptions = ({
           id: user.id,
           name: user.name,
           username: user.username,
+          orgAwareUsername: user?.org ? user.profile?.username : user.username,
           email: user.email,
           role: user.role,
           impersonatedBy: user.impersonatedBy,
@@ -641,6 +644,7 @@ export const getOptions = ({
           const gCalService = new GoogleCalendarService({
             ...gcalCredential,
             user: null,
+            delegatedTo: null,
           });
 
           if (
@@ -682,6 +686,7 @@ export const getOptions = ({
           impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
+          orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
         } as JWT;
       }
@@ -707,6 +712,7 @@ export const getOptions = ({
           id: token.id as number,
           name: token.name,
           username: token.username as string,
+          orgAwareUsername: token.orgAwareUsername,
           role: token.role as UserPermissionRole,
           impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
@@ -894,7 +900,7 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: usernameSlug(user.name),
+                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,

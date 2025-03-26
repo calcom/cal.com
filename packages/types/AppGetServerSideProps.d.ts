@@ -8,7 +8,7 @@ import type { ssrInit } from "@server/lib/ssr";
 export type AppUser = CalendsoSessionUser | undefined;
 export type AppPrisma = typeof prisma;
 export type AppGetServerSidePropsContext = GetServerSidePropsContext<{
-  appPages: string[];
+  pages: string[];
 }>;
 export type AppSsrInit = ssrInit;
 export type AppGetServerSideProps = (
