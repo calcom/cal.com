@@ -10,9 +10,8 @@ import {
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
-import type { TypedColumnFilter } from "@calcom/features/data-table/lib/types";
+import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import type {
   RoutingFormResponsesInput,
   RoutingFormStatsInput,

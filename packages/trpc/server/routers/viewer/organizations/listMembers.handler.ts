@@ -1,5 +1,5 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
-import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -86,9 +86,26 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     },
   });
 
-  let whereClause: Prisma.MembershipWhereInput = {
+  const roleFilter = filters.find((filter) => filter.id === "role") as
+    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | undefined;
+  const teamFilter = filters.find((filter) => filter.id === "role") as
+    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | undefined;
+
+  const whereClause: Prisma.MembershipWhereInput = {
     user: {
       ...getUserConditions(oAuthClientId),
+      ...(teamFilter && {
+        teams: {
+          some: {
+            team: makeWhereClause({
+              columnName: "name",
+              filterValue: teamFilter.value,
+            }),
+          },
+        },
+      }),
     },
     teamId: organizationId,
     ...(searchTerm && {
@@ -99,63 +116,51 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         ],
       },
     }),
+    ...(roleFilter &&
+      makeWhereClause({
+        columnName: "role",
+        filterValue: roleFilter.value,
+      })),
   };
 
-  filters.forEach((filter) => {
-    switch (filter.id) {
-      case "role":
-        whereClause = {
-          ...whereClause,
-          ...makeWhereClause({
-            columnName: "role",
-            filterValue: filter.value,
-          }),
-        };
-        break;
-      case "teams":
-        whereClause.user = {
-          teams: {
-            some: {
-              team: makeWhereClause({
-                columnName: "name",
-                filterValue: filter.value,
-              }),
-            },
-          },
-        };
-        break;
-      // We assume that if the filter is not one of the above, it must be an attribute filter
-      default:
-        if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
-          const attributeOptionValues: string[] = [];
-          filter.value.data.forEach((filterValueItem) => {
-            attributeOptionValues.push(filterValueItem);
-            groupOptionsWithContainsOptionValues.forEach((groupOption) => {
-              if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
-                attributeOptionValues.push(groupOption.value);
-              }
-            });
+  const attributeFilters: Prisma.MembershipWhereInput["AttributeToUser"][] = filters
+    .filter((filter) => filter.id !== "role" && filter.id !== "teams")
+    .map((filter) => {
+      if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
+        const attributeOptionValues: string[] = [];
+        filter.value.data.forEach((filterValueItem) => {
+          attributeOptionValues.push(filterValueItem);
+          groupOptionsWithContainsOptionValues.forEach((groupOption) => {
+            if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
+              attributeOptionValues.push(groupOption.value);
+            }
           });
+        });
 
-          filter.value.data = attributeOptionValues;
-        }
+        filter.value.data = attributeOptionValues;
+      }
 
-        whereClause.AttributeToUser = {
-          some: {
-            attributeOption: {
-              attribute: {
-                id: filter.id,
-              },
-              ...makeWhereClause({
-                columnName: "value",
-                filterValue: filter.value,
-              }),
+      return {
+        some: {
+          attributeOption: {
+            attribute: {
+              id: filter.id,
             },
+            ...makeWhereClause({
+              columnName: "value",
+              filterValue: filter.value,
+            }),
           },
-        };
-        break;
-    }
-  });
+        },
+      };
+    });
+
+  // If we have attribute filters, add them to the where clause with AND
+  if (attributeFilters.length > 0) {
+    whereClause.AND = attributeFilters.map((filter) => ({
+      AttributeToUser: filter,
+    }));
+  }
 
   const teamMembers = await prisma.membership.findMany({
     where: whereClause,
