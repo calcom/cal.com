@@ -44,7 +44,7 @@ import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 

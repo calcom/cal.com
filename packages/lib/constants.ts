@@ -210,3 +210,4 @@ export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",")
 
 export const IS_PLAIN_CHAT_ENABLED =
   !!process.env.NEXT_PUBLIC_PLAIN_CHAT_ID && process.env.NEXT_PUBLIC_PLAIN_CHAT_ID !== "";
+export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;

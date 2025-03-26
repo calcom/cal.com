@@ -1,8 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import type { DialogProps } from "@calcom/ui/components/dialog";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export function DeleteDialog({
   isManagedEvent,
