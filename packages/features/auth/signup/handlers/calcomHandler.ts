@@ -113,7 +113,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   if (req.usernameStatus.statusCode === 402) {
     const checkoutSession = await billingService.createSubscriptionCheckout({
       mode: "subscription",
-      customerId: customer.id,
+      customerId: customer.stripeCustomerId,
       successUrl: returnUrl,
       cancelUrl: returnUrl,
       priceId: getPremiumMonthlyPlanPriceId(),
@@ -122,7 +122,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
 
     /** We create a username-less user until he pays */
-    checkoutSessionId = checkoutSession.id;
+    checkoutSessionId = checkoutSession.sessionId;
     username = null;
   }
 
@@ -167,7 +167,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         },
       });
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
-      const { membership } = await createOrUpdateMemberships({
+      await createOrUpdateMemberships({
         user,
         team,
       });
@@ -189,14 +189,14 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
   } else {
     // Create the user
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         email,
         locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
-          stripeCustomerId: customer.id,
+          stripeCustomerId: customer.stripeCustomerId,
           checkoutSessionId,
         },
         creationSource: CreationSource.WEBAPP,
@@ -220,7 +220,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
   }
 
-  return res.status(201).json({ message: "Created user", stripeCustomerId: customer.id });
+  return res.status(201).json({ message: "Created user", stripeCustomerId: customer.stripeCustomerId });
 }
 
 export default usernameHandler(handler);
