@@ -41,7 +41,7 @@ vi.mock("@calcom/lib/constant", () => {
   };
 });
 
-vi.mock("@calcom/app-store/stripepayment/lib/server", () => {
+vi.mock("@calcom/features/ee/payments/server/stripe", () => {
   return {
     default: {
       checkout: {

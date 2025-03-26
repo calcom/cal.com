@@ -11,7 +11,7 @@ vi.mock("micro", () => ({
   buffer: vi.fn(),
 }));
 
-vi.mock("@calcom/app-store/stripepayment/lib/server", () => ({
+vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   default: {
     webhooks: {
       constructEvent: vi.fn(),
