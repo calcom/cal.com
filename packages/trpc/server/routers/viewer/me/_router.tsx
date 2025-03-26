@@ -1,36 +1,36 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-import { bookingUnconfirmedCountHandler } from "./bookingUnconfirmedCount.handler";
-import { deleteMeHandler } from "./deleteMe.handler";
 import { ZDeleteMeInputSchema } from "./deleteMe.schema";
-import { deleteMeWithoutPasswordHandler } from "./deleteMeWithoutPassword.handler";
-import { getUserTopBannersHandler } from "./getUserTopBanners.handler";
-import { myStatsHandler } from "./myStats.handler";
-import { platformMeHandler } from "./platformMe.handler";
 import { get } from "./procedures/get";
-import { shouldVerifyEmailHandler } from "./shouldVerifyEmail.handler";
 
 export const meRouter = router({
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
-    return bookingUnconfirmedCountHandler({ ctx });
+    const handler = (await import("./bookingUnconfirmedCount.handler")).bookingUnconfirmedCountHandler;
+    return handler({ ctx });
   }),
   deleteMe: authedProcedure.input(ZDeleteMeInputSchema).mutation(async ({ ctx, input }) => {
-    return deleteMeHandler({ ctx, input });
+    const handler = (await import("./deleteMe.handler")).deleteMeHandler;
+    return handler({ ctx, input });
   }),
   deleteMeWithoutPassword: authedProcedure.mutation(async ({ ctx }) => {
-    return deleteMeWithoutPasswordHandler({ ctx });
+    const handler = (await import("./deleteMeWithoutPassword.handler")).deleteMeWithoutPasswordHandler;
+    return handler({ ctx });
   }),
   get,
   getUserTopBanners: authedProcedure.query(async ({ ctx }) => {
-    return getUserTopBannersHandler({ ctx });
+    const handler = (await import("./getUserTopBanners.handler")).getUserTopBannersHandler;
+    return handler({ ctx });
   }),
   myStats: authedProcedure.query(async ({ ctx }) => {
-    return myStatsHandler({ ctx });
+    const handler = (await import("./myStats.handler")).myStatsHandler;
+    return handler({ ctx });
   }),
   platformMe: authedProcedure.query(async ({ ctx }) => {
-    return platformMeHandler({ ctx });
+    const handler = (await import("./platformMe.handler")).platformMeHandler;
+    return handler({ ctx });
   }),
   shouldVerifyEmail: authedProcedure.query(async ({ ctx }) => {
-    return shouldVerifyEmailHandler({ ctx });
+    const handler = (await import("./shouldVerifyEmail.handler")).shouldVerifyEmailHandler;
+    return handler({ ctx });
   }),
 });

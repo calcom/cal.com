@@ -1,188 +1,259 @@
 import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
-import { acceptOrLeaveHandler } from "./acceptOrLeave.handler";
+import { importHandler, router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
-import { addMembersToEventTypesHandler } from "./addMembersToEventTypes.handler";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
-import { changeMemberRoleHandler } from "./changeMemberRole.handler";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
-import { default as checkIfMembershipExistsHandler } from "./checkIfMembershipExists.handler";
 import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
-import { createHandler } from "./create.handler";
 import { ZCreateInputSchema } from "./create.schema";
-import { createInviteHandler } from "./createInvite.handler";
 import { ZCreateInviteInputSchema } from "./createInvite.schema";
-import { deleteHandler } from "./delete.handler";
 import { ZDeleteInputSchema } from "./delete.schema";
-import { deleteInviteHandler } from "./deleteInvite.handler";
 import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
-// Static imports for all handlers
-import { get as getHandler } from "./get.handler";
 import { ZGetSchema } from "./get.schema";
-import { getInternalNotesPresetsHandler } from "./getInternalNotesPresets.handler";
 import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.schema";
-import { getMemberAvailabilityHandler } from "./getMemberAvailability.handler";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
-import { getMembershipbyUserHandler } from "./getMembershipbyUser.handler";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
-import { getUpgradeableHandler } from "./getUpgradeable.handler";
-import { getUserConnectedAppsHandler } from "./getUserConnectedApps.handler";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
-import { hasActiveTeamPlanHandler } from "./hasActiveTeamPlan.handler";
-import { default as hasEditPermissionForUserHandler } from "./hasEditPermissionForUser.handler";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
-import { default as inviteMemberHandler } from "./inviteMember/inviteMember.handler";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
-import { inviteMemberByTokenHandler } from "./inviteMemberByToken.handler";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
-import { default as legacyListMembersHandler } from "./legacyListMembers.handler";
 import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
-import { listHandler } from "./list.handler";
 import { ZGetListSchema } from "./list.schema";
-import { listInvitesHandler } from "./listInvites.handler";
-import { listMembersHandler } from "./listMembers.handler";
 import { ZListMembersInputSchema } from "./listMembers.schema";
-import { default as listSimpleMembersHandler } from "./listSimpleMembers.handler";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
-import { publishHandler } from "./publish.handler";
 import { ZPublishInputSchema } from "./publish.schema";
-import { removeHostsFromEventTypesHandler } from "./removeHostsFromEventTypes.handler";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
-import { removeMemberHandler } from "./removeMember.handler";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
-import { resendInvitationHandler } from "./resendInvitation.handler";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
-import { default as getRoundRobinHostsToReassignHandler } from "./roundRobin/getRoundRobinHostsToReasign.handler";
 import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
-import { roundRobinManualReassignHandler } from "./roundRobin/roundRobinManualReassign.handler";
 import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
-import { roundRobinReassignHandler } from "./roundRobin/roundRobinReassign.handler";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
-import { setInviteExpirationHandler } from "./setInviteExpiration.handler";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
-import { updateHandler } from "./update.handler";
 import { ZUpdateInputSchema } from "./update.schema";
-import { updateInternalNotesPresetsHandler } from "./updateInternalNotesPresets.handler";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
-import { updateMembershipHandler } from "./updateMembership.handler";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
 const NAMESPACE = "teams";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerTeamsRouter = router({
+  // Retrieves team by id
   get: authedProcedure.input(ZGetSchema).query(async (opts) => {
-    return getHandler(opts);
+    const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
+    return handler(opts);
   }),
+  // Returns teams I a member of
   list: authedProcedure.input(ZGetListSchema).query(async (opts) => {
-    return listHandler(opts);
+    const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
+    return handler(opts);
   }),
+  // Returns Teams I am a owner/admin of
   listOwnedTeams: authedProcedure.query(async (opts) => {
-    return listHandler(opts);
+    const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
+    return handler(opts);
   }),
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
-    return createHandler(opts);
+    const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
+    return handler(opts);
   }),
+  // Allows team owner to update team metadata
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
-    return updateHandler(opts);
+    const handler = await importHandler(namespaced("update"), () => import("./update.handler"));
+    return handler(opts);
   }),
   delete: authedProcedure.input(ZDeleteInputSchema).mutation(async (opts) => {
-    return deleteHandler(opts);
+    const handler = await importHandler(namespaced("delete"), () => import("./delete.handler"));
+    return handler(opts);
   }),
   removeMember: authedProcedure.input(ZRemoveMemberInputSchema).mutation(async (opts) => {
-    return removeMemberHandler(opts);
+    const handler = await importHandler(namespaced("removeMember"), () => import("./removeMember.handler"));
+    return handler(opts);
   }),
   inviteMember: authedProcedure.input(ZInviteMemberInputSchema).mutation(async (opts) => {
-    return inviteMemberHandler(opts);
+    const handler = await importHandler(
+      namespaced("inviteMember"),
+      () => import("./inviteMember/inviteMember.handler")
+    );
+    return handler(opts);
   }),
   acceptOrLeave: authedProcedure.input(ZAcceptOrLeaveInputSchema).mutation(async (opts) => {
-    return acceptOrLeaveHandler(opts);
+    const handler = await importHandler(namespaced("acceptOrLeave"), () => import("./acceptOrLeave.handler"));
+    return handler(opts);
   }),
   changeMemberRole: authedProcedure.input(ZChangeMemberRoleInputSchema).mutation(async (opts) => {
-    return changeMemberRoleHandler(opts);
+    const handler = await importHandler(
+      namespaced("changeMemberRole"),
+      () => import("./changeMemberRole.handler")
+    );
+    return handler(opts);
   }),
   getMemberAvailability: authedProcedure.input(ZGetMemberAvailabilityInputSchema).query(async (opts) => {
-    return getMemberAvailabilityHandler(opts);
+    const handler = await importHandler(
+      namespaced("getMemberAvailability"),
+      () => import("./getMemberAvailability.handler")
+    );
+    return handler(opts);
   }),
   getMembershipbyUser: authedProcedure.input(ZGetMembershipbyUserInputSchema).query(async (opts) => {
-    return getMembershipbyUserHandler(opts);
+    const handler = await importHandler(
+      namespaced("getMembershipbyUser"),
+      () => import("./getMembershipbyUser.handler")
+    );
+    return handler(opts);
   }),
   updateMembership: authedProcedure.input(ZUpdateMembershipInputSchema).mutation(async (opts) => {
-    return updateMembershipHandler(opts);
+    const handler = await importHandler(
+      namespaced("updateMembership"),
+      () => import("./updateMembership.handler")
+    );
+    return handler(opts);
   }),
   publish: authedProcedure.input(ZPublishInputSchema).mutation(async (opts) => {
-    return publishHandler(opts);
+    const handler = await importHandler(namespaced("publish"), () => import("./publish.handler"));
+    return handler(opts);
   }),
+  /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
   getUpgradeable: authedProcedure.query(async ({ ctx }) => {
-    return getUpgradeableHandler({ userId: ctx.user.id });
+    const handler = await importHandler(
+      namespaced("getUpgradeable"),
+      () => import("./getUpgradeable.handler")
+    );
+    return handler({ userId: ctx.user.id });
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
-    return listMembersHandler(opts);
+    const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
+    return handler(opts);
   }),
   listSimpleMembers: authedProcedure.query(async (opts) => {
-    return listSimpleMembersHandler(opts);
+    const handler = await importHandler(
+      namespaced("listSimpleMembers"),
+      () => import("./listSimpleMembers.handler")
+    );
+    return handler(opts);
   }),
   legacyListMembers: authedProcedure.input(ZLegacyListMembersInputSchema).query(async (opts) => {
-    return legacyListMembersHandler(opts);
+    const handler = await importHandler(
+      namespaced("legacyListMembers"),
+      () => import("./legacyListMembers.handler")
+    );
+    return handler(opts);
   }),
   getUserConnectedApps: authedProcedure.input(ZGetUserConnectedAppsInputSchema).query(async (opts) => {
-    return getUserConnectedAppsHandler(opts);
+    const handler = await importHandler(
+      namespaced("getUserConnectedApps"),
+      () => import("./getUserConnectedApps.handler")
+    );
+    return handler(opts);
   }),
   hasTeamPlan,
   listInvites: authedProcedure.query(async (opts) => {
-    return listInvitesHandler(opts);
+    const handler = await importHandler(namespaced("listInvites"), () => import("./listInvites.handler"));
+    return handler(opts);
   }),
   createInvite: authedProcedure.input(ZCreateInviteInputSchema).mutation(async (opts) => {
-    return createInviteHandler(opts);
+    const handler = await importHandler(namespaced("createInvite"), () => import("./createInvite.handler"));
+    return handler(opts);
   }),
   setInviteExpiration: authedProcedure.input(ZSetInviteExpirationInputSchema).mutation(async (opts) => {
-    return setInviteExpirationHandler(opts);
+    const handler = await importHandler(
+      namespaced("setInviteExpiration"),
+      () => import("./setInviteExpiration.handler")
+    );
+    return handler(opts);
   }),
   deleteInvite: authedProcedure.input(ZDeleteInviteInputSchema).mutation(async (opts) => {
-    return deleteInviteHandler(opts);
+    const handler = await importHandler(namespaced("deleteInvite"), () => import("./deleteInvite.handler"));
+    return handler(opts);
   }),
   inviteMemberByToken: authedProcedure.input(ZInviteMemberByTokenSchemaInputSchema).mutation(async (opts) => {
-    return inviteMemberByTokenHandler(opts);
+    const handler = await importHandler(
+      namespaced("inviteMemberByToken"),
+      () => import("./inviteMemberByToken.handler")
+    );
+    return handler(opts);
   }),
   hasEditPermissionForUser: authedProcedure.input(ZHasEditPermissionForUserSchema).query(async (opts) => {
-    return hasEditPermissionForUserHandler(opts);
+    const handler = await importHandler(
+      namespaced("hasEditPermissionForUser"),
+      () => import("./hasEditPermissionForUser.handler")
+    );
+    return handler(opts);
   }),
   resendInvitation: authedProcedure.input(ZResendInvitationInputSchema).mutation(async (opts) => {
-    return resendInvitationHandler(opts);
+    const handler = await importHandler(
+      namespaced("resendInvitation"),
+      () => import("./resendInvitation.handler")
+    );
+    return handler(opts);
   }),
   roundRobinReassign: authedProcedure.input(ZRoundRobinReassignInputSchema).mutation(async (opts) => {
-    return roundRobinReassignHandler(opts);
+    const handler = await importHandler(
+      namespaced("roundRobinReassign"),
+      () => import("./roundRobin/roundRobinReassign.handler")
+    );
+    return handler(opts);
   }),
   roundRobinManualReassign: authedProcedure
     .input(ZRoundRobinManualReassignInputSchema)
     .mutation(async (opts) => {
-      return roundRobinManualReassignHandler(opts);
+      const handler = await importHandler(
+        namespaced("roundRobinManualReassign"),
+        () => import("./roundRobin/roundRobinManualReassign.handler")
+      );
+      return handler(opts);
     }),
   getRoundRobinHostsToReassign: authedProcedure.input(ZGetRoundRobinHostsInputSchema).query(async (opts) => {
-    return getRoundRobinHostsToReassignHandler(opts);
+    const handler = await importHandler(
+      namespaced("getRoundRobinHostsToReassign"),
+      () => import("./roundRobin/getRoundRobinHostsToReasign.handler")
+    );
+    return handler(opts);
   }),
   checkIfMembershipExists: authedProcedure
     .input(ZCheckIfMembershipExistsInputSchema)
     .mutation(async (opts) => {
-      return checkIfMembershipExistsHandler(opts);
+      const handler = await importHandler(
+        namespaced("checkIfMembershipExists"),
+        () => import("./checkIfMembershipExists.handler")
+      );
+      return handler(opts);
     }),
   addMembersToEventTypes: authedProcedure.input(ZAddMembersToEventTypes).mutation(async (opts) => {
-    return addMembersToEventTypesHandler(opts);
+    const handler = await importHandler(
+      namespaced("addMembersToEventTypes"),
+      () => import("./addMembersToEventTypes.handler")
+    );
+    return handler(opts);
   }),
   removeHostsFromEventTypes: authedProcedure.input(ZRemoveHostsFromEventTypes).mutation(async (opts) => {
-    return removeHostsFromEventTypesHandler(opts);
+    const handler = await importHandler(
+      namespaced("removeHostsFromEventTypes"),
+      () => import("./removeHostsFromEventTypes.handler")
+    );
+    return handler(opts);
   }),
   getInternalNotesPresets: authedProcedure
     .input(ZGetInternalNotesPresetsInputSchema)
     .query(async ({ ctx, input }) => {
-      return getInternalNotesPresetsHandler({ ctx, input });
+      const handler = await importHandler(
+        namespaced("getInternalNotesPresets"),
+        () => import("./getInternalNotesPresets.handler")
+      );
+      return handler({ ctx, input });
     }),
   updateInternalNotesPresets: authedProcedure
     .input(ZUpdateInternalNotesPresetsInputSchema)
     .mutation(async ({ ctx, input }) => {
-      return updateInternalNotesPresetsHandler({ ctx, input });
+      const handler = await importHandler(
+        namespaced("updateInternalNotesPresets"),
+        () => import("./updateInternalNotesPresets.handler")
+      );
+      return handler({ ctx, input });
     }),
   hasActiveTeamPlan: authedProcedure.query(async (opts) => {
-    return hasActiveTeamPlanHandler(opts);
+    const handler = await importHandler(
+      namespaced("hasActiveTeamPlan"),
+      () => import("./hasActiveTeamPlan.handler")
+    );
+    return handler(opts);
   }),
 });
