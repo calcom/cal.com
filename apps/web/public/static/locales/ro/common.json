@@ -2659,7 +2659,7 @@
   "no_availability_shown_to_bookers": "Dacă nu atribui pe nimeni pentru acest eveniment, nu va fi afișată nicio disponibilitate pentru cei care doresc să rezerve.",
   "go_back_and_assign": "Întoarce-te și Atribuie",
   "leave_without_assigning": "Părăsește fără a atribui",
-  "signing_up_terms": "Continuând, sunteți de acord cu <0>Termele</0> și <1>Politica de confidențialitate<1>",
+  "signing_up_terms": "Continuând, sunteți de acord cu <0>Termele</0> și <1>Politica de confidențialitate</1>",
   "proceeding_agreement": "Continuând, sunteți de acord cu",
   "terms": "Termenii",
   "always_show_x_days": "Întotdeauna {{x}} zile disponibile",
@@ -3016,5 +3016,6 @@
   "tip_username_plus": "Sfat: Puteți adăuga un '+' între numele de utilizator: cal.com/anna+brian pentru a crea o întâlnire de grup dinamică",
   "user_has_no_team_yet": "Nu aveți încă o echipă",
   "no_team_members": "Nu aveți încă membri în echipă",
+  "picklist": "Listă de selecție",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
