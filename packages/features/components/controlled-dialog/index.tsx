@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { Dialog as BaseDialog } from "@calcom/ui";
+import { Dialog as BaseDialog } from "@calcom/ui/components/dialog";
 
 export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
   name?: string;
