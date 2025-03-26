@@ -4,7 +4,7 @@ import { expect, type Page } from "@playwright/test";
 import prisma from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-import { localize } from "../lib/testUtils";
+import { localize } from "../lib/localize";
 
 type CreateWorkflowProps = {
   name?: string;
