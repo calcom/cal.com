@@ -80,7 +80,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const roleFilter = filters.find((filter) => filter.id === "role") as
     | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
     | undefined;
-  const teamFilter = filters.find((filter) => filter.id === "role") as
+  const teamFilter = filters.find((filter) => filter.id === "teams") as
     | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
     | undefined;
 
