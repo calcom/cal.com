@@ -25,9 +25,7 @@ export function AvailabilityList() {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
-  const { data: availabilityData, isFetching: isFetchingAvailabilityData } =
-    trpc.viewer.availability.list.useQuery();
-
+  const { data: availabilityData } = trpc.viewer.availability.list.useQuery();
   const meQuery = trpc.viewer.me.get.useQuery();
 
   const router = useRouter();
@@ -122,7 +120,7 @@ export function AvailabilityList() {
 
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
 
-  if (isFetchingAvailabilityData || !availabilityData) {
+  if (!availabilityData) {
     return <SkeletonLoader />;
   }
 
