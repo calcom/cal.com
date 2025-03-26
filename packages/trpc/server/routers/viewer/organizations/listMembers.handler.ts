@@ -77,15 +77,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const { limit, offset } = input;
 
-  const getTotalMembers = await prisma.membership.count({
-    where: {
-      user: {
-        ...getUserConditions(oAuthClientId),
-      },
-      teamId: organizationId,
-    },
-  });
-
   const roleFilter = filters.find((filter) => filter.id === "role") as
     | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
     | undefined;
@@ -162,7 +153,11 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     }));
   }
 
-  const teamMembers = await prisma.membership.findMany({
+  const totalCountPromise = prisma.membership.count({
+    where: whereClause,
+  });
+
+  const teamMembersPromise = prisma.membership.findMany({
     where: whereClause,
     select: {
       id: true,
@@ -204,6 +199,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       id: "asc",
     },
   });
+
+  const [totalCount, teamMembers] = await Promise.all([totalCountPromise, teamMembersPromise]);
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
@@ -272,7 +269,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   return {
     rows: members || [],
     meta: {
-      totalRowCount: getTotalMembers || 0,
+      totalRowCount: totalCount || 0,
     },
   };
 };
