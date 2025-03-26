@@ -3,9 +3,9 @@ import { Prisma } from "@prisma/client";
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
@@ -37,6 +37,7 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
+  const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
@@ -84,9 +85,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       throw new TRPCError({ code: "BAD_REQUEST", message: "User is not premium" });
     }
 
-    const stripeSubscriptions = await stripe.subscriptions.list({ customer: stripeCustomerId });
+    const stripeSubscriptions = await billingService.getSubscriptions(stripeCustomerId);
 
-    if (!stripeSubscriptions || !stripeSubscriptions.data.length) {
+    if (!stripeSubscriptions || !stripeSubscriptions.length) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "No stripeSubscription found",
@@ -95,7 +96,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
     // Iterate over subscriptions and look for premium product id and status active
     // @TODO: iterate if stripeSubscriptions.hasMore is true
-    const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
+    const isPremiumUsernameSubscriptionActive = stripeSubscriptions.some(
       (subscription) =>
         subscription.items.data[0].price.id === getPremiumMonthlyPlanPriceId() &&
         subscription.status === "active"
@@ -284,12 +285,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   // Notify stripe about the change
   if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
     const stripeCustomerId = `${updatedUser.metadata.stripeCustomerId}`;
-    await stripe.customers.update(stripeCustomerId, {
-      metadata: {
-        username: updatedUser.username,
-        email: updatedUser.email,
-        userId: updatedUser.id,
-      },
+    await billingService.updateCustomer({
+      customerId: stripeCustomerId,
+      email: updatedUser.email,
+      userId: updatedUser.id,
     });
   }
 
