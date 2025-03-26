@@ -18,7 +18,6 @@ export interface EventMembersProps {
   profile: BookerEvent["profile"];
   entity: BookerEvent["entity"];
   isPrivateLink: boolean;
-  hideProfileLink?: boolean;
 }
 
 export const EventMembers = ({
