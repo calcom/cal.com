@@ -23,7 +23,7 @@ import { Select } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";

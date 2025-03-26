@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
