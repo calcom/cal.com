@@ -17,7 +17,7 @@ export async function getCustomerAndCheckoutSession(checkoutSessionId: string) {
   } else {
     customerId = customerOrCustomerId.id;
   }
-  const stripeCustomer = await BillingService.getCustomer(customerId);
+  const stripeCustomer = await billingService.getCustomer(customerId);
   if (stripeCustomer.deleted) {
     return { checkoutSession, stripeCustomer: null };
   }
