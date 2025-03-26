@@ -1,3 +1,4 @@
+import { XhrApi } from "@ewsjs/xhr";
 import type { FindFoldersResults, FindItemsResults } from "ews-javascript-api";
 import {
   Appointment,
@@ -201,7 +202,6 @@ export default class ExchangeCalendarService implements Calendar {
     service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
     service.Url = new Uri(this.payload.url);
     if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
-      const { XhrApi } = await import("@ewsjs/xhr");
       const xhr = new XhrApi({
         rejectUnauthorized: false,
       }).useNtlmAuthentication(this.payload.username, this.payload.password);
