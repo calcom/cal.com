@@ -8,6 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import type { DelegationCredentialAccesssToken } from "@calcom/prisma/client";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { buildNonDelegationCredentials, isDelegationCredential } from "./clientAndServer";
@@ -26,6 +27,7 @@ interface DelegationCredential {
     slug: string;
   };
   serviceAccountKey: ServiceAccountKey | null;
+  accessTokens?: DelegationCredentialAccesssToken[];
 }
 
 interface DelegationCredentialWithSensitiveServiceAccountKey extends DelegationCredential {
@@ -92,6 +94,14 @@ const _buildCommonUserCredential = ({
     delegatedTo: delegationCredential.serviceAccountKey
       ? {
           serviceAccountKey: delegationCredential.serviceAccountKey,
+          id: delegationCredential.id,
+          ...(delegationCredential.workspacePlatform.slug === "google"
+            ? {
+                key: delegationCredential.accessTokens?.find((token) => token.userId === user.id)?.key,
+              }
+            : {
+                key: delegationCredential.accessTokens?.[0]?.key,
+              }),
         }
       : null,
   };
@@ -138,6 +148,7 @@ const _buildDelegatedCalendarCredentialWithServiceAccountKey = ({
     ...credential,
     delegatedTo: {
       serviceAccountKey: delegationCredential.serviceAccountKey,
+      id: delegationCredential.id,
     },
   };
 };

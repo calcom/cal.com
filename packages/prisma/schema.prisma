@@ -355,32 +355,33 @@ model User {
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
 
   // Used to lock the user account
-  locked                         Boolean                      @default(false)
-  platformOAuthClients           PlatformOAuthClient[]
-  AccessToken                    AccessToken[]
-  RefreshToken                   RefreshToken[]
-  PlatformAuthorizationToken     PlatformAuthorizationToken[]
-  profiles                       Profile[]
-  movedToProfileId               Int?
-  movedToProfile                 Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
-  secondaryEmails                SecondaryEmail[]
-  isPlatformManaged              Boolean                      @default(false)
-  OutOfOfficeReasons             OutOfOfficeReason[]
-  smsLockState                   SMSLockState                 @default(UNLOCKED)
-  smsLockReviewedByAdmin         Boolean                      @default(false)
-  NotificationsSubscriptions     NotificationsSubscriptions[]
-  referralLinkId                 String?
-  features                       UserFeatures[]
-  reassignedBookings             Booking[]                    @relation("reassignByUser")
-  createdAttributeToUsers        AttributeToUser[]            @relation("createdBy")
-  updatedAttributeToUsers        AttributeToUser[]            @relation("updatedBy")
-  createdTranslations            EventTypeTranslation[]       @relation("CreatedEventTypeTranslations")
-  updatedTranslations            EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
-  createdWatchlists              Watchlist[]                  @relation("CreatedWatchlists")
-  updatedWatchlists              Watchlist[]                  @relation("UpdatedWatchlists")
-  BookingInternalNote            BookingInternalNote[]
-  creationSource                 CreationSource?
-  createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
+  locked                           Boolean                            @default(false)
+  platformOAuthClients             PlatformOAuthClient[]
+  AccessToken                      AccessToken[]
+  RefreshToken                     RefreshToken[]
+  PlatformAuthorizationToken       PlatformAuthorizationToken[]
+  profiles                         Profile[]
+  movedToProfileId                 Int?
+  movedToProfile                   Profile?                           @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
+  secondaryEmails                  SecondaryEmail[]
+  isPlatformManaged                Boolean                            @default(false)
+  OutOfOfficeReasons               OutOfOfficeReason[]
+  smsLockState                     SMSLockState                       @default(UNLOCKED)
+  smsLockReviewedByAdmin           Boolean                            @default(false)
+  NotificationsSubscriptions       NotificationsSubscriptions[]
+  referralLinkId                   String?
+  features                         UserFeatures[]
+  reassignedBookings               Booking[]                          @relation("reassignByUser")
+  createdAttributeToUsers          AttributeToUser[]                  @relation("createdBy")
+  updatedAttributeToUsers          AttributeToUser[]                  @relation("updatedBy")
+  createdTranslations              EventTypeTranslation[]             @relation("CreatedEventTypeTranslations")
+  updatedTranslations              EventTypeTranslation[]             @relation("UpdatedEventTypeTranslations")
+  createdWatchlists                Watchlist[]                        @relation("CreatedWatchlists")
+  updatedWatchlists                Watchlist[]                        @relation("UpdatedWatchlists")
+  BookingInternalNote              BookingInternalNote[]
+  creationSource                   CreationSource?
+  createdOrganizationOnboardings   OrganizationOnboarding[]           @relation("CreatedOrganizationOnboardings")
+  delegationCredentialAccesssToken DelegationCredentialAccesssToken[]
 
   @@unique([email])
   @@unique([email, username])
@@ -1804,22 +1805,36 @@ enum EventTypeAutoTranslatedField {
   TITLE
 }
 
+model DelegationCredentialAccesssToken {
+  id                     String               @id @default(uuid())
+  key                    Json
+  user                   User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 Int?
+  delegationCredential   DelegationCredential @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId String
+
+  @@unique([delegationCredentialId, userId])
+  @@index([userId])
+  @@index([delegationCredentialId])
+}
+
 model DelegationCredential {
-  id                  String                @id @default(uuid())
-  workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
+  id                  String                             @id @default(uuid())
+  workspacePlatform   WorkspacePlatform                  @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
   workspacePlatformId Int
   // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
   /// @zod.custom(imports.serviceAccountKeySchema)
   serviceAccountKey   Json
-  enabled             Boolean               @default(false)
+  enabled             Boolean                            @default(false)
   organizationId      Int
-  organization        Team                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization        Team                               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domain              String
   selectedCalendars   SelectedCalendar[]
   destinationCalendar DestinationCalendar[]
   bookingReferences   BookingReference[]
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
+  accessTokens        DelegationCredentialAccesssToken[]
+  createdAt           DateTime                           @default(now())
+  updatedAt           DateTime                           @updatedAt
 
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
   // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.

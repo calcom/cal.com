@@ -742,4 +742,17 @@ export const serviceAccountKeySchema = z
 
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
 
+export const delegationCredentialAccesssTokenKeySchema = z
+  .object({
+    private_key: z.string(),
+    client_email: z.string().optional(),
+    client_id: z.string(),
+    tenant_id: z.string().optional(),
+  })
+  .passthrough();
+
+export type TDelegationCredentialAccesssTokenKeySchema = z.infer<
+  typeof delegationCredentialAccesssTokenKeySchema
+>;
+
 export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();

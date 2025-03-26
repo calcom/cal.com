@@ -9,6 +9,7 @@ import {
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
@@ -62,7 +63,9 @@ export default class Office365CalendarService implements Calendar {
 
   constructor(credential: CredentialForCalendarServiceWithTenantId) {
     this.integrationName = "office365_calendar";
+    console.log("credentialllllll: ", credential);
     const tokenResponse = getTokenObjectFromCredential(credential);
+    console.log("tokenResponstokenResponsee: ", tokenResponse);
     this.auth = new OAuthManager({
       credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
       resourceOwner: {
@@ -110,8 +113,35 @@ export default class Office365CalendarService implements Calendar {
 
       invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
       expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
-      updateTokenObject: (tokenObject) => {
-        if (!Boolean(credential.delegatedTo)) {
+      updateTokenObject: async (tokenObject) => {
+        if (!!credential.delegatedTo?.id) {
+          const existingToken = await prisma.delegationCredentialAccesssToken.findFirst({
+            where: {
+              delegationCredentialId: credential.delegatedTo.id,
+            },
+          });
+
+          console.log("existingToken: ", existingToken);
+          if (existingToken) {
+            // Update existing token
+            await prisma.delegationCredentialAccesssToken.update({
+              where: {
+                id: existingToken.id,
+              },
+              data: {
+                key: tokenObject,
+              },
+            });
+          } else {
+            // Create new token
+            await prisma.delegationCredentialAccesssToken.create({
+              data: {
+                key: tokenObject,
+                delegationCredentialId: credential.delegatedTo.id,
+              },
+            });
+          }
+        } else {
           return oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id });
         }
         return Promise.resolve();

@@ -1,11 +1,26 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type {
+  CredentialForCalendarServiceWithEmail,
+  CredentialForCalendarServiceWithTenantId,
+  CredentialPayload,
+} from "@calcom/types/Credential";
 
 import { OAuth2TokenResponseInDbSchema } from "./universalSchema";
 
-export function getTokenObjectFromCredential(credential: CredentialPayload) {
-  const parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
+export function getTokenObjectFromCredential(
+  credential: CredentialPayload & {
+    delegatedTo?:
+      | CredentialForCalendarServiceWithEmail["delegatedTo"]
+      | CredentialForCalendarServiceWithTenantId["delegatedTo"];
+  }
+) {
+  let parsedTokenResponse;
+  if (credential?.delegatedTo?.key) {
+    parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.delegatedTo.key);
+  } else {
+    parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
+  }
 
   if (!parsedTokenResponse.success) {
     logger.error(

@@ -113,20 +113,46 @@ export default class GoogleCalendarService implements Calendar {
       },
       appSlug: metadata.slug,
       currentTokenObject,
-      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }): Promise<Response> => {
+        const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
+
+        // Handle delegation credentials if present
+        if (credential.delegatedTo) {
+          if (!credential.user?.email) {
+            throw new CalendarAppDelegationCredentialError(
+              "DelegationCredential: No email to impersonate found for delegation credential"
+            );
+          }
+
+          const sanitizedEmail = credential.user.email.replace(oauthClientIdAliasRegex, "");
+          const tokenData = await this.getAccessTokenFromDelegationCredential({
+            delegationCredential: credential.delegatedTo,
+            emailToImpersonate: sanitizedEmail,
+          });
+
+          return new Response(JSON.stringify(tokenData ?? null), {
+            status: 200,
+            statusText: "OK",
+          });
+        }
+
+        // Handle standard OAuth flow
         const myGoogleAuth = await this.getMyGoogleAuthSingleton();
-        const fetchTokens = await myGoogleAuth.refreshToken(refreshToken);
-        // Create Response from fetchToken.res
-        const response = new Response(JSON.stringify(fetchTokens.res?.data ?? null), {
-          status: fetchTokens.res?.status,
-          statusText: fetchTokens.res?.statusText,
+        const fetchTokenResult = await myGoogleAuth.refreshToken(refreshToken);
+
+        return new Response(JSON.stringify(fetchTokenResult.res?.data ?? null), {
+          status: fetchTokenResult.res?.status,
+          statusText: fetchTokenResult.res?.statusText,
         });
-        return response;
       },
-      isTokenExpired: async () => {
-        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
-        return myGoogleAuth.isTokenExpiring();
-      },
+      ...(credential.delegatedTo
+        ? {}
+        : {
+            isTokenExpired: async () => {
+              const myGoogleAuth = await this.getMyGoogleAuthSingleton();
+              return myGoogleAuth.isTokenExpiring();
+            },
+          }),
       isTokenObjectUnusable: async function (response) {
         // TODO: Confirm that if this logic should go to isAccessTokenUnusable
         if (!response.ok || (response.status < 200 && response.status >= 300)) {
@@ -149,9 +175,33 @@ export default class GoogleCalendarService implements Calendar {
       expireAccessToken: async () => {
         await markTokenAsExpired(this.credential);
       },
-      updateTokenObject: async (token) => {
-        this.myGoogleAuth.setCredentials(token);
+      updateTokenObject: async (token: any): Promise<void> => {
+        if (credential.delegatedTo?.id && credential.userId) {
+          const { key } = await prisma.delegationCredentialAccesssToken.upsert({
+            where: {
+              delegationCredentialId_userId: {
+                delegationCredentialId: credential.delegatedTo.id,
+                userId: credential.userId,
+              },
+            },
+            create: {
+              key: token,
+              delegationCredentialId: credential.delegatedTo.id,
+              userId: credential.userId,
+            },
+            update: {
+              key: token,
+            },
+          });
 
+          // Update cached credential
+          this.credential.key = key;
+          return;
+        }
+
+        // Update the Google Auth instance with new token
+        this.myGoogleAuth.setCredentials(token);
+        // Handle standard credential case
         const { key } = await prisma.credential.update({
           where: {
             id: credential.id,
@@ -161,7 +211,7 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        // Update cached credential as well
+        // Update cached credential
         this.credential.key = key;
       },
     });
@@ -180,7 +230,33 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  private getAuthedCalendarFromDelegationCredential = async ({
+  /**
+   * Handles errors from delegation credential authorization
+   * @param error - The error object
+   */
+  private handleDelegationAuthError = (error: unknown): never => {
+    this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
+
+    if ((error as any).response?.data?.error === "unauthorized_client") {
+      throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
+        "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
+      );
+    }
+
+    if ((error as any).response?.data?.error === "invalid_grant") {
+      throw new CalendarAppDelegationCredentialInvalidGrantError("User might not exist in Google Workspace");
+    }
+
+    // Catch all error
+    throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
+  };
+
+  /**
+   * Gets an access token from delegation credentials
+   * @param params - Delegation credential parameters
+   * @returns Token object
+   */
+  private getAccessTokenFromDelegationCredential = async ({
     delegationCredential,
     emailToImpersonate,
   }: {
@@ -196,7 +272,6 @@ export default class GoogleCalendarService implements Calendar {
     const serviceAccountClientEmail = delegationCredential.serviceAccountKey.client_email;
     const serviceAccountClientId = delegationCredential.serviceAccountKey.client_id;
     const serviceAccountPrivateKey = delegationCredential.serviceAccountKey.private_key;
-
     const authClient = new JWT({
       email: serviceAccountClientEmail,
       key: serviceAccountPrivateKey,
@@ -205,64 +280,39 @@ export default class GoogleCalendarService implements Calendar {
     });
 
     try {
-      await authClient.authorize();
+      const res = await authClient.authorize();
+      this.log.debug(
+        "Using delegation credential with service account email",
+        safeStringify({
+          serviceAccountClientEmail,
+          serviceAccountClientId,
+          emailToImpersonate,
+        })
+      );
+      return res;
     } catch (error) {
-      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
-
-      if ((error as any).response?.data?.error === "unauthorized_client") {
-        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
-          "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
-        );
-      }
-
-      if ((error as any).response?.data?.error === "invalid_grant") {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
-          "User might not exist in Google Workspace"
-        );
-      }
-
-      // Catch all error
-      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
+      return this.handleDelegationAuthError(error);
     }
-
-    this.log.debug(
-      "Using delegation credential with service account email",
-      safeStringify({
-        serviceAccountClientEmail,
-        serviceAccountClientId,
-        emailToImpersonate,
-      })
-    );
-
-    return new calendar_v3.Calendar({
-      auth: authClient,
-    });
   };
 
+  /**
+   * Gets an authenticated calendar instance
+   * @returns Calendar instance
+   */
   public authedCalendar = async () => {
-    let delegationCredentialAuthedCalendar;
-
-    if (this.credential.delegatedTo) {
-      if (!this.credential.user?.email) {
-        this.log.error("DelegationCredential: No email to impersonate found for delegation credential");
-      } else {
-        const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
-        delegationCredentialAuthedCalendar = await this.getAuthedCalendarFromDelegationCredential({
-          delegationCredential: this.credential.delegatedTo,
-          emailToImpersonate: this.credential.user.email.replace(oauthClientIdAliasRegex, ""),
-        });
+    // Handle delegation credentials if present
+    if (this.credential.delegatedTo && this.credential.user?.email) {
+      const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
+      if (!token) {
+        throw new Error("Invalid grant for Google Calendar app");
       }
-    }
-
-    if (delegationCredentialAuthedCalendar) {
-      return delegationCredentialAuthedCalendar;
+      const authClient = new OAuth2Client();
+      authClient.setCredentials({ access_token: token.access_token });
+      return new calendar_v3.Calendar({ auth: authClient });
     }
 
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
-    const calendar = new calendar_v3.Calendar({
-      auth: myGoogleAuth,
-    });
-    return calendar;
+    return new calendar_v3.Calendar({ auth: myGoogleAuth });
   };
 
   private getAttendees = ({
