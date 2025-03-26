@@ -22,7 +22,6 @@ const enum DIALOG_STATE {
 
 export function Dialog(props: DialogProps) {
   const isPlatform = useIsPlatform();
-  console.log("IS PLATFORM CONTROLLED DIALOG");
   return !isPlatform ? <ControlledDialog {...props} /> : <DialogPrimitive.Dialog {...props} />;
 }
 
