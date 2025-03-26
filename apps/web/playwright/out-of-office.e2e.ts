@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse, localize } from "./lib/testUtils";
+import { submitAndWaitForResponse } from "./lib/localize";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
