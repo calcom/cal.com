@@ -1,10 +1,12 @@
+"use client";
+
 import superjson from "superjson";
 
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
-import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+
+import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
 
 import { trpc } from "./trpc";
-import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveEndpoint = (links: any) => {
