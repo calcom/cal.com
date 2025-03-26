@@ -23,6 +23,7 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
       id: userId,
     },
     select: {
+      email: true,
       metadata: true,
     },
   });
@@ -48,11 +49,11 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
       data: {
         metadata: {
           ...metadata,
-          stripeCustomerId: customer.id,
+          stripeCustomerId: customer.stripeCustomerId,
         },
       },
     });
-    stripeCustomerId = customer.id;
+    stripeCustomerId = customer.stripeCustomerId;
   }
 
   // Fetch stripe customer

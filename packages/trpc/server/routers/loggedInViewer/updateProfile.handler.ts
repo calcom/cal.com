@@ -87,7 +87,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
     const stripeSubscriptions = await billingService.getSubscriptions(stripeCustomerId);
 
-    if (!stripeSubscriptions || !stripeSubscriptions.data.length) {
+    if (!stripeSubscriptions || !stripeSubscriptions.length) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "No stripeSubscription found",
@@ -96,7 +96,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
     // Iterate over subscriptions and look for premium product id and status active
     // @TODO: iterate if stripeSubscriptions.hasMore is true
-    const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
+    const isPremiumUsernameSubscriptionActive = stripeSubscriptions.some(
       (subscription) =>
         subscription.items.data[0].price.id === getPremiumMonthlyPlanPriceId() &&
         subscription.status === "active"
