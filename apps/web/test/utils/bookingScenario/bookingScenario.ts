@@ -1691,8 +1691,8 @@ export function mockCalendar(
   const appMock = appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default];
 
   appMock &&
-    `mockReturnValue` in appMock &&
-    appMock.mockReturnValue({
+    `mockResolvedValue` in appMock &&
+    appMock.mockResolvedValue({
       lib: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
@@ -2055,8 +2055,8 @@ export function mockCrmApp(
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
   const appMock = appStoreMock.default[metadataLookupKey as keyof typeof appStoreMock.default];
   appMock &&
-    `mockReturnValue` in appMock &&
-    appMock.mockReturnValue({
+    `mockResolvedValue` in appMock &&
+    appMock.mockResolvedValue({
       lib: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
