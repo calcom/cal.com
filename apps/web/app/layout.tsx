@@ -173,7 +173,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/insights",
           ]}
         />
-        <Providers dehydratedState={undefined}>{children}</Providers>
+        <Providers>{children}</Providers>
         {!isEmbed && <NotificationSoundHandler />}
         <NotificationSoundHandler />
       </body>
