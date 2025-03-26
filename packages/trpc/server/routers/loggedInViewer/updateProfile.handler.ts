@@ -288,6 +288,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     await billingService.updateCustomer({
       customerId: stripeCustomerId,
       email: updatedUser.email,
+      userId: updatedUser.id,
     });
   }
 
