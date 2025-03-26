@@ -16,6 +16,7 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { default as jackson } from "@calcom/features/ee/sso/lib/jackson";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
@@ -328,7 +329,7 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
+        const { oauthController } = await jackson();
 
         // Fetch access token
         const { access_token } = await oauthController.token({
