@@ -870,6 +870,7 @@ async function addAllTypesOfFieldsAndSaveForm(
     await page.fill(`[name="fields.${nth}.label"]`, label);
 
     if (identifier !== label) {
+      await page.click('[data-testid="field-identifier"]');
       await page.fill(`[name="fields.${nth}.identifier"]`, identifier);
     }
 
@@ -892,6 +893,7 @@ async function addShortTextFieldAndSaveForm({ page, formId }: { page: Page; form
   await page.click('[data-testid="add-field"]');
   await page.locator(".data-testid-field-type").nth(0).click();
   await page.fill(`[name="fields.0.label"]`, "Short Text");
+  await page.click('[data-testid="field-identifier"]');
   await page.fill(`[name="fields.0.identifier"]`, "short-text");
   await saveCurrentForm(page);
 }

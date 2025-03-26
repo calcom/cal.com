@@ -556,10 +556,6 @@ async function addQuestionAndSave({
     });
   }
 
-  if (question.name !== undefined) {
-    await page.fill('[name="name"]', question.name);
-  }
-
   if (question.label !== undefined) {
     if (question.type === "Checkbox") {
       const editorInput = page.locator('[data-testid="editor-input"]');
@@ -571,6 +567,11 @@ async function addQuestionAndSave({
 
   if (question.placeholder !== undefined) {
     await page.fill('[name="placeholder"]', question.placeholder);
+  }
+
+  if (question.name !== undefined) {
+    await page.click('[data-testid="field-identifier"]');
+    await page.fill('[name="name"]', question.name);
   }
 
   if (question.required !== undefined) {
@@ -766,9 +767,10 @@ test.describe("Text area min and max characters text", () => {
       await locatorForSelect.click();
       await locatorForSelect.locator(`text="Long Text"`).click();
 
-      await page.fill('[name="name"]', questionName);
       await page.fill('[name="label"]', questionName);
       await page.fill('[name="placeholder"]', questionName);
+      await page.click('[data-testid="field-identifier"]');
+      await page.fill('[name="name"]', questionName);
     };
 
     const saveQuestion = async () => {

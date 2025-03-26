@@ -16,7 +16,7 @@ const FormFieldIdentifier = ({
 }) => {
   const { t } = useLocale();
   return (
-    <div className="dark:text-emphasis text-default mt-4 flex items-center gap-3 text-center">
+    <div className="dark:text-emphasis text-default mt-4 flex items-center gap-3 p-1 text-center">
       <div className="flex items-center gap-2 text-center">
         <span className="text-sm font-medium leading-none">{t("identifier")}</span>
         <Tooltip content={t("click_here_to_learn_more")}>
@@ -32,7 +32,7 @@ const FormFieldIdentifier = ({
           <span className="break-all text-sm">{fieldIdentifier}</span>
           {!disabled && (
             <Tooltip content={t("edit_identifier")}>
-              <button onClick={() => setIsEditing(true)}>
+              <button onClick={() => setIsEditing(true)} data-testid="field-identifier">
                 <Icon name="square-pen" className="h-4 w-4" />
               </button>
             </Tooltip>
