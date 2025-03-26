@@ -94,6 +94,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
         name: true,
         logoUrl: true,
         theme: true,
+        hideTeamProfileLink: true,
         parent: {
           select: {
             slug: true,
@@ -470,6 +471,7 @@ export const getPublicEvent = async (
   if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
     users = [];
   }
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -499,6 +501,7 @@ export const getPublicEvent = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
+      hideProfileLink: eventWithUserProfiles.team?.hideTeamProfileLink ?? false,
       ...(orgDetails
         ? {
             logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
