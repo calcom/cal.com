@@ -528,7 +528,6 @@ function UserListTableContent() {
         ToolbarLeft={
           <>
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            <FilterSegmentSelect />
             <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
             <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
@@ -586,6 +585,7 @@ function UserListTableContent() {
       {ctaContainerRef?.current &&
         createPortal(
           <div className="flex items-center gap-2">
+            <FilterSegmentSelect />
             <DataTableToolbar.CTA
               type="button"
               color="secondary"
