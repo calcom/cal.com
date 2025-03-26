@@ -15,7 +15,9 @@ const handlePaymentRefund = async (
     } | null;
   }
 ) => {
-  const paymentApp = appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore] as PaymentApp;
+  const paymentApp = (await appStore[
+    paymentAppCredentials?.app?.dirName as keyof typeof appStore
+  ]?.()) as PaymentApp;
   if (!paymentApp?.lib?.PaymentService) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
