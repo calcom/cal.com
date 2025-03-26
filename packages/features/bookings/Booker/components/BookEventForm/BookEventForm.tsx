@@ -5,6 +5,7 @@ import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,7 +13,6 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import { useBookerStore } from "../../store";
 import { useBookerTime } from "../hooks/useBookerTime";
@@ -106,7 +106,9 @@ export const BookEventForm = ({
   }
 
   const watchedCfToken = bookingForm.watch("cfToken");
-
+  const isBookingRequestInProgress = loadingStates.creatingBooking || loadingStates.creatingRecurringBooking;
+  // While the booking is ongoing the slot could become unavailable, because of the booking request that is still going on(because DB is updated first and then other things happen)
+  const showTimeslotUnavailableMsg = isTimeslotUnavailable && !isBookingRequestInProgress;
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -138,7 +140,7 @@ export const BookEventForm = ({
               message={getError(errors.formErrors, errors.dataErrors, t, responseVercelIdHeader)}
             />
           </div>
-        ) : isTimeslotUnavailable ? (
+        ) : showTimeslotUnavailableMsg ? (
           <div data-testid="slot-not-allowed-to-book">
             <Alert
               severity="info"
@@ -232,11 +234,7 @@ export const BookEventForm = ({
                 disabled={
                   (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
                 }
-                loading={
-                  loadingStates.creatingBooking ||
-                  loadingStates.creatingRecurringBooking ||
-                  isVerificationCodeSending
-                }
+                loading={isBookingRequestInProgress || isVerificationCodeSending}
                 className={classNames?.confirmButton}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
