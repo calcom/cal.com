@@ -67,8 +67,16 @@ export const useInsightsColumns = ({
         id: "bookingUid",
         header: t("uid"),
         size: 100,
-        enableColumnFilter: false,
+        enableColumnFilter: true,
         enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
+          },
+        },
         cell: (info) => {
           const bookingUid = info.getValue();
           if (!bookingUid) return null;
@@ -95,6 +103,14 @@ export const useInsightsColumns = ({
         size: 200,
         enableColumnFilter: false,
         enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              placeholder: t("name_or_email"),
+            },
+          },
+        },
         cell: (info) => {
           return <BookedByCell attendees={info.getValue()} rowId={info.row.original.id} />;
         },
