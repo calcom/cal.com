@@ -706,7 +706,7 @@ const ProfileForm = ({
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
-            height="80px"
+            height="150px"
           />
         </div>
         {usersAttributes && usersAttributes?.length > 0 && (
