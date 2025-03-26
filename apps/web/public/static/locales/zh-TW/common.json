@@ -3016,5 +3016,6 @@
   "tip_username_plus": "提示：您可以在使用者名稱之間加上 '+'：cal.com/anna+brian 來建立動態群組會議",
   "user_has_no_team_yet": "您還沒有團隊",
   "no_team_members": "您還沒有團隊成員",
+  "picklist": "選項清單",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
