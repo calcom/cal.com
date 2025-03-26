@@ -147,8 +147,11 @@ export class StripeBillingService implements BillingService {
   }
 
   async updateCustomer(args: Parameters<BillingService["updateCustomer"]>[0]) {
-    const { customerId, email } = args;
-    await this.stripe.customers.update(customerId, { email });
+    const { customerId, email, userId } = args;
+    const metadata: { email?: string; userId?: string } = {};
+    if (email) metadata.email = email;
+    if (userId) metadata.userId = userId;
+    await this.stripe.customers.update(customerId, { metadata });
   }
 
   async getPrice(priceId: string) {

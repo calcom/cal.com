@@ -61,5 +61,5 @@ export interface BillingService {
   getCheckoutSession(checkoutSessionId: string): Promise<Stripe.Checkout.Session | null>;
   getCustomer(customerId: string): Promise<Stripe.Customer | null>;
   getSubscriptions(customerId: string): Promise<Stripe.Subscription[] | null>;
-  updateCustomer(args: { customerId: string; email: string }): Promise<void>;
+  updateCustomer(args: { customerId: string; email: string; userId?: string }): Promise<void>;
 }
