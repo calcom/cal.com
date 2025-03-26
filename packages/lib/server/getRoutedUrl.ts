@@ -14,10 +14,10 @@ import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substit
 import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
-import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
+import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 
 import { TRPCError } from "@trpc/server";

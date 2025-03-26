@@ -1,11 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
