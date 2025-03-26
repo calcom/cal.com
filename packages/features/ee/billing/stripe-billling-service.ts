@@ -143,12 +143,12 @@ export class StripeBillingService implements BillingService {
 
   async getSubscriptions(customerId: string) {
     const subscriptions = await this.stripe.subscriptions.list({ customer: customerId });
-    return subscriptions;
+    return subscriptions.data;
   }
 
   async updateCustomer(args: Parameters<BillingService["updateCustomer"]>[0]) {
     const { customerId, email, userId } = args;
-    const metadata: { email?: string; userId?: string } = {};
+    const metadata: { email?: string; userId?: number } = {};
     if (email) metadata.email = email;
     if (userId) metadata.userId = userId;
     await this.stripe.customers.update(customerId, { metadata });
