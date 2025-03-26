@@ -3,9 +3,9 @@
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback } from "react";
+import { createContext, useCallback, useEffect, useRef } from "react";
 
-import { useSegments } from "./segments";
+import { useSegments } from "./lib/segments";
 import {
   type FilterValue,
   ZSorting,
@@ -14,10 +14,11 @@ import {
   ZColumnSizing,
   type FilterSegmentOutput,
   type ActiveFilters,
-} from "./types";
+} from "./lib/types";
 
 export type DataTableContextType = {
   tableIdentifier: string;
+  ctaContainerRef?: React.RefObject<HTMLDivElement>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
@@ -60,6 +61,7 @@ const DEFAULT_PAGE_SIZE = 10;
 interface DataTableProviderProps {
   tableIdentifier?: string;
   children: React.ReactNode;
+  ctaContainerClassName?: string;
   defaultPageSize?: number;
 }
 
@@ -67,6 +69,7 @@ export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
   defaultPageSize = DEFAULT_PAGE_SIZE,
+  ctaContainerClassName,
 }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
@@ -168,10 +171,19 @@ export function DataTableProvider({
     setPageIndex,
   });
 
+  const ctaContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (ctaContainerClassName) {
+      const element = document.getElementsByClassName(ctaContainerClassName)[0] as HTMLDivElement;
+      ctaContainerRef.current = element;
+    }
+  }, [ctaContainerClassName]);
+
   return (
     <DataTableContext.Provider
       value={{
         tableIdentifier,
+        ctaContainerRef,
         activeFilters,
         addFilter,
         clearAll,

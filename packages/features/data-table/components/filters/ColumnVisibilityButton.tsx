@@ -27,7 +27,7 @@ function ColumnVisibilityButtonComponent<TData>(
   {
     children,
     color = "secondary",
-    EndIcon = "sliders-vertical",
+    StartIcon = "sliders-vertical",
     table,
     ...rest
   }: ColumnVisiblityProps<TData> & ButtonProps,
@@ -40,8 +40,8 @@ function ColumnVisibilityButtonComponent<TData>(
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button ref={ref} color={color} EndIcon={EndIcon} {...rest}>
-          {children ? children : t("View")}
+        <Button ref={ref} color={color} StartIcon={StartIcon} {...rest}>
+          {children ? children : t("display")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">

@@ -17,7 +17,7 @@ export type TextFilterOptionsProps = {
 
 export function TextFilterOptions({ column }: TextFilterOptionsProps) {
   const { t } = useLocale();
-  const textFilterOperatorOptions = useTextFilterOperatorOptions();
+  const textFilterOperatorOptions = useTextFilterOperatorOptions(column.textOptions?.allowedOperators);
   const filterValue = useFilterValue(column.id, ZTextFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
 
@@ -61,7 +61,13 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
                     }
                   }}
                 />
-                {value?.requiresOperand && <Input className="mt-2" {...form.register("operand")} />}
+                {value?.requiresOperand && (
+                  <Input
+                    className="mt-2"
+                    {...form.register("operand")}
+                    placeholder={column.textOptions?.placeholder}
+                  />
+                )}
               </>
             )}
           />
