@@ -3041,6 +3041,8 @@
   "tip_username_plus": "Tip: You can a '+' between usernames: cal.com/anna+brian to make a dynamic group meeting",
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
+  "hide_team_profile_link": "Hide Team Profile Link",
+  "hide_team_profile_link_description": "Hide the team profile link on booking pages",
   "display": "Display",
   "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
   "picklist": "Picklist",
