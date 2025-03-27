@@ -109,6 +109,7 @@ const providers: Provider[] = [
       backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
     },
     async authorize(credentials) {
+      log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
       if (!credentials) {
         console.error(`For some reason credentials are missing`);
         throw new Error(ErrorCode.InternalServerError);
@@ -288,6 +289,7 @@ if (isSAMLLoginEnabled) {
       email?: string;
       locale?: string;
     }) => {
+      log.debug("BoxyHQ:profile", safeStringify({ profile }));
       const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
@@ -318,6 +320,7 @@ if (isSAMLLoginEnabled) {
         code: {},
       },
       async authorize(credentials) {
+        log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
           return null;
         }
@@ -432,6 +435,7 @@ export const getOptions = ({
     // decorate the native JWT encode function
     // Impl. detail: We don't pass through as this function is called with encode/decode functions.
     encode: async ({ token, maxAge, secret }) => {
+      log.debug("jwt:encode", safeStringify({ token, maxAge }));
       if (token?.sub && isNumber(token.sub)) {
         const user = await prisma.user.findFirst({
           where: { id: Number(token.sub) },
@@ -571,6 +575,7 @@ export const getOptions = ({
         return token;
       }
       if (account.type === "credentials") {
+        log.debug("callbacks:jwt:accountType:credentials", safeStringify({ account }));
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
           return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
@@ -596,8 +601,9 @@ export const getOptions = ({
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
       if (account.type === "oauth") {
+        log.debug("callbacks:jwt:accountType:oauth", safeStringify({ account }));
         if (!account.provider || !account.providerAccountId) {
-          return token;
+          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
         const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
 
@@ -675,9 +681,12 @@ export const getOptions = ({
           }
           await updateProfilePhotoGoogle(oAuth2Client, user.id as number);
         }
-
+        const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
+        const { upId } = determineProfile({ profiles: allProfiles, token });
+        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId }));
         return {
           ...token,
+          upId,
           id: existingUser.id,
           name: existingUser.name,
           username: existingUser.username,
@@ -695,6 +704,10 @@ export const getOptions = ({
         return await autoMergeIdentities();
       }
 
+      log.info(
+        "callbacks:jwt:accountType:unknown",
+        safeStringify({ accountType: account.type, accountProvider: account.provider })
+      );
       return token;
     },
     async session({ session, token, user }) {
@@ -766,6 +779,7 @@ export const getOptions = ({
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
+          log.error("Attention: SAML/Google User email is not verified in the IdP", safeStringify({ user }));
           return "/auth/error?error=unverified-email";
         }
 
@@ -826,7 +840,7 @@ export const getOptions = ({
               }
             } catch (error) {
               if (error instanceof Error) {
-                console.error("Error while linking account of already existing user");
+                log.error("Error while linking account of already existing user", safeStringify(error));
               }
             }
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
