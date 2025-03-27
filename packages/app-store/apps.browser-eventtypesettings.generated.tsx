@@ -1,15 +1,15 @@
-import { EventTypeAppSettingsInterface as AlbySettings } from "./alby/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as Basecamp3Settings } from "./basecamp3/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as FathomSettings } from "./fathom/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as Ga4Settings } from "./ga4/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as GiphySettings } from "./giphy/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as GtmSettings } from "./gtm/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as HitpaySettings } from "./hitpay/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as MetapixelSettings } from "./metapixel/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as PaypalSettings } from "./paypal/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as PlausibleSettings } from "./plausible/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as QrCodeSettings } from "./qr_code/components/EventTypeAppSettingsInterface";
-import { EventTypeAppSettingsInterface as StripepaymentSettings } from "./stripepayment/components/EventTypeAppSettingsInterface";
+import { default as AlbySettings } from "./alby/components/EventTypeAppSettingsInterface";
+import { default as Basecamp3Settings } from "./basecamp3/components/EventTypeAppSettingsInterface";
+import { default as FathomSettings } from "./fathom/components/EventTypeAppSettingsInterface";
+import { default as Ga4Settings } from "./ga4/components/EventTypeAppSettingsInterface";
+import { default as GiphySettings } from "./giphy/components/EventTypeAppSettingsInterface";
+import { default as GtmSettings } from "./gtm/components/EventTypeAppSettingsInterface";
+import { default as HitpaySettings } from "./hitpay/components/EventTypeAppSettingsInterface";
+import { default as MetapixelSettings } from "./metapixel/components/EventTypeAppSettingsInterface";
+import { default as PaypalSettings } from "./paypal/components/EventTypeAppSettingsInterface";
+import { default as PlausibleSettings } from "./plausible/components/EventTypeAppSettingsInterface";
+import { default as QrCodeSettings } from "./qr_code/components/EventTypeAppSettingsInterface";
+import { default as StripepaymentSettings } from "./stripepayment/components/EventTypeAppSettingsInterface";
 
 export const EventTypeSettingsMap = {
   alby: AlbySettings,
