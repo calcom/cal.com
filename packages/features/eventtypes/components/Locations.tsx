@@ -27,7 +27,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];

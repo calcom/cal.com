@@ -3016,5 +3016,6 @@
   "tip_username_plus": "Consell: Pots afegir un '+' entre noms d'usuari: cal.com/anna+brian per crear una reunió de grup dinàmica",
   "user_has_no_team_yet": "Encara no tens cap equip",
   "no_team_members": "Encara no tens membres a l'equip",
+  "picklist": "Llista de selecció",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
