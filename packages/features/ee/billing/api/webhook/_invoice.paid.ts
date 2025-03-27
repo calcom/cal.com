@@ -34,13 +34,13 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
    * If no handler is found, we skip the product. A handler could be null if we don't need webhooks to handle the business logic for the product.
    */
   if (!handlerGetter) {
-    log.error(`Skipping product: ${productId} because no handler found`);
+    log.warn(`Skipping product: ${productId} because no handler found`);
     return { success: false, message: `Skipping product: ${productId} because no handler found` };
   }
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe products.
   if (!handler) {
-    log.error(`Skipping product: ${productId} because no handler found`);
+    log.warn(`Skipping product: ${productId} because no handler found`);
     return { success: false, message: `Skipping product: ${productId} because no handler found` };
   }
   return await handler(data);
