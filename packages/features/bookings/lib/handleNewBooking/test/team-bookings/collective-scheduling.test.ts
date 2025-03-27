@@ -292,6 +292,19 @@ describe("handleNewBooking", () => {
                 integration: TestData.apps["google-calendar"].type,
                 externalId: "organizer@google-calendar.com",
               },
+              teams: [
+                {
+                  membership: {
+                    accepted: true,
+                  },
+                  team: {
+                    id: 1,
+                    name: "Team 1",
+                    slug: "team-1",
+                    hideOrganizerEmail: true,
+                  },
+                },
+              ],
             });
 
             await createBookingScenario(
@@ -309,6 +322,7 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
+                    teamId: 1,
                     slotInterval: 15,
                     schedulingType: SchedulingType.COLLECTIVE,
                     length: 15,
@@ -369,6 +383,8 @@ describe("handleNewBooking", () => {
 
             const createdBooking = await handleNewBooking(req);
 
+            console.log("createdBooking", createdBooking);
+
             await expectBookingToBeInDatabase({
               description: "",
               location: BookingLocations.CalVideo,
@@ -413,6 +429,7 @@ describe("handleNewBooking", () => {
               videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
             });
 
+            // TODO: Fix
             expectSuccessfulBookingCreationEmails({
               booking: {
                 uid: createdBooking.uid!,
