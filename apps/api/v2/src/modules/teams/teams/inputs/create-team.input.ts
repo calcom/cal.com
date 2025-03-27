@@ -120,6 +120,11 @@ export class CreateTeamInput {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: true })
+  @ApiPropertyOptional({
+    type: Boolean,
+    default: true,
+    description:
+      "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types.",
+  })
   readonly autoAcceptCreator?: boolean = true;
 }

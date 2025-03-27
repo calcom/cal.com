@@ -41,7 +41,16 @@ export class StripeBillingService implements BillingService {
   }
 
   async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
-    const { customerId, successUrl, cancelUrl, priceId, quantity, metadata, mode = "subscription" } = args;
+    const {
+      customerId,
+      successUrl,
+      cancelUrl,
+      priceId,
+      quantity,
+      metadata,
+      mode = "subscription",
+      allowPromotionCodes = true,
+    } = args;
 
     const session = await this.stripe.checkout.sessions.create({
       customer: customerId,
@@ -55,6 +64,7 @@ export class StripeBillingService implements BillingService {
           quantity,
         },
       ],
+      allow_promotion_codes: allowPromotionCodes,
     });
 
     return {

@@ -20,6 +20,7 @@ import {
   ZDateRangeFilterValue,
   DataTableFilters,
 } from "@calcom/features/data-table";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,7 +32,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -86,7 +86,7 @@ function OutOfOfficeEntriesListContent() {
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
   const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
-    trpc.viewer.outOfOfficeEntriesList.useInfiniteQuery(
+    trpc.viewer.ooo.outOfOfficeEntriesList.useInfiniteQuery(
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
@@ -319,7 +319,7 @@ function OutOfOfficeEntriesListContent() {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);
