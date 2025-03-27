@@ -4,8 +4,8 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { InfoBadge } from "@calcom/ui/components/badge";
 import classNames from "@calcom/ui/classNames";
+import { InfoBadge } from "@calcom/ui/components/badge";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
