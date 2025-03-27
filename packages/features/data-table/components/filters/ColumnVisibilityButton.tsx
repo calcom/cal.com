@@ -4,15 +4,11 @@ import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { forwardRef, useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonProps } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
-  Button,
-  buttonClasses,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
   Command,
   CommandInput,
   CommandList,
@@ -20,8 +16,9 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-  Icon,
-} from "@calcom/ui";
+} from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 
 export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;
@@ -31,7 +28,7 @@ function ColumnVisibilityButtonComponent<TData>(
   {
     children,
     color = "secondary",
-    EndIcon = "sliders-vertical",
+    StartIcon = "sliders-vertical",
     table,
     ...rest
   }: ColumnVisiblityProps<TData> & ButtonProps,
@@ -44,8 +41,8 @@ function ColumnVisibilityButtonComponent<TData>(
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button ref={ref} color={color} EndIcon={EndIcon} {...rest}>
-          {children ? children : t("View")}
+        <Button ref={ref} color={color} StartIcon={StartIcon} {...rest}>
+          {children ? children : t("display")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">

@@ -1,3 +1,5 @@
+"use client";
+
 import type { Header, Table, ColumnSizingState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
@@ -51,10 +53,13 @@ function getAdjustedColumnSizing<TData>({
 
   const getColumnSize = (header: Header<TData, unknown>) => {
     const id = header.id;
-    if (resizedColumns.has(id)) {
-      return currentColumnSizing[id] ?? initialColumnSizing[id] ?? header.getSize();
+    if (!initialColumnSizing[id]) {
+      initialColumnSizing[id] = header.getSize();
     }
-    return initialColumnSizing[id] ?? header.getSize();
+    if (resizedColumns.has(id)) {
+      return currentColumnSizing[id] ?? initialColumnSizing[id];
+    }
+    return initialColumnSizing[id];
   };
 
   const isAdjustable = (header: Header<TData, unknown>) =>
@@ -164,7 +169,7 @@ export function usePersistentColumnResizing<TData>({
       ...old,
       columnSizing: newColumnSizing,
     }));
-  }, [debouncedContainerWidth]);
+  }, [debouncedContainerWidth, table.getFlatHeaders().length]);
 
   useEffect(() => {
     if (!enabled || !identifier) return;

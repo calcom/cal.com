@@ -25,15 +25,17 @@ import {
   transformSeatsApiToInternal,
   SystemField,
   CustomField,
-} from "@calcom/platform-libraries";
+  InternalLocation,
+  InternalLocationSchema,
+} from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
   InputEventTransformed_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-
-import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 interface ValidationContext {
   eventTypeId?: number;
@@ -47,7 +49,6 @@ interface ValidationContext {
 export class InputEventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly calendarsService: CalendarsService
   ) {}
 
@@ -58,7 +59,7 @@ export class InputEventTypesService_2024_06_14 {
     const transformedBody = this.transformInputCreateEventType(inputEventType);
 
     await this.validateEventTypeInputs({
-      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      seatsPerTimeSlot: transformedBody?.seatsPerTimeSlot || null,
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
@@ -124,12 +125,11 @@ export class InputEventTypesService_2024_06_14 {
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
-    const hasMultipleLocations = (locations || defaultLocations).length > 1;
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: this.transformInputLocations(locations || defaultLocations),
-      bookingFields: this.transformInputBookingFields(bookingFields, hasMultipleLocations),
+      bookingFields: this.transformInputBookingFields(bookingFields),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -178,15 +178,12 @@ export class InputEventTypesService_2024_06_14 {
       : {};
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
-    const hasMultipleLocations = !!(locations && locations?.length > 1);
 
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: bookingFields
-        ? this.transformInputBookingFields(bookingFields, hasMultipleLocations)
-        : undefined,
+      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -216,10 +213,7 @@ export class InputEventTypesService_2024_06_14 {
     return transformLocationsApiToInternal(inputLocations);
   }
 
-  transformInputBookingFields(
-    inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
-    hasMultipleLocations: boolean
-  ) {
+  transformInputBookingFields(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]) {
     const internalFields: (SystemField | CustomField)[] = inputBookingFields
       ? transformBookingFieldsApiToInternal(inputBookingFields)
       : [];
@@ -248,7 +242,28 @@ export class InputEventTypesService_2024_06_14 {
       systemCustomRescheduleReasonField || systemAfterFieldRescheduleReason,
     ];
 
-    return [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+    const bookingFields = [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+
+    if (!this.hasEmailOrPhoneOnlySetup(bookingFields)) {
+      throw new BadRequestException(
+        "Booking fields validation failed: visible and required email or visible and required attendee phone field is needed."
+      );
+    }
+
+    return bookingFields;
+  }
+
+  hasEmailOrPhoneOnlySetup(bookingFields: (SystemField | CustomField)[]) {
+    const emailField = bookingFields.find((field) => field.type === "email" && field.name === "email");
+    const attendeePhoneNumberField = bookingFields.find(
+      (field) => field.type === "phone" && field.name === "attendeePhoneNumber"
+    );
+
+    const isEmailFieldRequiredAndVisible = emailField?.required && !emailField?.hidden;
+    const isAttendeePhoneNumberFieldRequiredAndVisible =
+      attendeePhoneNumberField?.required && !attendeePhoneNumberField?.hidden;
+
+    return isEmailFieldRequiredAndVisible || isAttendeePhoneNumberFieldRequiredAndVisible;
   }
 
   isUserCustomField(field: SystemField | CustomField): field is CustomField {
@@ -272,7 +287,12 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputBookerLayouts(inputBookerLayouts: CreateEventTypeInput_2024_06_14["bookerLayouts"]) {
-    return transformBookerLayoutsApiToInternal(inputBookerLayouts);
+    const layouts = transformBookerLayoutsApiToInternal(inputBookerLayouts);
+    if (!layouts) return undefined;
+    return {
+      defaultLayout: layouts.defaultLayout as unknown as BookerLayouts,
+      enabledLayouts: layouts.enabledLayouts as unknown as BookerLayouts[],
+    };
   }
 
   transformInputConfirmationPolicy(
@@ -303,23 +323,22 @@ export class InputEventTypesService_2024_06_14 {
     eventName,
   }: ValidationContext) {
     let seatsPerTimeSlotDb: number | null = null;
-    let locationsDb: ReturnType<typeof this.transformInputLocations> = [];
+    let locationsDb: ReturnType<typeof this.transformLocations> = [];
     let requiresConfirmationDb = false;
 
     if (eventTypeId != null) {
       const eventTypeDb = await this.eventTypesRepository.getEventTypeWithSeats(eventTypeId);
       seatsPerTimeSlotDb = eventTypeDb?.seatsPerTimeSlot ?? null;
-      locationsDb = this.outputEventTypesService.transformLocations(eventTypeDb?.locations) ?? [];
+      locationsDb = this.transformLocations(eventTypeDb?.locations) ?? [];
       requiresConfirmationDb = eventTypeDb?.requiresConfirmation ?? false;
     }
 
-    const seatsPerTimeSlotFinal = seatsPerTimeSlot !== undefined ? seatsPerTimeSlot : seatsPerTimeSlotDb;
-    const seatsEnabledFinal = seatsPerTimeSlotFinal != null && seatsPerTimeSlotFinal > 0;
+    const seatsPerTimeSlotFinal = !!seatsPerTimeSlot ? seatsPerTimeSlot : seatsPerTimeSlotDb;
+    const seatsEnabledFinal = !!seatsPerTimeSlotFinal && seatsPerTimeSlotFinal > 0;
 
     const locationsFinal = locations !== undefined ? locations : locationsDb;
     const requiresConfirmationFinal =
       requiresConfirmation !== undefined ? requiresConfirmation : requiresConfirmationDb;
-
     this.validateSeatsSingleLocationRule(seatsEnabledFinal, locationsFinal);
     this.validateSeatsRequiresConfirmationFalseRule(seatsEnabledFinal, requiresConfirmationFinal);
     this.validateMultipleLocationsSeatsDisabledRule(locationsFinal, seatsEnabledFinal);
@@ -331,13 +350,29 @@ export class InputEventTypesService_2024_06_14 {
   }
   validateSeatsSingleLocationRule(
     seatsEnabled: boolean,
-    locations: ReturnType<typeof this.transformInputLocations>
+    locations: ReturnType<typeof this.transformLocations>
   ) {
     if (seatsEnabled && locations.length > 1) {
       throw new BadRequestException(
         "Seats Validation failed: Seats are enabled but more than one location provided."
       );
     }
+  }
+  transformLocations(locations: any) {
+    if (!locations) return [];
+
+    const knownLocations: InternalLocation[] = [];
+    const unknownLocations: OutputUnknownLocation_2024_06_14[] = [];
+
+    for (const location of locations) {
+      const result = InternalLocationSchema.safeParse(location);
+      if (result.success) {
+        knownLocations.push(result.data);
+      } else {
+        unknownLocations.push({ type: "unknown", location: JSON.stringify(location) });
+      }
+    }
+    return [...knownLocations];
   }
 
   validateSeatsRequiresConfirmationFalseRule(seatsEnabled: boolean, requiresConfirmation: boolean) {
@@ -349,7 +384,7 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   validateMultipleLocationsSeatsDisabledRule(
-    locations: ReturnType<typeof this.transformInputLocations>,
+    locations: ReturnType<typeof this.transformLocations>,
     seatsEnabled: boolean
   ) {
     if (locations.length > 1 && seatsEnabled) {

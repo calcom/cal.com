@@ -15,7 +15,7 @@
       "label": "{TITLE}",
       "linkType": "static",
       "organizerInputPlaceholder": "https://p2p.mirotalk.com/join/80085ShinyPhone",
-      "urlRegExp": "^(http|https):\\/\\/(p2p|sfu)\\.mirotalk\\.com\\/join\\/[a-zA-Z0-9]+$"
+      "urlRegExp": "^(http|https):\\/\\/(p2p|sfu)\\.mirotalk\\.com\\/join\\/[a-zA-Z0-9._-]+$"
     }
   },
   "description": "Peer to peer real-time video conferences, optimized for small groups. Unlimited time, unlimited rooms each having 5-8 participants.",

@@ -7,7 +7,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
+import { TextArea } from "@calcom/ui/components/form";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
 
 import SectionBottomActions from "../../settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
@@ -146,7 +153,7 @@ const WebhookForm = (props: {
     <Form
       form={formMethods}
       handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-      <div className="border-subtle border-x p-6">
+      <div className="border-subtle border p-6">
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -199,6 +206,7 @@ const WebhookForm = (props: {
                   <>{t("event_triggers")}</>
                 </Label>
                 <Select
+                  grow
                   options={translatedTriggerOptions}
                   isMulti
                   value={selectValue}
@@ -353,7 +361,7 @@ const WebhookForm = (props: {
         </Button>
       </SectionBottomActions>
 
-      <div className="mt-6 rounded-md">
+      <div className="mb-4 mt-6 rounded-md">
         <WebhookTestDisclosure />
       </div>
     </Form>

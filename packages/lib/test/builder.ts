@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -100,6 +100,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     userId: null,
     teamId: null,
     requiresBookerEmailVerification: false,
+    canSendCalVideoTranscriptionEmails: true,
     useEventTypeDestinationCalendarEmail: false,
     eventName: faker.lorem.words(),
     timeZone: null,

@@ -5,7 +5,7 @@ import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 type AppsLayoutProps = {
   children: React.ReactNode;
@@ -21,7 +21,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
 
   if (session.status === "loading") return <></>;
   return (
-    <Shell {...rest} actions={actions?.("block")} hideHeadingOnMobile>
+    <Shell {...rest} actions={actions?.("block")}>
       <div className="flex flex-col xl:flex-row">
         <main className="w-full">
           {emptyStore ? (

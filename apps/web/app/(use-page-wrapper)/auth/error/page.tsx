@@ -3,7 +3,8 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 import { z } from "zod";
 
-import { Button, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -20,10 +21,10 @@ const querySchema = z.object({
 
 const ServerPage = async ({ searchParams }: PageProps) => {
   const t = await getTranslate();
-  const { error } = querySchema.parse({ error: searchParams?.error || undefined });
-  const errorMsg = error || t("error_during_login");
+  const { error } = querySchema.parse({ error: (await searchParams)?.error || undefined });
+  const errorMsg = t("error_during_login") + (error ? ` Error code: ${error}` : "");
   return (
-    <AuthContainer title="" description="" isAppDir={true}>
+    <AuthContainer>
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
           <Icon name="x" className="h-6 w-6 text-red-600" />

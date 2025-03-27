@@ -5,7 +5,9 @@ const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
-const { i18n } = require("./next-i18next.config");
+const {
+  i18n: { locales },
+} = require("./next-i18next.config");
 const {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
@@ -177,18 +179,16 @@ const orgDomainMatcherConfig = {
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
+  serverExternalPackages: [
+    "deasync",
+    "http-cookie-agent", // Dependencies of @ewsjs/xhr
+    "rest-facade",
+    "superagent-proxy", // Dependencies of @tryvital/vital-node
+  ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
-    instrumentationHook: true,
-    serverActions: true,
-  },
-  i18n: {
-    ...i18n,
-    defaultLocale: "en",
-    locales: ["en"],
-    localeDetection: false,
+    turbo: {},
   },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
@@ -201,7 +201,6 @@ const nextConfig = {
   },
   transpilePackages: [
     "@calcom/app-store",
-    "@calcom/core",
     "@calcom/dayjs",
     "@calcom/emails",
     "@calcom/embed-core",
@@ -276,7 +275,6 @@ const nextConfig = {
       fs: false,
       // ignore module resolve errors caused by the server component bundler
       "pg-native": false,
-      "superagent-proxy": false,
     };
 
     /**
@@ -294,8 +292,21 @@ const nextConfig = {
     const { orgSlug } = nextJsOrgRewriteConfig;
     const beforeFiles = [
       {
+        // This should be the first item in `beforeFiles` to take precedence over other rewrites
+        source: `/(${locales.join("|")})/:path*`,
+        destination: "/:path*",
+      },
+      {
         source: "/forms/:formQuery*",
         destination: "/apps/routing-forms/routing-link/:formQuery*",
+      },
+      {
+        source: "/routing",
+        destination: "/routing/forms",
+      },
+      {
+        source: "/routing/:path*",
+        destination: "/apps/routing-forms/:path*",
       },
       {
         source: "/success/:path*",
@@ -528,6 +539,16 @@ const nextConfig = {
   },
   async redirects() {
     const redirects = [
+      {
+        source: "/settings/organizations",
+        destination: "/settings/organizations/profile",
+        permanent: false,
+      },
+      {
+        source: "/apps/routing-forms",
+        destination: "/routing/forms",
+        permanent: false,
+      },
       {
         source: "/api/app-store/:path*",
         destination: "/app-store/:path*",

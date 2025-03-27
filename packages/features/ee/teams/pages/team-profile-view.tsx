@@ -9,6 +9,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -24,24 +25,21 @@ import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button, LinkIconButton } from "@calcom/ui/components/button";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
-  Avatar,
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
-  Editor,
-  Form,
-  ImageUploader,
-  Label,
-  LinkIconButton,
-  showToast,
-  SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
-} from "@calcom/ui";
+  SkeletonAvatar,
+} from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -123,10 +121,14 @@ const ProfileView = () => {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
     },
   });
 
@@ -266,6 +268,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         slug: res?.slug as string,
       });
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_updated_successfully"), "success");

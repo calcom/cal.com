@@ -1,11 +1,11 @@
 import { useSession } from "next-auth/react";
-import { Trans } from "next-i18next";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
-import { classNames } from "@calcom/lib";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,20 +14,17 @@ import { CreationSource } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  Form,
-  Icon,
-  Label,
-  Select,
-  showToast,
-  TextAreaField,
-  TextField,
-  ToggleGroup,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -209,10 +206,15 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         description={
           IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
-              <Trans i18nKey="invite_new_member_description">
-                Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
-                on your subscription.
-              </Trans>
+              <ServerTrans
+                t={t}
+                i18nKey="invite_new_member_description"
+                components={[
+                  <span key="invite_new_member_description" className="text-emphasis font-medium">
+                    cost an extra seat ($15/m)
+                  </span>,
+                ]}
+              />
             </span>
           ) : null
         }>
@@ -234,7 +236,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
           <div className="mb-10 mt-6 space-y-6">
-            {/* Indivdual Invite */}
+            {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
                 name="emailOrUsername"
@@ -433,8 +435,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
+                  StartIcon="link"
                   data-testid="copy-invite-link-button">
-                  <Icon name="link" className="text-default h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
