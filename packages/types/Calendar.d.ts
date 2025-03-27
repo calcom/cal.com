@@ -50,6 +50,7 @@ export type TeamMember = {
   name: string;
   email: string;
   phoneNumber?: string | null;
+  maskedEmail?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
 };
