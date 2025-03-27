@@ -155,4 +155,42 @@ describe("FormBuilder", () => {
       expect(pageObject.dialog.isFieldShowingAsRequired({ dialog })).toBe(true);
     });
   });
+
+  describe("Addon Fields Tests", () => {
+    beforeEach(() => {
+      renderComponent({
+        formBuilderProps: {
+          ...mockProps,
+          showPriceField: true,
+        },
+        formDefaultValues: {},
+      });
+    });
+
+    it("Should add number field with price", async () => {
+      const identifier = "quantity-addon";
+      await verifier.verifyFieldAddition({
+        fieldType: "number",
+        identifier,
+        label: "Quantity",
+        price: 10,
+      });
+
+      await pageObject.openEditFieldDialog({ identifier });
+      await expectScenario.toHavePriceField({ identifier });
+    });
+
+    it("Should add boolean field with price", async () => {
+      const identifier = "extra-service-addon";
+      await verifier.verifyFieldAddition({
+        fieldType: "boolean",
+        identifier,
+        label: "Extra Service",
+        price: 15,
+      });
+
+      await pageObject.openEditFieldDialog({ identifier });
+      await expectScenario.toHavePriceField({ identifier });
+    });
+  });
 });
