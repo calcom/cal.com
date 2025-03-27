@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -11,7 +12,6 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import SectionBottomActions from "./SectionBottomActions";
 

@@ -3016,5 +3016,6 @@
   "tip_username_plus": "Astuce : Vous pouvez ajouter un '+' entre les noms d'utilisateur : cal.com/anna+brian pour créer une réunion de groupe dynamique",
   "user_has_no_team_yet": "Vous n'avez pas encore d'équipe",
   "no_team_members": "Vous n'avez pas encore de membres d'équipe",
+  "picklist": "Liste de sélection",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
