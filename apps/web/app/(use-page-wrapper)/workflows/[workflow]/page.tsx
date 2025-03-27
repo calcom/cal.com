@@ -38,7 +38,7 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
 };
 
 const Page = async ({ params }: PageProps) => {
-  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  // const session = await getServerSession({ req: await buildLegacyRequest(await headers(), await cookies()) });
   // const user = session?.user;
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {

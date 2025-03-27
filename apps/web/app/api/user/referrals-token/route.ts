@@ -16,7 +16,7 @@ const handler = async () => {
     return NextResponse.json({ error: "Referrals feature is disabled" }, { status: 404 });
   }
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await getServerSession({ req: await buildLegacyRequest(await headers(), await cookies()) });
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

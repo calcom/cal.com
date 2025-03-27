@@ -15,7 +15,7 @@ const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 export type ClientPageProps = UserPageProps | TeamPageProps;
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const context = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
   if ((props as TeamPageProps)?.team) return <TeamPage {...(props as TeamPageProps)} />;
   return <UserPage {...(props as UserPageProps)} />;

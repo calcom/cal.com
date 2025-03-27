@@ -14,7 +14,7 @@ import LegacyPage from "~/team/team-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
 
   const meeting = {
@@ -46,7 +46,7 @@ const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
   const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
   return <LegacyPage {...props} />;
 };

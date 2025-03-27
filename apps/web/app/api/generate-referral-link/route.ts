@@ -11,7 +11,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 async function postHandler() {
   const headersList = await headers();
   const cookiesList = await cookies();
-  const legacyReq = buildLegacyRequest(headersList, cookiesList);
+  const legacyReq = await buildLegacyRequest(headersList, cookiesList);
 
   const session = await getServerSession({ req: legacyReq });
 

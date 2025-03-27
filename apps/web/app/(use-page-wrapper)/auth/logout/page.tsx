@@ -16,7 +16,7 @@ export const generateMetadata = async () => {
 const Page = async ({ params, searchParams }: PageProps) => {
   // cookie will be cleared in `/apps/web/middleware.ts`
   const h = await headers();
-  const context = buildLegacyCtx(h, await cookies(), await params, await searchParams);
+  const context = await buildLegacyCtx(h, await cookies(), await params, await searchParams);
 
   return <Logout query={context.query} />;
 };

@@ -17,7 +17,7 @@ export const generateMetadata = async () =>
   );
 
 const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await getServerSession({ req: await buildLegacyRequest(await headers(), await cookies()) });
   const searchParams = await _searchParams;
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;

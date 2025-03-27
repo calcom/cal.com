@@ -12,7 +12,7 @@ import type { Props } from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/i
 import Page from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const context = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const { isBrandingHidden, eventData } = await getData(context);
 
   const profileName = eventData?.profile.name ?? "";
@@ -52,7 +52,7 @@ const getData = withAppDirSsr<Props>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
   const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
   return <Page {...props} />;
 };

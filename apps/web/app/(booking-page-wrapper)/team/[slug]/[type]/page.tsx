@@ -12,7 +12,7 @@ import LegacyPage from "~/team/type-view";
 import type { PageProps as LegacyPageProps } from "~/team/type-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const legacyCtx = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
   const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
 
@@ -52,7 +52,7 @@ const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
   return <LegacyPage {...props} />;
 };

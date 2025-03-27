@@ -17,7 +17,7 @@ export type OrgTypePageProps = UserTypePageProps | TeamTypePageProps;
 const getData = withAppDirSsr<OrgTypePageProps>(getServerSideProps);
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const legacyCtx = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
 
   const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
@@ -57,7 +57,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
   if ((props as TeamTypePageProps)?.teamId) {
     return <TeamTypePage {...(props as TeamTypePageProps)} />;

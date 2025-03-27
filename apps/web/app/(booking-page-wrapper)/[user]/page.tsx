@@ -14,7 +14,7 @@ import LegacyPage from "~/users/views/users-public-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
 
   const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
@@ -48,7 +48,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
 
   return <LegacyPage {...props} />;

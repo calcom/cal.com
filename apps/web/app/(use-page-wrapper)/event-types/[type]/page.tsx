@@ -43,7 +43,7 @@ export const generateMetadata = async ({ params }: _PageProps) => {
 const getData = withAppDirSsr<EventTypePageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const legacyCtx = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
 
   return <EventTypePageWrapper {...props} />;

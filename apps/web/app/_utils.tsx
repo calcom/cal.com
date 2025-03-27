@@ -16,7 +16,7 @@ export const getTranslate = async () => {
   // If "x-locale" does not exist in header,
   // ensure that config.matcher in middleware includes the page you are testing
   const locale =
-    headersList.get("x-locale") ?? (await getLocale(buildLegacyRequest(headersList, await cookies())));
+    headersList.get("x-locale") ?? (await getLocale(await buildLegacyRequest(headersList, await cookies())));
 
   return await getTranslation(locale ?? "en", "common");
 };

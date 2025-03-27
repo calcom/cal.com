@@ -86,7 +86,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       }
     }
 
-    const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+    const session = await getServerSession({ req: await buildLegacyRequest(await headers(), await cookies()) });
 
     if (!session) {
       return NextResponse.json({ message: "Team upgraded successfully" });

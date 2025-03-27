@@ -8,7 +8,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await getServerSession({ req: await buildLegacyRequest(await headers(), await cookies()) });
   if (session?.user?.id) SentrySetUser({ id: session.user.id });
 
   return <Shell withoutMain={true}>{children}</Shell>;

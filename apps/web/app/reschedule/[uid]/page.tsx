@@ -8,7 +8,7 @@ import { getServerSideProps } from "@lib/reschedule/[uid]/getServerSideProps";
 const getData = withAppDirSsr(getServerSideProps);
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const legacyCtx = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   await getData(legacyCtx);
 

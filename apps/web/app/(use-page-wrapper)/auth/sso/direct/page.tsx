@@ -11,7 +11,7 @@ import SSODirectView from "~/auth/sso/direct-view";
 
 const getData = withAppDirSsr<SSODirectPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const context = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
 
   return <SSODirectView {...props} />;

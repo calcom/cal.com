@@ -27,7 +27,7 @@ export const generateMetadata = async ({ params: _params }: ServerPageProps) => 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const context = await buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   const { dehydratedState, ...props } = await getData(context);
   return <SetupView {...props} />;
