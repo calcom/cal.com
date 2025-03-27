@@ -94,7 +94,10 @@ export class GcalController {
   @Permissions([APPS_READ])
   @ApiOperation({ summary: "Check a calendar connection status" })
   async check(@GetUser("id") userId: number): Promise<GcalCheckOutput> {
-    const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
+    const gcalCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
+      "google_calendar",
+      userId
+    );
 
     if (!gcalCredentials) {
       throw new BadRequestException("Credentials for google_calendar not found.");

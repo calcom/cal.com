@@ -5,8 +5,15 @@ import {
 } from "@/modules/atoms/inputs/event-types-app.input";
 import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -60,14 +67,27 @@ export class AtomsController {
     };
   }
 
+  @Get("/organizations/:orgId/teams/:teamId/event-types")
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Version(VERSION_NEUTRAL)
+  async listTeamEventTypes(@Param("teamId", ParseIntPipe) teamId: number): Promise<ApiResponse<unknown>> {
+    const eventTypes = await this.eventTypesService.getTeamEventTypes(teamId);
+    return {
+      status: SUCCESS_STATUS,
+      data: eventTypes,
+    };
+  }
+
   @Get("/event-types")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
-  async getAtomEventTypes(@GetUser("id") userId: number): Promise<ApiResponse<unknown>> {
-    const eventType = await this.eventTypesService.getUserEventTypes(userId);
+  async listUserEventTypes(@GetUser("id") userId: number): Promise<ApiResponse<unknown>> {
+    const eventTypes = await this.eventTypesService.getUserEventTypes(userId);
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: eventTypes,
     };
   }
 
@@ -116,6 +136,22 @@ export class AtomsController {
     };
   }
 
+  @Patch("/organizations/:orgId/teams/:teamId/event-types/bulk-update-to-default-location")
+  @Version(VERSION_NEUTRAL)
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  async bulkUpdateAtomTeamEventTypes(
+    @GetUser() user: UserWithProfile,
+    @Body() body: BulkUpdateEventTypeToDefaultLocationDto,
+    @Param("teamId", ParseIntPipe) teamId: number
+  ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
+    await this.eventTypesService.bulkUpdateTeamEventTypesDefaultLocation(body.eventTypeIds, teamId);
+    return {
+      status: SUCCESS_STATUS,
+    };
+  }
+
   @Patch("event-types/:eventTypeId")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
@@ -135,9 +171,11 @@ export class AtomsController {
     };
   }
 
-  @Patch("/organizations/:organizationId/teams/:teamId/event-types/:eventTypeId")
+  @Patch("/organizations/:orgId/teams/:teamId/event-types/:eventTypeId")
   @Version(VERSION_NEUTRAL)
-  @UseGuards(ApiAuthGuard)
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   async updateAtomTeamEventType(
     @GetUser() user: UserWithProfile,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -155,13 +193,33 @@ export class AtomsController {
       data: eventType,
     };
   }
+  @Get("/organizations/:orgId/teams/:teamId/conferencing")
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Version(VERSION_NEUTRAL)
+  async listTeamInstalledConferencingApps(
+    @GetUser() user: UserWithProfile,
+    @Param("teamId", ParseIntPipe) teamId: number
+  ): Promise<ApiResponse<ConnectedApps>> {
+    const conferencingApps = await this.conferencingService.getTeamConferencingApps(user, teamId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: conferencingApps,
+    };
+  }
 
   @Get("/conferencing")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
-  async listInstalledConferencingApps(@GetUser() user: UserWithProfile): Promise<ApiResponse<ConnectedApps>> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(user);
-
-    return { status: SUCCESS_STATUS, data: conferencingApps };
+  async listUserInstalledConferencingApps(
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<ConnectedApps>> {
+    const conferencingApps = await this.conferencingService.getUserConferencingApps(user);
+    return {
+      status: SUCCESS_STATUS,
+      data: conferencingApps,
+    };
   }
 }
