@@ -271,7 +271,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       ...mailData,
       to: sendTo,
       sendAt: scheduledDate?.toDate(),
-      referenceUid: reminderUuid,
+      referenceUid: reminderUid,
     });
 
     return;
@@ -279,7 +279,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   /* Deprecated - Everything below is for Sendgrid not needed for SMTP */
 
-  const sendgridBatchId = isSendgridEnabled ? await getBatchId() : undefined;
+  const sendgridBatchId = await getBatchId();
 
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -289,7 +289,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     try {
       const promises = sendTo.map((email) => sendSendgridMail({ ...mailData, to: email }));
       // TODO: Maybe don't await for this?
-      const emailResults = await Promise.all(promises);
+      await Promise.all(promises);
     } catch (error) {
       log.error("Error sending Email");
     }
@@ -382,6 +382,7 @@ export const deleteScheduledEmailReminder = async (reminderId: number) => {
 
   const task = await prisma.task.findFirst({
     where: {
+      type: "sendWorkflowEmails",
       referenceUid: uuid,
     },
   });
