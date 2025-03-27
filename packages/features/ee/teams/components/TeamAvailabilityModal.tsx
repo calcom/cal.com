@@ -4,11 +4,14 @@ import dayjs from "@calcom/dayjs";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import type { ITimezone } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { WEBAPP_URL, CURRENT_TIMEZONE } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, DatePicker, Label, Select } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Select, DatePicker } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 

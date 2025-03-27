@@ -849,7 +849,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       installStripePersonal({ page: store.page, ...params }),
     installStripeTeam: async (params: InstallStripeParamsUnion & { teamId: number }) =>
       installStripeTeam({ page: store.page, ...params }),
-    // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
+    // this is for development only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({
         where: { id: store.user.id },
@@ -1043,6 +1043,8 @@ export async function login(
 
   //login
   await page.goto("/");
+  await page.waitForSelector("text=Welcome back");
+
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);

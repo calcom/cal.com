@@ -12,6 +12,41 @@ import {
   isEmail,
   Validate,
 } from "class-validator";
+import { ValidationOptions, registerDecorator } from "class-validator";
+
+import { RESCHEDULED_BY_DOCS } from "@calcom/platform-types";
+
+type BookingName = { firstName: string; lastName: string };
+
+function ValidateBookingName(validationOptions?: ValidationOptions) {
+  return function (target: object, propertyName: string) {
+    registerDecorator({
+      name: "validateBookingName",
+      target: target.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any) {
+          if (typeof value === "string") {
+            return value.trim().length > 0;
+          }
+          if (typeof value === "object" && value !== null) {
+            return (
+              typeof value.firstName === "string" &&
+              typeof value.lastName === "string" &&
+              value.firstName.trim().length > 0 &&
+              value.lastName.trim().length > 0
+            );
+          }
+          return false;
+        },
+        defaultMessage(): string {
+          return "Name must be either a non-empty string or an object with non-empty firstName and lastName";
+        },
+      },
+    });
+  };
+}
 
 class Location {
   @IsString()
@@ -24,9 +59,14 @@ class Location {
 }
 
 class Response {
-  @IsString()
-  @ApiProperty()
-  name!: string;
+  @ApiProperty({
+    oneOf: [
+      { type: "string" },
+      { type: "object", properties: { firstName: { type: "string" }, lastName: { type: "string" } } },
+    ],
+  })
+  @ValidateBookingName()
+  name!: string | BookingName;
 
   @Validate((value: string) => !value || isEmail(value), {
     message: "Invalid response email",
@@ -75,6 +115,13 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   rescheduleUid?: string;
+
+  @IsOptional()
+  @ApiPropertyOptional({ description: RESCHEDULED_BY_DOCS })
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid rescheduledBy email format",
+  })
+  rescheduledBy?: string;
 
   @IsTimeZone()
   @ApiProperty()

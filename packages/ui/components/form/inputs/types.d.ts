@@ -2,7 +2,8 @@ import type { VariantProps } from "class-variance-authority";
 
 import type { inputStyles } from "./TextField";
 
-export type InputFieldProps = {
+export type InputFieldProps<Translations extends Record<string, string> = object> = {
+  translations?: Translations;
   label?: React.ReactNode;
   LockedIcon?: React.ReactNode;
   hint?: string;
