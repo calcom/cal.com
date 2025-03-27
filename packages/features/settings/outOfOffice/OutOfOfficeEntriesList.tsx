@@ -20,6 +20,7 @@ import {
   ZDateRangeFilterValue,
   DataTableFilters,
 } from "@calcom/features/data-table";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,7 +32,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
