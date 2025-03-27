@@ -147,7 +147,9 @@ const NoAvailabilityOverlay = ({
 
   let description = "";
   if (isOutOfBoundsByPeriod && periodType === "ROLLING") {
-    description = `Scheduling is only available up to ${periodDays} days in advance. Check again soon.`;
+    description = `Scheduling is only available up to ${`${periodDays} ${
+      periodCountCalendarDays ? t("calendar_days") : t("business_days")
+    }`} in advance. Check again soon.`;
   } else if (isOutOfBoundsByPeriod && periodType === "RANGE") {
     description = `Scheduling ended on ${dayjs(periodEndDate).format(
       "MMMM D YYYY"
