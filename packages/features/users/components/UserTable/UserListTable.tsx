@@ -307,6 +307,9 @@ function UserListTableContent() {
         accessorFn: (data) => data.role,
         header: "Role",
         size: 100,
+        meta: {
+          filter: { type: ColumnFilterType.MULTI_SELECT },
+        },
         cell: ({ row, table }) => {
           const { role, username } = row.original;
           return (
@@ -326,6 +329,9 @@ function UserListTableContent() {
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
         size: 140,
+        meta: {
+          filter: { type: ColumnFilterType.MULTI_SELECT },
+        },
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
