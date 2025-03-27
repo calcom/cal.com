@@ -45,23 +45,29 @@ export function decodeParams(params: Params): Params {
   }, {} as Params);
 }
 
-export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest;
-};
-
-export const buildLegacyCtx = (
-  headers: ReadonlyHeaders,
-  cookies: ReadonlyRequestCookies,
-  params: Params,
-  searchParams: SearchParams
+export const buildLegacyRequest = async (
+  headers: ReadonlyHeaders | Promise<ReadonlyHeaders>,
+  cookies: ReadonlyRequestCookies | Promise<ReadonlyRequestCookies>
 ) => {
   return {
-    query: { ...searchParams, ...decodeParams(params) },
+    headers: buildLegacyHeaders(await headers),
+    cookies: buildLegacyCookies(await cookies),
+  } as NextApiRequest;
+};
+
+export const buildLegacyCtx = async (
+  headers: ReadonlyHeaders | Promise<ReadonlyHeaders>,
+  cookies: ReadonlyRequestCookies | Promise<ReadonlyRequestCookies>,
+  params: Params | Promise<Params>,
+  searchParams: SearchParams | Promise<SearchParams>
+) => {
+  return {
+    query: { ...(await searchParams), ...decodeParams(await params) },
     // decoding is required to be backward compatible with Pages Router
     // because Next.js App Router does not auto-decode query params while Pages Router does
     // e.g., params: { name: "John%20Doe" } => params: { name: "John Doe" }
-    params: decodeParams(params),
-    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
+    params: decodeParams(await params),
+    req: { headers: buildLegacyHeaders(await headers), cookies: buildLegacyCookies(await cookies) },
     res: new Proxy(Object.create(null), {
       // const { req, res } = ctx - valid
       // res.anything - throw
