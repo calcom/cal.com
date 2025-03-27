@@ -149,7 +149,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             startDate: dayjs().startOf("d").toDate(),
             endDate: dayjs().startOf("d").add(2, "d").toDate(),
           },
-          offset: dayjs().utcOffset(),
+          startDateOffset: dayjs().utcOffset(),
+          endDateOffset: dayjs().utcOffset(),
           toTeamUserId: null,
           reasonId: 1,
           forUserId: null,
@@ -194,7 +195,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             if (!data.dateRange.endDate) {
               showToast(t("end_date_not_selected"), "error");
             } else {
-              createOrEditOutOfOfficeEntry.mutate(data);
+              createOrEditOutOfOfficeEntry.mutate({
+                ...data,
+                startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
+                endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
+              });
             }
           })}>
           <div className="h-full px-1">
