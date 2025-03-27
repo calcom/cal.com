@@ -948,7 +948,7 @@ export default class SalesforceCRMService implements CRM {
     log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email, Owner.Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+      `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
         emailDomain
       )}) LIMIT 1`
     );
