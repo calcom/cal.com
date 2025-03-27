@@ -50,7 +50,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   }
 
   return (
-    <Shell withoutMain withoutSeo>
+    <Shell withoutMain>
       <FinalComponent />
     </Shell>
   );

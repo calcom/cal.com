@@ -8,7 +8,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
@@ -43,7 +42,7 @@ export function AdminOrgTable() {
 
   const publishOrg = async (org: (typeof data)[number]) => {
     if (!org.metadata?.requestedSlug) {
-      showToast(t("org_publish_error"), "error");
+      showToast(t("could_not_find_slug_to_publish_org"), "error");
       console.error("metadata.requestedSlug isn't set", org.metadata?.requestedSlug);
       return;
     }

@@ -460,7 +460,11 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
     return value;
   })
   @IsEnum(SchedulingType)
-  @DocsProperty()
+  @DocsProperty({
+    enum: ["collective", "roundRobin", "managed"],
+    example: "collective",
+    description: "The scheduling type for the team event - collective, roundRobin or managed.",
+  })
   schedulingType!: keyof typeof SchedulingType;
 
   @ValidateNested({ each: true })
