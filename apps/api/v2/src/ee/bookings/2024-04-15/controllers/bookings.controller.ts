@@ -291,7 +291,6 @@ export class BookingsController_2024_04_15 {
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
         hostname: bookingRequest.headers.host || "",
-        forcedSlug: orgSlug,
         platformClientId: bookingRequest.platformClientId,
         platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
         platformCancelUrl: bookingRequest.platformCancelUrl,
