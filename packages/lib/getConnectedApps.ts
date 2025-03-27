@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -183,9 +184,7 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await PaymentAppMap[
-          app.dirName as keyof typeof PaymentAppMap
-        ]) as PaymentApp | null;
+        const paymentApp = PaymentAppMap[app.dirName as keyof typeof PaymentAppMap] as PaymentApp | null;
 
         if (!!paymentApp?.lib?.PaymentService) {
           const PaymentService = paymentApp.lib.PaymentService;

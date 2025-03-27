@@ -28,9 +28,8 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-    const videoAdapterFactory = await ConferencingVideoAdapterMap[
-      appName as keyof typeof ConferencingVideoAdapterMap
-    ];
+    const videoAdapterFactory =
+      ConferencingVideoAdapterMap[appName as keyof typeof ConferencingVideoAdapterMap];
 
     if (!videoAdapterFactory.default) {
       log.error(`Couldn't get adapter for ${appName}`);

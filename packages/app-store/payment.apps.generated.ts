@@ -4,7 +4,6 @@ import * as MockPaymentApp from "./mock-payment-app/index";
 import * as PaypalPaymentApp from "./paypal/index";
 import * as StripePaymentApp from "./stripepayment/index";
 
-// Static imports for dynamic imports
 export const PaymentAppMap = {
   alby: AlbyPaymentApp,
   hitpay: HitpayPaymentApp,

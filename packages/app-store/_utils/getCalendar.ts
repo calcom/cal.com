@@ -27,9 +27,8 @@ export const getCalendar = async (
 
   console.log("calendarType", calendarType);
   console.log("CalendarServiceMap", CalendarServiceMap);
-  const calendarService = await CalendarServiceMap[
-    calendarType.split("_").join("") as keyof typeof CalendarServiceMap
-  ];
+  const calendarService =
+    CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
 
   if (!calendarService.default) {
     log.warn(`calendar of type ${calendarType} is not implemented`);

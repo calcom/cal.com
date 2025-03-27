@@ -107,9 +107,9 @@ export const paymentsRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
       }
 
-      const paymentApp = (await PaymentAppMap[
+      const paymentApp = PaymentAppMap[
         paymentCredential?.app?.dirName as keyof typeof PaymentAppMap
-      ]) as PaymentApp | null;
+      ] as PaymentApp | null;
 
       if (!paymentApp?.lib?.PaymentService) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });

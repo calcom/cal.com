@@ -49,7 +49,7 @@ const handlePayment = async ({
     console.warn(`key: ${key} is not a valid key in appStore`);
     return null;
   }
-  const paymentApp = await PaymentAppMap[key];
+  const paymentApp = PaymentAppMap[key];
   if (!paymentApp?.lib?.PaymentService) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;

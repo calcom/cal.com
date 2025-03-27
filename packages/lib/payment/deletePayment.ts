@@ -16,9 +16,9 @@ const deletePayment = async (
     } | null;
   }
 ): Promise<boolean> => {
-  const paymentApp = (await PaymentAppMap[
+  const paymentApp = PaymentAppMap[
     paymentAppCredentials?.app?.dirName as keyof typeof PaymentAppMap
-  ]) as PaymentApp | null;
+  ] as PaymentApp | null;
   if (!paymentApp?.lib?.PaymentService) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
