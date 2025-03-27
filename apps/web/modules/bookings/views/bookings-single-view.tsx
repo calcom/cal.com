@@ -640,7 +640,7 @@ export default function Success(props: PageProps) {
                             <div className="col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.previousBooking?.rescheduledBy}</p>
                               <Link
-                                className="text-default underline "
+                                className="text-sm underline "
                                 href={`/booking/${bookingInfo.previousBooking?.uid}`}>
                                 {t("original_booking")}
                               </Link>
