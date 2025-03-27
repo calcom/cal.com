@@ -89,7 +89,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const hasHosts = inputEventType.hosts && inputEventType.hosts.length;
+    const hasHosts = !!inputEventType.hosts && !!inputEventType.hosts.length;
     const hasAssignAllTeamMembers = inputEventType.assignAllTeamMembers === true;
 
     if (!hasHosts && !hasAssignAllTeamMembers) {

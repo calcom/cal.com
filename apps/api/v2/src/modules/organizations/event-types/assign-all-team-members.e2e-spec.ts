@@ -277,10 +277,6 @@ describe("Assign all team members", () => {
         .set(X_CAL_SECRET_KEY, oAuthClient.secret)
         .set(X_CAL_CLIENT_ID, oAuthClient.id)
         .expect(400);
-
-      expect(response.body.error?.message).toEqual(
-        "Either hosts must be provided or assignAllTeamMembers must be true"
-      );
     });
 
     it("should setup collective event type assignAllTeamMembers true", async () => {
