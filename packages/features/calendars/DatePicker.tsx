@@ -145,7 +145,6 @@ const NoAvailabilityOverlay = ({
     time: browsingDate.endOf("month").toDate(),
     periodLimits,
   });
-
   // Message explaining lack of availability differs based on period type
   let description = "";
   if (isOutOfBoundsByPeriod && periodType === "ROLLING") {
