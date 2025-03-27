@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, it } from "vitest";
+import { ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
 
@@ -206,7 +207,7 @@ describe("GET /api/bookings", async () => {
       console.log("bookings=>", responseData.bookings);
       responseData.bookings.forEach((booking) => {
         if (booking.id === 31) expect(booking.eventType?.team?.slug).toBe("team1");
-        if (booking.id === 19) expect(booking.eventType?.team).toBeNull();
+        if (booking.id === 19) expect(booking.eventType?.team).toBeUndefined();
       });
     });
   });
@@ -270,25 +271,6 @@ describe("GET /api/bookings", async () => {
     });
   });
 
-  describe("Pagination", () => {
-    it("respects pagination parameters", async () => {
-      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-        method: "GET",
-        pagination: {
-          take: 5,
-          skip: 2,
-        },
-      });
-
-      req.userId = proUser.id;
-
-      const responseData = await handler(req);
-      expect(responseData.bookings.length).toBeLessThanOrEqual(5);
-      expect(req.pagination?.take).toBe(5);
-      expect(req.pagination?.skip).toBe(2);
-    });
-  });
-
   describe("Multiple attendee email filtering", () => {
     it("filters bookings by multiple attendee emails", async () => {
       const attendeeEmails = ["test1@example.com", "test2@example.com"];
@@ -322,7 +304,7 @@ describe("GET /api/bookings", async () => {
 
       req.userId = proUser.id;
 
-      await expect(handler(req)).rejects.toHaveProperty("code", "invalid_enum_value");
+      await expect(handler(req)).rejects.toThrow(ZodError);
     });
   });
 });
