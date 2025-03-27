@@ -176,7 +176,7 @@ async function createPlatformAndSetupUser({
     await prisma.platformBilling.create({
       data: {
         id: team?.id,
-        plan: "STARTER",
+        plan: "SCALE",
         customerId: "cus_123",
         subscriptionId: "sub_123",
       },
@@ -961,7 +961,7 @@ async function main() {
       password: "PLATFORMadmin2024!",
       username: "platform",
       name: "Platform Admin",
-      role: "ADMIN",
+      role: "USER",
     },
   });
 
