@@ -941,7 +941,7 @@ export default class SalesforceCRMService implements CRM {
     return accountId;
   }
 
-  private async getAccountBasedOnEmailDomainOfContacts(email: string) {
+  public async getAccountBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
     const log = logger.getSubLogger({ prefix: [`[getAccountBasedOnEmailDomainOfContacts]:${email}`] });
