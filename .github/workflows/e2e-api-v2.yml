@@ -59,10 +59,6 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
