@@ -13,6 +13,9 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import AssignmentReasonRecorder, {
+  RRReassignmentType,
+} from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -47,15 +50,19 @@ export const roundRobinReassignment = async ({
   orgId,
   emailsEnabled = true,
   platformClientParams,
+  reassignedById,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  reassignedById: number;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
+
+  roundRobinReassignLogger.info(`User ${reassignedById} initiating round robin reassignment`);
 
   let booking = await prisma.booking.findUnique({
     where: {
@@ -257,6 +264,14 @@ export const roundRobinReassignment = async ({
       },
     });
   }
+
+  roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);
+
+  await AssignmentReasonRecorder.roundRobinReassignment({
+    bookingId,
+    reassignById: reassignedById,
+    reassignmentType: RRReassignmentType.ROUND_ROBIN,
+  });
 
   const destinationCalendar = await getDestinationCalendar({
     eventType,

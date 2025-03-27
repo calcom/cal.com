@@ -3016,5 +3016,6 @@
   "tip_username_plus": "Vinkki: Voit lisätä '+'-merkin käyttäjänimien väliin: cal.com/anna+brian luodaksesi dynaamisen ryhmätapaamisen",
   "user_has_no_team_yet": "Sinulla ei ole vielä tiimiä",
   "no_team_members": "Sinulla ei ole vielä tiimin jäseniä",
+  "picklist": "Valintalistaus",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -8,8 +8,6 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import { ssrInit } from "@server/lib/ssr";
-
 import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async () =>
@@ -26,7 +24,6 @@ const Page = async ({ params, searchParams }: PageProps) => {
     redirect("/auth/login");
   }
 
-  await ssrInit(context);
   const t = await getTranslate();
 
   return (

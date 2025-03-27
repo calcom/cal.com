@@ -3016,5 +3016,6 @@
   "tip_username_plus": "Tipp: Sie können ein '+' zwischen Benutzernamen setzen: cal.com/anna+brian, um ein dynamisches Gruppenmeeting zu erstellen",
   "user_has_no_team_yet": "Sie haben noch kein Team",
   "no_team_members": "Sie haben noch keine Teammitglieder",
+  "picklist": "Auswahlliste",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
