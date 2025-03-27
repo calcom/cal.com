@@ -210,4 +210,117 @@ describe("GET /api/bookings", async () => {
       });
     });
   });
+
+  describe("Date filtering", () => {
+    it("filters bookings by dateFrom", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          dateFrom: "2023-01-01T00:00:00Z",
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = proUser.id;
+
+      const responseData = await handler(req);
+      responseData.bookings.forEach((booking) => {
+        expect(new Date(booking.startTime).getTime()).toBeGreaterThanOrEqual(
+          new Date("2023-01-01T00:00:00Z").getTime()
+        );
+      });
+    });
+
+    it("filters bookings by dateTo", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          dateTo: "2024-12-31T23:59:59Z",
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = proUser.id;
+
+      const responseData = await handler(req);
+      responseData.bookings.forEach((booking) => {
+        expect(new Date(booking.endTime).getTime()).toBeLessThanOrEqual(
+          new Date("2024-12-31T23:59:59Z").getTime()
+        );
+      });
+    });
+  });
+
+  describe("Sorting and ordering", () => {
+    it("sorts bookings by createdAt in descending order", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          sortBy: "createdAt",
+          order: "desc",
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = proUser.id;
+
+      const responseData = await handler(req);
+      const timestamps = responseData.bookings.map((b) => new Date(b.createdAt).getTime());
+      expect(timestamps).toEqual([...timestamps].sort((a, b) => b - a));
+    });
+  });
+
+  describe("Pagination", () => {
+    it("respects pagination parameters", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        pagination: {
+          take: 5,
+          skip: 2,
+        },
+      });
+
+      req.userId = proUser.id;
+
+      const responseData = await handler(req);
+      expect(responseData.bookings.length).toBeLessThanOrEqual(5);
+    });
+  });
+
+  describe("Multiple attendee email filtering", () => {
+    it("filters bookings by multiple attendee emails", async () => {
+      const attendeeEmails = ["test1@example.com", "test2@example.com"];
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          attendeeEmail: attendeeEmails,
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = proUser.id;
+
+      const responseData = await handler(req);
+      responseData.bookings.forEach((booking) => {
+        const bookingAttendeeEmails = booking.attendees?.map((a) => a.email);
+        expect(bookingAttendeeEmails?.some((email) => attendeeEmails.includes(email))).toBe(true);
+      });
+    });
+  });
+
+  describe("Error cases", () => {
+    it("throws error for invalid status parameter", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          status: "invalid_status",
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = proUser.id;
+
+      await expect(handler(req)).rejects.toThrow("Invalid status");
+    });
+  });
 });
