@@ -47,6 +47,7 @@ import {
   Host,
   OrgTeamOutputDto,
   TeamEventTypeOutput_2024_06_14,
+  UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
@@ -74,6 +75,8 @@ describe("Assign all team members", () => {
   const secondManagedUserEmail = `managed-user-bookings-2024-04-15-second-user@api.com`;
   let firstManagedUser: CreateManagedUserData;
   let secondManagedUser: CreateManagedUserData;
+
+  let roundRobinEventType: TeamEventTypeOutput_2024_06_14;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -281,8 +284,8 @@ describe("Assign all team members", () => {
 
     it("should setup collective event type assignAllTeamMembers true", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
-        title: "Coding consultation round robin",
-        slug: `organizations-event-types-round-robin-${randomString()}`,
+        title: "Coding consultation collective",
+        slug: `assign-all-team-members-collective-${randomString()}`,
         lengthInMinutes: 60,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -319,7 +322,7 @@ describe("Assign all team members", () => {
     it("should setup round robin event type assignAllTeamMembers true", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation round robin",
-        slug: `organizations-event-types-round-robin-${randomString()}`,
+        slug: `assign-all-team-members-round-robin-${randomString()}`,
         lengthInMinutes: 60,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -356,13 +359,53 @@ describe("Assign all team members", () => {
           const secondHost = eventTypeHosts.find((host) => host.userId === secondManagedUser.user.id);
           expect(firstHost).toBeDefined();
           expect(secondHost).toBeDefined();
+          roundRobinEventType = data;
+        });
+    });
+
+    it("should update round robin event type", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation round robin updated",
+      };
+
+      return request(app.getHttpServer())
+        .patch(
+          `/v2/organizations/${organization.id}/teams/${managedTeam.id}/event-types/${roundRobinEventType.id}`
+        )
+        .send(body)
+        .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+        .set(X_CAL_CLIENT_ID, oAuthClient.id)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.title).toEqual(body.title);
+          expect(data.hosts.length).toEqual(2);
+          expect(data.schedulingType).toEqual("roundRobin");
+          evaluateHost(
+            { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
+            data.hosts[0]
+          );
+          evaluateHost(
+            { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
+            data.hosts[1]
+          );
+
+          const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
+          expect(eventTypeHosts.length).toEqual(2);
+          const firstHost = eventTypeHosts.find((host) => host.userId === firstManagedUser.user.id);
+          const secondHost = eventTypeHosts.find((host) => host.userId === secondManagedUser.user.id);
+          expect(firstHost).toBeDefined();
+          expect(secondHost).toBeDefined();
         });
     });
 
     it("should setup managed event type assignAllTeamMembers true", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
-        title: "Coding consultation round robin",
-        slug: `organizations-event-types-round-robin-${randomString()}`,
+        title: "Coding consultation managed",
+        slug: `assign-all-team-members-managed-${randomString()}`,
         lengthInMinutes: 60,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
