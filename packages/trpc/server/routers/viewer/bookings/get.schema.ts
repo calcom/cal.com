@@ -14,9 +14,11 @@ export const ZGetInputSchema = z.object({
     beforeEndDate: z.string().optional(),
     afterUpdatedDate: z.string().optional(),
     beforeUpdatedDate: z.string().optional(),
+    afterCreatedDate: z.string().optional(),
+    beforeCreatedDate: z.string().optional(),
   }),
-  limit: z.number().min(1).max(100).nullish(),
-  cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
+  limit: z.number().min(1).max(100),
+  offset: z.number(),
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;

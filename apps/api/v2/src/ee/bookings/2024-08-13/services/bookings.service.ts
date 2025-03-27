@@ -229,8 +229,7 @@ export class BookingsService_2024_08_13 {
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
-      // note(Lauris): we substract -1 because getAllUSerBookings child function adds +1 for some reason
-      take: queryParams.take ? queryParams.take - 1 : 100,
+      take: queryParams.take ?? 100,
       filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
         user,
@@ -449,6 +448,7 @@ export class BookingsService_2024_08_13 {
       orgId: profile?.organizationId || null,
       emailsEnabled,
       platformClientParams,
+      reassignedById: requestUser.id,
     });
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
@@ -564,7 +564,9 @@ export class BookingsService_2024_08_13 {
       throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
     }
 
-    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(booking.eventTypeId);
+    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(
+      booking.eventTypeId
+    );
     if (!eventType) {
       throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
     }

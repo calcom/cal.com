@@ -1,4 +1,6 @@
 import type { BookerProps } from "@calcom/features/bookings/Booker";
+import type { BookerStore } from "@calcom/features/bookings/Booker/store";
+import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
   ApiSuccessResponse,
@@ -9,6 +11,30 @@ import type {
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+
+// Type that includes only the data values from BookerStore (excluding functions)
+export type BookerStoreValues = Omit<
+  BookerStore,
+  | "setState"
+  | "setLayout"
+  | "setSelectedDate"
+  | "setSelectedDatesAndTimes"
+  | "addToSelectedDate"
+  | "setVerifiedEmail"
+  | "setMonth"
+  | "setDayCount"
+  | "setSeatedEventData"
+  | "setTimezone"
+  | "initialize"
+  | "setSelectedDuration"
+  | "setBookingData"
+  | "setRecurringEventCount"
+  | "setOccurenceCount"
+  | "setTentativeSelectedTimeslots"
+  | "setSelectedTimeslot"
+  | "setFormValues"
+  | "setOrg"
+>;
 
 export type BookerPlatformWrapperAtomProps = Omit<
   BookerProps,
@@ -39,6 +65,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onReserveSlotError?: (data: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
+  onBookerStateChange?: (state: BookerStoreValues) => void;
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
@@ -46,6 +73,10 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDryRunSuccess?: () => void;
   hostsLimit?: number;
   preventEventTypeRedirect?: boolean;
+  allowUpdatingUrlParams?: boolean;
+  confirmButtonDisabled?: boolean;
+  timeZones?: Timezone[];
+  isBookingDryRun?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;

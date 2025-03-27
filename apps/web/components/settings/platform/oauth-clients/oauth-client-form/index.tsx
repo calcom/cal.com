@@ -3,7 +3,10 @@ import { useForm, useFieldArray } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
-import { TextField, Tooltip, Button, Label, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Label, TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type OAuthClientFormProps = {
   defaultValues?: Partial<FormValues>;

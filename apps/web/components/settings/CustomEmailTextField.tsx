@@ -2,16 +2,16 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Badge,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Button,
-  InputError,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { InputError } from "@calcom/ui/components/form";
 
 import type { FormValues } from "~/settings/my-account/profile-view";
 
@@ -49,7 +49,7 @@ const CustomEmailTextField = ({
         }`}>
         <input
           {...formMethods.register(formMethodFieldName)}
-          className="flex-1 bg-transparent px-3 py-1 text-sm outline-none"
+          className="flex-1 bg-transparent px-3 py-1.5 text-sm outline-none"
           data-testid={dataTestId}
           onFocus={() => setInputFocus(true)}
           onBlur={() => setInputFocus(false)}

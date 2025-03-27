@@ -6,7 +6,7 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listMembers.schema";
 
 type GetOptions = {
@@ -93,7 +93,10 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     teamId: organizationId,
     ...(searchTerm && {
       user: {
-        OR: [{ email: { contains: searchTerm } }, { username: { contains: searchTerm } }],
+        OR: [
+          { email: { contains: searchTerm, mode: "insensitive" } },
+          { username: { contains: searchTerm, mode: "insensitive" } },
+        ],
       },
     }),
   };
