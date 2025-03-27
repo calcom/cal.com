@@ -10,6 +10,7 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -426,6 +427,18 @@ export async function expectBookingToBeInDatabase(
   expect(actualBooking?.references).toEqual(
     expect.arrayContaining((references || []).map((reference) => expect.objectContaining(reference)))
   );
+}
+
+export async function expectBookingTrackingToBeInDatabase(tracking: Tracking, uid?: string) {
+  const actualBooking = await prismaMock.booking.findUnique({
+    where: {
+      uid,
+    },
+    select: {
+      tracking: true,
+    },
+  });
+  expect(actualBooking?.tracking).toEqual(expect.objectContaining(tracking));
 }
 
 export function expectSMSToBeTriggered({ sms, toNumber }: { sms: Fixtures["sms"]; toNumber: string }) {

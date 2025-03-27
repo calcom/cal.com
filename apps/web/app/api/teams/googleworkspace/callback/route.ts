@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { OAuth2Client } from "googleapis-common";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -17,10 +18,10 @@ const stateSchema = z.object({
   teamId: z.string(),
 });
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
-    const headersList = headers();
-    const cookiesList = cookies();
+    const headersList = await headers();
+    const cookiesList = await cookies();
     const legacyReq = buildLegacyRequest(headersList, cookiesList);
 
     const session = await getServerSession({ req: legacyReq });
@@ -84,3 +85,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${WEBAPP_URL}/teams`);
   }
 }
+
+export const GET = defaultResponderForAppDir(getHandler);

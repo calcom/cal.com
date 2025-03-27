@@ -3,7 +3,7 @@ import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 import { vi, it, describe, expect, afterEach } from "vitest";
 import type { Mock } from "vitest";
 
-import { SchedulingType } from "@calcom/prisma/enums";
+import { RRResetInterval, SchedulingType } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { findQualifiedHostsWithDelegationCredentials } from "./findQualifiedHostsWithDelegationCredentials";
@@ -84,6 +84,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -135,6 +136,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -221,6 +223,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -309,6 +312,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -386,6 +390,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
     prismaMock.booking.findFirst.mockResolvedValue({ userId: 2 });
@@ -461,6 +466,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -553,6 +559,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 
@@ -646,6 +653,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       team: {
         id: 1,
         parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
       },
     };
 

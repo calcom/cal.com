@@ -526,6 +526,7 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createNewContactUnderAccount) {
         // Check for an account
         const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
+
         if (accountId) {
           const createdAccountContacts = await this.createNewContactUnderAnAccount({
             attendee,
@@ -536,10 +537,14 @@ export default class SalesforceCRMService implements CRM {
             createdContacts.push(...createdAccountContacts);
           }
         } else {
-          log.info(
-            "createEventOn=LEAD, No account found for attendee, not creating a contact",
-            safeStringify({ attendeeEmail: attendee.email })
-          );
+          await this.createAttendeeRecord({
+            attendee,
+            recordType: SalesforceRecordEnum.LEAD,
+            organizerId,
+            calEventResponses,
+          }).then((result) => {
+            createdContacts.push(...result);
+          });
         }
       } else {
         await this.createAttendeeRecord({
@@ -604,17 +609,21 @@ export default class SalesforceCRMService implements CRM {
             if (error.name === "DUPLICATES_DETECTED") {
               const existingId = this.getExistingIdFromDuplicateError(error);
               if (existingId) {
-                console.log("Using existing record:", existingId);
+                log.info("Using existing record:", existingId);
                 createdContacts.push({ id: existingId, email: attendee.email });
               }
             } else {
-              console.error("Error creating lead:", error);
+              log.error("Error creating lead:", error);
             }
           }
         }
       }
     }
 
+    if (createdContacts.length === 0) {
+      // This should never happen
+      log.error(`No contacts created for these app options ${safeStringify(appOptions)}`);
+    }
     return createdContacts;
   }
 
@@ -811,6 +820,7 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
     const conn = await this.conn;
 
     const fieldSet = new Set(fieldsToTest);
@@ -830,7 +840,7 @@ export default class SalesforceCRMService implements CRM {
 
       return foundFields;
     } catch (e) {
-      console.error(e);
+      log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
   }
@@ -883,6 +893,18 @@ export default class SalesforceCRMService implements CRM {
       });
   }
 
+  public getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
+    const websites = [
+      emailDomain,
+      `www.${emailDomain}`,
+      `http://www.${emailDomain}`,
+      `http://${emailDomain}`,
+      `https://www.${emailDomain}`,
+      `https://${emailDomain}`,
+    ];
+    return websites.map((website) => `'${website}'`).join(", ");
+  }
+
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
@@ -890,13 +912,16 @@ export default class SalesforceCRMService implements CRM {
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE Website IN ('${emailDomain}', 'www.${emailDomain}', 
-                      'http://www.${emailDomain}', 'http://${emailDomain}',
-                      'https://www.${emailDomain}', 'https://${emailDomain}') LIMIT 1`
+      `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+        emailDomain
+      )}) LIMIT 1`
     );
     if (accountQuery.records.length > 0) {
-      const account = accountQuery.records[0] as { Id: string };
-      log.info("Found account based on email domain", safeStringify({ accountId: account.Id }));
+      const account = accountQuery.records[0] as { Id: string; Website: string };
+      log.info(
+        "Found account based on email domain",
+        safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
+      );
       return account.Id;
     }
 
@@ -923,13 +948,32 @@ export default class SalesforceCRMService implements CRM {
     log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
+      `SELECT Id, OwnerId, Owner.Email, Owner.Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+        emailDomain
+      )}) LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
-      log.info("Found account matching email domain", safeStringify({ emailDomain }));
+      const account = accountQuery.records[0] as {
+        Id?: string;
+        OwnerId?: string;
+        Owner?: { Email?: string };
+        Website?: string;
+      };
+
+      log.info(
+        "Found account matching email domain",
+        safeStringify({
+          emailDomain,
+          accountWebsite: account.Website,
+          accountOwnerEmail: account.Owner?.Email,
+          accountOwnerId: account.OwnerId,
+          accountId: account.Id,
+        })
+      );
+
       return {
-        ...(accountQuery.records[0] as { Id?: string; OwnerId?: string; Owner?: { Email?: string } }),
+        ...account,
         Email: undefined,
       };
     }
@@ -1007,6 +1051,7 @@ export default class SalesforceCRMService implements CRM {
       bookingUid,
       organizerEmail,
       calEventResponses,
+      contactId,
     });
 
     this.log.info(
@@ -1033,6 +1078,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid,
     organizerEmail,
     calEventResponses,
+    contactId,
   }: {
     existingFields: Field[];
     personRecord: Record<string, any>;
@@ -1041,15 +1087,26 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
+    contactId: string;
   }): Promise<Record<string, any>> {
+    const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${contactId}`] });
     const writeOnRecordBody: Record<string, any> = {};
 
     for (const field of existingFields) {
       const fieldConfig = onBookingWriteToRecordFields[field.name];
 
+      if (!fieldConfig) {
+        log.error(`No field config found for field ${field.name}`);
+        continue;
+      }
+
+      log.info(
+        `Processing field ${field.name} with type ${field.type} and config ${JSON.stringify(fieldConfig)}`
+      );
+
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
-        this.log.info(
+        log.info(
           `Field ${field.name} on contactId ${personRecord?.Id} already exists with value ${
             personRecord[field.name]
           }`
@@ -1081,6 +1138,7 @@ export default class SalesforceCRMService implements CRM {
           });
           if (extractedText) {
             writeOnRecordBody[field.name] = extractedText;
+            continue;
           }
         } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
           const dateValue = await this.getDateFieldValue(
@@ -1091,9 +1149,28 @@ export default class SalesforceCRMService implements CRM {
           );
           if (dateValue) {
             writeOnRecordBody[field.name] = dateValue;
+            continue;
+          }
+        } else if (field.type === SalesforceFieldType.PICKLIST) {
+          const picklistValue = await this.getPicklistFieldValue({
+            fieldConfigValue: fieldConfig.value,
+            salesforceField: field,
+            calEventResponses,
+            bookingUid,
+            contactId,
+          });
+          if (picklistValue) {
+            writeOnRecordBody[field.name] = picklistValue;
+            continue;
           }
         }
       }
+
+      log.error(
+        `No value found for field ${field.name} with value ${
+          personRecord[field.name]
+        }, field config ${JSON.stringify(fieldConfig)} and Salesforce config ${JSON.stringify(field)}`
+      );
     }
 
     return writeOnRecordBody;
@@ -1227,6 +1304,49 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return null;
+  }
+
+  private async getPicklistFieldValue({
+    fieldConfigValue,
+    salesforceField,
+    calEventResponses,
+    bookingUid,
+    contactId,
+  }: {
+    fieldConfigValue: string;
+    salesforceField: Field;
+    calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
+    contactId: string;
+  }) {
+    const log = logger.getSubLogger({ prefix: [`[getPicklistFieldValue] ${contactId}`] });
+
+    const picklistOptions = salesforceField.picklistValues;
+    if (!picklistOptions || !picklistOptions.length) {
+      log.warn(`No picklist values found for field ${salesforceField.name}`);
+      return null;
+    }
+
+    // Get the text value from the field
+    const fieldTextValue = await this.getTextFieldValue({
+      fieldValue: fieldConfigValue,
+      fieldLength: salesforceField.length,
+      calEventResponses,
+      bookingUid,
+    });
+
+    if (!fieldTextValue) {
+      log.warn(`No text value found for field ${salesforceField.name}`);
+      return null;
+    }
+    // Get the picklist value from the field
+    const picklistValue = picklistOptions.find((option) => option.active && option.value === fieldTextValue);
+    if (!picklistValue) {
+      log.warn(`No picklist value found for field ${salesforceField.name} and value ${fieldTextValue}`);
+      return null;
+    }
+
+    return picklistValue.value;
   }
 
   private async fetchPersonRecord(
@@ -1380,6 +1500,7 @@ export default class SalesforceCRMService implements CRM {
       existingFields,
       personRecord,
       onBookingWriteToRecordFields: writeToRecordObject,
+      contactId: personRecord.Id,
     });
     await conn
       .sobject(recordType)

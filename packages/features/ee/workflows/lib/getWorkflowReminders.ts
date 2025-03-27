@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
+import type { EventType, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
@@ -88,9 +89,9 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
     },
   };
 
-  const select: Prisma.WorkflowReminderSelect = {
+  const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
     referenceId: true,
-  };
+  });
 
   const remindersToDelete = await getWorkflowReminders(whereFilter, select);
 
@@ -108,17 +109,17 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
     },
   };
 
-  const select: Prisma.WorkflowReminderSelect = {
+  const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
     referenceId: true,
     id: true,
-  };
+  });
 
   const remindersToCancel = await getWorkflowReminders(whereFilter, select);
 
   return remindersToCancel;
 }
 
-export const select: Prisma.WorkflowReminderSelect = {
+export const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
   id: true,
   scheduledDate: true,
   isMandatoryReminder: true,
@@ -193,7 +194,7 @@ export const select: Prisma.WorkflowReminderSelect = {
       },
     },
   },
-};
+});
 
 export async function getAllUnscheduledReminders(): Promise<PartialWorkflowReminder[]> {
   const whereFilter: Prisma.WorkflowReminderWhereInput = {

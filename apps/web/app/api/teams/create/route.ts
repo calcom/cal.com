@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -90,4 +91,4 @@ async function getHandler(req: NextRequest) {
   );
 }
 
-export { getHandler as GET };
+export const GET = defaultResponderForAppDir(getHandler);
