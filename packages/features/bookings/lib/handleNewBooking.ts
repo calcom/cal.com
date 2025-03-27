@@ -1373,7 +1373,6 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      isLocationChanged,
       previousHostDestinationCalendar
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back

@@ -440,7 +440,6 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    isLocationChanged?: boolean,
     previousHostDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
@@ -458,6 +457,7 @@ export default class EventManager {
         id: true,
         userId: true,
         attendees: true,
+        location: true,
         references: {
           where: {
             deleted: null,
@@ -516,20 +516,28 @@ export default class EventManager {
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+        const isLocationChanged = evt.location !== booking.location;
         // If and only if event type is a dedicated meeting, update the dedicated video meeting.
         if (isDedicated) {
-          const result = isLocationChanged
-            ? await this.createVideoEvent(evt)
-            : await this.updateVideoEvent(evt, booking);
-          const [updatedEvent] = Array.isArray(result.updatedEvent)
-            ? result.updatedEvent
-            : [result.updatedEvent];
+          if (isLocationChanged) {
+            const result = await this.createVideoEvent(evt);
+            if (result?.createdEvent) {
+              evt.videoCallData = result.createdEvent;
+              evt.location = result.originalEvent.location;
+            }
+            results.push(result);
+          } else {
+            const result = await this.updateVideoEvent(evt, booking);
+            const [updatedEvent] = Array.isArray(result.updatedEvent)
+              ? result.updatedEvent
+              : [result.updatedEvent];
 
-          if (updatedEvent) {
-            evt.videoCallData = updatedEvent;
-            evt.location = updatedEvent.url;
+            if (updatedEvent) {
+              evt.videoCallData = updatedEvent;
+              evt.location = updatedEvent.url;
+            }
+            results.push(result);
           }
-          results.push(result);
         }
 
         const bookingCalendarReference = booking.references.find((reference) =>
