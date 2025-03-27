@@ -33,6 +33,7 @@ export class InputOrganizationsEventTypesService {
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
     await this.validateHosts(teamId, inputEventType.hosts);
+    await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
 
     const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
 
@@ -62,6 +63,9 @@ export class InputOrganizationsEventTypesService {
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
     await this.validateHosts(teamId, inputEventType.hosts);
+    if (inputEventType.slug) {
+      await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
+    }
 
     const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
 
@@ -83,6 +87,17 @@ export class InputOrganizationsEventTypesService {
       (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
 
     return transformedBody;
+  }
+
+  async validateTeamEventTypeSlug(teamId: number, slug: string) {
+    const teamEventWithSlugExists = await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(
+      teamId,
+      slug
+    );
+
+    if (teamEventWithSlugExists) {
+      throw new BadRequestException("Team event type with this slug already exists");
+    }
   }
 
   async transformInputCreateTeamEventType(
