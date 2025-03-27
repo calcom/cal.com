@@ -231,27 +231,6 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   /**
-   * Handles errors from delegation credential authorization
-   * @param error - The error object
-   */
-  private handleDelegationAuthError = (error: unknown): never => {
-    this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
-
-    if ((error as any).response?.data?.error === "unauthorized_client") {
-      throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
-        "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
-      );
-    }
-
-    if ((error as any).response?.data?.error === "invalid_grant") {
-      throw new CalendarAppDelegationCredentialInvalidGrantError("User might not exist in Google Workspace");
-    }
-
-    // Catch all error
-    throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
-  };
-
-  /**
    * Gets an access token from delegation credentials
    * @param params - Delegation credential parameters
    * @returns Token object
@@ -272,6 +251,7 @@ export default class GoogleCalendarService implements Calendar {
     const serviceAccountClientEmail = delegationCredential.serviceAccountKey.client_email;
     const serviceAccountClientId = delegationCredential.serviceAccountKey.client_id;
     const serviceAccountPrivateKey = delegationCredential.serviceAccountKey.private_key;
+
     const authClient = new JWT({
       email: serviceAccountClientEmail,
       key: serviceAccountPrivateKey,
@@ -291,7 +271,22 @@ export default class GoogleCalendarService implements Calendar {
       );
       return res;
     } catch (error) {
-      return this.handleDelegationAuthError(error);
+      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
+
+      if ((error as any).response?.data?.error === "unauthorized_client") {
+        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
+          "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
+        );
+      }
+
+      if ((error as any).response?.data?.error === "invalid_grant") {
+        throw new CalendarAppDelegationCredentialInvalidGrantError(
+          "User might not exist in Google Workspace"
+        );
+      }
+
+      // Catch all error
+      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
     }
   };
 
@@ -301,14 +296,18 @@ export default class GoogleCalendarService implements Calendar {
    */
   public authedCalendar = async () => {
     // Handle delegation credentials if present
-    if (this.credential.delegatedTo && this.credential.user?.email) {
-      const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
-      if (!token) {
-        throw new Error("Invalid grant for Google Calendar app");
+    if (this.credential.delegatedTo) {
+      if (!this.credential.user?.email) {
+        this.log.error("DelegationCredential: No email to impersonate found for delegation credential");
+      } else {
+        const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
+        if (!token) {
+          throw new Error("Invalid grant for Google Calendar app");
+        }
+        const authClient = new OAuth2Client();
+        authClient.setCredentials({ access_token: token.access_token });
+        return new calendar_v3.Calendar({ auth: authClient });
       }
-      const authClient = new OAuth2Client();
-      authClient.setCredentials({ access_token: token.access_token });
-      return new calendar_v3.Calendar({ auth: authClient });
     }
 
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
