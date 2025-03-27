@@ -125,6 +125,7 @@ export async function getBookings({
         email: true,
       },
     },
+    fromReschedule: true,
     rescheduled: true,
     references: true,
     isRecorded: true,
@@ -454,6 +455,20 @@ export async function getBookings({
       // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
       if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+      }
+
+      if (booking.fromReschedule) {
+        const rescheduledBooking = await prisma.booking.findUnique({
+          where: {
+            uid: booking.fromReschedule,
+          },
+          select: {
+            rescheduledBy: true,
+          },
+        });
+        if (rescheduledBooking) {
+          booking.previousBookingRescheduledBy = rescheduledBooking.rescheduledBy;
+        }
       }
 
       return {

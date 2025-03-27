@@ -163,6 +163,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
   const isPending = booking.status === BookingStatus.PENDING;
+  const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
@@ -658,6 +659,13 @@ function BookingListItem(booking: BookingItemProps) {
                     <Badge className="hidden sm:inline-flex" variant="orange">
                       {t("pending_payment")}
                     </Badge>
+                  )}
+                  {isRescheduled && (
+                    <Tooltip content={`${t("rescheduled_by")} ${booking.previousBookingRescheduledBy}`}>
+                      <Badge variant="orange" className="hidden sm:inline-flex">
+                        {t("rescheduled")}
+                      </Badge>
+                    </Tooltip>
                   )}
                 </div>
                 {booking.description && (

@@ -633,6 +633,20 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+
+                        {bookingInfo?.previousBooking && (
+                          <>
+                            <div className="mt-9 font-medium">{t("rescheduled_by")}</div>
+                            <div className="col-span-2 mb-2 mt-9">
+                              <p className="break-words">{bookingInfo.previousBooking?.rescheduledBy}</p>
+                              <Link
+                                className="text-default underline "
+                                href={`/booking/${bookingInfo.previousBooking?.uid}`}>
+                                {t("original_booking")}
+                              </Link>
+                            </div>
+                          </>
+                        )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                         {eventType.bookingFields.map((field) => {
