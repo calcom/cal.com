@@ -29,32 +29,18 @@ runs:
       run: |
         echo "CACHE_FOLDER=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-    # Yarn rotates the downloaded cache archives, @see https://github.com/actions/setup-node/issues/325
-    # Yarn cache is also reusable between arch and os.
-    - name: Restore yarn cache
+    # Combined cache for yarn downloads, node_modules, and install state
+    - name: Restore combined cache
       uses: buildjet/cache@v4
-      id: yarn-download-cache
+      id: yarn-combined-cache
       with:
-        path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
-        key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
+        path: |
+          ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
+          **/node_modules/
+          .yarn/ci-cache/
+        key: ${{ runner.os }}-yarn-combined-${{ hashFiles('yarn.lock') }}
 
-    # Invalidated on yarn.lock changes
-    - name: Restore node_modules
-      id: yarn-nm-cache
-      uses: buildjet/cache@v4
-      with:
-        path: "**/node_modules/"
-        key: ${{ runner.os }}-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
-
-    # Invalidated on yarn.lock changes
-    - name: Restore yarn install state
-      id: yarn-install-state-cache
-      uses: buildjet/cache@v4
-      with:
-        path: .yarn/ci-cache/
-        key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
-
-    - name: Install dependencies
+    - name: Install dependencies and generate Prisma
       shell: bash
       run: |
         yarn install --inline-builds
