@@ -9,8 +9,9 @@ import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvai
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
 import { weekdayNames } from "@calcom/lib/weekday";
-import type { PeriodType } from "@calcom/platform-enums/event-types/period-type";
+import type { PeriodData } from "@calcom/prisma/client";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
@@ -54,8 +55,7 @@ export type DatePickerProps = {
       emoji?: string;
     }[]
   >;
-  periodDays?: number;
-  periodType?: PeriodType;
+  periodData: PeriodData;
 };
 
 export const Day = ({
@@ -119,29 +119,40 @@ const NoAvailabilityOverlay = ({
   month,
   nextMonthButton,
   browsingDate,
-  periodDays,
-  periodType,
+  periodData,
 }: {
   month: string | null;
   nextMonthButton: () => void;
   browsingDate: Dayjs;
-  periodDays?: number;
-  periodType?: PeriodType;
+  periodData: PeriodData;
 }) => {
   const { t } = useLocale();
   const [isOpenDialog, setIsOpenDialog] = useState(true);
+  const { periodDays, periodType, periodCountCalendarDays, periodEndDate, periodStartDate } = periodData;
+  const periodLimits = calculatePeriodLimits({
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodStartDate,
+    periodEndDate,
+    allDatesWithBookabilityStatusInBookerTz: null, // Temporary workaround
+    _skipRollingWindowCheck: true,
+    eventUtcOffset: 0,
+    bookerUtcOffset: 0,
+  });
+  const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
+    time: browsingDate.endOf("month").toDate(),
+    periodLimits,
+  });
 
-  const PeriodEndsInMonth = () => {
-    if (!periodDays || periodType !== "ROLLING") return false;
-    const periodEnd = dayjs().add(periodDays, "days");
-    return periodEnd.isSame(browsingDate, "month");
-  };
-
-  const noFutureAvailability = () => {
-    if (!periodDays || periodType !== "ROLLING") return true;
-    const periodEnd = dayjs().add(periodDays, "days");
-    return periodEnd.isBefore(browsingDate, "month") || periodEnd.isSame(browsingDate, "month");
-  };
+  let description = "";
+  if (isOutOfBoundsByPeriod && periodType === "ROLLING") {
+    description = `Scheduling is only available up to ${periodDays} days in advance. Check again soon.`;
+  } else if (isOutOfBoundsByPeriod && periodType === "RANGE") {
+    description = `Scheduling ended on ${dayjs(periodEndDate).format(
+      "MMMM D YYYY"
+    )}. Check again soon for more options.`;
+  }
 
   const closeDialog = () => {
     setIsOpenDialog(false);
@@ -155,18 +166,16 @@ const NoAvailabilityOverlay = ({
       <DialogContent
         title={t("no_availability_in_month", { month: month })}
         type="creation"
-        description={
-          noFutureAvailability() ? `Scheduling is only available up to ${periodDays} days in advance` : ""
-        }
+        description={description}
         preventCloseOnOutsideClick={false}>
         <DialogFooter>
           <DialogClose
-            color={noFutureAvailability() ? "primary" : "secondary"}
+            color={isOutOfBoundsByPeriod ? "primary" : "secondary"}
             onClick={closeDialog}
             data-testid="view_next_month">
             {t("ok")}
           </DialogClose>
-          {!noFutureAvailability && (
+          {!isOutOfBoundsByPeriod && (
             <Button
               color="primary"
               onClick={nextMonthButton}
@@ -200,8 +209,7 @@ const Days = ({
   slots,
   customClassName,
   isBookingInPast,
-  periodDays,
-  periodType,
+  periodData,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -215,8 +223,7 @@ const Days = ({
   };
   scrollToTimeSlots?: () => void;
   isBookingInPast: boolean;
-  periodDays?: number;
-  periodType?: PeriodType;
+  periodData: PeriodData;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -343,14 +350,12 @@ const Days = ({
           )}
         </div>
       ))}
-
       {!props.isPending && !isBookingInPast && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay
           month={month}
           nextMonthButton={nextMonthButton}
           browsingDate={browsingDate}
-          periodDays={periodDays}
-          periodType={periodType}
+          periodData={periodData}
         />
       )}
     </>
@@ -366,8 +371,7 @@ const DatePicker = ({
   slots,
   customClassNames,
   includedDates,
-  periodDays,
-  periodType,
+  periodData,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -384,7 +388,6 @@ const DatePicker = ({
   const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
-
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
       onMonthChange(browsingDate.add(newMonth, "month"));
@@ -473,8 +476,7 @@ const DatePicker = ({
           slots={slots}
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
-          periodDays={periodDays}
-          periodType={periodType}
+          periodData={periodData}
         />
       </div>
     </div>
