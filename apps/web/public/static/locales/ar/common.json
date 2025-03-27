@@ -1858,6 +1858,9 @@
   "wrong_code": "رمز التحقق غير صحيح",
   "not_verified": "لم يتم التحقق منه بعد",
   "no_availability_in_month": "غير متاح في شهر {{month}}",
+  "no_availability_range": "الجدولة متاحة حتى {{date}}. يرجى التحقق مرة أخرى قريباً.",
+  "no_availability_range":
+  "Scheduling ended on {{date}}. Please check again soon.",
   "view_previous_month": "عرض الشهر السابق",
   "view_next_month": "عرض الشهر التالي",
   "send_code": "إرسال الرمز",

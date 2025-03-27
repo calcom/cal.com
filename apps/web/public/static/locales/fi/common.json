@@ -1858,6 +1858,8 @@
   "wrong_code": "Väärä vahvistuskoodi",
   "not_verified": "Ei vielä vahvistettu",
   "no_availability_in_month": "Ei vapaita aikoja {{month}}",
+  "no_availability_rolling": "Aikojen varaaminen on mahdollista vain {{days}} päivää etukäteen. Tarkista myöhemmin uudelleen.",
+  "no_availability_range": "Varausaika päättyi {{date}}. Tarkista myöhemmin uudelleen.",
   "view_previous_month": "Näytä edellinen kuukausi",
   "view_next_month": "Näytä seuraava kuukausi",
   "send_code": "Lähetä koodi",

@@ -1858,6 +1858,8 @@
   "wrong_code": "Bestätigungscode falsch",
   "not_verified": "Noch nicht bestätigt",
   "no_availability_in_month": "Keine Verfügbarkeit im {{month}}",
+  "no_availability_rolling": "Eine Terminplanung ist nur bis zu {{days}} im Voraus möglich. Bitte versuchen Sie es später erneut.",
+  "no_availability_range": "Die Terminplanung endete am {{date}}. Bitte versuchen Sie es später erneut.",
   "view_previous_month": "Vormonat anzeigen",
   "view_next_month": "Nächsten Monat anzeigen",
   "send_code": "Code senden",

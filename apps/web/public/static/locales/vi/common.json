@@ -1858,6 +1858,8 @@
   "wrong_code": "Mã xác minh sai",
   "not_verified": "Chưa xác minh",
   "no_availability_in_month": "Không còn giờ sẵn sàng làm việc trong {{month}}",
+  "no_availability_rolling": "Chỉ có thể đặt lịch hẹn trước tối đa {{days}}. Vui lòng kiểm tra lại sau.",
+  "no_availability_range": "Lịch hẹn đã kết thúc vào {{date}}. Vui lòng kiểm tra lại sau.",
   "view_previous_month": "Xem tháng trước",
   "view_next_month": "Xem tháng kế tiếp",
   "send_code": "Gửi mã",

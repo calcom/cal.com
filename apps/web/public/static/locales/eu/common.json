@@ -1858,6 +1858,8 @@
   "wrong_code": "Egiaztapen kode okerra",
   "not_verified": "Oraindik egiaztatu gabe",
   "no_availability_in_month": "Ez dago erabilgarritasunik {{month}} hilabetean",
+  "no_availability_rolling": "Erreserbak {{days}} egunera arte soilik egin daitezke. Mesedez, begiratu berriro laster.",
+  "no_availability_range": "Programazioa {{date}}(e)an amaitu zen. Mesedez, begiratu berriro laster.",
   "view_previous_month": "Ikusi aurreko hilabetea",
   "view_next_month": "Ikusi hurrengo hilabetea",
   "send_code": "Bidali kodea",

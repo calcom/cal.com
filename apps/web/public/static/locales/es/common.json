@@ -1858,6 +1858,8 @@
   "wrong_code": "Código de verificación incorrecto",
   "not_verified": "Aún no se ha verificado",
   "no_availability_in_month": "Sin disponibilidad en {{month}}",
+  "no_availability_rolling": "La programación solo está disponible hasta {{days}} por adelantado. Por favor, comprueba de nuevo pronto.",
+  "no_availability_range": "La programación terminó el {{date}}. Por favor, comprueba de nuevo pronto.",
   "view_previous_month": "Ver mes anterior",
   "view_next_month": "Ver el próximo mes",
   "send_code": "Enviar código",

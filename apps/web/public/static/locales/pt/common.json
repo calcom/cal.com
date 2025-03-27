@@ -1858,6 +1858,8 @@
   "wrong_code": "Código de verificação errado",
   "not_verified": "Ainda não foi verificado",
   "no_availability_in_month": "Sem disponibilidade em {{month}}",
+  "no_availability_rolling": "O agendamento só está disponível até {{days}} dias de antecedência. Por favor, verifique novamente em breve.",
+  "no_availability_range": "O agendamento terminou em {{date}}. Por favor, verifique novamente em breve.",
   "view_previous_month": "Ver mês anterior",
   "view_next_month": "Ver o próximo mês",
   "send_code": "Enviar código",

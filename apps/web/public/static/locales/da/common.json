@@ -1858,6 +1858,8 @@
   "wrong_code": "Forkert bekræftelseskode",
   "not_verified": "Endnu ikke bekræftet",
   "no_availability_in_month": "Ingen tilgængelighed i {{month}}",
+  "no_availability_rolling": "Booking er kun tilgængelig op til {{days}} i forvejen. Tjek venligst igen snart.",
+  "no_availability_range": "Booking sluttede den {{date}}. Tjek venligst igen snart.",
   "view_previous_month": "Se forrige måned",
   "view_next_month": "Vis næste måned",
   "send_code": "Send kode",

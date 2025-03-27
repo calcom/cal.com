@@ -1858,6 +1858,8 @@
   "wrong_code": "验证码错误",
   "not_verified": "尚未验证",
   "no_availability_in_month": "在 {{month}}不可预约",
+  "no_availability_rolling": "仅可提前预订 {{days}} 天的时间。请稍后再查看。",
+  "no_availability_range": "预订已于 {{date}} 结束。请稍后再查看。",
   "view_previous_month": "查看上个月",
   "view_next_month": "查看下个月",
   "send_code": "发送代码",

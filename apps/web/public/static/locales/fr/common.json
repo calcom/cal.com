@@ -1858,6 +1858,8 @@
   "wrong_code": "Code de vérification incorrect",
   "not_verified": "Pas encore vérifié",
   "no_availability_in_month": "Aucune disponibilité en {{month}}",
+  "no_availability_rolling": "La planification n'est disponible que jusqu'à {{days}} jours à l'avance. Veuillez réessayer prochainement.",
+  "no_availability_range": "La planification s'est terminée le {{date}}. Veuillez réessayer prochainement.",
   "view_previous_month": "Voir le mois précédent",
   "view_next_month": "Voir le mois suivant",
   "send_code": "Envoyer le code",

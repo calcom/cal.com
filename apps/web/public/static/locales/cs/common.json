@@ -1858,6 +1858,8 @@
   "wrong_code": "Nesprávný ověřovací kód",
   "not_verified": "Zatím neověřeno",
   "no_availability_in_month": "Žádná dostupnost pro {{month}}",
+  "no_availability_rolling": "Plánování je dostupné pouze {{days}} dopředu. Zkuste to prosím znovu později.",
+  "no_availability_range": "Plánování skončilo {{date}}. Zkuste to prosím znovu později.",
   "view_previous_month": "Zobrazit předchozí měsíc",
   "view_next_month": "Zobrazit další měsíc",
   "send_code": "Odeslat kód",

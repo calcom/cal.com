@@ -1858,6 +1858,9 @@
   "wrong_code": "Yanlış təsdiq kodu",
   "not_verified": "Hələ təsdiqlənməyib",
   "no_availability_in_month": "{{month}} ayında əlçatanlıq yoxdur",
+  "no_availability_rolling": "Cədvəl yalnız {{days}} gün əvvəldən planlaşdırıla bilər. Zəhmət olmasa, bir az sonra yenidən yoxlayın.",
+  "no_availability_range":
+  "Planlaşdırma {{date}} tarixində bitdi. Zəhmət olmasa, tezliklə yenidən yoxlayın.",
   "view_previous_month": "Əvvəlki aya baxın",
   "view_next_month": "Növbəti aya bax",
   "send_code": "Kodu göndər",

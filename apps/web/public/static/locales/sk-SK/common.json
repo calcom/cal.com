@@ -1858,6 +1858,8 @@
   "wrong_code": "Nesprávny overovací kód",
   "not_verified": "Ešte neoverené",
   "no_availability_in_month": "Žiadna dostupnosť v {{month}}",
+  "no_availability_rolling": "Plánovanie je možné len {{days}} dní dopredu. Prosím, skontrolujte to znova neskôr.",
+  "no_availability_range": "Plánovanie skončilo {{date}}. Prosím, skontrolujte to znova neskôr.", 
   "view_previous_month": "Zobraziť predchádzajúci mesiac",
   "view_next_month": "Zobraziť nasledujúci mesiac",
   "send_code": "Odoslať kód",
