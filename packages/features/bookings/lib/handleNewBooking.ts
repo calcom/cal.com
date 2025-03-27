@@ -769,8 +769,6 @@ async function handler(
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
     : users[0];
 
-  console.log("organizerUser", organizerUser);
-
   const hideOrganizerEmail = eventType.team?.hideOrganizerEmail;
   if (hideOrganizerEmail) {
     organizerUser.unMaskedEmail = organizerUser.email;
@@ -909,7 +907,8 @@ async function handler(
 
       return {
         id: user.id,
-        email: user.email ?? "",
+        email: hideOrganizerEmail ? maskEmail(user) : user.email,
+        unMaskedEmail: user.email ?? "",
         name: user.name ?? "",
         firstName: "",
         lastName: "",

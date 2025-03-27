@@ -243,7 +243,7 @@ export const getCancelLink = (
   cancelLink.searchParams.append("cancel", "true");
   cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
   if (attendee?.email) {
-    cancelLink.searchParams.append("cancelledBy", attendee.email);
+    cancelLink.searchParams.append("cancelledBy", attendee.unMaskedEmail ?? attendee.email);
   }
   if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
   return cancelLink.toString();
