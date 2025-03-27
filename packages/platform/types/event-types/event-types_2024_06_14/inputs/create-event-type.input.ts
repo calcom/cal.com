@@ -470,7 +470,10 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
-  @DocsProperty({ type: [Host] })
+  @DocsProperty({
+    type: [Host],
+    description: "For platform customers the hosts can include userIds only of managed users.",
+  })
   hosts!: Host[];
 
   @IsBoolean()
