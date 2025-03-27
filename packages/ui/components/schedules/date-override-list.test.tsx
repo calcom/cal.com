@@ -1,4 +1,3 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, renderHook, screen } from "@testing-library/react";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
@@ -7,6 +6,8 @@ import { useFieldArray, useForm, FormProvider } from "react-hook-form";
 import dayjs from "@calcom/dayjs";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import type { TimeRange } from "@calcom/types/schedule";
+
+import { TooltipProvider } from "../tooltip";
 
 type FormValues = {
   dateOverrides: { ranges: TimeRange[] }[];

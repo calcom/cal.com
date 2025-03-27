@@ -5,6 +5,8 @@ import React from "react";
 
 import classNames from "@calcom/ui/classNames";
 
+export const TooltipProvider = TooltipPrimitive.Provider;
+
 export function Tooltip({
   children,
   content,

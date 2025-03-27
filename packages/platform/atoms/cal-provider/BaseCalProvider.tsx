@@ -1,10 +1,10 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useCallback } from "react";
 
 import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
 import { IconSprites } from "@calcom/ui/components/icon";
+import { TooltipProvider } from "@calcom/ui/components/tooltip";
 import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import esTranslations from "@calcom/web/public/static/locales/es/common.json";

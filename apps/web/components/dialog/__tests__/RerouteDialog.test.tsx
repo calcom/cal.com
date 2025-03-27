@@ -1,9 +1,9 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { TooltipProvider } from "@calcom/ui/components/tooltip";
 
 import { RerouteDialog } from "../RerouteDialog";
 
