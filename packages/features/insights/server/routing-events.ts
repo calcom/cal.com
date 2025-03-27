@@ -125,6 +125,12 @@ class RoutingEventsInsights {
       sorting,
     });
 
+    if (whereClause.bookingUid) {
+      // If bookingUid filter is applied, total count should be either 0 or 1.
+      // So this metrics doesn't provide any value.
+      return null;
+    }
+
     const totalPromise = prisma.routingFormResponse.count({
       where: whereClause,
     });
@@ -216,9 +222,15 @@ class RoutingEventsInsights {
     const assignmentReasonValue = bookingAssignmentReason
       ? getLowercasedFilterValue(bookingAssignmentReason)
       : undefined;
+    const bookingUid = columnFilters.find((filter) => filter.id === "bookingUid") as
+      | TypedColumnFilter<ColumnFilterType.TEXT>
+      | undefined;
 
     const responseFilters = columnFilters.filter(
-      (filter) => filter.id !== "bookingStatusOrder" && filter.id !== "bookingAssignmentReason"
+      (filter) =>
+        filter.id !== "bookingStatusOrder" &&
+        filter.id !== "bookingAssignmentReason" &&
+        filter.id !== "bookingUid"
     );
 
     const whereClause: Prisma.RoutingFormResponseWhereInput = {
@@ -254,6 +266,13 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
+
+      // bookingUid
+      ...(bookingUid &&
+        makeWhereClause({
+          columnName: "bookingUid",
+          filterValue: bookingUid.value,
+        })),
 
       // AND clause
       ...(responseFilters.length > 0 && {

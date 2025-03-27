@@ -5,10 +5,11 @@ import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } fro
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
-  DataTableWrapper,
   DataTableProvider,
+  DataTableWrapper,
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
@@ -16,6 +17,7 @@ import {
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
+  CTA_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -101,7 +103,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider defaultPageSize={25} ctaContainerClassName={CTA_CONTAINER_CLASS_NAME}>
       <UserListTableContent />
     </DataTableProvider>
   );
@@ -138,7 +140,7 @@ function UserListTableContent() {
 
   const columnFilters = useColumnFilters();
 
-  const { limit, offset } = useDataTable();
+  const { limit, offset, ctaContainerRef } = useDataTable();
 
   const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
@@ -533,40 +535,9 @@ function UserListTableContent() {
             <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
             <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
-            <DataTableFilters.ClearFiltersButton />
           </>
         }
-        ToolbarRight={
-          <>
-            <DataTableToolbar.CTA
-              type="button"
-              color="secondary"
-              StartIcon="file-down"
-              loading={isDownloading}
-              onClick={() => handleDownload()}
-              data-testid="export-members-button">
-              {t("download")}
-            </DataTableToolbar.CTA>
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-            {adminOrOwner && (
-              <DataTableToolbar.CTA
-                type="button"
-                color="primary"
-                StartIcon="plus"
-                onClick={() =>
-                  dispatch({
-                    type: "INVITE_MEMBER",
-                    payload: {
-                      showModal: true,
-                    },
-                  })
-                }
-                data-testid="new-organization-member-button">
-                {t("add")}
-              </DataTableToolbar.CTA>
-            )}
-          </>
-        }>
+        ToolbarRight={<DataTableFilters.ClearFiltersButton />}>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />
@@ -609,6 +580,40 @@ function UserListTableContent() {
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
       {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
+
+      {ctaContainerRef?.current &&
+        createPortal(
+          <div className="flex items-center gap-2">
+            <DataTableToolbar.CTA
+              type="button"
+              color="secondary"
+              StartIcon="file-down"
+              loading={isDownloading}
+              onClick={() => handleDownload()}
+              data-testid="export-members-button">
+              {t("download")}
+            </DataTableToolbar.CTA>
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            {adminOrOwner && (
+              <DataTableToolbar.CTA
+                type="button"
+                color="primary"
+                StartIcon="plus"
+                onClick={() =>
+                  dispatch({
+                    type: "INVITE_MEMBER",
+                    payload: {
+                      showModal: true,
+                    },
+                  })
+                }
+                data-testid="new-organization-member-button">
+                {t("add")}
+              </DataTableToolbar.CTA>
+            )}
+          </div>,
+          ctaContainerRef.current
+        )}
     </>
   );
 }
