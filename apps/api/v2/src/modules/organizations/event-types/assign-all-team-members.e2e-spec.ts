@@ -261,6 +261,28 @@ describe("Assign all team members", () => {
   });
 
   describe("should setup event types using assignAllTeamMembers true", () => {
+    it("should not be able to setup team event type if no hosts nor assignAllTeamMembers provided", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation round robin",
+        slug: `organizations-event-types-round-robin-${randomString()}`,
+        lengthInMinutes: 60,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        schedulingType: "collective",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/organizations/${organization.id}/teams/${managedTeam.id}/event-types`)
+        .send(body)
+        .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+        .set(X_CAL_CLIENT_ID, oAuthClient.id)
+        .expect(400);
+
+      expect(response.body.error?.message).toEqual(
+        "Either hosts must be provided or assignAllTeamMembers must be true"
+      );
+    });
+
     it("should setup collective event type assignAllTeamMembers true", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation round robin",
@@ -270,7 +292,6 @@ describe("Assign all team members", () => {
         // @ts-ignore
         schedulingType: "collective",
         assignAllTeamMembers: true,
-        hosts: [],
       };
 
       return request(app.getHttpServer())
@@ -308,7 +329,6 @@ describe("Assign all team members", () => {
         // @ts-ignore
         schedulingType: "roundRobin",
         assignAllTeamMembers: true,
-        hosts: [],
       };
 
       return request(app.getHttpServer())
@@ -352,7 +372,6 @@ describe("Assign all team members", () => {
         // @ts-ignore
         schedulingType: "managed",
         assignAllTeamMembers: true,
-        hosts: [],
       };
 
       return request(app.getHttpServer())

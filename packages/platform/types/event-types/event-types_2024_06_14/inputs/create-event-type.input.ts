@@ -470,11 +470,13 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
-  @DocsProperty({
+  @IsOptional()
+  @DocsPropertyOptional({
     type: [Host],
-    description: "For platform customers the hosts can include userIds only of managed users.",
+    description:
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
   })
-  hosts!: Host[];
+  hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()
