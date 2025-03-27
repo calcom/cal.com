@@ -367,6 +367,15 @@ export class BookingRepository {
             username: true,
           },
         },
+        eventType: {
+          select: {
+            team: {
+              select: {
+                hideOrganizerEmail: true,
+              },
+            },
+          },
+        },
         references: {
           select: {
             id: true,

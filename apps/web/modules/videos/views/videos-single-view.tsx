@@ -12,8 +12,8 @@ import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-f
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
@@ -232,7 +232,10 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           {booking.attendees.length
             ? booking.attendees.map((attendee) => (
                 <p key={attendee.id}>
-                  {attendee.name} – <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
+                  {attendee.name} –{" "}
+                  <a href={`mailto:${attendee.maskedEmail ?? attendee.email}`}>
+                    {attendee.maskedEmail ?? attendee.email}
+                  </a>
                 </p>
               ))
             : null}
