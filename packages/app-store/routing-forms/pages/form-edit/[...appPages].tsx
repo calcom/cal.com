@@ -171,7 +171,7 @@ function Field({
     setOptions(updatedOptions);
   };
 
-  const formatIdentifier = (label: string) => {
+  const formatIdentifier = (label: string | undefined) => {
     if (!label) {
       return "";
     }
@@ -223,8 +223,8 @@ function Field({
               // but written in a different way.
               // The identifier field will have the same value as the label field until it is changed
               value={
-                identifier ||
-                routerField?.identifier ||
+                formatIdentifier(identifier) ||
+                formatIdentifier(routerField?.identifier) ||
                 formatIdentifier(label) ||
                 formatIdentifier(routerField?.label) ||
                 ""
