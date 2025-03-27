@@ -292,7 +292,7 @@ export const getRescheduleLink = ({
     url.searchParams.append("allowRescheduleForCancelledBooking", "true");
   }
   if (attendee?.email) {
-    url.searchParams.append("rescheduledBy", attendee.email);
+    url.searchParams.append("rescheduledBy", attendee.unMaskedEmail ?? attendee.email);
   }
 
   return url.toString();

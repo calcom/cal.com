@@ -478,7 +478,6 @@ export function expectSuccessfulBookingCreationEmails({
   calendarType?: string;
 }) {
   const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
-  console.log("emaio.ss", emails.get());
   expect(emails).toHaveEmail(
     {
       titleTag: "confirmed_event_type_subject",
