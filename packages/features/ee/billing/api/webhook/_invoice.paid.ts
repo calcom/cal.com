@@ -16,7 +16,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   // Only handle subscription invoices
   if (!invoice.subscription) {
     log.warn("Not a subscription invoice, skipping");
-    return { success: true };
+    return { success: false, message: "Not a subscription invoice, skipping" };
   }
 
   // Get the product ID from the first subscription item
@@ -25,7 +25,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
 
   if (!productId) {
     log.error("No product ID found in invoice, skipping");
-    return { success: true };
+    return { success: false, message: "No product ID found in invoice, skipping" };
   }
 
   const handlerGetter = handlers[productId as keyof typeof handlers];
@@ -35,13 +35,13 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
    */
   if (!handlerGetter) {
     log.error(`Skipping product: ${productId} because no handler found`);
-    return { success: true };
+    return { success: false, message: `Skipping product: ${productId} because no handler found` };
   }
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe products.
   if (!handler) {
     log.error(`Skipping product: ${productId} because no handler found`);
-    return { success: true };
+    return { success: false, message: `Skipping product: ${productId} because no handler found` };
   }
   return await handler(data);
 };
