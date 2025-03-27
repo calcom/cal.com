@@ -105,7 +105,13 @@ export const DatePicker = ({
       periodDays: null,
       periodCountCalendarDays: false,
     },
-    ...event?.data,
+    ...(event?.data && {
+      periodType: event.data.periodType,
+      periodStartDate: event.data.periodStartDate,
+      periodEndDate: event.data.periodEndDate,
+      periodDays: event.data.periodDays,
+      periodCountCalendarDays: event.data.periodCountCalendarDays,
+    }),
   };
   return (
     <DatePickerComponent

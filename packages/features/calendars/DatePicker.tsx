@@ -140,20 +140,19 @@ const NoAvailabilityOverlay = ({
     eventUtcOffset: 0,
     bookerUtcOffset: 0,
   });
+  // Check if the current month is beyond limits set for Rolling or Range period types
   const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
     time: browsingDate.endOf("month").toDate(),
     periodLimits,
   });
 
+  // Message explaining lack of availability differs based on period type
   let description = "";
   if (isOutOfBoundsByPeriod && periodType === "ROLLING") {
-    description = `Scheduling is only available up to ${`${periodDays} ${
-      periodCountCalendarDays ? t("calendar_days") : t("business_days")
-    }`} in advance. Check again soon.`;
+    const daysDescription = periodCountCalendarDays ? t("calendar_days") : t("business_days");
+    description = t("no_availability_rolling", { days: `${periodDays} ${daysDescription}` });
   } else if (isOutOfBoundsByPeriod && periodType === "RANGE") {
-    description = `Scheduling ended on ${dayjs(periodEndDate).format(
-      "MMMM D YYYY"
-    )}. Check again soon for more options.`;
+    description = t("no_availability_range", { date: dayjs(periodEndDate).format("MMMM D YYYY") });
   }
 
   const closeDialog = () => {
@@ -177,24 +176,21 @@ const NoAvailabilityOverlay = ({
             data-testid="view_next_month">
             {t("ok")}
           </DialogClose>
-          {!isOutOfBoundsByPeriod && (
-            <Button
-              color="primary"
-              onClick={nextMonthButton}
-              data-testid="view_next_month"
-              EndIcon="arrow-right">
-              {t("view_next_month")}
-            </Button>
-          )}
+          {
+            // Only show the next month button if there is a possibility of availability in the future
+            !isOutOfBoundsByPeriod && (
+              <Button
+                color="primary"
+                onClick={nextMonthButton}
+                data-testid="view_next_month"
+                EndIcon="arrow-right">
+                {t("view_next_month")}
+              </Button>
+            )
+          }
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    // <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
-    //   <h2 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h2>
-    //   <Button onClick={nextMonthButton} color="primary" EndIcon="arrow-right" data-testid="view_next_month">
-    //     {t("view_next_month")}
-    //   </Button>
-    // </div>
   );
 };
 
