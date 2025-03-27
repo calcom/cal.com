@@ -40,12 +40,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const clonedCalEvent = cloneDeep(this.calEvent);
-    const toAddresses = [
-      this.teamMember?.unMaskedEmail ??
-        this.teamMember?.email ??
-        this.calEvent.organizer?.unMaskedEmail ??
-        this.calEvent.organizer.email,
-    ];
+    const toAddresses = [this.teamMember?.email ?? this.calEvent.organizer.email];
 
     return {
       icalEvent: generateIcsFile({

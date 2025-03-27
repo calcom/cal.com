@@ -365,7 +365,7 @@ export default class GoogleCalendarService implements Calendar {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
-    const isOrganizerEmailPrivate = formattedCalEvent.organizer.email.endsWith("@private.cal.com");
+    const isOrganizerEmailPrivate = formattedCalEvent.organizer.maskedEmail?.endsWith("@private.cal.com");
 
     const payload: calendar_v3.Schema$Event = {
       summary: formattedCalEvent.title,
@@ -537,7 +537,7 @@ export default class GoogleCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     const formattedCalEvent = formatCalEvent(event);
 
-    const isOrganizerEmailPrivate = formattedCalEvent.organizer.email.endsWith("@private.cal.com");
+    const isOrganizerEmailPrivate = formattedCalEvent.organizer.maskedEmail?.endsWith("@private.cal.com");
 
     const payload: calendar_v3.Schema$Event = {
       summary: formattedCalEvent.title,

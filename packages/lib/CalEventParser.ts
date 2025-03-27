@@ -243,7 +243,7 @@ export const getCancelLink = (
   cancelLink.searchParams.append("cancel", "true");
   cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
   if (attendee?.email) {
-    cancelLink.searchParams.append("cancelledBy", attendee.unMaskedEmail ?? attendee.email);
+    cancelLink.searchParams.append("cancelledBy", attendee.email);
   }
   if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
   return cancelLink.toString();
@@ -292,7 +292,7 @@ export const getRescheduleLink = ({
     url.searchParams.append("allowRescheduleForCancelledBooking", "true");
   }
   if (attendee?.email) {
-    url.searchParams.append("rescheduledBy", attendee.unMaskedEmail ?? attendee.email);
+    url.searchParams.append("rescheduledBy", attendee.email);
   }
 
   return url.toString();

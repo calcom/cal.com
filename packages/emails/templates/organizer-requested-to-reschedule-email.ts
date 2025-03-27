@@ -12,7 +12,7 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
     this.metadata = metadata;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    const toAddresses = [this.calEvent.organizer?.unMaskedEmail ?? this.calEvent.organizer.email];
+    const toAddresses = [this.calEvent.organizer.email];
 
     return {
       icalEvent: generateIcsFile({

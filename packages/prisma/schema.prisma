@@ -616,6 +616,7 @@ model BookingReference {
 model Attendee {
   id          Int          @id @default(autoincrement())
   email       String
+  maskedEmail String?
   name        String
   timeZone    String
   phoneNumber String?

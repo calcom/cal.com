@@ -112,17 +112,13 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import { maskEmail } from "./maskEmail";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
-};
-
-const maskEmail = (organizerUser: { id: number; name: string | null }) => {
-  const name = organizerUser?.name?.split(" ")[0] ?? "name";
-  return `${name}-${organizerUser.id}@private.cal.com`;
 };
 
 function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
@@ -762,7 +758,7 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
-  type organizerWithUnMaskedEmail = (typeof users)[number] & { unMaskedEmail?: string };
+  type organizerWithUnMaskedEmail = (typeof users)[number] & { maskedEmail?: string };
 
   // If the team member is requested then they should be the organizer
   const organizerUser: organizerWithUnMaskedEmail = reqBody.teamMemberEmail
@@ -771,8 +767,7 @@ async function handler(
 
   const hideOrganizerEmail = eventType.team?.hideOrganizerEmail;
   if (hideOrganizerEmail) {
-    organizerUser.unMaskedEmail = organizerUser.email;
-    organizerUser.email = maskEmail(organizerUser);
+    organizerUser.maskedEmail = maskEmail(organizerUser);
   }
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
@@ -907,8 +902,8 @@ async function handler(
 
       return {
         id: user.id,
-        email: hideOrganizerEmail ? maskEmail(user) : user.email,
-        unMaskedEmail: user.email ?? "",
+        email: user.email ?? "",
+        maskedEmail: hideOrganizerEmail ? maskEmail(user) : undefined,
         name: user.name ?? "",
         firstName: "",
         lastName: "",
@@ -1005,7 +1000,7 @@ async function handler(
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
-      unMaskedEmail: organizerUser.unMaskedEmail,
+      maskedEmail: organizerUser.maskedEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },

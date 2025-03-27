@@ -11,7 +11,13 @@ const getBookingInfo = async (uid: string) => {
 
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
 
-  return { bookingInfoRaw, bookingInfo };
+  // Use type assertion to add the userDisplayEmail property
+  const bookingInfoWithDisplay = bookingInfo as typeof bookingInfo & { userDisplayEmail?: string };
+
+  // Add userDisplayEmail property
+  bookingInfoWithDisplay.userDisplayEmail = bookingInfoWithDisplay.user?.email;
+
+  return { bookingInfoRaw, bookingInfo: bookingInfoWithDisplay };
 };
 
 export default getBookingInfo;

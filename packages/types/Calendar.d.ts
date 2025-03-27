@@ -33,7 +33,7 @@ type PaymentInfo = {
 export type Person = {
   name: string;
   email: string;
-  unMaskedEmail?: string;
+  maskedEmail?: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
