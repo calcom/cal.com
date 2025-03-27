@@ -206,7 +206,7 @@ describe("GET /api/bookings", async () => {
       console.log("bookings=>", responseData.bookings);
       responseData.bookings.forEach((booking) => {
         if (booking.id === 31) expect(booking.eventType?.team?.slug).toBe("team1");
-        if (booking.id === 19) expect(booking.eventType?.team).toBe(null);
+        if (booking.id === 19) expect(booking.eventType?.team).toBeNull();
       });
     });
   });
@@ -284,6 +284,8 @@ describe("GET /api/bookings", async () => {
 
       const responseData = await handler(req);
       expect(responseData.bookings.length).toBeLessThanOrEqual(5);
+      expect(req.pagination?.take).toBe(5);
+      expect(req.pagination?.skip).toBe(2);
     });
   });
 
@@ -320,7 +322,7 @@ describe("GET /api/bookings", async () => {
 
       req.userId = proUser.id;
 
-      await expect(handler(req)).rejects.toThrow("Invalid status");
+      await expect(handler(req)).rejects.toHaveProperty("code", "invalid_enum_value");
     });
   });
 });
