@@ -2,23 +2,66 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { default as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
+import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { EventType, PeriodData } from "@calcom/prisma/client";
+import type { EventType, User } from "@calcom/prisma/client";
+import type { PeriodData } from "@calcom/types/event";
 
+import type { Slots } from "../../types";
 import { useBookerStore } from "../store";
-import type { useScheduleForEventReturnType } from "../utils/event";
+
+const useMoveToNextMonthOnNoAvailability = ({
+  browsingDate,
+  nonEmptyScheduleDays,
+  onMonthChange,
+  isLoading,
+}: {
+  browsingDate: Dayjs;
+  nonEmptyScheduleDays: string[];
+  isLoading: boolean;
+  onMonthChange: (date: Dayjs) => void;
+}) => {
+  if (isLoading) {
+    return {
+      moveToNextMonthOnNoAvailability: () => {
+        /* return noop until ready */
+      },
+    };
+  }
+
+  const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter((date) =>
+    dayjs(date).isSame(browsingDate, "month")
+  );
+
+  const moveToNextMonthOnNoAvailability = () => {
+    const currentMonth = dayjs().startOf("month").format("YYYY-MM");
+    const browsingMonth = browsingDate.format("YYYY-MM");
+    // Not meeting the criteria to move to next month
+    // Has to be currentMonth and it must have all days unbookable
+    if (currentMonth != browsingMonth || nonEmptyScheduleDaysInBrowsingMonth.length) {
+      return;
+    }
+    onMonthChange(browsingDate.add(1, "month"));
+  };
+  return {
+    moveToNextMonthOnNoAvailability,
+  };
+};
 
 export const DatePicker = ({
   event,
-  schedule,
+  slots = {},
+  isLoading,
   classNames,
   scrollToTimeSlots,
 }: {
-  event: { data: EventType };
-  schedule: useScheduleForEventReturnType;
+  event: {
+    data?: ({ subsetOfUsers: Pick<User, "weekStart">[] } & EventType) | null;
+  };
+  slots?: Slots;
+  isLoading?: boolean;
   classNames?: {
     datePickerContainer?: string;
     datePickerTitle?: string;
@@ -31,12 +74,11 @@ export const DatePicker = ({
 }) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
+
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
     shallow
   );
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const onMonthChange = (date: Dayjs) => {
     setMonth(date.format("YYYY-MM"));
@@ -44,37 +86,27 @@ export const DatePicker = ({
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 
-  const moveToNextMonthOnNoAvailability = () => {
-    const currentMonth = dayjs().startOf("month").format("YYYY-MM");
-    const browsingMonth = browsingDate.format("YYYY-MM");
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
+  const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
-    // Insufficient data case
-    if (!schedule?.data?.slots) {
-      return;
-    }
-
-    // Not meeting the criteria to move to next month
-    // Has to be currentMonth and it must have all days unbookable
-    if (currentMonth != browsingMonth || nonEmptyScheduleDays.length) {
-      return;
-    }
-
-    onMonthChange(browsingDate.add(1, "month"));
-  };
-
+  const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
+    browsingDate,
+    nonEmptyScheduleDays,
+    onMonthChange,
+    isLoading: isLoading ?? true,
+  });
   moveToNextMonthOnNoAvailability();
 
-  const { periodType, periodStartDate, periodEndDate, periodDays, periodCountCalendarDays } =
-    event?.data ?? {};
-
   const periodData: PeriodData = {
-    periodType,
-    periodStartDate,
-    periodEndDate,
-    periodDays,
-    periodCountCalendarDays,
+    ...{
+      periodType: "UNLIMITED",
+      periodStartDate: null,
+      periodEndDate: null,
+      periodDays: null,
+      periodCountCalendarDays: false,
+    },
+    ...event?.data,
   };
-
   return (
     <DatePickerComponent
       customClassNames={{
@@ -85,7 +117,7 @@ export const DatePicker = ({
         datePickerToggle: classNames?.datePickerToggle,
       }}
       className={classNames?.datePickerContainer}
-      isPending={schedule.isPending}
+      isLoading={isLoading}
       onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
@@ -95,7 +127,7 @@ export const DatePicker = ({
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
-      slots={schedule?.data?.slots}
+      slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}
     />

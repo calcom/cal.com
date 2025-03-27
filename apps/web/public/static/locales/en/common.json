@@ -2454,7 +2454,6 @@
   "published": "Published",
   "unpublished": "Unpublished",
   "publish": "Publish",
-  "org_publish_error": "Organization could not be published",
   "troubleshooter_tooltip": "Open the troubleshooter and figure out what is wrong with your schedule",
   "need_help": "Need help?",
   "troubleshooter": "Troubleshooter",
@@ -3031,6 +3030,9 @@
   "inactive_team_plan": "Inactive team plan",
   "inactive_team_plan_description": "Your team plan is inactive. Check your subcription or reach out to customer support",
   "limited_access_trial_mode": "Limited access during trial. Feature available after trial ends.",
+  "earn_20_percent_affiliate": "20% Referral",
+  "referral_program": "Referral Program",
+  "dub_disabled_error_message": "You need a Dub API Key and Program Id to use this page.",
   "uid": "UID",
   "link": "Link",
   "rows_per_page": "rows per page",
@@ -3038,6 +3040,9 @@
   "tip_username_plus": "Tip: You can a '+' between usernames: cal.com/anna+brian to make a dynamic group meeting",
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
+  "display": "Display",
+  "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
   "picklist": "Picklist",
+  "name_or_email": "Name or Email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -11,7 +11,7 @@ import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
 import { weekdayNames } from "@calcom/lib/weekday";
-import type { PeriodData } from "@calcom/prisma/client";
+import type { PeriodData } from "@calcom/types/event";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
@@ -39,7 +39,7 @@ export type DatePickerProps = {
   /** allows adding classes to the container */
   className?: string;
   /** Shows a small loading spinner next to the month name */
-  isPending?: boolean;
+  isLoading?: boolean;
   /** used to query the multiple selected dates */
   eventSlug?: string;
   /** To identify days that are not available and should display OOO and redirect if toUser exists */
@@ -58,7 +58,7 @@ export type DatePickerProps = {
   periodData: PeriodData;
 };
 
-export const Day = ({
+const Day = ({
   date,
   active,
   disabled,
@@ -326,7 +326,7 @@ const Days = ({
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
-          ) : props.isPending ? (
+          ) : props.isLoading ? (
             <button
               className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
               key={`e-${idx}`}
@@ -352,7 +352,7 @@ const Days = ({
           )}
         </div>
       ))}
-      {!props.isPending && !isBookingInPast && includedDates && includedDates?.length === 0 && (
+      {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay
           month={month}
           nextMonthButton={nextMonthButton}
@@ -386,7 +386,11 @@ const DatePicker = ({
     };
     scrollToTimeSlots?: () => void;
   }) => {
-  const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const minDate = passThroughProps.minDate;
+  const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const browsingDate =
+    minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
+
   const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
@@ -406,7 +410,7 @@ const DatePicker = ({
       <div className="mb-1 flex items-center justify-between text-xl">
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
-            <>
+            <time dateTime={browsingDate.format("YYYY-MM")} data-testid="selected-month-label">
               <strong
                 className={classNames(`text-emphasis font-semibold`, customClassNames?.datePickerTitle)}>
                 {month}
@@ -414,7 +418,7 @@ const DatePicker = ({
               <span className={classNames(`text-subtle font-medium`, customClassNames?.datePickerTitle)}>
                 {browsingDate.format("YYYY")}
               </span>
-            </>
+            </time>
           ) : (
             <SkeletonText className="h-8 w-24" />
           )}
@@ -485,4 +489,5 @@ const DatePicker = ({
   );
 };
 
+export { DatePicker, Day };
 export default DatePicker;
