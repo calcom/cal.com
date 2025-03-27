@@ -7,7 +7,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { InputField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {
