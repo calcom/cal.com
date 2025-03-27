@@ -24,7 +24,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   const productId = firstItem?.price?.product as string; // prod_xxxxx
 
   if (!productId) {
-    log.error("No product ID found in invoice, skipping");
+    log.warn("No product ID found in invoice, skipping");
     return { success: false, message: "No product ID found in invoice, skipping" };
   }
 
