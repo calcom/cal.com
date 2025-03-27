@@ -439,6 +439,7 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
+    isLocationChanged?: boolean,
     previousHostDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
@@ -516,7 +517,9 @@ export default class EventManager {
         const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
         // If and only if event type is a dedicated meeting, update the dedicated video meeting.
         if (isDedicated) {
-          const result = await this.updateVideoEvent(evt, booking);
+          const result = isLocationChanged
+            ? await this.createVideoEvent(evt)
+            : await this.updateVideoEvent(evt, booking);
           const [updatedEvent] = Array.isArray(result.updatedEvent)
             ? result.updatedEvent
             : [result.updatedEvent];

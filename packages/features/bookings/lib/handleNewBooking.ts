@@ -1168,6 +1168,9 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
+  const isLocationChanged =
+    !!originalRescheduledBooking && originalRescheduledBooking.location !== evt.location;
+
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
@@ -1208,6 +1211,7 @@ async function handler(
           bookerEmail,
           rescheduleReason,
           changedOrganizer,
+          isLocationChanged,
           smsReminderNumber,
           responses,
         },
@@ -1346,6 +1350,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
+      isLocationChanged,
       previousHostDestinationCalendar
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
