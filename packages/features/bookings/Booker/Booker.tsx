@@ -410,7 +410,12 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
-                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
+                      <DatePicker
+                        event={event}
+                        slots={schedule?.data?.slots}
+                        isLoading={schedule.isPending}
+                        scrollToTimeSlots={scrollToTimeSlots}
+                      />
                     </div>
                   )}
               </BookerSection>
@@ -442,7 +447,8 @@ const BookerComponent = ({
                   datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
                 }}
                 event={event}
-                schedule={schedule}
+                slots={schedule?.data?.slots}
+                isLoading={schedule.isPending}
                 scrollToTimeSlots={scrollToTimeSlots}
               />
             </BookerSection>

@@ -3,6 +3,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
@@ -10,9 +11,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import CreateEventTypeForm from "./CreateEventTypeForm";
 
