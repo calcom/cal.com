@@ -24,23 +24,6 @@ runs:
       with:
         node-version: ${{ inputs.node_version }}
 
-    - name: Check if yarn is available
-      id: check-yarn
-      shell: bash
-      run: |
-        if command -v yarn >/dev/null 2>&1; then
-          echo "yarn_available=true" >> $GITHUB_OUTPUT
-        else
-          echo "yarn_available=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Install yarn if not available
-      if: steps.check-yarn.outputs.yarn_available == 'false'
-      shell: bash
-      run: |
-        corepack enable
-        corepack prepare yarn@stable --activate
-
     - name: Expose yarn config as "$GITHUB_OUTPUT"
       id: yarn-config
       shell: bash
