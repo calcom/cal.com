@@ -1,8 +1,8 @@
 import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -170,8 +170,7 @@ function DropdownItemWithSubmenu({
   const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const session = useSession();
-  const orgRole = session?.data?.user?.org?.role;
-  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   // Filter submenu items based on segment type and user role
   const filteredSubmenuItems = submenuItems.filter((item) => {

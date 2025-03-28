@@ -1,8 +1,8 @@
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
@@ -32,8 +32,7 @@ export function DuplicateSegmentDialog({
   const { setSegmentId } = useDataTable();
   const utils = trpc.useUtils();
   const session = useSession();
-  const orgRole = session?.data?.user?.org?.role;
-  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   const { mutate: createSegment, isPending } = trpc.viewer.filterSegments.create.useMutation({
     onSuccess: ({ id }) => {

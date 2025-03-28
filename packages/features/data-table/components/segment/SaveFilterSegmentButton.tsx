@@ -2,8 +2,9 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole, type FilterSegmentScope } from "@calcom/prisma/enums";
+import { type FilterSegmentScope } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -32,8 +33,7 @@ export function SaveFilterSegmentButton() {
   const [isTeamSegment, setIsTeamSegment] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number>();
   const session = useSession();
-  const orgRole = session?.data?.user?.org?.role;
-  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   const form = useForm<FormValues>({
     defaultValues: {
