@@ -12,7 +12,7 @@ const SAMLSSO = () => {
   const { t } = useLocale();
 
   const { data, status } = useSession();
-  const isAdminOrOwner = useIsOrgAdminOrOwner();
+  const isAdminOrOwner = useIsOrgAdminOrOwner(data);
   const org = data?.user.org;
 
   if (status === "loading") <SkeletonLoader />;

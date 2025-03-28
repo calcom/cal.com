@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -47,7 +48,8 @@ interface GeneralViewProps {
 const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const isAdminOrOwner = useIsOrgAdminOrOwner();
+  const session = useSession();
+  const isAdminOrOwner = useIsOrgAdminOrOwner(session.data);
 
   const {
     data: currentOrg,

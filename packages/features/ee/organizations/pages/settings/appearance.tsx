@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -198,7 +199,8 @@ const OrgAppearanceView = ({
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isAdminOrOwner = useIsOrgAdminOrOwner();
+  const session = useSession();
+  const isAdminOrOwner = useIsOrgAdminOrOwner(session.data);
 
   useEffect(
     function refactorMeWithoutEffect() {
