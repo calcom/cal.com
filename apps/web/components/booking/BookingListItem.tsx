@@ -661,7 +661,7 @@ function BookingListItem(booking: BookingItemProps) {
                     </Badge>
                   )}
                   {isRescheduled && (
-                    <Tooltip content={`${t("rescheduled_by")} ${booking.previousBookingRescheduledBy}`}>
+                    <Tooltip content={`${t("rescheduled_by")} ${booking.previousBooking?.rescheduledBy}`}>
                       <Badge variant="orange" className="hidden sm:inline-flex">
                         {t("rescheduled")}
                       </Badge>

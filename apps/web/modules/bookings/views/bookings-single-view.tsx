@@ -104,7 +104,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, rescheduledToUid } = props;
+  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
 
   const {
     allRemainingBookings,
@@ -513,6 +513,17 @@ export default function Success(props: PageProps) {
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
+                        {previousBooking && (
+                          <>
+                            <div className="font-medium">{t("rescheduled_by")}</div>
+                            <div className="col-span-2 mb-2 ">
+                              <p className="break-words">{previousBooking?.rescheduledBy}</p>
+                              <Link className="text-sm underline " href={`/booking/${previousBooking?.uid}`}>
+                                {t("original_booking")}
+                              </Link>
+                            </div>
+                          </>
+                        )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
                           {isRoundRobin ? bookingInfo.title : eventName}
@@ -630,20 +641,6 @@ export default function Success(props: PageProps) {
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.description}</p>
-                            </div>
-                          </>
-                        )}
-
-                        {bookingInfo?.previousBooking && (
-                          <>
-                            <div className="mt-9 font-medium">{t("rescheduled_by")}</div>
-                            <div className="col-span-2 mb-2 mt-9">
-                              <p className="break-words">{bookingInfo.previousBooking?.rescheduledBy}</p>
-                              <Link
-                                className="text-sm underline "
-                                href={`/booking/${bookingInfo.previousBooking?.uid}`}>
-                                {t("original_booking")}
-                              </Link>
                             </div>
                           </>
                         )}
