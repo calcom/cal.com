@@ -37,8 +37,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
   const eventData = await ssr.viewer.public.event.fetch({
     username: teamSlug,
     eventSlug: meetingSlug,
@@ -67,7 +65,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
-      trpcState: ssr.dehydrate(),
+
       isBrandingHidden: team?.hideBranding,
       themeBasis: null,
     },

@@ -12,7 +12,7 @@ import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 
-import { ssrInit } from "@server/lib/ssr";
+
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // get query params and typecast them to string
@@ -28,7 +28,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req } = context;
 
   const session = await getServerSession({ req });
-  const ssr = await ssrInit(context);
+  
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   if (session) {
@@ -93,7 +93,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      trpcState: ssr.dehydrate(),
+      
       provider: providerParam,
       isSAMLLoginEnabled,
       hostedCal,

@@ -14,8 +14,6 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const stringToBoolean = z
   .string()
   .optional()
@@ -45,7 +43,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "@lib/booking"
   );
 
-  const ssr = await ssrInit(context);
   const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
@@ -218,7 +215,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
-      trpcState: ssr.dehydrate(),
+
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,

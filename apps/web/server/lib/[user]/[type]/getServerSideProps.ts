@@ -103,8 +103,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const org = isValidOrgDomain ? currentOrgDomain : null;
   if (!org) {
@@ -171,7 +169,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     },
     user: usernames.join("+"),
     slug,
-    trpcState: ssr.dehydrate(),
+
     isBrandingHidden: false,
     isSEOIndexable: true,
     themeBasis: null,
@@ -215,8 +213,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
   const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
@@ -270,7 +266,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     },
     user: username,
     slug,
-    trpcState: ssr.dehydrate(),
+
     isBrandingHidden: user?.hideBranding,
     isSEOIndexable: allowSEOIndexing,
     themeBasis: username,

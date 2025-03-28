@@ -23,9 +23,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
-
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
       link,
@@ -140,7 +137,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       booking,
       user: name,
       slug,
-      trpcState: ssr.dehydrate(),
+
       isBrandingHidden: hideBranding,
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
