@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.1.5",
+  "version": "5.1.10",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -27,7 +27,7 @@
     "yarn": "3.4.1"
   },
   "dependencies": {
-    "@boxyhq/saml-jackson": "1.18.6",
+    "@boxyhq/saml-jackson": "1.42.0",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/dayjs": "*",
@@ -42,9 +42,11 @@
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
-    "@daily-co/daily-js": "^0.59.0",
-    "@daily-co/daily-react": "^0.17.2",
+    "@daily-co/daily-js": "^0.76.0",
+    "@daily-co/daily-react": "^0.22.0",
     "@dub/analytics": "^0.0.15",
+    "@dub/embed-core": "^0.0.10",
+    "@dub/embed-react": "^0.0.10",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@glidejs/glide": "^3.5.2",
     "@googleapis/admin": "^23.0.0",
@@ -91,6 +93,7 @@
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
     "jose": "^4.13.1",
+    "jotai": "^2.12.2",
     "jsdom": "^22.0.0",
     "kbar": "^0.1.0-beta.36",
     "libphonenumber-js": "^1.11.18",
