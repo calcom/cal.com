@@ -1,3 +1,5 @@
+"use client";
+
 import type { Header, Table, ColumnSizingState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";

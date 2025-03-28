@@ -16,6 +16,7 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   DataTable,
   DataTableProvider,
@@ -38,7 +39,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogClose,
@@ -688,12 +688,12 @@ function MemberListContent(props: Props) {
         </DataTableToolbar.Root>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
+          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>

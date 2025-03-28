@@ -34,7 +34,7 @@ import {
   Post,
   Body,
 } from "@nestjs/common";
-import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
@@ -132,6 +132,12 @@ export class CalendarsController {
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get oAuth connect URL" })
+  @ApiQuery({
+    name: "redir",
+    required: false,
+    type: String,
+    description: "Redirect URL after successful calendar authorization.",
+  })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
