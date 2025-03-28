@@ -1,5 +1,5 @@
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
-export function checkAdminOrOwner(role: MembershipRole | undefined) {
-  return role === MembershipRole.OWNER || role === MembershipRole.ADMIN;
+export function checkAdminOrOwner(role: MembershipRole | undefined): role is "OWNER" | "ADMIN" {
+  return role === "OWNER" || role === "ADMIN";
 }
