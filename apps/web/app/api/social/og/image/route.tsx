@@ -1,18 +1,10 @@
+import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
-import { ImageResponse } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
-const calFont = fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer());
-
-const interFont = fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer());
-
-const interFontMedium = fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) =>
-  res.arrayBuffer()
-);
 
 export const runtime = "edge";
 
@@ -39,13 +31,13 @@ const genericSchema = z.object({
 });
 
 async function handler(req: NextRequest) {
-  const { searchParams } = new URL(`${req.url}`);
+  const { searchParams } = req.nextUrl;
   const imageType = searchParams.get("type");
 
   const [calFontData, interFontData, interFontMediumData] = await Promise.all([
-    calFont,
-    interFont,
-    interFontMedium,
+    fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
+    fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
+    fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
   ]);
   const ogConfig = {
     width: 1200,

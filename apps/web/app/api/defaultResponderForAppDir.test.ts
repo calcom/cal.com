@@ -1,4 +1,5 @@
-import type { NextRequest } from "next/server";
+import type { Params } from "app/_types";
+import { NextResponse, type NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -19,12 +20,11 @@ vi.mock("next/server", () => ({
 
 describe("defaultResponderForAppDir", () => {
   it("should return a JSON response when handler resolves with a result", async () => {
-    const f = vi.fn().mockResolvedValue({ success: true });
+    const f = vi.fn().mockResolvedValue(NextResponse.json({ success: true }));
     const req = { method: "GET", url: "/api/test" } as unknown as NextRequest;
-    const params = {};
+    const params = Promise.resolve<Params>({});
 
     const response = await defaultResponderForAppDir(f)(req, { params });
-    console.log(response);
     const json = await response.json();
 
     expect(response.status).toBe(200);
@@ -34,7 +34,7 @@ describe("defaultResponderForAppDir", () => {
   it("should return an empty JSON response when handler resolves with no result", async () => {
     const f = vi.fn().mockResolvedValue(null);
     const req = { method: "GET", url: "/api/test" } as unknown as NextRequest;
-    const params = {};
+    const params = Promise.resolve<Params>({});
 
     const response = await defaultResponderForAppDir(f)(req, { params });
     const json = await response.json();
@@ -46,7 +46,7 @@ describe("defaultResponderForAppDir", () => {
   it("should respond with status code 409 for NoAvailableUsersFound", async () => {
     const f = vi.fn().mockRejectedValue(new Error(ErrorCode.NoAvailableUsersFound));
     const req = { method: "GET", url: "/api/test" } as unknown as NextRequest;
-    const params = {};
+    const params = Promise.resolve<Params>({});
 
     const response = await defaultResponderForAppDir(f)(req, { params });
     const json = await response.json();
@@ -62,7 +62,7 @@ describe("defaultResponderForAppDir", () => {
   it("should respond with a 429 status code for rate limit errors", async () => {
     const f = vi.fn().mockRejectedValue(new TRPCError({ code: "TOO_MANY_REQUESTS" }));
     const req = { method: "POST", url: "/api/test" } as unknown as NextRequest;
-    const params = {};
+    const params = Promise.resolve<Params>({});
 
     const response = await defaultResponderForAppDir(f)(req, { params });
     const json = await response.json();

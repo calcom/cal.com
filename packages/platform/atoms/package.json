@@ -7,7 +7,7 @@
   "version": "1.0.52",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
+    "build": "NODE_OPTIONS='--max_old_space_size=16384' yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
     "publish": "rm -rf dist && yarn build && npm publish --access public",
     "test": "jest"
   },
@@ -67,10 +67,11 @@
   },
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.0.4",
+    "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@^1.0.4",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-toast": "^1.1.5",
+    "@radix-ui/react-tooltip-atoms": "npm:@radix-ui/react-tooltip@^1.0.0",
     "@tanstack/react-query": "^5.17.15",
     "class-variance-authority": "^0.4.0",
     "clsx": "^2.0.0",

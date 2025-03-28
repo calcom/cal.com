@@ -26,7 +26,13 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (
   event: { data?: Pick<BookerEvent, "id" | "length"> | null },
-  { onReserveSlotSuccess, onReserveSlotError, onDeleteSlotSuccess, onDeleteSlotError }: UseSlotsCallbacks = {}
+  {
+    onReserveSlotSuccess,
+    onReserveSlotError,
+    onDeleteSlotSuccess,
+    onDeleteSlotError,
+    isBookingDryRun,
+  }: UseSlotsCallbacks & { isBookingDryRun?: boolean } = {}
 ) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
@@ -64,6 +70,7 @@ export const useSlots = (
           .utc()
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
+        _isDryRun: isBookingDryRun,
       });
     }
   };

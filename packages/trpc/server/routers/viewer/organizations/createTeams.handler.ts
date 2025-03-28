@@ -7,20 +7,22 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
-import inviteMemberHandler from "../teams/inviteMember/inviteMember.handler";
+import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
 const log = logger.getSubLogger({ prefix: ["viewer/organizations/createTeams.handler"] });
 type CreateTeamsOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      id: number;
+      organizationId: number | null;
+    };
   };
   input: TCreateTeamsSchema;
 };
@@ -30,16 +32,13 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   // Even when instance admin creates an org, then by the time he reaches team creation steps, he has impersonated the org owner.
   const organizationOwner = ctx.user;
 
-  if (!organizationOwner) {
-    throw new NoUserError();
-  }
-
   const { orgId, moveTeams, creationSource } = input;
 
   // Remove empty team names that could be there due to the default empty team name
   const teamNames = input.teamNames.filter((name) => name.trim().length > 0);
 
   if (orgId !== organizationOwner.organizationId) {
+    log.error("User is not the owner of the organization", safeStringify({ orgId, organizationOwner }));
     throw new NotAuthorizedError();
   }
 
@@ -60,6 +59,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   });
 
   if (!userMembershipRole) {
+    log.error("User is not a member of the organization", safeStringify({ orgId, organizationOwner }));
     throw new NotAuthorizedError();
   }
 
@@ -106,7 +106,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
             ...organization,
             ownerId: organizationOwner.id,
           },
-          ctx,
           creationSource,
         });
       })
@@ -174,7 +173,6 @@ async function moveTeam({
   teamId,
   newSlug,
   org,
-  ctx,
   creationSource,
 }: {
   teamId: number;
@@ -185,7 +183,6 @@ async function moveTeam({
     ownerId: number;
     metadata: Prisma.JsonValue;
   };
-  ctx: CreateTeamsOptions["ctx"];
   creationSource: CreationSource;
 }) {
   const team = await prisma.team.findUnique({
@@ -193,6 +190,7 @@ async function moveTeam({
       id: teamId,
     },
     select: {
+      id: true,
       slug: true,
       metadata: true,
       members: {
@@ -232,20 +230,22 @@ async function moveTeam({
 
   // Owner is already a member of the team. Inviting an existing member can throw error
   const invitableMembers = team.members.filter(isMembershipNotWithOwner).map((membership) => ({
-    email: membership.user.email,
+    usernameOrEmail: membership.user.email,
     role: membership.role,
   }));
 
   if (invitableMembers.length) {
     // Invite team members to the new org. They are already members of the team.
-    await inviteMemberHandler({
-      ctx,
-      input: {
-        teamId: org.id,
-        language: "en",
-        usernameOrEmail: invitableMembers,
-        creationSource,
-      },
+    await inviteMembersWithNoInviterPermissionCheck({
+      orgSlug: org.slug,
+      invitations: invitableMembers,
+      creationSource,
+      language: "en",
+      inviterName: null,
+      teamId: org.id,
+      // This is important so that if we re-invite existing users accidentally, we don't endup erroring out.
+      // Because this is a bulk action that could be taken from organization payment webhook, we could have cases where a user was just invited through another team migration in parallel.
+      isDirectUserAction: false,
     });
   }
 

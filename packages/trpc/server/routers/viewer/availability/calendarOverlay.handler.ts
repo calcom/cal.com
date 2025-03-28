@@ -6,7 +6,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 
 type ListOptions = {

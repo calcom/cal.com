@@ -42,7 +42,7 @@ export class ManagedOrganizationsService {
         ...organizationData,
         isOrganization: true,
         isPlatform: true,
-        metadata: JSON.stringify(organizationData.metadata || {}),
+        metadata: organizationData.metadata,
       }
     );
 
