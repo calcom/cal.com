@@ -376,7 +376,7 @@ export class UpdateEventTypeInput_2024_04_15 {
 
   // @IsString()
   // @IsOptional()
-  // lockTimeZoneToggleOnBookingPage?: string;
+  // lockedTimeZone?: string;
 
   // @IsBoolean()
   // @IsOptional()
