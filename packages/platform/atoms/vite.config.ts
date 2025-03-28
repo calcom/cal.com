@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
         formats: ["es"],
       },
       rollupOptions: {
-        external: ["react", "fs", "path", "os", "react-dom"],
+        external: ["react", "fs", "path", "os", "react/jsx-runtime", "react-dom", "react-dom/client"],
         output: {
           format: "esm", // Force ESM output
           globals: {
