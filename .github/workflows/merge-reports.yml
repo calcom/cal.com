@@ -5,7 +5,7 @@ jobs:
   merge-reports:
     runs-on: ubuntu-latest
     container:
-      image: jacoblincool/playwright:chrome
+      image: calendso/playwright
       options: --ipc=host
     steps:
       - uses: actions/checkout@v4

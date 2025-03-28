@@ -47,7 +47,7 @@ jobs:
     name: E2E Embed React
     runs-on: buildjet-4vcpu-ubuntu-2204
     container:
-      image: jacoblincool/playwright:chrome
+      image: calendso/playwright
       options: --ipc=host
     services:
       postgres:
