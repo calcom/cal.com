@@ -20,7 +20,6 @@ export const ENDPOINTS = [
   "ooo",
   "payments",
   "public",
-  "routingForms",
   "timezones",
   "saml",
   "slots",
