@@ -1,29 +1,23 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { useIsOrgAdminOrOwner } from "@calcom/features/auth/lib/hooks/useIsOrgAdminOrOwner";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
-import {
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  SkeletonAvatar,
-} from "@calcom/ui/components/skeleton";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
@@ -53,8 +47,7 @@ interface GeneralViewProps {
 const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const session = useSession();
-  const orgRole = session?.data?.user?.org?.role;
+  const isAdminOrOwner = useIsOrgAdminOrOwner();
 
   const {
     data: currentOrg,
@@ -76,7 +69,6 @@ const OrgGeneralView = () => {
   if (!currentOrg) {
     return null;
   }
-  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return (
     <LicenseRequired>

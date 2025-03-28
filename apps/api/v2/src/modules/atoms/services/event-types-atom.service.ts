@@ -9,6 +9,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 
+import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
 import { MembershipRole, getClientSecretFromPayment } from "@calcom/platform-libraries";
 import type { TeamQuery } from "@calcom/platform-libraries";
 import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/platform-libraries/app-store";
@@ -259,9 +260,7 @@ export class EventTypesAtomService {
                     name: team.name,
                     logoUrl: team.logoUrl,
                     credentialId: c.id,
-                    isAdmin:
-                      team.members[0].role === MembershipRole.ADMIN ||
-                      team.members[0].role === MembershipRole.OWNER,
+                    isAdmin: isAdminOrOwner(team.members[0].role),
                   };
                 })
             );
