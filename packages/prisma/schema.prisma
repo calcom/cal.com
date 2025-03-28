@@ -441,6 +441,7 @@ model Team {
   appIconLogo            String?
   bio                    String?
   hideBranding           Boolean                 @default(false)
+  hideTeamProfileLink    Boolean                 @default(false)
   isPrivate              Boolean                 @default(false)
   hideBookATeamMember    Boolean                 @default(false)
   members                Membership[]
@@ -1785,6 +1786,7 @@ enum AssignmentReasonEnum {
   ROUTING_FORM_ROUTING
   ROUTING_FORM_ROUTING_FALLBACK
   REASSIGNED
+  RR_REASSIGNED
   REROUTED
   SALESFORCE_ASSIGNMENT
 }
