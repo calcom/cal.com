@@ -82,6 +82,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
+      verifiedAt: step.verifiedAt,
     });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -149,6 +150,7 @@ const processWorkflowStep = async (
       hideBranding,
       seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
+      verifiedAt: step.verifiedAt,
     });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -168,6 +170,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
+      verifiedAt: step.verifiedAt,
     });
   }
 };

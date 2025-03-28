@@ -54,6 +54,7 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   isMandatoryReminder?: boolean;
+  verifiedAt: Date | null;
 }
 
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
@@ -72,7 +73,14 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     includeCalendarEvent,
     isMandatoryReminder,
     action,
+    verifiedAt,
   } = args;
+
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
+  }
+
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
