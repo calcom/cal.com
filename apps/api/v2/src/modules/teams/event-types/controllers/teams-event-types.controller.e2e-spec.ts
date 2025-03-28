@@ -305,8 +305,8 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("collective");
-          evaluateHost(body.hosts[0], data.hosts[0]);
-          evaluateHost(body.hosts[1], data.hosts[1]);
+          evaluateHost(body.hosts?.[0] || { userId: -1 }, data.hosts[0]);
+          evaluateHost(body.hosts?.[1] || { userId: -1 }, data.hosts[1]);
           expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
