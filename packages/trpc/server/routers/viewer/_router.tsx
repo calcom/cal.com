@@ -24,12 +24,14 @@ import { highPerfRouter } from "./highPerf/_router";
 import { i18nRouter } from "./i18n/_router";
 import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
+import { oooRouter } from "./ooo/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
+import { travelSchedulesRouter } from "./travelSchedules/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
@@ -37,6 +39,7 @@ export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
 
   router({
+    apps: appsRouter,
     me: meRouter,
     public: publicViewerRouter,
     auth: authRouter,
@@ -62,7 +65,6 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     appBasecamp3: app_Basecamp3,
     features: featureFlagRouter,
-    appsRouter,
     users: userAdminRouter,
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,
@@ -70,5 +72,7 @@ export const viewerRouter = mergeRouters(
     attributes: attributesRouter,
     highPerf: highPerfRouter,
     routingForms: routingFormsRouter,
+    ooo: oooRouter,
+    travelSchedules: travelSchedulesRouter,
   })
 );

@@ -8,19 +8,13 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  AddressInput,
-  Button,
-  CheckboxField,
-  EmailField,
-  Group,
-  Icon,
-  InfoBadge,
-  InputField,
-  Label,
-  RadioField,
-  Tooltip,
-} from "@calcom/ui";
+import { AddressInput } from "@calcom/ui/components/address";
+import { InfoBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Label, CheckboxField, EmailField, InputField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -366,7 +360,7 @@ export const Components: Record<FieldType, Component> = {
     propsType: propsTypes.radio,
     factory: ({ setValue, name, value, options, readOnly }) => {
       return (
-        <Group
+        <RadioGroup
           disabled={readOnly}
           value={value}
           onValueChange={(e) => {
@@ -382,7 +376,7 @@ export const Components: Record<FieldType, Component> = {
               />
             ))}
           </>
-        </Group>
+        </RadioGroup>
       );
     },
   },

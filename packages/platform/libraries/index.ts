@@ -12,10 +12,10 @@ import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
-import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -78,7 +78,22 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { validateCustomEventName } from "@calcom/lib/event";
-export type { TeamQuery };
+
+export type TeamQuery = Prisma.TeamGetPayload<{
+  select: {
+    id: true;
+    credentials: {
+      select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
+    };
+    name: true;
+    logoUrl: true;
+    members: {
+      select: {
+        role: true;
+      };
+    };
+  };
+}>;
 
 export { credentialForCalendarServiceSelect };
 export { MembershipRole };

@@ -1,6 +1,6 @@
 "use client";
 
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout } from "@calcom/ui/components/layout";
 
 import AddNewTeamMembers from "./_components/OnboardMembersView";
 
