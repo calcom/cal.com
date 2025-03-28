@@ -1,4 +1,3 @@
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -31,7 +30,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
   const teamOwners = memberships.filter((m) => m.role === MembershipRole.OWNER);
   const teamHasMoreThanOneOwner = teamOwners.length > 1;
 
-  if (isAdminOrOwner(myMembership?.role)) {
+  if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can not change the role of an owner if you are an admin.",
