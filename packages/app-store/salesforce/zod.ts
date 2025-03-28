@@ -41,6 +41,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
     .default(SalesforceRecordEnum.CONTACT)
     .optional(),
   ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
+  roundRobinSkipFallbackToLeadOwner: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),
   createEventOn: z.nativeEnum(SalesforceRecordEnum).default(SalesforceRecordEnum.CONTACT).optional(),
   createNewContactUnderAccount: z.boolean().optional(),
