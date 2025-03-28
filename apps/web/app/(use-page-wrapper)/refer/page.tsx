@@ -1,9 +1,15 @@
 import { getTranslate } from "app/_utils";
+import type { Metadata } from "next";
 
 import Shell from "@calcom/features/shell/Shell";
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 
 import { DubReferralsPage } from "./DubReferralsPage";
+
+export const metadata: Metadata = {
+  title: "Referral Program | Cal.com",
+  description: "Earn commissions by referring others to Cal.com. Share your link and start earning today!",
+};
 
 // Export the appropriate component based on the feature flag
 export default async function ReferralsPage() {
