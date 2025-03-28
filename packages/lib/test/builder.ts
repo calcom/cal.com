@@ -111,6 +111,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     periodCountCalendarDays: null,
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
+    lockedTimeZone: true,
     requiresConfirmation: false,
     requiresConfirmationForFreeEmail: false,
     requiresConfirmationWillBlockSlot: false,
