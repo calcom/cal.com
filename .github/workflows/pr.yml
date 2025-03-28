@@ -202,11 +202,20 @@ jobs:
     secrets: inherit
 
   merge-reports:
-    name: Merge reports
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    uses: ./.github/workflows/merge-reports.yml
-    secrets: inherit
+      name: Merge reports
+      needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+      if: >
+        !cancelled() &&
+        needs.check-label.outputs.run-e2e == 'true' &&
+        needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
+        (
+          needs.e2e.result != 'skipped' ||
+          needs.e2e-embed.result != 'skipped' ||
+          needs.e2e-embed-react.result != 'skipped' ||
+          needs.e2e-app-store.result != 'skipped'
+        )
+      uses: ./.github/workflows/merge-reports.yml
+      secrets: inherit
 
   publish-report:
     name: Publish HTML report
