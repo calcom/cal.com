@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-import { useIsOrgAdminOrOwner } from "@calcom/features/auth/lib/hooks/useIsOrgAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -200,7 +200,7 @@ const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
   const session = useSession();
-  const isAdminOrOwner = useIsOrgAdminOrOwner(session.data);
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   useEffect(
     function refactorMeWithoutEffect() {

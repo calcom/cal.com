@@ -4,7 +4,7 @@ import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -168,7 +168,7 @@ export async function getConnectedApps({
               name: team.name,
               logoUrl: team.logoUrl,
               credentialId: c.id,
-              isAdmin: isAdminOrOwner(team.members[0].role),
+              isAdmin: checkAdminOrOwner(team.members[0].role),
             };
           })
       );

@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 
 import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
-import { useIsOrgAdminOrOwner } from "@calcom/features/auth/lib/hooks/useIsOrgAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import SSOConfiguration from "../components/SSOConfiguration";
@@ -12,7 +12,7 @@ const SAMLSSO = () => {
   const { t } = useLocale();
 
   const { data, status } = useSession();
-  const isAdminOrOwner = useIsOrgAdminOrOwner(data);
+  const isAdminOrOwner = checkAdminOrOwner(data?.user?.org?.role);
   const org = data?.user.org;
 
   if (status === "loading") <SkeletonLoader />;

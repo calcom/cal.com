@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -204,7 +204,7 @@ export const AvailabilityCTA = () => {
   );
 
   const { data } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOrgAdminOrOwner = (data && isAdminOrOwner(data.user.role)) ?? false;
+  const isOrgAdminOrOwner = (data && checkAdminOrOwner(data.user.role)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
@@ -240,7 +240,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   const data = currentOrg ?? _data;
 
   const isOrg = Boolean(data);
-  const isOrgAdminOrOwner = (data && isAdminOrOwner(data.user.role)) ?? false;
+  const isOrgAdminOrOwner = (data && checkAdminOrOwner(data.user.role)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;

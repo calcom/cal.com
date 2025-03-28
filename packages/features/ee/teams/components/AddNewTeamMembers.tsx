@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 
-import { useIsOrgAdminOrOwner } from "@calcom/features/auth/lib/hooks/useIsOrgAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/components/MemberInvitationModal";
@@ -206,7 +206,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const session = useSession();
-  const isAdminOrOwner = useIsOrgAdminOrOwner(session.data);
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
   const bookerUrl = member.bookerUrl;
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {

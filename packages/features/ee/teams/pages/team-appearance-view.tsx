@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -78,7 +78,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     mutation.mutate({ ...values, id: team.id });
   };
 
-  const isAdmin = team && isAdminOrOwner(team.membership.role);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>

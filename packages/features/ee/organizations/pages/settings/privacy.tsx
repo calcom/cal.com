@@ -1,13 +1,13 @@
 "use client";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeamPrivateSwitch";
 import { trpc } from "@calcom/trpc/react";
 
 const PrivacyView = () => {
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOrgAdminOrOwner = currentOrg && isAdminOrOwner(currentOrg.user.role);
+  const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
   const isInviteOpen = !currentOrg?.user.accepted;
 
   const isDisabled = isInviteOpen || !isOrgAdminOrOwner;

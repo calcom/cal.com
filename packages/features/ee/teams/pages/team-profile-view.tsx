@@ -9,7 +9,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -106,7 +106,7 @@ const ProfileView = () => {
     },
     [error]
   );
-  const isAdmin = team && isAdminOrOwner(team.membership.role);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   const permalink = team
     ? `${getTeamUrlSync({

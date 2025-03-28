@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useIsOrgAdminOrOwner } from "@calcom/features/auth/lib/hooks/useIsOrgAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -49,7 +49,7 @@ const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
-  const isAdminOrOwner = useIsOrgAdminOrOwner(session.data);
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   const {
     data: currentOrg,

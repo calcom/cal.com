@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
@@ -103,7 +103,7 @@ const OrgProfileView = () => {
     return <SkeletonLoader />;
   }
 
-  const isOrgAdminOrOwner = isAdminOrOwner(currentOrganisation.user.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(currentOrganisation.user.role);
 
   const isBioEmpty =
     !currentOrganisation ||

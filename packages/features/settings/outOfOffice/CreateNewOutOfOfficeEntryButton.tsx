@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -23,7 +23,7 @@ const CreateNewOutOfOfficeEntry = ({
   const { t } = useLocale();
   const me = useMeQuery();
   const { data: orgData } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOrgAdminOrOwner = orgData && isAdminOrOwner(orgData.user.role);
+  const isOrgAdminOrOwner = orgData && checkAdminOrOwner(orgData.user.role);
   const hasTeamOOOAdminAccess = isOrgAdminOrOwner || me?.data?.isTeamAdminOrOwner;
 
   const params = useCompatSearchParams();

@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { createContext, useState } from "react";
 
-import { useIsOrgAdminOrOwner } from "@calcom/features/auth/lib/hooks/useIsOrgAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 import type { OrgTeamsType } from "../filters/OrgTeamsFilter";
 
@@ -19,7 +19,7 @@ export const InsightsOrgTeamsContext = createContext<InsightsOrgTeamsContextType
 export function InsightsOrgTeamsProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
-  const isAdminOrOwner = useIsOrgAdminOrOwner(session.data);
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   const [orgTeamsType, setOrgTeamsType] = useState<OrgTeamsType>(
     isAdminOrOwner && currentOrgId ? "org" : "yours"

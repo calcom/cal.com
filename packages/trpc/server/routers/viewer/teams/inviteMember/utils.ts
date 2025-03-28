@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
@@ -418,7 +418,7 @@ export async function createMemberships({
           teamId,
           userId: invitee.id,
           accepted,
-          role: isAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
+          role: checkAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
         });
 
         // membership for the org

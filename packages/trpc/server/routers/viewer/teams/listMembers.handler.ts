@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
@@ -144,7 +144,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   if (!membership) return false;
 
-  const isTeamAdminOrOwner = isAdminOrOwner(membership?.role);
+  const isTeamAdminOrOwner = checkAdminOrOwner(membership?.role);
 
   if (team?.isPrivate && !isTeamAdminOrOwner) {
     return false;

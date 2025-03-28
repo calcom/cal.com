@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -61,7 +61,7 @@ export const eventOwnerProcedure = authedProcedure
         const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
         return (
           event.team.members
-            .filter((member) => isAdminOrOwner(member.role))
+            .filter((member) => checkAdminOrOwner(member.role))
             .map((member) => member.userId)
             .includes(ctx.user.id) || isOrgAdmin
         );

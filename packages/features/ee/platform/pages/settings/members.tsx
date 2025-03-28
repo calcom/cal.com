@@ -1,6 +1,6 @@
 "use client";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import Shell from "@calcom/features/shell/Shell";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
@@ -17,7 +17,7 @@ const PlatformMembersView = () => {
     useGetUserAttributes();
   const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
 
-  const isOrgAdminOrOwner = currentOrg && isAdminOrOwner(currentOrg.user.role);
+  const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
 
   const canLoggedInUserSeeMembers =
     (currentOrg?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !currentOrg?.isPrivate;

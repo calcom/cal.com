@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
@@ -50,9 +50,9 @@ const MembersView = () => {
 
   const isInviteOpen = !team?.membership.accepted;
 
-  const isAdmin = team && isAdminOrOwner(team.membership.role);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
-  const isOrgAdminOrOwner = isAdminOrOwner(org?.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(org?.role);
 
   const hideInvitationModal = () => {
     setShowMemberInvitationModal(false);

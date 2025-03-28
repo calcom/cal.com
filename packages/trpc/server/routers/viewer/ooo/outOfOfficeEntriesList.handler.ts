@@ -1,4 +1,4 @@
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -42,7 +42,9 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
     if (teams.length === 0) {
       throw new TRPCError({ code: "NOT_FOUND", message: t("user_has_no_team_yet") });
     }
-    const ownerOrAdminTeamIds = teams.filter((team) => isAdminOrOwner(team.role)).map((team) => team.teamId);
+    const ownerOrAdminTeamIds = teams
+      .filter((team) => checkAdminOrOwner(team.role))
+      .map((team) => team.teamId);
 
     // Fetch team member userIds
     const teamMembers = await prisma.team.findMany({

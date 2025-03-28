@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useMemo } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -77,7 +77,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
 
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
 
-  const isAdmin = team && isAdminOrOwner(team.membership.role);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   if (!isAdmin) {
     return (

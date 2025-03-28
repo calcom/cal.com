@@ -1,6 +1,6 @@
 "use client";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,7 +10,7 @@ const MembersView = () => {
   const { t } = useLocale();
   const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
 
-  const isOrgAdminOrOwner = currentOrg && isAdminOrOwner(currentOrg.user.role);
+  const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
 
   const canLoggedInUserSeeMembers =
     (currentOrg?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !currentOrg?.isPrivate;

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
-import { isAdminOrOwner } from "@calcom/features/auth/lib/isAdminOrOwner";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -58,7 +58,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
     },
   });
 
-  const isAdmin = team && isAdminOrOwner(team.membership.role);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>
