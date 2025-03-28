@@ -3016,5 +3016,6 @@
   "tip_username_plus": "İpucu: Dinamik bir grup toplantısı oluşturmak için kullanıcı adları arasına '+' ekleyebilirsiniz: cal.com/anna+brian",
   "user_has_no_team_yet": "Henüz bir ekibiniz yok",
   "no_team_members": "Henüz ekip üyeniz yok",
+  "picklist": "Seçim listesi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
