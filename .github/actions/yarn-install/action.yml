@@ -23,6 +23,7 @@ runs:
       uses: buildjet/setup-node@v4
       with:
         node-version: ${{ inputs.node_version }}
+        cache: 'yarn'  # This will ensure Yarn is installed and cached
     - name: Expose yarn config as "$GITHUB_OUTPUT"
       id: yarn-config
       shell: bash
