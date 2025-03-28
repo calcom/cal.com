@@ -1,5 +1,4 @@
 import { cookies, headers } from "next/headers";
-import { cache } from "react";
 import "server-only";
 
 import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
@@ -48,7 +47,7 @@ let callerSingleton: ReturnType<typeof createCaller> | null = null;
 
 const createCaller = createCallerFactory(routerSlice);
 
-export const getTRPCPrefetchCaller = cache(async () => {
+export const getTRPCPrefetchCaller = async () => {
   if (callerSingleton) {
     return callerSingleton;
   }
@@ -59,4 +58,4 @@ export const getTRPCPrefetchCaller = cache(async () => {
   });
 
   return callerSingleton;
-});
+};
