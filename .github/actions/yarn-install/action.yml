@@ -23,7 +23,6 @@ runs:
       uses: buildjet/setup-node@v4
       with:
         node-version: ${{ inputs.node_version }}
-        cache: 'yarn'  # This will ensure Yarn is installed and cached
 
     - name: Check if yarn is available
       id: check-yarn
