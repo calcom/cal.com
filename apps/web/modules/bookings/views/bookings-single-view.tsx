@@ -516,9 +516,9 @@ export default function Success(props: PageProps) {
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
-                            <div className="col-span-2 mb-2 ">
+                            <div className="col-span-2 mb-6 last:mb-0">
                               <p className="break-words">{previousBooking?.rescheduledBy}</p>
-                              <Link className="text-sm underline " href={`/booking/${previousBooking?.uid}`}>
+                              <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
                               </Link>
                             </div>
