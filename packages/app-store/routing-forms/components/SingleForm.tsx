@@ -675,7 +675,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 
   const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
   const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
-  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const mutation = trpc.viewer.routingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
     },
@@ -687,7 +687,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
+      utils.viewer.routingForms.formQuery.invalidate({ id: form.id });
     },
   });
   const connectedForms = form.connectedForms;
@@ -937,7 +937,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 }
 
 export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
-  const { data: form, isPending } = trpc.viewer.appRoutingForms.formQuery.useQuery(
+  const { data: form, isPending } = trpc.viewer.routingForms.formQuery.useQuery(
     { id: _form.id },
     {
       initialData: _form,

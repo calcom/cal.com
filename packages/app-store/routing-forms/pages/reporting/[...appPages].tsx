@@ -15,9 +15,9 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
@@ -47,7 +47,7 @@ const Result = ({
   const [isDownloading, setIsDownloading] = useState(false);
 
   const { isPending, status, data, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    trpc.viewer.appRoutingForms.report.useInfiniteQuery(
+    trpc.viewer.routingForms.report.useInfiniteQuery(
       {
         formId: formId,
         // Send jsonLogicQuery only if it's a valid logic, otherwise send a logic with no query.
@@ -61,7 +61,7 @@ const Result = ({
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       }
     );
-  const exportQuery = trpc.viewer.appRoutingForms.report.useInfiniteQuery(
+  const exportQuery = trpc.viewer.routingForms.report.useInfiniteQuery(
     {
       limit: 100, // 100 is max
       formId: formId,

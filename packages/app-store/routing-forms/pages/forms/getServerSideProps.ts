@@ -24,7 +24,7 @@ export const getServerSideProps = async function getServerSideProps(
 
   const filters = getTeamsFiltersFromQuery(context.query);
 
-  await ssr.viewer.appRoutingForms.forms.prefetch({
+  await ssr.viewer.routingForms.forms.prefetch({
     filters,
   });
   // Prefetch this so that New Button is immediately available

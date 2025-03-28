@@ -907,7 +907,7 @@ const Routes = ({
     hookForm,
   });
 
-  const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
+  const { data: allForms } = trpc.viewer.routingForms.forms.useQuery();
 
   const notHaveAttributesQuery = ({ form }: { form: { routes: z.infer<typeof zodRoutes> } }) => {
     return form.routes?.every((route) => {
@@ -1179,7 +1179,7 @@ function Page({
   const { t } = useLocale();
   const values = hookForm.getValues();
   const { data: attributes, isPending: isAttributesLoading } =
-    trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery(
+    trpc.viewer.routingForms.getAttributesForTeam.useQuery(
       { teamId: values.teamId! },
       { enabled: !!values.teamId }
     );
