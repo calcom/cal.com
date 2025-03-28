@@ -1,4 +1,3 @@
-import type { DehydratedState } from "@tanstack/react-query";
 import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
@@ -40,7 +39,6 @@ type Props = {
   bookingUid: string | null;
   user: string;
   slug: string;
-  trpcState: DehydratedState;
   isBrandingHidden: boolean;
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
