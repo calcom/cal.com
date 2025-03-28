@@ -95,5 +95,4 @@ jobs:
           body: |
             <!-- GENERATED-E2E-RESULTS -->
             ## E2E results are ready!
-            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
-            
+            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})            
