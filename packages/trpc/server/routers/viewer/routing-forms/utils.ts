@@ -1,7 +1,5 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
-import type { SerializableField, OrderedResponses } from "@calcom/app-store/routing-forms/types/types";
-import type { FormResponse, SerializableForm } from "@calcom/app-store/routing-forms/types/types";
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -10,6 +8,9 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
+
+import type { SerializableField, OrderedResponses } from "../types/types";
+import type { FormResponse, SerializableForm } from "../types/types";
 
 let tasker: Tasker;
 

@@ -1,13 +1,5 @@
 import type { z } from "zod";
 
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { jsonLogicToPrisma } from "@calcom/app-store/routing-forms/lib/jsonLogicToPrisma";
-import {
-  ensureStringOrStringArray,
-  getLabelsFromOptionIds,
-} from "@calcom/app-store/routing-forms/lib/reportingUtils";
-import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
-import type { zodFieldView } from "@calcom/app-store/routing-forms/zod";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_FormResponse } from "@calcom/prisma/client";
@@ -15,6 +7,11 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
+import { getSerializableForm } from "../lib/getSerializableForm";
+import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../lib/reportingUtils";
+import type { FormResponse } from "../types/types";
+import type { zodFieldView } from "../zod";
 import type { TReportInputSchema } from "./report.schema";
 
 interface ReportHandlerOptions {

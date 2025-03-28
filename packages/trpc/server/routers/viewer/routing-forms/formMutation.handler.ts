@@ -1,19 +1,19 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { createFallbackRoute } from "@calcom/app-store/routing-forms/lib/createFallbackRoute";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
-import { isFormCreateEditAllowed } from "@calcom/app-store/routing-forms/lib/isFormCreateEditAllowed";
-import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import isRouterLinkedField from "@calcom/app-store/routing-forms/lib/isRouterLinkedField";
-import type { SerializableForm } from "@calcom/app-store/routing-forms/types/types";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { createFallbackRoute } from "../lib/createFallbackRoute";
+import { getSerializableForm } from "../lib/getSerializableForm";
+import { isFallbackRoute } from "../lib/isFallbackRoute";
+import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
+import isRouter from "../lib/isRouter";
+import isRouterLinkedField from "../lib/isRouterLinkedField";
+import type { SerializableForm } from "../types/types";
 import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
 

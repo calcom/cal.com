@@ -1,8 +1,8 @@
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
+import { getSerializableForm } from "../lib/getSerializableForm";
 import type { TFormQueryInputSchema } from "./formQuery.schema";
 
 interface FormsHandlerOptions {

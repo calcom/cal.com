@@ -1,8 +1,5 @@
 import type { z } from "zod";
 
-import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/lib/enrichFormWithMigrationData";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -10,6 +7,9 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
+import { getSerializableForm } from "../lib/getSerializableForm";
+import type { FormResponse } from "../types/types";
 import type { ZFormByResponseIdInputSchema } from "./_router";
 
 type GetResponseWithFormFieldsOptions = {
