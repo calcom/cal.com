@@ -24,7 +24,8 @@ import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
-  offset: number;
+  startDateOffset: number;
+  endDateOffset: number;
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
