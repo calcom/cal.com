@@ -10,6 +10,7 @@ import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegation
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
+import { UserRepository } from "../server/repository/user";
 import { buildNonDelegationCredentials, isDelegationCredential } from "./clientAndServer";
 
 export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./clientAndServer";
@@ -497,4 +498,30 @@ export function getFirstDelegationConferencingCredentialAppLocation({
     return office365VideoMetaData.appData?.location?.type ?? null;
   }
   return null;
+}
+
+export async function findUniqueDelegationCalendarCredential({
+  userId,
+  delegationCredentialId,
+}: {
+  userId: number;
+  delegationCredentialId: string;
+}) {
+  const [delegationCredential, user] = await Promise.all([
+    DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({ id: delegationCredentialId }),
+    UserRepository.findById({ id: userId }),
+  ]);
+
+  if (!delegationCredential) {
+    throw new Error("Delegation Credential not found");
+  }
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const dwdCredential = _buildDelegatedCalendarCredential({
+    delegationCredential,
+    user,
+  });
+  return dwdCredential;
 }

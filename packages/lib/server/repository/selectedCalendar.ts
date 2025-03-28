@@ -219,9 +219,20 @@ export class SelectedCalendarRepository {
         googleChannelId,
       },
       select: {
+        userId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+        delegationCredential: {
+          select: {
+            id: true,
             selectedCalendars: {
               orderBy: {
                 externalId: "asc",

@@ -24,6 +24,7 @@ import {
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -62,13 +63,36 @@ const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googleca
 
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && error.hasOwnProperty("config");
-
 type GoogleChannelProps = {
   kind?: string | null;
   id?: string | null;
   resourceId?: string | null;
   resourceUri?: string | null;
   expiration?: string | null;
+};
+
+const getWhereForSelectedCalendar = ({
+  credentialId,
+  userId,
+}: {
+  credentialId: number;
+  userId: number | null;
+}) => {
+  let where;
+  if (isDelegationCredential({ credentialId })) {
+    if (!userId) {
+      console.error("Skipping querying calendar as `userId` is missing, needed for DWD");
+      return;
+    }
+    where = {
+      userId,
+    };
+  } else {
+    where = {
+      credentialId,
+    };
+  }
+  return where;
 };
 
 export default class GoogleCalendarService implements Calendar {
@@ -337,7 +361,9 @@ export default class GoogleCalendarService implements Calendar {
 
   private async startWatchingCalendarsInGoogle({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
-    logger.debug(`Subscribing to calendar ${calendarId}`);
+    logger.debug(
+      `Subscribing to calendar ${calendarId}, ${GOOGLE_WEBHOOK_URL} ${process.env.GOOGLE_WEBHOOK_TOKEN}`
+    );
 
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
@@ -663,8 +689,19 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     if (shouldServeCache === false) return await this.fetchAvailability(args);
     const calendarCache = await CalendarCache.init(null);
-    const cached = await calendarCache.getCachedAvailability(this.credential.id, args);
-    if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+
+    const cached = await calendarCache.getCachedAvailability({
+      credentialId: this.credential.id,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
+      userId: this.credential.userId,
+      args,
+    });
+
+    if (cached) {
+      console.log("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
+      return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+    }
+    console.log("[Cache Miss] Fetching freebusy result", safeStringify({ args }));
     return await this.fetchAvailability(args);
   }
 
@@ -785,6 +822,7 @@ export default class GoogleCalendarService implements Calendar {
 
       // /freebusy from google api only allows a date range of 90 days
       if (diff <= 90) {
+        console.log("Range < 90 days");
         const freeBusyData = await this.getCacheOrFetchAvailability(
           {
             timeMin: dateFrom,
@@ -883,14 +921,20 @@ export default class GoogleCalendarService implements Calendar {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
   }) {
+    log.debug("watchCalendar", safeStringify({ calendarId, eventTypeIds }));
     if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
     }
 
+    const where = getWhereForSelectedCalendar({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+    });
+
     const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
       where: {
-        credentialId: this.credential.id,
+        ...where,
         externalId: calendarId,
         integration: this.integrationName,
         googleChannelId: {
@@ -955,13 +999,17 @@ export default class GoogleCalendarService implements Calendar {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
   }) {
+    log.debug("unwatchCalendar", safeStringify({ calendarId, eventTypeIds }));
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
+    const calendarCache = await CalendarCache.init(null);
 
+    const where = getWhereForSelectedCalendar({
+      credentialId,
+      userId: this.credential.userId,
+    });
     const calendarsWithSameCredentialId = await SelectedCalendarRepository.findMany({
-      where: {
-        credentialId,
-      },
+      where,
     });
 
     const calendarWithSameExternalId = calendarsWithSameCredentialId.filter(
@@ -1008,7 +1056,12 @@ export default class GoogleCalendarService implements Calendar {
     );
 
     // Delete the calendar cache to force a fresh cache
-    await prisma.calendarCache.deleteMany({ where: { credentialId } });
+    await calendarCache.deleteManyByCredential({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
+    });
+
     await this.stopWatchingCalendarsInGoogle(allChannelsForThisCalendarBeingUnwatched);
     await this.upsertSelectedCalendarsForEventTypeIds(
       {
@@ -1032,10 +1085,17 @@ export default class GoogleCalendarService implements Calendar {
 
   async setAvailabilityInCache(args: FreeBusyArgs, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
     const calendarCache = await CalendarCache.init(null);
-    await calendarCache.upsertCachedAvailability(this.credential.id, args, JSON.parse(JSON.stringify(data)));
+    await calendarCache.upsertCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
+      args,
+      value: JSON.parse(JSON.stringify(data)),
+    });
   }
 
   async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    this.log.debug("fetchAvailabilityAndSetCache", safeStringify({ selectedCalendars }));
     const selectedCalendarsPerEventType = new Map<
       SelectedCalendarEventTypeIds[number],
       IntegrationCalendar[]

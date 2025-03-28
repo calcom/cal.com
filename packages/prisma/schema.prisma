@@ -381,7 +381,7 @@ model User {
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
-
+  calendarCaches                 CalendarCache[]
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -772,8 +772,11 @@ model SelectedCalendar {
   googleChannelExpiration          String?
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId           String?
+
+  // Deprecated and probably unused: Use delegationCredential instead
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
+
   error                            String?
 
   eventTypeId Int?
@@ -1452,15 +1455,24 @@ view BookingTimeStatus {
 }
 
 model CalendarCache {
+  id           String      @id @default(uuid())
   // The key would be the unique URL that is requested by the user
   key          String
   value        Json
   expiresAt    DateTime
-  credentialId Int
+  credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
-  @@id([credentialId, key])
+  delegationCredentialId String?
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([credentialId, key])
+  // In case of Delegation, we don't have credentialId.
+  // But delegationCredentialId and userId together represent a user's credential when Delegation is used. 
+  @@unique([delegationCredentialId, userId, key])
 }
 
 enum RedirectType {
@@ -1822,12 +1834,14 @@ model DelegationCredential {
   bookingReferences   BookingReference[]
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
+  calendarCaches      CalendarCache[]
 
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
   // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
   @@unique([organizationId, domain])
 }
 
+// Deprecated and probably unused - Use DelegationCredential instead
 model DomainWideDelegation {
   id                  String                @id @default(uuid())
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
@@ -1842,6 +1856,7 @@ model DomainWideDelegation {
   selectedCalendars   SelectedCalendar[]
   destinationCalendar DestinationCalendar[]
   bookingReferences   BookingReference[]
+
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 
