@@ -218,19 +218,19 @@ jobs:
     secrets: inherit
 
   publish-report:
-      name: Publish HTML report
-      if: >
-        !cancelled() &&
-        needs.check-label.outputs.run-e2e == 'true' &&
-        needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
-        needs.merge-reports.result != 'skipped'
-      permissions:
-        contents: write
-        issues: write
-        pull-requests: write
-      needs: [changes, check-label, merge-reports]
-      uses: ./.github/workflows/publish-report.yml
-      secrets: inherit
+    name: Publish HTML report
+    if: >
+      !cancelled() &&
+      needs.check-label.outputs.run-e2e == 'true' &&
+      needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
+      needs.merge-reports.result != 'skipped'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    needs: [changes, check-label, merge-reports]
+    uses: ./.github/workflows/publish-report.yml
+    secrets: inherit
 
   required:
     needs:
