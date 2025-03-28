@@ -14,7 +14,7 @@ import { TRPCError } from "@trpc/server";
 
 import isRouter from "../lib/isRouter";
 import type { FormResponse, SerializableForm } from "../types/types";
-import { onFormSubmission } from "../utils";
+import { onFormSubmission } from "./utils";
 
 export type Form = SerializableForm<
   App_RoutingForms_Form & {
