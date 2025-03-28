@@ -5,7 +5,7 @@ import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextArea } from "@calcom/ui";
+import { TextArea } from "@calcom/ui/components/form";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes } from "./EmbedCodes";
@@ -21,6 +21,7 @@ export const tabs = [
     href: "embedTabName=embed-code",
     icon: "code" as const,
     type: "code",
+    "data-testid": "HTML",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
       { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
@@ -75,6 +76,7 @@ export const tabs = [
   {
     name: "React",
     href: "embedTabName=embed-react",
+    "data-testid": "react",
     icon: "code" as const,
     type: "code",
     Component: forwardRef<
@@ -126,6 +128,7 @@ export const tabs = [
     href: "embedTabName=embed-preview",
     icon: "trello" as const,
     type: "iframe",
+    "data-testid": "Preview",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
       { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }

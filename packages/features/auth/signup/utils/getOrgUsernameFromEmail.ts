@@ -9,3 +9,10 @@ export const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: st
 
   return username;
 };
+
+export const deriveNameFromOrgUsername = ({ username }: { username: string }) => {
+  return username
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};

@@ -8,6 +8,7 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -18,6 +19,7 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -35,7 +37,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let apiKeyString: string;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `bookings-2024-04-15-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
@@ -67,13 +69,17 @@ describe("Bookings Endpoints 2024-04-15", () => {
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
       apiKeyString = keyString;
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `bookings-2024-04-15-schedule-${randomString()}-${describe.name}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: "peer-coding", length: 60 },
+        {
+          title: `bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
+          slug: `bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
+          length: 60,
+        },
         user.id
       );
       eventTypeId = event.id;
@@ -108,7 +114,6 @@ describe("Bookings Endpoints 2024-04-15", () => {
           optionValue: "",
         },
         notes: "test",
-        guests: [],
       };
 
       const body: CreateBookingInput_2024_04_15 = {
@@ -139,6 +144,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
           expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
           expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
           expect(responseBody.data.metadata).toEqual(bookingMetadata);
+          expect(responseBody.data.responses).toEqual(bookingResponses);
 
           createdBooking = responseBody.data;
         });
@@ -238,6 +244,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
           expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
           expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
           expect(responseBody.data.metadata).toEqual(bookingMetadata);
+          expect(responseBody.data.responses).toEqual(bookingResponses);
 
           createdBooking = responseBody.data;
         });
@@ -263,7 +270,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
             optionValue: "",
           },
           notes: "test",
-          guests: [],
+          guests: ["someone@example.com"],
         };
 
         const body: CreateBookingInput_2024_04_15 = {
@@ -295,6 +302,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
             expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
             expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
             expect(responseBody.data.metadata).toEqual(newBookingMetadata);
+            expect(responseBody.data.responses).toEqual(bookingResponses);
 
             createdBooking = responseBody.data;
           });
@@ -343,91 +351,61 @@ describe("Bookings Endpoints 2024-04-15", () => {
         });
     });
 
-    // note(Lauris) : found this test broken here - first thing to fix is that recurring endpoint accepts an array not 1 object.
-    // it("should create a recurring booking", async () => {
-    //   const bookingStart = "2040-05-25T09:30:00.000Z";
-    //   const bookingEnd = "2040-05-25T10:30:00.000Z";
-    //   const bookingEventTypeId = 7;
-    //   const bookingTimeZone = "Europe/London";
-    //   const bookingLanguage = "en";
-    //   const bookingHashedLink = "";
-    //   const bookingRecurringCount = 5;
-    //   const currentBookingRecurringIndex = 0;
+    it("should create a booking with split name", async () => {
+      const bookingStart = "2040-05-21T11:30:00.000Z";
+      const bookingEnd = "2040-05-21T12:30:00.000Z";
+      const bookingEventTypeId = eventTypeId;
+      const bookingTimeZone = "Europe/London";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+      const bookingMetadata = {
+        timeFormat: "12",
+        meetingType: "organizer-phone",
+      };
+      const bookingResponses = {
+        name: { firstName: "John", lastName: "Doe" },
+        email: "tester@example.com",
+        location: {
+          value: "link",
+          optionValue: "",
+        },
+        notes: "test",
+      };
 
-    //   const body = {
-    //     start: bookingStart,
-    //     end: bookingEnd,
-    //     eventTypeId: bookingEventTypeId,
-    //     timeZone: bookingTimeZone,
-    //     language: bookingLanguage,
-    //     metadata: {},
-    //     hashedLink: bookingHashedLink,
-    //     recurringCount: bookingRecurringCount,
-    //     currentRecurringIndex: currentBookingRecurringIndex,
-    //   };
-
-    //   return request(app.getHttpServer())
-    //     .post("/v2/bookings/recurring")
-    //     .send(body)
-    //     .expect(201)
-    //     .then((response) => {
-    //       const responseBody: ApiResponse<Awaited<ReturnType<typeof handleNewRecurringBooking>>> =
-    //         response.body;
-
-    //       expect(responseBody.status).toEqual("recurring");
-    //     });
-    // });
-
-    // note(Lauris) : found this test broken here - first thing to fix is that the eventTypeId must be team event type, because
-    // instant bookings only work for teams.
-    // it("should create an instant booking", async () => {
-    //   const bookingStart = "2040-05-25T09:30:00.000Z";
-    //   const bookingEnd = "2040-25T10:30:00.000Z";
-    //   const bookingEventTypeId = 7;
-    //   const bookingTimeZone = "Europe/London";
-    //   const bookingLanguage = "en";
-    //   const bookingHashedLink = "";
-
-    //   const body = {
-    //     start: bookingStart,
-    //     end: bookingEnd,
-    //     eventTypeId: bookingEventTypeId,
-    //     timeZone: bookingTimeZone,
-    //     language: bookingLanguage,
-    //     metadata: {},
-    //     hashedLink: bookingHashedLink,
-    //   };
-
-    //   return request(app.getHttpServer())
-    //     .post("/v2/bookings/instant")
-    //     .send(body)
-    //     .expect(201)
-    //     .then((response) => {
-    //       const responseBody: ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>> = response.body;
-
-    //       expect(responseBody.status).toEqual("instant");
-    //     });
-    // });
-
-    // cancelling a booking hangs the test for some reason
-    it.skip("should cancel a booking", async () => {
-      const bookingId = createdBooking.id;
-
-      const body = {
-        allRemainingBookings: false,
-        cancellationReason: "Was fighting some unforseen rescheduling demons",
+      const body: CreateBookingInput_2024_04_15 = {
+        start: bookingStart,
+        end: bookingEnd,
+        eventTypeId: bookingEventTypeId,
+        timeZone: bookingTimeZone,
+        language: bookingLanguage,
+        metadata: bookingMetadata,
+        hashedLink: bookingHashedLink,
+        responses: bookingResponses,
       };
 
       return request(app.getHttpServer())
-        .post(`/v2/bookings/${bookingId}/cancel`)
+        .post("/v2/bookings")
         .send(body)
         .expect(201)
-        .then((response) => {
-          const responseBody: ApiResponse<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> =
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
             response.body;
-
-          expect(bookingId).toBeDefined();
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.userPrimaryEmail).toBeDefined();
+          expect(responseBody.data.userPrimaryEmail).toEqual(userEmail);
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.uid).toBeDefined();
+          expect(responseBody.data.startTime).toEqual(bookingStart);
+          expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
+          expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
+          expect(responseBody.data.metadata).toEqual(bookingMetadata);
+          expect(responseBody.data.responses).toEqual({
+            ...bookingResponses,
+            name: `${bookingResponses.name.firstName} ${bookingResponses.name.lastName}`,
+          });
+
+          createdBooking = responseBody.data;
         });
     });
 

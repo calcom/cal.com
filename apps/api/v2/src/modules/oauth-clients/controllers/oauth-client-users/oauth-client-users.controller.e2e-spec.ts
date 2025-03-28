@@ -7,6 +7,7 @@ import { Locales } from "@/lib/enums/locales";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
@@ -22,8 +23,10 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
@@ -73,6 +76,7 @@ describe("OAuth Client Users Endpoints", () => {
     let app: INestApplication;
 
     let oAuthClient: PlatformOAuthClient;
+    let oAuthClientEventTypesDisabled: PlatformOAuthClient;
     let organization: Team;
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
@@ -83,12 +87,19 @@ describe("OAuth Client Users Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let postResponseData: CreateManagedUserOutput["data"];
+    let postResponseData2: CreateManagedUserOutput["data"];
 
-    const platformAdminEmail = "platform-sensei@mail.com";
+    const platformAdminEmail = `oauth-client-users-admin-${randomString()}@api.com`;
     let platformAdmin: User;
 
-    const userEmail = "oauth-client-user@gmail.com";
+    const userEmail = `oauth-client-users-user-${randomString(5)}@api.com`;
     const userTimeZone = "Europe/Rome";
+    const userEmailTwo = `oauth-client-users-user-2-${randomString(5)}@api.com`;
+    const userTimeZoneTwo = "Europe/Rome";
+    let postResponseDataTwo: CreateManagedUserOutput["data"];
+
+    const userEmail2 = `oauth-client-users-user2-${randomString()}@api.com`;
+    const userTimeZone2 = "America/New_York";
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -110,11 +121,12 @@ describe("OAuth Client Users Endpoints", () => {
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
       organization = await teamRepositoryFixture.create({
-        name: "organization",
+        name: `oauth-client-users-organization-${randomString()}`,
         isPlatform: true,
         isOrganization: true,
       });
       oAuthClient = await createOAuthClient(organization.id);
+      oAuthClientEventTypesDisabled = await createOAuthClient(organization.id, false);
 
       await profilesRepositoryFixture.create({
         uid: "asd1qwwqeqw-asddsadasd",
@@ -135,12 +147,13 @@ describe("OAuth Client Users Endpoints", () => {
       await app.init();
     });
 
-    async function createOAuthClient(organizationId: number) {
+    async function createOAuthClient(organizationId: number, areDefaultEventTypesEnabled?: boolean) {
       const data = {
         logo: "logo-url",
         name: "name",
         redirectUris: [CLIENT_REDIRECT_URI],
         permissions: 32,
+        areDefaultEventTypesEnabled,
       };
       const secret = "secret";
 
@@ -184,7 +197,7 @@ describe("OAuth Client Users Endpoints", () => {
         .expect(400);
     });
 
-    it(`/POST`, async () => {
+    it(`/POST with default event types`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
         timeZone: userTimeZone,
@@ -207,7 +220,53 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+      expect(responseBody.data.user.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+      );
+      expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
+      expect(responseBody.data.user.name).toEqual(requestBody.name);
+      expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
+      expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
+      expect(responseBody.data.user.locale).toEqual(requestBody.locale);
+      expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      const [emailUser, emailDomain] = responseBody.data.user.email.split("@");
+      const [domainName, TLD] = emailDomain.split(".");
+      expect(responseBody.data.user.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
+
+      await userConnectedToOAuth(oAuthClient.id, responseBody.data.user.email, 1);
+      await userHasDefaultEventTypes(responseBody.data.user.id);
+      await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
+    });
+
+    it(`/POST with default event types`, async () => {
+      const requestBody: CreateManagedUserInput = {
+        email: userEmailTwo,
+        timeZone: userTimeZoneTwo,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+        name: "Bob Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(201);
+
+      const responseBody: CreateManagedUserOutput = response.body;
+
+      postResponseDataTwo = responseBody.data;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.user.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+      );
       expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
       expect(responseBody.data.user.name).toEqual(requestBody.name);
       expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
@@ -217,16 +276,58 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
-      await userConnectedToOAuth(responseBody.data.user.email);
+      await userConnectedToOAuth(oAuthClient.id, responseBody.data.user.email, 2);
       await userHasDefaultEventTypes(responseBody.data.user.id);
       await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
     });
 
-    async function userConnectedToOAuth(userEmail: string) {
-      const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClient.id);
+    it(`/POST without default event types`, async () => {
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail2,
+        timeZone: userTimeZone2,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+        name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClientEventTypesDisabled.id}/users`)
+        .set("x-cal-secret-key", oAuthClientEventTypesDisabled.secret)
+        .send(requestBody)
+        .expect(201);
+
+      const responseBody: CreateManagedUserOutput = response.body;
+
+      postResponseData2 = responseBody.data;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.user.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClientEventTypesDisabled.id, requestBody.email)
+      );
+      expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
+      expect(responseBody.data.user.name).toEqual(requestBody.name);
+      expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
+      expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
+      expect(responseBody.data.user.locale).toEqual(requestBody.locale);
+      expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
+
+      await userConnectedToOAuth(oAuthClientEventTypesDisabled.id, responseBody.data.user.email, 1);
+      await userDoesNotHaveDefaultEventTypes(responseBody.data.user.id);
+      await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
+    });
+
+    async function userConnectedToOAuth(oAuthClientId: string, userEmail: string, usersCount: number) {
+      const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClientId);
       const newOAuthUser = oAuthUsers?.find((user) => user.email === userEmail);
 
-      expect(oAuthUsers?.length).toEqual(1);
+      expect(oAuthUsers?.length).toEqual(usersCount);
       expect(newOAuthUser?.email).toEqual(userEmail);
     }
 
@@ -249,6 +350,11 @@ describe("OAuth Client Users Endpoints", () => {
       ).toBeTruthy();
     }
 
+    async function userDoesNotHaveDefaultEventTypes(userId: number) {
+      const defaultEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
+      expect(defaultEventTypes?.length).toEqual(0);
+    }
+
     async function userHasDefaultSchedule(userId: number, scheduleId: number | null) {
       expect(scheduleId).toBeDefined();
       expect(scheduleId).not.toBeNull();
@@ -258,6 +364,11 @@ describe("OAuth Client Users Endpoints", () => {
 
       const schedule = scheduleId ? await schedulesRepositoryFixture.getById(scheduleId) : null;
       expect(schedule?.userId).toEqual(userId);
+    }
+
+    async function userHasOnlyOneSchedule(userId: number) {
+      const schedules = await schedulesRepositoryFixture.getByUserId(userId);
+      expect(schedules?.length).toEqual(1);
     }
 
     it(`should fail /POST using already used managed user email`, async () => {
@@ -299,6 +410,110 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data?.length).toBeGreaterThan(0);
       expect(responseBody.data[0].email).toEqual(postResponseData.user.email);
       expect(responseBody.data[0].name).toEqual(postResponseData.user.name);
+      expect(responseBody.data?.length).toEqual(2);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      const userTwo = responseBody.data.find((user) => user.email === postResponseDataTwo.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
+      expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
+    });
+
+    it(`/GET: managed user by original email`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${userEmail}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+    });
+
+    it(`/GET: managed users by original emails`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(
+          `/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${userEmail},${userEmailTwo}`
+        )
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      const userTwo = responseBody.data.find((user) => user.email === postResponseDataTwo.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
+      expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
+    });
+
+    it(`/GET: managed user by oAuth email`, async () => {
+      const response = await request(app.getHttpServer())
+        // note(Lauris): we use encodeURIComponent because email stored on our side includes "+" which without encoding becomes an empty space.
+        .get(
+          `/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${encodeURIComponent(
+            postResponseData.user.email
+          )}`
+        )
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+    });
+
+    it(`should error /GET if managed user email is invalid`, async () => {
+      const invalidEmail = "invalid-email";
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${invalidEmail}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(400);
+
+      expect(response.body?.error?.message).toEqual(`Invalid email ${invalidEmail}`);
+    });
+
+    it(`/GET: managed users by oAuth emails`, async () => {
+      const response = await request(app.getHttpServer())
+        // note(Lauris): we use encodeURIComponent because email stored on our side includes "+" which without encoding becomes an empty space.
+        .get(
+          `/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0&emails=${encodeURIComponent(
+            postResponseData.user.email
+          )},${encodeURIComponent(postResponseDataTwo.user.email)}`
+        )
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: GetManagedUsersOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+      const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
+      const userTwo = responseBody.data.find((user) => user.email === postResponseDataTwo.user.email);
+      expect(userOne?.email).toEqual(postResponseData.user.email);
+      expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
+      expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
     });
 
     it(`/GET/:id`, async () => {
@@ -312,7 +527,9 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userEmail));
+      expect(responseBody.data.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, userEmail)
+      );
     });
 
     it(`/PUT/:id`, async () => {
@@ -330,7 +547,12 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userUpdatedEmail));
+      expect(responseBody.data.email).toEqual(
+        OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, userUpdatedEmail)
+      );
+      const [emailUser, emailDomain] = responseBody.data.email.split("@");
+      const [domainName, TLD] = emailDomain.split(".");
+      expect(responseBody.data.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
       expect(responseBody.data.locale).toEqual(Locales.PT_BR);
     });
 
@@ -342,18 +564,17 @@ describe("OAuth Client Users Endpoints", () => {
         .expect(200);
     });
 
-    function getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
-      const [username, emailDomain] = userEmail.split("@");
-      const email = `${username}+${oAuthClientId}@${emailDomain}`;
-
-      return email;
-    }
-
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await oauthClientRepositoryFixture.delete(oAuthClientEventTypesDisabled.id);
       await teamRepositoryFixture.delete(organization.id);
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(postResponseData2.user.id);
       } catch (e) {
         // User might have been deleted by the test
       }
@@ -386,7 +607,7 @@ describe("OAuth Client Users Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let postResponseData: CreateManagedUserOutput["data"];
 
-    const userEmail = "oauth-client-users-user@gmail.com";
+    const userEmail = `oauth-client-users-user-${randomString(5)}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -405,20 +626,20 @@ describe("OAuth Client Users Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({
-        name: "Testy Organization",
-        isOrganization: true,
+        name: `oauth-client-users-organization-${randomString()}`,
         isPlatform: true,
+        isOrganization: true,
       });
 
       owner = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
+        email: `oauth-client-users-admin-${randomString()}@api.com`,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: { connect: { id: organization.id } },
       });
 
       await profileRepositoryFixture.create({
         uid: `usr-${owner.id}`,
-        username: userEmail,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: {
           connect: {
             id: organization.id,

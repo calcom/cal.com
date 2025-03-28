@@ -1,7 +1,8 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
@@ -27,7 +28,7 @@ function getUniqueCalendarsByExternalId<
     credentialId: number | null;
     userId: number;
     id: string;
-    domainWideDelegationCredentialId: string | null;
+    delegationCredentialId: string | null;
   }
 >(calendars: T[]) {
   type ExternalId = string;
@@ -39,7 +40,7 @@ function getUniqueCalendarsByExternalId<
           credentialId: sc.credentialId,
           userId: sc.userId,
           id: sc.id,
-          domainWideDelegationCredentialId: sc.domainWideDelegationCredentialId,
+          delegationCredentialId: sc.delegationCredentialId,
         };
       } else {
         acc[sc.externalId].eventTypeIds.push(sc.eventTypeId);
@@ -53,7 +54,7 @@ function getUniqueCalendarsByExternalId<
         credentialId: number | null;
         id: string;
         userId: number;
-        domainWideDelegationCredentialId: string | null;
+        delegationCredentialId: string | null;
       }
     >
   );
@@ -64,18 +65,18 @@ const handleCalendarsToUnwatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { eventTypeIds, credentialId, userId, domainWideDelegationCredentialId, id }]) => {
-        if (!credentialId && !domainWideDelegationCredentialId) {
+      async ([externalId, { eventTypeIds, credentialId, userId, delegationCredentialId, id }]) => {
+        if (!credentialId && !delegationCredentialId) {
           // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, {
-            error: "Missing credentialId and domainWideDelegationCredentialId",
+            error: "Missing credentialId and delegationCredentialId",
           });
-          console.log("no credentialId and domainWideDelegationCredentialId for SelecedCalendar: ", id);
+          console.log("no credentialId and delegationCredentialId for SelecedCalendar: ", id);
           return;
         }
         const cc = await CalendarCache.initFromDwdOrRegularCredential({
           credentialId,
-          dwdId: domainWideDelegationCredentialId,
+          dwdId: delegationCredentialId,
           userId,
         });
         await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
@@ -92,18 +93,18 @@ const handleCalendarsToWatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { credentialId, domainWideDelegationCredentialId, eventTypeIds, id, userId }]) => {
-        if (!credentialId && !domainWideDelegationCredentialId) {
+      async ([externalId, { credentialId, delegationCredentialId, eventTypeIds, id, userId }]) => {
+        if (!credentialId && !delegationCredentialId) {
           // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, {
-            error: "Missing credentialId and domainWideDelegationCredentialId",
+            error: "Missing credentialId and delegationCredentialId",
           });
-          console.log("no credentialId and domainWideDelegationCredentialId for SelecedCalendar: ", id);
+          console.log("no credentialId and delegationCredentialId for SelecedCalendar: ", id);
           return;
         }
         const cc = await CalendarCache.initFromDwdOrRegularCredential({
           credentialId,
-          dwdId: domainWideDelegationCredentialId,
+          dwdId: delegationCredentialId,
           userId,
         });
         await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
@@ -114,7 +115,7 @@ const handleCalendarsToWatch = async () => {
   return result;
 };
 
-// This cron is used to activate and renew calendar subcriptions
+// This cron is used to activate and renew calendar subscriptions
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
   await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);

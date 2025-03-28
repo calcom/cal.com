@@ -4,7 +4,9 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogTrigger } from "@calcom/ui/components/dialog";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -31,7 +33,7 @@ const DateOverrideList = ({
   excludedDates?: string[];
   userTimeFormat: number | null;
   hour12: boolean;
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
 }) => {

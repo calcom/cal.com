@@ -96,10 +96,4 @@ apps/auth
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-
-
-## Zero Downtime related files
-.next-2/
-.next-1/
-.next-cache/
-next.config.backup.js
+i18n.cache

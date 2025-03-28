@@ -7,11 +7,11 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
+import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
@@ -80,13 +80,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isCurrentUsernamePremium = hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
-  let isTeamsPlan = false;
+  let teamsPlan = { isActive: false, isTrial: false };
   if (!isCurrentUsernamePremium) {
-    const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
-    isTeamsPlan = !!hasTeamPlan;
+    teamsPlan = await hasActiveTeamPlanHandler({ ctx });
   }
-  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
-
+  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || teamsPlan.isActive;
   let newActiveOn: number[] = [];
 
   let removedActiveOnIds: number[] = [];

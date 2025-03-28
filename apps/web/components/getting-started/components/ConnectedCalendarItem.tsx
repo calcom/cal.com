@@ -14,7 +14,7 @@ interface IConnectedCalendarItem {
     userId?: number | undefined;
     integration?: string | undefined;
     externalId: string;
-    domainWideDelegationCredentialId: string | null;
+    delegationCredentialId: string | null;
   }[];
 }
 
@@ -62,7 +62,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
               type={integrationType}
               isChecked={calendar.isSelected}
               isLastItemInList={i === calendars.length - 1}
-              domainWideDelegationCredentialId={calendar.domainWideDelegationCredentialId}
+              delegationCredentialId={calendar.delegationCredentialId}
             />
           ))}
         </ul>

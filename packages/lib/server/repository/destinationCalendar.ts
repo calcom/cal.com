@@ -1,8 +1,11 @@
 import type { Prisma } from "@prisma/client";
 
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
+
+const log = logger.getSubLogger({ prefix: ["DestinationCalendarRepository"] });
 
 export class DestinationCalendarRepository {
   static async create(data: Prisma.DestinationCalendarCreateInput) {
@@ -44,24 +47,25 @@ export class DestinationCalendarRepository {
       externalId?: string;
       credentialId?: number | null;
       primaryEmail?: string | null;
-      domainWideDelegationCredentialId?: string | null;
+      delegationCredentialId?: string | null;
     };
     create: {
       integration: string;
       externalId: string;
       credentialId: number | null;
       primaryEmail?: string | null;
-      domainWideDelegationCredentialId?: string | null;
+      delegationCredentialId?: string | null;
     };
   }) {
+    log.debug("upsert", { where, update, create });
     const credentialPayloadForUpdate = buildCredentialPayloadForPrisma({
       credentialId: update.credentialId,
-      domainWideDelegationCredentialId: update.domainWideDelegationCredentialId,
+      delegationCredentialId: update.delegationCredentialId,
     });
 
     const credentialPayloadForCreate = buildCredentialPayloadForPrisma({
       credentialId: create.credentialId,
-      domainWideDelegationCredentialId: create.domainWideDelegationCredentialId,
+      delegationCredentialId: create.delegationCredentialId,
     });
 
     return await prisma.destinationCalendar.upsert({

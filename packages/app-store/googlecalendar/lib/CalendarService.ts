@@ -13,9 +13,9 @@ import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cach
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import {
-  CalendarAppDomainWideDelegationClientIdNotAuthorizedError,
-  CalendarAppDomainWideDelegationInvalidGrantError,
-  CalendarAppDomainWideDelegationError,
+  CalendarAppDelegationCredentialClientIdNotAuthorizedError,
+  CalendarAppDelegationCredentialInvalidGrantError,
+  CalendarAppDelegationCredentialError,
 } from "@calcom/lib/CalendarAppError";
 import { uniqueBy } from "@calcom/lib/array";
 import {
@@ -24,7 +24,7 @@ import {
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
-import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -38,7 +38,7 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
@@ -79,7 +79,7 @@ const getWhereForSelectedCalendar = ({
   userId: number | null;
 }) => {
   let where;
-  if (isDwdCredential({ credentialId })) {
+  if (isDelegationCredential({ credentialId })) {
     if (!userId) {
       console.error("Skipping querying calendar as `userId` is missing, needed for DWD");
       return;
@@ -99,10 +99,10 @@ export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;
   private log: typeof logger;
-  private credential: CredentialForCalendarService;
+  private credential: CredentialForCalendarServiceWithEmail;
   private myGoogleAuth!: MyGoogleAuth;
   private oAuthManagerInstance!: OAuthManager;
-  constructor(credential: CredentialForCalendarService) {
+  constructor(credential: CredentialForCalendarServiceWithEmail) {
     this.integrationName = "google_calendar";
     this.credential = credential;
     this.auth = this.initGoogleAuth(credential);
@@ -120,7 +120,7 @@ export default class GoogleCalendarService implements Calendar {
     return this.myGoogleAuth;
   }
 
-  private initGoogleAuth = (credential: CredentialForCalendarService) => {
+  private initGoogleAuth = (credential: CredentialForCalendarServiceWithEmail) => {
     const currentTokenObject = getTokenObjectFromCredential(credential);
     const auth = new OAuthManager({
       // Keep it false because we are not using auth.request everywhere. That would be done later as it involves many google calendar sdk functionc calls and needs to be tested well.
@@ -204,12 +204,12 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  private getAuthedCalendarFromDwd = async ({
-    domainWideDelegation,
+  private getAuthedCalendarFromDelegationCredential = async ({
+    delegationCredential,
     emailToImpersonate,
   }: {
     emailToImpersonate: string;
-    domainWideDelegation: {
+    delegationCredential: {
       serviceAccountKey: {
         client_email: string;
         client_id: string;
@@ -217,9 +217,9 @@ export default class GoogleCalendarService implements Calendar {
       };
     };
   }) => {
-    const serviceAccountClientEmail = domainWideDelegation.serviceAccountKey.client_email;
-    const serviceAccountClientId = domainWideDelegation.serviceAccountKey.client_id;
-    const serviceAccountPrivateKey = domainWideDelegation.serviceAccountKey.private_key;
+    const serviceAccountClientEmail = delegationCredential.serviceAccountKey.client_email;
+    const serviceAccountClientId = delegationCredential.serviceAccountKey.client_id;
+    const serviceAccountPrivateKey = delegationCredential.serviceAccountKey.private_key;
 
     const authClient = new JWT({
       email: serviceAccountClientEmail,
@@ -231,27 +231,26 @@ export default class GoogleCalendarService implements Calendar {
     try {
       await authClient.authorize();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.stack : error;
-      this.log.error("DWD: Error authorizing domain wide delegation", JSON.stringify(errorMessage));
+      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
 
       if ((error as any).response?.data?.error === "unauthorized_client") {
-        throw new CalendarAppDomainWideDelegationClientIdNotAuthorizedError(
-          "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
+        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
+          "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
         );
       }
 
       if ((error as any).response?.data?.error === "invalid_grant") {
-        throw new CalendarAppDomainWideDelegationInvalidGrantError(
+        throw new CalendarAppDelegationCredentialInvalidGrantError(
           "User might not exist in Google Workspace"
         );
       }
 
       // Catch all error
-      throw new CalendarAppDomainWideDelegationError("Error authorizing domain wide delegation");
+      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
     }
 
     this.log.debug(
-      "Using domain wide delegation with service account email",
+      "Using delegation credential with service account email",
       safeStringify({
         serviceAccountClientEmail,
         serviceAccountClientId,
@@ -265,21 +264,22 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   public authedCalendar = async () => {
-    let dwdAuthedCalendar;
+    let delegationCredentialAuthedCalendar;
 
     if (this.credential.delegatedTo) {
       if (!this.credential.user?.email) {
-        this.log.error("DWD: No email to impersonate found for domain wide delegation");
+        this.log.error("DelegationCredential: No email to impersonate found for delegation credential");
       } else {
-        dwdAuthedCalendar = await this.getAuthedCalendarFromDwd({
-          domainWideDelegation: this.credential.delegatedTo,
-          emailToImpersonate: this.credential.user.email,
+        const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
+        delegationCredentialAuthedCalendar = await this.getAuthedCalendarFromDelegationCredential({
+          delegationCredential: this.credential.delegatedTo,
+          emailToImpersonate: this.credential.user.email.replace(oauthClientIdAliasRegex, ""),
         });
       }
     }
 
-    if (dwdAuthedCalendar) {
-      return dwdAuthedCalendar;
+    if (delegationCredentialAuthedCalendar) {
+      return delegationCredentialAuthedCalendar;
     }
 
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
@@ -361,7 +361,9 @@ export default class GoogleCalendarService implements Calendar {
 
   private async startWatchingCalendarsInGoogle({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
-    logger.debug(`Subscribing to calendar ${calendarId}`);
+    logger.debug(
+      `Subscribing to calendar ${calendarId}, ${GOOGLE_WEBHOOK_URL} ${process.env.GOOGLE_WEBHOOK_TOKEN}`
+    );
 
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
@@ -690,12 +692,16 @@ export default class GoogleCalendarService implements Calendar {
 
     const cached = await calendarCache.getCachedAvailability({
       credentialId: this.credential.id,
-      dwdId: this.credential.delegatedToId,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
       userId: this.credential.userId,
       args,
     });
 
-    if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+    if (cached) {
+      console.log("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
+      return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+    }
+    console.log("[Cache Miss] Fetching freebusy result", safeStringify({ args }));
     return await this.fetchAvailability(args);
   }
 
@@ -897,8 +903,8 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  // It would error if the domain wide delegation is not set up correctly
-  async testDomainWideDelegationSetup() {
+  // It would error if the delegation credential is not set up correctly
+  async testDelegationCredentialSetup() {
     const calendar = await this.authedCalendar();
     const cals = await calendar.calendarList.list({ fields: "items(id)" });
     return !!cals.data.items;
@@ -1053,7 +1059,7 @@ export default class GoogleCalendarService implements Calendar {
     await calendarCache.deleteManyByCredential({
       credentialId: this.credential.id,
       userId: this.credential.userId,
-      dwdId: this.credential.delegatedToId,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
     });
 
     await this.stopWatchingCalendarsInGoogle(allChannelsForThisCalendarBeingUnwatched);
@@ -1082,7 +1088,7 @@ export default class GoogleCalendarService implements Calendar {
     await calendarCache.upsertCachedAvailability({
       credentialId: this.credential.id,
       userId: this.credential.userId,
-      dwdId: this.credential.delegatedToId,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
       args,
       value: JSON.parse(JSON.stringify(data)),
     });
@@ -1114,7 +1120,7 @@ export default class GoogleCalendarService implements Calendar {
         /** Expand the end date to the end of the month */
         timeMax: getTimeMax(),
         // Dont use eventTypeId in key because it can be used by any eventType
-        // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availablity for
+        // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availability for
         items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
       };
       const data = await this.fetchAvailability(parsedArgs);

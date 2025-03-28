@@ -15,6 +15,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -30,9 +31,12 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
-import type { CalendarEvent, IntegrationCalendar } from "@calcom/types/Calendar";
-import type { NewCalendarEventType } from "@calcom/types/Calendar";
-import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
+import type {
+  CalendarEvent,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  EventBusyDate,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getMockPaymentService } from "./MockPaymentService";
@@ -42,6 +46,17 @@ import type { getMockRequestDataForBooking } from "./getMockRequestDataForBookin
 vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   default: {},
 }));
+
+vi.mock("@calcom/lib/crypto", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    symmetricEncrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
+    symmetricDecrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
+  };
+});
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
@@ -106,6 +121,17 @@ type InputHost = {
   isFixed?: boolean;
   scheduleId?: number | null;
 };
+
+type InputSelectedSlot = {
+  eventTypeId: number;
+  userId: number;
+  slotUtcStartDate: Date;
+  slotUtcEndDate: Date;
+  uid: string;
+  releaseAt: Date;
+  isSeat?: boolean;
+};
+
 /**
  * Data to be mocked
  */
@@ -126,6 +152,7 @@ export type ScenarioData = {
   webhooks?: InputWebhook[];
   workflows?: InputWorkflow[];
   payment?: InputPayment[];
+  selectedSlots?: InputSelectedSlot[];
 };
 
 type InputCredential = typeof TestData.credentials.google & {
@@ -168,6 +195,12 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
   completedOnboarding?: boolean;
+  outOfOffice?: {
+    dateRanges: {
+      start: string;
+      end: string;
+    }[];
+  };
 };
 
 export type InputEventType = {
@@ -273,7 +306,7 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
 export async function addEventTypesToDb(
   eventTypes: (Omit<
     Prisma.EventTypeCreateInput,
-    "users" | "worflows" | "destinationCalendar" | "schedule"
+    "users" | "workflows" | "destinationCalendar" | "schedule"
   > & {
     id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -654,13 +687,32 @@ export async function addWorkflowReminders(workflowReminders: InputWorkflowRemin
   });
 }
 
-export async function addUsersToDb(
-  users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[]; id?: number })[]
-) {
+export async function addUsersToDb(users: InputUser[]) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
   });
+
+  // Create OutOfOfficeEntry for users with outOfOffice data
+  for (const user of users) {
+    if (user.outOfOffice) {
+      log.debug("Creating OutOfOfficeEntry for user", user.id);
+      for (const dateRange of user.outOfOffice.dateRanges) {
+        await prismock.outOfOfficeEntry.create({
+          data: {
+            uuid: uuidv4(),
+            start: new Date(dateRange.start),
+            end: new Date(dateRange.end),
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        });
+      }
+    }
+  }
 
   const allUsers = await prismock.user.findMany({
     include: {
@@ -813,6 +865,16 @@ async function addAppsToDb(apps: any[]) {
   const allApps = await prismock.app.findMany();
   log.silly("TestData: Apps as in DB", JSON.stringify({ apps: allApps }));
 }
+
+async function addSelectedSlotsToDb(selectedSlots: InputSelectedSlot[]) {
+  log.silly("TestData: Creating Selected Slots", JSON.stringify(selectedSlots));
+  await prismock.selectedSlots.createMany({
+    data: selectedSlots,
+  });
+  const allSelectedSlots = await prismock.selectedSlots.findMany();
+  log.silly("TestData: Selected Slots as in DB", JSON.stringify({ selectedSlots: allSelectedSlots }));
+}
+
 export async function createBookingScenario(data: ScenarioData) {
   log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   await addUsers(data.users);
@@ -835,6 +897,10 @@ export async function createBookingScenario(data: ScenarioData) {
   // addPaymentMock();
   const workflows = await addWorkflows(data.workflows || []);
   await addPaymentToDb(data.payment || []);
+
+  if (data.selectedSlots) {
+    await addSelectedSlotsToDb(data.selectedSlots);
+  }
 
   return {
     eventTypes,
@@ -1076,6 +1142,10 @@ export const TestData = {
       integration: "google_calendar",
       externalId: "john@example.com",
     },
+    office365: {
+      integration: "office365_calendar",
+      externalId: "john@example.com",
+    },
   },
   credentials: {
     google: getGoogleCalendarCredential(),
@@ -1152,6 +1222,76 @@ export const TestData = {
       availability: [],
       timeZone: Timezones["+5:30"],
     },
+    IstNotAvailableForFullMonth: (monthYear: string) => {
+      const [year, month] = monthYear.split("-").map(Number); // Expecting format 'YYYY-MM'
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T18:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ];
+      // Generate unavailable dates for the entire month
+      const currentDate = new Date(startOfMonth);
+      while (currentDate <= endOfMonth) {
+        const dateString = currentDate.toISOString().split("T")[0];
+        availability.push({
+          days: [],
+          startTime: new Date(`${dateString}T00:00:00.000Z`),
+          endTime: new Date(`${dateString}T00:00:00.000Z`),
+          date: dateString,
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return {
+        name: "Unavailable for the entire month, then available from 18:00AM to 22:00 IST",
+        availability,
+        timeZone: Timezones["+5:30"],
+      };
+    },
+    IstWorkHoursWithFirstTwoWeeksUnavailable: (dateString: string) => {
+      const date = new Date(dateString);
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T18:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ];
+
+      // Generate dateoverride for each day in thes first two weeks
+      for (let i = 0; i < 15; i++) {
+        const dateString = date.toISOString().split("T")[0];
+        availability.push({
+          days: [],
+          startTime: new Date(`${dateString}T00:00:00.000Z`),
+          endTime: new Date(`${dateString}T00:00:00.000Z`),
+          date: dateString,
+        });
+        date.setDate(date.getDate() + 1);
+      }
+
+      return {
+        name: "Unavailable for the first two weeks, then available from 18:00 to 22:00 IST",
+        availability,
+        timeZone: Timezones["+5:30"],
+      };
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
@@ -1205,6 +1345,16 @@ export const TestData = {
         client_id: "client_id",
         client_secret: "client_secret",
         redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
+    "office365-calendar": {
+      ...appStoreMetadata.office365calendar,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        client_id: "client_id",
+        client_secret: "client_secret",
       },
     },
     "google-meet": {
@@ -1283,6 +1433,7 @@ export function getOrganizer({
   smsLockState,
   completedOnboarding,
   username,
+  locked,
 }: {
   name: string;
   email: string;
@@ -1299,6 +1450,7 @@ export function getOrganizer({
   smsLockState?: SMSLockState;
   completedOnboarding?: boolean;
   username?: string;
+  locked?: boolean;
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1319,6 +1471,7 @@ export function getOrganizer({
     metadata,
     smsLockState,
     completedOnboarding,
+    locked,
   };
 }
 
@@ -1425,7 +1578,6 @@ export function mockNoTranslations() {
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
-      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });
@@ -1498,6 +1650,9 @@ export function mockCalendar(
         googleCalendar?: {
           hangoutLink?: string;
         };
+        office365Calendar?: {
+          url?: string;
+        };
       };
     };
     update?: {
@@ -1507,6 +1662,9 @@ export function mockCalendar(
       appSpecificData?: {
         googleCalendar?: {
           hangoutLink?: string;
+        };
+        office365Calendar?: {
+          url?: string;
         };
       };
     };
@@ -2157,55 +2315,115 @@ export const getDefaultBookingFields = ({
   ] as Fields;
 };
 
-export const createDwdCredential = async (orgId: number) => {
-  const workspace = await prismock.workspacePlatform.create({
-    data: {
-      name: "Test Workspace",
-      slug: "google",
-      description: "Test Workspace",
-      defaultServiceAccountKey: {
-        type: "service_account",
-        auth_uri: "https://accounts.google.com/o/oauth2/auth",
-        client_id: "CLIENT_ID",
-        token_uri: "https://oauth2.googleapis.com/token",
-        project_id: "PROJECT_ID",
-        private_key: "PRIVATE_KEY",
-        client_email: "CLIENT_EMAIL",
-        private_key_id: "PRIVATE_KEY_ID",
-        universe_domain: "googleapis.com",
-        client_x509_cert_url: "CLIENT_X509_CERT_URL",
-        auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      enabled: true,
-    },
-  });
+export const createDelegationCredential = async (orgId: number, type: "google" | "office365" = "google") => {
+  if (type === "google") {
+    const encryptedServiceAccountKey = {
+      type: "service_account",
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      client_id: "CLIENT_ID",
+      token_uri: "https://oauth2.googleapis.com/token",
+      project_id: "PROJECT_ID",
+      encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
+      client_email: "CLIENT_EMAIL",
+      private_key_id: "PRIVATE_KEY_ID",
+      universe_domain: "googleapis.com",
+      client_x509_cert_url: "CLIENT_X509_CERT_URL",
+      auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+    };
 
-  const dwd = await prismock.domainWideDelegation.create({
-    data: {
-      workspacePlatform: {
-        connect: {
-          id: workspace.id,
-        },
+    const workspace = await prismock.workspacePlatform.create({
+      data: {
+        name: "Test Workspace",
+        slug: "google",
+        description: "Test Workspace",
+        defaultServiceAccountKey: encryptedServiceAccountKey,
+        enabled: true,
       },
-      domain: "example.com",
-      enabled: true,
-      organization: {
-        connect: {
-          id: orgId,
-        },
-      },
-      // @ts-expect-error - TODO: fix this
-      serviceAccountKey: workspace.defaultServiceAccountKey,
-    },
-  });
+    });
 
-  return dwd;
+    const decryptedServiceAccountKey = {
+      type: "service_account",
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      client_id: "CLIENT_ID",
+      token_uri: "https://oauth2.googleapis.com/token",
+      project_id: "PROJECT_ID",
+      private_key: "PRIVATE_KEY",
+      client_email: "CLIENT_EMAIL",
+      private_key_id: "PRIVATE_KEY_ID",
+      universe_domain: "googleapis.com",
+      client_x509_cert_url: "CLIENT_X509_CERT_URL",
+      auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+    };
+
+    const delegationCredential = await prismock.delegationCredential.create({
+      data: {
+        workspacePlatform: {
+          connect: {
+            id: workspace.id,
+          },
+        },
+        domain: "example.com",
+        enabled: true,
+        organization: {
+          connect: {
+            id: orgId,
+          },
+        },
+        // @ts-expect-error - TODO: fix this
+        serviceAccountKey: workspace.defaultServiceAccountKey,
+      },
+    });
+
+    return { ...delegationCredential, serviceAccountKey: decryptedServiceAccountKey };
+  } else if (type === "office365") {
+    const encryptedServiceAccountKey = {
+      client_id: "CLIENT_ID",
+      encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
+      tenant_id: "TENANT_ID",
+    };
+
+    const workspace = await prismock.workspacePlatform.create({
+      data: {
+        name: "Test Workspace",
+        slug: "office365",
+        description: "Test Workspace",
+        defaultServiceAccountKey: encryptedServiceAccountKey,
+        enabled: true,
+      },
+    });
+
+    const decryptedServiceAccountKey = {
+      client_id: "CLIENT_ID",
+      private_key: "PRIVATE_KEY",
+      tenant_id: "TENANT_ID",
+    };
+
+    const delegationCredential = await prismock.delegationCredential.create({
+      data: {
+        workspacePlatform: {
+          connect: {
+            id: workspace.id,
+          },
+        },
+        domain: "example.com",
+        enabled: true,
+        organization: {
+          connect: {
+            id: orgId,
+          },
+        },
+        // @ts-expect-error - TODO: fix this
+        serviceAccountKey: workspace.defaultServiceAccountKey,
+      },
+    });
+
+    return { ...delegationCredential, serviceAccountKey: decryptedServiceAccountKey };
+  }
+  throw new Error(`Unsupported type: ${type}`);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const buildDwdCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
+export const buildDelegationCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
   return {
     id: -1,
     key: {

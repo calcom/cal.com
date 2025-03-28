@@ -8,6 +8,8 @@ import {
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
+import { isENVDev } from "@calcom/lib/env";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -25,6 +27,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const booking = await BookingRepository.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
   });
+
+  // Below if block is for local testing purposes only
+  // STARTS------------------------------------------------------------------------------
+  if (booking?.references[0] && isENVDev && CAL_VIDEO_MEETING_LINK_FOR_TESTING) {
+    // meetingUrl is `null` in dev env, so setting a dummy meetingUrl (it's a past but real meeting link in production env)
+    booking.references[0].meetingUrl = CAL_VIDEO_MEETING_LINK_FOR_TESTING;
+  }
+  // ENDS--------------------------------------------------------------------------------
 
   if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
     return {
@@ -95,23 +105,26 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     exp: epochTimeFourteenDaysAfter,
   });
 
+  const sessionUserId = !!session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+
   // set meetingPassword for guests
-  if (session?.user.id !== bookingObj.user?.id) {
+  if (sessionUserId !== bookingObj.user?.id) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
       videoReferencePassword,
-      session?.user.id
+      sessionUserId
     );
 
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
-  // Only for backward compatibility and setting user id in particpants for organizer
+
+  // Only for backward compatibility and setting user id in participants for organizer
   else {
     const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
       oldVideoReference.id,
       videoReferencePassword,
-      session?.user.id
+      sessionUserId
     );
     if (!!meetingPassword) {
       bookingObj.references.forEach((bookRef) => {

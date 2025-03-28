@@ -1,21 +1,20 @@
-import { createHash } from "crypto";
+import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
-import { buildNonDwdCredentials } from "../../domainWideDelegation/clientAndServer";
-import slugify from "../../slugify";
+import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
 import { withSelectedCalendars } from "../withSelectedCalendars";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
@@ -557,25 +556,27 @@ export class UserRepository {
     });
   }
 
-  static async create({
-    email,
-    username,
-    organizationId,
-  }: {
-    email: string;
-    username: string;
-    organizationId: number | null;
-  }) {
-    const password = createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
-    const hashedPassword = await hashPassword(password);
+  static async create(
+    data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
+      username: string;
+      hashedPassword?: string;
+      organizationId: number | null;
+      creationSource: CreationSource;
+      locked: boolean;
+    }
+  ) {
+    const organizationIdValue = data.organizationId;
+    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+
+    logger.info("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
-    return await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        username: slugify(username),
+        username,
         email: email,
-        password: { create: { hash: hashedPassword } },
+        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
         // Default schedule
         schedules: {
           create: {
@@ -591,18 +592,25 @@ export class UserRepository {
             },
           },
         },
-        organizationId: organizationId,
-        profiles: organizationId
+        creationSource,
+        locked,
+        ...(organizationIdValue
           ? {
-              create: {
-                username: slugify(username),
-                organizationId: organizationId,
-                uid: ProfileRepository.generateProfileUid(),
+              organizationId: organizationIdValue,
+              profiles: {
+                create: {
+                  username,
+                  organizationId: organizationIdValue,
+                  uid: ProfileRepository.generateProfileUid(),
+                },
               },
             }
-          : undefined,
+          : {}),
+        ...rest,
       },
     });
+
+    return user;
   }
   static async getUserAdminTeams(userId: number) {
     return prisma.user.findFirst({
@@ -780,7 +788,7 @@ export class UserRepository {
     const { credentials, ...userWithSelectedCalendars } = withSelectedCalendars(user);
     return {
       ...userWithSelectedCalendars,
-      credentials: buildNonDwdCredentials(credentials),
+      credentials: buildNonDelegationCredentials(credentials),
     };
   }
 
@@ -903,5 +911,20 @@ export class UserRepository {
       },
     });
     return users.map(withSelectedCalendars);
+  }
+
+  static async updateStripeCustomerId({
+    id,
+    stripeCustomerId,
+    existingMetadata,
+  }: {
+    id: number;
+    stripeCustomerId: string;
+    existingMetadata: z.infer<typeof userMetadata>;
+  }) {
+    return prisma.user.update({
+      where: { id },
+      data: { metadata: { ...existingMetadata, stripeCustomerId } },
+    });
   }
 }

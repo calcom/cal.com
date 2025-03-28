@@ -39,7 +39,7 @@ export class CalendarsService {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
-  private buildNonDwdCredentials<TCredential>(credentials: TCredential[]) {
+  private buildNonDelegationCredentials<TCredential>(credentials: TCredential[]) {
     return credentials
       .map((credential) => ({
         ...credential,
@@ -83,11 +83,12 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        this.buildNonDwdCredentials(credentials),
+        this.buildNonDelegationCredentials(credentials),
         dateFrom,
         dateTo,
         composedSelectedCalendars
       );
+      // @ts-expect-error Element implicitly has any type
       const calendarBusyTimesConverted = calendarBusyTimes.map((busyTime) => {
         const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
         const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);

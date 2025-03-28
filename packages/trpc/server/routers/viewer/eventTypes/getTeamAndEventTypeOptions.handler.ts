@@ -9,7 +9,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
 import type { TGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 
@@ -30,7 +30,10 @@ type res = Awaited<
   ReturnType<typeof MembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
 >[number]["team"]["eventTypes"][number];
 
-type EventType = Omit<res, "forwardParamsSuccessRedirect"> & { children?: { id: number }[] };
+type EventType = Omit<res, "forwardParamsSuccessRedirect"> & {
+  children?: { id: number }[];
+  canSendCalVideoTranscriptionEmails?: boolean;
+};
 
 export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEventTypeOptions) => {
   await checkRateLimitAndThrowError({
@@ -119,7 +122,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
       name: profile.name,
       eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
     },
-    eventTypes: profileEventTypes,
+    eventTypes: profileEventTypes as EventType[],
   });
 
   eventTypeGroups = ([] as EventTypeGroup[]).concat(

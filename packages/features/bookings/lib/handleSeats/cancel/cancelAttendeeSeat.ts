@@ -1,22 +1,24 @@
+import type { NextApiRequest } from "next";
+
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
-import { getDwdOrFindRegularCredential } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { updateMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { CustomRequest } from "../../handleCancelBooking";
+import type { AppRouterRequest, CustomRequest } from "../../handleCancelBooking/types";
 
 async function cancelAttendeeSeat(
   req: CustomRequest,
@@ -33,7 +35,8 @@ async function cancelAttendeeSeat(
   },
   eventTypeMetadata: EventTypeMetadata
 ) {
-  const input = bookingCancelAttendeeSeatSchema.safeParse(req.body);
+  const body = (req as AppRouterRequest).appDirRequestBody ?? (req as NextApiRequest).body;
+  const input = bookingCancelAttendeeSeatSchema.safeParse(body);
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
   if (!input.success) return;
   const { seatReferenceUid } = input.data;
@@ -62,12 +65,12 @@ async function cancelAttendeeSeat(
       },
     }),
   ]);
-  req.statusCode = 200;
+  (req as NextApiRequest).statusCode = 200;
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
   const bookingToDeleteUser = bookingToDelete.user ?? null;
-  const dwdCredentials = bookingToDeleteUser
-    ? await getAllDwdCredentialsForUser({
+  const delegationCredentials = bookingToDeleteUser
+    ? await getAllDelegationCredentialsForUser({
         user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
       })
     : [];
@@ -78,13 +81,13 @@ async function cancelAttendeeSeat(
     const integrationsToUpdate = [];
 
     for (const reference of bookingToDelete.references) {
-      if (reference.credentialId || reference.domainWideDelegationCredentialId) {
-        const credential = await getDwdOrFindRegularCredential({
+      if (reference.credentialId || reference.delegationCredentialId) {
+        const credential = await getDelegationCredentialOrFindRegularCredential({
           id: {
             credentialId: reference.credentialId,
-            domainWideDelegationCredentialId: reference.domainWideDelegationCredentialId,
+            delegationCredentialId: reference.delegationCredentialId,
           },
-          dwdCredentials,
+          delegationCredentials,
         });
 
         if (credential) {

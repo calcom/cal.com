@@ -10,6 +10,7 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -428,6 +429,18 @@ export async function expectBookingToBeInDatabase(
   );
 }
 
+export async function expectBookingTrackingToBeInDatabase(tracking: Tracking, uid?: string) {
+  const actualBooking = await prismaMock.booking.findUnique({
+    where: {
+      uid,
+    },
+    select: {
+      tracking: true,
+    },
+  });
+  expect(actualBooking?.tracking).toEqual(expect.objectContaining(tracking));
+}
+
 export function expectSMSToBeTriggered({ sms, toNumber }: { sms: Fixtures["sms"]; toNumber: string }) {
   expect(sms.get()).toEqual(
     expect.arrayContaining([
@@ -449,6 +462,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange,
   booking,
   destinationEmail,
+  calendarType,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
@@ -461,6 +475,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange?: { start: Date; end: Date };
   booking: { uid: string; urlOrigin?: string };
   destinationEmail?: string;
+  calendarType?: string;
 }) {
   const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
   expect(emails).toHaveEmail(
@@ -496,12 +511,16 @@ export function expectSuccessfulBookingCreationEmails({
           }
         : null),
       to: `${destinationEmail ?? organizer.email}`,
-      ics: {
-        filename: "event.ics",
-        iCalUID: `${iCalUID}`,
-        recurrence,
-        method: "REQUEST",
-      },
+      ...(calendarType !== "office365_calendar"
+        ? {
+            ics: {
+              filename: "event.ics",
+              iCalUID: `${iCalUID}`,
+              recurrence,
+              method: "REQUEST",
+            },
+          }
+        : {}),
     },
     `${destinationEmail ?? organizer.email}`
   );
@@ -699,7 +718,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
 }) {
   if (newOrganizer !== prevOrganizer) {
     vi.waitFor(() => {
-      // new organizer should recieve scheduling emails
+      // new organizer should receive scheduling emails
       expect(emails).toHaveEmail(
         {
           heading: "new_event_scheduled",
@@ -710,7 +729,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
     });
 
     vi.waitFor(() => {
-      // old organizer should recieve cancelled emails
+      // old organizer should receive cancelled emails
       expect(emails).toHaveEmail(
         {
           heading: "event_request_cancelled",
@@ -721,7 +740,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
     });
   } else {
     vi.waitFor(() => {
-      // organizer should recieve rescheduled emails
+      // organizer should receive rescheduled emails
       expect(emails).toHaveEmail(
         {
           heading: "event_has_been_rescheduled",

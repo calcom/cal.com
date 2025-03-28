@@ -4,7 +4,7 @@ import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
-import { isDwdCredential } from "../domainWideDelegation/clientAndServer";
+import { isDelegationCredential } from "../delegationCredential/clientAndServer";
 
 type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
@@ -12,7 +12,7 @@ type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
  *
  * @param credentials - Can be user or team credentials
  * @param options
- * @param options.where Aditional where conditions to filter out apps
+ * @param options.where Additional where conditions to filter out apps
  * @param options.filterOnCredentials - Only include apps where credentials are present
  * @returns A list of enabled app metadata & credentials tied to them
  */
@@ -32,8 +32,8 @@ const getEnabledAppsFromCredentials = async (
     },
   } satisfies Prisma.AppWhereInput;
 
-  const dwdCredentialsWithAppId = credentials
-    .filter((credential) => isDwdCredential({ credentialId: credential.id }))
+  const delegationCredentialsWithAppId = credentials
+    .filter((credential) => isDelegationCredential({ credentialId: credential.id }))
     .filter((credential): credential is typeof credential & { appId: string } => credential.appId !== null);
 
   if (filterOnCredentials) {
@@ -59,17 +59,17 @@ const getEnabledAppsFromCredentials = async (
     select: { slug: true, enabled: true },
   });
 
-  const dwdSupportedEnabledApps = await prisma.app.findMany({
+  const delegationCredentialSupportedEnabledApps = await prisma.app.findMany({
     where: {
       enabled: true,
       slug: {
-        in: dwdCredentialsWithAppId.map((credential) => credential.appId),
+        in: delegationCredentialsWithAppId.map((credential) => credential.appId),
       },
     },
     select: { slug: true, enabled: true },
   });
 
-  enabledApps = [...enabledApps, ...dwdSupportedEnabledApps];
+  enabledApps = [...enabledApps, ...delegationCredentialSupportedEnabledApps];
 
   const apps = getApps(credentials, filterOnCredentials);
   const filteredApps = apps.reduce((reducedArray, app) => {

@@ -14,7 +14,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -47,12 +47,12 @@ describe("Organizations Event Types Endpoints", () => {
     let team: Team;
     let falseTestTeam: Team;
 
-    const userEmail = `auth-${randomNumber()}@api.com`;
+    const userEmail = `teams-event-types-user-${randomString()}@api.com`;
     let userAdmin: User;
 
-    const teammate1Email = "teammate111@team.com";
-    const teammate2Email = "teammate221@team.com";
-    const falseTestUserEmail = "false-user@false-team.com";
+    const teammate1Email = `teams-event-types-teammate1-${randomString()}@api.com`;
+    const teammate2Email = `teams-event-types-teammate2-${randomString()}@api.com`;
+    const falseTestUserEmail = `teams-event-types-false-user-${randomString()}@api.com`;
     let teamMember1: User;
     let teamMember2: User;
     let falseTestUser: User;
@@ -97,12 +97,12 @@ describe("Organizations Event Types Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team",
+        name: `teams-event-types-team-${randomString()}`,
         isOrganization: false,
       });
 
       falseTestTeam = await teamsRepositoryFixture.create({
-        name: "Outside org team",
+        name: `teams-event-types-false-team-${randomString()}`,
         isOrganization: false,
       });
 
@@ -167,10 +167,60 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(404);
     });
 
+    it("should not be able to create phone-only event type", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Phone coding consultation",
+        slug: "phone-coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+          {
+            type: "organizersDefaultApp",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teamMember1.id,
+          },
+          {
+            userId: teamMember2.id,
+          },
+        ],
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+            hidden: true,
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+            hidden: false,
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(400);
+      expect(response.body.error.message).toBe(
+        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+      );
+    });
+
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
-        title: "Coding consultation collective",
-        slug: "coding-consultation collective",
+        title: `teams-event-types-collective-${randomString()}`,
+        slug: `teams-event-types-collective-${randomString()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -253,7 +303,7 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
-          expect(data.schedulingType).toEqual("COLLECTIVE");
+          expect(data.schedulingType).toEqual("collective");
           evaluateHost(body.hosts[0], data.hosts[0]);
           evaluateHost(body.hosts[1], data.hosts[1]);
           expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
@@ -275,8 +325,8 @@ describe("Organizations Event Types Endpoints", () => {
 
     it("should create a managed team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
-        title: "Coding consultation managed",
-        slug: "coding-consultation-managed",
+        title: `teams-event-types-managed-${randomString()}`,
+        slug: `teams-event-types-managed-${randomString()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -316,6 +366,7 @@ describe("Organizations Event Types Endpoints", () => {
           const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
 
           expect(teammate1EventTypes.length).toEqual(1);
+          expect(teammate1EventTypes[0].title).toEqual(body.title);
           expect(teammate2EventTypes.length).toEqual(1);
           expect(teamEventTypes.filter((eventType) => eventType.schedulingType === "MANAGED").length).toEqual(
             1
@@ -372,8 +423,8 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.length).toEqual(2);
 
-          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "MANAGED");
+          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "collective");
+          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "managed");
 
           expect(eventTypeCollective?.title).toEqual(collectiveEventType.title);
           expect(eventTypeCollective?.hosts.length).toEqual(2);
@@ -423,7 +474,7 @@ describe("Organizations Event Types Endpoints", () => {
     });
 
     it("should update managed event-type", async () => {
-      const newTitle = "Coding consultation managed updated";
+      const newTitle = `teams-event-types-managed-updated-${randomString()}`;
       const newHosts: UpdateTeamEventTypeInput_2024_06_14["hosts"] = [
         {
           userId: teamMember1.id,
@@ -465,7 +516,7 @@ describe("Organizations Event Types Endpoints", () => {
           ).toEqual(newTitle);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.title).toEqual(newTitle);
@@ -511,7 +562,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(managedTeamEventTypes[0].assignAllTeamMembers).toEqual(true);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.teamId).toEqual(team.id);

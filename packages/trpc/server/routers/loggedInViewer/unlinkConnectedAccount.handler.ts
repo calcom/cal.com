@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type UpdateProfileOptions = {
   ctx: {
@@ -23,7 +23,7 @@ const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
       providerAccountId: user.identityProviderId || "",
     });
   } catch {
-    // Fail silenty if we don't have an record in the account table
+    // Fail silently if we don't have a record in the account table
   }
   // Fall back to the default identity provider
   const _user = await prisma.user.update({

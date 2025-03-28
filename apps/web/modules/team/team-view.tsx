@@ -16,10 +16,14 @@ import EventTypeDescription from "@calcom/features/eventtypes/components/EventTy
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
+import { UserAvatarGroup } from "@calcom/ui/components/avatar";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
@@ -74,7 +78,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -157,7 +161,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
 
   return (
     <>
-      <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
+      <main className="dark:bg-default bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
             <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
@@ -208,9 +212,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                         <div className="border-subtle w-full border-t" />
                       </div>
                       <div className="relative flex justify-center">
-                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle px-2 text-sm">
-                          {t("or")}
-                        </span>
+                        <span className="bg-subtle text-subtle px-2 text-sm">{t("or")}</span>
                       </div>
                     </div>
 
@@ -241,7 +243,5 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
     </>
   );
 }
-
-TeamPage.isBookingPage = true;
 
 export default TeamPage;

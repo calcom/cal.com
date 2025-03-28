@@ -3,28 +3,16 @@
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, Input, Select, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Select, Form, NumberInput } from "@calcom/ui/components/form";
 
 import { useFilterValue, useDataTable } from "../../hooks";
-import type { FilterableColumn, NumberFilterOperator } from "../../lib/types";
-import { ZNumberFilterValue } from "../../lib/types";
-
-export type NumberFilterOperatorOption = {
-  label: string;
-  value: NumberFilterOperator;
-};
-
-const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
-  { value: "eq", label: "=" },
-  { value: "neq", label: "≠" },
-  { value: "gt", label: ">" },
-  { value: "gte", label: "≥" },
-  { value: "lt", label: "<" },
-  { value: "lte", label: "≤" },
-];
+import type { FilterableColumn } from "../../lib/types";
+import { ZNumberFilterValue, ColumnFilterType } from "../../lib/types";
+import { numberFilterOperatorOptions } from "./utils";
 
 export type NumberFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "number" }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.NUMBER }>;
 };
 
 export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
@@ -48,7 +36,7 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
         handleSubmit={({ operatorOption, operand }) => {
           if (operatorOption) {
             updateFilter(column.id, {
-              type: "number",
+              type: ColumnFilterType.NUMBER,
               data: {
                 operator: operatorOption.value,
                 operand: Number(operand),
@@ -61,7 +49,7 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
             name="operatorOption"
             control={form.control}
             render={({ field: { value } }) => (
-              <div className="-mt-2 flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Select
                   className="basis-1/3"
                   options={numberFilterOperatorOptions}
@@ -73,12 +61,12 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
                     }
                   }}
                 />
-                <Input type="number" className="mt-2 basis-2/3" {...form.register("operand")} />
+                <NumberInput className="h-[38px] basis-2/3" {...form.register("operand")} />
               </div>
             )}
           />
 
-          <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
+          <div className="bg-subtle -mx-3 my-2 h-px" role="separator" />
 
           <div className="flex items-center justify-between">
             <Button

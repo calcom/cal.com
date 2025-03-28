@@ -1,11 +1,12 @@
 "use client";
 
+import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import Shell from "@calcom/features/shell/Shell";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 import NoPlatformPlan from "@calcom/web/components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
@@ -42,7 +43,7 @@ const PlatformMembersView = () => {
   if (!isPlatformUser)
     return (
       <div>
-        <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+        <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
           <NoPlatformPlan />
         </Shell>
       </div>
@@ -65,9 +66,9 @@ const PlatformMembersView = () => {
       }
       title={t("platform_members")}
       subtitle={t("platform_members_description")}
-      hideHeadingOnMobile
       withoutMain={false}
-      isPlatformUser={true}>
+      isPlatformUser={true}
+      actions={<div className={CTA_CONTAINER_CLASS_NAME} />}>
       <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
     </Shell>
   );

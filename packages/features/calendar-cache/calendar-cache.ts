@@ -1,6 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { findDwdCalendarCredential } from "@calcom/lib/domainWideDelegation/server";
+import { findUniqueDelegationCalendarCredential } from "@calcom/lib/delegationCredential/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { Calendar } from "@calcom/types/Calendar";
 
@@ -24,7 +24,10 @@ export class CalendarCache {
     dwdId: string;
     userId: number;
   }): Promise<ICalendarCacheRepository> {
-    const dwdCredential = await findDwdCalendarCredential({ dwdId, userId });
+    const dwdCredential = await findUniqueDelegationCalendarCredential({
+      delegationCredentialId: dwdId,
+      userId,
+    });
     const calendar = await getCalendar(dwdCredential);
     return await CalendarCache.init(calendar);
   }

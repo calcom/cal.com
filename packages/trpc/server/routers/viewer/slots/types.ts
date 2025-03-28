@@ -1,3 +1,4 @@
+import type { IncomingMessage } from "http";
 import { z } from "zod";
 
 export const getScheduleSchema = z
@@ -30,6 +31,8 @@ export const getScheduleSchema = z
     _enableTroubleshooter: z.boolean().optional(),
     _bypassCalendarBusyTimes: z.boolean().optional(),
     _shouldServeCache: z.boolean().optional(),
+    routingFormResponseId: z.number().optional(),
+    email: z.string().nullish(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API
@@ -54,6 +57,7 @@ export const reserveSlotSchema = z
     // endTime ISOString
     slotUtcEndDate: z.string(),
     bookingUid: z.string().optional(),
+    _isDryRun: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
@@ -71,3 +75,15 @@ export type Slot = {
 export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
 });
+
+export interface ContextForGetSchedule extends Record<string, unknown> {
+  req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+}
+
+export type TGetScheduleInputSchema = z.infer<typeof getScheduleSchema>;
+export const ZGetScheduleInputSchema = getScheduleSchema;
+
+export type GetScheduleOptions = {
+  ctx?: ContextForGetSchedule;
+  input: TGetScheduleInputSchema;
+};

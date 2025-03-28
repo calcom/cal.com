@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { uniqueBy } from "@calcom/lib/array";
-import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -9,7 +9,7 @@ import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calen
 
 import type {
   ICalendarCacheRepository,
-  DwdCredentialArgs,
+  DelegationCredentialArgs,
   CredentialArgs,
 } from "./calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "./lib/datesForCache";
@@ -42,13 +42,14 @@ function handleMinMax(min: string, max: string) {
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
-const buildDwdCredential = ({ userId, dwdId }: DwdCredentialArgs) => {
-  if (!userId || !dwdId) {
+const validatedDelegationUserCredential = ({ userId, delegationCredentialId }: DelegationCredentialArgs) => {
+  if (!userId || !delegationCredentialId) {
     return null;
   }
+
   return {
     userId,
-    dwdId,
+    delegationCredentialId,
   };
 };
 
@@ -83,19 +84,19 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
 
   async findUnique({
     credentialId,
-    dwdCredential,
+    delegationUserCredential,
     key,
   }: {
     credentialId: number | null;
-    dwdCredential: { dwdId: string; userId: number } | null;
+    delegationUserCredential: { delegationCredentialId: string; userId: number } | null;
     key: string;
   }) {
-    log.debug("findUnique", safeStringify({ credentialId, dwdCredential, key }));
-    if (dwdCredential) {
+    log.debug("findUnique", safeStringify({ credentialId, delegationUserCredential, key }));
+    if (delegationUserCredential) {
       const calendarCaches = await prisma.calendarCache.findMany({
         where: {
-          dwdId: dwdCredential.dwdId,
-          userId: dwdCredential.userId,
+          delegationCredentialId: delegationUserCredential.delegationCredentialId,
+          userId: delegationUserCredential.userId,
           key,
           expiresAt: { gte: new Date(Date.now()) },
         },
@@ -110,52 +111,55 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     } else {
-      log.error("findUnique: No credentialId or dwdId provided");
+      log.error("findUnique: No credentialId or delegationCredentialId provided");
       return null;
     }
   }
 
   async getCachedAvailability({
     credentialId,
-    dwdId,
+    delegationCredentialId,
     userId,
     args,
   }: CredentialArgs & {
     args: FreeBusyArgs;
   }) {
-    log.debug("getCachedAvailability", safeStringify({ credentialId, dwdId, userId, args }));
+    log.debug("getCachedAvailability", safeStringify({ credentialId, delegationCredentialId, userId, args }));
     const key = parseKeyForCache(args);
-    const dwdCredential = buildDwdCredential({ userId, dwdId });
-    const cached = await this.findUnique({ credentialId, dwdCredential, key });
+    const delegationUserCredential = validatedDelegationUserCredential({ userId, delegationCredentialId });
+    const cached = await this.findUnique({ credentialId, delegationUserCredential, key });
     log.info("Cached availability result", safeStringify({ key, cached }));
     return cached;
   }
   async upsertCachedAvailability({
-    dwdId,
+    delegationCredentialId,
     userId,
     credentialId,
     args,
     value,
   }: {
-    dwdId: string | null;
+    delegationCredentialId: string | null;
     userId: number | null;
     credentialId: number | null;
     args: FreeBusyArgs;
     value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
   }) {
-    log.debug("upsertCachedAvailability", safeStringify({ dwdId, userId, credentialId, args, value }));
+    log.debug(
+      "upsertCachedAvailability",
+      safeStringify({ delegationCredentialId, userId, credentialId, args, value })
+    );
     const key = parseKeyForCache(args);
-    const dwdCredential = buildDwdCredential({ userId, dwdId });
+    const delegationCredential = validatedDelegationUserCredential({ userId, delegationCredentialId });
     let where;
-    if (dwdCredential) {
+    if (delegationCredential) {
       where = {
-        dwdId: dwdCredential.dwdId,
-        userId: dwdCredential.userId,
+        delegationCredentialId: delegationCredential.delegationCredentialId,
+        userId: delegationCredential.userId,
         key,
       };
     } else if (credentialId) {
-      if (isDwdCredential({ credentialId })) {
-        log.error("upsertCachedAvailability: dwdCredential seems to be invalid");
+      if (isDelegationCredential({ credentialId })) {
+        log.error("upsertCachedAvailability: delegationCredential seems to be invalid");
         return;
       }
       where = {
@@ -163,7 +167,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         key,
       };
     } else {
-      log.error("upsertCachedAvailability: No credentialId or dwdCredential provided");
+      log.error("upsertCachedAvailability: No credentialId or delegationCredential provided");
       return;
     }
 
@@ -186,9 +190,9 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       await prisma.calendarCache.create({
         data: {
           key,
-          credentialId: isDwdCredential({ credentialId }) ? null : credentialId,
-          dwdId: dwdCredential?.dwdId ?? null,
-          userId: dwdCredential?.userId ?? null,
+          credentialId: isDelegationCredential({ credentialId }) ? null : credentialId,
+          delegationCredentialId: delegationCredential?.delegationCredentialId ?? null,
+          userId: delegationCredential?.userId ?? null,
           value,
           expiresAt: new Date(Date.now() + CACHING_TIME),
         },
@@ -196,19 +200,19 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     }
   }
 
-  async deleteManyByCredential({ dwdId, credentialId, userId }: CredentialArgs) {
-    const dwdCredential = buildDwdCredential({ userId, dwdId });
+  async deleteManyByCredential({ delegationCredentialId, credentialId, userId }: CredentialArgs) {
+    const delegationCredential = validatedDelegationUserCredential({ userId, delegationCredentialId });
 
-    if (dwdCredential) {
+    if (delegationCredential) {
       await prisma.calendarCache.deleteMany({
         where: {
-          dwdId: dwdCredential.dwdId,
-          userId: dwdCredential.userId,
+          delegationCredentialId: delegationCredential.delegationCredentialId,
+          userId: delegationCredential.userId,
         },
       });
     } else if (credentialId) {
-      if (isDwdCredential({ credentialId })) {
-        log.error("deleteMany: dwdCredential seems to be invalid");
+      if (isDelegationCredential({ credentialId })) {
+        log.error("deleteMany: delegationCredential seems to be invalid");
         return;
       }
       await prisma.calendarCache.deleteMany({
@@ -217,7 +221,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     } else {
-      log.error("deleteMany: No credentialId or dwdId provided");
+      log.error("deleteMany: No credentialId or delegationCredentialId provided");
       return;
     }
   }
