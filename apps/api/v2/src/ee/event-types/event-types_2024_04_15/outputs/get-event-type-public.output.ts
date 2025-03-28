@@ -353,7 +353,7 @@ class PublicEventTypeOutput {
 
   @IsString()
   @ApiHideProperty()
-  lockedTimeZone: "Europe/London",!: string;
+  lockedTimeZone!: string;
 
   @IsBoolean()
   @ApiProperty()
