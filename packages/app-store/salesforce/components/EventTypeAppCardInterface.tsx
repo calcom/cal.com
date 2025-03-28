@@ -46,6 +46,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
 
   const { t } = useLocale();
 
@@ -522,6 +523,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     }}
                   />
                 </div>
+                {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
+                  <div className="my-4">
+                    <Switch
+                      label={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
+                      labelOnLeading
+                      checked={roundRobinSkipFallbackToLeadOwner}
+                      onCheckedChange={(checked) => {
+                        setAppData("roundRobinSkipFallbackToLeadOwner", checked);
+                      }}
+                    />
+                  </div>
+                ) : null}
                 <div className="my-4">
                   <Switch
                     label={t("salesforce_if_free_email_domain_skip_owner_check")}
