@@ -1,11 +1,11 @@
+import getConnectedForms from "@calcom/app-store/routing-forms/lib/getConnectedForms";
+import { isFormCreateEditAllowed } from "@calcom/app-store/routing-forms/lib/isFormCreateEditAllowed";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import getConnectedForms from "../lib/getConnectedForms";
-import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import type { TDeleteFormInputSchema } from "./deleteForm.schema";
 
 interface DeleteFormHandlerOptions {
