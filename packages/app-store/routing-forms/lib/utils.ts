@@ -23,7 +23,7 @@ if (typeof window === "undefined") {
     });
 }
 
-const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
+const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/utils"] });
 
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
 export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<

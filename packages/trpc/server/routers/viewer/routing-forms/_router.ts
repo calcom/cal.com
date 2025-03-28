@@ -43,37 +43,37 @@ export const routingFormsRouter = router({
   }),
   forms,
   formQuery: authedProcedure.input(ZFormQueryInputSchema).query(async ({ ctx, input }) => {
-    const handler = await getHandler("formQuery", () => import("./formQuery.handler"));
+    const handler = await importHandler(namespaced("formQuery"), () => import("./formQuery.handler"));
     return handler({ ctx, input });
   }),
   getResponseWithFormFields: authedProcedure
     .input(ZFormByResponseIdInputSchema)
     .query(async ({ ctx, input }) => {
-      const handler = await getHandler(
-        "getResponseWithFormFields",
+      const handler = await importHandler(
+        namespaced("getResponseWithFormFields"),
         () => import("./getResponseWithFormFields.handler")
       );
       return handler({ ctx, input });
     }),
   formMutation: authedProcedure.input(ZFormMutationInputSchema).mutation(async ({ ctx, input }) => {
-    const handler = await getHandler("formMutation", () => import("./formMutation.handler"));
+    const handler = await importHandler(namespaced("formMutation"), () => import("./formMutation.handler"));
     return handler({ ctx, input });
   }),
   deleteForm: authedProcedure.input(ZDeleteFormInputSchema).mutation(async ({ ctx, input }) => {
-    const handler = await getHandler("deleteForm", () => import("./deleteForm.handler"));
+    const handler = await importHandler(namespaced("deleteForm"), () => import("./deleteForm.handler"));
     return handler({ ctx, input });
   }),
 
   report: authedProcedure.input(ZReportInputSchema).query(async ({ ctx, input }) => {
-    const handler = await getHandler("report", () => import("./report.handler"));
+    const handler = await importHandler(namespaced("report"), () => import("./report.handler"));
     return handler({ ctx, input });
   }),
 
   getAttributesForTeam: authedProcedure
     .input(ZGetAttributesForTeamInputSchema)
     .query(async ({ ctx, input }) => {
-      const handler = await getHandler(
-        "getAttributesForTeam",
+      const handler = await importHandler(
+        namespaced("getAttributesForTeam"),
         () => import("./getAttributesForTeam.handler")
       );
       return handler({ ctx, input });
@@ -82,8 +82,8 @@ export const routingFormsRouter = router({
   getIncompleteBookingSettings: authedProcedure
     .input(ZGetIncompleteBookingSettingsInputSchema)
     .query(async ({ ctx, input }) => {
-      const handler = await getHandler(
-        "getIncompleteBookingSettings",
+      const handler = await importHandler(
+        namespaced("getIncompleteBookingSettings"),
         () => import("./getIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
@@ -92,8 +92,8 @@ export const routingFormsRouter = router({
   saveIncompleteBookingSettings: authedProcedure
     .input(ZSaveIncompleteBookingSettingsInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const handler = await getHandler(
-        "saveIncompleteBookingSettings",
+      const handler = await importHandler(
+        namespaced("saveIncompleteBookingSettings"),
         () => import("./saveIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
