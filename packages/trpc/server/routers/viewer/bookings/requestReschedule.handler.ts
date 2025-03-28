@@ -1,5 +1,5 @@
 import type { BookingReference, EventType } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import dayjs from "@calcom/dayjs";
@@ -11,7 +11,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
-import { getDwdOrRegularCredential } from "@calcom/lib/domainWideDelegation/server";
+import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -29,7 +29,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
 
@@ -240,22 +240,22 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
       if (bookingRef.type.endsWith("_calendar")) {
         const calendar = await getCalendar(
-          getDwdOrRegularCredential({
+          getDelegationCredentialOrRegularCredential({
             credentials,
             id: {
               credentialId: bookingRef?.credentialId,
-              dwdId: bookingRef?.domainWideDelegationCredentialId,
+              delegationCredentialId: bookingRef?.delegationCredentialId,
             },
           })
         );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(
-          getDwdOrRegularCredential({
+          getDelegationCredentialOrRegularCredential({
             credentials,
             id: {
               credentialId: bookingRef?.credentialId,
-              dwdId: bookingRef?.domainWideDelegationCredentialId,
+              delegationCredentialId: bookingRef?.delegationCredentialId,
             },
           }),
           bookingRef.uid

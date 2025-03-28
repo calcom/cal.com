@@ -9,8 +9,7 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
+import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
@@ -19,6 +18,8 @@ import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -27,27 +28,28 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/lib/sentryWrapper";
+import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
-import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
+import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
-type GetAvailabilityUserWithoutDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialPayload[];
 };
-type GetAvailabilityUserWithDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
 const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
@@ -224,20 +226,6 @@ export async function getRegularOrDynamicEventType(
     : await getEventType(input, organizationDetails);
 }
 
-const groupTimeSlotsByDay = (timeSlots: { time: Dayjs }[]) => {
-  return timeSlots.reduce((acc: Record<string, string[]>, { time }) => {
-    const day = time.format("YYYY-MM-DD"); // Group by date
-    const formattedTime = time.format("HH:mm"); // Format as HH:mm
-
-    if (!acc[day]) {
-      acc[day] = [];
-    }
-    acc[day].push(formattedTime);
-
-    return acc;
-  }, {});
-};
-
 function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
   const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
   Object.keys(occupiedSeatsCount).forEach((date) => {
@@ -272,7 +260,7 @@ export function getUsersWithCredentials({
 }: {
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUserWithDwdCredentials;
+    user: GetAvailabilityUserWithDelegationCredentials;
   }[];
 }) {
   return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
@@ -381,7 +369,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
-    findQualifiedHostsWithDwdCredentials<GetAvailabilityUserWithoutDwdCredentials>,
+    findQualifiedHostsWithDelegationCredentials<GetAvailabilityUserWithoutDelegationCredentials>,
     {
       eventType,
       rescheduleUid: input.rescheduleUid ?? null,
@@ -760,102 +748,6 @@ async function getTeamIdFromSlug(
   return team?.id;
 }
 
-async function getExistingBookings(
-  startTimeDate: Date,
-  endTimeDate: Date,
-  eventType: Awaited<ReturnType<typeof getEventType>>,
-  sharedQuery: {
-    startTime: {
-      lte: Date;
-    };
-    endTime: {
-      gte: Date;
-    };
-    status: {
-      in: "ACCEPTED"[];
-    };
-  },
-  usersWithCredentials: ReturnType<typeof getUsersWithCredentials>,
-  allUserIds: number[]
-) {
-  const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
-    id: true,
-    uid: true,
-    userId: true,
-    startTime: true,
-    endTime: true,
-    title: true,
-    attendees: true,
-    eventType: {
-      select: {
-        id: true,
-        onlyShowFirstAvailableSlot: true,
-        afterEventBuffer: true,
-        beforeEventBuffer: true,
-        seatsPerTimeSlot: true,
-        requiresConfirmationWillBlockSlot: true,
-        requiresConfirmation: true,
-        allowReschedulingPastBookings: true,
-      },
-    },
-    ...(!!eventType?.seatsPerTimeSlot && {
-      _count: {
-        select: {
-          seatsReferences: true,
-        },
-      },
-    }),
-  });
-
-  const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
-    where: {
-      ...sharedQuery,
-      userId: {
-        in: allUserIds,
-      },
-    },
-    select: bookingsSelect,
-  });
-
-  const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
-    where: {
-      ...sharedQuery,
-      attendees: {
-        some: {
-          email: {
-            in: usersWithCredentials.map((user) => user.email),
-          },
-        },
-      },
-    },
-    select: bookingsSelect,
-  });
-
-  const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
-    where: {
-      startTime: { lte: endTimeDate },
-      endTime: { gte: startTimeDate },
-      eventType: {
-        id: eventType?.id,
-        requiresConfirmation: true,
-        requiresConfirmationWillBlockSlot: true,
-      },
-      status: {
-        in: [BookingStatus.PENDING],
-      },
-    },
-    select: bookingsSelect,
-  });
-
-  const [resultOne, resultTwo, resultThree] = await Promise.all([
-    currentBookingsAllUsersQueryOne,
-    currentBookingsAllUsersQueryTwo,
-    currentBookingsAllUsersQueryThree,
-  ]);
-
-  return [...resultOne, ...resultTwo, ...resultThree];
-}
-
 async function getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
   return await prisma.outOfOfficeEntry.findMany({
     where: {
@@ -956,7 +848,7 @@ const calculateHostsAndAvailabilities = async ({
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUserWithDwdCredentials;
+    user: GetAvailabilityUserWithDelegationCredentials;
   }[];
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
@@ -983,25 +875,17 @@ const calculateHostsAndAvailabilities = async ({
   const endTimeDate =
     input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
-  const sharedQuery = {
-    startTime: { lte: endTimeDate },
-    endTime: { gte: startTimeDate },
-    status: {
-      in: [BookingStatus.ACCEPTED],
-    },
-  };
+  const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
+  const allUserIds = Array.from(userIdAndEmailMap.keys());
 
-  const allUserIds = usersWithCredentials.map((user) => user.id);
   const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
-    monitorCallbackAsync(
-      getExistingBookings,
-      startTimeDate,
-      endTimeDate,
-      eventType,
-      sharedQuery,
-      usersWithCredentials,
-      allUserIds
-    ),
+    monitorCallbackAsync(BookingRepo.findAllExistingBookingsForEventTypeBetween, {
+      startDate: startTimeDate,
+      endDate: endTimeDate,
+      eventTypeId: eventType.id,
+      seatedEvent: Boolean(eventType.seatsPerTimeSlot),
+      userIdAndEmailMap,
+    }),
     monitorCallbackAsync(getOOODates, startTimeDate, endTimeDate, allUserIds),
   ]);
 

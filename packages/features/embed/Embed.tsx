@@ -14,6 +14,8 @@ import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings"
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import type { Slot } from "@calcom/features/schedules";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
@@ -24,22 +26,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  ColorPicker,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  HorizontalTabs,
-  Icon,
-  Label,
-  Select,
-  showToast,
-  Switch,
-  TextField,
-  TimezoneSelect,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Select, ColorPicker } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
@@ -98,7 +93,7 @@ function useRouterHelpers() {
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams ?? undefined);
+    const newQuery = new URLSearchParams(searchParams.toString());
     newQuery.delete("slug");
     newQuery.delete("pages");
     Object.keys(newSearchParams).forEach((key) => {
@@ -109,7 +104,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams ?? undefined);
+    const params = new URLSearchParams(searchParams.toString());
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -360,7 +355,7 @@ const EmailEmbed = ({
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
-              isPending={schedule.isPending}
+              isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
                 setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
@@ -698,12 +693,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
-  const { data: userSettings } = trpc.viewer.me.useQuery();
+  const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
   const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+    const _searchParams = new URLSearchParams(searchParams.toString());
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
     return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;

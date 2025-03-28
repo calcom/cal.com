@@ -9,14 +9,14 @@ import { performance } from "@calcom/lib/server/perfObserver";
 
 type Handler<T extends NextResponse | Response = NextResponse> = (
   req: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) => Promise<T>;
 
 export const defaultResponderForAppDir = <T extends NextResponse | Response = NextResponse>(
   handler: Handler<T>,
   endpointRoute?: string
 ) => {
-  return async (req: NextRequest, { params }: { params: Params }) => {
+  return async (req: NextRequest, { params }: { params: Promise<Params> }) => {
     let ok = false;
     try {
       performance.mark("Start");
@@ -27,7 +27,7 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
 
       ok = true;
       if (result) {
-        return result instanceof Response ? result : NextResponse.json(result);
+        return result;
       }
 
       return NextResponse.json({});

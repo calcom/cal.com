@@ -1,14 +1,14 @@
 import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetRoundRobinHostsToReassignInputSchema } from "./getRoundRobinHostsToReasign.schema";
 
@@ -87,7 +87,7 @@ async function getTeamHostsFromDB({
   }));
 
   return {
-    hosts: await enrichUsersWithDwdCredentials({
+    hosts: await enrichUsersWithDelegationCredentials({
       orgId: organizationId,
       users: hostsMergedWithUser,
     }),

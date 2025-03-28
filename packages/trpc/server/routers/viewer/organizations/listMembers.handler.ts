@@ -1,12 +1,12 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
-import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listMembers.schema";
 
 type GetOptions = {
@@ -75,86 +75,89 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     };
   }
 
-  const { cursor, limit } = input;
+  const { limit, offset } = input;
 
-  const getTotalMembers = await prisma.membership.count({
-    where: {
-      user: {
-        ...getUserConditions(oAuthClientId),
-      },
-      teamId: organizationId,
-    },
-  });
+  const roleFilter = filters.find((filter) => filter.id === "role") as
+    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | undefined;
+  const teamFilter = filters.find((filter) => filter.id === "teams") as
+    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | undefined;
 
-  let whereClause: Prisma.MembershipWhereInput = {
+  const whereClause: Prisma.MembershipWhereInput = {
     user: {
       ...getUserConditions(oAuthClientId),
+      ...(teamFilter && {
+        teams: {
+          some: {
+            team: makeWhereClause({
+              columnName: "name",
+              filterValue: teamFilter.value,
+            }),
+          },
+        },
+      }),
     },
     teamId: organizationId,
     ...(searchTerm && {
       user: {
-        OR: [{ email: { contains: searchTerm } }, { username: { contains: searchTerm } }],
+        OR: [
+          { email: { contains: searchTerm, mode: "insensitive" } },
+          { username: { contains: searchTerm, mode: "insensitive" } },
+        ],
       },
     }),
+    ...(roleFilter &&
+      makeWhereClause({
+        columnName: "role",
+        filterValue: roleFilter.value,
+      })),
   };
 
-  filters.forEach((filter) => {
-    switch (filter.id) {
-      case "role":
-        whereClause = {
-          ...whereClause,
-          ...makeWhereClause({
-            columnName: "role",
-            filterValue: filter.value,
-          }),
-        };
-        break;
-      case "teams":
-        whereClause.user = {
-          teams: {
-            some: {
-              team: makeWhereClause({
-                columnName: "name",
-                filterValue: filter.value,
-              }),
-            },
-          },
-        };
-        break;
-      // We assume that if the filter is not one of the above, it must be an attribute filter
-      default:
-        if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
-          const attributeOptionValues: string[] = [];
-          filter.value.data.forEach((filterValueItem) => {
-            attributeOptionValues.push(filterValueItem);
-            groupOptionsWithContainsOptionValues.forEach((groupOption) => {
-              if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
-                attributeOptionValues.push(groupOption.value);
-              }
-            });
+  const attributeFilters: Prisma.MembershipWhereInput["AttributeToUser"][] = filters
+    .filter((filter) => filter.id !== "role" && filter.id !== "teams")
+    .map((filter) => {
+      if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
+        const attributeOptionValues: string[] = [];
+        filter.value.data.forEach((filterValueItem) => {
+          attributeOptionValues.push(filterValueItem);
+          groupOptionsWithContainsOptionValues.forEach((groupOption) => {
+            if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
+              attributeOptionValues.push(groupOption.value);
+            }
           });
+        });
 
-          filter.value.data = attributeOptionValues;
-        }
+        filter.value.data = attributeOptionValues;
+      }
 
-        whereClause.AttributeToUser = {
-          some: {
-            attributeOption: {
-              attribute: {
-                id: filter.id,
-              },
-              ...makeWhereClause({
-                columnName: "value",
-                filterValue: filter.value,
-              }),
+      return {
+        some: {
+          attributeOption: {
+            attribute: {
+              id: filter.id,
             },
+            ...makeWhereClause({
+              columnName: "value",
+              filterValue: filter.value,
+            }),
           },
-        };
-        break;
-    }
+        },
+      };
+    });
+
+  // If we have attribute filters, add them to the where clause with AND
+  if (attributeFilters.length > 0) {
+    whereClause.AND = attributeFilters.map((filter) => ({
+      AttributeToUser: filter,
+    }));
+  }
+
+  const totalCountPromise = prisma.membership.count({
+    where: whereClause,
   });
 
-  const teamMembers = await prisma.membership.findMany({
+  const teamMembersPromise = prisma.membership.findMany({
     where: whereClause,
     select: {
       id: true,
@@ -190,18 +193,14 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         },
       },
     },
-    cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1, // We take +1 as itll be used for the next cursor
+    skip: offset,
+    take: limit,
     orderBy: {
       id: "asc",
     },
   });
 
-  let nextCursor: typeof cursor | undefined = undefined;
-  if (teamMembers && teamMembers.length > limit) {
-    const nextItem = teamMembers.pop();
-    nextCursor = nextItem?.id;
-  }
+  const [totalCount, teamMembers] = await Promise.all([totalCountPromise, teamMembersPromise]);
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
@@ -260,7 +259,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               name: team.team.name,
               slug: team.team.slug,
             };
-          }),
+          })
+          .filter((team): team is NonNullable<typeof team> => team !== undefined),
         attributes,
       };
     }) || []
@@ -268,9 +268,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   return {
     rows: members || [],
-    nextCursor,
     meta: {
-      totalRowCount: getTotalMembers || 0,
+      totalRowCount: totalCount || 0,
     },
   };
 };

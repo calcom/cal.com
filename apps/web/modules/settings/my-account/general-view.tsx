@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,19 +12,14 @@ import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Form,
-  Label,
-  Select,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  TimezoneSelect,
-  SettingsToggle,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 
@@ -66,8 +62,8 @@ const SkeletonLoader = () => {
 
 interface GeneralViewProps {
   localeProp: string;
-  user: RouterOutputs["viewer"]["me"];
-  travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  travelSchedules: RouterOutputs["viewer"]["travelSchedules"]["get"];
   revalidatePage: GeneralQueryViewProps["revalidatePage"];
 }
 
@@ -78,10 +74,10 @@ type GeneralQueryViewProps = {
 const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
   const { t } = useLocale();
 
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
 
   const { data: travelSchedules, isPending: isPendingTravelSchedules } =
-    trpc.viewer.getTravelSchedules.useQuery();
+    trpc.viewer.travelSchedules.get.useQuery();
 
   if (isPending || isPendingTravelSchedules) return <SkeletonLoader />;
   if (!user) {

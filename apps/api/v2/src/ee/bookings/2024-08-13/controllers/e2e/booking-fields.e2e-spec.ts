@@ -434,7 +434,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     }
 
     describe("get individual booking", () => {
-      it("should should get a seated booking with split name responses", async () => {
+      it("should get a seated booking with split name responses", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${bookingWithSplitName.uid}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -451,13 +451,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.bookingFieldsResponses.name).toEqual(splitName);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
       });
 
-      it("should should get a seated booking with split name responses", async () => {
+      it("should get a seated booking with split name responses", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${seatedBookingWithSplitName.uid}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -476,7 +476,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0].bookingFieldsResponses.name).toEqual(splitName);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -536,7 +536,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.bookingFieldsResponses["video-url"]).toEqual("http://video-url.com");
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });

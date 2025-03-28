@@ -11,7 +11,7 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 const orgIdSchema = z.object({ id: z.coerce.number() });
 
 export const generateMetadata = async ({ params }: { params: Params }) => {
-  const input = orgIdSchema.safeParse(params);
+  const input = orgIdSchema.safeParse(await params);
   if (!input.success) {
     return await _generateMetadata(
       (t) => t("editing_org"),
@@ -28,7 +28,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 };
 
 const Page = async ({ params }: { params: Params }) => {
-  const input = orgIdSchema.safeParse(params);
+  const input = orgIdSchema.safeParse(await params);
 
   if (!input.success) notFound();
 
