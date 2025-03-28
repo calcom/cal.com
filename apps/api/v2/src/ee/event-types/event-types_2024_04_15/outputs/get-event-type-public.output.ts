@@ -351,6 +351,10 @@ class PublicEventTypeOutput {
   @ApiProperty()
   lockTimeZoneToggleOnBookingPage!: boolean;
 
+  @IsString()
+  @ApiHideProperty()
+  lockedTimeZone: "Europe/London",!: string;
+
   @IsBoolean()
   @ApiProperty()
   requiresConfirmation!: boolean;
