@@ -30,6 +30,7 @@ export interface BillingService {
     quantity: number;
     metadata?: Record<string, string | number>;
     mode?: "subscription" | "setup" | "payment";
+    allowPromotionCodes?: boolean;
   }): Promise<{ checkoutUrl: string | null; sessionId: string }>;
 
   // Price management

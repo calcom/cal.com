@@ -18,7 +18,7 @@ import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { AppRouterRequest, CustomRequest } from "../../handleCancelBooking";
+import type { AppRouterRequest, CustomRequest } from "../../handleCancelBooking/types";
 
 async function cancelAttendeeSeat(
   req: CustomRequest,

@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { Button } from "@calcom/ui/components/button";
 
 const PaymentStatusView = () => {
   const { t } = useLocale();

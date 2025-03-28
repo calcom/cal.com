@@ -14,7 +14,10 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, showToast, SettingsToggle } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -31,6 +34,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
   const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideBranding ?? false);
   const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
+  const [hideTeamProfileLink, setHideTeamProfileLink] = useState(team?.hideTeamProfileLink ?? false);
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
     defaultValues: {
@@ -163,6 +167,18 @@ const ProfileView = ({ team }: ProfileViewProps) => {
               onCheckedChange={(checked) => {
                 setHideBookATeamMember(checked);
                 mutation.mutate({ id: team.id, hideBookATeamMember: checked });
+              }}
+            />
+
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("hide_team_profile_link")}
+              disabled={mutation?.isPending}
+              description={t("hide_team_profile_link_description")}
+              checked={hideTeamProfileLink ?? false}
+              onCheckedChange={(checked) => {
+                setHideTeamProfileLink(checked);
+                mutation.mutate({ id: team.id, hideTeamProfileLink: checked });
               }}
             />
           </div>

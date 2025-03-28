@@ -3,7 +3,7 @@ import type { AttributeType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { ZGetByUserIdSchema } from "./getByUserId.schema";
 
 type GetOptions = {
