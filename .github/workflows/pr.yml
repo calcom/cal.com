@@ -202,35 +202,35 @@ jobs:
     secrets: inherit
 
   merge-reports:
-      name: Merge reports
-      needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    name: Merge reports
+    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    if: >
+      !cancelled() &&
+      needs.check-label.outputs.run-e2e == 'true' &&
+      needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
+      (
+        needs.e2e.result != 'skipped' ||
+        needs.e2e-embed.result != 'skipped' ||
+        needs.e2e-embed-react.result != 'skipped' ||
+        needs.e2e-app-store.result != 'skipped'
+      )
+    uses: ./.github/workflows/merge-reports.yml
+    secrets: inherit
+
+  publish-report:
+      name: Publish HTML report
       if: >
         !cancelled() &&
         needs.check-label.outputs.run-e2e == 'true' &&
         needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
-        (
-          needs.e2e.result != 'skipped' ||
-          needs.e2e-embed.result != 'skipped' ||
-          needs.e2e-embed-react.result != 'skipped' ||
-          needs.e2e-app-store.result != 'skipped'
-        )
-      uses: ./.github/workflows/merge-reports.yml
+        needs.merge-reports.result != 'skipped'
+      permissions:
+        contents: write
+        issues: write
+        pull-requests: write
+      needs: [changes, check-label, merge-reports]
+      uses: ./.github/workflows/publish-report.yml
       secrets: inherit
-
-  publish-report:
-        name: Publish HTML report
-        if: >
-          !cancelled() &&
-          needs.check-label.outputs.run-e2e == 'true' &&
-          needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
-          needs.merge-reports.result != 'skipped'
-        permissions:
-          contents: write
-          issues: write
-          pull-requests: write
-        needs: [changes, check-label, merge-reports]
-        uses: ./.github/workflows/publish-report.yml
-        secrets: inherit
 
   required:
     needs:
