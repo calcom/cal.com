@@ -217,7 +217,7 @@ jobs:
       uses: ./.github/workflows/merge-reports.yml
       secrets: inherit
 
-    publish-report:
+  publish-report:
         name: Publish HTML report
         if: >
           !cancelled() &&
