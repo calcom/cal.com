@@ -19,7 +19,7 @@ export type CredentialForCalendarService = CredentialPayload & {
       client_id: string;
       private_key: string;
     };
-    id: string;
+    id?: string;
     key?: Prisma.JsonValue;
   } | null;
 };
@@ -32,7 +32,7 @@ export type CredentialForCalendarServiceWithEmail = CredentialPayload & {
       client_id: string;
       private_key: string;
     };
-    id: string;
+    id?: string;
     key?: Prisma.JsonValue;
   } | null;
 };
@@ -45,7 +45,7 @@ export type CredentialForCalendarServiceWithTenantId = CredentialPayload & {
       client_id: string;
       private_key: string;
     };
-    id: string;
+    id?: string;
     key?: Prisma.JsonValue;
   } | null;
 };
@@ -57,7 +57,7 @@ export type Office365CredentialPayload = CredentialPayload & {
       client_id: string;
       private_key: string;
     };
-    id: string;
+    id?: string;
     key?: Prisma.JsonValue;
   } | null;
 };
