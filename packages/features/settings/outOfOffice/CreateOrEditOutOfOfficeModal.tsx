@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
@@ -12,7 +13,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
