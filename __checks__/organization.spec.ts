@@ -68,7 +68,8 @@ test.describe("Org", () => {
   test("Organization Homepage - Has Engineering and Marketing Teams", async ({ page }) => {
     const response = await page.goto("https://i.cal.com");
     expect(response?.status()).toBe(200);
-    await expect(page.locator("text=Cal.com")).toBeVisible();
+    // Somehow there are two Cal.com text momentarily, but shouldn't be the concern of this check
+    await expect(page.locator("text=Cal.com").first()).toBeVisible();
     await expect(page.locator("text=Engineering")).toBeVisible();
     await expect(page.locator("text=Marketing")).toBeVisible();
   });
