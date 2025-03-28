@@ -1,7 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import superjson from "superjson";
 
-import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { map } from "@calcom/features/flags/server/procedures/map";
 import { createContext } from "@calcom/trpc/server/createContext";
@@ -12,6 +11,7 @@ import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/ge
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
 import { mergeRouters, router } from "@calcom/trpc/server/trpc";
+import { forms } from "@calcom/trpc/server/viewer/routing-forms/procedures/forms";
 
 import { createServerSideHelpers } from "@trpc/react-query/server";
 
