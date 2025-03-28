@@ -2,10 +2,10 @@
 
 import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback } from "react";
+import { createContext, useCallback, useRef, useEffect } from "react";
 import { z } from "zod";
 
-import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./types";
+import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./lib/types";
 
 const ZActiveFilter = z.object({
   f: z.string(),
@@ -15,6 +15,8 @@ const ZActiveFilter = z.object({
 type ActiveFilter = z.infer<typeof ZActiveFilter>;
 
 export type DataTableContextType = {
+  ctaContainerRef?: React.RefObject<HTMLDivElement>;
+
   activeFilters: ActiveFilter[];
   clearAll: (exclude?: string[]) => void;
   addFilter: (columnId: string) => void;
@@ -45,10 +47,15 @@ const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
   children: React.ReactNode;
+  ctaContainerClassName?: string;
   defaultPageSize?: number;
 }
 
-export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZE }: DataTableProviderProps) {
+export function DataTableProvider({
+  children,
+  defaultPageSize = DEFAULT_PAGE_SIZE,
+  ctaContainerClassName,
+}: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
@@ -119,9 +126,18 @@ export function DataTableProvider({ children, defaultPageSize = DEFAULT_PAGE_SIZ
     [setPageSize, setPageIndex]
   );
 
+  const ctaContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (ctaContainerClassName) {
+      const element = document.getElementsByClassName(ctaContainerClassName)[0] as HTMLDivElement;
+      ctaContainerRef.current = element;
+    }
+  }, [ctaContainerClassName]);
+
   return (
     <DataTableContext.Provider
       value={{
+        ctaContainerRef,
         activeFilters,
         addFilter,
         clearAll,
