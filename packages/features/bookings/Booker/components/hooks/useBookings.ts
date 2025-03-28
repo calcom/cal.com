@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
@@ -17,7 +19,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UseBookingFormReturnType } from "./useBookingForm";
 

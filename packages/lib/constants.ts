@@ -148,14 +148,6 @@ export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
 export const TOP_BANNER_HEIGHT = 40;
 
-const defaultOnNaN = (testedValue: number, defaultValue: number) =>
-  !Number.isNaN(testedValue) ? testedValue : defaultValue;
-
-export const AB_TEST_BUCKET_PROBABILITY = defaultOnNaN(
-  parseInt(process.env.AB_TEST_BUCKET_PROBABILITY ?? "10", 10),
-  10
-);
-
 export const IS_PREMIUM_USERNAME_ENABLED =
   (IS_CALCOM || (process.env.NEXT_PUBLIC_IS_E2E && IS_STRIPE_ENABLED)) &&
   process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY;
@@ -164,8 +156,6 @@ export const IS_PREMIUM_USERNAME_ENABLED =
 export const MAX_NB_INVITES = 100;
 
 export const URL_PROTOCOL_REGEX = /(^\w+:|^)\/\//;
-export const FUTURE_ROUTES_OVERRIDE_COOKIE_NAME = "x-calcom-future-routes-override";
-export const FUTURE_ROUTES_ENABLED_COOKIE_NAME = "x-calcom-future-routes-enabled";
 
 export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
 
@@ -220,3 +210,8 @@ export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",")
 
 export const IS_PLAIN_CHAT_ENABLED =
   !!process.env.NEXT_PUBLIC_PLAIN_CHAT_ID && process.env.NEXT_PUBLIC_PLAIN_CHAT_ID !== "";
+
+export const IS_DUB_REFERRALS_ENABLED =
+  !!process.env.NEXT_PUBLIC_DUB_PROGRAM_ID && process.env.NEXT_PUBLIC_DUB_PROGRAM_ID !== "";
+
+export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;

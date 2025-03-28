@@ -5,7 +5,7 @@ import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { ErrorBoundary } from "@calcom/ui";
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
 import { DynamicComponent } from "./DynamicComponent";

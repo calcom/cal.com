@@ -9,18 +9,14 @@ import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingS
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import {
-  Avatar,
-  Badge,
-  Button,
-  SkeletonContainer,
-  SkeletonText,
-  SkeletonButton,
-  Tooltip,
-  TextField,
-  showToast,
-  Alert,
-} from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { TextField } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 

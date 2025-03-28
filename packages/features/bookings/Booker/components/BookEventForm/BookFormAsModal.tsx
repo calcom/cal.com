@@ -3,8 +3,10 @@ import React from "react";
 
 import { useEventTypeById } from "@calcom/atoms/hooks/event-types/private/useEventTypeById";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge, Dialog, DialogContent } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { DialogContent } from "@calcom/ui/components/dialog";
 
 import { getDurationFormatted } from "../../../components/event-meta/Duration";
 import { useBookerStore } from "../../store";
