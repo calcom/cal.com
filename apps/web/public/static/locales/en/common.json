@@ -3028,6 +3028,9 @@
   "inactive_team_plan": "Inactive team plan",
   "inactive_team_plan_description": "Your team plan is inactive. Check your subcription or reach out to customer support",
   "limited_access_trial_mode": "Limited access during trial. Feature available after trial ends.",
+  "referral_program": "Referral Program",
+  "earn_twenty_percent_referral": "Earn 20% referral",
+  "dub_disabled_error_message": "You need a Dub API Key and Program Id to use this page.",
   "uid": "UID",
   "link": "Link",
   "rows_per_page": "rows per page",
@@ -3035,9 +3038,12 @@
   "tip_username_plus": "Tip: You can a '+' between usernames: cal.com/anna+brian to make a dynamic group meeting",
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
+  "hide_team_profile_link": "Hide Team Profile Link",
+  "hide_team_profile_link_description": "Hide the team profile link on booking pages",
   "display": "Display",
   "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
   "picklist": "Picklist",
   "name_or_email": "Name or Email",
+  "salesforce_round_robin_skip_fallback_to_lead_owner": "If no contact is found, fallback to lead owner if it exists",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
