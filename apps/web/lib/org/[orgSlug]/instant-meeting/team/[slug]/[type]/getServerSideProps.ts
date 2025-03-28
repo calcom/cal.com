@@ -1,3 +1,4 @@
+import { getTRPCPrefetchCaller } from "app/_trpc/prefetch";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -36,8 +37,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
-
-  const eventData = await ssr.viewer.public.event.fetch({
+  const trpc = await getTRPCPrefetchCaller();
+  const eventData = await trpc.viewer.public.event({
     username: teamSlug,
     eventSlug: meetingSlug,
     isTeamEvent: true,

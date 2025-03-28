@@ -1,3 +1,4 @@
+import { getTRPCPrefetchCaller } from "app/_trpc/prefetch";
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -34,9 +35,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return redirect;
   }
   const getEventTypeById = async (eventTypeId: number) => {
-    await ssr.viewer.eventTypes.get.prefetch({ id: eventTypeId });
+    const trpc = await getTRPCPrefetchCaller();
+    await trpc.viewer.eventTypes.get({ id: eventTypeId });
     try {
-      const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: eventTypeId });
+      const { eventType } = await trpc.viewer.eventTypes.get({ id: eventTypeId });
+      console.log(eventType, "EVENETSDKFNSKLDFNSKLDFNKLSDF____");
       return eventType;
     } catch (e: unknown) {
       logger.error(safeStringify(e));

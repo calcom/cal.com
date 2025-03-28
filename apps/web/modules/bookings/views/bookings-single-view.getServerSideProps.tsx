@@ -1,3 +1,4 @@
+import { getTRPCPrefetchCaller } from "app/_trpc/prefetch";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -48,7 +49,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
   if (session) {
-    const user = await ssr.viewer.me.get.fetch();
+    const trpc = await getTRPCPrefetchCaller();
+    const user = await trpc.viewer.me.get();
     tz = user.timeZone;
     userTimeFormat = user.timeFormat;
   }

@@ -10,12 +10,10 @@ import prisma from "@calcom/prisma";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
-
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, query } = context;
 
   const session = await getServerSession({ req });
-  
 
   const verifyJwt = (jwt: string) => {
     const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
@@ -91,7 +89,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       csrfToken: await getCsrfToken(context),
-      
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
       isSAMLLoginEnabled,
       samlTenantID,

@@ -1,4 +1,3 @@
-import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 
 export const getServerSideProps = async function getServerSideProps(
@@ -15,13 +14,6 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  const filters = getTeamsFiltersFromQuery(context.query);
-
-  await ssr.viewer.appRoutingForms.forms.prefetch({
-    filters,
-  });
-  // Prefetch this so that New Button is immediately available
-  await ssr.viewer.teamsAndUserProfilesQuery.prefetch();
   return {
     props: {},
   };

@@ -1,3 +1,4 @@
+import { getTRPCPrefetchCaller } from "app/_trpc/prefetch";
 import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
@@ -131,7 +132,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
+  const trpc = await getTRPCPrefetchCaller();
+  const eventData = await trpc.viewer.public.event({
     username: usernames.join("+"),
     eventSlug: slug,
     org,
@@ -225,7 +227,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
+  const trpc = await getTRPCPrefetchCaller();
+  const eventData = await trpc.viewer.public.event({
     username,
     eventSlug: slug,
     org,
