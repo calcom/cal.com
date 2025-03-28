@@ -83,6 +83,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         workflowId: workflow.id,
         sender: SENDER_NAME,
         numberVerificationPending: false,
+        verifiedAt: new Date(),
       },
     });
     return { workflow };
