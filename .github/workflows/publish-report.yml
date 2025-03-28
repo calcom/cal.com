@@ -1,12 +1,12 @@
 on:
   workflow_call:
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
   pull_request:
     types: [closed]
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 jobs:
   publish-report:
     runs-on: ubuntu-latest
