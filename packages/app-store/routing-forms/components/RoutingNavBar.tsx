@@ -19,7 +19,7 @@ export default function RoutingNavBar({
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   setShowInfoLostDialog: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { data } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
+  const { data } = trpc.viewer.routingForms.getIncompleteBookingSettings.useQuery({
     formId: form.id,
   });
 

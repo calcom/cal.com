@@ -13,8 +13,8 @@ const mockGetAttributesForTeam = (
   arg: { data: Attributes; isPending: false } | { data: undefined; isPending: true }
 ) => {
   (
-    trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery as Mock<
-      typeof trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery
+    trpc.viewer.routingForms.getAttributesForTeam.useQuery as Mock<
+      typeof trpc.viewer.routingForms.getAttributesForTeam.useQuery
     >
   )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

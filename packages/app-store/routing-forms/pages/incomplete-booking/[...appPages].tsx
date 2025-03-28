@@ -10,10 +10,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 import SingleForm, {
@@ -23,11 +23,11 @@ import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
+  const { data, isLoading } = trpc.viewer.routingForms.getIncompleteBookingSettings.useQuery({
     formId: form.id,
   });
 
-  const mutation = trpc.viewer.appRoutingForms.saveIncompleteBookingSettings.useMutation({
+  const mutation = trpc.viewer.routingForms.saveIncompleteBookingSettings.useMutation({
     onSuccess: () => {
       showToast(t("success"), "success");
     },

@@ -707,7 +707,7 @@ const RerouteDialogContentAndFooter = ({
     data: responseWithForm,
     isPending: isRoutingFormLoading,
     error: formResponseFetchError,
-  } = trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
+  } = trpc.viewer.routingForms.getResponseWithFormFields.useQuery({
     formResponseId: booking.routedFromRoutingFormReponse.id,
   });
 
