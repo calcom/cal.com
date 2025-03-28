@@ -47,7 +47,7 @@ jobs:
     name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-8vcpu-ubuntu-2204
     container:
-      image: mcr.microsoft.com/playwright:v1.46.0-jammy
+      image: jacoblincool/playwright:chrome
       options: --ipc=host
     services:
       postgres:

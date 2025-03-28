@@ -11,7 +11,7 @@ jobs:
     name: Yarn install & cache
     runs-on: buildjet-4vcpu-ubuntu-2204
     container:
-      image: mcr.microsoft.com/playwright:v1.46.0-jammy
+      image: jacoblincool/playwright:chrome
       options: --ipc=host
     timeout-minutes: 10
     steps:
