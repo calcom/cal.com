@@ -65,6 +65,15 @@
         "summary": "Get all managed users",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -125,6 +134,15 @@
         "summary": "Create a managed user",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -164,6 +182,15 @@
         "summary": "Get a managed user",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -198,6 +225,15 @@
         "operationId": "OAuthClientUsersController_updateUser",
         "summary": "Update a managed user",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -244,6 +280,15 @@
         "summary": "Delete a managed user",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -281,6 +326,15 @@
         "summary": "Force refresh tokens",
         "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.\n    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have `calAccessToken` and `calRefreshToken` columns.",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "userId",
             "required": true,
@@ -368,6 +422,15 @@
         "summary": "Create a webhook",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -404,6 +467,15 @@
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
         "summary": "Get all webhooks",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -452,6 +524,15 @@
         "summary": "Delete all webhooks",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -480,6 +561,15 @@
         "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
         "summary": "Update a webhook",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "webhookId",
             "required": true,
@@ -516,7 +606,17 @@
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
         "summary": "Get a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -534,7 +634,17 @@
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
         "summary": "Delete a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
