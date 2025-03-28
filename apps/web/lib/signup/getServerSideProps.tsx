@@ -8,6 +8,7 @@ import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
+import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -24,7 +25,6 @@ const querySchema = z.object({
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
   await ssrInit(ctx);
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");

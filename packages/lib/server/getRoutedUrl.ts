@@ -19,6 +19,7 @@ import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-form
 import logger from "@calcom/lib/logger";
 import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { TRPCError } from "@trpc/server";
 
@@ -76,7 +77,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     };
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
     ...form,

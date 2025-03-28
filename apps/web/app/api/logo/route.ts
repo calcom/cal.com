@@ -1,4 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { detectContentType, optimizeImage } from "next/dist/server/image-optimizer";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -18,6 +19,7 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -123,7 +125,6 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
       throw new Error("No custom logo needed");
     }
     // load from DB
-    const { default: prisma } = await import("@calcom/prisma");
     const team = await prisma.team.findFirst({
       where: {
         slug: subdomain,
@@ -196,7 +197,6 @@ async function getHandler(request: NextRequest) {
 
     // If we need to resize the team logos (via Next.js' built-in image processing)
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
-      const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
       buffer = await optimizeImage({
         buffer,
         contentType: detectContentType(buffer) ?? "image/jpeg",

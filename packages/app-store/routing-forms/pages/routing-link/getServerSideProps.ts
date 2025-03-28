@@ -1,5 +1,6 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
@@ -66,7 +67,6 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const formWithUserProfile = {
     ...form,
     user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
