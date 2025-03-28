@@ -429,7 +429,6 @@ describe("handleNewBooking", () => {
               videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
             });
 
-            // TODO: Fix
             expectSuccessfulBookingCreationEmails({
               booking: {
                 uid: createdBooking.uid!,
