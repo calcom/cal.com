@@ -67,7 +67,6 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     disableGuests: true,
     metadata: true,
     lockTimeZoneToggleOnBookingPage: true,
-    lockedTimeZone: true,
     requiresConfirmation: true,
     autoTranslateDescriptionEnabled: true,
     fieldTranslations: {

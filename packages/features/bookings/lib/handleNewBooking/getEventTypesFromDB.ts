@@ -58,7 +58,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       periodDays: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
-      lockedTimeZone: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,

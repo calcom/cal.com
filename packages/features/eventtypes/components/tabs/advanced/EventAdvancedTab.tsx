@@ -12,7 +12,6 @@ import {
 } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -327,6 +326,7 @@ const calendarComponents = {
      * a team event. Since we don't have logic to handle each attendee calendar (for now).
      */
 
+    const isPlatform = useIsPlatform();
     const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
     const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
     const showConnectedCalendarSettings =
@@ -360,19 +360,21 @@ const calendarComponents = {
             ? showConnectedCalendarSettings && (
                 <div className="mt-4">
                   <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    <SelectedCalendarsSettingsWebWrapper
-                      eventTypeId={eventType.id}
-                      disabledScope={SelectedCalendarSettingsScope.User}
-                      disableConnectionModification={true}
-                      scope={selectedCalendarSettingsScope}
-                      destinationCalendarId={destinationCalendar?.externalId}
-                      setScope={(scope) => {
-                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
+                    {!isPlatform && (
+                      <SelectedCalendarsSettingsWebWrapper
+                        eventTypeId={eventType.id}
+                        disabledScope={SelectedCalendarSettingsScope.User}
+                        disableConnectionModification={true}
+                        scope={selectedCalendarSettingsScope}
+                        destinationCalendarId={destinationCalendar?.externalId}
+                        setScope={(scope) => {
+                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                            shouldDirty: true,
+                          });
+                        }}
+                      />
+                    )}
                   </Suspense>
                 </div>
               )
@@ -522,21 +524,19 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      {!isPlatform && (
-        <calendarComponents.CalendarSettings
-          verifiedSecondaryEmails={verifiedSecondaryEmails}
-          userEmail={userEmail}
-          calendarsQuery={calendarsQuery}
-          isTeamEventType={!!team}
-          isChildrenManagedEventType={isChildrenManagedEventType}
-          customClassNames={customClassNames}
-          eventNameLocked={eventNameLocked}
-          eventNamePlaceholder={eventNamePlaceholder}
-          setShowEventNameTip={setShowEventNameTip}
-          showToast={showToast}
-          eventType={eventType}
-        />
-      )}
+      <calendarComponents.CalendarSettings
+        verifiedSecondaryEmails={verifiedSecondaryEmails}
+        userEmail={userEmail}
+        calendarsQuery={calendarsQuery}
+        isTeamEventType={!!team}
+        isChildrenManagedEventType={isChildrenManagedEventType}
+        customClassNames={customClassNames}
+        eventNameLocked={eventNameLocked}
+        eventNamePlaceholder={eventNamePlaceholder}
+        setShowEventNameTip={setShowEventNameTip}
+        showToast={showToast}
+        eventType={eventType}
+      />
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
@@ -909,8 +909,7 @@ export const EventAdvancedTab = ({
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.timezoneLock?.container,
-              formMethods.getValues("lockTimeZoneToggleOnBookingPage") && "rounded-b-none"
+              customClassNames?.timezoneLock?.container
             )}
             title={t("lock_timezone_toggle_on_booking_page")}
             {...lockTimeZoneToggleOnBookingPageLocked}
@@ -918,31 +917,7 @@ export const EventAdvancedTab = ({
             checked={value}
             onCheckedChange={(e) => onChange(e)}
             data-testid="lock-timezone-toggle"
-            childrenClassName="lg:ml-0">
-            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-              <div>
-                <Controller
-                  name="lockedTimeZone"
-                  control={formMethods.control}
-                  render={({ field: { value } }) => (
-                    <>
-                      <Label className="text-default mb-2 block text-sm font-medium">
-                        <>{t("timezone")}</>
-                      </Label>
-                      <TimezoneSelect
-                        id="lockedTimeZone"
-                        value={value}
-                        onChange={(event) => {
-                          if (event)
-                            formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
-                        }}
-                      />
-                    </>
-                  )}
-                />
-              </div>
-            </div>
-          </SettingsToggle>
+          />
         )}
       />
       <Controller
