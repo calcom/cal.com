@@ -286,6 +286,7 @@ describe("Organizations Event Types Endpoints", () => {
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
         lockTimeZoneToggleOnBookingPage: true,
+        lockedTimeZone: "Europe/London",
         color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
@@ -317,6 +318,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
+          expect(data.lockedTimeZone).toEqual(body.lockedTimeZone);
           expect(data.color).toEqual(body.color);
 
           collectiveEventType = responseBody.data;

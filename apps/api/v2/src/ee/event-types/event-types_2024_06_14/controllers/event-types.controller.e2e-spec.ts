@@ -470,6 +470,7 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: false,
         hideCalendarEventDetails: false,
         lockTimeZoneToggleOnBookingPage: true,
+        lockedTimeZone: "Europe/London",
         color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
@@ -510,6 +511,9 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
+          );
+          expect(createdEventType.lockedTimeZone).toEqual(
+            body.lockedTimeZone
           );
           expect(createdEventType.color).toEqual(body.color);
 
@@ -591,6 +595,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
+      );
+      expect(fetchedEventType.lockedTimeZone).toEqual(
+        eventType.lockedTimeZone
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
     });
@@ -989,6 +996,7 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
         lockTimeZoneToggleOnBookingPage: true,
+        lockedTimeZone: "Europe/London",
         color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
@@ -1055,6 +1063,9 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
+          expect(updatedEventType.lockedTimeZone).toEqual(
+            body.lockedTimeZone
+          );
           expect(updatedEventType.color).toEqual(body.color);
 
           eventType.title = newTitle;
@@ -1073,6 +1084,7 @@ describe("Event types Endpoints", () => {
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.hideCalendarEventDetails = updatedEventType.hideCalendarEventDetails;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
+          eventType.lockedTimeZone = updatedEventType.lockedTimeZone;
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
         });
@@ -1128,6 +1140,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
+      expect(fetchedEventType.lockedTimeZone).toEqual(
+        eventType.lockedTimeZone
+      );
       expect(fetchedEventType.color).toEqual(eventType.color);
     });
 
@@ -1168,6 +1183,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
+      );
+      expect(fetchedEventType.lockedTimeZone).toEqual(
+        eventType.lockedTimeZone
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
     });
