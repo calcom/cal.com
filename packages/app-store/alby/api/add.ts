@@ -1,19 +1,25 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import config from "../config.json";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!req.session?.user?.id) {
-    return res.status(401).json({ message: "You must be logged in to do this" });
+export default async function handler() {
+  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "You must be logged in to do this" }, { status: 401 });
   }
   const appType = config.type;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         type: appType,
-        userId: req.session.user.id,
+        userId: session.user.id,
       },
     });
     if (alreadyInstalled) {
@@ -23,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         type: appType,
         key: {},
-        userId: req.session.user.id,
+        userId: session.user.id,
         appId: "alby",
       },
     });
@@ -33,10 +39,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error: unknown) {
     if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
+      return NextResponse.json({ message: error.message }, { status: 500 });
     }
-    return res.status(500);
+    return NextResponse.json({}, { status: 500 });
   }
 
-  return res.status(200).json({ url: "/apps/alby/setup" });
+  return NextResponse.json({ url: "/apps/alby/setup" }, { status: 200 });
 }
