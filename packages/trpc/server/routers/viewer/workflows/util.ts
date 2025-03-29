@@ -464,17 +464,27 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
   return remindersToDelete;
 }
 
-export async function scheduleWorkflowNotifications(
-  activeOn: number[],
-  isOrg: boolean,
-  workflowSteps: Partial<WorkflowStep>[],
-  time: number | null,
-  timeUnit: TimeUnit | null,
-  trigger: WorkflowTriggerEvents,
-  userId: number,
-  teamId: number | null,
-  alreadyScheduledActiveOnIds?: number[]
-) {
+export async function scheduleWorkflowNotifications({
+  activeOn,
+  isOrg,
+  workflowSteps,
+  time,
+  timeUnit,
+  trigger,
+  userId,
+  teamId,
+  alreadyScheduledActiveOnIds,
+}: {
+  activeOn: number[];
+  isOrg: boolean;
+  workflowSteps: Partial<WorkflowStep>[];
+  time: number | null;
+  timeUnit: TimeUnit | null;
+  trigger: WorkflowTriggerEvents;
+  userId: number;
+  teamId: number | null;
+  alreadyScheduledActiveOnIds?: number[];
+}) {
   const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
@@ -682,6 +692,7 @@ export async function scheduleBookingReminders(
           template: step.template,
           sender: step.sender,
           workflowStepId: step.id,
+          verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -699,6 +710,7 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           userId: userId,
           teamId: teamId,
+          verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -715,6 +727,7 @@ export async function scheduleBookingReminders(
           template: step.template,
           userId: userId,
           teamId: teamId,
+          verifiedAt: step?.verifiedAt ?? null,
         });
       }
     });
@@ -860,7 +873,12 @@ export function getEmailTemplateText(
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(params.timeFormat);
 
-  let { emailBody, emailSubject } = emailReminderTemplate(true, locale, action, timeFormat);
+  let { emailBody, emailSubject } = emailReminderTemplate({
+    isEditingMode: true,
+    locale,
+    action,
+    timeFormat,
+  });
 
   if (template === WorkflowTemplates.RATING) {
     const ratingTemplate = emailRatingTemplate({

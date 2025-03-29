@@ -63,6 +63,8 @@ export async function scheduleMandatoryReminder({
           seatReferenceUid,
           includeCalendarEvent: false,
           isMandatoryReminder: true,
+          // Template is fixed so we don't have to verify
+          verifiedAt: new Date(),
         });
       } catch (error) {
         log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));

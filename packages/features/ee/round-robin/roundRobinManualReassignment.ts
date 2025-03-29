@@ -430,6 +430,7 @@ async function handleWorkflowsUpdate({
           reminderBody: true,
           sender: true,
           includeCalendarEvent: true,
+          verifiedAt: true,
         },
       },
     },
@@ -464,6 +465,7 @@ async function handleWorkflowsUpdate({
         hideBranding: true,
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
+        verifiedAt: workflowStep.verifiedAt,
       });
     }
 

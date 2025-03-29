@@ -74,6 +74,7 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   teamId?: number | null;
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
+  verifiedAt: Date | null;
 }
 
 export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
@@ -91,7 +92,13 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
+    verifiedAt,
   } = args;
+
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
+  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
