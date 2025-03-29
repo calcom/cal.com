@@ -1,12 +1,6 @@
 name: Cache Database
 description: Cache the database for faster CI runs
 inputs:
-  DATABASE_URL:
-    required: true
-    description: "Database URL"
-  DATABASE_DIRECT_URL:
-    required: true
-    description: "Direct database URL"
   E2E_TEST_CALCOM_QA_EMAIL:
     required: false
     description: "E2E test Cal.com QA email"
