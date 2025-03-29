@@ -133,7 +133,7 @@ export function DialogHeader(props: DialogHeaderProps) {
         {props.title}
       </h2>
       {props.subtitle && (
-        <p className="text-subtle text-sm leading-none" data-testid="dialog-subtitle">
+        <p className="text-subtle text-sm" data-testid="dialog-subtitle">
           {props.subtitle}
         </p>
       )}

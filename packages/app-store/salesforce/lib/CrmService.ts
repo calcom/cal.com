@@ -413,6 +413,36 @@ export default class SalesforceCRMService implements CRM {
 
       let records: ContactRecord[] = [];
 
+      // This combination is for searching for ownership via contacts
+      if (
+        recordToSearch === SalesforceRecordEnum.CONTACT &&
+        appOptions?.roundRobinSkipFallbackToLeadOwner &&
+        forRoundRobinSkip
+      ) {
+        const searchResult = await conn.search(
+          `FIND {${emailArray[0]}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
+        );
+
+        if (searchResult.searchRecords.length > 0) {
+          // See if a contact was found first
+          const contactQuery = searchResult.searchRecords.filter(
+            (record) => record.attributes?.type === SalesforceRecordEnum.CONTACT
+          );
+
+          if (contactQuery.length > 0) {
+            records = contactQuery as ContactRecord[];
+          } else {
+            // If not fallback to lead
+            const leadQuery = searchResult.searchRecords.filter(
+              (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
+            );
+            if (leadQuery.length > 0) {
+              records = leadQuery as ContactRecord[];
+            }
+          }
+        }
+      }
+
       // If falling back to contacts, check for the contact before returning the leads or empty array
       if (
         appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
