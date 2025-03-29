@@ -15,8 +15,10 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 
 import { useBookerStore } from "../../store";
+import { useBookerTime } from "../hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
+import { useLogIfSlotNoLongerAvailable } from "../hooks/useLogIfSlotNoLongerAvailable";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -74,7 +76,8 @@ export const BookEventForm = ({
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-
+  const { timezone } = useBookerTime();
+  useLogIfSlotNoLongerAvailable({ isTimeslotUnavailable, timeslot, timezone });
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
 
@@ -103,7 +106,9 @@ export const BookEventForm = ({
   }
 
   const watchedCfToken = bookingForm.watch("cfToken");
-
+  const isBookingRequestInProgress = loadingStates.creatingBooking || loadingStates.creatingRecurringBooking;
+  // While the booking is ongoing the slot could become unavailable, because of the booking request that is still going on(because DB is updated first and then other things happen)
+  const showTimeslotUnavailableMsg = isTimeslotUnavailable && !isBookingRequestInProgress;
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -135,7 +140,7 @@ export const BookEventForm = ({
               message={getError(errors.formErrors, errors.dataErrors, t, responseVercelIdHeader)}
             />
           </div>
-        ) : isTimeslotUnavailable ? (
+        ) : showTimeslotUnavailableMsg ? (
           <div data-testid="slot-not-allowed-to-book">
             <Alert
               severity="info"
@@ -229,11 +234,7 @@ export const BookEventForm = ({
                 disabled={
                   (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
                 }
-                loading={
-                  loadingStates.creatingBooking ||
-                  loadingStates.creatingRecurringBooking ||
-                  isVerificationCodeSending
-                }
+                loading={isBookingRequestInProgress || isVerificationCodeSending}
                 className={classNames?.confirmButton}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"

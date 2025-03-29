@@ -108,7 +108,7 @@ async function getEventTypeId({
   return eventType?.id;
 }
 
-async function _getReservedSlotsAndCleanupExpired({
+export async function _getReservedSlotsAndCleanupExpired({
   bookerClientUid,
   usersWithCredentials,
   eventTypeId,
@@ -128,7 +128,13 @@ async function _getReservedSlotsAndCleanupExpired({
       ...selectSelectedSlots,
     })) || [];
 
-  const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
+  const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter(
+    // If bookerClientUid is not present/undefined, it means we can't be sure if the the reservation that we find is for the same user or not.
+    // This is because
+    // 1. We aren't always able to set uid cookie in the browser.
+    // 2. UID cookie itself is set in response of reservation call at the moment.
+    (slot) => bookerClientUid && slot.uid !== bookerClientUid
+  );
 
   await _cleanupExpiredSlots({ eventTypeId });
 
