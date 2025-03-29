@@ -29,6 +29,7 @@ import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-s
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OOORepositoryFixture } from "test/fixtures/repository/ooo.repository.fixture";
 import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -56,6 +57,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let apiKeyString: string;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
+    let oooRepositoryFixture: OOORepositoryFixture;
 
     const userEmail = `slots-2024-09-04-user-${randomString()}@example.com`;
     let user: User;
@@ -79,6 +81,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let variableLengthEventType: EventType;
 
     let reservedSlot: ReserveSlotOutputData_2024_09_04;
+
+    const oooTestUserEmail = `oooTestUser-${randomString()}@cal.com`;
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -107,6 +111,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      oooRepositoryFixture = new OOORepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -1344,8 +1349,76 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
     });
 
+    describe("out of office", () => {
+      let oooTestUser: User;
+      let oooTestUserEventType: EventType;
+
+      let oooEntryId: number;
+
+      beforeAll(async () => {
+        oooTestUser = await userRepositoryFixture.create({
+          email: oooTestUserEmail,
+          name: oooTestUserEmail,
+          username: oooTestUserEmail,
+        });
+
+        const oooUserSchedule: CreateScheduleInput_2024_06_11 = {
+          name: `slots-2024-09-04-schedule-${randomString()}`,
+          timeZone: "Europe/Rome",
+          isDefault: true,
+        };
+        // note(Lauris): this creates default schedule monday to friday from 9AM to 5PM in Europe/Rome timezone
+        await schedulesService.createUserSchedule(oooTestUser.id, oooUserSchedule);
+
+        const event = await eventTypesRepositoryFixture.create(
+          { title: "frisbee match", slug: `slots-2024-09-04-event-type-${randomString()}`, length: 60 },
+          oooTestUser.id
+        );
+        oooTestUserEventType = event;
+      });
+
+      it("should not returns slots for ooo days", async () => {
+        const oooStart = new Date("2050-09-06T00:00:00.000Z");
+        const oooEnd = new Date("2050-09-09T23:59:59.999Z");
+
+        const oooEntry = await oooRepositoryFixture.create({
+          uuid: randomString(),
+          start: oooStart,
+          end: oooEnd,
+          user: { connect: { id: oooTestUser.id } },
+          toUser: { connect: { id: oooTestUser.id } },
+          createdAt: new Date(),
+          reason: {
+            connect: {
+              id: 1,
+            },
+          },
+        });
+        oooEntryId = oooEntry.id;
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/slots?eventTypeId=${oooTestUserEventType.id}&start=2050-09-05&end=2050-09-09&duration=60`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(200);
+
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        const days = Object.keys(slots);
+        expect(days.length).toBe(1);
+        expect(slots).toEqual({
+          "2050-09-05": expectedSlotsUTC["2050-09-05"],
+        });
+
+        await oooRepositoryFixture.delete(oooEntryId);
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(oooTestUserEmail);
       await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
       await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
