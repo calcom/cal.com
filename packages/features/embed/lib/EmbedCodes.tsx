@@ -114,6 +114,101 @@ export const Codes = {
   };`;
     },
   },
+  "react-atom": {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState["inline"];
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      const width = getDimension(previewState.width);
+      const height = getDimension(previewState.height);
+      const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
+      return code`
+  import { Cal } from "@calcom/embed-react-atom";
+  import { useEffect } from "react";
+  export default function MyCalendar() {
+    useEffect(() => {
+      // You can use the Cal object to customize the appearance of your Cal embed
+      // Visit https://cal.com/docs/atom for more info
+    }, []);
+    
+    return (
+      <Cal.Embed ${namespaceProp}
+        calLink="${calLink}"
+        style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+        config={${JSON.stringify(previewState.config)}}
+        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+        ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
+      />
+    );
+  };`;
+    },
+    "floating-popup": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      embedCalOrigin: string;
+      uiInstructionCode: string;
+      namespace: string;
+      previewState: PreviewState["floatingPopup"];
+    }) => {
+      return code`
+  import { Cal } from "@calcom/embed-react-atom";
+  export default function MyCalendar() {
+    return (
+      <Cal.FloatingButton 
+        calLink="${calLink}"
+        config={${JSON.stringify(previewState.config)}}
+        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+        ${previewState.hideButtonIcon ? `hideButtonIcon={true}` : ""}
+        ${previewState.buttonPosition ? `buttonPosition="${previewState.buttonPosition}"` : ""}
+        ${previewState.buttonColor ? `buttonColor="${previewState.buttonColor}"` : ""}
+        ${previewState.buttonTextColor ? `buttonTextColor="${previewState.buttonTextColor}"` : ""}
+      />
+    );
+  };`;
+    },
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState["elementClick"];
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      return code`
+  import { Cal } from "@calcom/embed-react-atom";
+  export default function MyCalendar() {
+    return (
+      <Cal.Button 
+        calLink="${calLink}"
+        config={${JSON.stringify(previewState.config)}}
+        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+      >
+        Book my calendar
+      </Cal.Button>
+    );
+  };`;
+    },
+  },
   HTML: {
     inline: ({
       calLink,
