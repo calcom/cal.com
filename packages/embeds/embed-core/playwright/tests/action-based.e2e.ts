@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, devices } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { test, todo } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
@@ -295,14 +295,8 @@ test.describe("Popup Tests", () => {
 
   test("should open embed iframe on click - Configured with hide eventType details on mobile viewport", async ({
     embedsMobileContext,
-    browser,
+    page,
   }) => {
-    const context = await browser.newContext({
-      ...devices["iPhone 13"],
-    });
-
-    const page = await context.newPage();
-
     await deleteAllBookingsByEmail("embed-user@example.com");
     const calNamespace = "popupHideEventTypeDetails";
 
