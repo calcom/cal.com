@@ -4,6 +4,7 @@ import { z } from "zod";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
+import { maskEmail } from "@calcom/features/bookings/lib/maskEmail";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -131,6 +132,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }),
   };
 
+  const hideOrganizerEmail = eventType.team?.hideOrganizerEmail;
+
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
@@ -209,6 +212,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
+
+  if (hideOrganizerEmail) {
+    if (bookingInfo.user) {
+      bookingInfo.userDisplayEmail = maskEmail(bookingInfo.user);
+    }
+
+    bookingInfo.attendees.forEach((attendee) => {
+      attendee.email = attendee.maskedEmail ?? attendee.email;
+    });
+  }
 
   return {
     props: {

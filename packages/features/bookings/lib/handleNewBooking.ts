@@ -112,6 +112,7 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import { maskEmail } from "./maskEmail";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -761,10 +762,17 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
+  type organizerWithUnMaskedEmail = (typeof users)[number] & { maskedEmail?: string };
+
   // If the team member is requested then they should be the organizer
-  const organizerUser = reqBody.teamMemberEmail
+  const organizerUser: organizerWithUnMaskedEmail = reqBody.teamMemberEmail
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
     : users[0];
+
+  const hideOrganizerEmail = eventType.team?.hideOrganizerEmail;
+  if (hideOrganizerEmail) {
+    organizerUser.maskedEmail = maskEmail(organizerUser);
+  }
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
@@ -899,6 +907,7 @@ async function handler(
       return {
         id: user.id,
         email: user.email ?? "",
+        maskedEmail: hideOrganizerEmail ? maskEmail(user) : undefined,
         name: user.name ?? "",
         firstName: "",
         lastName: "",
@@ -909,6 +918,7 @@ async function handler(
         },
       };
     });
+
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -994,6 +1004,7 @@ async function handler(
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
+      maskedEmail: organizerUser.maskedEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
