@@ -36,10 +36,9 @@ export function DataTablePagination<TData>({
         currentPage={pageIndex + 1}
         pageSize={pageSize}
         totalItems={totalRowCount}
-        onPageChange={(page) => setPageIndex(page - 1)}
         onPageSizeChange={(newSize) => setPageSize(newSize)}
         onNext={() => setPageIndex(pageIndex + 1)}
-        onPrevious={() => setPageIndex(pageIndex - 1)}
+        onPrevious={() => setPageIndex(pageIndex - 1 == 0 ? null : pageIndex - 1)}
       />
     );
   } else {
