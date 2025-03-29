@@ -11,6 +11,7 @@ import dayjs from "@calcom/dayjs";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import { BookerI18nextProvider } from "@calcom/lib/bookerI18nextProvider";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -585,9 +586,19 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
+  const event = props.event;
+  const interfaceLanguage = event.data?.interfaceLanguage;
+
+  const shouldUseCustomInterfaceLanguage = interfaceLanguage && props.userLocale !== interfaceLanguage;
   return (
     <LazyMotion strict features={loadFramerFeatures}>
-      <BookerComponent {...props} />
+      {shouldUseCustomInterfaceLanguage ? (
+        <BookerI18nextProvider locale={interfaceLanguage}>
+          <BookerComponent {...props} />
+        </BookerI18nextProvider>
+      ) : (
+        <BookerComponent {...props} />
+      )}
     </LazyMotion>
   );
 };

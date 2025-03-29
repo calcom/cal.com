@@ -26,6 +26,7 @@ export const getEventTypesFromDB = async (id: number) => {
       id: true,
       title: true,
       description: true,
+      interfaceLanguage: true,
       length: true,
       eventName: true,
       recurringEvent: true,
