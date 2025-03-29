@@ -217,7 +217,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
-
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,

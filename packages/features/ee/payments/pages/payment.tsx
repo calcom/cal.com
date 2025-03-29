@@ -75,7 +75,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
       },
       booking,
-
       payment,
       clientSecret: getClientSecretFromPayment(payment),
       profile,

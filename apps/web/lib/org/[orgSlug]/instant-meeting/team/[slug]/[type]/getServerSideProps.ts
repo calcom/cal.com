@@ -66,7 +66,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
-
       isBrandingHidden: team?.hideBranding,
       themeBasis: null,
     },

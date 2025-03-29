@@ -12,8 +12,6 @@ import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 
-
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
@@ -28,7 +26,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req } = context;
 
   const session = await getServerSession({ req });
-  
+
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   if (session) {
@@ -93,7 +91,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      
       provider: providerParam,
       isSAMLLoginEnabled,
       hostedCal,

@@ -169,7 +169,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     },
     user: usernames.join("+"),
     slug,
-
     isBrandingHidden: false,
     isSEOIndexable: true,
     themeBasis: null,
@@ -267,7 +266,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     },
     user: username,
     slug,
-
     isBrandingHidden: user?.hideBranding,
     isSEOIndexable: allowSEOIndexing,
     themeBasis: username,

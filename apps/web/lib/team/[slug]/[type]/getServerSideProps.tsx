@@ -14,8 +14,6 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
-
-
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
   slug: z.string().transform((s) => slugify(s)),
@@ -59,7 +57,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const name = team.parent?.name ?? team.name ?? null;
 
   const booking = rescheduleUid ? await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : null;
-  
+
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
@@ -125,7 +123,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
-      
       isBrandingHidden: team?.hideBranding,
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,

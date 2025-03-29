@@ -5,12 +5,9 @@ import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeployme
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
-
-
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
-  
   const userCount = await prisma.user.count();
 
   const session = await getServerSession({ req });
@@ -45,7 +42,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      
       isFreeLicense,
       userCount,
     },

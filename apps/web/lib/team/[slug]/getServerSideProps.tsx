@@ -225,7 +225,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
       themeBasis: serializableTeam.slug,
-
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,
