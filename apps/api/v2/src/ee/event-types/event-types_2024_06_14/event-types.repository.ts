@@ -2,6 +2,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
+
 import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
@@ -107,6 +108,18 @@ export class EventTypesRepository_2024_06_14 {
         },
       },
       include: { users: true, schedule: true, destinationCalendar: true },
+    });
+  }
+
+  async getUserEventTypeBySlugWithOwnerAndTeam(userId: number, slug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        userId_slug: {
+          userId: userId,
+          slug: slug,
+        },
+      },
+      include: { owner: true, team: true },
     });
   }
 

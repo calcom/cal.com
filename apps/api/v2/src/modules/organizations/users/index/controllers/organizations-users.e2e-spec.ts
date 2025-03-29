@@ -4,6 +4,7 @@ import { EmailService } from "@/modules/email/email.service";
 import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
+import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -22,6 +23,9 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { User, Team, EventType } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
+  const bio = "I am a bio";
+  const metadata = { foo: "bar" };
+
   describe("Member role", () => {
     let app: INestApplication;
 
@@ -56,6 +60,8 @@ describe("Organizations Users Endpoints", () => {
         email: userEmail,
         username: userEmail,
         organization: { connect: { id: org.id } },
+        bio,
+        metadata,
       });
 
       await profileRepositoryFixture.create({
@@ -170,6 +176,8 @@ describe("Organizations Users Endpoints", () => {
             email: member.email,
             username: member.username,
             organization: { connect: { id: org.id } },
+            bio,
+            metadata,
           })
         )
       );
@@ -197,6 +205,8 @@ describe("Organizations Users Endpoints", () => {
         email: userEmail,
         username: userEmail,
         organization: { connect: { id: org.id } },
+        bio,
+        metadata,
       });
 
       await profileRepositoryFixture.create({
@@ -244,9 +254,31 @@ describe("Organizations Users Endpoints", () => {
         { userData },
         userData.map((u) => u.profile)
       );
-      expect(userData.find((u) => u.profile.username === orgMembersData[0].username)).toBeDefined();
-      expect(userData.find((u) => u.profile.username === orgMembersData[1].username)).toBeDefined();
-      expect(userData.find((u) => u.profile.username === orgMembersData[2].username)).toBeDefined();
+      // Find and verify each member's data
+      const member0 = userData.find((u) => u.profile.username === orgMembersData[0].username);
+      const member1 = userData.find((u) => u.profile.username === orgMembersData[1].username);
+      const member2 = userData.find((u) => u.profile.username === orgMembersData[2].username);
+
+      // Verify member 0
+      expect(member0).toBeDefined();
+      expect(member0?.email).toBe(orgMembersData[0].email);
+      expect(member0?.profile.username).toBe(orgMembersData[0].username);
+      expect(member0?.bio).toBe(bio);
+      expect(member0?.metadata).toEqual(metadata);
+
+      // Verify member 1
+      expect(member1).toBeDefined();
+      expect(member1?.email).toBe(orgMembersData[1].email);
+      expect(member1?.profile.username).toBe(orgMembersData[1].username);
+      expect(member1?.bio).toBe(bio);
+      expect(member1?.metadata).toEqual(metadata);
+
+      // Verify member 2
+      expect(member2).toBeDefined();
+      expect(member2?.email).toBe(orgMembersData[2].email);
+      expect(member2?.profile.username).toBe(orgMembersData[2].username);
+      expect(member2?.bio).toBe(bio);
+      expect(member2?.metadata).toEqual(metadata);
 
       expect(userData.filter((user: { email: string }) => user.email === nonMemberEmail).length).toBe(0);
     });
@@ -265,8 +297,12 @@ describe("Organizations Users Endpoints", () => {
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(1);
 
-      expect(userData.filter((user) => user.email === userEmail).length).toBe(1);
-      expect(userData.find((u) => u.profile.username === user.username)).toBeDefined();
+      const foundUser = userData.find((u) => u.email === userEmail);
+      expect(foundUser).toBeDefined();
+      expect(foundUser?.email).toBe(userEmail);
+      expect(foundUser?.profile.username).toBe(user.username);
+      expect(foundUser?.bio).toBe(bio);
+      expect(foundUser?.metadata).toEqual(metadata);
     });
 
     it("should get users within the specified emails array", async () => {
@@ -285,8 +321,20 @@ describe("Organizations Users Endpoints", () => {
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(2);
 
-      expect(userData.filter((user: { email: string }) => user.email === userEmail).length).toBe(1);
-      expect(userData.filter((user: { email: string }) => user.email === orgMemberEmail).length).toBe(1);
+      const adminUser = userData.find((u: GetOrgUsersWithProfileOutput) => u.email === userEmail);
+      const orgMember = userData.find((u: GetOrgUsersWithProfileOutput) => u.email === orgMemberEmail);
+
+      expect(adminUser).toBeDefined();
+      expect(adminUser?.email).toBe(userEmail);
+      expect(adminUser?.profile.username).toBe(user.username);
+      expect(adminUser?.bio).toBe(bio);
+      expect(adminUser?.metadata).toEqual(metadata);
+
+      expect(orgMember).toBeDefined();
+      expect(orgMember?.email).toBe(orgMemberEmail);
+      expect(orgMember?.profile.username).toBe(orgMembersData[0].username);
+      expect(orgMember?.bio).toBe(bio);
+      expect(orgMember?.metadata).toEqual(metadata);
     });
 
     it("should update an org user", async () => {
@@ -304,10 +352,10 @@ describe("Organizations Users Endpoints", () => {
     });
 
     it("should create a new org user", async () => {
-      const newOrgUser = {
+      const newOrgUser: CreateUserInput = {
         email: `organizations-users-new-member-${randomString()}@api.com`,
-        organizationRole: "MEMBER",
-        autoAccept: true,
+        bio,
+        metadata,
       };
 
       const emailSpy = jest
@@ -315,15 +363,15 @@ describe("Organizations Users Endpoints", () => {
         .mockImplementation(() => Promise.resolve());
       const { body } = await request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/users`)
-        .send({
-          email: newOrgUser.email,
-        })
+        .send(newOrgUser)
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
 
       const userData = body.data;
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.email).toBe(newOrgUser.email);
+      expect(userData.bio).toBe(newOrgUser.bio);
+      expect(userData.metadata).toEqual(newOrgUser.metadata);
       expect(emailSpy).toHaveBeenCalledWith({
         usernameOrEmail: newOrgUser.email,
         orgName: org.name,

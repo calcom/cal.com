@@ -1,7 +1,9 @@
 import { Locales } from "@/lib/enums/locales";
 import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl } from "class-validator";
+import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl, IsObject } from "class-validator";
+
+import { ValidateMetadata } from "@calcom/platform-types";
 
 export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
 export type TimeFormat = 12 | 24;
@@ -51,4 +53,27 @@ export class CreateManagedUserInput {
     description: `URL of the user's avatar image`,
   })
   avatarUrl?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "Bio",
+    example: "I am a bio",
+  })
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @ApiPropertyOptional({
+    type: Object,
+    description:
+      "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @ValidateMetadata({
+    message:
+      "Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+  })
+  metadata?: Record<string, string | boolean | number>;
 }

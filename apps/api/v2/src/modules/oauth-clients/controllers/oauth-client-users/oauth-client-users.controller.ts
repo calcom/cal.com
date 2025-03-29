@@ -11,6 +11,7 @@ import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-cli
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
@@ -33,9 +34,9 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
+import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { Pagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
@@ -50,7 +51,8 @@ export class OAuthClientUsersController {
     private readonly userRepository: UsersRepository,
     private readonly oAuthClientUsersService: OAuthClientUsersService,
     private readonly oauthRepository: OAuthClientRepository,
-    private readonly tokensRepository: TokensRepository
+    private readonly tokensRepository: TokensRepository,
+    private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService
   ) {}
 
   @Get("/")
@@ -65,7 +67,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: managedUsers.map((user) => this.getResponseUser(user)),
+      data: managedUsers.map((user) => this.oAuthClientUsersOutputService.getResponseUser(user)),
     };
   }
 
@@ -89,7 +91,7 @@ export class OAuthClientUsersController {
     return {
       status: SUCCESS_STATUS,
       data: {
-        user: this.getResponseUser(user),
+        user: this.oAuthClientUsersOutputService.getResponseUser(user),
         accessToken: tokens.accessToken,
         accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
         refreshToken: tokens.refreshToken,
@@ -109,7 +111,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: this.getResponseUser(user),
+      data: this.oAuthClientUsersOutputService.getResponseUser(user),
     };
   }
 
@@ -129,7 +131,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: this.getResponseUser(user),
+      data: this.oAuthClientUsersOutputService.getResponseUser(user),
     };
   }
 
@@ -148,7 +150,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: this.getResponseUser(user),
+      data: this.oAuthClientUsersOutputService.getResponseUser(user),
     };
   }
 
@@ -191,21 +193,5 @@ export class OAuthClientUsersController {
     }
 
     return user;
-  }
-
-  private getResponseUser(user: User): ManagedUserOutput {
-    return {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      name: user.name,
-      timeZone: user.timeZone,
-      weekStart: user.weekStart,
-      createdDate: user.createdDate,
-      timeFormat: user.timeFormat,
-      defaultScheduleId: user.defaultScheduleId,
-      locale: user.locale as Locales,
-      avatarUrl: user.avatarUrl,
-    };
   }
 }

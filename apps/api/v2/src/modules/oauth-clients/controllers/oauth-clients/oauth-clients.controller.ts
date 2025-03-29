@@ -10,6 +10,7 @@ import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/o
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -45,7 +46,7 @@ export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
   constructor(
-    private readonly oauthClientRepository: OAuthClientRepository,
+    private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService,
     private readonly oAuthClientsService: OAuthClientsService,
     private readonly userRepository: UsersRepository,
     private readonly teamsRepository: OrganizationsRepository
@@ -111,7 +112,10 @@ export class OAuthClientsController {
       limit ?? 50
     );
 
-    return { status: SUCCESS_STATUS, data: existingManagedUsers.map((user) => this.getResponseUser(user)) };
+    return {
+      status: SUCCESS_STATUS,
+      data: existingManagedUsers.map((user) => this.oAuthClientUsersOutputService.getResponseUser(user)),
+    };
   }
 
   @Patch("/:clientId")
@@ -135,19 +139,5 @@ export class OAuthClientsController {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oAuthClientsService.deleteOAuthClient(clientId);
     return { status: SUCCESS_STATUS, data: client };
-  }
-
-  private getResponseUser(user: User): ManagedUserOutput {
-    return {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      name: user.name,
-      timeZone: user.timeZone,
-      weekStart: user.weekStart,
-      createdDate: user.createdDate,
-      timeFormat: user.timeFormat,
-      defaultScheduleId: user.defaultScheduleId,
-    };
   }
 }
