@@ -55,7 +55,7 @@ export type DatePickerProps = {
       emoji?: string;
     }[]
   >;
-  periodData: PeriodData;
+  periodData?: PeriodData;
 };
 
 const Day = ({
@@ -172,7 +172,7 @@ const NoAvailabilityOverlay = ({
           <DialogClose
             color={isOutOfBoundsByPeriod ? "primary" : "secondary"}
             onClick={closeDialog}
-            data-testid="view_next_month">
+            data-testid="close_dialog_button">
             {t("ok")}
           </DialogClose>
           {
@@ -192,6 +192,8 @@ const NoAvailabilityOverlay = ({
     </Dialog>
   );
 };
+
+export { NoAvailabilityOverlay };
 
 const Days = ({
   minDate,
