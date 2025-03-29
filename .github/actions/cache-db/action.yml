@@ -44,9 +44,7 @@ runs:
       run: |
         mkdir -p .cache/db
         yarn prisma migrate deploy
-        # Get the service container's IP address
-        POSTGRES_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' postgres)
-        PGPASSWORD=postgres pg_dump -h $POSTGRES_IP -p 5432 -U postgres -d calendso > .cache/db/dump.sql
+        PGPASSWORD=postgres pg_dump -h host.docker.internal -p 5432 -U postgres -d calendso > .cache/db/dump.sql
         if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ]; then
           echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" >> .cache/db/env
         fi
