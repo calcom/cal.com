@@ -16,6 +16,8 @@ import {
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
+  SaveFilterSegmentButton,
+  FilterSegmentSelect,
   useDataTable,
   CTA_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
@@ -532,12 +534,19 @@ function UserListTableContent() {
         ToolbarLeft={
           <>
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
             <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
             <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
           </>
         }
-        ToolbarRight={<DataTableFilters.ClearFiltersButton />}>
+        ToolbarRight={
+          <>
+            <DataTableFilters.ClearFiltersButton />
+            <SaveFilterSegmentButton />
+            <FilterSegmentSelect />
+          </>
+        }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
@@ -589,7 +598,6 @@ function UserListTableContent() {
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            <DataTableFilters.ColumnVisibilityButton table={table} />
             {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"

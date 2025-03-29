@@ -211,6 +211,10 @@ export const ZSorting = z.object({
   desc: z.boolean(),
 }) satisfies z.ZodType<Sorting>;
 
+export const ZSortingState = z.array(ZSorting);
+
+export const ZColumnSizing = z.record(z.string(), z.number());
+
 export const ZColumnVisibility = z.record(z.string(), z.boolean());
 
 export type FacetedValue = {
@@ -218,3 +222,47 @@ export type FacetedValue = {
   value: string | number;
   section?: string;
 };
+
+export type ActiveFilter = {
+  f: string;
+  v?: FilterValue;
+};
+
+export type ActiveFilters = ActiveFilter[];
+
+export const ZActiveFilter = z.object({
+  f: z.string(),
+  v: ZFilterValue.optional(),
+}) satisfies z.ZodType<ActiveFilter>;
+
+export const ZActiveFilters = ZActiveFilter.array();
+
+export type FilterSegmentOutput = {
+  id: number;
+  name: string;
+  tableIdentifier: string;
+  scope: "USER" | "TEAM";
+  activeFilters: ActiveFilters;
+  sorting: SortingState;
+  columnVisibility: Record<string, boolean>;
+  columnSizing: Record<string, number>;
+  perPage: number;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: number;
+  teamId: number | null;
+  team: { id: number; name: string } | null;
+};
+
+export type SegmentStorage = {
+  [tableIdentifier: string]: {
+    segmentId: number;
+  };
+};
+
+export const ZSegmentStorage = z.record(
+  z.string(),
+  z.object({
+    segmentId: z.number(),
+  })
+) satisfies z.ZodType<SegmentStorage>;
