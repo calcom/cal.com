@@ -30,10 +30,26 @@ export class TeamsRepository {
     });
   }
 
-  async getTeamMembersIds(teamId: number) {
+  async getTeamUsersIds(teamId: number) {
     const teamMembers = await this.dbRead.prisma.membership.findMany({
       where: {
         teamId,
+      },
+    });
+    if (!teamMembers || teamMembers.length === 0) {
+      return [];
+    }
+
+    return teamMembers.map((member) => member.userId);
+  }
+
+  async getTeamManagedUsersIds(teamId: number) {
+    const teamMembers = await this.dbRead.prisma.membership.findMany({
+      where: {
+        teamId,
+        user: {
+          isPlatformManaged: true,
+        },
       },
     });
     if (!teamMembers || teamMembers.length === 0) {
