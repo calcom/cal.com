@@ -294,19 +294,18 @@ test.describe("Popup Tests", () => {
   });
 
   test("should open embed iframe on click - Configured with hide eventType details on mobile viewport", async ({
-    embedsMobileContext,
-    page,
+    embedsMobileContext: { gotoPlayground, getActionFiredDetails, page },
   }) => {
     await deleteAllBookingsByEmail("embed-user@example.com");
     const calNamespace = "popupHideEventTypeDetails";
 
-    await embedsMobileContext.gotoPlayground({ calNamespace, url: "/" });
+    await gotoPlayground({ calNamespace, url: "/" });
 
     await page.click(`[data-cal-namespace="${calNamespace}"]`);
 
     const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free/30min" });
 
-    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embedsMobileContext.getActionFiredDetails, {
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
       pathname: "/free/30min",
     });
   });
