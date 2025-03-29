@@ -3,7 +3,6 @@ import { ConferenceRecordsServiceClient, SpacesServiceClient } from "@google-app
 import type { protos } from "@google-apps/meet";
 import { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
-import { GoogleAuth, OAuth2Client as GoogleOAuth2Client } from "google-auth-library";
 import { OAuth2Client, JWT } from "googleapis-common";
 import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
@@ -210,10 +209,11 @@ export default class GoogleCalendarService implements Calendar {
       key: serviceAccountPrivateKey,
       scopes: [
         "https://www.googleapis.com/auth/calendar",
-        // "https://www.googleapis.com/auth/meetings.space.readonly",
-        // "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/meetings.space.readonly",
+        "https://www.googleapis.com/auth/admin.directory.user.readonly",
       ],
       subject: emailToImpersonate,
+      universeDomain: "googleapis.com", // Add this line
     });
 
     try {
@@ -253,7 +253,9 @@ export default class GoogleCalendarService implements Calendar {
 
   private getAuthedClientFromDelegationCredential = async ({
     delegationCredential,
+    emailToImpersonate,
   }: {
+    emailToImpersonate: string;
     delegationCredential: {
       serviceAccountKey: {
         client_email: string;
@@ -271,11 +273,33 @@ export default class GoogleCalendarService implements Calendar {
       key: serviceAccountPrivateKey,
       scopes: [
         "https://www.googleapis.com/auth/calendar",
-        // "https://www.googleapis.com/auth/meetings.space.readonly",
-        // "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/meetings.space.readonly",
+        "https://www.googleapis.com/auth/admin.directory.user.readonly",
       ],
       subject: emailToImpersonate,
+      universeDomain: "googleapis.com",
     });
+
+    try {
+      await authClient.authorize();
+    } catch (error) {
+      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
+
+      if ((error as any).response?.data?.error === "unauthorized_client") {
+        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
+          "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
+        );
+      }
+
+      if ((error as any).response?.data?.error === "invalid_grant") {
+        throw new CalendarAppDelegationCredentialInvalidGrantError(
+          "User might not exist in Google Workspace"
+        );
+      }
+
+      // Catch all error
+      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
+    }
 
     return authClient;
   };
@@ -405,6 +429,9 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
+
+    const participants = await this.getMeetParticipants(null);
+    console.log("participants", participants);
 
     const payload: calendar_v3.Schema$Event = {
       summary: formattedCalEvent.title,
@@ -710,97 +737,147 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async getMeetParticipants(videoCallUrl: string | null): Promise<ParticipantWithEmail[][] | null> {
-    const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
-    if (!token) {
-      throw new Error("Invalid grant for Google Calendar app");
-    }
-
-    const googleAuth = new GoogleAuth({
-      authClient: new GoogleOAuth2Client({
-        credentials: {
-          access_token: token.access_token,
-        },
-      }),
-    });
-    // if (!this.credential.delegatedTo) return null;
-
-    // const jwtClient = await this.getAuthedClientFromDelegationCredential({
-    //   delegationCredential: this.credential.delegatedTo,
-    // });
-
-    // const authClient = new GoogleAuth({
-    //   credentials: this.credential.delegatedTo.serviceAccountKey,
-    //   scopes: [
-    //     "https://www.googleapis.com/auth/meetings.space.created",
-    //     "https://www.googleapis.com/auth/admin.directory.user.readonly",
-    //   ],
-    // });
-
-    const meetClient = new ConferenceRecordsServiceClient({
-      auth: googleAuth as unknown as ConferenceRecordsServiceClient["auth"],
-    });
-
-    const spacesClient = new SpacesServiceClient({
-      auth: googleAuth as unknown as SpacesServiceClient["auth"],
-    });
-
-    const meetingCode = videoCallUrl ? new URL(videoCallUrl).pathname.split("/").pop() : null;
-
-    const spaceInfo = await spacesClient.getSpace({ name: `spaces/${meetingCode}` });
-    const spaceName = spaceInfo[0].name;
-
-    const conferenceRecords = [];
-    for await (const response of meetClient.listConferenceRecordsAsync()) {
-      if (response.space === spaceName) {
-        conferenceRecords.push(response);
+    try {
+      videoCallUrl = "https://meet.google.com/nvt-uufv-omy";
+      const { token } = await this.oAuthManagerInstance.getTokenObjectOrFetch();
+      if (!token || !this.credential.delegatedTo?.serviceAccountKey) {
+        throw new Error("Invalid grant for Google Calendar app");
       }
-    }
 
-    const participantsByConferenceRecord = await Promise.all(
-      conferenceRecords.map(async (conferenceRecord) => {
-        const participants = [];
-        for await (const participant of meetClient.listParticipantsAsync({ parent: conferenceRecord.name })) {
-          participants.push(participant);
+      const authClient = await this.getAuthedClientFromDelegationCredential({
+        emailToImpersonate: "udit@cal.com",
+        delegationCredential: this.credential.delegatedTo,
+      });
+
+      // const accessToken = await authClient.getAccessToken();
+      // console.log("accessToken", accessToken);
+
+      // const client = await auth.getClient();
+
+      console.log("auth...........................");
+
+      // const authClient2 = new GoogleAuth({
+      //   credentials: this.credential.delegatedTo.serviceAccountKey,
+      //   scopes: ["https://www.googleapis.com/auth/meetings.space.readonly"],
+      // });
+      // console.log("authClient2", authClient2);
+      // const authClient3 = (await authClient2.getClient()) as unknown as GoogleAuth<AuthClient>;
+
+      // const accessToken = await authClient.getAccessToken();
+      // console.log("accessToken", accessToken);
+
+      // const googleAuth = new GoogleAuth({
+      //   authClient: new GoogleOAuth2Client({
+      //     credentials: {
+      //       access_token: accessToken.token,
+      //     },
+      //   }),
+      // });
+      // if (!this.credential.delegatedTo) return null;
+
+      // const jwtClient = await this.getAuthedClientFromDelegationCredential({
+      //   delegationCredential: this.credential.delegatedTo,
+      // });
+
+      // const authClient = new GoogleAuth({
+      //   credentials: this.credential.delegatedTo.serviceAccountKey,
+      //   scopes: [
+      //     "https://www.googleapis.com/auth/meetings.space.created",
+      //     "https://www.googleapis.com/auth/admin.directory.user.readonly",
+      //   ],
+      // });
+
+      // const meetClient = new ConferenceRecordsServiceClient({
+      //   authClient: authClient as unknown as ConferenceRecordsServiceClient["auth"],
+      // });
+
+      const meetClient = new ConferenceRecordsServiceClient({
+        auth: authClient,
+        projectId: this.credential.delegatedTo.serviceAccountKey.client_id,
+        apiEndpoint: "meet.googleapis.com",
+      });
+
+      console.log("meetClient...........................");
+
+      // const spacesClient = new SpacesServiceClient({
+      //   authClient: authClient as unknown as SpacesServiceClient["auth"],
+      // });
+
+      const spacesClient = new SpacesServiceClient({
+        auth: authClient,
+        projectId: this.credential.delegatedTo.serviceAccountKey.client_id,
+        apiEndpoint: "meet.googleapis.com",
+      });
+      console.log("spacesClient...........................");
+
+      const meetingCode = videoCallUrl ? new URL(videoCallUrl).pathname.split("/").pop() : null;
+
+      console.log("meetingCode", meetingCode);
+
+      const spaceInfo = await spacesClient.getSpace({ name: `spaces/${meetingCode}` });
+      console.log("spaceInfo", spaceInfo);
+      const spaceName = spaceInfo[0].name;
+
+      const conferenceRecords = [];
+      for await (const response of meetClient.listConferenceRecordsAsync()) {
+        if (response.space === spaceName) {
+          conferenceRecords.push(response);
         }
-        return participants;
-      })
-    );
+      }
+      console.log("conferenceRecords", conferenceRecords);
+      const participantsByConferenceRecord = await Promise.all(
+        conferenceRecords.map(async (conferenceRecord) => {
+          const participants = [];
+          for await (const participant of meetClient.listParticipantsAsync({
+            parent: conferenceRecord.name,
+          })) {
+            participants.push(participant);
+          }
+          return participants;
+        })
+      );
+      console.log("participantsByConferenceRecord", participantsByConferenceRecord);
+      return participantsByConferenceRecord;
 
-    const participantsWithEmails = await Promise.all(
-      participantsByConferenceRecord.map(async (participants) => {
-        return Promise.all(
-          participants.map(async (participant) => {
-            try {
-              // TODO: Use directory api to fetch it
-              const response = await fetch(
-                `https://people.googleapis.com/v1/people/${
-                  participant.signedinUser?.user?.split("/")[1]
-                }?personFields=emailAddresses`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token.access_token}`,
-                    Accept: "application/json",
-                  },
-                }
-              );
+      // const participantsWithEmails = await Promise.all(
+      //   participantsByConferenceRecord.map(async (participants) => {
+      //     return Promise.all(
+      //       participants.map(async (participant) => {
+      //         try {
+      //           // TODO: Use directory api to fetch it
+      //           const response = await fetch(
+      //             `https://people.googleapis.com/v1/people/${
+      //               participant.signedinUser?.user?.split("/")[1]
+      //             }?personFields=emailAddresses`,
+      //             {
+      //               headers: {
+      //                 Authorization: `Bearer ${token.access_token}`,
+      //                 Accept: "application/json",
+      //               },
+      //             }
+      //           );
 
-              const data = await response.json();
-              const emailAddresses = data.emailAddresses;
+      //           const data = await response.json();
+      //           const emailAddresses = data.emailAddresses;
 
-              return {
-                ...participant,
-                email: emailAddresses ? emailAddresses[0].value : undefined,
-              };
-            } catch (err) {
-              console.error("Error fetching email for participant:", err);
-              return participant;
-            }
-          })
-        );
-      })
-    );
+      //           return {
+      //             ...participant,
+      //             email: emailAddresses ? emailAddresses[0].value : undefined,
+      //           };
+      //         } catch (err) {
+      //           console.error("Error fetching email for participant:", err);
+      //           return participant;
+      //         }
+      //       })
+      //     );
+      //   })
+      // );
 
-    return participantsWithEmails;
+      // return participantsWithEmails;
+    } catch (err) {
+      console.log("error fetching meet participants", JSON.stringify(err));
+      return null;
+    }
   }
 
   async getCacheOrFetchAvailability(
