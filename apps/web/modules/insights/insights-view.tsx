@@ -18,6 +18,7 @@ import {
   RecentFeedbackTable,
   HighestRatedMembersTable,
   LowestRatedMembersTable,
+  InsightsTableView,
 } from "@calcom/features/insights/components";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
@@ -81,6 +82,9 @@ function InsightsPageContent() {
           <HighestNoShowHostTable />
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
+        </div>
+        <div>
+          <InsightsTableView />
         </div>
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}
