@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { test as base } from "@playwright/test";
+import { test as base, devices } from "@playwright/test";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 
@@ -28,6 +28,7 @@ export interface Fixtures {
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;
   embeds: ReturnType<typeof createEmbedsFixture>;
+  embedsMobileContext: ReturnType<typeof createEmbedsFixture>;
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
   emails: ReturnType<typeof createEmailsFixture>;
@@ -79,6 +80,15 @@ export const test = base.extend<Fixtures>({
   embeds: async ({ page }, use) => {
     const embedsFixture = createEmbedsFixture(page);
     await use(embedsFixture);
+  },
+  embedsMobileContext: async ({ browser }, use) => {
+    const context = await browser.newContext({
+      ...devices["iPhone 13"],
+    });
+    const page = await context.newPage();
+    const embedsFixture = createEmbedsFixture(page);
+    await use(embedsFixture);
+    await context.close();
   },
   servers: async ({}, use) => {
     const servers = createServersFixture();
