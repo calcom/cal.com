@@ -27,6 +27,7 @@ const delegationCredentialSafeSelect = {
       slug: true,
     },
   },
+  accessTokens: true,
 };
 
 const delegationCredentialSelectIncludesServiceAccountKey = {
