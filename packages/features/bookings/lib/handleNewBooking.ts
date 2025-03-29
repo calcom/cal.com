@@ -71,14 +71,13 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { BookingStatus, CreationSource, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
-import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -96,8 +95,8 @@ import type { Booking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
+import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
@@ -1566,7 +1565,25 @@ async function handler(
             members: newBookedMembers,
             eventTypeMetadata: eventType.metadata,
           });
-          sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
+          const reassignedTo = users.find(
+            (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+          );
+          sendRoundRobinCancelledEmailsAndSMS(
+            {
+              ...copyEventAdditionalInfo,
+              startTime: dayjs(originalRescheduledBooking.startTime).toString(),
+              endTime: dayjs(originalRescheduledBooking.endTime).toString(),
+            },
+            cancelledMembers,
+            eventType.metadata,
+            !!reassignedTo
+              ? {
+                  name: reassignedTo.name,
+                  email: reassignedTo.email,
+                  ...(reqBody.rescheduledBy === bookerEmail && { reason: "Booker Rescheduled" }),
+                }
+              : undefined
+          );
         }
       } else {
         if (!isDryRun) {

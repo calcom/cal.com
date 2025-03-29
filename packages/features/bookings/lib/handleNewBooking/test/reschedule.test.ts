@@ -1881,7 +1881,7 @@ describe("handleNewBooking", () => {
     });
     describe("Team event-type", () => {
       test(
-        "should send correct schedule/cancellation emails to hosts when round robin is rescheduled to different host",
+        "should send correct schedule/cancellation/reassigned emails to hosts when round robin is rescheduled to different host",
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
@@ -2030,6 +2030,7 @@ describe("handleNewBooking", () => {
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost2,
             emails,
+            bookerReschedule: true,
           });
         },
         timeout
