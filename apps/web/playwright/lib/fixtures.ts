@@ -88,7 +88,6 @@ export const test = base.extend<Fixtures>({
     const page = await context.newPage();
     const embedsFixture = createEmbedsFixture(page);
     await use(embedsFixture);
-    await context.close();
   },
   servers: async ({}, use) => {
     const servers = createServersFixture();
