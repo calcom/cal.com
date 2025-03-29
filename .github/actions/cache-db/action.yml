@@ -26,14 +26,8 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Install PostgreSQL client tools
-      shell: bash
-      run: |
-        apt-get update
-        apt-get install -y postgresql-client
     - name: Cache Database
       id: cache-db
-      shell: bash
       uses: buildjet/cache@v4
       env:
         cache-name: db
@@ -48,11 +42,9 @@ runs:
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
     - name: Log Cache Hit
       if: steps.cache-db.outputs.cache-hit == 'true'
-      shell: bash
       run: echo "Cache hit for database. Skipping database setup."
     - name: Setup Database
       if: steps.cache-db.outputs.cache-hit != 'true'
-      shell: bash
       run: |
         mkdir -p .cache/db
         yarn prisma migrate deploy
