@@ -24,6 +24,7 @@ const getUserBooking = async (uid: string) => {
       userPrimaryEmail: true,
       fromReschedule: true,
       rescheduled: true,
+      rescheduledBy: true,
       user: {
         select: {
           id: true,
@@ -58,6 +59,25 @@ const getUserBooking = async (uid: string) => {
       },
     },
   });
+
+  if (bookingInfo?.fromReschedule) {
+    const previousBooking = await prisma.booking.findFirst({
+      where: {
+        uid: bookingInfo.fromReschedule,
+      },
+      select: {
+        rescheduledBy: true,
+        uid: true,
+      },
+    });
+
+    if (previousBooking) {
+      return {
+        ...bookingInfo,
+        previousBooking: previousBooking,
+      };
+    }
+  }
 
   return bookingInfo;
 };

@@ -66,7 +66,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (maybeBookingUidFromSeat.uid) uid = maybeBookingUidFromSeat.uid;
   if (maybeBookingUidFromSeat.seatReferenceUid) seatReferenceUid = maybeBookingUidFromSeat.seatReferenceUid;
 
-  const { bookingInfoRaw, bookingInfo } = await getBookingInfo(uid);
+  const { bookingInfoRaw, bookingInfo, previousBooking } = await getBookingInfo(uid);
 
   if (!bookingInfoRaw) {
     return {
@@ -221,6 +221,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
+      previousBooking,
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,

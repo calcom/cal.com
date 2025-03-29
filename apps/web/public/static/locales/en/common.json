@@ -1357,6 +1357,8 @@
   "custom": "Custom",
   "reminder": "Reminder",
   "rescheduled": "Rescheduled",
+  "rescheduled_by": "Rescheduled by",
+  "original_booking": "Original booking",
   "completed": "Completed",
   "rating": "Rating",
   "reminder_email": "Reminder: {{eventType}} with {{name}} at {{date}}",
