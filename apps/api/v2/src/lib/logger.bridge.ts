@@ -1,0 +1,122 @@
+import { Injectable, Logger as NestLogger, Scope } from "@nestjs/common";
+
+/**
+ * This logger acts as a bridge between Nest.js Logger and log calls originating
+ * from platform libraries. It forwards logs to NestLogger, allowing centralization
+ * (e.g., sending to Axiom) and adds an optional prefix for context.
+ */
+@Injectable({ scope: Scope.TRANSIENT }) // TRANSIENT ensures getSubLogger provides truly independent instances if needed elsewhere
+export class LoggerBridge {
+  // Use NestLogger for the actual logging output
+  private readonly nestLogger = new NestLogger("LoggerBridge");
+  // Prefix to add to messages for this instance
+  private prefix = "";
+
+  /**
+   * Creates a new LoggerBridge instance with a specific prefix.
+   * Useful for providing context from different parts of a library.
+   * @param options - Configuration for the sub-logger.
+   * @param options.prefix - An array of strings to join as the log prefix.
+   * @returns A new LoggerBridge instance with the specified prefix.
+   */
+  getSubLogger(options: { prefix: string[] }): LoggerBridge {
+    const newLogger = new LoggerBridge();
+    // Set the prefix for the *new* instance
+    newLogger.prefix = options.prefix.join(" ");
+    return newLogger;
+  }
+
+  // --- Public logging methods ---
+
+  info(...args: any[]) {
+    this.logInternal("log", ...args);
+  }
+
+  warn(...args: any[]) {
+    this.logInternal("warn", ...args);
+  }
+
+  error(...args: any[]) {
+    this.logInternal("error", ...args);
+  }
+
+  debug(...args: any[]) {
+    this.logInternal("debug", ...args);
+  }
+
+  trace(...args: any[]) {
+    this.logInternal("verbose", ...args);
+  }
+
+  fatal(...args: any[]) {
+    // Prepend FATAL: to the message and log as error
+    const fatalMessage = `fatal: ${this.formatArgsAsString(args)}`;
+    this.logInternal("error", fatalMessage);
+  }
+
+  silly(...args: any[]) {
+    const sillyMessage = `silly: ${this.formatArgsAsString(args)}`;
+    this.logInternal("verbose", sillyMessage);
+  }
+
+  // --- Internal logging implementation ---
+
+  /** Formats arguments into a single string */
+  private formatArgsAsString(args: any[]): string {
+    return args
+      .map((arg) => {
+        if (typeof arg === "string") {
+          return arg;
+        }
+        // Attempt to stringify non-string arguments
+        try {
+          return JSON.stringify(arg);
+        } catch (e) {
+          return "[Unserializable Object]";
+        }
+      })
+      .join(" "); // Use space as separator, adjust if needed
+  }
+
+  /** Central method to forward logs to NestLogger */
+  private logInternal(level: "log" | "warn" | "error" | "debug" | "verbose", ...args: any[]) {
+    try {
+      // Format message from potentially multiple arguments
+      const formattedMessage = this.formatArgsAsString(args);
+
+      // Prepend the prefix if it exists
+      const message = this.prefix ? `${this.prefix} ${formattedMessage}` : formattedMessage;
+
+      // Call the corresponding NestLogger method
+      switch (level) {
+        case "log":
+          this.nestLogger.log(message);
+          break;
+        case "warn":
+          this.nestLogger.warn(message);
+          break;
+        case "error":
+          this.nestLogger.error(message);
+          break;
+        case "debug":
+          this.nestLogger.debug(message);
+          break;
+        case "verbose":
+          this.nestLogger.verbose(message);
+          break;
+      }
+    } catch (err) {
+      this.nestLogger.error(
+        `Could not bridge log message. Error: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+}
+
+// --- Singleton Export Pattern ---
+// This creates a single instance of LoggerBridge when the module is loaded.
+// Direct imports of 'Logger' will always refer to this instance.
+// Use getSubLogger() to get instances with prefixes.
+const Logger = (() => new LoggerBridge())();
+
+export default Logger;
