@@ -99,7 +99,6 @@ export default defineConfig({
         "dayjs/plugin/timezone.js",
         "dayjs/plugin/toArray.js",
         "dayjs/plugin/utc.js",
-        "tslog",
         "@prisma/extension-accelerate",
         "@ewsjs/xhr",
         "next-i18next/serverSideTranslations",
@@ -191,7 +190,8 @@ export default defineConfig({
       "@calcom/prisma/client": resolve("../../../node_modules/.prisma/client"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
-      "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
+      // eslint-disable-next-line prettier/prettier
+      tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
     },
   },
 });
