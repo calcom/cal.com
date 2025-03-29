@@ -16,7 +16,7 @@ export const validateOriginalRescheduledBooking = async (
     originalRescheduledBooking.status === BookingStatus.CANCELLED &&
     !originalRescheduledBooking.rescheduled
   ) {
-    throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
+    throw new HttpError({ statusCode: 400, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
   }
 };
 
