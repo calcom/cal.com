@@ -99,7 +99,6 @@ export default defineConfig({
         "dayjs/plugin/timezone.js",
         "dayjs/plugin/toArray.js",
         "dayjs/plugin/utc.js",
-        "tslog",
         "@prisma/extension-accelerate",
         "@ewsjs/xhr",
         "next-i18next/serverSideTranslations",
@@ -182,51 +181,17 @@ export default defineConfig({
   },
   plugins: [react(), dts()],
   resolve: {
-    alias: [
-      {
-        find: /^(?:\.\.\/)*logger$/, // Matches './logger', '../logger', etc.
-        replacement: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
-      },
-      {
-        find: "@",
-        replacement: path.resolve(__dirname, "./src"),
-      },
-      {
-        find: "@calcom/lib",
-        replacement: path.resolve(__dirname, "../../lib"),
-      },
-      {
-        find: "@calcom/trpc",
-        replacement: resolve("../../trpc"),
-      },
-      {
-        find: "lru-cache",
-        replacement: resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
-      },
-      {
-        find: "@prisma/client",
-        replacement: resolve("../../../node_modules/@prisma/client"),
-      },
-      {
-        find: "@calcom/prisma/client",
-        replacement: resolve("../../../node_modules/.prisma/client"),
-      },
-      {
-        find: "@calcom/platform-constants",
-        replacement: path.resolve(__dirname, "../constants/index.ts"),
-      },
-      {
-        find: "@calcom/platform-types",
-        replacement: path.resolve(__dirname, "../types/index.ts"),
-      },
-      {
-        find: "@calcom/platform-utils",
-        replacement: path.resolve(__dirname, "../constants/index.ts"),
-      },
-      {
-        find: "@calcom/lib/logger",
-        replacement: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
-      },
-    ],
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@calcom/lib": path.resolve(__dirname, "../../lib"),
+      "@calcom/trpc": resolve("../../trpc"),
+      "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
+      "@prisma/client": resolve("../../../node_modules/@prisma/client"),
+      "@calcom/prisma/client": resolve("../../../node_modules/.prisma/client"),
+      "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
+      "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
+      // eslint-disable-next-line prettier/prettier
+      tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
+    },
   },
 });

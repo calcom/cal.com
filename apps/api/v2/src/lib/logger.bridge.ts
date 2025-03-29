@@ -6,7 +6,7 @@ import { Injectable, Logger as NestLogger, Scope } from "@nestjs/common";
  * (e.g., sending to Axiom) and adds an optional prefix for context.
  */
 @Injectable({ scope: Scope.TRANSIENT }) // TRANSIENT ensures getSubLogger provides truly independent instances if needed elsewhere
-export class LoggerBridge {
+export class Logger {
   // Use NestLogger for the actual logging output
   private readonly nestLogger = new NestLogger("LoggerBridge");
   // Prefix to add to messages for this instance
@@ -19,10 +19,10 @@ export class LoggerBridge {
    * @param options.prefix - An array of strings to join as the log prefix.
    * @returns A new LoggerBridge instance with the specified prefix.
    */
-  getSubLogger(options: { prefix: string[] }): LoggerBridge {
-    const newLogger = new LoggerBridge();
+  getSubLogger(options: { prefix?: string[] }): Logger {
+    const newLogger = new Logger();
     // Set the prefix for the *new* instance
-    newLogger.prefix = options.prefix.join(" ");
+    newLogger.prefix = options?.prefix?.join(" ") ?? "";
     return newLogger;
   }
 
@@ -112,11 +112,3 @@ export class LoggerBridge {
     }
   }
 }
-
-// --- Singleton Export Pattern ---
-// This creates a single instance of LoggerBridge when the module is loaded.
-// Direct imports of 'Logger' will always refer to this instance.
-// Use getSubLogger() to get instances with prefixes.
-const Logger = (() => new LoggerBridge())();
-
-export default Logger;
