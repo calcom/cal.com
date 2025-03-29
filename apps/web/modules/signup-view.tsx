@@ -28,6 +28,7 @@ import {
   WEBSITE_TERMS_URL,
   WEBSITE_URL,
 } from "@calcom/lib/constants";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
@@ -227,6 +228,18 @@ export default function Signup({
     }
   };
 
+  const validateEmail = (value: string, t: (key: string) => string) => {
+    if (!value || value.trim() === "" || value.length < 3) {
+      return true;
+    }
+
+    if (value.includes("@")) {
+      return emailRegex.test(value) || t("invalid_email");
+    }
+
+    return true;
+  };
+
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
@@ -403,11 +416,24 @@ export default function Signup({
                   ) : null}
                   {/* Email */}
                   <TextField
-                    {...register("email")}
+                    {...register("email", {
+                      validate: {
+                        email: (value) => validateEmail(value, t),
+                      },
+                    })}
                     label={t("email")}
                     type="email"
                     disabled={prepopulateFormValues?.email}
                     data-testid="signup-emailfield"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (!value || value.trim() === "") {
+                        formMethods.clearErrors("email");
+                      }
+                      formMethods.setValue("email", value, {
+                        shouldValidate: value.length > 2,
+                      });
+                    }}
                   />
 
                   {/* Password */}
