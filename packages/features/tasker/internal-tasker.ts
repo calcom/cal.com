@@ -48,4 +48,8 @@ export class InternalTasker implements Tasker {
     const count = await Task.cleanup();
     console.info(`Cleaned up ${count} tasks`);
   }
+  async cancel(id: string): Promise<string> {
+    const task = await Task.cancel(id);
+    return task.id;
+  }
 }
