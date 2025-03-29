@@ -15,7 +15,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 const CACHING_TIME = ONE_MONTH_IN_MS;
 
-export function parseKeyForCache(args: FreeBusyArgs): string {
+function parseKeyForCache(args: FreeBusyArgs): string {
   // Ensure that calendarIds are unique
   const uniqueItems = uniqueBy(args.items, ["id"]);
   const key = JSON.stringify({
