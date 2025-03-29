@@ -1,3 +1,4 @@
+import { getTRPCPrefetchCaller } from "app/_trpc/prefetch";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -13,8 +14,6 @@ import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const stringToBoolean = z
   .string()
@@ -45,13 +44,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "@lib/booking"
   );
 
-  const ssr = await ssrInit(context);
   const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
   if (session) {
-    const user = await ssr.viewer.me.get.fetch();
+    const trpc = await getTRPCPrefetchCaller();
+    const user = await trpc.viewer.me.get();
     tz = user.timeZone;
     userTimeFormat = user.timeFormat;
   }
@@ -218,7 +217,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
-      trpcState: ssr.dehydrate(),
+
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,

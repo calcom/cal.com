@@ -1,9 +1,4 @@
-import type {
-  AppGetServerSidePropsContext,
-  AppPrisma,
-  AppSsrInit,
-  AppUser,
-} from "@calcom/types/AppGetServerSideProps";
+import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -11,11 +6,8 @@ import { getSerializableForm } from "../lib/getSerializableForm";
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma,
-  user: AppUser,
-  ssrInit: AppSsrInit
+  user: AppUser
 ) {
-  const ssr = await ssrInit(context);
-
   if (!user) {
     return {
       redirect: {
