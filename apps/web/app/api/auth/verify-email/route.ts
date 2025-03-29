@@ -1,4 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
@@ -18,7 +20,6 @@ const verifySchema = z.object({
 
 const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
 
-// TODO: To be unit tested
 export async function moveUserToMatchingOrg({ email }: { email: string }) {
   const org = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
 
@@ -41,8 +42,8 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
   });
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { token } = verifySchema.parse(req.query);
+async function handler(req: NextRequest) {
+  const { token } = verifySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
 
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
@@ -51,11 +52,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!foundToken) {
-    return res.status(401).json({ message: "No token found" });
+    return NextResponse.json({ message: "No token found" }, { status: 401 });
   }
 
   if (dayjs(foundToken?.expires).isBefore(dayjs())) {
-    return res.status(401).json({ message: "Token expired" });
+    return NextResponse.json({ message: "Token expired" }, { status: 401 });
   }
 
   // The user is verifying the secondary email
@@ -72,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await cleanUpVerificationTokens(foundToken.id);
 
-    return res.redirect(`${WEBAPP_URL}/settings/my-account/profile`);
+    return NextResponse.redirect(`${WEBAPP_URL}/settings/my-account/profile`);
   }
 
   const user = await prisma.user.findFirst({
@@ -82,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!user) {
-    return res.status(401).json({ message: "Cannot find a user attached to this token" });
+    return NextResponse.json({ message: "Cannot find a user attached to this token" }, { status: 401 });
   }
 
   const userMetadataParsed = userMetadata.parse(user.metadata);
@@ -96,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     if (existingUser) {
-      return res.status(401).json({ message: USER_ALREADY_EXISTING_MESSAGE });
+      return NextResponse.json({ message: USER_ALREADY_EXISTING_MESSAGE }, { status: 401 });
     }
 
     // Ensure this email isn't being added by another user as secondary email
@@ -111,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (existingSecondaryUser && existingSecondaryUser.userId !== user.id) {
-      return res.status(401).json({ message: USER_ALREADY_EXISTING_MESSAGE });
+      return NextResponse.json({ message: USER_ALREADY_EXISTING_MESSAGE }, { status: 401 });
     }
 
     const oldEmail = user.email;
@@ -152,9 +153,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await cleanUpVerificationTokens(foundToken.id);
 
-    return res.status(200).json({
-      updatedEmail,
-    });
+    return NextResponse.json(
+      {
+        updatedEmail,
+      },
+      { status: 200 }
+    );
   }
 
   await prisma.user.update({
@@ -170,7 +174,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await moveUserToMatchingOrg({ email: user.email });
 
-  return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
+  return NextResponse.redirect(
+    `${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`
+  );
 }
 
 export async function cleanUpVerificationTokens(id: number) {
@@ -181,3 +187,5 @@ export async function cleanUpVerificationTokens(id: number) {
     },
   });
 }
+
+export const POST = defaultResponderForAppDir(handler);

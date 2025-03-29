@@ -365,6 +365,7 @@ test.describe("Update Profile", () => {
     const verifyUrl = `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`;
 
     await page.goto(verifyUrl);
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
     await page.getByTestId("secondary-email-make-primary-button").click();
 
