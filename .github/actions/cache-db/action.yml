@@ -50,6 +50,7 @@ runs:
       run: echo "Cache hit for database. Skipping database setup."
     - name: Setup Database
       if: steps.cache-db.outputs.cache-hit != 'true'
+      shell: bash
       run: |
         mkdir -p .cache/db
         yarn prisma migrate deploy
