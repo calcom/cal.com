@@ -50,10 +50,7 @@ runs:
       run: |
         mkdir -p .cache/db
         yarn prisma migrate deploy
-        # Extract host and port from DATABASE_URL
-        DB_HOST=$(echo ${{ inputs.DATABASE_URL }} | sed -n 's/.*@\([^:]*\):.*/\1/p')
-        DB_PORT=$(echo ${{ inputs.DATABASE_URL }} | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
-        pg_dump -h $DB_HOST -p $DB_PORT -U postgres -d calendso > .cache/db/dump.sql
+        PGPASSWORD=postgres pg_dump -h postgres -p 5432 -U postgres -d calendso > .cache/db/dump.sql
         if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ]; then
           echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" >> .cache/db/env
         fi
