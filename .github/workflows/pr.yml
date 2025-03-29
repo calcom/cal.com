@@ -219,6 +219,17 @@ jobs:
     uses: ./.github/workflows/publish-report.yml
     secrets: inherit
 
+  cleanup-report:
+    name: Cleanup HTML report
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && (github.event.pull_request.merged == true || github.event.pull_request.state == 'closed') }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    needs: [changes, check-label, publish-report]
+    uses: ./.github/workflows/cleanup-report.yml
+    secrets: inherit
+
   required:
     needs:
       [
