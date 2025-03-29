@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Booking } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
@@ -6,6 +6,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { buildWhereClause } from "~/lib/utils/bookings/get/buildWhereClause";
 import {
   getAccessibleUsers,
   retrieveOrgScopedAccessibleUsers,
@@ -151,58 +152,6 @@ type GetAdminArgsType = {
   userId: number;
 };
 
-/**
- * Constructs the WHERE clause for Prisma booking findMany operation.
- *
- * @param userId - The ID of the user making the request. This is used to filter bookings where the user is either the host or an attendee.
- * @param attendeeEmails - An array of emails provided in the request for filtering bookings by attendee emails, used in case of Admin calls.
- * @param userIds - An array of user IDs to be included in the filter. Defaults to an empty array, and an array of user IDs in case of Admin call containing it.
- * @param userEmails - An array of user emails to be included in the filter if it is an Admin call and contains userId in query parameter. Defaults to an empty array.
- *
- * @returns An object that represents the WHERE clause for the findMany/findUnique operation.
- */
-function buildWhereClause(
-  userId: number | null,
-  attendeeEmails: string[],
-  userIds: number[] = [],
-  userEmails: string[] = []
-) {
-  const filterByAttendeeEmails = attendeeEmails.length > 0;
-  const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : !!userId ? { userId } : {};
-
-  let whereClause = {};
-
-  if (filterByAttendeeEmails) {
-    whereClause = {
-      AND: [
-        userFilter,
-        {
-          attendees: {
-            some: {
-              email: { in: attendeeEmails },
-            },
-          },
-        },
-      ],
-    };
-  } else {
-    whereClause = {
-      OR: [
-        userFilter,
-        {
-          attendees: {
-            some: {
-              email: { in: userEmails },
-            },
-          },
-        },
-      ],
-    };
-  }
-
-  return whereClause;
-}
-
 export async function handler(req: NextApiRequest) {
   const {
     userId,
@@ -238,6 +187,7 @@ export async function handler(req: NextApiRequest) {
     ? [queryFilterForAttendeeEmails.attendeeEmail]
     : [];
   const filterByAttendeeEmails = attendeeEmails.length > 0;
+  let userEmailsToFilterBy: string[] = [];
 
   /** Only admins can query other users */
   if (isSystemWideAdmin) {
@@ -251,7 +201,8 @@ export async function handler(req: NextApiRequest) {
         userId,
       };
       const { userId: argUserId, userIds, userEmails } = await handleSystemWideAdminArgs(systemWideAdminArgs);
-      args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails);
+      userEmailsToFilterBy = userEmails;
+      args.where = buildWhereClause(argUserId, attendeeEmails, userIds);
     }
   } else if (isOrganizationOwnerOrAdmin) {
     let requestedUserIds = [userId];
@@ -265,7 +216,8 @@ export async function handler(req: NextApiRequest) {
       userId,
     };
     const { userId: argUserId, userIds, userEmails } = await handleOrgWideAdminArgs(orgWideAdminArgs);
-    args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails);
+    userEmailsToFilterBy = userEmails;
+    args.where = buildWhereClause(argUserId, attendeeEmails, userIds);
   } else {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -276,7 +228,7 @@ export async function handler(req: NextApiRequest) {
     if (!user) {
       throw new HttpError({ message: "User not found", statusCode: 404 });
     }
-    args.where = buildWhereClause(userId, attendeeEmails, [], []);
+    args.where = buildWhereClause(userId, attendeeEmails, []);
   }
 
   if (dateFrom) {
@@ -317,7 +269,25 @@ export async function handler(req: NextApiRequest) {
     }
   }
 
-  const data = await prisma.booking.findMany(args);
+  let data: Booking[] = [];
+
+  if (!filterByAttendeeEmails && userEmailsToFilterBy.length > 0) {
+    const queryOne = prisma.booking.findMany(args);
+    const queryTwo = prisma.booking.findMany({
+      where: {
+        attendees: {
+          some: {
+            email: { in: userEmailsToFilterBy },
+          },
+        },
+      },
+    });
+
+    const [resultOne, resultTwo] = await Promise.all([queryOne, queryTwo]);
+    data = [...resultOne, ...resultTwo];
+  } else {
+    data = await prisma.booking.findMany(args);
+  }
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
 
