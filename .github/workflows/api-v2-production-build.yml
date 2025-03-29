@@ -4,8 +4,8 @@ on:
   workflow_call:
 
 env:
-  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
-  DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/calendso"
+  DATABASE_DIRECT_URL: "postgresql://postgres:postgres@postgres:5432/calendso"
 
 jobs:
   build:
