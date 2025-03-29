@@ -10,7 +10,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
@@ -244,7 +244,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
               <div
                 className="prose-sm prose prose-invert"
                 // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
+                dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(booking.description) }}
               />
             </>
           )}

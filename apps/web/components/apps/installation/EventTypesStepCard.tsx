@@ -4,7 +4,7 @@ import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -66,7 +66,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
               className="text-subtle line-clamp-4 break-words text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{
-                __html: markdownToSafeHTML(description),
+                __html: markdownToSafeHTMLClient(description),
               }}
             />
           )}

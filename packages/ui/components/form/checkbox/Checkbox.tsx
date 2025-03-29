@@ -3,7 +3,7 @@ import { useId } from "@radix-ui/react-id";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
@@ -101,7 +101,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     )}
                     // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
-                      __html: markdownToSafeHTML(descriptionAsSafeHtml),
+                      __html: markdownToSafeHTMLClient(descriptionAsSafeHtml),
                     }}
                   />
                 ) : (
