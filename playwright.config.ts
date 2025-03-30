@@ -173,7 +173,7 @@ const config: PlaywrightTestConfig = {
     },
     {
       name: "@calcom/embed-core--isMobile",
-      testDir: "./packages/embeds/",
+      testDir: "./packages/embeds/embed-core/",
       testMatch: /.*\.e2e\.tsx?/,
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
