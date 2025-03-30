@@ -43,7 +43,7 @@ runs:
         # Run seeds
         yarn prisma db seed
         # Create optimized dump with custom format and compression
-        PGPASSWORD=postgres pg_dump -Fc -Z9 -h localhost -p 5432 -U postgres -d calendso > .cache/db/dump.fc
+        PGPASSWORD=postgres pg_dump -Fc -Z9 -h host.docker.internal -p 5432 -U postgres -d calendso > .cache/db/dump.fc
         # Store test credentials if provided
         if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ]; then
           echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" >> .cache/db/env
@@ -63,10 +63,10 @@ runs:
       shell: bash
       run: |
         # Drop existing DB
-        PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -c "DROP DATABASE IF EXISTS calendso"
-        PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -c "CREATE DATABASE calendso"
+        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "DROP DATABASE IF EXISTS calendso"
+        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "CREATE DATABASE calendso"
         # Fast parallel restore
-        PGPASSWORD=postgres pg_restore -j 4 -h localhost -p 5432 -U postgres -d calendso .cache/db/dump.fc
+        PGPASSWORD=postgres pg_restore -j 4 -h host.docker.internal -p 5432 -U postgres -d calendso .cache/db/dump.fc
         # Restore test credentials if they exist
         if [ -f ".cache/db/env" ]; then
           while IFS= read -r line; do
