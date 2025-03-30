@@ -2,7 +2,6 @@ import type { Page } from "@playwright/test";
 
 export const createEmbedsFixture = (page: Page) => {
   return {
-    page,
     /**
      * @deprecated
      * Use 'gotoPlayground' instead, to navigate. It calls `addEmbedListeners` automatically.
