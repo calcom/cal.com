@@ -42,8 +42,6 @@ runs:
         yarn prisma migrate deploy
         # Run seeds
         yarn prisma db seed
-        # Create optimized dump with custom format and compression
-        PGPASSWORD=postgres pg_dump -Fc -Z9 -h host.docker.internal -p 5432 -U postgres -d calendso > .cache/db/dump.fc
         # Store test credentials if provided
         if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ]; then
           echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" >> .cache/db/env
@@ -58,16 +56,35 @@ runs:
           echo "E2E_TEST_CALCOM_GCAL_KEYS=${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" >> .cache/db/env
         fi
 
+    - name: Dump Database
+      if: steps.cache-db.outputs.cache-hit != 'true'
+      uses: tj-actions/pg-dump@v3
+      with:
+        host: postgres
+        port: 5432
+        database: calendso
+        username: postgres
+        password: postgres
+        format: custom
+        compression: 9
+        output: .cache/db/dump.fc
+
     - name: Restore Database
+      if: steps.cache-db.outputs.cache-hit == 'true'
+      uses: tj-actions/pg-restore@v6
+      with:
+        host: postgres
+        port: 5432
+        database: calendso
+        username: postgres
+        password: postgres
+        input: .cache/db/dump.fc
+        drop: true
+
+    - name: Restore Environment
       if: steps.cache-db.outputs.cache-hit == 'true'
       shell: bash
       run: |
-        # Drop existing DB
-        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "DROP DATABASE IF EXISTS calendso"
-        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "CREATE DATABASE calendso"
-        # Fast parallel restore
-        PGPASSWORD=postgres pg_restore -j 4 -h host.docker.internal -p 5432 -U postgres -d calendso .cache/db/dump.fc
-        # Restore test credentials if they exist
         if [ -f ".cache/db/env" ]; then
           while IFS= read -r line; do
             export "$line"
