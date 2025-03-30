@@ -3,7 +3,6 @@ import * as React from "react";
 import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/enums";
 
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
@@ -36,36 +35,37 @@ describe("NoAvailabilityOverlay", () => {
     periodData: {
       periodType: PeriodType.UNLIMITED,
       periodDays: null,
-      periodCountCalendarDays: false,
+      periodCountCalendarDays: true,
       periodStartDate: null,
       periodEndDate: null,
     },
   };
 
-  test("shows rolling period message when period type is ROLLING and period ends before next month", () => {
+  test("Displays rolling period description and close button, when period type is ROLLING, and period ends before next month.", () => {
     const periodDays = 5;
-    const { t } = useLocale();
 
     render(
       <NoAvailabilityDialog
         {...defaultProps}
-        browsingDate={dayjs().add(40, "days")}
+        browsingDate={dayjs().add(periodDays + 1, "day")}
         periodData={{
           ...defaultProps.periodData,
-          periodType: "ROLLING",
+          periodType: PeriodType.ROLLING,
           periodDays: periodDays,
-          periodCountCalendarDays: true,
         }}
       />
     );
-    expect(
-      screen.getByText(
-        `Scheduling is only available up to ${periodDays} calendar days in advance. Please check again soon.`
-      )
-    ).toBeInTheDocument();
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      `Scheduling is only available up to ${periodDays} calendar days in advance. Please check again soon.`
+    );
+    const nextMonthButton = screen.queryAllByTestId("view_next_month");
+    const closeButton = screen.getAllByTestId("close_dialog_button");
+    expect(nextMonthButton).toHaveLength(0);
+    expect(closeButton).toHaveLength(1);
   });
 
-  test("shows range period message when period type is RANGE and range ends before the next month", () => {
+  test("Displays range period description when period type is RANGE and range ends before the next month", () => {
     const startDate = dayjs().subtract(30, "days");
     const endDate = dayjs();
     render(
@@ -80,9 +80,13 @@ describe("NoAvailabilityOverlay", () => {
         }}
       />
     );
-    expect(
-      screen.getByText(`Scheduling ended on ${endDate.format("MMMM D YYYY")}. Please check again soon.`)
-    ).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      `Scheduling ended on ${endDate.format("MMMM D YYYY")}. Please check again soon.`
+    );
+    const nextMonthButton = screen.queryAllByTestId("view_next_month");
+    const closeButton = screen.getAllByTestId("close_dialog_button");
+    expect(nextMonthButton).toHaveLength(0);
+    expect(closeButton).toHaveLength(1);
   });
 
   test("calls nextMonthButton when 'View next month' is clicked", () => {
@@ -92,7 +96,7 @@ describe("NoAvailabilityOverlay", () => {
     expect(defaultProps.nextMonthButton).toHaveBeenCalled();
   });
 
-  test("shows 'View next month' and close buttons when browsing current date with rolling 30-day period", () => {
+  test("Displays 'View next month' and close buttons, without description, when browsing current date with rolling 30-day period", () => {
     render(
       <NoAvailabilityDialog
         {...defaultProps}
@@ -101,17 +105,18 @@ describe("NoAvailabilityOverlay", () => {
           ...defaultProps.periodData,
           periodType: "ROLLING",
           periodDays: 30,
-          periodCountCalendarDays: true,
         }}
       />
     );
+    const description = screen.queryByTestId("dialog-subtitle");
     const nextMonthButton = screen.getAllByTestId("view_next_month");
     const closeButton = screen.getAllByTestId("close_dialog_button");
+    expect(description).not.toBeInTheDocument();
     expect(nextMonthButton).toHaveLength(1);
     expect(closeButton).toHaveLength(1);
   });
 
-  test("shows 'View next month' and 'close' button when browsing current date with range periodType starting 10 days in past and ending in a future month", () => {
+  test("Displays 'View next month' and 'close' button when browsing current date with range periodType starting 10 days in past and ending in a future month", () => {
     render(
       <NoAvailabilityDialog
         {...defaultProps}
@@ -124,8 +129,10 @@ describe("NoAvailabilityOverlay", () => {
         }}
       />
     );
+    const description = screen.queryByTestId("dialog-subtitle");
     const nextMonthButton = screen.getAllByTestId("view_next_month");
     const closeButton = screen.getAllByTestId("close_dialog_button");
+    expect(description).not.toBeInTheDocument();
     expect(nextMonthButton).toHaveLength(1);
     expect(closeButton).toHaveLength(1);
   });

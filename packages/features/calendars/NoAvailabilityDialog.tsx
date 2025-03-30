@@ -31,18 +31,18 @@ const useNoFutureAvailability = (browsingDate: Dayjs, periodData: PeriodData) =>
 };
 
 // Creates message to use in dialog explaining lack of availability based on period type
-const useDescription = (noFutureAvailability: boolean, pd: PeriodData) => {
+const useDescription = (noFutureAvailability: boolean, p: PeriodData) => {
   const { t } = useLocale();
 
   if (!noFutureAvailability) return "";
 
-  if (pd.periodType === "ROLLING") {
-    const daysDescription = pd.periodCountCalendarDays ? t("calendar_days") : t("business_days");
-    return t("no_availability_rolling", { days: `${pd.periodDays} ${daysDescription}` });
+  if (p.periodType === "ROLLING") {
+    const daysDescription = p.periodCountCalendarDays ? t("calendar_days") : t("business_days");
+    return t("no_availability_rolling", { days: `${p.periodDays} ${daysDescription}` });
   }
 
-  if (pd.periodType === "RANGE") {
-    return t("no_availability_range", { date: dayjs(pd.periodEndDate).format("MMMM D YYYY") });
+  if (p.periodType === "RANGE") {
+    return t("no_availability_range", { date: dayjs(p.periodEndDate).format("MMMM D YYYY") });
   }
 
   return "";
@@ -63,7 +63,7 @@ const NoAvailabilityDialog = ({
   const { t } = useLocale();
   const [isOpenDialog, setIsOpenDialog] = useState(true);
   const noFutureAvailability = useNoFutureAvailability(browsingDate, periodData);
-  const description = useDescription(noFutureAvailability, periodData, t);
+  const description = useDescription(noFutureAvailability, periodData);
 
   const closeDialog = () => {
     setIsOpenDialog(false);
@@ -86,18 +86,15 @@ const NoAvailabilityDialog = ({
             data-testid="close_dialog_button">
             {t("close")}
           </DialogClose>
-          {
-            // Only show the next month button if there is a possibility of availability in the future
-            !noFutureAvailability && (
-              <Button
-                color="primary"
-                onClick={nextMonthButton}
-                data-testid="view_next_month"
-                EndIcon="arrow-right">
-                {t("view_next_month")}
-              </Button>
-            )
-          }
+          {!noFutureAvailability && (
+            <Button
+              color="primary"
+              onClick={nextMonthButton}
+              data-testid="view_next_month"
+              EndIcon="arrow-right">
+              {t("view_next_month")}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
