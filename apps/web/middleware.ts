@@ -174,7 +174,7 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
 export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
-  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS
+  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
   // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
   matcher: [
     "/403",
