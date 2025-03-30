@@ -24,27 +24,27 @@ runs:
       id: cache-db
       uses: buildjet/cache@v4
       env:
-        cache-name: db
-        key-1: ${{ hashFiles('prisma/schema.prisma') }}
-        key-2: ${{ hashFiles('prisma/migrations/**/*.sql') }}
-        key-3: ${{ github.event.pull_request.number || github.ref }}
-        # Ensures cache-db.yml will always be fresh
-        key-4: ${{ github.sha }}
+        cache-name: db-v1
       with:
         path: |
           .cache/db
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
-    - name: Log Cache Hit
-      if: steps.cache-db.outputs.cache-hit == 'true'
-      shell: bash
-      run: echo "Cache hit for database. Skipping database setup."
+        key: ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-${{ hashFiles('packages/prisma/migrations/**/*.sql') }}
+        restore-keys: |
+          ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-
+          ${{ env.cache-name }}-
+
     - name: Setup Database
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
       run: |
         mkdir -p .cache/db
+        # Run migrations
         yarn prisma migrate deploy
-        PGPASSWORD=postgres pg_dump -h host.docker.internal -p 5432 -U postgres -d calendso > .cache/db/dump.sql
+        # Run seeds
+        yarn prisma db seed
+        # Create optimized dump with custom format and compression
+        PGPASSWORD=postgres pg_dump -Fc -Z9 -h localhost -p 5432 -U postgres -d calendso > .cache/db/dump.fc
+        # Store test credentials if provided
         if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ]; then
           echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" >> .cache/db/env
         fi
@@ -56,4 +56,20 @@ runs:
         fi
         if [ -n "${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" ]; then
           echo "E2E_TEST_CALCOM_GCAL_KEYS=${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" >> .cache/db/env
+        fi
+
+    - name: Restore Database
+      if: steps.cache-db.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        # Drop existing DB
+        PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -c "DROP DATABASE IF EXISTS calendso"
+        PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -c "CREATE DATABASE calendso"
+        # Fast parallel restore
+        PGPASSWORD=postgres pg_restore -j 4 -h localhost -p 5432 -U postgres -d calendso .cache/db/dump.fc
+        # Restore test credentials if they exist
+        if [ -f ".cache/db/env" ]; then
+          while IFS= read -r line; do
+            export "$line"
+          done < .cache/db/env
         fi
