@@ -82,6 +82,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     autoTranslateDescriptionEnabled,
     description: newDescription,
     title: newTitle,
+    seatsPerTimeSlot,
     ...rest
   } = input;
 
@@ -90,6 +91,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       title: true,
       description: true,
+      seatsPerTimeSlot: true,
+      recurringEvent: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -156,6 +159,25 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
+  const hasSeatsPerTimeSlot = (eventType?.seatsPerTimeSlot ?? 0) > 0;
+  const hasRecurringEvent = eventType?.recurringEvent;
+
+  const isConflict =
+    (recurringEvent === undefined &&
+      seatsPerTimeSlot === undefined &&
+      hasSeatsPerTimeSlot &&
+      hasRecurringEvent) ||
+    (recurringEvent && seatsPerTimeSlot) ||
+    (recurringEvent && seatsPerTimeSlot !== null && hasSeatsPerTimeSlot) ||
+    ((seatsPerTimeSlot ?? 0) > 0 && recurringEvent !== null && hasRecurringEvent);
+
+  if (isConflict) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Recurring Events and Offer Seats cannot be active at the same time.",
+    });
+  }
+
   if (input.teamId && eventType.team?.id && input.teamId !== eventType.team.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
@@ -187,6 +209,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   data.locations = locations ?? undefined;
   if (periodType) {
     data.periodType = handlePeriodType(periodType);
+  }
+
+  if (seatsPerTimeSlot === null) {
+    data.seatsPerTimeSlot = null;
   }
 
   if (recurringEvent) {
