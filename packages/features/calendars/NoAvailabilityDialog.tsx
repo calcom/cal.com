@@ -8,6 +8,47 @@ import type { PeriodData } from "@calcom/types/event";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
+// Determines if the next month will pass the booking limits for 'ROLLING' and 'RANGE' period types
+const useNoFutureAvailability = (browsingDate: Dayjs, periodData: PeriodData) => {
+  const { periodDays, periodType, periodCountCalendarDays, periodEndDate, periodStartDate } = periodData;
+  const periodLimits = calculatePeriodLimits({
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodStartDate,
+    periodEndDate,
+    allDatesWithBookabilityStatusInBookerTz: null, // Temporary workaround
+    _skipRollingWindowCheck: true,
+    eventUtcOffset: 0,
+    bookerUtcOffset: 0,
+  });
+  // Check if limit is before start of next month
+  const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
+    time: browsingDate.add(1, "month").startOf("month").toDate(),
+    periodLimits,
+  });
+  return isOutOfBoundsByPeriod;
+};
+
+// Creates message to use in dialog explaining lack of availability based on period type
+const useDescription = (noFutureAvailability: boolean, pd: PeriodData) => {
+  const { t } = useLocale();
+
+  if (!noFutureAvailability) return "";
+
+  if (pd.periodType === "ROLLING") {
+    const daysDescription = pd.periodCountCalendarDays ? t("calendar_days") : t("business_days");
+    return t("no_availability_rolling", { days: `${pd.periodDays} ${daysDescription}` });
+  }
+
+  if (pd.periodType === "RANGE") {
+    return t("no_availability_range", { date: dayjs(pd.periodEndDate).format("MMMM D YYYY") });
+  }
+
+  return "";
+};
+
+// This component is used to show a dialog when there is no availability in the selected month.
 const NoAvailabilityDialog = ({
   month,
   nextMonthButton,
@@ -21,31 +62,8 @@ const NoAvailabilityDialog = ({
 }) => {
   const { t } = useLocale();
   const [isOpenDialog, setIsOpenDialog] = useState(true);
-  const { periodDays, periodType, periodCountCalendarDays, periodEndDate, periodStartDate } = periodData;
-  const periodLimits = calculatePeriodLimits({
-    periodType,
-    periodDays,
-    periodCountCalendarDays,
-    periodStartDate,
-    periodEndDate,
-    allDatesWithBookabilityStatusInBookerTz: null, // Temporary workaround
-    _skipRollingWindowCheck: true,
-    eventUtcOffset: 0,
-    bookerUtcOffset: 0,
-  });
-  // Check if the current month is beyond limits set for Rolling or Range period types
-  const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
-    time: browsingDate.endOf("month").toDate(),
-    periodLimits,
-  });
-  // Message explaining lack of availability differs based on period type
-  let description = "";
-  if (isOutOfBoundsByPeriod && periodType === "ROLLING") {
-    const daysDescription = periodCountCalendarDays ? t("calendar_days") : t("business_days");
-    description = t("no_availability_rolling", { days: `${periodDays} ${daysDescription}` });
-  } else if (isOutOfBoundsByPeriod && periodType === "RANGE") {
-    description = t("no_availability_range", { date: dayjs(periodEndDate).format("MMMM D YYYY") });
-  }
+  const noFutureAvailability = useNoFutureAvailability(browsingDate, periodData);
+  const description = useDescription(noFutureAvailability, periodData, t);
 
   const closeDialog = () => {
     setIsOpenDialog(false);
@@ -63,14 +81,14 @@ const NoAvailabilityDialog = ({
         preventCloseOnOutsideClick={false}>
         <DialogFooter>
           <DialogClose
-            color={isOutOfBoundsByPeriod ? "primary" : "secondary"}
+            color={noFutureAvailability ? "primary" : "secondary"}
             onClick={closeDialog}
             data-testid="close_dialog_button">
-            {t("ok")}
+            {t("close")}
           </DialogClose>
           {
             // Only show the next month button if there is a possibility of availability in the future
-            !isOutOfBoundsByPeriod && (
+            !noFutureAvailability && (
               <Button
                 color="primary"
                 onClick={nextMonthButton}

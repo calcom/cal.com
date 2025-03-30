@@ -3,6 +3,7 @@ import * as React from "react";
 import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/enums";
 
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
@@ -15,7 +16,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
         return `Scheduling is only available up to ${vars?.days} in advance. Please check again soon.`;
       if (key === "no_availability_range")
         return `Scheduling ended on ${vars?.date}. Please check again soon.`;
-      if (key === "ok") return "OK";
+      if (key === "close") return "Close";
       if (key === "view_next_month") return "View next month";
       if (key === "calendar_days") return "calendar days";
       return key;
@@ -43,6 +44,8 @@ describe("NoAvailabilityOverlay", () => {
 
   test("shows rolling period message when period type is ROLLING and period ends before next month", () => {
     const periodDays = 5;
+    const { t } = useLocale();
+
     render(
       <NoAvailabilityDialog
         {...defaultProps}
