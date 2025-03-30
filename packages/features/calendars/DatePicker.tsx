@@ -309,9 +309,6 @@ const DatePicker = ({
     minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
 
   const { i18n, t } = useLocale();
-  if (!i18n.language) {
-    throw new Error(`i18n.language is not defined ${i18n}`);
-  }
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
   const changeMonth = (newMonth: number) => {
