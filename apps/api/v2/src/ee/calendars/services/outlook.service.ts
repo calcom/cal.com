@@ -34,7 +34,7 @@ export class OutlookService implements OAuthCalendarApp {
     authorization: string,
     req: Request,
     redir?: string,
-    isDryRun?: string
+    isDryRun?: boolean
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
@@ -57,7 +57,7 @@ export class OutlookService implements OAuthCalendarApp {
     return await this.checkIfCalendarConnected(userId);
   }
 
-  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string, isDryRun?: string) {
+  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string, isDryRun?: boolean) {
     const { client_id } = await this.calendarsService.getAppKeys(OFFICE_365_CALENDAR_ID);
 
     const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
@@ -67,7 +67,7 @@ export class OutlookService implements OAuthCalendarApp {
       client_id,
       prompt: "select_account",
       redirect_uri: this.redirectUri,
-      state: `accessToken=${accessToken}&origin=${origin}&redir=${redir ?? ""}&isDryRun=${isDryRun ?? ""}`,
+      state: `accessToken=${accessToken}&origin=${origin}&redir=${redir ?? ""}&isDryRun=${isDryRun}`,
     };
 
     const query = stringify(params);

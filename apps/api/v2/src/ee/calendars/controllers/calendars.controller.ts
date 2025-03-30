@@ -33,6 +33,7 @@ import {
   BadRequestException,
   Post,
   Body,
+  ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
@@ -143,13 +144,13 @@ export class CalendarsController {
     @Headers("Authorization") authorization: string,
     @Param("calendar") calendar: string,
     @Query("redir") redir?: string | null,
-    @Query("isDryRun") isDryRun?: string | null
+    @Query("isDryRun", ParseBoolPipe) isDryRun?: boolean
   ): Promise<ApiResponse<{ authUrl: string }>> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.connect(authorization, req, redir ?? "", isDryRun ?? "");
+        return await this.outlookService.connect(authorization, req, redir ?? "", isDryRun);
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.connect(authorization, req, redir ?? "", isDryRun ?? "");
+        return await this.googleCalendarService.connect(authorization, req, redir ?? "", isDryRun);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
@@ -189,14 +190,14 @@ export class CalendarsController {
       });
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.save(code, accessToken, origin, redir ?? "", Boolean(isDryRun));
+        return await this.outlookService.save(code, accessToken, origin, redir ?? "", isDryRun === "true");
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.save(
           code,
           accessToken,
           origin,
           redir ?? "",
-          Boolean(isDryRun)
+          isDryRun === "true"
         );
       default:
         throw new BadRequestException(

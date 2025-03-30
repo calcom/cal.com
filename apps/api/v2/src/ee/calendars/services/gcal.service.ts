@@ -40,7 +40,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     authorization: string,
     req: Request,
     redir?: string,
-    isDryRun?: string
+    isDryRun?: boolean
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
@@ -63,14 +63,14 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     return await this.checkIfCalendarConnected(userId);
   }
 
-  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string, isDryRun?: string) {
+  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string, isDryRun?: boolean) {
     const oAuth2Client = await this.getOAuthClient(this.redirectUri);
 
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
       scope: CALENDAR_SCOPES,
       prompt: "consent",
-      state: `accessToken=${accessToken}&origin=${origin}&redir=${redir ?? ""}&isDryRun=${isDryRun ?? ""}`,
+      state: `accessToken=${accessToken}&origin=${origin}&redir=${redir ?? ""}&isDryRun=${isDryRun}`,
     });
 
     return authUrl;
