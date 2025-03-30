@@ -240,6 +240,7 @@ export class SelectedCalendarRepository {
             },
           },
         },
+        delegationCredentialId: true,
       },
     });
   }
