@@ -1,21 +1,28 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { md } from "@calcom/lib/markdownIt";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Editor } from "@calcom/ui/components/editor";
+import { Label } from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { showToast } from "@calcom/ui/components/toast";
 
 type FormData = {
   bio: string;
 };
 
 const UserProfile = () => {
-  const [user] = trpc.viewer.me.useSuspenseQuery();
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
@@ -56,7 +63,7 @@ const UserProfile = () => {
         console.error(error);
       }
 
-      await utils.viewer.me.refetch();
+      await utils.viewer.me.get.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
       redirectUrl ? router.push(redirectUrl) : router.push("/");

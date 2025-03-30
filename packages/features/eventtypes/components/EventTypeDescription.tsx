@@ -12,7 +12,7 @@ import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
 import classNames from "@calcom/ui/classNames";
 
 export type EventTypeDescriptionProps = {

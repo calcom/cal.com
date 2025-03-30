@@ -3,7 +3,10 @@
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, Input, Select, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Select } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
@@ -16,7 +19,7 @@ export type TextFilterOptionsProps = {
 
 export function TextFilterOptions({ column }: TextFilterOptionsProps) {
   const { t } = useLocale();
-  const textFilterOperatorOptions = useTextFilterOperatorOptions();
+  const textFilterOperatorOptions = useTextFilterOperatorOptions(column.textOptions?.allowedOperators);
   const filterValue = useFilterValue(column.id, ZTextFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
 
@@ -60,7 +63,13 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
                     }
                   }}
                 />
-                {value?.requiresOperand && <Input className="mt-2" {...form.register("operand")} />}
+                {value?.requiresOperand && (
+                  <Input
+                    className="mt-2"
+                    {...form.register("operand")}
+                    placeholder={column.textOptions?.placeholder}
+                  />
+                )}
               </>
             )}
           />

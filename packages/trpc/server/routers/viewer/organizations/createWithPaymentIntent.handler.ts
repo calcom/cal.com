@@ -5,7 +5,7 @@ import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 
 type CreateOptions = {

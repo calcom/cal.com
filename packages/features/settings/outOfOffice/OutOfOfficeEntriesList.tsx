@@ -7,7 +7,6 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Trans } from "next-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
@@ -21,11 +20,18 @@ import {
   ZDateRangeFilterValue,
   DataTableFilters,
 } from "@calcom/features/data-table";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, Tooltip } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -80,7 +86,7 @@ function OutOfOfficeEntriesListContent() {
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
   const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
-    trpc.viewer.outOfOfficeEntriesList.useInfiniteQuery(
+    trpc.viewer.ooo.outOfOfficeEntriesList.useInfiniteQuery(
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
@@ -191,14 +197,13 @@ function OutOfOfficeEntriesListContent() {
                       </p>
                       <p className="px-2">
                         {item.toUser?.username ? (
-                          <Trans
+                          <ServerTrans
+                            t={t}
                             i18nKey="ooo_forwarding_to"
                             values={{
                               username: item.toUser?.username,
                             }}
-                            components={{
-                              span: <span className="text-subtle font-bold" />,
-                            }}
+                            components={[<span key="ooo-username" className="text-subtle font-bold" />]}
                           />
                         ) : (
                           <>{t("ooo_not_forwarding")}</>
@@ -240,14 +245,16 @@ function OutOfOfficeEntriesListContent() {
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
-                        const offset = dayjs().utcOffset();
+                        const startDateOffset = -1 * item.start.getTimezoneOffset();
+                        const endDateOffset = -1 * item.end.getTimezoneOffset();
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
+                            startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
                           },
-                          offset,
+                          startDateOffset,
+                          endDateOffset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,
@@ -314,7 +321,7 @@ function OutOfOfficeEntriesListContent() {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);

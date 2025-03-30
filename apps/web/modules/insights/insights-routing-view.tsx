@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTableProvider } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import {
   RoutingFormResponsesTable,
   FailedBookingsByField,

@@ -1,6 +1,5 @@
-// eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
+import { default as cloneDeep } from "lodash/cloneDeep";
 import type { z } from "zod";
 
 import type BaseEmail from "@calcom/emails/templates/_base-email";
