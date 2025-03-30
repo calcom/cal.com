@@ -11,7 +11,7 @@ import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/date
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import CalendarService from "./CalendarService";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
@@ -78,32 +78,34 @@ vi.mock("@googleapis/calendar", () => calendarMock);
 
 async function expectCacheToBeNotSet({
   credentialId,
-  dwdCredential,
+  delegationCredential,
 }: {
-  credentialId: number;
-  dwdCredential: {
+  credentialId: number | null;
+  delegationCredential: {
     userId: number | null;
     delegationCredentialId: string;
   };
 }) {
   let caches;
-  if (dwdCredential) {
-    if (!dwdCredential.userId) {
-      throw new Error("userId is required for dwdCredential");
+  if (delegationCredential) {
+    if (!delegationCredential.userId) {
+      throw new Error("userId is required for delegationCredential");
     }
     caches = await prismock.calendarCache.findMany({
       where: {
         credentialId,
-        userId: dwdCredential.userId,
-        delegationCredentialId: dwdCredential.delegationCredentialId,
+        userId: delegationCredential.userId,
+        delegationCredentialId: delegationCredential.delegationCredentialId,
       },
     });
-  } else {
+  } else if (credentialId) {
     caches = await prismock.calendarCache.findMany({
       where: {
         credentialId,
       },
     });
+  } else {
+    throw new Error("Either credentialId or delegationCredential must be provided");
   }
 
   expect(caches).toHaveLength(0);
@@ -111,25 +113,25 @@ async function expectCacheToBeNotSet({
 
 async function expectCacheToBeSet({
   credentialId,
-  dwdCredential,
+  delegationCredential,
   itemsInKey,
 }: {
   credentialId: number | null;
-  dwdCredential: {
+  delegationCredential: {
     userId: number | null;
     delegationCredentialId: string;
   } | null;
   itemsInKey: { id: string }[];
 }) {
   let caches;
-  if (dwdCredential) {
-    if (!dwdCredential.userId) {
-      throw new Error("userId is required for dwdCredential");
+  if (delegationCredential) {
+    if (!delegationCredential.userId) {
+      throw new Error("userId is required for delegationCredential");
     }
     caches = await prismock.calendarCache.findMany({
       where: {
-        userId: dwdCredential.userId,
-        delegationCredentialId: dwdCredential.delegationCredentialId,
+        userId: delegationCredential.userId,
+        delegationCredentialId: delegationCredential.delegationCredentialId,
       },
     });
 
@@ -141,7 +143,7 @@ async function expectCacheToBeSet({
       },
     });
   } else {
-    throw new Error("Either credentialId or dwdCredential must be provided");
+    throw new Error("Either credentialId or delegationCredential must be provided");
   }
   expect(caches).toHaveLength(1);
   expect(JSON.parse(caches[0].key)).toEqual(
@@ -157,9 +159,9 @@ async function createCredentialInDb({
   delegationCredentialId = null,
 }: {
   user?: { email: string | null };
-  delegatedTo?: NonNullable<CredentialForCalendarService["delegatedTo"]> | null;
+  delegatedTo?: NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]> | null;
   delegationCredentialId?: string | null;
-} = {}): Promise<CredentialForCalendarService> {
+} = {}): Promise<CredentialForCalendarServiceWithEmail> {
   const defaultUser = await prismock.user.create({
     data: {
       email: user?.email ?? "",
@@ -222,7 +224,7 @@ async function createCredentialInDb({
   return {
     ...credentialInDb,
     user: user ? { email: user.email ?? "" } : null,
-  } as CredentialForCalendarService;
+  } as CredentialForCalendarServiceWithEmail;
 }
 
 const delegatedCredential = {
@@ -596,7 +598,8 @@ describe("Calendar Cache", () => {
     // Expect cache to be ignored in case of a MISS
     const cachedAvailability = await calendarCache.getCachedAvailability({
       credentialId: credentialInDb.id,
-      dwdCredential: null,
+      userId: null,
+      delegationCredentialId: null,
       args: {
         timeMin: dateFrom,
         timeMax: dateTo,
@@ -621,7 +624,7 @@ describe("Calendar Cache", () => {
         const domain = "workspace.com";
         const user1Email = `user1@${domain}`;
         const user2Email = `user2@${domain}`;
-        const delegationCredentialId = "dwd-id-1";
+        const delegationCredentialId = "delegation-credential-id-1";
 
         // Create DWD credentials for two different users
         const credentialUser1 = await createCredentialInDb({
@@ -677,7 +680,7 @@ describe("Calendar Cache", () => {
         const domain = "workspace.com";
         const user1Email = `user1@${domain}`;
         const user2Email = `user2@${domain}`;
-        const delegationCredentialId = "dwd-id-1";
+        const delegationCredentialId = "delegation-credential-id-1";
 
         // Create DWD credentials for two different users
         const credentialUser1 = await createCredentialInDb({
@@ -706,30 +709,30 @@ describe("Calendar Cache", () => {
 
         expectCacheToBeNotSet({
           credentialId: null,
-          dwdCredential: dwdCredential1,
+          delegationCredential: dwdCredential1,
         });
 
         expectCacheToBeNotSet({
           credentialId: null,
-          dwdCredential: dwdCredential2,
+          delegationCredential: dwdCredential2,
         });
 
         await calendarService1.fetchAvailabilityAndSetCache([testSelectedCalendar]);
         expectCacheToBeSet({
           credentialId: null,
-          dwdCredential: dwdCredential1,
+          delegationCredential: dwdCredential1,
           itemsInKey: [{ id: testSelectedCalendar.externalId }],
         });
 
         expectCacheToBeNotSet({
           credentialId: null,
-          dwdCredential: dwdCredential2,
+          delegationCredential: dwdCredential2,
         });
 
         await calendarService2.fetchAvailabilityAndSetCache([testSelectedCalendar]);
         expectCacheToBeSet({
           credentialId: null,
-          dwdCredential: dwdCredential2,
+          delegationCredential: dwdCredential2,
           itemsInKey: [{ id: testSelectedCalendar.externalId }],
         });
       });
@@ -933,13 +936,13 @@ describe("Watching and unwatching calendar", () => {
 
     // Concerned cache will just have remaining externalIds
     expectCacheToBeSet({
-      dwdCredential: null,
+      delegationCredential: null,
       credentialId: credentialInDb1.id,
       itemsInKey: [{ id: eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.externalId }],
     });
 
     expectCacheToBeSet({
-      dwdCredential: null,
+      delegationCredential: null,
       credentialId: someOtherCache.credentialId,
       itemsInKey: JSON.parse(someOtherCache.key).items,
     });
