@@ -9,7 +9,7 @@ export class GetOrganizationsBookingsInput extends GetBookingsInput_2024_08_13 {
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === "string") {
-      return value.split(",").map((eventTypeId: string) => parseInt(eventTypeId));
+      return value.split(",").map((userId: string) => parseInt(userId));
     }
     return value;
   })
