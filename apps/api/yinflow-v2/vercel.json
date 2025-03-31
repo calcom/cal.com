@@ -13,7 +13,7 @@
       "methods": ["GET", "POST", "PATCH", "PUT", "DELETE"]
     }
   ],
-  "*": {
+  "api/**": {
     "maxDuration": 60
   }
 }
