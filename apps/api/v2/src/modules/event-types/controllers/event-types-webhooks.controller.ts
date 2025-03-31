@@ -1,5 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_HEADER } from "@/lib/docs/headers";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
@@ -39,7 +39,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, IsUserEventTypeWebhookGuard)
 @DocsTags("Event Types / Webhooks")
-@ApiHeader(API_KEY_HEADER)
+@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class EventTypeWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,

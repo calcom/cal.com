@@ -1,6 +1,10 @@
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -21,7 +25,9 @@ import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsSchedulesController {
   constructor(private schedulesService: SchedulesService_2024_06_11) {}
 
@@ -31,7 +37,7 @@ export class OrganizationsTeamsSchedulesController {
   @Get("/users/:userId/schedules")
   @DocsTags("Orgs / Teams / Users / Schedules")
   @ApiOperation({
-    summary: "Get schedules of a team member - authorization header refers to the team member",
+    summary: "Get schedules of a team member",
   })
   async getUserSchedules(
     @Param("userId", ParseIntPipe) userId: number
