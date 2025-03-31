@@ -10,7 +10,7 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
-import type { PeriodData } from "@calcom/types/event";
+import type { PeriodData } from "@calcom/types/Event";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -290,7 +290,13 @@ const DatePicker = ({
   slots,
   customClassNames,
   includedDates,
-  periodData,
+  periodData = {
+    periodStartDate: null,
+    periodEndDate: null,
+    periodCountCalendarDays: null,
+    periodDays: null,
+    periodType: "UNLIMITED",
+  },
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
