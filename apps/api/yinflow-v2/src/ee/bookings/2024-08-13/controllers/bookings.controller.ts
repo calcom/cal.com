@@ -10,6 +10,8 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  InternalServerErrorException,
+  HttpException,
 } from "@nestjs/common";
 import {
   ApiOperation,
@@ -23,6 +25,7 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { HttpError } from "@calcom/platform-libraries";
 import {
   CancelBookingInput,
   CancelBookingInputPipe,
@@ -41,6 +44,7 @@ import {
   DeclineBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
+import { supabase } from "../../../../config/supabase";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "../../../../lib/api-versions";
 import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
@@ -224,15 +228,30 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({ summary: "Mark a booking absence" })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: MarkAbsentBookingInput_2024_08_13,
-    @GetUser("id") ownerId: number
+    @Body() body: MarkAbsentBookingInput_2024_08_13
   ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
+    try {
+      const data = this.getBookingInfo(bookingUid) as any;
+      const attendees =
+        data.attendees && data.attendees.length !== 0
+          ? data.attendees.map((attendee: string) => JSON.parse(attendee))
+          : [];
+      const absentAttendee = [...attendees, ...(body.attendees || [])].map((attendee: any) =>
+        JSON.stringify(attendee)
+      );
 
-    return {
-      status: SUCCESS_STATUS,
-      data: booking,
-    };
+      const { data: absentedBooking } = await supabase
+        .from("Booking")
+        .update({ attendees: absentAttendee, absentHost: !!body.host })
+        .eq("uid", bookingUid)
+        .select("*")
+        .single();
+
+      return { status: SUCCESS_STATUS, data: absentedBooking };
+    } catch (err) {
+      this.handleBookingErrors(err, "no-show");
+    }
+    throw new InternalServerErrorException("Could not mark no show.");
   }
 
   @Post("/:bookingUid/reassign")
@@ -333,5 +352,39 @@ export class BookingsController_2024_08_13 {
       status: SUCCESS_STATUS,
       data: booking,
     };
+  }
+
+  private async getBookingInfo(bookingUid: string): Promise<GetBookingOutput_2024_08_13["data"] | null> {
+    const { data: bookingInfo, error } = await supabase
+      .from("Booking")
+      .select("*")
+      .eq("uid", bookingUid)
+      .limit(1)
+      .single();
+
+    if (error || !bookingInfo) return null;
+
+    return error || bookingInfo;
+  }
+
+  private handleBookingErrors(
+    err: Error | HttpError | unknown,
+    type?: "recurring" | `instant` | "no-show"
+  ): void {
+    const errMsg =
+      type === "no-show"
+        ? `Error while marking no-show.`
+        : `Error while creating ${type ? type + " " : ""}booking.`;
+    if (err instanceof HttpError) {
+      const httpError = err as HttpError;
+      throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
+    }
+
+    if (err instanceof Error) {
+      const error = err as Error;
+      throw new InternalServerErrorException(error?.message ?? errMsg);
+    }
+
+    throw new InternalServerErrorException(errMsg);
   }
 }

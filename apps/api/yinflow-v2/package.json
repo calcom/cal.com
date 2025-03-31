@@ -53,6 +53,7 @@
     "@sentry/node": "^8.8.0",
     "@sentry/profiling-node": "^8.37.1",
     "@snyk/protect": "latest",
+    "@supabase/supabase-js": "^2.49.4",
     "body-parser": "^1.20.2",
     "bull": "^4.12.4",
     "class-transformer": "^0.5.1",
