@@ -13,8 +13,7 @@ export interface PaginationProps {
   pageSize: number;
   totalItems: number;
   onPageSizeChange: (pageSize: number) => void;
-  onNext?: () => void;
-  onPrevious?: () => void;
+  onPageChange: (page: number) => void;
   pageSizeOptions?: number[];
 }
 
@@ -25,9 +24,8 @@ export const Pagination = ({
   pageSize,
   totalItems,
   onPageSizeChange,
+  onPageChange,
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
-  onNext,
-  onPrevious,
 }: PaginationProps) => {
   const { t } = useLocale();
   const [internalPageSize, setInternalPageSize] = useState(pageSize);
@@ -43,13 +41,13 @@ export const Pagination = ({
 
   const handlePrevious = () => {
     if (currentPage > 1) {
-      onPrevious?.();
+      onPageChange(currentPage - 1);
     }
   };
 
   const handleNext = () => {
     if (currentPage < totalPages) {
-      onNext?.();
+      onPageChange(currentPage + 1);
     }
   };
 

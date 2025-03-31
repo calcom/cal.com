@@ -83,8 +83,6 @@ export function DataTableProvider({
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
-      // To avoid showing empty/default data in the query string ,
-      // Nuqs says: Setting null as a value will remove the key from the query string.
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
@@ -94,10 +92,10 @@ export function DataTableProvider({
     [setActiveFilters]
   );
 
+  const setPageIndexWrapper = (newPageIndex: number | null) => setPageIndex(newPageIndex || null);
+
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
-      // To avoid showing empty/default data in the query string using `null` ,
-      // Nuqs says: Setting null as a value will remove the key from the query string.
       setPageIndex(null);
       setActiveFilters((prev) => {
         let added = false;
@@ -119,8 +117,6 @@ export function DataTableProvider({
 
   const removeFilter = useCallback(
     (columnId: string) => {
-      // To avoid showing empty/default data in the query string using `null` ,
-      // Nuqs says: Setting null as a value will remove the key from the query string.
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => filter.f !== columnId);
@@ -132,8 +128,6 @@ export function DataTableProvider({
 
   const setPageSizeAndGoToFirstPage = useCallback(
     (newPageSize: number | null) => {
-      // To avoid showing empty/default data in the query string using `null` ,
-      // Nuqs says: Setting null as a value will remove the key from the query string.
       setPageSize(newPageSize == DEFAULT_PAGE_SIZE ? null : newPageSize);
       setPageIndex(null);
     },
@@ -163,7 +157,7 @@ export function DataTableProvider({
         setColumnVisibility,
         pageIndex,
         pageSize,
-        setPageIndex,
+        setPageIndex: setPageIndexWrapper,
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
