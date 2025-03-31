@@ -252,7 +252,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
 
   if (!isSendgridEnabled) {
-    //test if mandatory reminders work
     let reminderUid;
     if (scheduledDate) {
       const reminder = await prisma.workflowReminder.create({
@@ -277,8 +276,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     return;
   }
 
-  /* Deprecated - Everything below is for Sendgrid not needed for SMTP */
-
+  /**
+   * @deprecated only needed for SendGrid, use SMTP with tasker instead
+   */
   const sendgridBatchId = await getBatchId();
 
   if (
@@ -399,8 +399,9 @@ export const deleteScheduledEmailReminder = async (reminderId: number) => {
     return;
   }
 
-  /* Deprecated - Everything below is for Sendgrid not needed for SMTP */
-
+  /**
+   * @deprecated only needed for SendGrid, use SMTP with tasker instead
+   */
   try {
     if (!referenceId) {
       await prisma.workflowReminder.delete({

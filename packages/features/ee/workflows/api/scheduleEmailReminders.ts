@@ -1,4 +1,6 @@
-/* deprecated - use smtp with tasker instead */
+/**
+ * @deprecated use smtp with tasker instead
+ */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";

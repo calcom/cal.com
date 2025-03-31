@@ -22,9 +22,9 @@ const mockedConstants = {
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
 } as typeof constants;
 
-vi.mock("@calcom/lib/constants", () => {
-  return mockedConstants;
-});
+vi.mock("@calcom/lib/constants", () => ({
+  ...mockedConstants,
+}));
 
 beforeEach(() => {
   Object.entries(mockedConstants).forEach(([key]) => {
