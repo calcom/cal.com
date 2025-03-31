@@ -49,7 +49,7 @@ export class StripeBillingService implements BillingService {
       quantity,
       metadata,
       mode = "subscription",
-      allowPromotionCodes,
+      allowPromotionCodes = true,
       customerUpdate,
       automaticTax,
       discounts,
