@@ -1,4 +1,5 @@
-import { Badge, Button } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 
 interface StatusProps {
   designStatus: string | null;

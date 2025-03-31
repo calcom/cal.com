@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { CheckboxField } from "@calcom/ui";
+import { CheckboxField } from "@calcom/ui/components/form";
 
 export const InfoIconExample: React.FC = () => (
   <RenderComponentWithSnippet>

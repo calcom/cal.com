@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Alert } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
 
 const severities = ["neutral", "info", "warning", "error"] as const;
 const customIcons = ["info", "alert-triangle", "circle-x", "circle-check", "bell"] as const;

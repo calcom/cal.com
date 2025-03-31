@@ -3,8 +3,8 @@
 import React, { useState, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { Icon } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 type IconName =
   | "activity"

@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Avatar } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
 import {
   Dropdown,
   DropdownMenuTrigger,

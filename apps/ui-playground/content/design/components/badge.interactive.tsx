@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
 
 const variants = [
   "default",

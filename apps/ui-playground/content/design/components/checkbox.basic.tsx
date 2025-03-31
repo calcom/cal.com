@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Checkbox } from "@calcom/ui";
+import { Checkbox } from "@calcom/ui/components/form";
 
 export const BasicExample: React.FC = () => (
   <RenderComponentWithSnippet>

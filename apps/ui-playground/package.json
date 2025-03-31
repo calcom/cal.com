@@ -14,11 +14,12 @@
     "@calcom/ui": "*",
     "fumadocs-core": "^15.2.1",
     "fumadocs-mdx": "^11.5.7",
-    "fumadocs-typescript": "^4.0.1",
+    "fumadocs-typescript": "^3.0.2",
     "fumadocs-ui": "^14.4.0",
     "next": "15.1.6",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react-dom": "^18.0.0",
+    "react-hot-toast": "^2.5.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

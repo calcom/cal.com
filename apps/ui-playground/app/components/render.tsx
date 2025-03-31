@@ -2,8 +2,8 @@
 
 import { type PropsWithChildren, useState } from "react";
 
-import className from "@calcom/lib/classNames";
-import { Button } from "@calcom/ui";
+import className from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 
 type Props = {
   customCodeSnippet?: string;

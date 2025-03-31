@@ -4,7 +4,7 @@ import { getColorFormats, copyToClipboard } from "@/lib/colorUtils";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface ColorSwatch {
   name: string;

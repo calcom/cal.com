@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Avatar } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
 
 const sizes = ["xs", "xsm", "sm", "md", "mdLg", "lg", "xl"] as const;
 const sampleImage = "https://cal.com/stakeholder/peer.jpg";

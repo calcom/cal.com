@@ -3,7 +3,7 @@
 import React from "react";
 import { Toaster } from "react-hot-toast";
 
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface TypographyStyle {
   name: string;

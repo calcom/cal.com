@@ -3,7 +3,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { DocsLayout } from "fumadocs-ui/layouts/notebook";
 import type { ReactNode } from "react";
 
-import { IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
 
 import { baseOptions } from "../layout.config";
 

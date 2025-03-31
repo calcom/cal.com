@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { Row } from "@/app/components/row";
 
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 const colors = ["primary", "secondary", "minimal", "destructive"] as const;
 
