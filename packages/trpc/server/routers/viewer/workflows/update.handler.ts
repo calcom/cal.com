@@ -394,11 +394,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
-          verifiedAt: !SCANNING_WORKFLOW_STEPS
-            ? new Date()
-            : didBodyChange
-            ? null
-            : oldStep.verifiedAt ?? new Date(),
+          verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
         },
       });
 
