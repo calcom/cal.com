@@ -35,8 +35,8 @@ export type DataTableContextType = {
   columnSizing: ColumnSizingState;
   setColumnSizing: OnChangeFn<ColumnSizingState>;
 
-  pageIndex: number | null;
-  pageSize: number | null;
+  pageIndex: number;
+  pageSize: number;
   setPageIndex: (pageIndex: number | null) => void;
   setPageSize: (pageSize: number | null) => void;
 
