@@ -29,8 +29,8 @@ export type DataTableContextType = {
   columnVisibility: VisibilityState;
   setColumnVisibility: OnChangeFn<VisibilityState>;
 
-  pageIndex: number;
-  pageSize: number;
+  pageIndex: number | null;
+  pageSize: number | null;
   setPageIndex: (pageIndex: number | null) => void;
   setPageSize: (pageSize: number | null) => void;
 
@@ -92,7 +92,7 @@ export function DataTableProvider({
     [setActiveFilters]
   );
 
-  const setPageIndexWrapper = (newPageIndex: number | null) => setPageIndex(newPageIndex || null);
+  const setPageIndexWrapper = (newPageIndex: number) => setPageIndex(newPageIndex || null);
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
@@ -127,7 +127,7 @@ export function DataTableProvider({
   );
 
   const setPageSizeAndGoToFirstPage = useCallback(
-    (newPageSize: number | null) => {
+    (newPageSize: number) => {
       setPageSize(newPageSize == DEFAULT_PAGE_SIZE ? null : newPageSize);
       setPageIndex(null);
     },
