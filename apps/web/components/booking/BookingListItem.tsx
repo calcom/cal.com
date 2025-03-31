@@ -690,8 +690,23 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isUpcoming && !isCancelled ? (
               <>
-                {isPending && !isLoggedInUserAttendee && <TableActions actions={pendingActions} />}
-                {isPending && isLoggedInUserAttendee && <TableActions actions={bookedActions} />}
+                {isPending && booking.user?.email === userEmail && <TableActions actions={pendingActions} />}
+                {isPending &&
+                  booking.attendees.some((attendee) => attendee.email === userEmail) &&
+                  booking.user?.email !== userEmail && (
+                    <TableActions
+                      actions={[
+                        {
+                          id: "cancel",
+                          label: t("cancel_event"),
+                          href: `/booking/${booking.uid}?cancel=true${
+                            booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""
+                          }`,
+                          icon: "x",
+                        },
+                      ]}
+                    />
+                  )}
                 {isConfirmed && <TableActions actions={bookedActions} />}
                 {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
               </>
