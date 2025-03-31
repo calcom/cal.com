@@ -7,7 +7,7 @@ import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import type { PeriodData } from "@calcom/types/event";
+import type { PeriodData } from "@calcom/types/Event";
 
 import type { Slots } from "../../types";
 import { useBookerStore } from "../store";
