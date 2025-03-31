@@ -162,20 +162,22 @@ async function createPlatformAndSetupUser({
     `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
   );
 
-  const { role = MembershipRole.OWNER, username } = platformUser;
+  const { username } = platformUser;
+
+  const membershipRole = MembershipRole.OWNER;
 
   if (!!team) {
     await associateUserAndOrg({
       teamId: team.id,
       userId: platformUser.id,
-      role: role as MembershipRole,
+      role: membershipRole,
       username: user.username,
     });
 
     await prisma.platformBilling.create({
       data: {
         id: team?.id,
-        plan: "STARTER",
+        plan: "SCALE",
         customerId: "cus_123",
         subscriptionId: "sub_123",
       },
@@ -193,7 +195,7 @@ async function createPlatformAndSetupUser({
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWNtZSAiLCJwZXJtaXNzaW9ucyI6MTAyMywicmVkaXJlY3RVcmlzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDMyMSJdLCJib29raW5nUmVkaXJlY3RVcmkiOiIiLCJib29raW5nQ2FuY2VsUmVkaXJlY3RVcmkiOiIiLCJib29raW5nUmVzY2hlZHVsZVJlZGlyZWN0VXJpIjoiIiwiYXJlRW1haWxzRW5hYmxlZCI6dHJ1ZSwiaWF0IjoxNzE5NTk1ODA4fQ.L5_jSS14fcKLCD_9_DAOgtGd6lUSZlU5CEpCPaPt41I",
       },
     });
-    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
+    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
   }
 }
 
@@ -961,7 +963,7 @@ async function main() {
       password: "PLATFORMadmin2024!",
       username: "platform",
       name: "Platform Admin",
-      role: "ADMIN",
+      role: "USER",
     },
   });
 

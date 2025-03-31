@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -8,11 +9,9 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { Controller, Get, Param, UseGuards } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
+import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { RoutingFormResponseOutput } from "@calcom/platform-types";
 
 import { RoutingFormsResponsesService } from "../../../../routing-forms-responses/services/routing-forms-responses.service";
 import { GetRoutingFormResponsesOutput } from "../outputs/get-routing-form-responses.output";
@@ -30,6 +29,7 @@ import { GetRoutingFormResponsesOutput } from "../outputs/get-routing-form-respo
   PlatformPlanGuard,
   IsAdminAPIEnabledGuard
 )
+@ApiHeader(API_KEY_HEADER)
 export class OrganizationsTeamsRoutingFormsResponsesController {
   constructor(private readonly routingFormsResponsesService: RoutingFormsResponsesService) {}
 
