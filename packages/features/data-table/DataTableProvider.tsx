@@ -111,6 +111,7 @@ export function DataTableProvider({
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
+      setSegmentIdAndSaveToLocalStorage(null);
       setPageIndex(0);
       setActiveFilters((prev) => prev.filter((filter) => exclude?.includes(filter.f)));
     },
