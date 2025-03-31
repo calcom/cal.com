@@ -7,7 +7,7 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 
-type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
+type Attributes = RouterOutputs["viewer"]["routingForms"]["getAttributesForTeam"];
 type MatchingTeamMembersData = RouterOutputs["viewer"]["attributes"]["findTeamMembersMatchingAttributeLogic"];
 const mockGetAttributesForTeam = (
   arg: { data: Attributes; isPending: false } | { data: undefined; isPending: true }

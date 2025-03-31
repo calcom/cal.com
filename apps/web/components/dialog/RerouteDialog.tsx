@@ -37,7 +37,7 @@ const enum ReroutingStatusEnum {
   REROUTING_FAILED = "failed",
 }
 
-type ResponseWithForm = RouterOutputs["viewer"]["appRoutingForms"]["getResponseWithFormFields"];
+type ResponseWithForm = RouterOutputs["viewer"]["routingForms"]["getResponseWithFormFields"];
 
 type BookingToReroute = Pick<PrismaBooking, "metadata" | "responses" | "id" | "uid" | "title" | "status"> & {
   routedFromRoutingFormReponse: {
