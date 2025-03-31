@@ -119,7 +119,10 @@ export function DataTableProvider({
     [setActiveFilters, setPageIndex]
   );
 
-  const setPageIndexWrapper = (newPageIndex: number) => setPageIndex(newPageIndex || null);
+  const setPageIndexWrapper = useCallback(
+    (newPageIndex: number) => setPageIndex(newPageIndex || null),
+    [setPageIndex]
+  );
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
