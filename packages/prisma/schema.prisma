@@ -1234,7 +1234,7 @@ enum TimeUnit {
 
 model WorkflowReminder {
   id                  Int             @id @default(autoincrement())
-  uuid                String          @unique @default(uuid())
+  uuid                String?         @unique @default(uuid())
   bookingUid          String?
   booking             Booking?        @relation(fields: [bookingUid], references: [uid])
   method              WorkflowMethods
