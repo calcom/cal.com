@@ -1,16 +1,14 @@
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
-import { httpBatchLink } from "../client";
-import { httpLink } from "../client";
-import { loggerLink } from "../client";
-import { splitLink } from "../client";
-import type { CreateTRPCNext } from "../next";
-import { createTRPCNext } from "../next";
+import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
+import type { CreateTRPCNext } from "@trpc/next";
+import { createTRPCNext } from "@trpc/next";
 // ℹ️ Type-only import:
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
-import type { TRPCClientErrorLike } from "../react";
-import type { inferRouterInputs, inferRouterOutputs } from "../server";
+import type { TRPCClientErrorLike } from "@trpc/react-query";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+
 import type { AppRouter } from "../server/routers/_app";
 import { ENDPOINTS } from "./shared";
 

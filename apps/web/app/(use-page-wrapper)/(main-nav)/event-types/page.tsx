@@ -8,8 +8,6 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import { ssrInit } from "@server/lib/ssr";
-
 import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async () =>
@@ -19,14 +17,13 @@ export const generateMetadata = async () =>
   );
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const session = await getServerSession({ req: context.req });
 
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
 
-  await ssrInit(context);
   const t = await getTranslate();
 
   return (

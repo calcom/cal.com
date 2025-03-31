@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -11,10 +12,12 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, showToast, SettingsToggle } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -31,6 +34,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
   const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideBranding ?? false);
   const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
+  const [hideTeamProfileLink, setHideTeamProfileLink] = useState(team?.hideTeamProfileLink ?? false);
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
     defaultValues: {
@@ -74,8 +78,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     mutation.mutate({ ...values, id: team.id });
   };
 
-  const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>
@@ -91,8 +94,8 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
               <div>
-                <p className="font-semibold">{t("theme")}</p>
-                <p className="text-default">{t("theme_applies_note")}</p>
+                <p className="mt-0.5 text-base font-semibold leading-none">{t("theme")}</p>
+                <p className="text-default text-sm leading-normal">{t("theme_applies_note")}</p>
               </div>
             </div>
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
@@ -163,6 +166,18 @@ const ProfileView = ({ team }: ProfileViewProps) => {
               onCheckedChange={(checked) => {
                 setHideBookATeamMember(checked);
                 mutation.mutate({ id: team.id, hideBookATeamMember: checked });
+              }}
+            />
+
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("hide_team_profile_link")}
+              disabled={mutation?.isPending}
+              description={t("hide_team_profile_link_description")}
+              checked={hideTeamProfileLink ?? false}
+              onCheckedChange={(checked) => {
+                setHideTeamProfileLink(checked);
+                mutation.mutate({ id: team.id, hideTeamProfileLink: checked });
               }}
             />
           </div>

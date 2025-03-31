@@ -717,7 +717,7 @@ describe("getBookingResponsesSchema", () => {
   });
 
   describe("multiemail field type", () => {
-    test("should succesfully parse a multiemail type field", async () => {
+    test("should successfully parse a multiemail type field", async () => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -794,7 +794,7 @@ describe("getBookingResponsesSchema", () => {
       );
     });
 
-    test("should succesfully parse a multiemail type field response, even when the value is just a string[Prefill needs it]", async () => {
+    test("should successfully parse a multiemail type field response, even when the value is just a string[Prefill needs it]", async () => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -833,7 +833,7 @@ describe("getBookingResponsesSchema", () => {
   });
 
   describe("multiselect field type", () => {
-    test("should succesfully parse a multiselect type field", async () => {
+    test("should successfully parse a multiselect type field", async () => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -870,7 +870,7 @@ describe("getBookingResponsesSchema", () => {
         testMultiselect: ["option1", "option-2"],
       });
     });
-    test("should succesfully parse a multiselect type field", async () => {
+    test("should successfully parse a multiselect type field", async () => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -950,7 +950,7 @@ describe("getBookingResponsesSchema", () => {
   });
 
   describe("multiselect field type", () => {
-    test("should succesfully parse a multiselect type field", async () => {
+    test("should successfully parse a multiselect type field", async () => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -1321,7 +1321,7 @@ describe("excluded email/domain validation", () => {
 });
 
 describe("require email/domain validation", () => {
-  test("should fail if the requried email/domain is not present", async () => {
+  test("should fail if the required email/domain is not present", async () => {
     const requiredEmails = "gmail.com, user@hotmail.com, @yahoo.com";
     const schema = getBookingResponsesSchema({
       bookingFields: [

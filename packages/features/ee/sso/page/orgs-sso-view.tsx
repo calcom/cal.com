@@ -2,9 +2,9 @@
 
 import { useSession } from "next-auth/react";
 
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { AppSkeletonLoader as SkeletonLoader } from "@calcom/ui";
 
 import SSOConfiguration from "../components/SSOConfiguration";
 
@@ -12,16 +12,14 @@ const SAMLSSO = () => {
   const { t } = useLocale();
 
   const { data, status } = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(data?.user?.org?.role);
   const org = data?.user.org;
 
-  if (status === "loading")
-    <SkeletonLoader title={t("sso_saml_heading")} description={t("sso_configuration_description_orgs")} />;
+  if (status === "loading") <SkeletonLoader />;
 
   if (!org) {
     return null;
   }
-
-  const isAdminOrOwner = org.role === MembershipRole.OWNER || org.role === MembershipRole.ADMIN;
 
   return !!isAdminOrOwner ? (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">

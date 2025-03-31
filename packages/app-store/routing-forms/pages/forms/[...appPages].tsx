@@ -6,36 +6,32 @@ import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import Shell, { ShellMain } from "@calcom/features/shell/Shell";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import useApp from "@calcom/lib/hooks/useApp";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import {
-  ArrowButton,
-  Badge,
-  Button,
-  ButtonGroup,
-  CreateButtonWithTeamsList,
-  EmptyScreen,
-  Icon,
-  List,
-  ListLinkItem,
-  Tooltip,
-} from "@calcom/ui";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
+import { List, ListLinkItem } from "@calcom/ui/components/list";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import type { SetNewFormDialogState, NewFormDialogState } from "../../components/FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
@@ -86,7 +82,6 @@ export default function RoutingForms({
 
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
-  const { data: typeformApp } = useApp("typeform");
   const forms = queryRes.data?.filtered;
   const features = [
     {
@@ -178,7 +173,7 @@ export default function RoutingForms({
             newFormDialogState={newFormDialogState}
             setNewFormDialogState={setNewFormDialogState}>
             <div className="mb-10 w-full">
-              <div className="flex">
+              <div className="mb-2 flex">
                 <TeamsFilter />
               </div>
               <FilterResults
@@ -201,7 +196,10 @@ export default function RoutingForms({
                 SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list" ref={parent}>
-                    {forms?.map(({ form, readOnly }, index) => {
+                    {forms?.map(({ form, readOnly, hasError }, index) => {
+                      // Make the form read only if it has an error
+                      // TODO: Consider showing error in UI so user can report and get it fixed.
+                      readOnly = readOnly || hasError;
                       if (!form) {
                         return null;
                       }
@@ -296,17 +294,6 @@ export default function RoutingForms({
                                       StartIcon="copy">
                                       {t("duplicate")}
                                     </FormAction>
-                                    {typeformApp?.isInstalled ? (
-                                      <FormAction
-                                        data-testid="copy-redirect-url"
-                                        routingForm={form}
-                                        action="copyRedirectUrl"
-                                        color="minimal"
-                                        type="button"
-                                        StartIcon="link">
-                                        {t("Copy Typeform Redirect Url")}
-                                      </FormAction>
-                                    ) : null}
                                     <FormAction
                                       action="_delete"
                                       routingForm={form}
@@ -345,19 +332,5 @@ export default function RoutingForms({
     </LicenseRequired>
   );
 }
-
-const ShellContainer = ({ page }: { page: React.ReactElement }) => {
-  const { t } = useLocale();
-
-  return (
-    <Shell title={t("routing_forms")} description={t("routing_forms_description")} withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};
-
-RoutingForms.getLayout = (page: React.ReactElement) => {
-  return <ShellContainer page={page} />;
-};
 
 export { getServerSideProps };

@@ -6,7 +6,6 @@ import { useEffect, useRef } from "react";
 
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
@@ -14,7 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import classNames from "@calcom/ui/classNames";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
@@ -59,7 +59,7 @@ export const InstallAppButton = (
     disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
-  const { isPending: isUserLoading, data: user } = trpc.viewer.me.useQuery();
+  const { isPending: isUserLoading, data: user } = trpc.viewer.me.get.useQuery();
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
   const { isPending: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
@@ -109,7 +109,7 @@ export const AppDependencyComponent = ({
   dependencyData,
 }: {
   appName: string;
-  dependencyData: RouterOutputs["viewer"]["appsRouter"]["queryForDependencies"];
+  dependencyData: RouterOutputs["viewer"]["apps"]["queryForDependencies"];
 }) => {
   const { t } = useLocale();
 
