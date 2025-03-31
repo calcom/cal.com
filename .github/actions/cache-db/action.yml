@@ -38,38 +38,31 @@ runs:
       shell: bash
       run: |
         mkdir -p .cache/db
-        # Run migrations
-        yarn prisma migrate deploy
-        # Run seeds
-        yarn prisma db seed
-        # Create optimized dump with custom format and compression
+        # Setup database with migrations and seeds in one go
+        yarn prisma migrate deploy && yarn prisma db seed
+        # Create optimized dump with parallel compression
         PGPASSWORD=postgres pg_dump -Fc -Z9 -h host.docker.internal -p 5432 -U postgres -d calendso > .cache/db/dump.fc
-        # Store test credentials if provided
-        if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ]; then
-          echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" >> .cache/db/env
-        fi
-        if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}" ]; then
-          echo "E2E_TEST_CALCOM_QA_PASSWORD=${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}" >> .cache/db/env
-        fi
-        if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}" ]; then
-          echo "E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS=${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}" >> .cache/db/env
-        fi
-        if [ -n "${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" ]; then
-          echo "E2E_TEST_CALCOM_GCAL_KEYS=${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" >> .cache/db/env
+        # Store test credentials in a single operation if any are provided
+        if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ] || [ -n "${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}" ] || [ -n "${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}" ] || [ -n "${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" ]; then
+          {
+            [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ] && echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}"
+            [ -n "${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}" ] && echo "E2E_TEST_CALCOM_QA_PASSWORD=${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}"
+            [ -n "${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}" ] && echo "E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS=${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}"
+            [ -n "${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" ] && echo "E2E_TEST_CALCOM_GCAL_KEYS=${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}"
+          } > .cache/db/env
         fi
 
     - name: Restore Database
       if: steps.cache-db.outputs.cache-hit == 'true'
       shell: bash
       run: |
-        # Drop existing DB
-        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "DROP DATABASE IF EXISTS calendso"
-        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "CREATE DATABASE calendso"
-        # Fast parallel restore
-        PGPASSWORD=postgres pg_restore -j 4 -h host.docker.internal -p 5432 -U postgres -d calendso .cache/db/dump.fc
+        # Recreate database in a single operation
+        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "DROP DATABASE IF EXISTS calendso; CREATE DATABASE calendso;"
+        # Fast parallel restore with error handling
+        PGPASSWORD=postgres pg_restore -j 4 -h host.docker.internal -p 5432 -U postgres -d calendso .cache/db/dump.fc || exit 1
         # Restore test credentials if they exist
         if [ -f ".cache/db/env" ]; then
-          while IFS= read -r line; do
-            export "$line"
-          done < .cache/db/env
+          set -a
+          source .cache/db/env
+          set +a
         fi
