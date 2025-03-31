@@ -34,12 +34,19 @@ function AddFilterButtonComponent<TData>(
   const { activeFilters, addFilter } = useDataTable();
 
   const filterableColumns = useFilterableColumns(table);
+  const availableColumns = filterableColumns.filter(
+    (column) => !activeFilters?.some((filter) => filter.f === column.id)
+  );
 
   if (hideWhenFilterApplied && activeFilters?.length > 0) {
     return null;
   }
 
   if (showWhenFilterApplied && activeFilters?.length === 0) {
+    return null;
+  }
+
+  if (variant === "sm" && availableColumns.length === 0) {
     return null;
   }
 
@@ -73,12 +80,11 @@ function AddFilterButtonComponent<TData>(
             <CommandInput placeholder={t("search")} />
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
-              {filterableColumns.map((column) => {
+              {availableColumns.map((column) => {
                 const showHiddenIndicator =
                   !table.getColumn(column.id)?.getIsVisible() &&
                   table.initialState.columnVisibility?.[column.id] !== false;
 
-                if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem
                     key={column.id}

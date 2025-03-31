@@ -15,6 +15,7 @@ import {
   type FilterSegmentOutput,
   type ActiveFilters,
 } from "./lib/types";
+import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
 export type DataTableContextType = {
   tableIdentifier: string;
@@ -69,7 +70,7 @@ export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
   defaultPageSize = DEFAULT_PAGE_SIZE,
-  ctaContainerClassName,
+  ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
 }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
