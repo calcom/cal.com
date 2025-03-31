@@ -19,7 +19,7 @@ import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
 export type DataTableContextType = {
   tableIdentifier: string;
-  ctaContainerRef?: React.RefObject<HTMLDivElement>;
+  ctaContainerRef: React.RefObject<HTMLDivElement>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;

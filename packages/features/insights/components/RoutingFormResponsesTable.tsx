@@ -141,7 +141,7 @@ export function RoutingFormResponsesTable() {
         </DataTableWrapper>
       </div>
 
-      {ctaContainerRef?.current &&
+      {ctaContainerRef.current &&
         createPortal(
           <>
             <DateRangeFilter column={createdAtColumn} />
