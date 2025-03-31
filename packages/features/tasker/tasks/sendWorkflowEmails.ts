@@ -23,7 +23,7 @@ export const ZSendWorkflowEmailsSchema = z.object({
 export async function sendWorkflowEmails(payload: string): Promise<void> {
   const mailData = ZSendWorkflowEmailsSchema.parse(JSON.parse(payload));
 
-  Promise.all(
+  await Promise.all(
     mailData.to.map((to) =>
       sendCustomWorkflowEmail({
         ...mailData,

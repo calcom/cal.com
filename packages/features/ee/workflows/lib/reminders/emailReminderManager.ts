@@ -271,7 +271,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       ...mailData,
       to: sendTo,
       sendAt: scheduledDate?.toDate(),
-      referenceUid: reminderUid,
+      referenceUid: reminderUid ?? undefined,
     });
 
     return;

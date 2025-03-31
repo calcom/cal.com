@@ -1,5 +1,7 @@
 import { JSDOM } from "jsdom";
 
+import { SENDER_NAME } from "@calcom/lib/constants";
+
 import BaseEmail from "./_base-email";
 
 export type Attachment = {
@@ -28,7 +30,7 @@ export default class WorkflowEmail extends BaseEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: this.mailData.to,
-      from: `${this.mailData.sender} <${this.getMailerOptions().from}>`,
+      from: `${this.mailData.sender || SENDER_NAME} <${this.getMailerOptions().from}>`,
       replyTo: this.mailData.replyTo,
       subject: this.mailData.subject,
       html: addHTMLStyles(this.mailData.html),
