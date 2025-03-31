@@ -381,6 +381,7 @@ model User {
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
+  filterSegments                 FilterSegment[]
 
   @@unique([email])
   @@unique([email, username])
@@ -502,6 +503,7 @@ model Team {
   // it means that it is an organization managed by another organization.
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
+  filterSegments       FilterSegment[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -2004,6 +2006,38 @@ model InternalNotePreset {
 
   @@unique([teamId, name])
   @@index([teamId])
+}
+
+enum FilterSegmentScope {
+  USER
+  TEAM
+}
+
+model FilterSegment {
+  id               Int                @id @default(autoincrement())
+  name             String
+  // Identifies which data table this segment belongs to (e.g. "organization_members", "team_members", "bookings", etc.)
+  tableIdentifier  String
+  scope            FilterSegmentScope
+  // Filter configuration
+  activeFilters    Json?
+  sorting          Json?
+  columnVisibility Json?
+  columnSizing     Json?
+  perPage          Int
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  // Creator of the segment
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
+  // Team scope - optional, only set when scope is TEAM
+  team             Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId           Int?
+
+  // For user-scoped segments: scope + userId + tableIdentifier
+  @@index([scope, userId, tableIdentifier])
+  // For team-scoped segments: scope + teamId + tableIdentifier
+  @@index([scope, teamId, tableIdentifier])
 }
 
 model BookingInternalNote {
