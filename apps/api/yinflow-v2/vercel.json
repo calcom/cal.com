@@ -9,11 +9,6 @@
       }
     }
   ],
-  "functions": {
-    "*": {
-      "maxDuration": 60
-    }
-  },
   "routes": [
     {
       "src": "/(.*)",
