@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
@@ -37,7 +38,7 @@ import {
   Req,
   HttpException,
 } from "@nestjs/common";
-import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
@@ -70,6 +71,7 @@ export class ConferencingController {
   @Post("/:app/connect")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Connect your conferencing application" })
   @ApiParam({
     name: "app",
@@ -98,6 +100,7 @@ export class ConferencingController {
   @Get("/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get OAuth conferencing app auth url" })
   @ApiParam({
     name: "app",
@@ -204,6 +207,7 @@ export class ConferencingController {
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "List your conferencing applications" })
   async listInstalledConferencingApps(
     @GetUser("id") userId: number
@@ -220,6 +224,7 @@ export class ConferencingController {
   @Post("/:app/default")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Set your default conferencing application" })
   @ApiParam({
     name: "app",
@@ -238,6 +243,7 @@ export class ConferencingController {
   @Get("/default")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get your default conferencing application" })
   async getDefault(@GetUser("id") userId: number): Promise<GetDefaultConferencingAppOutputResponseDto> {
     const defaultconferencingApp = await this.conferencingService.getUserDefaultConferencingApp(userId);
@@ -247,6 +253,7 @@ export class ConferencingController {
   @Delete("/:app/disconnect")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Disconnect your conferencing application" })
   @ApiParam({
     name: "app",

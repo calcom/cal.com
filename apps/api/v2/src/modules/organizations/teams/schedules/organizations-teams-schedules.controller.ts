@@ -1,5 +1,10 @@
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -10,7 +15,7 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsUserInOrgTeam } from "@/modules/auth/guards/users/is-user-in-org-team.guard";
 import { Controller, UseGuards, Get, Param, ParseIntPipe } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
@@ -20,7 +25,9 @@ import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Orgs / Teams / Schedules")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsSchedulesController {
   constructor(private schedulesService: SchedulesService_2024_06_11) {}
 
@@ -29,7 +36,9 @@ export class OrganizationsTeamsSchedulesController {
   @UseGuards(IsUserInOrgTeam)
   @Get("/users/:userId/schedules")
   @DocsTags("Orgs / Teams / Users / Schedules")
-  @ApiOperation({ summary: "Get schedules of a team member" })
+  @ApiOperation({
+    summary: "Get schedules of a team member",
+  })
   async getUserSchedules(
     @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetSchedulesOutput_2024_06_11> {
