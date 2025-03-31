@@ -149,7 +149,7 @@ export class BookingsService_2024_08_13 {
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
-      hostname: bookingRequest.headers.host || "",
+      hostname: bookingRequest.headers?.host || "",
       platformClientId: bookingRequest.platformClientId,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -165,7 +165,7 @@ export class BookingsService_2024_08_13 {
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
-      hostname: bookingRequest.headers.host || "",
+      hostname: bookingRequest.headers?.host || "",
       platformClientId: bookingRequest.platformClientId,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -182,7 +182,7 @@ export class BookingsService_2024_08_13 {
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
-      hostname: bookingRequest.headers.host || "",
+      hostname: bookingRequest.headers?.host || "",
       platformClientId: bookingRequest.platformClientId,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -207,7 +207,7 @@ export class BookingsService_2024_08_13 {
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
-      hostname: bookingRequest.headers.host || "",
+      hostname: bookingRequest.headers?.host || "",
       platformClientId: bookingRequest.platformClientId,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -327,7 +327,7 @@ export class BookingsService_2024_08_13 {
       const booking = await handleNewBooking({
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
-        hostname: bookingRequest.headers.host || "",
+        hostname: bookingRequest.headers?.host || "",
         platformClientId: bookingRequest.platformClientId,
         platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
         platformCancelUrl: bookingRequest.platformCancelUrl,
