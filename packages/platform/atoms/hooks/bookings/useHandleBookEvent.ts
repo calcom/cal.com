@@ -10,7 +10,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { getUtmTrackingParameters } from "../../lib/getUtmTrackingParameters";
 import type { UseCreateBookingInput } from "./useCreateBooking";

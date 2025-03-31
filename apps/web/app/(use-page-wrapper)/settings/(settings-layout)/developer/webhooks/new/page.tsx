@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { NewWebhookView } from "@calcom/features/webhooks/pages/webhook-new-view";
 import { APP_NAME } from "@calcom/lib/constants";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

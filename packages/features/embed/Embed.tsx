@@ -14,6 +14,7 @@ import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings"
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import type { Slot } from "@calcom/features/schedules";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
@@ -25,21 +26,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  ColorPicker,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  HorizontalTabs,
-  Icon,
-  Label,
-  Select,
-  showToast,
-  Switch,
-  TextField,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Select, ColorPicker } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
@@ -360,7 +355,7 @@ const EmailEmbed = ({
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
-              isPending={schedule.isPending}
+              isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
                 setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}

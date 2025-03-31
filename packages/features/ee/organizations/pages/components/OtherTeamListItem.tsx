@@ -1,21 +1,20 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
-  Avatar,
-  Button,
-  ButtonGroup,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  showToast,
-  Tooltip,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 
