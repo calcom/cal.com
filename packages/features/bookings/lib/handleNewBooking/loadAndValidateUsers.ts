@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
+import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -16,8 +17,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";
-import type { NewBookingEventType } from "./types";
 
 type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   isFixed?: boolean;
@@ -120,6 +121,12 @@ export async function loadAndValidateUsers({
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
+  // Determine if users are locked
+  const containsBlockedUser = await checkIfUsersAreBlocked(users);
+
+  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   // map fixed users
   users = users.map((user) => ({
     ...user,

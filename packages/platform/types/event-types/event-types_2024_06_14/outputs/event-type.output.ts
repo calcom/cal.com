@@ -33,6 +33,7 @@ import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
+import type { Disabled_2024_06_14 } from "../inputs/disabled.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -66,14 +67,6 @@ import {
   OutputUnknownLocation_2024_06_14,
   ValidateOutputLocations_2024_06_14,
 } from "./locations.output";
-
-enum SchedulingTypeEnum {
-  ROUND_ROBIN = "ROUND_ROBIN",
-  COLLECTIVE = "COLLECTIVE",
-  MANAGED = "MANAGED",
-}
-
-export type EventTypesOutputSchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
 
 class User_2024_06_14 {
   @IsInt()
@@ -401,7 +394,7 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => Seats_2024_06_14)
   @ApiPropertyOptional({ type: Seats_2024_06_14 })
-  seats?: Seats_2024_06_14;
+  seats?: Seats_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsInt()
@@ -485,9 +478,9 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ApiPropertyOptional()
   assignAllTeamMembers?: boolean;
 
-  @IsEnum(SchedulingTypeEnum)
-  @DocsProperty({ enum: SchedulingTypeEnum, nullable: true })
-  schedulingType!: EventTypesOutputSchedulingType | null;
+  @IsEnum(["roundRobin", "collective", "managed"] as const)
+  @DocsProperty({ enum: ["roundRobin", "collective", "managed"] })
+  schedulingType!: "roundRobin" | "collective" | "managed" | null;
 
   @IsOptional()
   @IsBoolean()

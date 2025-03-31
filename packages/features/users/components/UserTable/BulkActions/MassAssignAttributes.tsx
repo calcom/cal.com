@@ -4,26 +4,23 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import slugify from "@calcom/lib/slugify";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Alert,
-  Button,
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  Icon,
-  Input,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  showToast,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/command";
+import { Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableUser } from "../types";
 
@@ -241,78 +238,6 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
   const utils = trpc.useUtils();
   const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
     onSuccess: (success) => {
-      // Optimistically update the infinite query data
-      const selectedRows = table.getSelectedRowModel().flatRows;
-
-      utils.viewer.organizations.listMembers.setInfiniteData(
-        {
-          limit: 10,
-          searchTerm: "",
-          expand: ["attributes"],
-          filters,
-        },
-        // @ts-expect-error i really dont know how to type this
-        (oldData) => {
-          if (!oldData) {
-            return {
-              pages: [],
-              pageParams: [],
-            };
-          }
-
-          const newPages = oldData?.pages.map((page) => ({
-            ...page,
-            rows: page.rows.map((row) => {
-              if (selectedRows.some((selectedRow) => selectedRow.original.id === row.id)) {
-                // Update the attributes for the selected users
-
-                const attributeOptionValues = foundAttributeInCache?.options.filter((option) =>
-                  selectedAttributeOptions.includes(option.id)
-                );
-
-                const newAttributes =
-                  row.attributes?.filter((attr) => attr.attributeId !== selectedAttribute) || [];
-
-                if (attributeOptionValues && attributeOptionValues.length > 0) {
-                  const newAttributeValues = attributeOptionValues?.map((value) => ({
-                    id: value.id,
-                    attributeId: value.attributeId,
-                    value: value.value,
-                    slug: value.slug,
-                    contains: value.contains,
-                    isGroup: value.isGroup,
-                    weight: 100,
-                  }));
-                  newAttributes.push(...newAttributeValues);
-                } else {
-                  // Text or number input we don't have an option to fall back on
-                  newAttributes.push({
-                    id: "-1",
-                    attributeId: foundAttributeInCache?.id ?? "-1",
-                    value: selectedAttributeOptions[0],
-                    slug: slugify(selectedAttributeOptions[0]),
-                    contains: [],
-                    isGroup: false,
-                    weight: 100,
-                  });
-                }
-
-                return {
-                  ...row,
-                  attributes: newAttributes,
-                };
-              }
-              return row;
-            }),
-          }));
-
-          return {
-            ...oldData,
-            pages: newPages,
-          };
-        }
-      );
-
       setSelectedAttribute(undefined);
       setSelectedAttributeOptions([]);
       utils.viewer.organizations.listMembers.invalidate();

@@ -1,3 +1,5 @@
+import { useSearchParams } from "next/navigation";
+
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
@@ -7,9 +9,10 @@ import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
-import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
-import { showToast } from "@calcom/ui";
+import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import { showToast } from "@calcom/ui/components/toast";
 
+import { getUtmTrackingParameters } from "../../lib/getUtmTrackingParameters";
 import type { UseCreateBookingInput } from "./useCreateBooking";
 
 type Callbacks = { onSuccess?: () => void; onError?: (err: any) => void };
@@ -62,6 +65,7 @@ export const useHandleBookEvent = ({
     const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
   };
+  const searchParams = useSearchParams();
 
   const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
@@ -109,12 +113,17 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
       };
 
+      const tracking = getUtmTrackingParameters(searchParams);
+
       if (isInstantMeeting) {
         handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
-        handleRecBooking(mapRecurringBookingToMutationInput(bookingInput, recurringEventCount), callbacks);
+        handleRecBooking(
+          mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
+          callbacks
+        );
       } else {
-        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl }, callbacks);
+        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});

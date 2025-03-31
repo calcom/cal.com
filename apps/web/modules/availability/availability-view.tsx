@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -14,20 +15,18 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { MembershipRole } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
-import { QueryCell } from "@lib/QueryCell";
-
-export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
+export function AvailabilityList() {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
-
-  const meQuery = trpc.viewer.me.useQuery();
+  const { data: availabilityData } = trpc.viewer.availability.list.useQuery();
+  const meQuery = trpc.viewer.me.get.useQuery();
 
   const router = useRouter();
 
@@ -101,7 +100,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
@@ -121,9 +120,13 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
 
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
 
+  if (!availabilityData) {
+    return <SkeletonLoader />;
+  }
+
   return (
     <>
-      {schedules.length === 0 ? (
+      {availabilityData.schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
             Icon="clock"
@@ -137,7 +140,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         <>
           <div className="border-subtle bg-default overflow-hidden rounded-md border">
             <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
-              {schedules.map((schedule) => (
+              {availabilityData.schedules.map((schedule) => (
                 <ScheduleListItem
                   displayOptions={{
                     hour12: meQuery.data?.timeFormat ? meQuery.data.timeFormat === 12 : undefined,
@@ -146,7 +149,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                   }}
                   key={schedule.id}
                   schedule={schedule}
-                  isDeletable={schedules.length !== 1}
+                  isDeletable={availabilityData.schedules.length !== 1}
                   updateDefault={updateMutation.mutate}
                   deleteFunction={deleteMutation.mutate}
                   duplicateFunction={duplicateMutation.mutate}
@@ -178,18 +181,6 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   );
 }
 
-function AvailabilityListWithQuery() {
-  const query = trpc.viewer.availability.list.useQuery();
-
-  return (
-    <QueryCell
-      query={query}
-      success={({ data }) => <AvailabilityList {...data} />}
-      customLoader={<SkeletonLoader />}
-    />
-  );
-}
-
 type PageProps = {
   currentOrg?: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
 };
@@ -213,8 +204,7 @@ export const AvailabilityCTA = () => {
   );
 
   const { data } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOrgAdminOrOwner =
-    (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
+  const isOrgAdminOrOwner = (data && checkAdminOrOwner(data.user.role)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
@@ -245,12 +235,12 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const me = useMeQuery();
+
   const { data: _data } = trpc.viewer.organizations.listCurrent.useQuery(undefined, { enabled: !currentOrg });
   const data = currentOrg ?? _data;
 
   const isOrg = Boolean(data);
-  const isOrgAdminOrOwner =
-    (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
+  const isOrgAdminOrOwner = (data && checkAdminOrOwner(data.user.role)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
@@ -264,6 +254,6 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   return searchParams?.get("type") === "team" && canViewTeamAvailability ? (
     <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} isOrg={isOrg} />
   ) : (
-    <AvailabilityListWithQuery />
+    <AvailabilityList />
   );
 }
