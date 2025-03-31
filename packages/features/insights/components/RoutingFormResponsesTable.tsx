@@ -53,9 +53,7 @@ export function RoutingFormResponsesTable() {
 
   const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
-  console.log("💡 ctaContainerRef", ctaContainerRef.current);
-
-  const { data, isFetching, isPending, isLoading } = trpc.viewer.insights.routingFormResponses.useQuery({
+  const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
     teamId,
     startDate,
     endDate,
