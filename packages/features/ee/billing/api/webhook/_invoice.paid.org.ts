@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { API_KEY_RATE_LIMIT } from "@calcom/lib/rateLimit";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { prisma } from "@calcom/prisma";
 
 import type { SWHMap } from "./__handler";
 
@@ -58,8 +59,8 @@ async function increaseRatelimitForOrganizationOwner(orgOwnerEmail: string) {
 
   const unkeyClient = new Unkey({ rootKey: UNKEY_ROOT_KEY });
 
-  const res = await unkeyClient.ratelimit.setOverride({
-    identifier: user.id,
+  const res = await unkeyClient.ratelimits.setOverride({
+    identifier: user.id.toString(),
     limit: API_KEY_RATE_LIMIT * 2,
     duration: 60000,
     namespaceName: "api",
