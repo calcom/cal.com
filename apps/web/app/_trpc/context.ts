@@ -43,19 +43,7 @@ const routerSlice = router({
   ),
 });
 
-let callerSingleton: ReturnType<typeof createCaller> | null = null;
-
-const createCaller = createCallerFactory(routerSlice);
-
-export const getTRPCPrefetchCaller = async () => {
-  if (callerSingleton) {
-    return callerSingleton;
-  }
+export const getTRPCContext = async () => {
   const legacyReq = buildLegacyRequest(await headers(), await cookies());
-  const ctx = await createContext({ req: legacyReq, res: {} as any }, getServerSession);
-  callerSingleton = createCaller({
-    ...ctx,
-  });
-
-  return callerSingleton;
+  return await createContext({ req: legacyReq, res: {} as any }, getServerSession);
 };
