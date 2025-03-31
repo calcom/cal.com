@@ -237,6 +237,9 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
+  // Check if the logged-in user is also an attendee of the booking (i.e., they created the booking)
+  const isLoggedInUserAttendee = booking.attendees.some((attendee) => attendee.email === userEmail);
+
   const editBookingActions: ActionType[] = [
     ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
       ? []
@@ -687,7 +690,8 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isUpcoming && !isCancelled ? (
               <>
-                {isPending && <TableActions actions={pendingActions} />}
+                {isPending && !isLoggedInUserAttendee && <TableActions actions={pendingActions} />}
+                {isPending && isLoggedInUserAttendee && <TableActions actions={bookedActions} />}
                 {isConfirmed && <TableActions actions={bookedActions} />}
                 {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
               </>
