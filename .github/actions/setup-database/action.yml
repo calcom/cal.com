@@ -1,0 +1,78 @@
+name: Setup Database
+description: Centralized database setup with caching for CI runs
+inputs:
+  E2E_TEST_CALCOM_QA_EMAIL:
+    required: false
+    description: "E2E test Cal.com QA email"
+  E2E_TEST_CALCOM_QA_PASSWORD:
+    required: false
+    description: "E2E test Cal.com QA password"
+  E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS:
+    required: false
+    description: "E2E test Cal.com QA GCal credentials"
+  E2E_TEST_CALCOM_GCAL_KEYS:
+    required: false
+    description: "E2E test Cal.com QA GCal keys"
+  DATABASE_URL:
+    required: true
+    description: "Database connection URL"
+  DATABASE_DIRECT_URL:
+    required: true
+    description: "Direct database connection URL"
+outputs:
+  database-ready:
+    description: "Whether the database is ready to use"
+    value: ${{ steps.setup-db.outputs.database-ready }}
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Database
+      id: cache-db
+      uses: buildjet/cache@v4
+      env:
+        cache-name: db-v2
+      with:
+        path: |
+          .cache/db
+        key: ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-${{ hashFiles('packages/prisma/migrations/**/*.sql') }}-${{ hashFiles('packages/prisma/seed.ts') }}
+        restore-keys: |
+          ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-${{ hashFiles('packages/prisma/migrations/**/*.sql') }}-
+          ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-
+          ${{ env.cache-name }}-
+
+    - name: Setup Database
+      id: setup-db
+      if: steps.cache-db.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        mkdir -p .cache/db
+        # Setup database with migrations and seeds in one go
+        yarn prisma migrate deploy && yarn prisma db seed
+        # Create optimized dump with parallel compression
+        PGPASSWORD=postgres pg_dump -Fc -Z9 -h host.docker.internal -p 5432 -U postgres -d calendso > .cache/db/dump.fc
+        # Store test credentials in a single operation if any are provided
+        if [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ] || [ -n "${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}" ] || [ -n "${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}" ] || [ -n "${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" ]; then
+          {
+            [ -n "${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}" ] && echo "E2E_TEST_CALCOM_QA_EMAIL=${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}"
+            [ -n "${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}" ] && echo "E2E_TEST_CALCOM_QA_PASSWORD=${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}"
+            [ -n "${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}" ] && echo "E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS=${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}"
+            [ -n "${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" ] && echo "E2E_TEST_CALCOM_GCAL_KEYS=${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}"
+          } > .cache/db/env
+        fi
+        echo "database-ready=true" >> $GITHUB_OUTPUT
+
+    - name: Restore Database
+      if: steps.cache-db.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        # Recreate database in a single operation
+        PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -c "DROP DATABASE IF EXISTS calendso; CREATE DATABASE calendso;"
+        # Fast parallel restore with error handling
+        PGPASSWORD=postgres pg_restore -j 4 -h host.docker.internal -p 5432 -U postgres -d calendso .cache/db/dump.fc || exit 1
+        # Restore test credentials if they exist
+        if [ -f ".cache/db/env" ]; then
+          set -a
+          source .cache/db/env
+          set +a
+        fi
+        echo "database-ready=true" >> $GITHUB_OUTPUT 
