@@ -13,7 +13,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, PasswordField, TextField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";
@@ -94,7 +97,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 tooltipSide={tooltipSide}
                 tooltipOffset={10}
                 tooltipClassName="p-0 text-inherit bg-inherit"
-                className={cn("", !isDisabled && "cursor-pointer", className)}
+                className={cn("", !isDisabled && "cursor-pointer", "border-none md:rounded-md", className)}
                 onClick={() => setIsDialogOpen(true)}>
                 {displayedLabel}
               </Button>
@@ -108,6 +111,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                   "",
                   isDisabled && "cursor-not-allowed",
                   !isDisabled && "cursor-pointer",
+                  "border-none md:rounded-md",
                   className
                 )}
                 onClick={() => setIsDialogOpen(true)}>
@@ -116,7 +120,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
             )}
           </>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="bg-default text-default">
           <DialogHeader>
             <DialogTitle>Connect to Apple Server</DialogTitle>
             <DialogDescription>
@@ -158,12 +162,14 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 disabled={isSaving}
                 type="button"
                 color="secondary"
+                className="md:rounded-md"
                 onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
                 disabled={isSaving}
                 type="submit"
+                className="border-none md:rounded-md"
                 loading={form.formState.isSubmitting}
                 data-testid="apple-calendar-login-button">
                 Save

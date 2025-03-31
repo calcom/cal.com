@@ -9,6 +9,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
@@ -20,22 +21,16 @@ import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Avatar,
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
-  Editor,
-  Form,
-  ImageUploader,
-  Label,
-  LinkIconButton,
-  showToast,
-  SkeletonContainer,
-  SkeletonText,
-  TextField,
-} from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button, LinkIconButton } from "@calcom/ui/components/button";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 

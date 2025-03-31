@@ -8,8 +8,7 @@ import {
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
-import { classNames } from "@calcom/lib";
-import { Badge } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -49,8 +48,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "teams",
     href: "/teams",
     icon: "users",
-    onlyDesktop: true,
     badge: <TeamInviteBadge />,
+    moreOnMobile: true,
   },
   {
     name: "apps",
@@ -90,11 +89,9 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "routing",
-    href: "/apps/routing-forms/forms",
+    href: "/routing",
     icon: "split",
-    badge: <Badge variant="green">NEW</Badge>,
-
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
     moreOnMobile: true,
   },
   {
@@ -113,7 +110,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       {
         name: "bookings",
         href: "/insights",
-        isCurrent: ({ pathname: path }) => path == "/insights" ?? false,
+        isCurrent: ({ pathname: path }) => path === "/insights",
       },
       {
         name: "routing",
@@ -122,8 +119,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       },
       {
         name: "router_position",
-        href: "/insights/virtual-queues",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
+        href: "/insights/router-position",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
       },
     ],
   },

@@ -1,36 +1,35 @@
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
-import { Shell as PlatformShell } from "@calcom/atoms/monorepo";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import WebShell from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { VerticalDivider } from "@calcom/ui/components/divider";
 import {
-  Button,
-  ButtonGroup,
   DropdownMenuSeparator,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  HorizontalTabs,
-  Label,
-  Icon,
-  showToast,
-  Skeleton,
-  Switch,
-  Tooltip,
-  VerticalDivider,
-  VerticalTabs,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Label } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { Skeleton } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
+import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
 
 type Props = {
@@ -101,7 +100,6 @@ function EventTypeSingleLayout({
       backPath="/event-types"
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
-      withoutSeo={!isPlatform} // Metadata is handled by App Router Metadata API for Event Type Web Page
       CTA={
         <div className="flex items-center justify-end">
           {!formMethods.getValues("metadata")?.managedEventConfig && (
@@ -146,7 +144,7 @@ function EventTypeSingleLayout({
           <ButtonGroup combined containerProps={{ className: "border-default hidden lg:flex" }}>
             {!isManagedEventType && (
               <>
-                {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
+                {/* We have to warp this in tooltip as it has a href which disables the tooltip on buttons */}
                 {!isPlatform && (
                   <Tooltip content={t("preview")} side="bottom" sideOffset={4}>
                     <Button
@@ -278,7 +276,7 @@ function EventTypeSingleLayout({
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
-              className="primary-navigation"
+              className="primary-navigation w-64"
               tabs={EventTypeTabs}
               sticky
               linkShallow

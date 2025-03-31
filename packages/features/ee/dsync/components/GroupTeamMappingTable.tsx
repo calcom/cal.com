@@ -40,7 +40,7 @@ const GroupTeamMappingTable = () => {
     {
       id: "group",
       header: t("group_name"),
-      size: 200,
+      size: 500,
       enableHiding: false,
       enableSorting: false,
       cell: ({ row }) => {

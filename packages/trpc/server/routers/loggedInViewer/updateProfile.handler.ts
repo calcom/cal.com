@@ -10,16 +10,16 @@ import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -139,7 +139,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           emailChangeWaitingForVerification: input.email?.toLocaleLowerCase(),
         };
 
-        // Check to ensure this email isnt in use
+        // Check to ensure this email isn't in use
         // Don't include email in the data payload if we need to verify
         delete data.email;
       }

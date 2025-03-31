@@ -1,5 +1,5 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -8,7 +8,9 @@ import {
   subdomainSuffix,
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+
+import PageWrapper from "@components/PageWrapperAppDir";
 
 enum PageType {
   ORG = "ORG",
@@ -46,11 +48,9 @@ function getPageInfo(pathname: string, host: string) {
   }
 }
 
-async function NotFound() {
-  const t = await getTranslate();
-  const headersList = headers();
-  const host = headersList.get("x-forwarded-host") ?? "";
-  const pathname = headersList.get("x-pathname") ?? "";
+function NotFound({ t, headers }: { t: any; headers: ReadonlyHeaders }) {
+  const host = headers.get("x-forwarded-host") ?? "";
+  const pathname = headers.get("x-pathname") ?? "";
 
   // This makes more sense after full migration to App Router
   // if (!pathname) {
@@ -221,7 +221,7 @@ async function NotFound() {
 }
 
 export const generateMetadata = async () => {
-  const headersList = headers();
+  const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
   const isInsights = pathname?.startsWith("/insights");
 
@@ -241,6 +241,14 @@ export const generateMetadata = async () => {
   };
 };
 
-export default WithLayout({
-  ServerPage: NotFound,
-});
+const ServerPage = async () => {
+  const t = await getTranslate();
+  const h = await headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+  return (
+    <PageWrapper requiresLicense={false} nonce={nonce}>
+      <NotFound t={t} headers={h} />
+    </PageWrapper>
+  );
+};
+export default ServerPage;

@@ -2,9 +2,14 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DialogFooter, Form, showToast, TextArea, Dialog, DialogContent } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Form } from "@calcom/ui/components/form";
+import { TextArea } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface FormValues {
   metadata: string;

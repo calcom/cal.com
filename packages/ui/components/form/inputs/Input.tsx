@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import { Alert } from "../../alert";
 import { Icon } from "../../icon";
@@ -21,6 +21,11 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
     </span>
   );
 }
+
+type PasswordFieldTranslations = {
+  showPasswordText?: string;
+  hidePasswordText?: string;
+};
 
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
@@ -187,7 +192,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
   return (
     <InputField
       ref={ref}
-      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" />}
+      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
       containerClassName="mx-3 mt-2"
       {...props}

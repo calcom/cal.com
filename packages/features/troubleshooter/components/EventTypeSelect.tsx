@@ -1,7 +1,7 @@
 import { useMemo, useEffect, startTransition } from "react";
 
 import { trpc } from "@calcom/trpc";
-import { SelectField } from "@calcom/ui";
+import { SelectField } from "@calcom/ui/components/form";
 
 import { getQueryParam } from "../../bookings/Booker/utils/query-param";
 import { useTroubleshooterStore } from "../store";

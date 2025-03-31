@@ -9,7 +9,7 @@ describe("Tests for Toast Components", () => {
     const toastId = "some-id";
 
     const onCloseMock = vi.fn();
-    render(<Component message={message} toastVisible={true} onClose={onCloseMock} toastId={toastId} />);
+    render(<Component message={message} onClose={onCloseMock} toastId={toastId} />);
 
     const toast = screen.getByTestId(toastTestId);
     expect(toast).toBeInTheDocument();

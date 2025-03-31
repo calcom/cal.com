@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Fragment } from "react";
 
-import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
+import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
 import type { IconName } from "../../icon";
@@ -26,6 +27,7 @@ export type VerticalTabItemProps = {
   iconClassName?: string;
   onClick?: (name: string) => void;
   isActive?: boolean;
+  "data-testid"?: string;
 };
 
 const VerticalTabItem = ({
@@ -39,6 +41,7 @@ const VerticalTabItem = ({
   ...props
 }: VerticalTabItemProps) => {
   const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
+  const { t } = useLocale();
 
   return (
     <Fragment key={name}>
@@ -64,7 +67,7 @@ const VerticalTabItem = ({
               (isChild || !props.icon) && "ml-7",
               props.className
             )}
-            data-testid={`vertical-tab-${name}`}
+            data-testid={`vertical-tab-${props["data-testid"]}`}
             aria-current={isCurrent ? "page" : undefined}>
             {props.icon && (
               <Icon
@@ -74,13 +77,13 @@ const VerticalTabItem = ({
               />
             )}
             <div className="h-fit min-w-0 flex-1">
-              <span className="flex items-center gap-2 truncate">
-                {name}
+              <span className="flex items-center gap-2">
+                {t(name)}
                 {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}
               </span>
               {info && (
                 // TODO: I don't think having apps-info as a data-test-id is right here as this is meant to be dumb component.
-                <p data-testid="apps-info" className="mt-1 truncate text-xs font-normal">
+                <p data-testid="apps-info" className="mt-1 text-xs font-normal">
                   {info}
                 </p>
               )}

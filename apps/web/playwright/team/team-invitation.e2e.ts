@@ -5,7 +5,8 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
-import { getInviteLink, localize } from "../lib/testUtils";
+import { localize } from "../lib/localize";
+import { getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -29,7 +30,7 @@ test.describe("Team", () => {
       });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator(`button:text("${t("send_invite")}")`).click();
+      await page.getByText(t("send_invite")).click();
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -110,7 +111,7 @@ test.describe("Team", () => {
       });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator(`button:text("${t("send_invite")}")`).click();
+      await page.getByText(t("send_invite")).click();
       await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -155,7 +156,7 @@ test.describe("Team", () => {
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
-    await page.locator(`button:text("${t("send_invite")}")`).click();
+    await page.getByText(t("send_invite")).click();
 
     await invitedMember.apiLogin();
     await page.goto(`/teams`);

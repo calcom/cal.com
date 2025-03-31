@@ -1,7 +1,7 @@
 "use client";
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -16,7 +16,7 @@ import type {
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;
@@ -87,6 +87,7 @@ export const useTabsNavigations = ({
         href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
         icon: "repeat",
         info: t(`recurring_event_tab_description`),
+        "data-testid": "recurring",
       });
     }
     navigation.splice(1, 0, {
@@ -105,6 +106,7 @@ export const useTabsNavigations = ({
               }`
             : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
           : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`),
+      "data-testid": "availability",
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
@@ -115,6 +117,7 @@ export const useTabsNavigations = ({
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
+        "data-testid": "assignment",
       });
     }
     const showInstant = !(isManagedEventType || isChildrenManagedEventType);
@@ -125,6 +128,7 @@ export const useTabsNavigations = ({
           href: `/event-types/${eventType.id}?tabName=instant`,
           icon: "phone-call",
           info: t(`instant_event_tab_description`),
+          "data-testid": "instant_tab_title",
         });
       }
     }
@@ -133,6 +137,7 @@ export const useTabsNavigations = ({
       href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
       icon: "webhook",
       info: `${activeWebhooksNumber} ${t("active")}`,
+      "data-testid": "webhooks",
     });
     const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
     if (team && hidden) {
@@ -141,6 +146,7 @@ export const useTabsNavigations = ({
         href: `/event-types/${eventType.id}?tabName=ai`,
         icon: "sparkles",
         info: t("cal_ai_event_tab_description"), // todo `cal_ai_event_tab_description`,
+        "data-testid": "Cal.ai",
       });
     }
     return navigation;
@@ -193,18 +199,21 @@ function getNavigation({
       href: `/event-types/${id}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
+      "data-testid": `event_setup_tab_title`,
     },
     {
       name: t("event_limit_tab_title"),
       href: `/event-types/${id}?tabName=limits`,
       icon: "clock",
       info: t(`event_limit_tab_description`),
+      "data-testid": "event_limit_tab_title",
     },
     {
       name: t("event_advanced_tab_title"),
       href: `/event-types/${id}?tabName=advanced`,
       icon: "sliders-vertical",
       info: t(`event_advanced_tab_description`),
+      "data-testid": "event_advanced_tab_title",
     },
     {
       name: t("apps"),
@@ -212,12 +221,14 @@ function getNavigation({
       icon: "grid-3x3",
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
+      "data-testid": "apps",
     },
     {
       name: t("workflows"),
       href: `/event-types/${id}?tabName=workflows`,
       icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,
+      "data-testid": "workflows",
     },
   ] satisfies VerticalTabItemProps[];
 }
