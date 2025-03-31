@@ -186,8 +186,6 @@ export function DialogClose(
   const { t } = useLocale();
   const { className, ...buttonProps } = props;
 
-  const { className, ...buttonProps } = props;
-
   return (
     <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
       <Button

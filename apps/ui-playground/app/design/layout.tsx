@@ -9,7 +9,6 @@ import { baseOptions } from "../layout.config";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    // @ts-expect-error weird type check
     <DocsLayout tree={componentSource.pageTree} {...baseOptions}>
       <TooltipProvider>{children}</TooltipProvider>
       <IconSprites />
