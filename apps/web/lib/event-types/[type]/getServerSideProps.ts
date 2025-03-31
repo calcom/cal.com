@@ -42,7 +42,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const caller = createCaller(trpcContext);
     try {
       const { eventType } = await caller.get({ id: eventTypeId });
-      console.log(eventType, "EVENETSDKFNSKLDFNSKLDFNKLSDF____");
       return eventType;
     } catch (e: unknown) {
       logger.error(safeStringify(e));
