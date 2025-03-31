@@ -120,7 +120,7 @@ export function DataTableProvider({
   );
 
   const setPageIndexWrapper = useCallback(
-    (newPageIndex: number) => setPageIndex(newPageIndex || null),
+    (newPageIndex: number | null) => setPageIndex(newPageIndex || null),
     [setPageIndex]
   );
 
@@ -157,7 +157,7 @@ export function DataTableProvider({
   );
 
   const setPageSizeAndGoToFirstPage = useCallback(
-    (newPageSize: number) => {
+    (newPageSize: number | null) => {
       setPageSize(newPageSize === DEFAULT_PAGE_SIZE ? null : newPageSize);
       setPageIndex(null);
     },
