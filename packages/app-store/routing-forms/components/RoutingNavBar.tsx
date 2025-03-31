@@ -2,11 +2,11 @@ import type { Dispatch, SetStateAction } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { trpc } from "@calcom/trpc";
-import { HorizontalTabs } from "@calcom/ui";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import { enabledIncompleteBookingApps } from "../lib/enabledIncompleteBookingApps";
 import type { getSerializableForm } from "../lib/getSerializableForm";
-import type { RoutingFormWithResponseCount } from "./SingleForm";
+import type { RoutingFormWithResponseCount } from "../types/types";
 
 export default function RoutingNavBar({
   form,

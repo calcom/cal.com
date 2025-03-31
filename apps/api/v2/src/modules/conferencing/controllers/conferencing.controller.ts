@@ -37,11 +37,11 @@ import {
   Req,
   HttpException,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO } from "@calcom/platform-constants";
+import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -71,6 +71,12 @@ export class ConferencingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Connect your conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET],
+    required: true,
+  })
   async connect(
     @GetUser("id") userId: number,
     @Param("app") app: string
@@ -93,6 +99,12 @@ export class ConferencingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Get OAuth conferencing app auth url" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -138,6 +150,12 @@ export class ConferencingController {
   @UseGuards()
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "conferencing apps oauths callback" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   async save(
     @Query("state") state: string,
     @Param("app") app: string,
@@ -203,6 +221,12 @@ export class ConferencingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Set your default conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
+    required: true,
+  })
   async default(
     @GetUser() user: UserWithProfile,
     @Param("app") app: string
@@ -224,6 +248,12 @@ export class ConferencingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Disconnect your conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   async disconnect(
     @GetUser() user: UserWithProfile,
     @Param("app") app: string

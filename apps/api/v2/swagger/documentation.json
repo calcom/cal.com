@@ -3757,6 +3757,26 @@
             }
           },
           {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created after this date string.",
+            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created before this date string.",
+            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "afterUpdatedAt",
             "required": false,
             "in": "query",
@@ -4541,6 +4561,15 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "redir",
+            "required": false,
+            "in": "query",
+            "description": "Redirect URL after successful calendar authorization.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4722,7 +4751,11 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "google-meet"
+              ],
               "type": "string"
             }
           }
@@ -4761,7 +4794,12 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "zoom",
+                "msteams"
+              ],
               "type": "string"
             }
           },
@@ -4816,7 +4854,12 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "zoom",
+                "msteams"
+              ],
               "type": "string"
             }
           },
@@ -4870,7 +4913,14 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams",
+                "daily-video"
+              ],
               "type": "string"
             }
           }
@@ -4923,7 +4973,13 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams"
+              ],
               "type": "string"
             }
           }
@@ -8251,7 +8307,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -9097,7 +9153,12 @@
             "type": "string"
           },
           "required": {
-            "type": "object"
+            "type": "object",
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Can be set to true only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "placeholder": {
             "type": "string"
@@ -9110,7 +9171,6 @@
         "required": [
           "type",
           "label",
-          "required",
           "placeholder"
         ]
       },
@@ -9833,7 +9893,12 @@
           },
           "required": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both. Can only be hidden\n      for organization team event types when also providing attendee phone number booking field."
           },
           "placeholder": {
             "type": "string"
@@ -9855,7 +9920,6 @@
         },
         "required": [
           "type",
-          "required",
           "isDefault",
           "slug"
         ]
@@ -10633,7 +10697,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -11991,7 +12055,8 @@
           },
           "autoAcceptCreator": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types."
           }
         },
         "required": [
@@ -12753,7 +12818,8 @@
               "MEMBER",
               "OWNER",
               "ADMIN"
-            ]
+            ],
+            "description": "If you are platform customer then managed users should only have MEMBER role."
           },
           "disableImpersonation": {
             "type": "boolean",
@@ -13127,9 +13193,17 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
           "schedulingType": {
-            "type": "object"
+            "type": "string",
+            "enum": [
+              "collective",
+              "roundRobin",
+              "managed"
+            ],
+            "example": "collective",
+            "description": "The scheduling type for the team event - collective, roundRobin or managed."
           },
           "hosts": {
+            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Host"
@@ -13176,8 +13250,7 @@
           "lengthInMinutes",
           "title",
           "slug",
-          "schedulingType",
-          "hosts"
+          "schedulingType"
         ]
       },
       "CreateTeamEventTypeOutput": {
@@ -13558,11 +13631,10 @@
           },
           "schedulingType": {
             "type": "string",
-            "nullable": true,
             "enum": [
-              "ROUND_ROBIN",
-              "COLLECTIVE",
-              "MANAGED"
+              "roundRobin",
+              "collective",
+              "managed"
             ]
           },
           "team": {
@@ -15124,7 +15196,8 @@
           },
           "autoAcceptCreator": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types."
           }
         },
         "required": [
@@ -15456,383 +15529,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/DelegationCredentialOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "CreateOrganizationInput": {
-        "type": "object",
-        "properties": {
-          "apiKeyDaysValid": {
-            "type": "number",
-            "minimum": 1,
-            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
-            "example": 60,
-            "default": 30
-          },
-          "apiKeyNeverExpires": {
-            "type": "boolean",
-            "description": "If true, organization api key never expires.",
-            "example": true
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the organization",
-            "example": "CalTeam"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
-            "example": {
-              "key": "value"
-            }
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
-      "ManagedOrganizationWithApiKeyOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "metadata": {
-            "type": "object",
-            "example": {
-              "key": "value"
-            }
-          },
-          "apiKey": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "apiKey"
-        ]
-      },
-      "CreateManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ManagedOrganizationWithApiKeyOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "ManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "metadata": {
-            "type": "object",
-            "example": {
-              "key": "value"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "GetManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ManagedOrganizationOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetManagedOrganizationsOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagedOrganizationOutput"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateOrganizationInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the organization",
-            "example": "CalTeam"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
-            "example": {
-              "key": "value"
-            }
-          }
-        }
-      },
-      "RoutingFormResponseOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "formId": {
-            "type": "string"
-          },
-          "formFillerId": {
-            "type": "string"
-          },
-          "routedToBookingUid": {
-            "type": "string"
-          },
-          "response": {
-            "type": "object",
-            "example": {
-              "f00b26df-f54b-4985-8d98-17c5482c6a24": {
-                "label": "participant",
-                "value": "mamut"
-              }
-            }
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "formId",
-          "formFillerId",
-          "routedToBookingUid",
-          "response",
-          "createdAt"
-        ]
-      },
-      "GetRoutingFormResponsesOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RoutingFormResponseOutput"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "ProviderVerifyClientData": {
-        "type": "object",
-        "properties": {
-          "clientId": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "clientId",
-          "organizationId",
-          "name"
-        ]
-      },
-      "ProviderVerifyClientOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ProviderVerifyClientData"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "ProviderVerifyAccessTokenOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "MeOrgOutput": {
-        "type": "object",
-        "properties": {
-          "isPlatform": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "isPlatform",
-          "id"
-        ]
-      },
-      "MeOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "username": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "defaultScheduleId": {
-            "type": "number",
-            "nullable": true
-          },
-          "weekStart": {
-            "type": "string"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "number",
-            "nullable": true
-          },
-          "organization": {
-            "$ref": "#/components/schemas/MeOrgOutput"
-          }
-        },
-        "required": [
-          "id",
-          "username",
-          "email",
-          "timeFormat",
-          "defaultScheduleId",
-          "weekStart",
-          "timeZone",
-          "organizationId"
-        ]
-      },
-      "GetMeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/MeOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateMeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/MeOutput"
           }
         },
         "required": [
@@ -16325,6 +16021,383 @@
           "data"
         ]
       },
+      "CreateOrganizationInput": {
+        "type": "object",
+        "properties": {
+          "apiKeyDaysValid": {
+            "type": "number",
+            "minimum": 1,
+            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
+            "example": 60,
+            "default": 30
+          },
+          "apiKeyNeverExpires": {
+            "type": "boolean",
+            "description": "If true, organization api key never expires.",
+            "example": true
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the organization",
+            "example": "CalTeam"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ManagedOrganizationWithApiKeyOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "apiKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "apiKey"
+        ]
+      },
+      "CreateManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedOrganizationWithApiKeyOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "GetManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedOrganizationOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetManagedOrganizationsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedOrganizationOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateOrganizationInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the organization",
+            "example": "CalTeam"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
+          }
+        }
+      },
+      "RoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "formId": {
+            "type": "string"
+          },
+          "formFillerId": {
+            "type": "string"
+          },
+          "routedToBookingUid": {
+            "type": "string"
+          },
+          "response": {
+            "type": "object",
+            "example": {
+              "f00b26df-f54b-4985-8d98-17c5482c6a24": {
+                "label": "participant",
+                "value": "mamut"
+              }
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "formId",
+          "formFillerId",
+          "routedToBookingUid",
+          "response",
+          "createdAt"
+        ]
+      },
+      "GetRoutingFormResponsesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ProviderVerifyClientData": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientId",
+          "organizationId",
+          "name"
+        ]
+      },
+      "ProviderVerifyClientOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProviderVerifyClientData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ProviderVerifyAccessTokenOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "MeOrgOutput": {
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "isPlatform",
+          "id"
+        ]
+      },
+      "MeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/MeOrgOutput"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "timeFormat",
+          "defaultScheduleId",
+          "weekStart",
+          "timeZone",
+          "organizationId"
+        ]
+      },
+      "GetMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "BookingInputAddressLocation_2024_08_13": {
         "type": "object",
         "properties": {
@@ -16462,6 +16535,19 @@
             "type": "string",
             "example": "phone",
             "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "BookingInputOrganizersDefaultAppLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only available for team event types and the only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer."
           }
         },
         "required": [
@@ -16617,6 +16703,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -16707,6 +16796,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -16803,6 +16895,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },

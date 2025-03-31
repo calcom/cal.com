@@ -4,12 +4,16 @@ import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent } from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 const SkeletonLoader = () => {
   return (

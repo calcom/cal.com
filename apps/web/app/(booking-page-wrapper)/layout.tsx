@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import PageWrapper from "@components/PageWrapperAppDir";
 
 export default async function BookingPageWrapperLayout({ children }: { children: React.ReactNode }) {
-  const h = headers();
+  const h = await headers();
   const nonce = h.get("x-nonce") ?? undefined;
 
   return (

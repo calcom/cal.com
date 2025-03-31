@@ -14,7 +14,7 @@ const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.Reac
   }
   return <Tooltip content={tooltip}>{children}</Tooltip>;
 };
-const Switch = (
+export const Switch = (
   props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
     label?: string | ReactNode;
     fitToHeight?: boolean;
@@ -87,5 +87,3 @@ const Switch = (
     </Wrapper>
   );
 };
-
-export default Switch;

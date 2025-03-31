@@ -39,20 +39,20 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import {
-  Alert,
-  Button,
-  Badge,
-  CheckboxField,
-  Icon,
-  Label,
-  SelectField,
-  SettingsToggle,
-  Switch,
-  TextField,
-  ColorPicker,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import {
+  SelectField,
+  ColorPicker,
+  TextField,
+  Label,
+  CheckboxField,
+  Switch,
+  SettingsToggle,
+} from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -278,19 +278,19 @@ const destinationCalendarComponents = {
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="flex w-full flex-col">
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-4 w-48 animate-pulse rounded-md" />
           </div>
           <div className="w-full">
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
           </div>
         </div>
         <div className="space-y-2">
-          <div className="h-6 w-64 animate-pulse rounded-md bg-gray-200" />
-          <div className="h-10 w-full animate-pulse rounded-md bg-gray-200" />
-          <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+          <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
+          <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
+          <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
         </div>
       </div>
     );
@@ -326,6 +326,7 @@ const calendarComponents = {
      * a team event. Since we don't have logic to handle each attendee calendar (for now).
      */
 
+    const isPlatform = useIsPlatform();
     const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
     const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
     const showConnectedCalendarSettings =
@@ -359,19 +360,21 @@ const calendarComponents = {
             ? showConnectedCalendarSettings && (
                 <div className="mt-4">
                   <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    <SelectedCalendarsSettingsWebWrapper
-                      eventTypeId={eventType.id}
-                      disabledScope={SelectedCalendarSettingsScope.User}
-                      disableConnectionModification={true}
-                      scope={selectedCalendarSettingsScope}
-                      destinationCalendarId={destinationCalendar?.externalId}
-                      setScope={(scope) => {
-                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
+                    {!isPlatform && (
+                      <SelectedCalendarsSettingsWebWrapper
+                        eventTypeId={eventType.id}
+                        disabledScope={SelectedCalendarSettingsScope.User}
+                        disableConnectionModification={true}
+                        scope={selectedCalendarSettingsScope}
+                        destinationCalendarId={destinationCalendar?.externalId}
+                        setScope={(scope) => {
+                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                            shouldDirty: true,
+                          });
+                        }}
+                      />
+                    )}
                   </Suspense>
                 </div>
               )
@@ -522,21 +525,19 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      {!isPlatform && (
-        <calendarComponents.CalendarSettings
-          verifiedSecondaryEmails={verifiedSecondaryEmails}
-          userEmail={userEmail}
-          calendarsQuery={calendarsQuery}
-          isTeamEventType={!!team}
-          isChildrenManagedEventType={isChildrenManagedEventType}
-          customClassNames={customClassNames}
-          eventNameLocked={eventNameLocked}
-          eventNamePlaceholder={eventNamePlaceholder}
-          setShowEventNameTip={setShowEventNameTip}
-          showToast={showToast}
-          eventType={eventType}
-        />
-      )}
+      <calendarComponents.CalendarSettings
+        verifiedSecondaryEmails={verifiedSecondaryEmails}
+        userEmail={userEmail}
+        calendarsQuery={calendarsQuery}
+        isTeamEventType={!!team}
+        isChildrenManagedEventType={isChildrenManagedEventType}
+        customClassNames={customClassNames}
+        eventNameLocked={eventNameLocked}
+        eventNamePlaceholder={eventNamePlaceholder}
+        setShowEventNameTip={setShowEventNameTip}
+        showToast={showToast}
+        eventType={eventType}
+      />
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
