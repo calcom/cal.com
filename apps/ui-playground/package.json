@@ -12,12 +12,14 @@
     "@calcom/config": "*",
     "@calcom/lib": "*",
     "@calcom/ui": "*",
+    "fumadocs-mdx": "^11.5.7",
     "next": "15.1.6",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/mdx": "^2.0.13",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
