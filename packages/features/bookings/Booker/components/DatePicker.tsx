@@ -6,7 +6,7 @@ import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/Da
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { EventType, User } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/event";
 
 import type { Slots } from "../../types";
@@ -58,7 +58,14 @@ export const DatePicker = ({
   scrollToTimeSlots,
 }: {
   event: {
-    data?: ({ subsetOfUsers: Pick<User, "weekStart">[] } & EventType) | null;
+    data?: {
+      subsetOfUsers: Pick<User, "weekStart">[];
+      periodType?: PeriodData["periodType"];
+      periodStartDate?: PeriodData["periodStartDate"];
+      periodEndDate?: PeriodData["periodEndDate"];
+      periodDays?: PeriodData["periodDays"];
+      periodCountCalendarDays?: PeriodData["periodCountCalendarDays"];
+    } | null;
   };
   slots?: Slots;
   isLoading?: boolean;
