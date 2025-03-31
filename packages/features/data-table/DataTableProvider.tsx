@@ -113,7 +113,7 @@ export function DataTableProvider({
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
-        return remainingFilters.length == 0 ? null : remainingFilters;
+        return remainingFilters.length === 0 ? null : remainingFilters;
       });
     },
     [setActiveFilters, setPageIndex]
@@ -150,7 +150,7 @@ export function DataTableProvider({
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => filter.f !== columnId);
-        return remainingFilters.length == 0 ? null : remainingFilters;
+        return remainingFilters.length === 0 ? null : remainingFilters;
       });
     },
     [setActiveFilters, setPageIndex]
@@ -158,7 +158,7 @@ export function DataTableProvider({
 
   const setPageSizeAndGoToFirstPage = useCallback(
     (newPageSize: number) => {
-      setPageSize(newPageSize == DEFAULT_PAGE_SIZE ? null : newPageSize);
+      setPageSize(newPageSize === DEFAULT_PAGE_SIZE ? null : newPageSize);
       setPageIndex(null);
     },
     [setPageSize, setPageIndex]
