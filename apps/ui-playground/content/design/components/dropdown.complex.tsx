@@ -2,7 +2,8 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Avatar, Button } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownMenuTrigger,
@@ -10,7 +11,7 @@ import {
   DropdownItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-} from "@calcom/ui/dropdown";
+} from "@calcom/ui/components/dropdown";
 
 export const ComplexExample: React.FC = () => (
   <RenderComponentWithSnippet>

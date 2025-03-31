@@ -2,7 +2,8 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Button, EmptyScreen } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export const RawButtonExample: React.FC = () => (
   <RenderComponentWithSnippet>

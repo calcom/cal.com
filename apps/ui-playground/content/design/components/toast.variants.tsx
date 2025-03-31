@@ -2,7 +2,8 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Button, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 export const VariantsExample: React.FC = () => (
   <RenderComponentWithSnippet>

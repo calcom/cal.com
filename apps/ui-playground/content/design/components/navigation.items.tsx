@@ -2,7 +2,8 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Badge, NavigationItem } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { NavigationItem } from "@calcom/ui/components/navigation";
 
 export const ItemsExample: React.FC = () => (
   <RenderComponentWithSnippet>

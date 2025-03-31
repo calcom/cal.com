@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Pagination } from "@calcom/ui";
+import { Pagination } from "@calcom/ui/components/pagination";
 
 export const BasicExample = () => {
   const [currentPage, setCurrentPage] = useState(1);

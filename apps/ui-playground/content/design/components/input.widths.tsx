@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Input } from "@calcom/ui";
+import { Input } from "@calcom/ui/components/form";
 
 const sizes = ["sm", "md"] as const;
 

@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
 
 const options = [
   { value: "chocolate", label: "Chocolate" },

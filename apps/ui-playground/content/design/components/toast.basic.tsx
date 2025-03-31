@@ -3,7 +3,8 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Button, ErrorToast, showToast, SuccessToast, WarningToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { ErrorToast, showToast, SuccessToast, WarningToast } from "@calcom/ui/components/toast";
 
 export const BasicExample: React.FC = () => (
   <RenderComponentWithSnippet>

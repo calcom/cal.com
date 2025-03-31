@@ -12,6 +12,7 @@
     "@calcom/config": "*",
     "@calcom/lib": "*",
     "@calcom/ui": "*",
+    "airtable": "^0.12.2",
     "fumadocs-core": "^15.2.1",
     "fumadocs-mdx": "^11.5.7",
     "fumadocs-typescript": "^3.0.2",

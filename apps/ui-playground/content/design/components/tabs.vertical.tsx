@@ -3,8 +3,8 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import type { VerticalTabItemProps } from "@calcom/ui";
-import { VerticalTabs } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { VerticalTabs } from "@calcom/ui/components/navigation";
 
 const verticalTabItems = [
   {

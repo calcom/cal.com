@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { RangeSliderPopover } from "@calcom/ui";
+import { RangeSliderPopover } from "@calcom/ui/components/form";
 
 export const PopoverExample: React.FC = () => {
   const [defaultRange, setDefaultRange] = useState([15, 30]);

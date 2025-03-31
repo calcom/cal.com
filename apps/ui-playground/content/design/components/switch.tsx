@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Switch } from "@calcom/ui";
+import { Switch } from "@calcom/ui/components/form";
 
 export const BasicExample = () => {
   const [checked, setChecked] = useState(false);

@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Select } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
 
 const groupedOptions = [
   {

@@ -3,14 +3,14 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
 import type { IconName } from "@calcom/ui";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownItem,
   DropdownMenuLabel,
-} from "@calcom/ui/dropdown";
+} from "@calcom/ui/components/dropdown";
 
 const menuItems = [
   { label: "View", icon: "eye", kbd: "V" },

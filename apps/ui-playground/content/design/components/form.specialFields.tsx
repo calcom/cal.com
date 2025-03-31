@@ -3,7 +3,8 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useForm } from "react-hook-form";
 
-import { Button, InputField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { InputField } from "@calcom/ui/components/form";
 
 type FormValues = {
   age?: number;

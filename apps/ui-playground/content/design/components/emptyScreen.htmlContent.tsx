@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export const HtmlContentExample: React.FC = () => (
   <RenderComponentWithSnippet>

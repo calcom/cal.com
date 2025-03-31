@@ -10,7 +10,7 @@ import {
   DropdownItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-} from "@calcom/ui/dropdown";
+} from "@calcom/ui/components/dropdown";
 
 export const AvatarTriggerExample: React.FC = () => (
   <RenderComponentWithSnippet>

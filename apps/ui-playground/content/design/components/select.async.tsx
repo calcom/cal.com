@@ -3,8 +3,8 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useCallback, useState } from "react";
 
-import { Select } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 const countries = [
   { value: "us", label: "United States" },

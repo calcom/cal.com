@@ -3,7 +3,9 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, TextAreaField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { TextAreaField } from "@calcom/ui/components/form";
 
 export const FormExample: React.FC = () => {
   const [open, setOpen] = useState(false);

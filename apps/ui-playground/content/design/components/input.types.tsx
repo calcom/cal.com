@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Input } from "@calcom/ui";
+import { Input } from "@calcom/ui/components/form";
 
 const types = ["text", "email", "password", "number", "tel", "url", "search"] as const;
 const sizes = ["sm", "md"] as const;

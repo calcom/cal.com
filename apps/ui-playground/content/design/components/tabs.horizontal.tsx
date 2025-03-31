@@ -3,7 +3,8 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Icon, HorizontalTabs } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 const tabItems = [
   {

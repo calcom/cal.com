@@ -2,7 +2,7 @@
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
-import { Select, SelectField } from "@calcom/ui";
+import { Select, SelectField } from "@calcom/ui/components/form";
 
 const options = [
   { value: "chocolate", label: "Chocolate" },

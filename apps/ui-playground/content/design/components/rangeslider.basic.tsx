@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { RangeSlider } from "@calcom/ui";
+import { RangeSlider } from "@calcom/ui/components/form";
 
 export const BasicExample: React.FC = () => {
   const [singleValue, setSingleValue] = useState([50]);

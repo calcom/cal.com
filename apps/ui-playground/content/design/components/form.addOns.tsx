@@ -3,7 +3,9 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useForm } from "react-hook-form";
 
-import { Button, Icon, InputField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { InputField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 type FormValues = {
   website: string;
