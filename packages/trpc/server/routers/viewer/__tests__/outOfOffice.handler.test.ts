@@ -56,7 +56,8 @@ describe("outOfOfficeCreateOrUpdate", () => {
         startDate: new Date("2024-11-23T23:00:00.000Z"),
         endDate: new Date("2024-11-22T23:00:00.000Z"),
       },
-      offset: 60,
+      startDateOffset: 60,
+      endDateOffset: 60,
       reasonId: 1,
       notes: "",
       toTeamUserId: null,
@@ -70,16 +71,17 @@ describe("outOfOfficeCreateOrUpdate", () => {
   it("should handle timezone offset correctly", async () => {
     const input = {
       dateRange: {
-        startDate: new Date("2024-11-23T23:00:00.000Z"),
-        endDate: new Date("2024-11-23T23:00:00.000Z"),
+        startDate: new Date("2025-03-28T23:00:00.000Z"),
+        endDate: new Date("2025-04-01T22:00:00.000Z"),
       },
-      offset: 60, // Paris timezone offset in minutes
+      startDateOffset: 60, // Paris timezone (CET)
+      endDateOffset: 120, // Paris timezone (CEST) <- After summer time begins
       reasonId: 1,
       notes: "",
       toTeamUserId: null,
     };
-    const startTimeUtc = "2024-11-24T00:00:00.000Z";
-    const endTimeUtc = "2024-11-24T23:59:59.999Z";
+    const startTimeUtc = "2025-03-29T00:00:00.000Z";
+    const endTimeUtc = "2025-04-02T23:59:59.999Z";
 
     await outOfOfficeCreateOrUpdate({
       ctx: { user: mockUser },

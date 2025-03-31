@@ -13655,7 +13655,8 @@
           "role": {
             "type": "string",
             "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": ["MEMBER", "OWNER", "ADMIN"],
+            "description": "If you are platform customer then managed users should only have MEMBER role."
           },
           "disableImpersonation": {
             "type": "boolean",
@@ -13992,6 +13993,7 @@
             "description": "The scheduling type for the team event - collective, roundRobin or managed."
           },
           "hosts": {
+            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Host"
@@ -14034,7 +14036,7 @@
             }
           }
         },
-        "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
+        "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",

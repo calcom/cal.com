@@ -245,7 +245,14 @@ async function _getDelegationCredentialsMapPerUser({
       _buildDelegatedConferencingCredential({ delegationCredential, user }),
     ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
-    log.debug("Returned for user", safeStringify({ user, delegationCredentials }));
+    log.debug(
+      "Returned for user",
+      safeStringify({
+        user,
+        delegationCredentialIds:
+          delegationCredentials?.map?.((delegationCredential) => delegationCredential?.delegatedToId) ?? [],
+      })
+    );
     credentialsByUserId.set(user.id, delegationCredentials);
   }
 
