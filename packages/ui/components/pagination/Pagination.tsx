@@ -13,6 +13,8 @@ export interface PaginationProps {
   pageSize: number;
   totalItems: number;
   onPageSizeChange: (pageSize: number) => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
   onPageChange: (page: number) => void;
   pageSizeOptions?: number[];
 }
