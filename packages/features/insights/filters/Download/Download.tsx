@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
@@ -36,7 +37,7 @@ const Download = () => {
       const { data: csvRaw, filename } = data;
       downloadAsCsv(csvRaw, filename);
     } catch (error) {
-      console.error("Error downloading data:", error);
+      showToast(t("unexpected_error_try_again"), "error");
     } finally {
       setIsDownloading(false);
     }
