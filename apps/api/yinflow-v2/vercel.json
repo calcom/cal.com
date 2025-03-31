@@ -6,16 +6,16 @@
       "use": "@vercel/node"
     }
   ],
+  "functions": {
+    "*": {
+      "maxDuration": 60
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
       "dest": "src/main.ts",
       "methods": ["GET", "POST", "PATCH", "PUT", "DELETE"]
     }
-  ],
-  "functions": {
-    "*": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }
