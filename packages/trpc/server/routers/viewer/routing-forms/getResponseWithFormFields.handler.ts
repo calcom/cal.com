@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/lib/enrichFormWithMigrationData";
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";

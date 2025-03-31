@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
+import { jsonLogicToPrisma } from "@calcom/app-store/routing-forms/jsonLogicToPrisma";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { jsonLogicToPrisma } from "@calcom/app-store/routing-forms/lib/jsonLogicToPrisma";
 import {
   ensureStringOrStringArray,
   getLabelsFromOptionIds,
