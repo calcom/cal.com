@@ -6,8 +6,7 @@ import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button, buttonClasses } from "@calcom/ui/components/button";
+import { type ButtonProps, Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
   CommandInput,
@@ -28,7 +27,7 @@ function ColumnVisibilityButtonComponent<TData>(
   {
     children,
     color = "secondary",
-    EndIcon = "sliders-vertical",
+    StartIcon = "sliders-vertical",
     table,
     ...rest
   }: ColumnVisiblityProps<TData> & ButtonProps,
@@ -41,8 +40,8 @@ function ColumnVisibilityButtonComponent<TData>(
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button ref={ref} color={color} EndIcon={EndIcon} {...rest}>
-          {children ? children : t("View")}
+        <Button ref={ref} color={color} StartIcon={StartIcon} {...rest}>
+          {children ? children : t("display")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">
