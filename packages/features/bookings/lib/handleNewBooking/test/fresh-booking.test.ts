@@ -3514,12 +3514,12 @@ describe("handleNewBooking", () => {
         value: "spam@spammer.com",
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
-      });
-
-      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          })
+      ).rejects.toThrowError("eventTypeUser.notFound");
     });
   });
 
