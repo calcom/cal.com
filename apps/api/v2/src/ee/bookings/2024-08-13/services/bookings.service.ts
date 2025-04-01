@@ -155,6 +155,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
+      noEmail: bookingRequest.noEmail,
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
