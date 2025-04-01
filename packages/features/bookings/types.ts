@@ -60,8 +60,8 @@ export type BookerEvent = Pick<
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
 > & {
-  disableCancelling?: boolean;
-  disableRescheduling?: boolean;
+  disableCancelling: boolean;
+  disableRescheduling: boolean;
 } & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
