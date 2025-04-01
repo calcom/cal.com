@@ -317,6 +317,7 @@ export default function Signup({
             </>
           )}
           <DubAnalytics
+            apiHost="/_proxy/dub"
             cookieOptions={{
               domain: isENVDev ? undefined : `.${new URL(WEBSITE_URL).hostname}`,
             }}
