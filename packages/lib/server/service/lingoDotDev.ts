@@ -1,12 +1,12 @@
-import { ReplexicaEngine } from "@replexica/sdk";
-import type { LocaleCode } from "@replexica/spec";
+import { LingoDotDevEngine } from "@lingo.dev/_sdk";
+import type { LocaleCode } from "@lingo.dev/_spec";
 
-import { REPLEXICA_API_KEY } from "@calcom/lib/constants";
+import { LINGO_DOT_DEV_API_KEY } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
-export class ReplexicaService {
-  private static engine = new ReplexicaEngine({
-    apiKey: REPLEXICA_API_KEY,
+export class LingoDotDevService {
+  private static engine = new LingoDotDevEngine({
+    apiKey: LINGO_DOT_DEV_API_KEY,
   });
 
   /**
@@ -33,7 +33,7 @@ export class ReplexicaService {
 
       return result;
     } catch (error) {
-      logger.error(`ReplexicaService.localizeText() failed for targetLocale: ${targetLocale} - ${error}`);
+      logger.error(`LingoDotDevEngine.localizeText() failed for targetLocale: ${targetLocale} - ${error}`);
       return null;
     }
   }
@@ -58,7 +58,7 @@ export class ReplexicaService {
 
       return result;
     } catch (error) {
-      logger.error(`ReplexicaService.batchLocalizeText() failed: ${error}`);
+      logger.error(`LingoDotDevEngine.batchLocalizeText() failed: ${error}`);
       return [];
     }
   }
@@ -86,7 +86,7 @@ export class ReplexicaService {
 
       return result.map((chat: { name: string; text: string }) => chat.text);
     } catch (error) {
-      logger.error(`ReplexicaService.localizeTexts() failed: ${error}`);
+      logger.error(`LingoDotDevEngine.localizeTexts() failed: ${error}`);
       return texts;
     }
   }
