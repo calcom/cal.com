@@ -97,6 +97,7 @@ export class OAuthClientUsersController {
         accessToken: tokens.accessToken,
         accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
         refreshToken: tokens.refreshToken,
+        refreshTokenExpiresAt: tokens.refreshTokenExpiresAt.valueOf(),
       },
     };
   }

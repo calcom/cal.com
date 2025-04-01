@@ -77,10 +77,8 @@ export class OAuthClientUsersService {
       user.avatarUrl = updatedUser.avatarUrl;
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
-      oAuthClientId,
-      user.id
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
+      await this.tokensRepository.createOAuthTokens(oAuthClientId, user.id);
 
     if (oAuthClient.areDefaultEventTypesEnabled) {
       await this.eventTypesService.createUserDefaultEventTypes(user.id);
@@ -104,6 +102,7 @@ export class OAuthClientUsersService {
         accessToken,
         accessTokenExpiresAt,
         refreshToken,
+        refreshTokenExpiresAt,
       },
     };
   }
