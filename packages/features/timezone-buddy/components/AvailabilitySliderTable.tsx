@@ -6,7 +6,8 @@ import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/r
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -67,6 +68,14 @@ function UpgradeTeamTip() {
 }
 
 export function AvailabilitySliderTable(props: { userTimeFormat: number | null; isOrg: boolean }) {
+  return (
+    <DataTableProvider>
+      <AvailabilitySliderTableContent {...props} />
+    </DataTableProvider>
+  );
+}
+
+function AvailabilitySliderTableContent(props: { userTimeFormat: number | null; isOrg: boolean }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
