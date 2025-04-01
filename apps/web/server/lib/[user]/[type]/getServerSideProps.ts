@@ -57,12 +57,13 @@ async function processReschedule({
   rescheduleUid: string | string[] | undefined;
 }) {
   if (!rescheduleUid) return;
+
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-  console.log("booking", booking);
+
   if (booking?.eventType?.disableRescheduling) {
     return {
       redirect: {
-        destination: `/booking/${rescheduleUid}?showDisabledReschedulingToast=true`,
+        destination: `/booking/${rescheduleUid}`,
         permanent: false,
       },
     };

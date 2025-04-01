@@ -49,6 +49,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventData = team.eventTypes[0];
+
+  if (rescheduleUid && eventData.disableRescheduling) {
+    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
+  }
+
   const eventTypeId = eventData.id;
   const eventHostsUserData = await getUsersData(
     team.isPrivate,
@@ -184,6 +189,8 @@ const getTeamWithEventsData = async (
           metadata: true,
           length: true,
           hidden: true,
+          disableCancelling: true,
+          disableRescheduling: true,
           hosts: {
             take: 3,
             select: {

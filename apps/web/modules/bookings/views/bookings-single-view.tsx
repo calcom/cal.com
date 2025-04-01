@@ -116,8 +116,6 @@ export default function Success(props: PageProps) {
     rating,
   } = querySchema.parse(routerQuery);
 
-  const showDisabledReschedulingToast = searchParams.get("showDisabledReschedulingToast") === "true";
-
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -207,9 +205,6 @@ export default function Success(props: PageProps) {
   });
 
   useEffect(() => {
-    if (showDisabledReschedulingToast) {
-      showToast(t("rescheduling_disabled_info"), "error");
-    }
     if (noShow) {
       hostNoShowMutation.mutate({ bookingUid: bookingInfo.uid, noShowHost: true });
     }

@@ -107,7 +107,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   ) {
     return {
       redirect: {
-        destination: `/booking/${uid}${isDisabledRescheduling ? "?showDisabledReschedulingToast=true" : ""}`,
+        destination: `/booking/${uid}`,
         permanent: false,
       },
     };

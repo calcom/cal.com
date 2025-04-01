@@ -398,7 +398,6 @@ export const EventAdvancedTab = ({
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
-  console.log(formMethods);
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [darkModeError, setDarkModeError] = useState(false);
