@@ -10,7 +10,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
-
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
@@ -42,12 +41,12 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
+import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
-import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail"
 
 const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
@@ -110,6 +109,7 @@ const providers: Provider[] = [
       backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
     },
     async authorize(credentials) {
+      log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
       if (!credentials) {
         console.error(`For some reason credentials are missing`);
         throw new Error(ErrorCode.InternalServerError);
@@ -289,6 +289,7 @@ if (isSAMLLoginEnabled) {
       email?: string;
       locale?: string;
     }) => {
+      log.debug("BoxyHQ:profile", safeStringify({ profile }));
       const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
@@ -319,6 +320,7 @@ if (isSAMLLoginEnabled) {
         code: {},
       },
       async authorize(credentials) {
+        log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
           return null;
         }
@@ -433,6 +435,7 @@ export const getOptions = ({
     // decorate the native JWT encode function
     // Impl. detail: We don't pass through as this function is called with encode/decode functions.
     encode: async ({ token, maxAge, secret }) => {
+      log.debug("jwt:encode", safeStringify({ token, maxAge }));
       if (token?.sub && isNumber(token.sub)) {
         const user = await prisma.user.findFirst({
           where: { id: Number(token.sub) },
@@ -547,6 +550,7 @@ export const getOptions = ({
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
+          orgAwareUsername: profileOrg ? profile.username : existingUser.username,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
           // platform org user don't need profiles nor domains
@@ -571,6 +575,7 @@ export const getOptions = ({
         return token;
       }
       if (account.type === "credentials") {
+        log.debug("callbacks:jwt:accountType:credentials", safeStringify({ account }));
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
           return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
@@ -581,6 +586,7 @@ export const getOptions = ({
           id: user.id,
           name: user.name,
           username: user.username,
+          orgAwareUsername: user?.org ? user.profile?.username : user.username,
           email: user.email,
           role: user.role,
           impersonatedBy: user.impersonatedBy,
@@ -595,8 +601,9 @@ export const getOptions = ({
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
       if (account.type === "oauth") {
+        log.debug("callbacks:jwt:accountType:oauth", safeStringify({ account }));
         if (!account.provider || !account.providerAccountId) {
-          return token;
+          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
         const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
 
@@ -674,9 +681,12 @@ export const getOptions = ({
           }
           await updateProfilePhotoGoogle(oAuth2Client, user.id as number);
         }
-
+        const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
+        const { upId } = determineProfile({ profiles: allProfiles, token });
+        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId }));
         return {
           ...token,
+          upId,
           id: existingUser.id,
           name: existingUser.name,
           username: existingUser.username,
@@ -685,6 +695,7 @@ export const getOptions = ({
           impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
+          orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
         } as JWT;
       }
@@ -693,6 +704,10 @@ export const getOptions = ({
         return await autoMergeIdentities();
       }
 
+      log.info(
+        "callbacks:jwt:accountType:unknown",
+        safeStringify({ accountType: account.type, accountProvider: account.provider })
+      );
       return token;
     },
     async session({ session, token, user }) {
@@ -710,6 +725,7 @@ export const getOptions = ({
           id: token.id as number,
           name: token.name,
           username: token.username as string,
+          orgAwareUsername: token.orgAwareUsername,
           role: token.role as UserPermissionRole,
           impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
@@ -763,6 +779,7 @@ export const getOptions = ({
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
+          log.error("Attention: SAML/Google User email is not verified in the IdP", safeStringify({ user }));
           return "/auth/error?error=unverified-email";
         }
 
@@ -823,7 +840,7 @@ export const getOptions = ({
               }
             } catch (error) {
               if (error instanceof Error) {
-                console.error("Error while linking account of already existing user");
+                log.error("Error while linking account of already existing user", safeStringify(error));
               }
             }
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
@@ -897,7 +914,7 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: getOrgUsernameFromEmail(user.name,getDomainFromEmail(user.email)),
+                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,

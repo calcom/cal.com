@@ -2,10 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
-import { ZGetScheduleInputSchema } from "./getSchedule.schema";
 import { ZIsAvailableInputSchema, ZIsAvailableOutputSchema } from "./isAvailable.schema";
 import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
+import { ZGetScheduleInputSchema } from "./types";
 
 type SlotsRouterHandlerCache = {
   getSchedule?: typeof import("./getSchedule.handler").getScheduleHandler;

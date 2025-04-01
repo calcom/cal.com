@@ -257,7 +257,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
               expect(data.absentHost).toEqual(false);
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -265,7 +265,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
     });
 
     describe("get team bookings", () => {
-      it("should should get bookings by teamId", async () => {
+      it("should get bookings by teamId", async () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/teams/${team1.id}/bookings`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)

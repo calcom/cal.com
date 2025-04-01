@@ -2,12 +2,12 @@ import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import {
-  Avatar,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -15,8 +15,8 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Icon,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 

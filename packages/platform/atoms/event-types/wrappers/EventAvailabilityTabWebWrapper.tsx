@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
-  user?: RouterOutputs["viewer"]["me"];
+  user?: RouterOutputs["viewer"]["me"]["get"];
   teamMembers: TeamMembers;
 };
 

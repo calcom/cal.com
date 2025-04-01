@@ -45,6 +45,7 @@
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
         "STRIPE_TEAM_PRODUCT_ID",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
+        "STRIPE_ORG_PRODUCT_ID",
         "NEXT_PUBLIC_API_V2_URL",
         "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
         "BUILD_STANDALONE",
@@ -182,10 +183,12 @@
       "outputs": ["dist/**", "build/**"]
     },
     "type-check": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["@calcom/trpc#build"]
     },
     "type-check:ci": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["@calcom/trpc#build"]
     },
     "@calcom/prisma#db-reset": {
       "cache": false,
@@ -236,12 +239,9 @@
   },
   "globalDependencies": ["yarn.lock"],
   "globalEnv": [
-    "AB_TEST_BUCKET_PROBABILITY",
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
     "API_KEY_PREFIX",
-    "APP_ROUTER_APPS_SLUG_SETUP_ENABLED",
-    "APP_ROUTER_TEAM_ENABLED",
     "APP_USER_NAME",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
@@ -278,6 +278,7 @@
     "DATABASE_URL",
     "DEBUG",
     "DUB_API_KEY",
+    "NEXT_PUBLIC_DUB_PROGRAM_ID",
     "E2E_TEST_APPLE_CALENDAR_EMAIL",
     "E2E_TEST_APPLE_CALENDAR_PASSWORD",
     "E2E_TEST_CALCOM_QA_EMAIL",
@@ -352,7 +353,7 @@
     "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
     "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
-    "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE",
+    "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
     "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
     "NEXT_PUBLIC_WEBSITE_TERMS_URL",
     "NEXT_RUNTIME",
@@ -452,11 +453,16 @@
     "NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED",
     "NEXT_PUBLIC_API_V2_ROOT_URL",
     "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+    "VAPID_PRIVATE_KEY",
+    "CAL_VIDEO_BUCKET_NAME",
+    "CAL_VIDEO_BUCKET_REGION",
+    "CAL_VIDEO_ASSUME_ROLE_ARN",
+    "CAL_VIDEO_MEETING_LINK_FOR_TESTING",
     "NEXT_PUBLIC_POSTHOG_KEY",
     "NEXT_PUBLIC_POSTHOG_HOST",
     "VAPID_PRIVATE_KEY",
     "HUDDLE01_API_TOKEN",
-    "REPLEXICA_API_KEY",
+    "LINGO_DOT_DEV_API_KEY",
     "DIRECTORY_IDS_TO_LOG",
     "NEXT_PUBLIC_SINGLE_ORG_SLUG",
     "GOOGLE_REFRESH_TOKEN",

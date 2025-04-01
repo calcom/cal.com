@@ -55,6 +55,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   allowDynamicBooking: true,
   timeFormat: 12,
   travelSchedules: [],
+  locked: false,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -124,6 +125,7 @@ const commons = {
   fieldTranslations: [],
   maxLeadThreshold: null,
   useEventLevelSelectedCalendars: false,
+  rrResetInterval: null,
 };
 
 export const dynamicEvent = {

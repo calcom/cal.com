@@ -525,6 +525,7 @@ test.describe("Booking round robin event", () => {
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("Does not book seated round robin host outside availability with date override", async ({

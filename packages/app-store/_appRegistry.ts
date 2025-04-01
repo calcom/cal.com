@@ -1,7 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
-import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -92,8 +92,8 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     },
   });
 
-  const dwdCredentials = user
-    ? await getAllDwdCredentialsForUser({ user: { id: userId, email: user.email } })
+  const delegationCredentials = user
+    ? await getAllDelegationCredentialsForUser({ user: { id: userId, email: user.email } })
     : [];
 
   const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
@@ -103,9 +103,11 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
   })[];
   const installCountPerApp = await getInstallCountPerApp();
   for await (const dbapp of dbApps) {
-    const dwdCredentialsForApp = dwdCredentials.filter((credential) => credential.appId === dbapp.slug);
-    const nonDwdCredentialsForApp = dbapp.credentials;
-    const allCredentials = [...dwdCredentialsForApp, ...nonDwdCredentialsForApp];
+    const delegationCredentialsForApp = delegationCredentials.filter(
+      (credential) => credential.appId === dbapp.slug
+    );
+    const nonDelegationCredentialsForApp = dbapp.credentials;
+    const allCredentials = [...delegationCredentialsForApp, ...nonDelegationCredentialsForApp];
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
     // Skip if app isn't installed

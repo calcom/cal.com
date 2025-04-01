@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { useBookerTime } from "../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../state/store";

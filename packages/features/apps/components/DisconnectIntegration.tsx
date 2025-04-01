@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 
-import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { ButtonProps } from "@calcom/ui";
-import { DisconnectIntegrationComponent, showToast } from "@calcom/ui";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect-calendar-integration";
+import { showToast } from "@calcom/ui/components/toast";
 
 export default function DisconnectIntegration(props: {
   credentialId: number;
@@ -34,12 +35,12 @@ export default function DisconnectIntegration(props: {
     },
     async onSettled() {
       await utils.viewer.connectedCalendars.invalidate();
-      await utils.viewer.integrations.invalidate();
+      await utils.viewer.apps.integrations.invalidate();
     },
   });
 
-  // Such a credential is added in-memory and removed when Domain-wide delegation is disabled.
-  const disableDisconnect = isDwdCredential({ credentialId });
+  // Such a credential is added in-memory and removed when Delegation credential is disabled.
+  const disableDisconnect = isDelegationCredential({ credentialId });
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={() => mutation.mutate({ id: credentialId, ...(teamId ? { teamId } : {}) })}
