@@ -13,6 +13,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
+import { TRPCError } from "@trpc/server";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
 
@@ -174,15 +176,18 @@ export async function getBookings({
     attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwener,
-    userIdsWhereUserIsOrgAdminOrOwner,
+    userIdsAndEmailsWhereUserIsOrgAdminOrOwner,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
+    getUserIdsAndEmailsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
   ]);
 
+  const [userIdsWhereUserIsOrgAdminOrOwner, userEmailsWhereUserIsOrgAdminOrOwner] =
+    userIdsAndEmailsWhereUserIsOrgAdminOrOwner;
+  console.log("DOES THAT WORK", userIdsWhereUserIsOrgAdminOrOwner, userEmailsWhereUserIsOrgAdminOrOwner);
   const orConditions = [];
 
   const hasUserIdsFilter = !!filters?.userIds && filters.userIds.length > 0;
@@ -201,18 +206,22 @@ export async function getBookings({
     }
 
     // Filtered view: Booking must match one of the specified users or their attendees
-    const userFilter = { in: [...filters.userIds] };
-    const attendeeEmailFilter = { in: attendeeEmailsFromUserIdsFilter };
+    const usersFilter = { in: [...filters.userIds] };
+    const attendeesEmailFilter = { in: attendeeEmailsFromUserIdsFilter };
 
     // 1. Booking created by one of the filtered users
-    orConditions.push({ userId: userFilter });
+    orConditions.push({ userId: usersFilter });
     // 2. Attendee email matches one of the filtered users' emails
-    orConditions.push({ attendees: { some: { email: attendeeEmailFilter } } });
+    orConditions.push({ attendees: { some: { email: attendeesEmailFilter } } });
     // 3. Seat reference attendee email matches one of the filtered users' emails
-    orConditions.push({ seatsReferences: { some: { attendee: { email: attendeeEmailFilter } } } });
+    orConditions.push({ seatsReferences: { some: { attendee: { email: attendeesEmailFilter } } } });
   } else {
-    // Unfiltered view (based on the current logged-in user):
-    const userEmailFilter = { equals: user.email }; // Use equals for single value
+    // Filter by emails for auth user.
+    const userEmailFilter = { equals: user.email };
+    // Auth user is ORG_OWNER/ADMIN, filter by emails of members of the org
+    const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsOrgAdminOrOwner?.length
+      ? { in: userEmailsWhereUserIsOrgAdminOrOwner }
+      : {};
 
     // 1. Booking created by the current user
     orConditions.push({ userId: { equals: user.id } }); // Use equals for single value
@@ -220,10 +229,20 @@ export async function getBookings({
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
     // 3. Current user is an attendee via seats reference
     orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
-    // 4. Booking belongs to an event type the user administers/owns
-    orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwener } });
-    // 5. Booking created by a user within the same organization (if applicable, based on original logic)
-    orConditions.push({ userId: { in: userIdsWhereUserIsOrgAdminOrOwner } });
+    // 4. Current user is org owner so we get bookings where org members are attendees
+    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
+      orConditions.push({ attendees: { some: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } });
+    // 5. Current user is org owner so we get bookings where org members are attendees via seatsReference
+    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
+      orConditions.push({
+        seatsReferences: { some: { attendee: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } },
+      });
+    // 6. Booking belongs to an event type the user administers/owns
+    eventTypeIdsWhereUserIsAdminOrOwener?.length &&
+      orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwener } });
+    // 7. Booking created by a user within the same organization (if applicable, based on original logic)
+    userIdsWhereUserIsOrgAdminOrOwner &&
+      orConditions.push({ userId: { in: userIdsWhereUserIsOrgAdminOrOwner } });
   }
 
   const andConditions = [];
@@ -551,25 +570,25 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
   return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
 }
 
-async function getUserIdsWhereUserIsOrgAdminOrOwner(
+async function getUserIdsAndEmailsWhereUserIsOrgAdminOrOwner(
   prisma: PrismaClient,
   membershipCondition: PrismaClientType.MembershipListRelationFilter
 ) {
-  return (
-    await prisma.user.findMany({
-      where: {
-        teams: {
-          some: {
-            team: {
-              isOrganization: true,
-              members: membershipCondition,
-            },
+  const users = await prisma.user.findMany({
+    where: {
+      teams: {
+        some: {
+          team: {
+            isOrganization: true,
+            members: membershipCondition,
           },
         },
       },
-      select: {
-        id: true,
-      },
-    })
-  ).map((user) => user.id);
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+  return [users.map((user) => user.id), users.map((user) => user.email)];
 }
