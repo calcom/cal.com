@@ -36,20 +36,16 @@ export function DatePickerWithRange({
       // If no start date set it as both start and end date
       onDatesChange({ startDate: date, endDate: date });
     } else if (!dates.endDate) {
-      // If start date exists but no end date and clicked date is before start date set it as both start and end date
       const startDate = date < dates.startDate ? date : dates.startDate;
       const endDate = date < dates.startDate ? dates.startDate : date;
       onDatesChange({ startDate, endDate });
     } else {
       // If both dates exist
       if (date.getTime() === dates.startDate.getTime() && dates.endDate) {
-        // If clicking the start date again when there's a range, set it as both start and end
         onDatesChange({ startDate: date, endDate: date });
       } else if (date <= dates.endDate) {
-        // If clicking a date before or equal to end date, keep end date and set new start
         onDatesChange({ startDate: date, endDate: dates.endDate });
       } else {
-        // If clicking after end date, start new range
         onDatesChange({ startDate: date, endDate: date });
       }
     }
