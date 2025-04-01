@@ -221,7 +221,7 @@ export async function getBookings({
     // Auth user is ORG_OWNER/ADMIN, filter by emails of members of the org
     const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsOrgAdminOrOwner?.length
       ? { in: userEmailsWhereUserIsOrgAdminOrOwner }
-      : {};
+      : undefined;
 
     // 1. Booking created by the current user
     orConditions.push({ userId: { equals: user.id } }); // Use equals for single value
@@ -241,7 +241,7 @@ export async function getBookings({
     eventTypeIdsWhereUserIsAdminOrOwener?.length &&
       orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwener } });
     // 7. Booking created by a user within the same organization (if applicable, based on original logic)
-    userIdsWhereUserIsOrgAdminOrOwner &&
+    userIdsWhereUserIsOrgAdminOrOwner?.length &&
       orConditions.push({ userId: { in: userIdsWhereUserIsOrgAdminOrOwner } });
   }
 
