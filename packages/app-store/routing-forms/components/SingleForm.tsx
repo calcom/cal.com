@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -18,7 +19,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { Form } from "@calcom/ui/components/form";
@@ -731,193 +732,189 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             subtitle={form.description || ""}
             backPath={`${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
-            <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
-              <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
-                <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
-                  <TextField
-                    type="text"
-                    containerClassName="mb-6"
-                    placeholder={t("title")}
-                    {...hookForm.register("name")}
-                  />
-                  <TextAreaField
-                    rows={3}
-                    id="description"
-                    data-testid="description"
-                    placeholder={t("form_description_placeholder")}
-                    {...hookForm.register("description")}
-                    defaultValue={form.description || ""}
-                  />
+            <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
+              <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
+                <TextField
+                  type="text"
+                  containerClassName="mb-6"
+                  placeholder={t("title")}
+                  {...hookForm.register("name")}
+                />
+                <TextAreaField
+                  rows={3}
+                  id="description"
+                  data-testid="description"
+                  placeholder={t("form_description_placeholder")}
+                  {...hookForm.register("description")}
+                  defaultValue={form.description || ""}
+                />
 
-                  <div className="mt-6">
-                    {form.teamId ? (
-                      <div className="flex flex-col">
-                        <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
-                          {t("routing_forms_send_email_to")}
-                        </span>
-                        <AddMembersWithSwitch
-                          data-testid="routing-form-select-members"
-                          teamId={form.teamId}
-                          teamMembers={form.teamMembers.map((member) => ({
-                            value: member.id.toString(),
-                            label: member.name || member.email,
-                            avatar: member.avatarUrl || "",
-                            email: member.email,
-                            isFixed: true,
-                            defaultScheduleId: member.defaultScheduleId,
-                          }))}
-                          value={sendUpdatesTo.map((userId) => ({
-                            isFixed: true,
-                            userId: userId,
-                            priority: 2,
-                            weight: 100,
-                            scheduleId: 1,
-                          }))}
-                          onChange={(value) => {
-                            hookForm.setValue(
-                              "settings.sendUpdatesTo",
-                              value.map((teamMember) => teamMember.userId),
-                              { shouldDirty: true }
-                            );
-                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
-                              shouldDirty: true,
-                            });
-                          }}
-                          assignAllTeamMembers={sendToAll}
-                          setAssignAllTeamMembers={(value) => {
-                            hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
-                          }}
-                          automaticAddAllEnabled={true}
-                          isFixed={true}
-                          onActive={() => {
-                            hookForm.setValue(
-                              "settings.sendUpdatesTo",
-                              form.teamMembers.map((teamMember) => teamMember.id),
-                              { shouldDirty: true }
-                            );
-                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
-                              shouldDirty: true,
-                            });
-                          }}
-                          placeholder={t("select_members")}
-                          containerClassName="!px-0 !pb-0 !pt-0"
-                        />
-                      </div>
-                    ) : (
-                      <Controller
-                        name="settings.emailOwnerOnSubmission"
-                        control={hookForm.control}
-                        render={({ field: { value, onChange } }) => {
-                          return (
-                            <SettingsToggle
-                              title={t("routing_forms_send_email_owner")}
-                              description={t("routing_forms_send_email_owner_description")}
-                              checked={value}
-                              onCheckedChange={(val) => {
-                                onChange(val);
-                                hookForm.unregister("settings.sendUpdatesTo");
-                              }}
-                            />
+                <div className="mt-6">
+                  {form.teamId ? (
+                    <div className="flex flex-col">
+                      <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
+                        {t("routing_forms_send_email_to")}
+                      </span>
+                      <AddMembersWithSwitch
+                        data-testid="routing-form-select-members"
+                        teamId={form.teamId}
+                        teamMembers={form.teamMembers.map((member) => ({
+                          value: member.id.toString(),
+                          label: member.name || member.email,
+                          avatar: member.avatarUrl || "",
+                          email: member.email,
+                          isFixed: true,
+                          defaultScheduleId: member.defaultScheduleId,
+                        }))}
+                        value={sendUpdatesTo.map((userId) => ({
+                          isFixed: true,
+                          userId: userId,
+                          priority: 2,
+                          weight: 100,
+                          scheduleId: 1,
+                        }))}
+                        onChange={(value) => {
+                          hookForm.setValue(
+                            "settings.sendUpdatesTo",
+                            value.map((teamMember) => teamMember.userId),
+                            { shouldDirty: true }
                           );
+                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                            shouldDirty: true,
+                          });
                         }}
+                        assignAllTeamMembers={sendToAll}
+                        setAssignAllTeamMembers={(value) => {
+                          hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
+                        }}
+                        automaticAddAllEnabled={true}
+                        isFixed={true}
+                        onActive={() => {
+                          hookForm.setValue(
+                            "settings.sendUpdatesTo",
+                            form.teamMembers.map((teamMember) => teamMember.id),
+                            { shouldDirty: true }
+                          );
+                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                            shouldDirty: true,
+                          });
+                        }}
+                        placeholder={t("select_members")}
+                        containerClassName="!px-0 !pb-0 !pt-0"
                       />
-                    )}
-                  </div>
-
-                  {form.routers.length ? (
-                    <div className="mt-6">
-                      <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                        {t("routers")}
-                      </div>
-                      <p className="text-default -mt-1 text-xs leading-normal">
-                        {t("modifications_in_fields_warning")}
-                      </p>
-                      <div className="flex">
-                        {form.routers.map((router) => {
-                          return (
-                            <div key={router.id} className="mr-2">
-                              <Link href={`${appUrl}/route-builder/${router.id}`}>
-                                <Badge variant="gray">{router.name}</Badge>
-                              </Link>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
-                  ) : null}
-
-                  {connectedForms?.length ? (
-                    <div className="mt-6">
-                      <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                        {t("connected_forms")}
-                      </div>
-                      <p className="text-default -mt-1 text-xs leading-normal">
-                        {t("form_modifications_warning")}
-                      </p>
-                      <div className="flex">
-                        {connectedForms.map((router) => {
-                          return (
-                            <div key={router.id} className="mr-2">
-                              <Link href={`${appUrl}/route-builder/${router.id}`}>
-                                <Badge variant="default">{router.name}</Badge>
-                              </Link>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="mt-6 flex gap-2">
-                    <Button
-                      color="secondary"
-                      data-testid="test-preview"
-                      onClick={() => setIsTestPreviewOpen(true)}>
-                      {t("test_preview")}
-                    </Button>
-                    {IS_CALCOM && (
-                      <Tooltip content={t("contact_our_support_team")} side="right">
-                        <Button
-                          target="_blank"
-                          color="minimal"
-                          href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
-                            user?.email ?? ""
-                          )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(
-                            form.id
-                          )}`}>
-                          {t("need_help")}
-                        </Button>
-                      </Tooltip>
-                    )}
-                  </div>
-                  {form.routes?.every(isFallbackRoute) && (
-                    <Alert
-                      className="mt-6 !bg-orange-100 font-semibold text-orange-900"
-                      iconClassName="!text-orange-900"
-                      severity="neutral"
-                      title={t("no_routes_defined")}
+                  ) : (
+                    <Controller
+                      name="settings.emailOwnerOnSubmission"
+                      control={hookForm.control}
+                      render={({ field: { value, onChange } }) => {
+                        return (
+                          <SettingsToggle
+                            title={t("routing_forms_send_email_owner")}
+                            description={t("routing_forms_send_email_owner_description")}
+                            checked={value}
+                            onCheckedChange={(val) => {
+                              onChange(val);
+                              hookForm.unregister("settings.sendUpdatesTo");
+                            }}
+                          />
+                        );
+                      }}
                     />
                   )}
-                  {!form._count?.responses && (
-                    <>
-                      <Alert
-                        className="mt-2 px-4 py-3"
-                        severity="neutral"
-                        title={t("no_responses_yet")}
-                        CustomIcon="message-circle"
-                      />
-                    </>
+                </div>
+
+                {form.routers.length ? (
+                  <div className="mt-6">
+                    <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
+                      {t("routers")}
+                    </div>
+                    <p className="text-default -mt-1 text-xs leading-normal">
+                      {t("modifications_in_fields_warning")}
+                    </p>
+                    <div className="flex">
+                      {form.routers.map((router) => {
+                        return (
+                          <div key={router.id} className="mr-2">
+                            <Link href={`${appUrl}/route-builder/${router.id}`}>
+                              <Badge variant="gray">{router.name}</Badge>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {connectedForms?.length ? (
+                  <div className="mt-6">
+                    <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
+                      {t("connected_forms")}
+                    </div>
+                    <p className="text-default -mt-1 text-xs leading-normal">
+                      {t("form_modifications_warning")}
+                    </p>
+                    <div className="flex">
+                      {connectedForms.map((router) => {
+                        return (
+                          <div key={router.id} className="mr-2">
+                            <Link href={`${appUrl}/route-builder/${router.id}`}>
+                              <Badge variant="default">{router.name}</Badge>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-6 flex gap-2">
+                  <Button
+                    color="secondary"
+                    data-testid="test-preview"
+                    onClick={() => setIsTestPreviewOpen(true)}>
+                    {t("test_preview")}
+                  </Button>
+                  {IS_CALCOM && (
+                    <Tooltip content={t("contact_our_support_team")} side="right">
+                      <Button
+                        target="_blank"
+                        color="minimal"
+                        href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
+                          user?.email ?? ""
+                        )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(form.id)}`}>
+                        {t("need_help")}
+                      </Button>
+                    </Tooltip>
                   )}
                 </div>
-                <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                  <RoutingNavBar
-                    appUrl={appUrl}
-                    form={form}
-                    hookForm={hookForm}
-                    setShowInfoLostDialog={setShowInfoLostDialog}
+                {form.routes?.every(isFallbackRoute) && (
+                  <Alert
+                    className="mt-6 !bg-orange-100 font-semibold text-orange-900"
+                    iconClassName="!text-orange-900"
+                    severity="neutral"
+                    title={t("no_routes_defined")}
                   />
-                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
-                </div>
+                )}
+                {!form._count?.responses && (
+                  <>
+                    <Alert
+                      className="mt-2 px-4 py-3"
+                      severity="neutral"
+                      title={t("no_responses_yet")}
+                      CustomIcon="message-circle"
+                    />
+                  </>
+                )}
+              </div>
+              <div className="border-subtle bg-muted w-full rounded-md border p-8">
+                <RoutingNavBar
+                  appUrl={appUrl}
+                  form={form}
+                  hookForm={hookForm}
+                  setShowInfoLostDialog={setShowInfoLostDialog}
+                />
+                <Page hookForm={hookForm} form={form} appUrl={appUrl} />
               </div>
             </div>
           </ShellMain>

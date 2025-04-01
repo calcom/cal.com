@@ -229,7 +229,7 @@ function WorkflowPage({
   });
 
   return session.data ? (
-    <Shell withoutSeo={true} withoutMain backPath="/workflows">
+    <Shell withoutMain backPath="/workflows">
       <LicenseRequired>
         <Form
           form={form}

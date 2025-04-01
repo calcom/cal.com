@@ -16,7 +16,7 @@ async function handler(req: NextRequest) {
   } catch (error) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const bookingData = bookingCancelInput.parse(appDirRequestBody);
   const result = await handleCancelBooking({
     bookingData,

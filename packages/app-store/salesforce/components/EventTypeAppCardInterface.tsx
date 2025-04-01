@@ -8,9 +8,9 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { InputField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
+import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -46,6 +46,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
 
   const { t } = useLocale();
 
@@ -63,6 +64,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     { label: t("date"), value: SalesforceFieldType.DATE },
     { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
     { label: t("custom"), value: SalesforceFieldType.CUSTOM },
+    { label: t("picklist"), value: SalesforceFieldType.PICKLIST },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
@@ -521,6 +523,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     }}
                   />
                 </div>
+                {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
+                  <div className="my-4">
+                    <Switch
+                      label={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
+                      labelOnLeading
+                      checked={roundRobinSkipFallbackToLeadOwner}
+                      onCheckedChange={(checked) => {
+                        setAppData("roundRobinSkipFallbackToLeadOwner", checked);
+                      }}
+                    />
+                  </div>
+                ) : null}
                 <div className="my-4">
                   <Switch
                     label={t("salesforce_if_free_email_domain_skip_owner_check")}

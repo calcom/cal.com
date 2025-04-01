@@ -1,11 +1,5 @@
 import { test } from "../../lib/fixtures";
-
-export type TApp = {
-  slug: string;
-  type: string;
-  organizerInputPlaceholder?: string;
-  label: string;
-};
+import type { TApp } from "./types";
 
 const APP: TApp = {
   slug: "around",

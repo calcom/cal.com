@@ -1,7 +1,9 @@
 import type { DirectorySyncEvent, DirectorySyncRequest } from "@boxyhq/saml-jackson";
+import type { Params } from "app/_types";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import handleGroupEvents from "@calcom/features/ee/dsync/lib/handleGroupEvents";
 import handleUserEvents from "@calcom/features/ee/dsync/lib/handleUserEvents";
@@ -51,35 +53,40 @@ const handleEvents = async (event: DirectorySyncEvent) => {
   }
 };
 
+const querySchema = z.object({
+  directory: z.string().array(),
+});
+
 // This is the handler for the SCIM API requests
-async function getHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "GET", params.directory);
+async function getHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+  return handleScimRequest(request, "GET", params);
 }
 
-async function postHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "POST", params.directory);
+async function postHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+  return handleScimRequest(request, "POST", params);
 }
 
-async function putHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "PUT", params.directory);
+async function putHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+  return handleScimRequest(request, "PUT", params);
 }
 
-async function patchHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "PATCH", params.directory);
+async function patchHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+  return handleScimRequest(request, "PATCH", params);
 }
 
-async function deleteHandler(request: NextRequest, { params }: { params: { directory?: string[] } }) {
-  return handleScimRequest(request, "DELETE", params.directory);
+async function deleteHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+  return handleScimRequest(request, "DELETE", params);
 }
 
-async function handleScimRequest(request: NextRequest, method: string, directoryParams?: string[]) {
-  const { dsyncController } = await jackson();
-
-  if (!directoryParams || directoryParams.length === 0) {
+async function handleScimRequest(request: NextRequest, method: string, params: Promise<Params>) {
+  const parsed = querySchema.safeParse(await params);
+  if (!parsed.success || parsed.data.directory.length === 0) {
     return NextResponse.json({ error: "Missing directory parameters" }, { status: 400 });
   }
 
-  const [directoryId, path, resourceId] = directoryParams;
+  const { dsyncController } = await jackson();
+
+  const [directoryId, path, resourceId] = parsed.data.directory;
   const shouldLog = DIRECTORY_IDS_TO_LOG.includes(directoryId);
 
   const searchParams = request.nextUrl.searchParams;
@@ -90,7 +97,7 @@ async function handleScimRequest(request: NextRequest, method: string, directory
       safeStringify({
         method,
         url: request.url,
-        params: directoryParams,
+        params: parsed.data.directory,
         searchParams: Object.fromEntries(searchParams.entries()),
         body: request.body
           ? await request
