@@ -3328,12 +3328,12 @@ describe("handleNewBooking", () => {
 
       await createBookingScenario(scenarioData);
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
-      });
-
-      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          })
+      ).rejects.toThrowError("eventTypeUser.notFound");
     });
 
     test("username is critical in watchlist", async () => {
@@ -3390,12 +3390,12 @@ describe("handleNewBooking", () => {
         value: organizer.username,
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
-      });
-
-      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          })
+      ).rejects.toThrowError("eventTypeUser.notFound");
     });
 
     test("domain is critical in watchlist", async () => {
@@ -3452,12 +3452,12 @@ describe("handleNewBooking", () => {
         value: "spammer.com",
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
-      });
-
-      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          })
+      ).rejects.toThrowError("eventTypeUser.notFound");
     });
 
     test("domain is critical in watchlist", async () => {
