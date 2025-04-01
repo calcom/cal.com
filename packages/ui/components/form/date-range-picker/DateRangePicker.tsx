@@ -32,20 +32,34 @@ export function DatePickerWithRange({
   strictlyBottom,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
-    if (dates?.endDate) {
-      onDatesChange({ startDate: date, endDate: undefined });
-    } else {
-      const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
-      const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
+    if (!dates.startDate) {
+      // If no start date set it as both start and end date
+      onDatesChange({ startDate: date, endDate: date });
+    } else if (!dates.endDate) {
+      // If start date exists but no end date and clicked date is before start date set it as both start and end date
+      const startDate = date < dates.startDate ? date : dates.startDate;
+      const endDate = date < dates.startDate ? dates.startDate : date;
       onDatesChange({ startDate, endDate });
+    } else {
+      // If both dates exist
+      if (date.getTime() === dates.startDate.getTime() && dates.endDate) {
+        // If clicking the start date again when there's a range, set it as both start and end
+        onDatesChange({ startDate: date, endDate: date });
+      } else if (date <= dates.endDate) {
+        // If clicking a date before or equal to end date, keep end date and set new start
+        onDatesChange({ startDate: date, endDate: dates.endDate });
+      } else {
+        // If clicking after end date, start new range
+        onDatesChange({ startDate: date, endDate: date });
+      }
     }
   }
+
   const fromDate = minDate ?? new Date();
 
   const calendar = (
     <Calendar
       initialFocus
-      //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
       fromDate={minDate === null ? undefined : fromDate}
       toDate={maxDate}
       mode="range"
