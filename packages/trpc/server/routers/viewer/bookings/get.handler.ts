@@ -174,7 +174,7 @@ export async function getBookings({
     attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwener,
-    userIdsWhereUserIsOrgAdminOrOwener,
+    userIdsWhereUserIsOrgAdminOrOwner,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
@@ -183,154 +183,126 @@ export async function getBookings({
     getUserIdsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
   ]);
 
-  const whereClause = {
-    OR: [
-      {
-        userId: { in: filters?.userIds ? [...filters?.userIds] : [user.id] },
-      },
-      {
+  const orConditions = [];
+
+  const hasUserIdsFilter = !!filters?.userIds && filters.userIds.length > 0;
+
+  if (hasUserIdsFilter) {
+    const areUserIdsWithinUserOrg = filters.userIds.every((userId) =>
+      userIdsWhereUserIsOrgAdminOrOwner.includes(userId)
+    );
+
+    // Throw an error if trying to filter by usersIds that are not within your ORG
+    if (!areUserIdsWithinUserOrg) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You do not have permissions to fetch bookings for specified userIds",
+      });
+    }
+
+    // Filtered view: Booking must match one of the specified users or their attendees
+    const userFilter = { in: [...filters.userIds] };
+    const attendeeEmailFilter = { in: attendeeEmailsFromUserIdsFilter };
+
+    // 1. Booking created by one of the filtered users
+    orConditions.push({ userId: userFilter });
+    // 2. Attendee email matches one of the filtered users' emails
+    orConditions.push({ attendees: { some: { email: attendeeEmailFilter } } });
+    // 3. Seat reference attendee email matches one of the filtered users' emails
+    orConditions.push({ seatsReferences: { some: { attendee: { email: attendeeEmailFilter } } } });
+    // 4. (Redundant with 1 in this branch, but matches original logic) Booking user is in the filtered list
+    // orConditions.push({ userId: { in: filters.userIds } }); // This was the effect of the `??` in the original - keeping separate for clarity of original structure
+  } else {
+    // Unfiltered view (based on the current logged-in user):
+    const userEmailFilter = { equals: user.email }; // Use equals for single value
+
+    // 1. Booking created by the current user
+    orConditions.push({ userId: { equals: user.id } }); // Use equals for single value
+    // 2. Current user is an attendee
+    orConditions.push({ attendees: { some: { email: userEmailFilter } } });
+    // 3. Current user is an attendee via seats reference
+    orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
+    // 4. Booking belongs to an event type the user administers/owns
+    orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwener } });
+    // 5. Booking created by a user within the same organization (if applicable, based on original logic)
+    orConditions.push({ userId: { in: userIdsWhereUserIsOrgAdminOrOwner } });
+  }
+
+  const andConditions = [];
+
+  // 1. Apply mandatory status filter
+  andConditions.push(passedBookingsStatusFilter);
+
+  // 2. Filter by Event Type IDs derived from Team IDs (if provided)
+  if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
+    andConditions.push({ eventTypeId: { in: eventTypeIdsFromTeamIdsFilter } });
+  }
+
+  // 3. Filter by specific Event Type IDs (if provided)
+  if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
+    andConditions.push({ eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter } });
+  }
+
+  // 4. Filter by Attendee Email (if provided)
+  if (filters?.attendeeEmail) {
+    if (typeof filters.attendeeEmail === "string") {
+      // Simple string match (exact)
+      andConditions.push({ attendees: { some: { email: filters.attendeeEmail.trim() } } });
+    } else if (isTextFilterValue(filters.attendeeEmail)) {
+      // Complex text filter (contains, startsWith, etc.) using makeWhereClause
+      andConditions.push({
         attendees: {
-          some: {
-            email: filters?.userIds ? { in: attendeeEmailsFromUserIdsFilter } : user.email,
-          },
+          some: makeWhereClause({
+            columnName: "email",
+            filterValue: filters.attendeeEmail,
+          }),
         },
-      },
-      !filters?.userIds
-        ? {
-            eventTypeId: {
-              in: eventTypeIdsWhereUserIsAdminOrOwener,
-            },
-          }
-        : {},
-      {
-        userId: {
-          in: filters?.userIds ?? userIdsWhereUserIsOrgAdminOrOwener,
+      });
+    }
+    // Note: Add handling here if filters.attendeeEmail could be other types
+  }
+
+  // 5. Filter by Attendee Name (if provided)
+  if (filters?.attendeeName) {
+    if (typeof filters.attendeeName === "string") {
+      // Simple string match (exact)
+      andConditions.push({ attendees: { some: { name: filters.attendeeName.trim() } } });
+    } else if (isTextFilterValue(filters.attendeeName)) {
+      // Complex text filter (contains, startsWith, etc.) using makeWhereClause
+      andConditions.push({
+        attendees: {
+          some: makeWhereClause({
+            columnName: "name",
+            filterValue: filters.attendeeName,
+          }),
         },
-      },
-      {
-        seatsReferences: {
-          some: {
-            attendee: {
-              email: filters?.userIds ? { in: attendeeEmailsFromUserIdsFilter } : user.email,
-            },
-          },
-        },
-      },
-    ],
-    AND: [
-      passedBookingsStatusFilter,
-      ...(eventTypeIdsFromTeamIdsFilter
-        ? [
-            {
-              eventTypeId: {
-                in: eventTypeIdsFromTeamIdsFilter,
-              },
-            },
-          ]
-        : []),
-      ...(eventTypeIdsFromEventTypeIdsFilter
-        ? [
-            {
-              eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter },
-            },
-          ]
-        : []),
+      });
+    }
+  }
 
-      ...(typeof filters?.attendeeEmail === "string"
-        ? [
-            {
-              attendees: { some: { email: filters.attendeeEmail.trim() } },
-            },
-          ]
-        : []),
-      ...(isTextFilterValue(filters?.attendeeEmail)
-        ? [
-            {
-              attendees: {
-                some: makeWhereClause({
-                  columnName: "email",
-                  filterValue: filters.attendeeEmail,
-                }),
-              },
-            },
-          ]
-        : []),
+  // 6. Date Range Filters
+  if (filters?.afterStartDate) {
+    andConditions.push({ startTime: { gte: dayjs.utc(filters.afterStartDate).toDate() } });
+  }
+  if (filters?.beforeEndDate) {
+    andConditions.push({ endTime: { lte: dayjs.utc(filters.beforeEndDate).toDate() } });
+  }
+  if (filters?.afterUpdatedDate) {
+    andConditions.push({ updatedAt: { gte: dayjs.utc(filters.afterUpdatedDate).toDate() } });
+  }
+  if (filters?.beforeUpdatedDate) {
+    andConditions.push({ updatedAt: { lte: dayjs.utc(filters.beforeUpdatedDate).toDate() } });
+  }
+  if (filters?.afterCreatedDate) {
+    andConditions.push({ createdAt: { gte: dayjs.utc(filters.afterCreatedDate).toDate() } });
+  }
+  if (filters?.beforeCreatedDate) {
+    andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
+  }
 
-      ...(typeof filters?.attendeeName === "string"
-        ? [
-            {
-              attendees: { some: { name: filters.attendeeName.trim() } },
-            },
-          ]
-        : []),
-      ...(isTextFilterValue(filters?.attendeeName)
-        ? [
-            {
-              attendees: {
-                some: makeWhereClause({
-                  columnName: "name",
-                  filterValue: filters.attendeeName,
-                }),
-              },
-            },
-          ]
-        : []),
-
-      ...(filters?.afterStartDate
-        ? [
-            {
-              startTime: {
-                gte: dayjs.utc(filters.afterStartDate).toDate(),
-              },
-            },
-          ]
-        : []),
-      ...(filters?.beforeEndDate
-        ? [
-            {
-              endTime: {
-                lte: dayjs.utc(filters.beforeEndDate).toDate(),
-              },
-            },
-          ]
-        : []),
-      ...(filters?.afterUpdatedDate
-        ? [
-            {
-              updatedAt: {
-                gte: dayjs.utc(filters.afterUpdatedDate).toDate(),
-              },
-            },
-          ]
-        : []),
-      ...(filters?.beforeUpdatedDate
-        ? [
-            {
-              updatedAt: {
-                lte: dayjs.utc(filters.beforeUpdatedDate).toDate(),
-              },
-            },
-          ]
-        : []),
-      ...(filters?.afterCreatedDate
-        ? [
-            {
-              createdAt: {
-                gte: dayjs.utc(filters.afterCreatedDate).toDate(),
-              },
-            },
-          ]
-        : []),
-      ...(filters?.beforeCreatedDate
-        ? [
-            {
-              createdAt: {
-                lte: dayjs.utc(filters.beforeCreatedDate).toDate(),
-              },
-            },
-          ]
-        : []),
-    ],
+  const whereClause = {
+    OR: orConditions,
+    AND: andConditions,
   };
 
   const [plainBookings, totalCount] = await Promise.all([
