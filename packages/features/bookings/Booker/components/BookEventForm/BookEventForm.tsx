@@ -75,8 +75,6 @@ export const BookEventForm = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
 
-  const { disableCancelling, disableRescheduling } = eventType;
-
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
 
@@ -160,10 +158,6 @@ export const BookEventForm = ({
             />
           </div>
         ) : null}
-        <div className="mt-2 space-y-2">
-          {disableCancelling && <Alert severity="info" title={t("cancelling_disabled_info")} />}
-          {disableRescheduling && <Alert severity="info" title={t("rescheduling_disabled_info")} />}
-        </div>
 
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
