@@ -175,11 +175,8 @@ export class OAuthClientUsersController {
 
     const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
-    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
-      oAuthClientId,
-      id,
-      true
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
+      await this.tokensRepository.createOAuthTokens(oAuthClientId, id, true);
 
     return {
       status: SUCCESS_STATUS,
@@ -187,6 +184,7 @@ export class OAuthClientUsersController {
         accessToken,
         refreshToken,
         accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
+        refreshTokenExpiresAt: refreshTokenExpiresAt.valueOf(),
       },
     };
   }

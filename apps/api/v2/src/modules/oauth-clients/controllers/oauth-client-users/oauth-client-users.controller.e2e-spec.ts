@@ -7,6 +7,7 @@ import { Locales } from "@/lib/enums/locales";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
+import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -590,6 +591,23 @@ describe("OAuth Client Users Endpoints", () => {
       const [domainName, TLD] = emailDomain.split(".");
       expect(responseBody.data.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
       expect(responseBody.data.locale).toEqual(Locales.PT_BR);
+    });
+
+    it("should force refresh tokens", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}/force-refresh`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: KeysResponseDto = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.accessTokenExpiresAt).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
+      expect(responseBody.data.refreshTokenExpiresAt).toBeDefined();
     });
 
     it(`/DELETE/:id`, () => {
