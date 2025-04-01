@@ -86,7 +86,7 @@ runs:
       shell: bash
       run: |
         if [ -f ".cache/db/env" ]; then
-          while IFS= read -r line; do
-            export "$line"
-          done < .cache/db/env
+          set -a
+          source .cache/db/env
+          set +a
         fi
