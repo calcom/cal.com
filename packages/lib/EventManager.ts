@@ -516,7 +516,7 @@ export default class EventManager {
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-        const isLocationChanged = evt.location !== booking.location;
+        const isLocationChanged = evt.location && booking.location && evt.location !== booking.location;
         // If and only if event type is a dedicated meeting, update the dedicated video meeting.
         if (isDedicated) {
           if (isLocationChanged) {
