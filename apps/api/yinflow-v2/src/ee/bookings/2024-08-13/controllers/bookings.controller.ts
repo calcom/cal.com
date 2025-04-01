@@ -216,16 +216,16 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/mark-absent")
-  @HttpCode(HttpStatus.OK)
-  @Permissions([BOOKING_WRITE])
-  @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
-  })
-  @ApiOperation({ summary: "Mark a booking absence" })
+  // @HttpCode(HttpStatus.OK)
+  // @Permissions([BOOKING_WRITE])
+  // @UseGuards(ApiAuthGuard)
+  // @ApiHeader({
+  //   name: "Authorization",
+  //   description:
+  //     "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+  //   required: true,
+  // })
+  // @ApiOperation({ summary: "Mark a booking absence" })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
     @Body() body: MarkAbsentBookingInput_2024_08_13

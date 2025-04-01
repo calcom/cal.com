@@ -2,7 +2,6 @@ import "./instrument";
 
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
-import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Request } from "express";
 
@@ -69,7 +68,6 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   );
 
   // Exception filters, new filters go at the bottom, keep the order
-  const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
