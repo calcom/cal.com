@@ -128,6 +128,59 @@ export default function CancelBooking(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleCancel = async () => {
+    try {
+      setLoading(true);
+
+      telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
+
+      const res = await fetch("/api/cancel", {
+        body: JSON.stringify({
+          uid: booking?.uid,
+          cancellationReason,
+          allRemainingBookings,
+          // @NOTE: very important this shouldn't cancel with number ID use uid instead
+          seatReferenceUid,
+          cancelledBy: currentUserEmail,
+          internalNote,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+
+      const bookingWithCancellationReason = {
+        ...(bookingCancelledEventProps.booking as object),
+        cancellationReason,
+      } as unknown;
+
+      if (res.ok) {
+        // tested by apps/web/playwright/booking-pages.e2e.ts
+        sdkActionManager?.fire("bookingCancelled", {
+          ...bookingCancelledEventProps,
+          booking: bookingWithCancellationReason,
+        });
+        refreshData();
+      } else {
+        const errorData = await res.json(); // Parse response JSON
+        throw errorData; // Throw so it can be caught in catch block
+      }
+    } catch (error) {
+      setLoading(false);
+
+      if (error.message === "disabledCancelling") {
+        setError(t("cancelling_disabled_info")); // Handle specific error case
+      } else {
+        setError(
+          `${t("error_with_status_code_occured", { status: error?.status || "Unknown" })} ${t(
+            "please_try_again"
+          )}`
+        );
+      }
+    }
+  };
+
   return (
     <>
       {error && (
@@ -201,48 +254,7 @@ export default function CancelBooking(props: Props) {
                   props.isHost &&
                   (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
-                onClick={async () => {
-                  setLoading(true);
-
-                  telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
-                  const res = await fetch("/api/cancel", {
-                    body: JSON.stringify({
-                      uid: booking?.uid,
-                      cancellationReason: cancellationReason,
-                      allRemainingBookings,
-                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
-                      seatReferenceUid,
-                      cancelledBy: currentUserEmail,
-                      internalNote: internalNote,
-                    }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                  });
-
-                  const bookingWithCancellationReason = {
-                    ...(bookingCancelledEventProps.booking as object),
-                    cancellationReason,
-                  } as unknown;
-
-                  if (res.status >= 200 && res.status < 300) {
-                    // tested by apps/web/playwright/booking-pages.e2e.ts
-                    sdkActionManager?.fire("bookingCancelled", {
-                      ...bookingCancelledEventProps,
-                      booking: bookingWithCancellationReason,
-                    });
-                    refreshData();
-                  } else {
-                    setLoading(false);
-                    setError(
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                        "please_try_again"
-                      )}`
-                    );
-                  }
-                }}
+                onClick={handleCancel}
                 loading={loading}>
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>

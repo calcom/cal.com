@@ -74,7 +74,12 @@ async function handler(req: CustomRequest) {
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
-
+  if (bookingToDelete.eventType?.disableCancelling) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "disabledCancelling",
+    });
+  }
   if (!platformClientId && !cancellationReason && req.bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,
