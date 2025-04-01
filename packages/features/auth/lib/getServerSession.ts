@@ -39,6 +39,8 @@ export async function getServerSession(options: {
     secret,
   });
 
+  return { token, req, secret };
+
   log.debug("Getting server session", safeStringify({ token }));
 
   if (!token || !token.email || !token.sub) {
