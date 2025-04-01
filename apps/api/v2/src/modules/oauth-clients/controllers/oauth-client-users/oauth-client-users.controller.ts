@@ -32,11 +32,11 @@ import {
   Query,
   NotFoundException,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
 import { plainToInstance } from "class-transformer";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
@@ -44,6 +44,11 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 })
 @UseGuards(ApiAuthGuard, OAuthClientGuard, OrganizationRolesGuard)
 @DocsTags("Platform / Managed Users")
+@ApiHeader({
+  name: X_CAL_SECRET_KEY,
+  description: "OAuth client secret key",
+  required: true,
+})
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 

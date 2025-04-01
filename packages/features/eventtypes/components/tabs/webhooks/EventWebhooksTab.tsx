@@ -1,23 +1,24 @@
 import type { Webhook } from "@prisma/client";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import EventTypeWebhookListItem from "@calcom/features/webhooks/components/EventTypeWebhookListItem";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { showToast } from "@calcom/ui/components/toast";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -122,25 +123,21 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     severity={webhooksDisableProps.isLocked ? "neutral" : "info"}
                     className="mb-2"
                     title={
-                      <Trans
-                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
-                        {lockedText[0].toUpperCase()}
-                        {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                      </Trans>
+                      <ServerTrans
+                        t={t}
+                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                      />
                     }
                     actions={
                       <div className="flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
                     }
                     message={
-                      <Trans
+                      <ServerTrans
+                        t={t}
                         i18nKey={`webhooks_${lockedText}_${
                           isManagedEventType ? "for_members" : "by_team_admins"
-                        }_description`}>
-                        {isManagedEventType ? "Members" : "You"}{" "}
-                        {webhooksDisableProps.isLocked
-                          ? "will be able to see the active webhooks but will not be able to edit any webhook settings"
-                          : "will be able to see the active webhooks and will be able to edit any webhook settings"}
-                      </Trans>
+                        }_description`}
+                      />
                     }
                   />
                 )}
@@ -181,14 +178,18 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       </div>
 
                       <p className="text-default text-sm font-normal">
-                        <Trans i18nKey="edit_or_manage_webhooks">
-                          If you wish to edit or manage your web hooks, please head over to &nbsp;
-                          <Link
-                            className="cursor-pointer font-semibold underline"
-                            href="/settings/developer/webhooks">
-                            webhooks settings
-                          </Link>
-                        </Trans>
+                        <ServerTrans
+                          t={t}
+                          i18nKey="edit_or_manage_webhooks"
+                          components={[
+                            <Link
+                              key="edit_or_manage_webhooks"
+                              className="cursor-pointer font-semibold underline"
+                              href="/settings/developer/webhooks">
+                              webhooks settings
+                            </Link>,
+                          ]}
+                        />
                       </p>
                     </div>
                   </>

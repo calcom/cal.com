@@ -153,7 +153,7 @@ export function TimezoneSelectComponent({
                 : "px-3 h-fit"
               : size === "sm"
               ? "h-7 px-2"
-              : "h-9 px-3",
+              : "h-9 py-0 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             timezoneClassNames?.control && timezoneClassNames.control(state)

@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -27,10 +28,15 @@ import {
   HttpStatus,
   Logger,
   UseGuards,
-  NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { ApiCreatedResponse as DocsCreatedResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiCreatedResponse as DocsCreatedResponse,
+  ApiTags,
+  ApiOperation,
+  ApiExcludeEndpoint,
+  ApiHeader,
+} from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -42,6 +48,7 @@ import { CreateOAuthClientInput, UpdateOAuthClientInput, Pagination } from "@cal
 })
 @ApiTags("OAuth Clients")
 @UseGuards(ApiAuthGuard, OrganizationRolesGuard)
+@ApiHeader(API_KEY_HEADER)
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
@@ -59,6 +66,7 @@ export class OAuthClientsController {
     description: "Create an OAuth client",
     type: CreateOAuthClientResponseDto,
   })
+  @ApiOperation({ summary: "Create an OAuth client" })
   async createOAuthClient(
     @GetOrgId() organizationId: number,
     @Body() body: CreateOAuthClientInput
@@ -69,7 +77,9 @@ export class OAuthClientsController {
 
     const organization = await this.teamsRepository.findByIdIncludeBilling(organizationId);
     if (!organization?.platformBilling || !organization?.platformBilling?.subscriptionId) {
-      throw new BadRequestException("Team is not subscribed, cannot create an OAuth Client.");
+      throw new BadRequestException(
+        "Team is not subscribed to platform plan, cannot create an OAuth Client."
+      );
     }
 
     const oAuthClientCredentials = await this.oAuthClientsService.createOAuthClient(organizationId, body);
@@ -82,6 +92,7 @@ export class OAuthClientsController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get all OAuth clients" })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   async getOAuthClients(@GetOrgId() organizationId: number): Promise<GetOAuthClientsResponseDto> {
     const clients = await this.oAuthClientsService.getOAuthClients(organizationId);
@@ -92,6 +103,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @UseGuards(OAuthClientGuard)
+  @ApiOperation({ summary: "Get an OAuth client" })
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     const client = await this.oAuthClientsService.getOAuthClientById(clientId);
     return { status: SUCCESS_STATUS, data: client };
@@ -101,6 +113,9 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @UseGuards(OAuthClientGuard)
+  // note(Lauris): Excluding this endpoint because we have oauth-clients-users.controller to fetch oAuth users and I am leaving this endpoint
+  // just in case someone is using it.
+  @ApiExcludeEndpoint()
   async getOAuthClientManagedUsersById(
     @Param("clientId") clientId: string,
     @Query() queryParams: Pagination
@@ -122,6 +137,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @UseGuards(OAuthClientGuard)
+  @ApiOperation({ summary: "Update an OAuth client" })
   async updateOAuthClient(
     @Param("clientId") clientId: string,
     @Body() body: UpdateOAuthClientInput
@@ -135,6 +151,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @UseGuards(OAuthClientGuard)
+  @ApiOperation({ summary: "Delete an OAuth client" })
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oAuthClientsService.deleteOAuthClient(clientId);

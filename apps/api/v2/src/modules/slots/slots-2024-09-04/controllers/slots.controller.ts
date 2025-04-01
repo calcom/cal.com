@@ -1,4 +1,5 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
+import { OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
 import { GetOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
@@ -13,12 +14,10 @@ import {
   Delete,
   Post,
   Param,
-  Res,
   HttpCode,
   HttpStatus,
   Patch,
   UseGuards,
-  BadRequestException,
 } from "@nestjs/common";
 import {
   ApiOperation,
@@ -229,8 +228,12 @@ export class SlotsController_2024_09_04 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiOperation({
     summary: "Reserve a slot",
-    description: "Make a slot not available for others to book for a certain period of time.",
+    description: `Make a slot not available for others to book for a certain period of time. If you authenticate using oAuth credentials, api key or access token
+    then you can also specify custom duration for how long the slot should be reserved for (defaults to 5 minutes).`,
   })
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
     @GetOptionalUser() user: User

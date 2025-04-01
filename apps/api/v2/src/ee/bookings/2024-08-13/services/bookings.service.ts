@@ -502,6 +502,7 @@ export class BookingsService_2024_08_13 {
       orgId: profile?.organizationId || null,
       emailsEnabled,
       platformClientParams,
+      reassignedById: requestUser.id,
     });
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);

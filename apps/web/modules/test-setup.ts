@@ -151,10 +151,6 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-vi.mock("@calcom/ui/components/head-seo", () => ({
-  HeadSeo: vi.fn(),
-}));
-
 vi.mock("@calcom/ui/styles", () => ({
   useCalcomTheme: vi.fn(),
 }));
