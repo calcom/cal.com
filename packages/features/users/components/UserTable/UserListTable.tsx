@@ -16,6 +16,8 @@ import {
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
+  SaveFilterSegmentButton,
+  FilterSegmentSelect,
   useDataTable,
   CTA_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
@@ -305,6 +307,9 @@ function UserListTableContent() {
         accessorFn: (data) => data.role,
         header: "Role",
         size: 100,
+        meta: {
+          filter: { type: ColumnFilterType.MULTI_SELECT },
+        },
         cell: ({ row, table }) => {
           const { role, username } = row.original;
           return (
@@ -324,6 +329,9 @@ function UserListTableContent() {
         accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
         size: 140,
+        meta: {
+          filter: { type: ColumnFilterType.MULTI_SELECT },
+        },
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -526,23 +534,26 @@ function UserListTableContent() {
         ToolbarLeft={
           <>
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
             <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
             <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
           </>
         }
-        ToolbarRight={<DataTableFilters.ClearFiltersButton />}>
+        ToolbarRight={
+          <>
+            <DataTableFilters.ClearFiltersButton />
+            <SaveFilterSegmentButton />
+            <FilterSegmentSelect />
+          </>
+        }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
+          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root
-            className="justify-center"
-            style={{
-              width: "max-content",
-            }}>
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
@@ -587,7 +598,6 @@ function UserListTableContent() {
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            <DataTableFilters.ColumnVisibilityButton table={table} />
             {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"

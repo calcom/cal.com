@@ -245,14 +245,16 @@ function OutOfOfficeEntriesListContent() {
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
-                        const offset = dayjs().utcOffset();
+                        const startDateOffset = -1 * item.start.getTimezoneOffset();
+                        const endDateOffset = -1 * item.end.getTimezoneOffset();
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
+                            startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
                           },
-                          offset,
+                          startDateOffset,
+                          endDateOffset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,

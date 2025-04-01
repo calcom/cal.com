@@ -38,7 +38,7 @@ export function useBottomNavItems({
     },
     IS_DUB_REFERRALS_ENABLED
       ? {
-          name: "earn_20_percent_affiliate",
+          name: "referral_text",
           href: "/refer",
           icon: "gift",
         }

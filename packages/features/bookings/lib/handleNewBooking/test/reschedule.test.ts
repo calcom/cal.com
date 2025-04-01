@@ -2600,6 +2600,7 @@ describe("handleNewBooking", () => {
               start: `${plus1DateString}T04:00:00.000Z`,
               end: `${plus1DateString}T04:15:00.000Z`,
               routedTeamMemberIds: [101],
+              routingFormResponseId: 12323,
               responses: {
                 email: booker.email,
                 name: booker.name,
