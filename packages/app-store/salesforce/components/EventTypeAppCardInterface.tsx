@@ -63,8 +63,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     { label: t("text"), value: SalesforceFieldType.TEXT },
     { label: t("date"), value: SalesforceFieldType.DATE },
     { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
-    { label: t("custom"), value: SalesforceFieldType.CUSTOM },
+    { label: t("checkbox"), value: SalesforceFieldType.CHECKBOX },
     { label: t("picklist"), value: SalesforceFieldType.PICKLIST },
+    { label: t("custom"), value: SalesforceFieldType.CUSTOM },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
@@ -74,14 +75,24 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     { label: t("only_if_field_is_empty"), value: WhenToWriteToRecord.FIELD_EMPTY },
   ];
 
-  const [whenToWriteToPersonRecord, setWhenToWriteToPersonRecord] = useState(whenToWriteToRecordOptions[0]);
+  const [whenToWriteToPersonRecord, setWhenToWriteToPersonRecord] = useState(
+    whenToWriteToRecordOptions.find(
+      whenToWriteToRecordOptions.find((option) => value === WhenToWriteToRecord.FIELD_EMPTY)
+    )
+  );
 
   const dateFieldValueOptions = [
     { label: t("booking_start_date"), value: DateFieldTypeData.BOOKING_START_DATE },
     { label: t("booking_created_date"), value: DateFieldTypeData.BOOKING_CREATED_DATE },
   ];
 
+  const checkboxFieldValueOptions = [
+    { label: t("true"), value: true },
+    { label: t("false"), value: false },
+  ];
+
   const [dateFieldValue, setDateValue] = useState(dateFieldValueOptions[0]);
+  const [checkboxFieldValue, setCheckboxFieldValue] = useState(checkboxFieldValueOptions[0]);
 
   const [newOnBookingWriteToPersonObjectField, setNewOnBookingWriteToPersonObjectField] = useState({
     field: "",
@@ -331,6 +342,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                           )}
                           isDisabled={true}
                         />
+                      ) : onBookingWriteToRecordFields[key].fieldType === SalesforceFieldType.CHECKBOX ? (
+                        <Select
+                          value={checkboxFieldValueOptions.find(
+                            (option) => option.value === onBookingWriteToRecordFields[key].value
+                          )}
+                          isDisabled={true}
+                        />
                       ) : (
                         <InputField value={onBookingWriteToRecordFields[key].value} readOnly />
                       )}
@@ -380,6 +398,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                             ...newOnBookingWriteToPersonObjectField,
                             fieldType: e.value,
                             ...(e.value === SalesforceFieldType.DATE && { value: dateFieldValue.value }),
+                            ...(e.value === SalesforceFieldType.CHECKBOX && {
+                              value: checkboxFieldValue.value,
+                            }),
                           });
                         }
                       }}
@@ -393,6 +414,20 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                         onChange={(e) => {
                           if (e) {
                             setDateValue(e);
+                            setNewOnBookingWriteToPersonObjectField({
+                              ...newOnBookingWriteToPersonObjectField,
+                              value: e.value,
+                            });
+                          }
+                        }}
+                      />
+                    ) : writeToPersonObjectFieldType.value === SalesforceFieldType.CHECKBOX ? (
+                      <Select
+                        options={checkboxFieldValueOptions}
+                        value={checkboxFieldValue}
+                        onChange={(e) => {
+                          if (e) {
+                            setCheckboxFieldValue(e);
                             setNewOnBookingWriteToPersonObjectField({
                               ...newOnBookingWriteToPersonObjectField,
                               value: e.value,
@@ -436,7 +471,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   !(
                     newOnBookingWriteToPersonObjectField.field &&
                     newOnBookingWriteToPersonObjectField.fieldType &&
-                    newOnBookingWriteToPersonObjectField.value &&
+                    newOnBookingWriteToPersonObjectField.value !== "" &&
                     newOnBookingWriteToPersonObjectField.whenToWrite
                   )
                 }
