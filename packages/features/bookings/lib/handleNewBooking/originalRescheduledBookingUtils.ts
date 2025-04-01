@@ -19,6 +19,6 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
   return originalBooking;
 }
 
-export type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+export type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking> | null;
 
-export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
+export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>> | null;
