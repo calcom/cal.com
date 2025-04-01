@@ -184,8 +184,8 @@ const nextConfig = {
     "http-cookie-agent", // Dependencies of @ewsjs/xhr
     "rest-facade",
     "superagent-proxy", // Dependencies of @tryvital/vital-node
-    "superagent",
-    "formidable",
+    "superagent", // Dependencies of akismet
+    "formidable", // Dependencies of akismet
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
