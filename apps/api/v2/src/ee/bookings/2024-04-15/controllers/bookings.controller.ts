@@ -179,7 +179,7 @@ export class BookingsController_2024_04_15 {
       const booking = await handleNewBooking({
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
-        hostname: bookingRequest.headers.host || "",
+        hostname: bookingRequest.headers?.host || "",
         forcedSlug: orgSlug,
         platformClientId: bookingRequest.platformClientId,
         platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -290,7 +290,7 @@ export class BookingsController_2024_04_15 {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
-        hostname: bookingRequest.headers.host || "",
+        hostname: bookingRequest.headers?.host || "",
         platformClientId: bookingRequest.platformClientId,
         platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
         platformCancelUrl: bookingRequest.platformCancelUrl,
