@@ -796,7 +796,10 @@ test.describe("Out of office", () => {
         await entriesListRespPromise;
 
         //2 OOO records should be visible end=currentDate-4days, end=currentDate-12days
-        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(2);
+        const oooEntries = page.locator('[data-testid="ooo-actions"]');
+        const oooEntriesCount = await oooEntries.count();
+
+        expect(oooEntriesCount).toBe(2);
         await expect(
           page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
         ).toBeVisible();
