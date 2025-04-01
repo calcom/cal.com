@@ -3777,7 +3777,7 @@ __metadata:
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.76.0
     "@daily-co/daily-react": ^0.22.0
-    "@dub/analytics": ^0.0.15
+    "@dub/analytics": ^0.0.27
     "@dub/embed-core": ^0.0.10
     "@dub/embed-react": ^0.0.10
     "@formkit/auto-animate": 1.0.0-beta.5
@@ -4406,12 +4406,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dub/analytics@npm:^0.0.15":
-  version: 0.0.15
-  resolution: "@dub/analytics@npm:0.0.15"
+"@dub/analytics@npm:^0.0.27":
+  version: 0.0.27
+  resolution: "@dub/analytics@npm:0.0.27"
   dependencies:
     server-only: ^0.0.1
-  checksum: afff2252db4a43593efc5c990fd684b5423f47978191078d3b788a7c3e51f912cf21a65d4cfdffe57a20dbe3a89c5f4ac47ff2899e266ae4ac0653a58ff0076f
+  checksum: 8c617f2911593a356c663dddd82395693c9d96db71ac0c96f8b7d4f3588de5a2764797e610c7c6958011c6c2e63244eeb2681ef17548769f0bf7fd6d8f11fac7
   languageName: node
   linkType: hard
 
