@@ -357,6 +357,7 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions.unshift({
       id: "cancel",
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
+      /* When cancelling we need to let the UI and the API know if the intention is to cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
