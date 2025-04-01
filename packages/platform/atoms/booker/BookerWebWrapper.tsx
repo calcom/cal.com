@@ -91,6 +91,17 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
+  const extraOptions = useMemo(() => {
+    const options = { ...routerQuery };
+    if (firstNameQueryParam) {
+      options.firstName = firstNameQueryParam;
+    }
+    if (lastNameQueryParam) {
+      options.lastName = lastNameQueryParam;
+    }
+    return options;
+  }, [routerQuery, firstNameQueryParam, lastNameQueryParam]);
+
   const lastBookingResponse = getLastBookingResponse();
 
   const bookerForm = useBookingForm({
@@ -99,7 +110,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     sessionUsername: session?.user.username,
     sessionName: session?.user.name,
     hasSession,
-    extraOptions: routerQuery,
+    extraOptions,
     prefillFormParams,
     lastBookingResponse,
   });
@@ -230,7 +241,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       bookingUid={bookingUid}
       hasSession={hasSession}
       hasValidLicense={session?.hasValidLicense ?? false}
-      extraOptions={routerQuery}
+      extraOptions={extraOptions}
       bookings={bookings}
       calendars={calendars}
       slots={slots}
