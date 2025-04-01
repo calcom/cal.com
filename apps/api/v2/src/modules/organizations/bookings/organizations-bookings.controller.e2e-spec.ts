@@ -54,15 +54,16 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const orgUserEmail = "org-user1Bookings@api.com";
-    const orgUserEmail2 = "org-user2Bookings@api.com";
-    const nonOrgUserEmail1 = "non-org-user1-bookings@api.com";
+    const orgUserEmail = "org-user-1-bookings@api.com";
+    const orgUserEmail2 = "org-user-2-bookings@api.com";
+    const nonOrgUserEmail1 = "non-org-user-1-bookings@api.com";
     let orgUser: User;
     let orgUser2: User;
     let nonOrgUser1: User;
     let team1: Team;
 
     let orgEventTypeId: number;
+    let orgEventTypeId2: number;
     let nonOrgEventTypeId: number;
 
     beforeAll(async () => {
@@ -145,12 +146,27 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           connect: { id: team1.id },
         },
         title: "Collective Event Type",
-        slug: "collective-event-type",
+        slug: "org-bookings-collective-event-type",
         length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
         locations: [],
       });
+
+      const orgEventType2 = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team1.id },
+        },
+        title: "Collective Event Type",
+        slug: "org-bookings-round-robin-event-type",
+        length: 60,
+        assignAllTeamMembers: false,
+        bookingFields: [],
+        locations: [],
+      });
+
+      orgEventTypeId2 = orgEventType2.id;
 
       await profileRepositoryFixture.create({
         uid: `usr-${orgUser.id}`,
@@ -252,6 +268,20 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: orgUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: orgEventType2.id,
+          },
+        },
+      });
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -259,7 +289,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("create organization bookings", () => {
-      it("should create an organization booking", async () => {
+      it("should create an collective organization booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 9, 13, 0, 0)).toISOString(),
           eventTypeId: orgEventTypeId,
@@ -312,7 +342,60 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a non organization booking", async () => {
+      it("should create a round robin organization booking", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 10, 13, 0, 0)).toISOString(),
+          eventTypeId: orgEventTypeId2,
+          attendee: {
+            name: "alice",
+            email: "alice@gmail.com",
+            timeZone: "Europe/Madrid",
+            language: "es",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(orgUser2.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 10, 14, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(orgEventTypeId2);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a non organization booking for org-user-1", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
           eventTypeId: nonOrgEventTypeId,
@@ -350,7 +433,60 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees.length).toEqual(1);
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
-                email: body.attendee.email,
+                email: orgUserEmail,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a non organization booking for org-user-2", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 11, 13, 0, 0)).toISOString(),
+          eventTypeId: nonOrgEventTypeId,
+          attendee: {
+            name: orgUser2.name ?? "",
+            email: orgUserEmail2,
+            timeZone: orgUser2.timeZone ?? "Europe/Madrid",
+            language: "en",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(nonOrgUser1.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 11, 14, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(nonOrgEventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: orgUserEmail2,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -383,14 +519,16 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(2);
+            expect(data.length).toEqual(4);
           });
       });
 
-      it("should get bookings by organizationId and userIds", async () => {
+      it("should get bookings by organizationId", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/organizations/${organization.id}/bookings?userIds=${orgUser.id},${orgUser2.id}`)
+          .get(`/v2/organizations/${organization.id}/bookings?userIds=${orgUser.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
@@ -402,6 +540,26 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(2);
+          });
+      });
+
+      it("should get bookings by organizationId and userIds", async () => {
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${organization.id}/bookings?userIds=${orgUser.id},${orgUser2.id}&skip=0&take=250`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(4);
           });
       });
 
@@ -419,7 +577,10 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(1);
+            expect(data.length).toEqual(3);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId].sort()
+            );
           });
       });
     });
@@ -448,6 +609,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       await userRepositoryFixture.deleteByEmail(orgUser2.email);
       await userRepositoryFixture.deleteByEmail(nonOrgUser1.email);
       await bookingsRepositoryFixture.deleteAllBookings(orgUser.id, orgUser.email);
+      await bookingsRepositoryFixture.deleteAllBookings(orgUser2.id, orgUser2.email);
+      await bookingsRepositoryFixture.deleteAllBookings(nonOrgUser1.id, nonOrgUser1.email);
       await app.close();
     });
   });

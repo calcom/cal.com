@@ -186,30 +186,32 @@ export async function getBookings({
   const whereClause = {
     OR: [
       {
-        userId: user.id,
+        userId: { in: filters?.userIds ? [...filters?.userIds] : [user.id] },
       },
       {
         attendees: {
           some: {
-            email: user.email,
+            email: filters?.userIds ? { in: attendeeEmailsFromUserIdsFilter } : user.email,
           },
         },
       },
-      {
-        eventTypeId: {
-          in: eventTypeIdsWhereUserIsAdminOrOwener,
-        },
-      },
+      !filters?.userIds
+        ? {
+            eventTypeId: {
+              in: eventTypeIdsWhereUserIsAdminOrOwener,
+            },
+          }
+        : {},
       {
         userId: {
-          in: userIdsWhereUserIsOrgAdminOrOwener,
+          in: filters?.userIds ?? userIdsWhereUserIsOrgAdminOrOwener,
         },
       },
       {
         seatsReferences: {
           some: {
             attendee: {
-              email: user.email,
+              email: filters?.userIds ? { in: attendeeEmailsFromUserIdsFilter } : user.email,
             },
           },
         },
@@ -223,32 +225,6 @@ export async function getBookings({
               eventTypeId: {
                 in: eventTypeIdsFromTeamIdsFilter,
               },
-            },
-          ]
-        : []),
-      ...(filters?.userIds && filters.userIds.length > 0
-        ? [
-            {
-              OR: [
-                {
-                  userId: {
-                    in: filters.userIds,
-                  },
-                },
-                ...(attendeeEmailsFromUserIdsFilter?.length
-                  ? [
-                      {
-                        attendees: {
-                          some: {
-                            email: {
-                              in: attendeeEmailsFromUserIdsFilter,
-                            },
-                          },
-                        },
-                      },
-                    ]
-                  : []),
-              ],
             },
           ]
         : []),
@@ -528,8 +504,7 @@ async function getAttendeeEmailsFromUserIdsFilter(
         email: true,
       },
     })
-    // Include booking if current user is an attendee, regardless of user ID filter
-    .then((users) => users.map((user) => user.email).concat([userEmail]));
+    .then((users) => users.map((user) => user.email));
 
   return attendeeEmailsFromUserIdsFilter;
 }
