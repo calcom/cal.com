@@ -168,16 +168,11 @@ export default function CancelBooking(props: Props) {
       }
     } catch (error) {
       setLoading(false);
-
-      if (error.message === "disabledCancelling") {
-        setError(t("cancelling_disabled_info")); // Handle specific error case
-      } else {
-        setError(
-          `${t("error_with_status_code_occured", { status: error?.status || "Unknown" })} ${t(
-            "please_try_again"
-          )}`
-        );
-      }
+      setError(
+        `${t("error_with_status_code_occured", { status: error?.status || "Unknown" })} ${t(
+          "please_try_again"
+        )}`
+      );
     }
   };
 

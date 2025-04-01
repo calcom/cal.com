@@ -77,7 +77,7 @@ async function handler(req: CustomRequest) {
   if (bookingToDelete.eventType?.disableCancelling) {
     throw new HttpError({
       statusCode: 400,
-      message: "disabledCancelling",
+      message: "This event type does not allow cancellations",
     });
   }
   if (!platformClientId && !cancellationReason && req.bookingToDelete.userId == userId) {
