@@ -24,8 +24,8 @@
   /* Content/Text */
   --cal-text-emphasis: #111827;
   --cal-text: #374151;
-  --cal-text-subtle: #6b7280;
-  --cal-text-muted: #9ca3af;
+  --cal-text-subtle: #9ca3af;
+  --cal-text-muted: #8b8b8b;
   --cal-text-inverted: white;
 
   /* Content/Text -> components */
