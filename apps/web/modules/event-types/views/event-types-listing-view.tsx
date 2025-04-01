@@ -977,7 +977,7 @@ export const EventTypesCTA = () => {
   return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
 };
 
-const EventTypesPage: React.FC = () => {
+const EventTypesPage = ({ initialData }: { initialData: any }) => {
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
@@ -995,6 +995,7 @@ const EventTypesPage: React.FC = () => {
     refetchOnWindowFocus: false,
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
+    initialData,
   });
 
   useEffect(() => {
