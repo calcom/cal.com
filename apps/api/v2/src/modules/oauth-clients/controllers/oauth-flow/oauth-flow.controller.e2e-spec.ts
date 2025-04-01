@@ -154,7 +154,9 @@ describe("OAuthFlow Endpoints", () => {
           .expect(200);
 
         expect(response.body?.data?.accessToken).toBeDefined();
+        expect(response.body?.data?.accessTokenExpiresAt).toBeDefined();
         expect(response.body?.data?.refreshToken).toBeDefined();
+        expect(response.body?.data?.refreshTokenExpiresAt).toBeDefined();
 
         refreshToken = response.body.data.refreshToken;
       });
@@ -174,7 +176,9 @@ describe("OAuthFlow Endpoints", () => {
           .expect(200)
           .then((response) => {
             expect(response.body?.data?.accessToken).toBeDefined();
+            expect(response.body?.data?.accessTokenExpiresAt).toBeDefined();
             expect(response.body?.data?.refreshToken).toBeDefined();
+            expect(response.body?.data?.refreshTokenExpiresAt).toBeDefined();
           });
       });
     });

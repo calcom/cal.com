@@ -2,11 +2,14 @@ import { JwtService } from "@/modules/jwt/jwt.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { PlatformAuthorizationToken } from "@prisma/client";
 import { DateTime } from "luxon";
 
 @Injectable()
 export class TokensRepository {
+  private readonly logger = new Logger("TokensRepository");
+
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
@@ -62,7 +65,7 @@ export class TokensRepository {
           }),
         ]);
       } catch (err) {
-        // discard.
+        this.logger.error("createOAuthTokens - Failed to delete old tokens", err);
       }
     }
 
@@ -91,6 +94,7 @@ export class TokensRepository {
       accessToken: accessToken.secret,
       accessTokenExpiresAt: accessToken.expiresAt,
       refreshToken: refreshToken.secret,
+      refreshTokenExpiresAt: refreshToken.expiresAt,
     };
   }
 

@@ -96,20 +96,15 @@ export class OAuthFlowController {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt } =
-      await this.oAuthFlowService.exchangeAuthorizationToken(
-        authorizeEndpointCode,
-        clientId,
-        body.clientSecret
-      );
+    const tokens = await this.oAuthFlowService.exchangeAuthorizationToken(
+      authorizeEndpointCode,
+      clientId,
+      body.clientSecret
+    );
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        accessToken,
-        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
-        refreshToken,
-      },
+      data: tokens,
     };
   }
 
@@ -124,7 +119,7 @@ export class OAuthFlowController {
   })
   @ApiOperation({
     summary: "Refresh managed user tokens",
-    description: `If managed user access token is expired then get a new one using this endpoint. Each access token is valid for 60 minutes and 
+    description: `If managed user access token is expired then get a new one using this endpoint while also refreshing the refresh token. Each access token is valid for 60 minutes and 
     each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have \`calAccessToken\` and \`calRefreshToken\` columns.`,
   })
   async refreshTokens(
@@ -132,19 +127,11 @@ export class OAuthFlowController {
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<KeysResponseDto> {
-    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.oAuthFlowService.refreshToken(
-      clientId,
-      secretKey,
-      body.refreshToken
-    );
+    const tokens = await this.oAuthFlowService.refreshToken(clientId, secretKey, body.refreshToken);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        accessToken: accessToken,
-        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
-        refreshToken: refreshToken,
-      },
+      data: tokens,
     };
   }
 }
