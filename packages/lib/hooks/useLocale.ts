@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
-import { useBookerI18n } from "@calcom/lib/bookerI18nextProvider";
+import { useBookerI18n } from "@calcom/web/components/bookerI18nextProvider";
 
 export const useLocale = (namespace: Parameters<typeof useTranslation>[0] = "common") => {
   const context = useAtomsContext();
