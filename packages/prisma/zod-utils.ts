@@ -634,6 +634,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   recurringEvent: true,
   customInputs: true,
   disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,

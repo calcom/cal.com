@@ -398,6 +398,7 @@ export const EventAdvancedTab = ({
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
+  console.log(formMethods);
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [darkModeError, setDarkModeError] = useState(false);
@@ -482,11 +483,20 @@ export const EventAdvancedTab = ({
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
+
+  // Add lock props for the disable toggles
+  const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
+  const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
+
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
     multiplePrivateLinksLocked.disabled = true;
   }
+
+  const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
+
+  const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -577,6 +587,72 @@ export const EventAdvancedTab = ({
         onRequiresConfirmation={setRequiresConfirmation}
         customClassNames={customClassNames?.requiresConfirmation}
       />
+
+      {/* Add separate toggle controls for disabling rescheduling and cancellation */}
+      <Controller
+        name="disableRescheduling"
+        render={({ field: { onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("disable_rescheduling")}
+            data-testid="disable-rescheduling-toggle"
+            {...disableReschedulingLocked}
+            description={t("description_disable_rescheduling")}
+            checked={disableRescheduling}
+            onCheckedChange={(val) => {
+              setDisableRescheduling(val);
+              onChange(val);
+            }}
+          />
+        )}
+      />
+
+      <Controller
+        name="disableCancelling"
+        render={({ field: { onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("disable_cancelling")}
+            data-testid="disable-cancelling-toggle"
+            {...disableCancellingLocked}
+            description={t("description_disable_cancelling")}
+            checked={disableCancelling}
+            onCheckedChange={(val) => {
+              setDisableCancelling(val);
+              onChange(val);
+            }}
+          />
+        )}
+      />
+
+      <Controller
+        name="canSendCalVideoTranscriptionEmails"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames(
+              "text-sm",
+              customClassNames?.canSendCalVideoTranscriptionEmails?.label
+            )}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.canSendCalVideoTranscriptionEmails?.container
+            )}
+            title={t("send_cal_video_transcription_emails")}
+            data-testid="send-cal-video-transcription-emails"
+            {...sendCalVideoTranscriptionEmailsProps}
+            description={t("description_send_cal_video_transcription_emails")}
+            descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+
       <Controller
         name="canSendCalVideoTranscriptionEmails"
         render={({ field: { value, onChange } }) => (
