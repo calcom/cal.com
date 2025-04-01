@@ -52,7 +52,6 @@ async function cancelAttendeeSeat(
   const seatReference = bookingToDelete.seatsReferences.find(
     (reference) => reference.referenceUid === seatReferenceUid
   );
-  console.log("seatReference", seatReference);
 
   if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
 
