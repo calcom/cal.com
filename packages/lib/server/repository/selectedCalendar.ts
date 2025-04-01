@@ -214,6 +214,12 @@ export class SelectedCalendarRepository {
   }
 
   static async findFirstByGoogleChannelId(googleChannelId: string) {
+    const selectedCalendarsSelect = {
+      orderBy: {
+        externalId: "asc",
+      },
+    };
+
     return await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
@@ -223,21 +229,13 @@ export class SelectedCalendarRepository {
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
-            selectedCalendars: {
-              orderBy: {
-                externalId: "asc",
-              },
-            },
+            selectedCalendars: selectedCalendarsSelect,
           },
         },
         delegationCredential: {
           select: {
             id: true,
-            selectedCalendars: {
-              orderBy: {
-                externalId: "asc",
-              },
-            },
+            selectedCalendars: selectedCalendarsSelect,
           },
         },
         delegationCredentialId: true,

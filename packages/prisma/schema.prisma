@@ -773,10 +773,9 @@ model SelectedCalendar {
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId           String?
 
-  // Deprecated and probably unused: Use delegationCredential instead
+  // Deprecated and unused: Use delegationCredential instead
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
-
   error                            String?
 
   eventTypeId Int?
@@ -1455,14 +1454,17 @@ view BookingTimeStatus {
 }
 
 model CalendarCache {
+  // Addition of this model field is to be done in a separate migration where it would be optional first, followed
   id           String      @id @default(uuid())
   // The key would be the unique URL that is requested by the user
   key          String
   value        Json
   expiresAt    DateTime
+  // credentialId won't be set for CalendarCache of a DelegationCredential
   credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
+  // This field won't be set for CalendarCache of a regular credential
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   
@@ -1834,6 +1836,7 @@ model DelegationCredential {
   bookingReferences   BookingReference[]
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
+  // Holds the calendar-cache for different members of an organization corresponding this delegation credential
   calendarCaches      CalendarCache[]
 
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
@@ -1856,7 +1859,6 @@ model DomainWideDelegation {
   selectedCalendars   SelectedCalendar[]
   destinationCalendar DestinationCalendar[]
   bookingReferences   BookingReference[]
-
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 

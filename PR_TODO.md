@@ -1,3 +1,4 @@
+- [ ] Separate migration for adding optional id to CalendarCache model, along with the manual migration of updating existing records with the id.
 - [ ] Test the case where an email is there that can't be subscribed for freebusy updates(e.g. A user adds their personal calendar to their work calendar(having DWD), personal calendar can't be subscribed to though now and it would error when cron runs)
 
 

@@ -153,7 +153,7 @@ async function expectCacheToBeSet({
   );
 }
 
-async function createCredentialInDb({
+async function createCredentialForCalendarService({
   user = undefined,
   delegatedTo = null,
   delegationCredentialId = null,
@@ -227,13 +227,31 @@ async function createCredentialInDb({
   } as CredentialForCalendarServiceWithEmail;
 }
 
-const delegatedCredential = {
+const defaultDelegatedCredential = {
   serviceAccountKey: {
     client_email: "service@example.com",
     client_id: "service-client-id",
     private_key: "service-private-key",
   },
 } as const;
+
+async function createDelegationCredentialForCalendarService({
+  user,
+  delegatedTo,
+  delegationCredentialId,
+}: {
+  user?: { email: string } | null;
+  delegatedTo?: typeof defaultDelegatedCredential;
+  delegationCredentialId: string;
+}) {
+  await createCredentialForCalendarService({
+    user: user || {
+      email: "service@example.com",
+    },
+    delegatedTo: delegatedTo || defaultDelegatedCredential,
+    delegationCredentialId,
+  });
+}
 
 const createMockJWTInstance = ({
   email = "user@example.com",
@@ -245,8 +263,8 @@ const createMockJWTInstance = ({
   const mockJWTInstance = {
     type: "jwt" as const,
     config: {
-      email: delegatedCredential.serviceAccountKey.client_email,
-      key: delegatedCredential.serviceAccountKey.private_key,
+      email: defaultDelegatedCredential.serviceAccountKey.client_email,
+      key: defaultDelegatedCredential.serviceAccountKey.private_key,
       scopes: ["https://www.googleapis.com/auth/calendar"],
       subject: email,
     },
@@ -540,7 +558,7 @@ beforeEach(() => {
 
 describe("Calendar Cache", () => {
   test("Calendar Cache is being read on cache HIT", async () => {
-    const credentialInDb1 = await createCredentialInDb();
+    const credentialInDb1 = await createCredentialForCalendarService();
     const dateFrom1 = new Date().toISOString();
     const dateTo1 = new Date().toISOString();
 
@@ -586,7 +604,7 @@ describe("Calendar Cache", () => {
 
   test("Calendar Cache is being ignored on cache MISS", async () => {
     const calendarCache = await CalendarCache.init(null);
-    const credentialInDb = await createCredentialInDb();
+    const credentialInDb = await createCredentialForCalendarService();
     const dateFrom = new Date(Date.now()).toISOString();
     // Tweak date so that it's a cache miss
     const dateTo = new Date(Date.now() + 100000000).toISOString();
@@ -611,14 +629,6 @@ describe("Calendar Cache", () => {
   });
 
   describe("Delegation Credential + Calendar Cache", () => {
-    const delegatedCredential = {
-      serviceAccountKey: {
-        client_email: "service@example.com",
-        client_id: "service-client-id",
-        private_key: "service-private-key",
-      },
-    };
-
     describe("getAvailability", () => {
       test("cache should be isolated between users", async () => {
         const domain = "workspace.com";
@@ -627,15 +637,15 @@ describe("Calendar Cache", () => {
         const delegationCredentialId = "delegation-credential-id-1";
 
         // Create DWD credentials for two different users
-        const credentialUser1 = await createCredentialInDb({
+        const credentialUser1 = await createCredentialForCalendarService({
           user: { email: user1Email },
-          delegatedTo: delegatedCredential,
+          delegatedTo: defaultDelegatedCredential,
           delegationCredentialId,
         });
 
-        const credentialUser2 = await createCredentialInDb({
+        const credentialUser2 = await createCredentialForCalendarService({
           user: { email: user2Email },
-          delegatedTo: delegatedCredential,
+          delegatedTo: defaultDelegatedCredential,
           delegationCredentialId,
         });
 
@@ -683,15 +693,15 @@ describe("Calendar Cache", () => {
         const delegationCredentialId = "delegation-credential-id-1";
 
         // Create DWD credentials for two different users
-        const credentialUser1 = await createCredentialInDb({
+        const credentialUser1 = await createCredentialForCalendarService({
           user: { email: user1Email },
-          delegatedTo: delegatedCredential,
+          delegatedTo: defaultDelegatedCredential,
           delegationCredentialId,
         });
 
-        const credentialUser2 = await createCredentialInDb({
+        const credentialUser2 = await createCredentialForCalendarService({
           user: { email: user2Email },
-          delegatedTo: delegatedCredential,
+          delegatedTo: defaultDelegatedCredential,
           delegationCredentialId,
         });
 
@@ -742,9 +752,9 @@ describe("Calendar Cache", () => {
 
 describe("Watching and unwatching calendar", () => {
   test("Calendar can be watched and unwatched", async () => {
-    const credentialInDb1 = await createCredentialInDb();
-    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
-    await calendarCache.watchCalendar({
+    const credentialInDb1 = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb1);
+    await calendarService.watchCalendar({
       calendarId: testSelectedCalendar.externalId,
       eventTypeIds: [null],
     });
@@ -774,7 +784,77 @@ describe("Watching and unwatching calendar", () => {
 
     expect(watchedCalendar?.id).toBeDefined();
 
-    await calendarCache.unwatchCalendar({
+    await calendarService.unwatchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
+    const calendarAfterUnwatch = await prismock.selectedCalendar.findFirst({
+      where: {
+        userId: credentialInDb1.userId!,
+        externalId: testSelectedCalendar.externalId,
+        integration: "google_calendar",
+      },
+    });
+
+    expect(calendarAfterUnwatch).toEqual(
+      expect.objectContaining({
+        userId: 1,
+        eventTypeId: null,
+        integration: "google_calendar",
+        externalId: "example@cal.com",
+        credentialId: 1,
+        delegationCredentialId: null,
+        googleChannelId: null,
+        googleChannelKind: null,
+        googleChannelResourceId: null,
+        googleChannelResourceUri: null,
+        googleChannelExpiration: null,
+      })
+    );
+    expect(calendarAfterUnwatch?.id).toBeDefined();
+  });
+
+  test.only("SelectedCalendar having delegationCredential can be watched and unwatched", async () => {
+    const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
+      user: { email: "user1@example.com" },
+      delegationCredentialId: "delegation-credential-id-1",
+    });
+    const delegationCredential1Member2 = await createDelegationCredentialForCalendarService({
+      user: { email: "user2@example.com" },
+      delegationCredentialId: "delegation-credential-id-1",
+    });
+    const calendarService = new CalendarService(delegationCredential1Member1);
+    await calendarService.watchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
+    const watchedCalendar = await prismock.selectedCalendar.findFirst({
+      where: {
+        userId: delegationCredential1.userId!,
+        externalId: testSelectedCalendar.externalId,
+        integration: "google_calendar",
+      },
+    });
+
+    expect(watchedCalendar).toEqual(
+      expect.objectContaining({
+        userId: 1,
+        eventTypeId: null,
+        integration: "google_calendar",
+        externalId: "example@cal.com",
+        credentialId: 1,
+        delegationCredentialId: null,
+        googleChannelId: "mock-channel-id",
+        googleChannelKind: "api#channel",
+        googleChannelResourceId: "mock-resource-id",
+        googleChannelResourceUri: "mock-resource-uri",
+        googleChannelExpiration: "1111111111",
+      })
+    );
+
+    expect(watchedCalendar?.id).toBeDefined();
+
+    await calendarService.unwatchCalendar({
       calendarId: testSelectedCalendar.externalId,
       eventTypeIds: [null],
     });
@@ -805,7 +885,7 @@ describe("Watching and unwatching calendar", () => {
   });
 
   test("watchCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
-    const credentialInDb1 = await createCredentialInDb();
+    const credentialInDb1 = await createCredentialForCalendarService();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
     const userLevelCalendar = await SelectedCalendarRepository.create({
       userId: credentialInDb1.userId!,
@@ -858,7 +938,7 @@ describe("Watching and unwatching calendar", () => {
   });
 
   test("unwatchCalendar should not unsubscribe from google if there is another selectedCalendar with same externalId and credentialId", async () => {
-    const credentialInDb1 = await createCredentialInDb();
+    const credentialInDb1 = await createCredentialForCalendarService();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
 
     await prismock.calendarCache.create({
@@ -958,7 +1038,7 @@ describe("Watching and unwatching calendar", () => {
 });
 
 test("fetchAvailabilityAndSetCache should fetch and cache availability for selected calendars grouped by eventTypeId", async () => {
-  const credentialInDb = await createCredentialInDb();
+  const credentialInDb = await createCredentialForCalendarService();
   const calendarService = new CalendarService(credentialInDb);
 
   const selectedCalendars = [
@@ -1027,7 +1107,7 @@ test("fetchAvailabilityAndSetCache should fetch and cache availability for selec
 });
 
 test("`updateTokenObject` should update credential in DB as well as myGoogleAuth", async () => {
-  const credentialInDb = await createCredentialInDb();
+  const credentialInDb = await createCredentialForCalendarService();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let updateTokenObject: any;
@@ -1076,9 +1156,9 @@ test("`updateTokenObject` should update credential in DB as well as myGoogleAuth
 
 describe("Delegation Credential Error handling", () => {
   test("handles clientId not added to Google Workspace Admin Console error", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     createMockJWTInstance({
@@ -1099,9 +1179,9 @@ describe("Delegation Credential Error handling", () => {
   });
 
   test("handles DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     createMockJWTInstance({
@@ -1122,9 +1202,9 @@ describe("Delegation Credential Error handling", () => {
   });
 
   test("handles invalid_grant error (user not in workspace) appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     createMockJWTInstance({
@@ -1143,9 +1223,9 @@ describe("Delegation Credential Error handling", () => {
   });
 
   test("handles general DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     createMockJWTInstance({
@@ -1158,9 +1238,9 @@ describe("Delegation Credential Error handling", () => {
   });
 
   test("handles missing user email for DelegationCredential appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: null },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     const calendarService = new CalendarService(credentialWithDelegation);
@@ -1182,9 +1262,9 @@ describe("Delegation Credential Error handling", () => {
 
 describe("GoogleCalendarService credential handling", () => {
   test("uses JWT auth with impersonation when Delegation credential is provided", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     const calendarService = new CalendarService(credentialWithDelegation);
@@ -1193,8 +1273,8 @@ describe("GoogleCalendarService credential handling", () => {
     const expectedJWTConfig: MockJWT = {
       type: "jwt",
       config: {
-        email: delegatedCredential.serviceAccountKey.client_email,
-        key: delegatedCredential.serviceAccountKey.private_key,
+        email: defaultDelegatedCredential.serviceAccountKey.client_email,
+        key: defaultDelegatedCredential.serviceAccountKey.private_key,
         scopes: ["https://www.googleapis.com/auth/calendar"],
         subject: "user@example.com",
       },
@@ -1209,7 +1289,7 @@ describe("GoogleCalendarService credential handling", () => {
   });
 
   test("uses OAuth2 auth when no Delegation credential is provided", async () => {
-    const regularCredential = await createCredentialInDb();
+    const regularCredential = await createCredentialForCalendarService();
     const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
 
     const calendarService = new CalendarService(regularCredential);
@@ -1233,9 +1313,9 @@ describe("GoogleCalendarService credential handling", () => {
   });
 
   test("handles DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     createMockJWTInstance({
@@ -1256,9 +1336,9 @@ describe("GoogleCalendarService credential handling", () => {
   });
 
   test("handles invalid_grant error (user not in workspace) appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     createMockJWTInstance({
@@ -1277,9 +1357,9 @@ describe("GoogleCalendarService credential handling", () => {
   });
 
   test("handles general DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     createMockJWTInstance({
@@ -1292,9 +1372,9 @@ describe("GoogleCalendarService credential handling", () => {
   });
 
   test("handles missing user email for DelegationCredential appropriately", async () => {
-    const credentialWithDelegation = await createCredentialInDb({
+    const credentialWithDelegation = await createCredentialForCalendarService({
       user: { email: null },
-      delegatedTo: delegatedCredential,
+      delegatedTo: defaultDelegatedCredential,
     });
 
     const calendarService = new CalendarService(credentialWithDelegation);

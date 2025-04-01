@@ -57,10 +57,15 @@ const getCalendarsEvents = async (
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
 
-  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
-  const calendarToCredentialMap = new Map(
-    calendarCredentials.map((credential, index) => [calendars[index], credential])
+  const calendarAndCredentialPairs = await Promise.all(
+    calendarCredentials.map(async (credential) => {
+      const calendar = await getCalendar(credential);
+      return [calendar, credential] as const;
+    })
   );
+
+  const calendars = calendarAndCredentialPairs.map(([calendar]) => calendar);
+  const calendarToCredentialMap = new Map(calendarAndCredentialPairs);
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (calendarService, i) => {
     /** Filter out nulls */
@@ -82,14 +87,12 @@ const getCalendarsEvents = async (
       if (!isADelegationCredential) {
         // It was done to fix the secondary calendar connections from always checking the conflicts even if intentional no calendars are selected.
         // https://github.com/calcom/cal.com/issues/8929
-        log.debug("No selected calendars for non DWD credential: Skipping getAvailability call");
+        log.error("No selected calendars for non DWD credential: Skipping getAvailability call");
         return [];
       }
-      // For DWD credential, we should allow getAvailability even without any selected calendars, because DWD credential is enforced at organization level where it would be expected.
-      // If it ever comes up us a requirement to not do this always, we would have to ensure to add SelectedCalendar entry for all existing members and any new members being added.
-      // CalendarService can then choose the primary calendar for conflicts checking.
+      // For delegation credential, we should allow getAvailability even without any selected calendars. It ensures that enabling Delegation Credential at Organization level always ensure one selected calendar for conflicts checking, without requiring any manual action from organization members
       // This is also, similar to how Google Calendar connect flow(through /googlecalendar/api/callback) sets the primary calendar as the selected calendar automatically.
-      log.debug("Allowing getAvailability even without any selected calendars for DWD credential");
+      log.info("Allowing getAvailability even without any selected calendars for Delegation Credential");
     }
     /** We extract external Ids so we don't cache too much */
 

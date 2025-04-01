@@ -71,7 +71,7 @@ type GoogleChannelProps = {
   expiration?: string | null;
 };
 
-const getWhereForSelectedCalendar = ({
+const buildWhereClauseForSelectedCalendar = ({
   credentialId,
   userId,
 }: {
@@ -81,9 +81,10 @@ const getWhereForSelectedCalendar = ({
   let where;
   if (isDelegationCredential({ credentialId })) {
     if (!userId) {
-      console.error("Skipping querying calendar as `userId` is missing, needed for DWD");
+      log.error("Skipping querying SelectedCalendar as `userId` is missing, needed for delegation");
       return;
     }
+    // Delegation Credential is common for all members of an organization, so we must use userId
     where = {
       userId,
     };
@@ -698,10 +699,10 @@ export default class GoogleCalendarService implements Calendar {
     });
 
     if (cached) {
-      console.log("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
+      log.debug("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
       return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
     }
-    console.log("[Cache Miss] Fetching freebusy result", safeStringify({ args }));
+    log.debug("[Cache Miss] Fetching freebusy result", safeStringify({ args }));
     return await this.fetchAvailability(args);
   }
 
@@ -822,7 +823,7 @@ export default class GoogleCalendarService implements Calendar {
 
       // /freebusy from google api only allows a date range of 90 days
       if (diff <= 90) {
-        console.log("Range < 90 days");
+        log.debug("getAvailability: Range < 90 days");
         const freeBusyData = await this.getCacheOrFetchAvailability(
           {
             timeMin: dateFrom,
@@ -927,14 +928,14 @@ export default class GoogleCalendarService implements Calendar {
       return;
     }
 
-    const where = getWhereForSelectedCalendar({
+    const whereSelectedCalendar = buildWhereClauseForSelectedCalendar({
       credentialId: this.credential.id,
       userId: this.credential.userId,
     });
 
     const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
       where: {
-        ...where,
+        ...whereSelectedCalendar,
         externalId: calendarId,
         integration: this.integrationName,
         googleChannelId: {
@@ -1004,7 +1005,7 @@ export default class GoogleCalendarService implements Calendar {
     const eventTypeIdsToBeUnwatched = eventTypeIds;
     const calendarCache = await CalendarCache.init(null);
 
-    const where = getWhereForSelectedCalendar({
+    const where = buildWhereClauseForSelectedCalendar({
       credentialId,
       userId: this.credential.userId,
     });

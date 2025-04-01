@@ -17,36 +17,36 @@ export class CalendarCache {
     return await CalendarCache.init(calendar);
   }
 
-  static async initFromDwdId({
-    dwdId,
+  static async initFromDelegationCredentialId({
+    delegationCredentialId,
     userId,
   }: {
-    dwdId: string;
+    delegationCredentialId: string;
     userId: number;
   }): Promise<ICalendarCacheRepository> {
-    const dwdCredential = await findUniqueDelegationCalendarCredential({
-      delegationCredentialId: dwdId,
+    const delegationCredential = await findUniqueDelegationCalendarCredential({
+      delegationCredentialId,
       userId,
     });
-    const calendar = await getCalendar(dwdCredential);
+    const calendar = await getCalendar(delegationCredential);
     return await CalendarCache.init(calendar);
   }
 
-  static async initFromDwdOrRegularCredential({
+  static async initFromDelegationCredentialOrRegularCredential({
+    delegationCredentialId,
     credentialId,
-    dwdId,
     userId,
   }: {
     credentialId: number | null;
-    dwdId: string | null;
+    delegationCredentialId: string | null;
     userId: number;
   }): Promise<ICalendarCacheRepository> {
-    if (dwdId) {
-      return await CalendarCache.initFromDwdId({ dwdId, userId });
+    if (delegationCredentialId) {
+      return await CalendarCache.initFromDelegationCredentialId({ delegationCredentialId, userId });
     } else if (credentialId) {
       return await CalendarCache.initFromCredentialId(credentialId);
     }
-    throw new Error("No credential or DWD ID provided");
+    throw new Error("No credential or delegation credential provided");
   }
 
   static async init(calendar: Calendar | null): Promise<ICalendarCacheRepository> {
