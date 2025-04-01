@@ -413,6 +413,36 @@ export default class SalesforceCRMService implements CRM {
 
       let records: ContactRecord[] = [];
 
+      // This combination is for searching for ownership via contacts
+      if (
+        recordToSearch === SalesforceRecordEnum.CONTACT &&
+        appOptions?.roundRobinSkipFallbackToLeadOwner &&
+        forRoundRobinSkip
+      ) {
+        const searchResult = await conn.search(
+          `FIND {${emailArray[0]}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
+        );
+
+        if (searchResult.searchRecords.length > 0) {
+          // See if a contact was found first
+          const contactQuery = searchResult.searchRecords.filter(
+            (record) => record.attributes?.type === SalesforceRecordEnum.CONTACT
+          );
+
+          if (contactQuery.length > 0) {
+            records = contactQuery as ContactRecord[];
+          } else {
+            // If not fallback to lead
+            const leadQuery = searchResult.searchRecords.filter(
+              (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
+            );
+            if (leadQuery.length > 0) {
+              records = leadQuery as ContactRecord[];
+            }
+          }
+        }
+      }
+
       // If falling back to contacts, check for the contact before returning the leads or empty array
       if (
         appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
@@ -941,14 +971,14 @@ export default class SalesforceCRMService implements CRM {
     return accountId;
   }
 
-  private async getAccountBasedOnEmailDomainOfContacts(email: string) {
+  public async getAccountBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
     const log = logger.getSubLogger({ prefix: [`[getAccountBasedOnEmailDomainOfContacts]:${email}`] });
     log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+      `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
         emailDomain
       )}) LIMIT 1`
     );
@@ -963,7 +993,13 @@ export default class SalesforceCRMService implements CRM {
 
       log.info(
         "Found account matching email domain",
-        safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
+        safeStringify({
+          emailDomain,
+          accountWebsite: account.Website,
+          accountOwnerEmail: account.Owner?.Email,
+          accountOwnerId: account.OwnerId,
+          accountId: account.Id,
+        })
       );
 
       return {
@@ -1145,6 +1181,18 @@ export default class SalesforceCRMService implements CRM {
             writeOnRecordBody[field.name] = dateValue;
             continue;
           }
+        } else if (field.type === SalesforceFieldType.PICKLIST) {
+          const picklistValue = await this.getPicklistFieldValue({
+            fieldConfigValue: fieldConfig.value,
+            salesforceField: field,
+            calEventResponses,
+            bookingUid,
+            contactId,
+          });
+          if (picklistValue) {
+            writeOnRecordBody[field.name] = picklistValue;
+            continue;
+          }
         }
       }
 
@@ -1286,6 +1334,49 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return null;
+  }
+
+  private async getPicklistFieldValue({
+    fieldConfigValue,
+    salesforceField,
+    calEventResponses,
+    bookingUid,
+    contactId,
+  }: {
+    fieldConfigValue: string;
+    salesforceField: Field;
+    calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
+    contactId: string;
+  }) {
+    const log = logger.getSubLogger({ prefix: [`[getPicklistFieldValue] ${contactId}`] });
+
+    const picklistOptions = salesforceField.picklistValues;
+    if (!picklistOptions || !picklistOptions.length) {
+      log.warn(`No picklist values found for field ${salesforceField.name}`);
+      return null;
+    }
+
+    // Get the text value from the field
+    const fieldTextValue = await this.getTextFieldValue({
+      fieldValue: fieldConfigValue,
+      fieldLength: salesforceField.length,
+      calEventResponses,
+      bookingUid,
+    });
+
+    if (!fieldTextValue) {
+      log.warn(`No text value found for field ${salesforceField.name}`);
+      return null;
+    }
+    // Get the picklist value from the field
+    const picklistValue = picklistOptions.find((option) => option.active && option.value === fieldTextValue);
+    if (!picklistValue) {
+      log.warn(`No picklist value found for field ${salesforceField.name} and value ${fieldTextValue}`);
+      return null;
+    }
+
+    return picklistValue.value;
   }
 
   private async fetchPersonRecord(

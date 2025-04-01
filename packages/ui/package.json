@@ -5,7 +5,6 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "exports": {
-    ".": "./index.ts",
     "./classNames": "./classNames.ts",
     "./styles": "./styles/index.ts",
     "./components/address": "./components/address/index.ts",
@@ -33,7 +32,6 @@
     "./components/errorBoundary": "./components/errorBoundary/index.ts",
     "./components/form": "./components/form/index.ts",
     "./components/form/timezone-select": "./components/form/timezone-select/index.ts",
-    "./components/head-seo": "./components/head-seo/index.ts",
     "./components/hover-card": "./components/hover-card/index.tsx",
     "./components/image-uploader": "./components/image-uploader/index.ts",
     "./components/layout": "./components/layout/index.ts",
@@ -66,6 +64,9 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint:fix": "eslint . --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json",
+    "dx": "node ./scripts/build-icons.mjs",
+    "dev": "node ./scripts/build-icons.mjs",
+    "build": "node ./scripts/build-icons.mjs",
     "build:icons": "node ./scripts/build-icons.mjs"
   },
   "dependencies": {

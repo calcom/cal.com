@@ -303,9 +303,9 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
-          expect(data.schedulingType).toEqual("COLLECTIVE");
-          evaluateHost(body.hosts[0], data.hosts[0]);
-          evaluateHost(body.hosts[1], data.hosts[1]);
+          expect(data.schedulingType).toEqual("collective");
+          evaluateHost(body.hosts?.[0] || { userId: -1 }, data.hosts[0]);
+          evaluateHost(body.hosts?.[1] || { userId: -1 }, data.hosts[1]);
           expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
@@ -423,8 +423,8 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.length).toEqual(2);
 
-          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "MANAGED");
+          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "collective");
+          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "managed");
 
           expect(eventTypeCollective?.title).toEqual(collectiveEventType.title);
           expect(eventTypeCollective?.hosts.length).toEqual(2);
@@ -516,7 +516,7 @@ describe("Organizations Event Types Endpoints", () => {
           ).toEqual(newTitle);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.title).toEqual(newTitle);
@@ -562,7 +562,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(managedTeamEventTypes[0].assignAllTeamMembers).toEqual(true);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.teamId).toEqual(team.id);

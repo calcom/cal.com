@@ -7,6 +7,11 @@ import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
 
+export enum RRReassignmentType {
+  ROUND_ROBIN = "round_robin",
+  MANUAL = "manual",
+}
+
 export default class AssignmentReasonRecorder {
   static async routingFormRoute({
     bookingId,
@@ -143,10 +148,12 @@ export default class AssignmentReasonRecorder {
     bookingId,
     reassignById,
     reassignReason,
+    reassignmentType,
   }: {
     bookingId: number;
     reassignById: number;
     reassignReason?: string;
+    reassignmentType: RRReassignmentType;
   }) {
     const reassignedBy = await prisma.user.findFirst({
       where: {
@@ -164,7 +171,10 @@ export default class AssignmentReasonRecorder {
     await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
-        reasonEnum: AssignmentReasonEnum.REASSIGNED,
+        reasonEnum:
+          reassignmentType === RRReassignmentType.MANUAL
+            ? AssignmentReasonEnum.REASSIGNED
+            : AssignmentReasonEnum.RR_REASSIGNED,
         reasonString,
       },
     });

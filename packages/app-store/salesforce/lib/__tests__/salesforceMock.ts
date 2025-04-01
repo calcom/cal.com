@@ -1,3 +1,4 @@
+import { parseQuery, composeQuery } from "@jetstreamapp/soql-parser-js";
 import { vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
@@ -43,7 +44,11 @@ export const createSalesforceMock = () => {
   };
 
   // Query parser and responder
-  const handleQuery = (query: string) => {
+  const handleQuery = (rawQuery: string) => {
+    const parsedQuery = parseQuery(rawQuery);
+    // Validated Query
+    const query = composeQuery(parsedQuery);
+
     // Simple SOQL parser
     console.log({ query });
     const fromMatch = query.match(/FROM\s+(\w+)/i);
