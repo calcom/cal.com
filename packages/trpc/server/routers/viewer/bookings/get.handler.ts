@@ -210,8 +210,6 @@ export async function getBookings({
     orConditions.push({ attendees: { some: { email: attendeeEmailFilter } } });
     // 3. Seat reference attendee email matches one of the filtered users' emails
     orConditions.push({ seatsReferences: { some: { attendee: { email: attendeeEmailFilter } } } });
-    // 4. (Redundant with 1 in this branch, but matches original logic) Booking user is in the filtered list
-    // orConditions.push({ userId: { in: filters.userIds } }); // This was the effect of the `??` in the original - keeping separate for clarity of original structure
   } else {
     // Unfiltered view (based on the current logged-in user):
     const userEmailFilter = { equals: user.email }; // Use equals for single value
