@@ -1858,8 +1858,6 @@
   "wrong_code": "Vale kinnituskood",
   "not_verified": "Pole veel kinnitatud",
   "no_availability_in_month": "Pole saadaval {{kuus}}",
-  "no_availability_rolling": "Ajastamine on saadaval ainult kuni {{days}} ette. Palun kontrollige varsti uuesti.",
-  "no_availability_range": "Ajastamine lõppes kuupäeval {{date}}. Palun kontrollige varsti uuesti.",
   "view_previous_month": "Vaata eelmist kuud",
   "view_next_month": "Vaata järgmist kuud",
   "send_code": "Saada kood",

@@ -1858,8 +1858,6 @@
   "wrong_code": "Rossz ellenőrző kód",
   "not_verified": "Még nincs ellenőrizve",
   "no_availability_in_month": "Nem elérhető: {{month}}",
-  "no_availability_rolling": "Az ütemezés csak {{days}} napig lehetséges a közeljövőben. Kérjük, nézzen vissza hamarosan.",
-  "no_availability_range": "Az ütemezés befejeződött {{date}}-én/án. Kérjük, nézzen vissza hamarosan.",
   "view_previous_month": "Előző hónap megtekintése",
   "view_next_month": "Következő hónap megtekintése",
   "send_code": "Kód küldése",

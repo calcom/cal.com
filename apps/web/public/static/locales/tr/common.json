@@ -1858,8 +1858,6 @@
   "wrong_code": "Yanlış doğrulama kodu",
   "not_verified": "Henüz doğrulanmadı",
   "no_availability_in_month": "{{month}} ayında müsaitlik yok",
-  "no_availability_rolling": "Planlama sadece {{days}} gün öncesine kadar yapılabilir. Lütfen daha sonra tekrar kontrol edin.",
-  "no_availability_range": "Planlama {{date}} tarihinde sona erdi. Lütfen daha sonra tekrar kontrol edin.",
   "view_previous_month": "Önceki ayı görüntüle",
   "view_next_month": "Sonraki ayı görüntüle",
   "send_code": "Kod gönder",

@@ -1858,8 +1858,6 @@
   "wrong_code": "確認コードが間違っています",
   "not_verified": "まだ確認されていません",
   "no_availability_in_month": "{{month}} は参加できません",
-  "no_availability_rolling": "予約は最大{{days}}日先までしか可能ではありません。後でもう一度ご確認ください。",
-  "no_availability_range": "予約は{{date}}で終了しました。後でもう一度ご確認ください。",
   "view_previous_month": "前月を表示",
   "view_next_month": "来月を表示",
   "send_code": "コードを送信",

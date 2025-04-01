@@ -1858,8 +1858,6 @@
   "wrong_code": "Codi de verificació incorrecte",
   "not_verified": "Encara no verificat",
   "no_availability_in_month": "No hi ha disponibilitat al {{month}}",
-  "no_availability_rolling": "La programació només està disponible fins a {{days}} dies vista. Si us plau, torna-ho a comprovar aviat.",
-  "no_availability_range": "La programació va acabar el {{date}}. Si us plau, torna-ho a comprovar aviat.",
   "view_previous_month": "Veure el mes anterior",
   "view_next_month": "Veure el mes següent",
   "send_code": "Enviar codi",

@@ -1858,8 +1858,6 @@
   "wrong_code": "Codice di verifica errato",
   "not_verified": "Non ancora verificato",
   "no_availability_in_month": "Nessuna disponibilità in {{month}}",
-  "no_availability_rolling": "È possibile prenotare solo fino a {{days}} giorni in anticipo. Riprova più tardi.",
-  "no_availability_range": "La programmazione è terminata il {{date}}. Riprova più tardi.",
   "view_previous_month": "Visualizza mese precedente",
   "view_next_month": "Visualizza il mese successivo",
   "send_code": "Invia codice",

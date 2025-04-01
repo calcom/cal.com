@@ -1858,8 +1858,6 @@
   "wrong_code": "Fel verifieringskod",
   "not_verified": "Har inte verifierats än",
   "no_availability_in_month": "Ingen tillgänglighet i {{month}}",
-  "no_availability_rolling": "Schemaläggning är endast tillgänglig upp till {{days}} i förväg. Vänligen kontrollera igen snart.",
-  "no_availability_range": "Schemaläggning avslutades den {{date}}. Vänligen kontrollera igen snart.",
   "view_previous_month": "Visa föregående månad",
   "view_next_month": "Visa nästa månad",
   "send_code": "Skicka kod",

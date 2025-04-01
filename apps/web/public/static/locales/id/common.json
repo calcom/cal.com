@@ -153,7 +153,5 @@
   "ooo_select_reason": "Pilih alasan",
   "enterprise_license_locally": "Anda dapat menguji fitur ini secara lokal tetapi tidak pada produksi.",
   "enterprise_license_sales": "Untuk meningkatkan ke edisi perusahaan, hubungi tim penjualan kami. Jika kunci lisensi sudah ada, hubungi support@cal.com untuk bantuan.",
-  "apply_to_all_event_types": "Terapkan untuk semua, termasuk jenis acara di masa depan",
-  "no_availability_rolling": "Penjadwalan hanya tersedia hingga {{days}} ke depan. Silakan periksa kembali nanti.",
-  "no_availability_range": "Penjadwalan berakhir pada {{date}}. Silakan periksa kembali nanti.",
+  "apply_to_all_event_types": "Terapkan untuk semua, termasuk jenis acara di masa depan"
 }

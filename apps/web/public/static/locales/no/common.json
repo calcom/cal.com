@@ -1858,8 +1858,6 @@
   "wrong_code": "Feil verifiseringskode",
   "not_verified": "Ikke verifisert ennå",
   "no_availability_in_month": "Ingen tilgjengelighet i {{month}}",
-  "no_availability_rolling": "Planlegging er kun tilgjengelig opp til {{days}} på forhånd. Vennligst sjekk igjen snart.",
-  "no_availability_range": "Planlegging sluttet den {{date}}. Vennligst sjekk igjen snart.",
   "view_previous_month": "Vis forrige måned",
   "view_next_month": "Vis neste måned",
   "send_code": "Send kode",

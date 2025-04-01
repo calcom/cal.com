@@ -1858,8 +1858,6 @@
   "wrong_code": "驗證碼錯誤",
   "not_verified": "尚未驗證",
   "no_availability_in_month": "{{month}}不開放預約",
-  "no_availability_rolling": "僅提供 {{days}} 天內的預約。請稍後再查看。",
-  "no_availability_range": "預約期限已於 {{date}} 結束。請稍後再查看。",
   "view_previous_month": "查看上個月",
   "view_next_month": "檢視下個月",
   "send_code": "傳送驗證碼",
