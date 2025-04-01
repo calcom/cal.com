@@ -187,7 +187,6 @@ export async function getBookings({
 
   const [userIdsWhereUserIsOrgAdminOrOwner, userEmailsWhereUserIsOrgAdminOrOwner] =
     userIdsAndEmailsWhereUserIsOrgAdminOrOwner;
-  console.log("DOES THAT WORK", userIdsWhereUserIsOrgAdminOrOwner, userEmailsWhereUserIsOrgAdminOrOwner);
   const orConditions = [];
 
   const hasUserIdsFilter = !!filters?.userIds && filters.userIds.length > 0;
@@ -218,7 +217,7 @@ export async function getBookings({
   } else {
     // Filter by emails for auth user.
     const userEmailFilter = { equals: user.email };
-    // Auth user is ORG_OWNER/ADMIN, filter by emails of members of the org
+    // Auth user is ORG_OWNER/ADMIN, filter by emails of members of the organization
     const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsOrgAdminOrOwner?.length
       ? { in: userEmailsWhereUserIsOrgAdminOrOwner }
       : undefined;
@@ -229,18 +228,18 @@ export async function getBookings({
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
     // 3. Current user is an attendee via seats reference
     orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
-    // 4. Current user is org owner so we get bookings where org members are attendees
+    // 4. Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     userEmailsFilterWhereUserIsOrgAdminOrOwner &&
       orConditions.push({ attendees: { some: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } });
-    // 5. Current user is org owner so we get bookings where org members are attendees via seatsReference
+    // 5. Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     userEmailsFilterWhereUserIsOrgAdminOrOwner &&
       orConditions.push({
         seatsReferences: { some: { attendee: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } },
       });
-    // 6. Booking belongs to an event type the user administers/owns
+    // 6. Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     eventTypeIdsWhereUserIsAdminOrOwener?.length &&
       orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwener } });
-    // 7. Booking created by a user within the same organization (if applicable, based on original logic)
+    // 7.  Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     userIdsWhereUserIsOrgAdminOrOwner?.length &&
       orConditions.push({ userId: { in: userIdsWhereUserIsOrgAdminOrOwner } });
   }
