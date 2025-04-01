@@ -222,9 +222,16 @@ export class BookingsController_2024_04_15 {
     if (bookingUid) {
       try {
         req.body.uid = bookingUid;
-        const res = await handleCancelBooking(
-          await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
-        );
+        const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+        const res = await handleCancelBooking({
+          bookingData: bookingRequest.body,
+          userId: bookingRequest.userId,
+          arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+          platformClientId: bookingRequest.platformClientId,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+        });
         if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }

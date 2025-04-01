@@ -1652,15 +1652,13 @@ describe("handleSeats", () => {
           seatReferenceUid: bookingSeatToBeCancelledUid,
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockCancelBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockCancelBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({
@@ -1793,15 +1791,13 @@ describe("handleSeats", () => {
           seatReferenceUid: bookingSeatToBeCancelledUid,
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockCancelBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockCancelBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({
@@ -2647,15 +2643,13 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({

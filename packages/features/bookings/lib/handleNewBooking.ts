@@ -590,7 +590,7 @@ async function handler(
                 dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                 dateTo: dayjs(end).tz(reqBody.timeZone).format(),
                 timeZone: reqBody.timeZone,
-                originalRescheduledBooking,
+                originalRescheduledBooking: originalRescheduledBooking ?? null,
               },
               loggerWithEventDetails,
               shouldServeCache
