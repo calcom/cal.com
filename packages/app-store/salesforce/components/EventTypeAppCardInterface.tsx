@@ -1,5 +1,6 @@
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import type z from "zod";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -21,7 +22,7 @@ import {
   SalesforceFieldType,
   DateFieldTypeData,
 } from "../lib/enums";
-import type { appDataSchema } from "../zod";
+import type { appDataSchema, writeToRecordEntrySchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const pathname = usePathname();
@@ -76,9 +77,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   ];
 
   const [whenToWriteToPersonRecord, setWhenToWriteToPersonRecord] = useState(
-    whenToWriteToRecordOptions.find(
-      whenToWriteToRecordOptions.find((option) => value === WhenToWriteToRecord.FIELD_EMPTY)
-    )
+    whenToWriteToRecordOptions.find((option) => option.value === WhenToWriteToRecord.FIELD_EMPTY) ??
+      whenToWriteToRecordOptions[0]
   );
 
   const dateFieldValueOptions = [
@@ -94,7 +94,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [dateFieldValue, setDateValue] = useState(dateFieldValueOptions[0]);
   const [checkboxFieldValue, setCheckboxFieldValue] = useState(checkboxFieldValueOptions[0]);
 
-  const [newOnBookingWriteToPersonObjectField, setNewOnBookingWriteToPersonObjectField] = useState({
+  const [newOnBookingWriteToPersonObjectField, setNewOnBookingWriteToPersonObjectField] = useState<
+    z.infer<typeof writeToRecordEntrySchema>
+  >({
     field: "",
     fieldType: writeToPersonObjectFieldType.value,
     value: "",
@@ -350,7 +352,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                           isDisabled={true}
                         />
                       ) : (
-                        <InputField value={onBookingWriteToRecordFields[key].value} readOnly />
+                        <InputField value={onBookingWriteToRecordFields[key].value as string} readOnly />
                       )}
                     </div>
                     <div>
@@ -437,7 +439,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       />
                     ) : (
                       <InputField
-                        value={newOnBookingWriteToPersonObjectField.value}
+                        value={newOnBookingWriteToPersonObjectField.value as string}
                         onChange={(e) =>
                           setNewOnBookingWriteToPersonObjectField({
                             ...newOnBookingWriteToPersonObjectField,
