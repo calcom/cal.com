@@ -76,9 +76,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   //find out if the meeting is in the past
   const isPast = booking?.endTime <= exitDate;
-  const isQA = req.headers.host?.includes("cal.qa");
+  const testingUid =
+    CAL_VIDEO_MEETING_LINK_FOR_TESTING && CAL_VIDEO_MEETING_LINK_FOR_TESTING?.split("/").pop();
+  const isTestingLink = booking?.uid === testingUid;
 
-  if (isPast && !isQA) {
+  if (isPast && !isTestingLink) {
     return {
       redirect: {
         destination: `/video/meeting-ended/${booking?.uid}`,
