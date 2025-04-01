@@ -583,3 +583,33 @@ test.describe("Booking round robin event", () => {
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });
 });
+
+test("When booked with disabled cancellation and rescheduling", async ({ page, users }) => {
+  const user = await users.create({
+    name: `Test-user-1`,
+    eventTypes: [
+      {
+        title: "No Cancel No Reschedule",
+        slug: "no-cancel-no-reschedule",
+        length: 30,
+        disableCancelling: true,
+        disableRescheduling: true,
+      },
+    ],
+  });
+
+  await page.goto(`/${user.username}/no-cancel-no-reschedule`);
+
+  await selectFirstAvailableTimeSlotNextMonth(page);
+
+  await bookTimeSlot(page, {
+    name: "Test-user-1",
+    email: "test-booker@example.com",
+  });
+
+  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+  await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+
+  await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
+});
