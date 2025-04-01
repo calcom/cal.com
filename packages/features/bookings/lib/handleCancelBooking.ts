@@ -47,6 +47,8 @@ type PlatformParams = {
   arePlatformEmailsEnabled?: boolean;
 };
 
+export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
+
 export type CancelBookingInput = {
   userId?: number;
   bookingData: z.infer<typeof bookingCancelInput>;
