@@ -32,24 +32,23 @@ export const ONBOARDING_NEXT_REDIRECT = {
 
 export function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
-  const query = useMeQuery();
-  const user = query.data;
+  const { data: user, isLoading: isUserLoading } = useMeQuery();
   const flags = useFlagMap();
+  const { data: email, isLoading: isEmailCheckLoading } = useEmailVerifyCheck();
 
-  const { data: email } = useEmailVerifyCheck();
-
+  const isLoading = isUserLoading || isEmailCheckLoading;
   const needsEmailVerification = !email?.isVerified && flags["email-verification"];
-
-  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
+  const shouldRedirectToOnboarding = user && shouldShowOnboarding(user);
+  const canRedirect = !isLoading && shouldRedirectToOnboarding && !needsEmailVerification;
 
   useEffect(() => {
-    if (isRedirectingToOnboarding && !needsEmailVerification) {
+    if (canRedirect) {
       router.replace("/getting-started");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRedirectingToOnboarding, needsEmailVerification]);
+  }, [canRedirect, router]);
 
   return {
-    isRedirectingToOnboarding,
+    isLoading,
+    shouldRedirectToOnboarding,
   };
 }
