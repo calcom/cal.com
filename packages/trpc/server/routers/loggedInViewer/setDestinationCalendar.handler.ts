@@ -81,7 +81,8 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     allCals.find(
       (cal) =>
         cal.primary &&
-        (cal.credentialId === credentialId || cal.delegationCredentialId === delegationCredentialId)
+        (cal.credentialId === credentialId ||
+          (!!cal.delegationCredentialId && cal.delegationCredentialId === delegationCredentialId))
     )?.email ?? null;
 
   if (eventTypeId) {
