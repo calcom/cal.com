@@ -360,12 +360,22 @@ function BookingListItem(booking: BookingItemProps) {
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
 
-  if (isDisabledRescheduling || (isTabRecurring && isRecurring)) {
+  if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
   if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  if (isDisabledRescheduling) {
+    bookedActions.forEach((action) => {
+      if (action.id === "edit_booking") {
+        action.actions = action.actions.filter(
+          ({ id }) => id !== "reschedule" && id !== "reschedule_request"
+        );
+      }
+    });
   }
 
   const RequestSentMessage = () => {
