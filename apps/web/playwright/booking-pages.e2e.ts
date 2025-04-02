@@ -584,102 +584,59 @@ test.describe("Booking round robin event", () => {
   });
 });
 
-test("When booked with disabled cancellation and rescheduling", async ({ page, users }) => {
-  const user = await users.create({
-    name: `Test-user-${randomString(4)}`,
-    eventTypes: [
-      {
-        title: "No Cancel No Reschedule",
-        slug: "no-cancel-no-reschedule",
-        length: 30,
-        disableCancelling: true,
-        disableRescheduling: true,
-      },
-    ],
+test.describe("Event type with disabled cancellation and rescheduling", () => {
+  let user;
+  let bookingId;
+
+  test.beforeEach(async ({ page, users }) => {
+    // Create user with event type that has cancellation and rescheduling disabled
+    user = await users.create({
+      name: `Test-user-${randomString(4)}`,
+      eventTypes: [
+        {
+          title: "No Cancel No Reschedule",
+          slug: "no-cancel-no-reschedule",
+          length: 30,
+          disableCancelling: true,
+          disableRescheduling: true,
+        },
+      ],
+    });
+
+    // Book the event
+    await page.goto(`/${user.username}/no-cancel-no-reschedule`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page, {
+      name: "Test-user-1",
+      email: "test-booker@example.com",
+    });
+
+    // Verify booking was successful
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    const url = new URL(page.url());
+    const pathSegments = url.pathname.split("/");
+    bookingId = pathSegments[pathSegments.length - 1];
   });
 
-  await page.goto(`/${user.username}/no-cancel-no-reschedule`);
-
-  await selectFirstAvailableTimeSlotNextMonth(page);
-
-  await bookTimeSlot(page, {
-    name: "Test-user-1",
-    email: "test-booker@example.com",
+  test("Reschedule and cancel buttons should be hidden on success page", async ({ page }) => {
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 
-  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
+    await page.goto(`/reschedule/${bookingId}`);
 
-  await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-  await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
-});
-
-test("Should redirect to success page , when disabled rescheduling", async ({ page, users }) => {
-  const user = await users.create({
-    name: `Test-user-${randomString(4)}`,
-    eventTypes: [
-      {
-        title: "No Cancel No Reschedule",
-        slug: "no-cancel-no-reschedule",
-        length: 30,
-        disableCancelling: true,
-        disableRescheduling: true,
-      },
-    ],
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
   });
 
-  await page.goto(`/${user.username}/no-cancel-no-reschedule`);
+  test("Using rescheduleUid query parameter should redirect to success page", async ({ page }) => {
+    await page.goto(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
 
-  await selectFirstAvailableTimeSlotNextMonth(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-  await bookTimeSlot(page, {
-    name: "Test-user-1",
-    email: "test-booker@example.com",
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
   });
-
-  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-  const url = new URL(page.url());
-  const pathSegments = url.pathname.split("/");
-  const bookingId = pathSegments[pathSegments.length - 1];
-
-  await page.goto(`/reschedule/${bookingId}`);
-
-  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-});
-test("When disabled rescheduling , rescheduleUid={bookingId} should redirect to success page", async ({
-  page,
-  users,
-}) => {
-  const user = await users.create({
-    name: `Test-user-${randomString(4)}`,
-    eventTypes: [
-      {
-        title: "No Cancel No Reschedule",
-        slug: "no-cancel-no-reschedule",
-        length: 30,
-        disableCancelling: true,
-        disableRescheduling: true,
-      },
-    ],
-  });
-
-  await page.goto(`/${user.username}/no-cancel-no-reschedule`);
-
-  await selectFirstAvailableTimeSlotNextMonth(page);
-
-  await bookTimeSlot(page, {
-    name: "Test-user-1",
-    email: "test-booker@example.com",
-  });
-
-  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-  const url = new URL(page.url());
-  const pathSegments = url.pathname.split("/");
-  const bookingId = pathSegments[pathSegments.length - 1];
-
-  await page.goto(`/${user.username}/no-cancel-no-reschedule/rescheduleUid=${bookingId}`);
-
-  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 });
