@@ -163,7 +163,7 @@ export class BookingsController_2024_08_13 {
     @Query() queryParams: GetBookingsInput_2024_08_13,
     @GetUser() user: User
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(queryParams, user);
+    const bookings = await this.bookingsService.getBookings(queryParams, { email: user.email, id: user.id });
 
     return {
       status: SUCCESS_STATUS,

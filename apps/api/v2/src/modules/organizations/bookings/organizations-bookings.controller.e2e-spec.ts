@@ -520,6 +520,9 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(4);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
+            );
           });
       });
 
@@ -540,6 +543,9 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(2);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, nonOrgEventTypeId].sort()
+            );
           });
       });
 
@@ -560,6 +566,9 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(4);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
+            );
           });
       });
 
@@ -580,6 +589,69 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
             expect(data.length).toEqual(3);
             expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
               [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId].sort()
+            );
+          });
+      });
+
+      it("should get bookings by organizationId and non org event-type id", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?eventTypeIds=${nonOrgEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [nonOrgEventTypeId, nonOrgEventTypeId].sort()
+            );
+          });
+      });
+
+      it("should get bookings by organizationId and org event-type id", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?eventTypeIds=${orgEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(1);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual([orgEventTypeId].sort());
+          });
+      });
+
+      it("should get bookings by organizationId and org + non org event-type ids", async () => {
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${organization.id}/bookings?eventTypeIds=${orgEventTypeId2},${nonOrgEventTypeId}`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(3);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
             );
           });
       });

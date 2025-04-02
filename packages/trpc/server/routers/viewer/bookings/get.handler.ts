@@ -38,7 +38,10 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const bookingListingByStatus = [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
-    ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
+    ctx: {
+      user: { id: user.id, email: user.email, orgId: user?.profile?.organizationId },
+      prisma: prisma,
+    },
     bookingListingByStatus: bookingListingByStatus,
     take,
     skip,
@@ -61,7 +64,7 @@ export async function getBookings({
   take,
   skip,
 }: {
-  user: { id: number; email: string };
+  user: { id: number; email: string; orgId?: number | null };
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
   passedBookingsStatusFilter: Prisma.BookingWhereInput;
@@ -176,24 +179,25 @@ export async function getBookings({
     attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwener,
-    userIdsAndEmailsWhereUserIsOrgAdminOrOwner,
+    userIdsAndEmailsWhereUserIsAdminOrOwner,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsAndEmailsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
+    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
   ]);
 
-  const [userIdsWhereUserIsOrgAdminOrOwner, userEmailsWhereUserIsOrgAdminOrOwner] =
-    userIdsAndEmailsWhereUserIsOrgAdminOrOwner;
+  // If user is organization owner/admin, contains organization members emails and ids (organization plan)
+  // If user is only team owner/admin, contain team members emails and ids (teams plan)
+  const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
+    userIdsAndEmailsWhereUserIsAdminOrOwner;
   const orConditions = [];
 
-  const hasUserIdsFilter = !!filters?.userIds && filters.userIds.length > 0;
-
-  if (hasUserIdsFilter) {
+  // If userIds filter is provided
+  if (!!filters?.userIds && filters.userIds.length > 0) {
     const areUserIdsWithinUserOrg = filters.userIds.every((userId) =>
-      userIdsWhereUserIsOrgAdminOrOwner.includes(userId)
+      userIdsWhereUserIsAdminOrOwner.includes(userId)
     );
 
     // Throw an error if trying to filter by usersIds that are not within your ORG
@@ -218,12 +222,12 @@ export async function getBookings({
     // Filter by emails for auth user.
     const userEmailFilter = { equals: user.email };
     // Auth user is ORG_OWNER/ADMIN, filter by emails of members of the organization
-    const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsOrgAdminOrOwner?.length
-      ? { in: userEmailsWhereUserIsOrgAdminOrOwner }
+    const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsAdminOrOwner?.length
+      ? { in: userEmailsWhereUserIsAdminOrOwner }
       : undefined;
 
-    // 1. Booking created by the current user
-    orConditions.push({ userId: { equals: user.id } }); // Use equals for single value
+    // 1. Current user created bookings
+    orConditions.push({ userId: { equals: user.id } });
     // 2. Current user is an attendee
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
     // 3. Current user is an attendee via seats reference
@@ -240,8 +244,8 @@ export async function getBookings({
     eventTypeIdsWhereUserIsAdminOrOwener?.length &&
       orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwener } });
     // 7.  Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsOrgAdminOrOwner?.length &&
-      orConditions.push({ userId: { in: userIdsWhereUserIsOrgAdminOrOwner } });
+    userIdsWhereUserIsAdminOrOwner?.length &&
+      orConditions.push({ userId: { in: userIdsWhereUserIsAdminOrOwner } });
   }
 
   const andConditions = [];
@@ -255,6 +259,7 @@ export async function getBookings({
   }
 
   // 3. Filter by specific Event Type IDs (if provided)
+  // If both teamIsd filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
   if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
     andConditions.push({ eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter } });
   }
@@ -275,7 +280,6 @@ export async function getBookings({
         },
       });
     }
-    // Note: Add handling here if filters.attendeeEmail could be other types
   }
 
   // 5. Filter by Attendee Name (if provided)
@@ -529,7 +533,16 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
       .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
   ]);
 
-  return Array.from(new Set([...directEventTypeIds, ...parentEventTypeIds]));
+  const eventTypeIdsFromDb = Array.from(new Set([...directEventTypeIds, ...parentEventTypeIds]));
+
+  if (eventTypeIdsFromDb?.length === 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "The requested event-types do not exist.",
+    });
+  }
+
+  return eventTypeIdsFromDb;
 }
 
 async function getEventTypeIdsWhereUserIsAdminOrOwner(
@@ -569,18 +582,35 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
   return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
 }
 
-async function getUserIdsAndEmailsWhereUserIsOrgAdminOrOwner(
+/**
+ * Gets [IDs, Emails] of members where the auth user is admin/owner.
+ * Scope depends on `orgId`:
+ * - If set (number): Fetches members of that specific organization (`isOrganization: true`).
+ * - If unset (null/undefined): Fetches members of all teams (`isOrganization: false`)
+ * where the auth user meets the `membershipCondition`.
+ *
+ * @param prisma The Prisma client.
+ * @param membershipCondition Filter defining the auth user's required role (e.g., OWNER/ADMIN)
+ * to identify the target orgs/teams.
+ * @param orgId Optional ID to target a specific org; absence targets teams.
+ * @returns {Promise<[number[], string[]]>} [UserIDs, UserEmails] for members in the determined scope.
+ */
+async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
-) {
+  membershipCondition: PrismaClientType.MembershipListRelationFilter,
+  orgId?: number | null
+): Promise<[number[], string[]]> {
   const users = await prisma.user.findMany({
     where: {
       teams: {
         some: {
-          team: {
-            isOrganization: true,
-            members: membershipCondition,
-          },
+          team: orgId
+            ? {
+                isOrganization: true,
+                members: membershipCondition,
+                id: orgId,
+              }
+            : { isOrganization: false, members: membershipCondition },
         },
       },
     },

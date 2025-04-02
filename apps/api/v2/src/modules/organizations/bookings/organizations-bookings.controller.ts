@@ -48,7 +48,7 @@ export class OrganizationsBookingsController {
 
     const bookings = await this.bookingsService.getBookings(
       { ...restParams },
-      user,
+      { email: user.email, id: user.id, orgId },
       (userIdsForBookings ?? []).map((u) => u.id)
     );
 

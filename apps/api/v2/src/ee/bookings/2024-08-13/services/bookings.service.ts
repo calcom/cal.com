@@ -227,7 +227,7 @@ export class BookingsService_2024_08_13 {
 
   async getBookings(
     queryParams: GetBookingsInput_2024_08_13,
-    user: { email: string; id: number },
+    user: { email: string; id: number; orgId?: number },
     userIds?: number[]
   ) {
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
