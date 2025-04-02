@@ -62,7 +62,7 @@ export const DisableAllEmailsSetting = ({
               "text-default mb-1 mt-2 text-sm",
               customClassNames?.confirmationDialog?.confirmInput?.label
             )}>
-            {t("type_confirm_to_continue", { confirmText: confirmationString })}
+            {t("type_confirm_to_continue")}
           </p>
           <InputField
             value={confirmText}
