@@ -17,6 +17,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -87,10 +88,14 @@ const EventAITab = dynamic(() =>
 
 export type EventTypeWebWrapperProps = {
   id: number;
+  eventType: RouterOutputs["viewer"]["eventTypes"]["get"];
 };
 
-export const EventTypeWebWrapper = ({ id }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
+export const EventTypeWebWrapper = ({ id, eventType }: EventTypeWebWrapperProps) => {
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
+    { id },
+    { initialData: eventType }
+  );
 
   if (!eventTypeQueryData) return null;
 

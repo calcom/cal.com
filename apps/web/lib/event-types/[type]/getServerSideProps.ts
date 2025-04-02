@@ -4,13 +4,16 @@ import type { GetServerSidePropsContext } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { RouterOutputs } from "@calcom/trpc";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = {
+  type: number;
+  eventType: RouterOutputs["viewer"]["eventTypes"]["get"];
+};
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
