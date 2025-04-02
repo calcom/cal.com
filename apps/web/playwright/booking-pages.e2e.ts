@@ -586,10 +586,9 @@ test.describe("Booking round robin event", () => {
 
 test.describe("Event type with disabled cancellation and rescheduling", () => {
   let bookingId: string;
-  let user: { username: string };
+  let user: { username: string | null };
 
   test.beforeEach(async ({ page, users }) => {
-    // Create user with event type that has cancellation and rescheduling disabled
     user = await users.create({
       name: `Test-user-${randomString(4)}`,
       eventTypes: [
