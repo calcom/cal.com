@@ -297,6 +297,7 @@ export class BookingsService_2024_08_13 {
     if (!oAuthClient) {
       return queryParamsAttendeeEmail;
     }
+    // note(Lauris): query param already contains oAuth client id in the attendeeEmail
     if (queryParamsAttendeeEmail.includes(oAuthClient.id)) {
       return queryParamsAttendeeEmail;
     }
