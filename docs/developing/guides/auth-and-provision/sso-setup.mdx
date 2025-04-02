@@ -6,6 +6,8 @@ Cal.com supports both Security Assertion Markup Language (SAML) and OpenID Conne
 
 ### Setting up SAML login
 
+<Note>If you're developing for the hosted solution and wish to setup SAML locally, you need to set SAML_DATABASE_URL to a Postgres database in the `.env` file. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`. You would also need to create a blank DB here with the name as in the URL, for example, `cal-saml` in this case.</Note>
+
 <Steps>
     <Step title="Create a SAML application with your Identity Provider (IdP)">
         Follow the instructions here - [SAML Setup](/developing/guides/auth-and-provision/sso-setup#saml-registration-with-identity-providers)
