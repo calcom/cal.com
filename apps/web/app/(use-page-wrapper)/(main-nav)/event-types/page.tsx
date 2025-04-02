@@ -38,8 +38,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA initialData={initialData} />}>
-      <EventTypes initialData={initialData} />
+      CTA={<EventTypesCTA initialData={initialData} filters={filters} />}>
+      <EventTypes initialData={initialData} filters={filters} />
     </ShellMainAppDir>
   );
 };
