@@ -70,7 +70,7 @@ export class PlatformPlanGuard implements CanActivate {
 
     await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
     if (canAccess) {
-      return canAccess;
+      return { canAccess };
     }
     throw new ForbiddenException(
       `Platform plan - you do not have required plan for this operation. Minimum plan is ${minimumPlan}.`
