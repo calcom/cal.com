@@ -639,4 +639,19 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
 
     await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
   });
+
+  test("Should prevent cancellation and show an error message", async ({ page }) => {
+    const response = await page.request.post("/api/cancel", {
+      data: {
+        uid: bookingId,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    expect(response.status()).toBe(400);
+    const responseBody = await response.json();
+    expect(responseBody.message).toBe("This event type does not allow cancellations");
+  });
 });
