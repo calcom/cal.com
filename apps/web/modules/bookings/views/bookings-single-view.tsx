@@ -367,11 +367,11 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  const canRescheduleOrCancel = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canRescheduleAndCancel = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
+  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
-  const canReschedule = !eventType?.disableRescheduling;
   const canCancel = !eventType?.disableCancelling;
+  const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
@@ -714,7 +714,7 @@ export default function Success(props: PageProps) {
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
-                      canRescheduleOrCancel &&
+                      canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -739,7 +739,7 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    {canRescheduleAndCancel && (
+                                    {canCancelAndReschedule && (
                                       <span className="mx-2">{t("or_lowercase")}</span>
                                     )}
                                   </span>

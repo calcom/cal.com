@@ -483,9 +483,8 @@ export const EventAdvancedTab = ({
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
 
-  // Add lock props for the disable toggles
-  const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
+  const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
 
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
@@ -493,9 +492,9 @@ export const EventAdvancedTab = ({
     multiplePrivateLinksLocked.disabled = true;
   }
 
-  const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
-
   const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
+
+  const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -587,27 +586,6 @@ export const EventAdvancedTab = ({
         customClassNames={customClassNames?.requiresConfirmation}
       />
 
-      {/* Add separate toggle controls for disabling rescheduling and cancellation */}
-      <Controller
-        name="disableRescheduling"
-        render={({ field: { onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("disable_rescheduling")}
-            data-testid="disable-rescheduling-toggle"
-            {...disableReschedulingLocked}
-            description={t("description_disable_rescheduling")}
-            checked={disableRescheduling}
-            onCheckedChange={(val) => {
-              setDisableRescheduling(val);
-              onChange(val);
-            }}
-          />
-        )}
-      />
-
       <Controller
         name="disableCancelling"
         render={({ field: { onChange } }) => (
@@ -622,6 +600,26 @@ export const EventAdvancedTab = ({
             checked={disableCancelling}
             onCheckedChange={(val) => {
               setDisableCancelling(val);
+              onChange(val);
+            }}
+          />
+        )}
+      />
+
+      <Controller
+        name="disableRescheduling"
+        render={({ field: { onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("disable_rescheduling")}
+            data-testid="disable-rescheduling-toggle"
+            {...disableReschedulingLocked}
+            description={t("description_disable_rescheduling")}
+            checked={disableRescheduling}
+            onCheckedChange={(val) => {
+              setDisableRescheduling(val);
               onChange(val);
             }}
           />
