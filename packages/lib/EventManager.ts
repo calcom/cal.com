@@ -325,7 +325,7 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
-        credentialId: result.credentialId ?? undefined,
+        ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
     });
 
@@ -491,7 +491,8 @@ export default class EventManager {
     }
 
     const results: Array<EventResult<Event>> = [];
-    const bookingReferenceChangedOrganizer: Array<PartialReference> = [];
+    const updatedBookingReferences: Array<PartialReference> = [];
+    const isLocationChanged = evt.location && booking.location && evt.location !== booking.location;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -512,21 +513,17 @@ export default class EventManager {
 
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
-        bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
+        updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-        const isLocationChanged = evt.location && booking.location && evt.location !== booking.location;
-        // If and only if event type is a dedicated meeting, update the dedicated video meeting.
-        if (isDedicated) {
-          if (isLocationChanged) {
-            const result = await this.createVideoEvent(evt);
-            if (result?.createdEvent) {
-              evt.videoCallData = result.createdEvent;
-              evt.location = result.originalEvent.location;
-            }
-            results.push(result);
-          } else {
+        if (isLocationChanged) {
+          const updatedLocation = await this.updateLocation(evt, booking);
+          results.push(...updatedLocation.results);
+          updatedBookingReferences.push(...updatedLocation.referencesToCreate);
+        } else {
+          const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+          // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+          if (isDedicated) {
             const result = await this.updateVideoEvent(evt, booking);
             const [updatedEvent] = Array.isArray(result.updatedEvent)
               ? result.updatedEvent
@@ -538,15 +535,15 @@ export default class EventManager {
             }
             results.push(result);
           }
-        }
 
-        const bookingCalendarReference = booking.references.find((reference) =>
-          reference.type.includes("_calendar")
-        );
-        // There was a case that booking didn't had any reference and we don't want to throw error on function
-        if (bookingCalendarReference) {
-          // Update all calendar events.
-          results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          const bookingCalendarReference = booking.references.find((reference) =>
+            reference.type.includes("_calendar")
+          );
+          // There was a case that booking didn't had any reference and we don't want to throw error on function
+          if (bookingCalendarReference) {
+            // Update all calendar events.
+            results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          }
         }
 
         results.push(...(await this.updateAllCRMEvents(evt, booking)));
@@ -571,7 +568,8 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
+      referencesToCreate:
+        changedOrganizer || isLocationChanged ? updatedBookingReferences : [...booking.references],
     };
   }
 

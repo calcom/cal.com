@@ -63,7 +63,6 @@ function updateEventDetails(
   if (originalRescheduledBooking) {
     evt.title = originalRescheduledBooking?.title || evt.title;
     evt.description = originalRescheduledBooking?.description || evt.description;
-    evt.location = originalRescheduledBooking?.location || evt.location;
     evt.location =
       changedOrganizer || isLocationChanged
         ? evt.location
