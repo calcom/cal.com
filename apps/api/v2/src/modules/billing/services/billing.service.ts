@@ -118,7 +118,7 @@ export class BillingService implements OnModuleDestroy {
     return url;
   }
 
-  async setSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {
+  async setSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan, priceId?: string) {
     const billingCycleStart = DateTime.now().get("day");
     const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
 
@@ -127,7 +127,8 @@ export class BillingService implements OnModuleDestroy {
       billingCycleStart,
       billingCycleEnd,
       plan,
-      subscriptionId
+      subscriptionId,
+      priceId
     );
   }
 
@@ -208,7 +209,8 @@ export class BillingService implements OnModuleDestroy {
       await this.setSubscriptionForTeam(
         teamId,
         checkoutSession.subscription as string,
-        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan],
+        checkoutSession.metadata?.priceId
       );
     }
 
