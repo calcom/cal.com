@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -16,8 +17,9 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const bookingData = bookingCancelInput.parse(appDirRequestBody);
   const result = await handleCancelBooking({
-    appDirRequestBody,
+    bookingData,
     userId: session?.user?.id || -1,
   });
 

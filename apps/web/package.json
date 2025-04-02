@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.1.9",
+  "version": "5.1.13",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -54,6 +54,7 @@
     "@googleapis/oauth2": "^1.0.7",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.9.7",
+    "@lingo.dev/_sdk": "^0.7.27",
     "@next-auth/prisma-adapter": "^1.0.4",
     "@next/bundle-analyzer": "^13.1.6",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -68,7 +69,6 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@replexica/sdk": "^0.7.0",
     "@sentry/nextjs": "^9.8.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",

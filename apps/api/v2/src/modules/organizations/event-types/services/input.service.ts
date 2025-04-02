@@ -36,6 +36,7 @@ export class InputOrganizationsEventTypesService {
   ) {
     await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
+    await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
 
     const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
 
@@ -66,6 +67,9 @@ export class InputOrganizationsEventTypesService {
   ) {
     await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
+    if (inputEventType.slug) {
+      await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
+    }
 
     const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
 
@@ -89,10 +93,28 @@ export class InputOrganizationsEventTypesService {
     return transformedBody;
   }
 
+  async validateTeamEventTypeSlug(teamId: number, slug: string) {
+    const teamEventWithSlugExists = await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(
+      teamId,
+      slug
+    );
+
+    if (teamEventWithSlugExists) {
+      throw new BadRequestException("Team event type with this slug already exists");
+    }
+  }
+
   async transformInputCreateTeamEventType(
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
+    const hasHosts = !!inputEventType.hosts && !!inputEventType.hosts.length;
+    const hasAssignAllTeamMembers = inputEventType.assignAllTeamMembers === true;
+
+    if (!hasHosts && !hasAssignAllTeamMembers) {
+      throw new BadRequestException("Either hosts must be provided or assignAllTeamMembers must be true");
+    }
+
     const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
@@ -189,7 +211,7 @@ export class InputOrganizationsEventTypesService {
     eventType: { children: { userId: number | null }[] } | null
   ) {
     if (inputEventType.assignAllTeamMembers) {
-      return await this.teamsRepository.getTeamMembersIds(teamId);
+      return await this.getTeamUsersIds(teamId);
     }
 
     // note(Lauris): when API user updates managed event type users
@@ -199,6 +221,17 @@ export class InputOrganizationsEventTypesService {
 
     // note(Lauris): when API user DOES NOT update managed event type users, but we still need existing managed event type users to know which event-types to update
     return eventType?.children.map((child) => child.userId).filter((id) => !!id) as number[];
+  }
+
+  async getTeamUsersIds(teamId: number) {
+    const team = await this.teamsRepository.getById(teamId);
+    const isPlatformTeam = !!team?.createdByOAuthClientId;
+    if (isPlatformTeam) {
+      // note(Lauris): platform team creators have role "OWNER" but we don't want to assign them to team members marked as "assignAllTeamMembers: true"
+      // because they are not a managed user.
+      return await this.teamsRepository.getTeamManagedUsersIds(teamId);
+    }
+    return await this.teamsRepository.getTeamUsersIds(teamId);
   }
 
   transformInputTeamLocations(inputLocations: CreateTeamEventTypeInput_2024_06_14["locations"]) {
@@ -221,7 +254,7 @@ export class InputOrganizationsEventTypesService {
   }
 
   async getAllTeamMembers(teamId: number, schedulingType: SchedulingType | null) {
-    const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
+    const membersIds = await this.getTeamUsersIds(teamId);
     const isFixed = schedulingType === "COLLECTIVE" ? true : false;
 
     return membersIds.map((id) => ({
@@ -253,7 +286,7 @@ export class InputOrganizationsEventTypesService {
 
   async validateHosts(teamId: number, hosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
     if (hosts && hosts.length) {
-      const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
+      const membersIds = await this.getTeamUsersIds(teamId);
       const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
       if (invalidHosts.length) {
         throw new NotFoundException(
