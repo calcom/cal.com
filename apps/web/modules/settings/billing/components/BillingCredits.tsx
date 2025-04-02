@@ -6,6 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TextField, Label, InputError } from "@calcom/ui";
+import { showToast } from "@calcom/ui/toast";
 
 export default function BillingCredits() {
   const { t } = useLocale();
@@ -31,17 +32,18 @@ export default function BillingCredits() {
       }
     },
     onError: (err) => {
-      showToast(t("Credit purchase failed. Please try again or contact support."), "error");
+      showToast(t("credit_purchase_failed"), "error");
     },
   });
 
   if (!creditsData || (!creditsData.teamCredits && !creditsData.userCredits)) {
-    return <></>;
+    return null;
   }
 
   const onSubmit = (data: { quantity: number }) => {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
+
   const teamCreditsPercentageUsed = creditsData.teamCredits
     ? (creditsData.teamCredits.totalRemainingMonthlyCredits / creditsData.teamCredits.totalMonthlyCredits) *
       100
@@ -100,7 +102,7 @@ export default function BillingCredits() {
                   type="number"
                   {...register("quantity", {
                     required: t("This field is required"),
-                    min: { value: 50, message: t("Minimum 50 credits") },
+                    min: { value: 50, message: t("minimum_of_credits_required") },
                     valueAsNumber: true,
                   })}
                   label=""

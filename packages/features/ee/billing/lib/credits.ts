@@ -2,9 +2,11 @@ import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 import { getAllCreditsForTeam, getAllCreditsForUser } from "@calcom/trpc/server/routers/viewer/credits/util";
+import { isSubscriptionActive } from "@calcom/trpc/server/routers/viewer/teams/util";
 
 import { InternalTeamBilling } from "../../billing/teams/internal-team-billing";
 
+/* WIP */
 export async function getMonthlyCredits(teamId: number) {
   const team = await prisma.team.findUnique({
     where: {
@@ -26,15 +28,15 @@ export async function getMonthlyCredits(teamId: number) {
   if (!team) return 0;
 
   const teamBillingService = new InternalTeamBilling(team);
-  const isPlanActive = await teamBillingService.checkIfTeamHasActivePlan();
+  const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-  if (!isPlanActive) {
+  if (isSubscriptionActive(subscriptionStatus)) {
     return 0;
   }
 
   const activeMembers = team.members.filter((member) => member.accepted).length;
 
-  // todo: where do I get price per seat from?
+  // todo: where do I get price per seat from? --> different for team and org
   const pricePerSeat = 15;
   const totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
 

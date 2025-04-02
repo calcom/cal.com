@@ -25,7 +25,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const phoneNumber = await twilioClient.lookups.v2.phoneNumbers(req.body.To).fetch();
 
         if (phoneNumber.countryCode === "US" || phoneNumber.countryCode === "CA") {
-          // todo: only for teams
+          // todo: only for paid plans
           return res.status(200).send(`SMS to US and CA are free on a paid plan`);
         }
 

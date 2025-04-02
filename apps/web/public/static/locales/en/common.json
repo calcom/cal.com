@@ -2983,7 +2983,6 @@
   "credits": "Credits",
   "view_and_manage_credits": "View and manage credits",
   "view_and_manage_credits_description": "View and manage credits for SMS sending and Cal.ai. One credit is equivalent to one cent (USD).",
-  "end_date_not_selected": "You didn't set an end date for your OOO",
   "buy_additional_credits": "Buy additional credits ($0.01 per credit)",
   "overview": "Overview",
   "organization_slug_taken": "Organization slug is already taken",
@@ -3074,5 +3073,7 @@
   "picklist": "Picklist",
   "name_or_email": "Name or Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "If no contact is found, fallback to lead owner if it exists",
+  "credit_purchase_failed": "Credit purchase failed. Please try again or contact support.",
+  "minimum_of_credits_required": "Minimum of 50 credits required",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

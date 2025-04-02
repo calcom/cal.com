@@ -5,8 +5,6 @@ import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
 
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
-  console.log("checkout session completed called");
-
   const session = data.object;
   if (!session.client_reference_id || !session.amount_total) {
     throw new HttpCode(400, "Missing required payment details");
