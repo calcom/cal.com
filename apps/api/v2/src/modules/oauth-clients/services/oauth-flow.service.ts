@@ -1,8 +1,5 @@
 import { TokenExpiredException } from "@/modules/auth/guards/api-auth/token-expired.exception";
-import {
-  KeysDto,
-  KeysResponseDto,
-} from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { KeysDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -10,6 +7,7 @@ import { BadRequestException, Injectable, Logger, UnauthorizedException } from "
 import { DateTime } from "luxon";
 
 import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
+import { AccessToken, RefreshToken } from "@calcom/prisma/client";
 
 @Injectable()
 export class OAuthFlowService {
@@ -102,7 +100,7 @@ export class OAuthFlowService {
     return { status: "CACHE_MISS", cacheKey };
   }
 
-  async exchangeAuthorizationToken(
+  async exchangeOAuthClientAuthorizationToken(
     tokenId: string,
     clientId: string,
     clientSecret: string
@@ -123,46 +121,50 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid Authorization Token.");
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
-      await this.tokensRepository.createOAuthTokens(clientId, authorizationToken.owner.id);
+    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+      authorizationToken.owner.id,
+      clientId
+    );
     await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
-    await this.propagateAccessToken(accessToken);
+    await this.propagateAccessToken(accessToken.secret);
 
-    return {
-      accessToken,
-      accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
-      refreshToken,
-      refreshTokenExpiresAt: refreshTokenExpiresAt.valueOf(),
-    };
+    return this.getResponseOAuthTokens(accessToken, refreshToken);
   }
 
-  async refreshToken(clientId: string, clientSecret: string, tokenSecret: string): Promise<KeysDto> {
+  async refreshUserTokens(
+    clientId: string,
+    clientSecret: string,
+    userRefreshTokenSecret: string
+  ): Promise<KeysDto> {
     const oauthClient = await this.oAuthClientRepository.getOAuthClientWithRefreshSecret(
       clientId,
       clientSecret,
-      tokenSecret
+      userRefreshTokenSecret
     );
 
     if (!oauthClient) {
       throw new BadRequestException("Invalid OAuthClient credentials.");
     }
 
-    const currentRefreshToken = oauthClient.refreshToken[0];
+    const currentUserRefreshToken = oauthClient.refreshToken[0];
 
-    if (!currentRefreshToken) {
-      throw new BadRequestException("Invalid refresh token");
+    if (!currentUserRefreshToken) {
+      throw new BadRequestException("Invalid managed user refresh token");
     }
 
     const { accessToken, refreshToken } = await this.tokensRepository.refreshOAuthTokens(
-      clientId,
-      currentRefreshToken.secret,
-      currentRefreshToken.userId
+      currentUserRefreshToken.userId,
+      clientId
     );
 
+    return this.getResponseOAuthTokens(accessToken, refreshToken);
+  }
+
+  getResponseOAuthTokens(accessToken: AccessToken, refreshToken: RefreshToken): KeysDto {
     return {
       accessToken: accessToken.secret,
-      accessTokenExpiresAt: accessToken.expiresAt.valueOf(),
       refreshToken: refreshToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt.valueOf(),
       refreshTokenExpiresAt: refreshToken.expiresAt.valueOf(),
     };
   }

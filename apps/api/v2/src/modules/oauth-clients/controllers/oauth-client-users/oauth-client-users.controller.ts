@@ -94,10 +94,7 @@ export class OAuthClientUsersController {
       status: SUCCESS_STATUS,
       data: {
         user: this.getResponseUser(user),
-        accessToken: tokens.accessToken,
-        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
-        refreshToken: tokens.refreshToken,
-        refreshTokenExpiresAt: tokens.refreshTokenExpiresAt.valueOf(),
+        ...tokens,
       },
     };
   }
@@ -171,19 +168,16 @@ export class OAuthClientUsersController {
   ): Promise<KeysResponseDto> {
     this.logger.log(`Forcing new access tokens for managed user with ID ${userId}`);
 
-    const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
+    await this.validateManagedUserOwnership(oAuthClientId, userId);
 
-    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
-      await this.tokensRepository.createOAuthTokens(oAuthClientId, id, true);
+    const { accessToken, refreshToken } = await this.tokensRepository.refreshOAuthTokens(
+      userId,
+      oAuthClientId
+    );
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        accessToken,
-        refreshToken,
-        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
-        refreshTokenExpiresAt: refreshTokenExpiresAt.valueOf(),
-      },
+      data: this.oAuthClientUsersService.getResponseOAuthTokens(accessToken, refreshToken),
     };
   }
 
