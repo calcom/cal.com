@@ -1,4 +1,4 @@
-import { getTRPCContext } from "app/_trpc/context";
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { redirect, notFound } from "next/navigation";
 
@@ -7,7 +7,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RouterOutputs } from "@calcom/trpc";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
-import { createCallerFactory } from "@calcom/trpc/server/trpc";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 
@@ -31,9 +30,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return redirect("/auth/login");
   }
   const getEventTypeById = async (eventTypeId: number) => {
-    const trpcContext = await getTRPCContext();
-    const createCaller = createCallerFactory(eventTypesRouter);
-    const caller = createCaller(trpcContext);
+    const caller = await createRouterCaller(eventTypesRouter);
+
     try {
       return await caller.get({ id: eventTypeId });
     } catch (e: unknown) {
