@@ -1226,8 +1226,6 @@ async function handler(
         input: {
           bookerEmail,
           rescheduleReason,
-          changedOrganizer,
-          isLocationChanged,
           smsReminderNumber,
           responses,
         },

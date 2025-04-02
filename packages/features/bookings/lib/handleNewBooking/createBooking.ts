@@ -43,8 +43,6 @@ type CreateBookingParams = {
   input: {
     bookerEmail: AwaitedBookingData["email"];
     rescheduleReason: AwaitedBookingData["rescheduleReason"];
-    changedOrganizer: boolean;
-    isLocationChanged: boolean;
     smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
     responses: ReqBodyWithEnd["responses"] | null;
   };
@@ -56,17 +54,12 @@ type CreateBookingParams = {
 
 function updateEventDetails(
   evt: CalendarEvent,
-  originalRescheduledBooking: OriginalRescheduledBooking | null,
-  changedOrganizer: boolean,
-  isLocationChanged: boolean
+  originalRescheduledBooking: OriginalRescheduledBooking | null
 ) {
   if (originalRescheduledBooking) {
     evt.title = originalRescheduledBooking?.title || evt.title;
     evt.description = originalRescheduledBooking?.description || evt.description;
-    evt.location =
-      changedOrganizer || isLocationChanged
-        ? evt.location
-        : originalRescheduledBooking?.location || evt.location;
+    evt.location = evt.location || originalRescheduledBooking?.location;
   }
 }
 
@@ -92,7 +85,7 @@ export async function createBooking({
   creationSource,
   tracking,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) {
-  updateEventDetails(evt, originalRescheduledBooking, input.changedOrganizer, input.isLocationChanged);
+  updateEventDetails(evt, originalRescheduledBooking);
   const associatedBookingForFormResponse = routingFormResponseId
     ? await getAssociatedBookingForFormResponse(routingFormResponseId)
     : null;
