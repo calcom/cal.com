@@ -59,8 +59,8 @@ export class OAuthFlowService {
 
     if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
 
-    // await in case of race conditions, but void it's return since cache writes shouldn't halt execution.
-    void (await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb)); // expires in 1 hour
+    // await in case of race conditions
+    await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb); // expires in 1 hour
 
     return ownerIdFromDb;
   }
@@ -85,9 +85,8 @@ export class OAuthFlowService {
     }
 
     // we can't use a Promise#all or similar here because we care about execution order
-    // however we can't allow caches to fail a validation hence the results are voided.
-    void (await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() }));
-    void (await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000)));
+    await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() });
+    await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000));
 
     return true;
   }
@@ -127,7 +126,7 @@ export class OAuthFlowService {
     const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
       await this.tokensRepository.createOAuthTokens(clientId, authorizationToken.owner.id);
     await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
-    void this.propagateAccessToken(accessToken); // void result, ignored.
+    await this.propagateAccessToken(accessToken);
 
     return {
       accessToken,
