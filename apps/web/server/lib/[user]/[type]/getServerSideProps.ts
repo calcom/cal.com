@@ -199,7 +199,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await await EventRepository.getPublicEvent(
+  const eventData = await EventRepository.getPublicEvent(
     {
       username,
       eventSlug: slug,
