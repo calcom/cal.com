@@ -2950,6 +2950,7 @@ __metadata:
     "@testing-library/react-hooks": ^8.0.1
     "@types/web-push": ^3.6.3
     "@vercel/functions": ^1.4.0
+    akismet-api: ^6.0.0
     class-variance-authority: ^0.7.1
     framer-motion: ^10.12.8
     lexical: ^0.9.0
@@ -19044,6 +19045,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"akismet-api@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "akismet-api@npm:6.0.0"
+  dependencies:
+    bluebird: ^3.1.1
+    superagent: ^8.0.0
+  checksum: f93a9eb11e83e63b8ab2217ee3122bac69a911d6b02d2f7158a8f1c4a8c262a6e52a7461a3b7afeab6930e601df95121aff2f7c90015ea69b0ac65090586e6e7
+  languageName: node
+  linkType: hard
+
+"ansi-align@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "ansi-align@npm:3.0.1"
+  dependencies:
+    string-width: ^4.1.0
+  checksum: 6abfa08f2141d231c257162b15292467081fa49a208593e055c866aa0455b57f3a86b5a678c190c618faa79b4c59e254493099cb700dd9cf2293c6be2c8f5d8d
+  languageName: node
+  linkType: hard
+
 "ansi-colors@npm:4.1.3, ansi-colors@npm:^4.1.1, ansi-colors@npm:^4.1.3":
   version: 4.1.3
   resolution: "ansi-colors@npm:4.1.3"
@@ -20343,7 +20363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bluebird@npm:^3.7.2":
+"bluebird@npm:^3.1.1, bluebird@npm:^3.7.2":
   version: 3.7.2
   resolution: "bluebird@npm:3.7.2"
   checksum: 869417503c722e7dc54ca46715f70e15f4d9c602a423a02c825570862d12935be59ed9c7ba34a9b31f186c017c23cac6b54e35446f8353059c101da73eac22ef
@@ -43144,7 +43164,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"superagent@npm:^8.1.2":
+"superagent@npm:^8.0.0, superagent@npm:^8.1.2":
   version: 8.1.2
   resolution: "superagent@npm:8.1.2"
   dependencies:
