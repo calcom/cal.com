@@ -8,6 +8,7 @@ import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oau
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
+import { TOKENS_DOCS } from "@/modules/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -158,8 +159,7 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Force refresh tokens",
-    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.
-    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have \`calAccessToken\` and \`calRefreshToken\` columns.`,
+    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. ${TOKENS_DOCS}`,
   })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
