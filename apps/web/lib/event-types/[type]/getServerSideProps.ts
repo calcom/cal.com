@@ -1,5 +1,6 @@
 import { getTRPCContext } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
+import { redirect, notFound } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import logger from "@calcom/lib/logger";
@@ -12,7 +13,7 @@ import { asStringOrThrow } from "@lib/asStringOrNull";
 
 export type PageProps = {
   type: number;
-  eventType: RouterOutputs["viewer"]["eventTypes"]["get"];
+  data: RouterOutputs["viewer"]["eventTypes"]["get"];
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -23,49 +24,30 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (Number.isNaN(typeParam)) {
-    const notFound = {
-      notFound: true,
-    } as const;
-
-    return notFound;
+    return notFound();
   }
 
   if (!session?.user?.id) {
-    const redirect = {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    } as const;
-    return redirect;
+    return redirect("/auth/login");
   }
   const getEventTypeById = async (eventTypeId: number) => {
     const trpcContext = await getTRPCContext();
     const createCaller = createCallerFactory(eventTypesRouter);
     const caller = createCaller(trpcContext);
     try {
-      const { eventType } = await caller.get({ id: eventTypeId });
-      return eventType;
+      return await caller.get({ id: eventTypeId });
     } catch (e: unknown) {
       logger.error(safeStringify(e));
       // reject, user has no access to this event type.
       return null;
     }
   };
-  const eventType = await getEventTypeById(typeParam);
-  if (!eventType) {
-    const redirect = {
-      redirect: {
-        permanent: false,
-        destination: "/event-types",
-      },
-    } as const;
-    return redirect;
+  const data = await getEventTypeById(typeParam);
+  if (!data?.eventType) {
+    return redirect("/event-types");
   }
   return {
-    props: {
-      eventType,
-      type: typeParam,
-    },
+    data,
+    type: typeParam,
   };
 };

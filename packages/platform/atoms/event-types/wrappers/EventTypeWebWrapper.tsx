@@ -88,14 +88,11 @@ const EventAITab = dynamic(() =>
 
 export type EventTypeWebWrapperProps = {
   id: number;
-  eventType: RouterOutputs["viewer"]["eventTypes"]["get"];
+  data: RouterOutputs["viewer"]["eventTypes"]["get"];
 };
 
-export const EventTypeWebWrapper = ({ id, eventType }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
-    { id },
-    { initialData: eventType }
-  );
+export const EventTypeWebWrapper = ({ id, data }: EventTypeWebWrapperProps) => {
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id }, { initialData: data });
 
   if (!eventTypeQueryData) return null;
 
