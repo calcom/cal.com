@@ -367,6 +367,12 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
+  const canRescheduleOrCancel = !eventType?.disableCancelling || !eventType?.disableRescheduling;
+  const canRescheduleAndCancel = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+
+  const canReschedule = !eventType?.disableRescheduling;
+  const canCancel = !eventType?.disableCancelling;
+
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
@@ -708,8 +714,7 @@ export default function Success(props: PageProps) {
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
-                      !eventType?.disableCancelling &&
-                      !eventType?.disableRescheduling &&
+                      canRescheduleOrCancel &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -721,7 +726,7 @@ export default function Success(props: PageProps) {
                             <>
                               {!props.recurringBookings &&
                                 (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
-                                !eventType.disableRescheduling && (
+                                canReschedule && (
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
@@ -734,11 +739,13 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    <span className="mx-2">{t("or_lowercase")}</span>
+                                    {canRescheduleAndCancel && (
+                                      <span className="mx-2">{t("or_lowercase")}</span>
+                                    )}
                                   </span>
                                 )}
 
-                              {!eventType.disableCancelling && (
+                              {canCancel && (
                                 <button
                                   data-testid="cancel"
                                   className={classNames(
