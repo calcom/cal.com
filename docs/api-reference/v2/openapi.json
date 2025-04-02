@@ -266,7 +266,7 @@
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.\n    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have `calAccessToken` and `calRefreshToken` columns.",
+        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -313,7 +313,7 @@
       "post": {
         "operationId": "OAuthFlowController_refreshTokens",
         "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint. Each access token is valid for 60 minutes and \n    each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have `calAccessToken` and `calRefreshToken` columns.",
+        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
           {
             "name": "clientId",
@@ -9947,20 +9947,25 @@
       "CreateManagedUserData": {
         "type": "object",
         "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
           "user": {
             "$ref": "#/components/schemas/ManagedUserOutput"
           },
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
           "accessTokenExpiresAt": {
+            "type": "number"
+          },
+          "refreshTokenExpiresAt": {
             "type": "number"
           }
         },
-        "required": ["user", "accessToken", "refreshToken", "accessTokenExpiresAt"]
+        "required": ["accessToken", "refreshToken", "user", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
       },
       "CreateManagedUserOutput": {
         "type": "object",
@@ -10099,9 +10104,12 @@
           },
           "accessTokenExpiresAt": {
             "type": "number"
+          },
+          "refreshTokenExpiresAt": {
+            "type": "number"
           }
         },
-        "required": ["accessToken", "refreshToken", "accessTokenExpiresAt"]
+        "required": ["accessToken", "refreshToken", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
       },
       "KeysResponseDto": {
         "type": "object",

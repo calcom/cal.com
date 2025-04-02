@@ -1,4 +1,3 @@
-import { getEnv } from "@/env";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -25,17 +24,16 @@ import {
 } from "@nestjs/common";
 import {
   ApiTags as DocsTags,
-  ApiExcludeController as DocsExcludeController,
-  ApiOperation as DocsOperation,
-  ApiOkResponse as DocsOkResponse,
   ApiExcludeEndpoint as DocsExcludeEndpoint,
-  ApiBadRequestResponse as DocsBadRequestResponse,
   ApiHeader as DocsHeader,
   ApiOperation,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+
+export const TOKENS_DOCS = `Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model \`calAccessToken\` and \`calRefreshToken\` fields.
+Response also contains \`accessTokenExpiresAt\` and \`refreshTokenExpiresAt\` fields, but if you decode the jwt token the payload will contain \`clientId\` (OAuth client ID), \`ownerId\` (user to whom token belongs ID), \`iat\` (issued at time) and \`expiresAt\` (when does the token expire) fields.`;
 
 @Controller({
   path: "/v2/oauth/:clientId",
@@ -119,8 +117,8 @@ export class OAuthFlowController {
   })
   @ApiOperation({
     summary: "Refresh managed user tokens",
-    description: `If managed user access token is expired then get a new one using this endpoint while also refreshing the refresh token. Each access token is valid for 60 minutes and 
-    each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have \`calAccessToken\` and \`calRefreshToken\` columns.`,
+    description: `If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use
+    "refresh token rotation" mechanism. ${TOKENS_DOCS}`,
   })
   async refreshTokens(
     @Param("clientId") clientId: string,
