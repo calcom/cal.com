@@ -4,7 +4,7 @@ import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
 
 const writeToBookingEntry = z.object({
-  value: z.string(),
+  value: z.union([z.string(), z.boolean()]),
   fieldType: z.nativeEnum(SalesforceFieldType),
   whenToWrite: z.nativeEnum(WhenToWriteToRecord),
 });
@@ -12,7 +12,7 @@ const writeToBookingEntry = z.object({
 export const writeToRecordEntrySchema = z.object({
   field: z.string(),
   fieldType: z.nativeEnum(SalesforceFieldType),
-  value: z.string(),
+  value: z.union([z.string(), z.boolean()]),
   whenToWrite: z.nativeEnum(WhenToWriteToRecord),
 });
 
