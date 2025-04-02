@@ -8,10 +8,6 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import { ssrInit } from "@server/lib/ssr";
-
 import "../styles/globals.css";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
@@ -112,7 +108,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
-  const ssr = await ssrInit(buildLegacyCtx(h, await cookies(), {}, {}));
   return (
     <html
       lang={locale}
@@ -121,16 +116,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
-          <script
-            nonce={nonce}
-            id="injected-head-scripts"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{
-              __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
-            }}
-          />
-        )}
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
@@ -155,16 +140,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
         }>
         <IconSprites />
-        {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
-          <script
-            nonce={nonce}
-            id="injected-head-scripts"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{
-              __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
-            }}
-          />
-        )}
         <SpeculationRules
           // URLs In Navigation
           prerenderPathsOnHover={[
@@ -178,7 +153,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/insights",
           ]}
         />
-        <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        <Providers>{children}</Providers>
         {!isEmbed && <NotificationSoundHandler />}
         <NotificationSoundHandler />
       </body>

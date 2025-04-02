@@ -344,7 +344,16 @@ export class BookingsService_2024_08_13 {
     }
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
-    const res = await handleCancelBooking(bookingRequest);
+    const res = await handleCancelBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+      platformClientId: bookingRequest.platformClientId,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+    });
+
     if (!res.onlyRemovedAttendee) {
       await this.billingService.cancelUsageByBookingUid(res.bookingUid);
     }
@@ -448,6 +457,7 @@ export class BookingsService_2024_08_13 {
       orgId: profile?.organizationId || null,
       emailsEnabled,
       platformClientParams,
+      reassignedById: requestUser.id,
     });
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
