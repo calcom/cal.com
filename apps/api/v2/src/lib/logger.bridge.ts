@@ -34,7 +34,9 @@ export class Logger {
 
   // Define default settings
   private static readonly defaultSettings: IMyLoggerSettings = {
-    minLevel: LogLevel.INFO, // Default to INFO level
+    minLevel: process?.env?.LOGGER_BRIDGE_LOG_LEVEL
+      ? Number(process.env.LOGGER_BRIDGE_LOG_LEVEL)
+      : LogLevel.INFO, // Default to INFO level
     displayTimestamp: true,
     logFormat: "pretty",
   };
@@ -65,15 +67,15 @@ export class Logger {
   // --- Public logging methods ---
 
   info(...args: any[]) {
-    this.logInternal("log", ...args);
+    this.settings.minLevel <= 1 && this.logInternal("log", ...args);
   }
 
   warn(...args: any[]) {
-    this.logInternal("warn", ...args);
+    this.settings.minLevel <= 2 && this.logInternal("warn", ...args);
   }
 
   error(...args: any[]) {
-    this.logInternal("error", ...args);
+    this.settings.minLevel <= 3 && this.logInternal("error", ...args);
   }
 
   debug(...args: any[]) {
@@ -81,18 +83,18 @@ export class Logger {
   }
 
   trace(...args: any[]) {
-    this.logInternal("verbose", ...args);
+    this.settings.minLevel === 0 && this.logInternal("verbose", ...args);
   }
 
   fatal(...args: any[]) {
     // Prepend FATAL: to the message and log as error
     const fatalMessage = `fatal: ${this.formatArgsAsString(args)}`;
-    this.logInternal("error", fatalMessage);
+    this.settings.minLevel <= 3 && this.logInternal("error", fatalMessage);
   }
 
   silly(...args: any[]) {
     const sillyMessage = `silly: ${this.formatArgsAsString(args)}`;
-    this.logInternal("verbose", sillyMessage);
+    this.settings.minLevel === 0 && this.logInternal("verbose", sillyMessage);
   }
 
   // --- Internal logging implementation ---
