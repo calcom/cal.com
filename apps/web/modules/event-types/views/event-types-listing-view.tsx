@@ -948,7 +948,11 @@ const InfiniteScrollMain = ({
   );
 };
 
-export const EventTypesCTA = () => {
+export const EventTypesCTA = ({
+  initialData,
+}: {
+  initialData: RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
+}) => {
   const { data: user } = useMeQuery();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
@@ -958,6 +962,7 @@ export const EventTypesCTA = () => {
       refetchOnWindowFocus: false,
       gcTime: 1 * 60 * 60 * 1000,
       staleTime: 1 * 60 * 60 * 1000,
+      initialData,
     }
   );
   const profileOptions =
@@ -977,7 +982,11 @@ export const EventTypesCTA = () => {
   return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
 };
 
-const EventTypesPage: React.FC = () => {
+const EventTypesPage = ({
+  initialData,
+}: {
+  initialData: RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
+}) => {
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
@@ -995,6 +1004,7 @@ const EventTypesPage: React.FC = () => {
     refetchOnWindowFocus: false,
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
+    initialData,
   });
 
   useEffect(() => {
