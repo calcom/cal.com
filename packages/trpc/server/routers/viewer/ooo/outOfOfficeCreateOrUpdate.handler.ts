@@ -31,8 +31,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });
   }
 
-  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day");
-  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day");
+  const startTimeUtc = dayjs.utc(startDate).add(input.startDateOffset, "minute").startOf("day");
+  const endTimeUtc = dayjs.utc(endDate).add(input.endDateOffset, "minute").endOf("day");
 
   // If start date is after end date throw error
   if (startTimeUtc.isAfter(endTimeUtc)) {

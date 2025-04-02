@@ -175,7 +175,7 @@ export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || 
 export const WEBSITE_PRIVACY_POLICY_URL =
   process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.com/privacy";
 export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.com/terms";
-export const REPLEXICA_API_KEY = process.env.REPLEXICA_API_KEY;
+export const LINGO_DOT_DEV_API_KEY = process.env.LINGO_DOT_DEV_API_KEY;
 
 /**
  * The maximum number of days we should check for if we don't find all required bookable days
@@ -211,4 +211,8 @@ export const SCANNING_WORKFLOW_STEPS = !IS_SELF_HOSTED && process.env.AKISMET_AP
 
 export const IS_PLAIN_CHAT_ENABLED =
   !!process.env.NEXT_PUBLIC_PLAIN_CHAT_ID && process.env.NEXT_PUBLIC_PLAIN_CHAT_ID !== "";
+
+export const IS_DUB_REFERRALS_ENABLED =
+  !!process.env.NEXT_PUBLIC_DUB_PROGRAM_ID && process.env.NEXT_PUBLIC_DUB_PROGRAM_ID !== "";
+
 export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;

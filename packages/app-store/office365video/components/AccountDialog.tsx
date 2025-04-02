@@ -1,9 +1,10 @@
+import type { DialogProps as ControlledDialogProps } from "@calcom/features/components/controlled-dialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Button } from "@calcom/ui/components/button";
-import type { DialogProps } from "@calcom/ui/components/dialog";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 export function AccountDialog(
-  props: DialogProps & {
+  props: ControlledDialogProps & {
     handleSubmit: () => void;
   }
 ) {

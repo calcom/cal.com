@@ -10,16 +10,17 @@ import {
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
+  DataTableSegment,
   useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/components/badge";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -287,24 +288,25 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         totalRowCount={data?.meta?.totalRowCount}
         paginationMode="standard"
         ToolbarLeft={
-          <DataTableToolbar.SearchBar
-            table={table}
-            onSearch={(value) => setDebouncedSearchTerm(value)}
-            className="sm:max-w-64 max-w-full"
-          />
+          <>
+            <DataTableToolbar.SearchBar
+              table={table}
+              onSearch={(value) => setDebouncedSearchTerm(value)}
+              className="sm:max-w-64 max-w-full"
+            />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.FilterBar table={table} />
+          </>
         }
         ToolbarRight={
           <>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }>
-        <div className="flex gap-2 justify-self-start">
-          <DataTableFilters.ActiveFilters table={table} />
-        </div>
-
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
