@@ -87,7 +87,8 @@ export class TRPCExceptionFilter implements ExceptionFilter {
         break;
     }
 
-    const requestId = request.headers["X-Request-Id"];
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+    response.setHeader("X-Request-Id", requestId.toString());
 
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
