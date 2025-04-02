@@ -137,6 +137,7 @@ export async function getConnectedApps({
     const teamAppCredentials = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? buildNonDelegationCredentials(teamApp.credentials.flat()) : [];
     });
+
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
     } else {

@@ -184,6 +184,8 @@ const nextConfig = {
     "http-cookie-agent", // Dependencies of @ewsjs/xhr
     "rest-facade",
     "superagent-proxy", // Dependencies of @tryvital/vital-node
+    "superagent", // Dependencies of akismet
+    "formidable", // Dependencies of akismet
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
@@ -237,6 +239,8 @@ const nextConfig = {
             /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
         })
       );
+
+      config.externals.push("formidable");
     }
 
     config.plugins.push(
