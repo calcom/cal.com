@@ -15,18 +15,16 @@ import {
 import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
-import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
-import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { Logger } from "@nestjs/common";
 import {
   Controller,
   Get,
   Query,
   HttpCode,
   HttpStatus,
-  Logger,
   UseGuards,
   Post,
   Param,
@@ -46,7 +44,8 @@ import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "
 
 export type OAuthCallbackState = {
   accessToken: string;
-  teamId?: number;
+  teamId?: string;
+  orgId?: string;
   fromApp?: boolean;
   returnTo?: string;
   onErrorReturnTo?: string;
@@ -63,9 +62,7 @@ export class ConferencingController {
   constructor(
     private readonly tokensRepository: TokensRepository,
     private readonly conferencingService: ConferencingService,
-    private readonly googleMeetService: GoogleMeetService,
-    private readonly zoomVideoService: ZoomVideoService,
-    private readonly office365VideoService: Office365VideoService
+    private readonly organizationsConferencingService: OrganizationsConferencingService
   ) {}
 
   @Post("/:app/connect")
@@ -80,21 +77,11 @@ export class ConferencingController {
     required: true,
   })
   async connect(
-    @GetUser("id") userId: number,
+    @GetUser() user: UserWithProfile,
     @Param("app") app: string
   ): Promise<ConferencingAppOutputResponseDto> {
-    switch (app) {
-      case GOOGLE_MEET:
-        const credential = await this.googleMeetService.connectGoogleMeetApp(userId);
-
-        return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
-
-      default:
-        throw new BadRequestException(
-          "Invalid conferencing app, available apps are: ",
-          [GOOGLE_MEET].join(", ")
-        );
-    }
+    const credential = await this.conferencingService.connectUserNonOauthApp(app, user.id);
+    return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
   }
 
   @Get("/:app/oauth/auth-url")
@@ -115,7 +102,6 @@ export class ConferencingController {
     @Query("returnTo") returnTo?: string,
     @Query("onErrorReturnTo") onErrorReturnTo?: string
   ): Promise<GetConferencingAppsOauthUrlResponseDto> {
-    let credential;
     const origin = req.headers.origin;
     const accessToken = authorization.replace("Bearer ", "");
 
@@ -126,27 +112,12 @@ export class ConferencingController {
       accessToken,
     };
 
-    switch (app) {
-      case ZOOM:
-        credential = await this.zoomVideoService.generateZoomAuthUrl(JSON.stringify(state));
-        return {
-          status: SUCCESS_STATUS,
-          data: plainToInstance(ConferencingAppsOauthUrlOutputDto, credential),
-        };
+    const credential = await this.conferencingService.generateOAuthUrl(app, state);
 
-      case OFFICE_365_VIDEO:
-        credential = await this.office365VideoService.generateOffice365AuthUrl(JSON.stringify(state));
-        return {
-          status: SUCCESS_STATUS,
-          data: plainToInstance(ConferencingAppsOauthUrlOutputDto, credential),
-        };
-
-      default:
-        throw new BadRequestException(
-          "Invalid conferencing app, available apps are: ",
-          [ZOOM, OFFICE_365_VIDEO].join(", ")
-        );
-    }
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToInstance(ConferencingAppsOauthUrlOutputDto, credential),
+    };
   }
 
   @Get("/:app/oauth/callback")
@@ -176,23 +147,18 @@ export class ConferencingController {
       if (error) {
         throw new BadRequestException(error_description);
       }
-
       if (!userId) {
         throw new UnauthorizedException("Invalid Access token.");
       }
-
-      switch (app) {
-        case ZOOM:
-          return await this.zoomVideoService.connectZoomApp(decodedCallbackState, code, userId);
-
-        case OFFICE_365_VIDEO:
-          return await this.office365VideoService.connectOffice365App(decodedCallbackState, code, userId);
-
-        default:
-          throw new BadRequestException(
-            "Invalid conferencing app, available apps are: ",
-            [ZOOM, OFFICE_365_VIDEO].join(", ")
-          );
+      if (decodedCallbackState.orgId) {
+        return this.organizationsConferencingService.connectTeamOauthApps({
+          app,
+          code,
+          userId,
+          decodedCallbackState,
+        });
+      } else {
+        return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState);
       }
     } catch (error) {
       if (error instanceof HttpException || error instanceof Error) {
@@ -210,15 +176,13 @@ export class ConferencingController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "List your conferencing applications" })
   async listInstalledConferencingApps(
-    @GetUser("id") userId: number
+    @GetUser() user: UserWithProfile
   ): Promise<ConferencingAppsOutputResponseDto> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(userId);
-
-    const data = conferencingApps.map((conferencingApps) =>
-      plainToInstance(ConferencingAppsOutputDto, conferencingApps)
-    );
-
-    return { status: SUCCESS_STATUS, data };
+    const conferencingApps = await this.conferencingService.getConferencingApps(user.id);
+    return {
+      status: SUCCESS_STATUS,
+      data: conferencingApps.map((app) => plainToInstance(ConferencingAppsOutputDto, app)),
+    };
   }
 
   @Post("/:app/default")
@@ -245,8 +209,8 @@ export class ConferencingController {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get your default conferencing application" })
-  async getDefault(@GetUser("id") userId: number): Promise<GetDefaultConferencingAppOutputResponseDto> {
-    const defaultconferencingApp = await this.conferencingService.getUserDefaultConferencingApp(userId);
+  async getDefault(@GetUser() user: UserWithProfile): Promise<GetDefaultConferencingAppOutputResponseDto> {
+    const defaultconferencingApp = await this.conferencingService.getUserDefaultConferencingApp(user.id);
     return { status: SUCCESS_STATUS, data: defaultconferencingApp };
   }
 
