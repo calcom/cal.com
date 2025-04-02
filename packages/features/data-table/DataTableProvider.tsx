@@ -158,10 +158,10 @@ export function DataTableProvider({
 
   const setPageSizeAndGoToFirstPage = useCallback(
     (newPageSize: number | null) => {
-      setPageSize(newPageSize === DEFAULT_PAGE_SIZE ? null : newPageSize);
+      setPageSize(newPageSize === defaultPageSize ? null : newPageSize);
       setPageIndex(null);
     },
-    [setPageSize, setPageIndex]
+    [setPageSize, setPageIndex, defaultPageSize]
   );
 
   const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
