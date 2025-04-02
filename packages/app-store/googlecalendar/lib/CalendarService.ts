@@ -787,25 +787,25 @@ export default class GoogleCalendarService implements Calendar {
       //   ],
       // });
 
-      // const meetClient = new ConferenceRecordsServiceClient({
-      //   authClient: authClient as unknown as ConferenceRecordsServiceClient["auth"],
-      // });
-
       const meetClient = new ConferenceRecordsServiceClient({
-        auth: authClient,
-        projectId: this.credential.delegatedTo.serviceAccountKey.client_id,
+        credentials: {
+          client_email: this.credential.delegatedTo.serviceAccountKey.client_email,
+          private_key: this.credential.delegatedTo.serviceAccountKey.private_key,
+        },
+        // projectId: this.credential.delegatedTo.serviceAccountKey.client_id,
+        scopes: ["https://www.googleapis.com/auth/meetings.space.readonly"],
         apiEndpoint: "meet.googleapis.com",
       });
 
       console.log("meetClient...........................");
 
-      // const spacesClient = new SpacesServiceClient({
-      //   authClient: authClient as unknown as SpacesServiceClient["auth"],
-      // });
-
       const spacesClient = new SpacesServiceClient({
-        auth: authClient,
-        projectId: this.credential.delegatedTo.serviceAccountKey.client_id,
+        credentials: {
+          client_email: this.credential.delegatedTo.serviceAccountKey.client_email,
+          private_key: this.credential.delegatedTo.serviceAccountKey.private_key,
+        },
+        // projectId: this.credential.delegatedTo.serviceAccountKey.client_id,
+        scopes: ["https://www.googleapis.com/auth/meetings.space.readonly"],
         apiEndpoint: "meet.googleapis.com",
       });
       console.log("spacesClient...........................");
