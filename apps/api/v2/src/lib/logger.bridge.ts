@@ -77,7 +77,7 @@ export class Logger {
   }
 
   debug(...args: any[]) {
-    this.logInternal("debug", ...args);
+    this.settings.minLevel === 0 && this.logInternal("debug", ...args);
   }
 
   trace(...args: any[]) {
