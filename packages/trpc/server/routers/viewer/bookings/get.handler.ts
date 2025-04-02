@@ -498,6 +498,13 @@ async function getAttendeeEmailsFromUserIdsFilter(
     })
     .then((users) => users.map((user) => user.email));
 
+  if (!attendeeEmailsFromUserIdsFilter || attendeeEmailsFromUserIdsFilter?.length === 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "The requested users do not exist.",
+    });
+  }
+
   return attendeeEmailsFromUserIdsFilter;
 }
 

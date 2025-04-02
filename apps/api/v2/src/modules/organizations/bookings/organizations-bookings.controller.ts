@@ -42,14 +42,10 @@ export class OrganizationsBookingsController {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const { userIds, ...restParams } = queryParams;
 
-    const userIdsForBookings = userIds
-      ? await this.orgUsersService.getUsersByIds(orgId, userIds)
-      : await this.orgUsersService.getUsers(orgId);
-
     const bookings = await this.bookingsService.getBookings(
       { ...restParams },
       { email: user.email, id: user.id, orgId },
-      (userIdsForBookings ?? []).map((u) => u.id)
+      userIds
     );
 
     return {
