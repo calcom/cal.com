@@ -9,6 +9,8 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -17,16 +19,15 @@ import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, LinkIconButton } from "@calcom/ui/components/button";
-import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
@@ -105,8 +106,7 @@ const ProfileView = () => {
     },
     [error]
   );
-  const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   const permalink = team
     ? `${getTeamUrlSync({
@@ -176,7 +176,7 @@ const ProfileView = () => {
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(team.bio ?? null) }}
                 />
               </>
             )}

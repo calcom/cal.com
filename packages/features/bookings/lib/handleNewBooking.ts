@@ -456,6 +456,10 @@ async function handler(
   let routingFormResponse = null;
 
   if (routedTeamMemberIds) {
+    //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
+    if (routingFormResponseId === undefined) {
+      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
+    }
     routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
         id: routingFormResponseId,
@@ -566,7 +570,7 @@ async function handler(
                 dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                 dateTo: dayjs(end).tz(reqBody.timeZone).format(),
                 timeZone: reqBody.timeZone,
-                originalRescheduledBooking,
+                originalRescheduledBooking: originalRescheduledBooking ?? null,
               },
               loggerWithEventDetails,
               shouldServeCache
