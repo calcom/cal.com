@@ -13,13 +13,11 @@ import {
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
+  DataTableSegment,
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
-  SaveFilterSegmentButton,
-  FilterSegmentSelect,
   useDataTable,
-  CTA_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -105,7 +103,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider defaultPageSize={25} ctaContainerClassName={CTA_CONTAINER_CLASS_NAME}>
+    <DataTableProvider defaultPageSize={25}>
       <UserListTableContent />
     </DataTableProvider>
   );
@@ -535,16 +533,14 @@ function UserListTableContent() {
           <>
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
-            <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-            <DataTableFilters.ActiveFilters table={table} />
-            <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+            <DataTableFilters.FilterBar table={table} />
           </>
         }
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            <SaveFilterSegmentButton />
-            <FilterSegmentSelect />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
@@ -586,7 +582,7 @@ function UserListTableContent() {
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
       {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
 
-      {ctaContainerRef?.current &&
+      {ctaContainerRef.current &&
         createPortal(
           <div className="flex items-center gap-2">
             <DataTableToolbar.CTA
