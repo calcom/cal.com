@@ -6,7 +6,6 @@ import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { useEmailVerifyCheck } from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const shouldShowOnboarding = (
@@ -32,12 +31,12 @@ export const ONBOARDING_NEXT_REDIRECT = {
 
 export function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
-  const { data: user, isLoading: isUserLoading } = useMeQuery();
+  const { data: user, isLoading } = useMeQuery();
   const flags = useFlagMap();
-  const { data: email, isLoading: isEmailCheckLoading } = useEmailVerifyCheck();
 
-  const isLoading = isUserLoading || isEmailCheckLoading;
-  const needsEmailVerification = !email?.isVerified && flags["email-verification"];
+  const needsEmailVerification =
+    !user?.emailVerified && user?.identityProvider === "CAL" && flags["email-verification"];
+
   const shouldRedirectToOnboarding = user && shouldShowOnboarding(user);
   const canRedirect = !isLoading && shouldRedirectToOnboarding && !needsEmailVerification;
 
