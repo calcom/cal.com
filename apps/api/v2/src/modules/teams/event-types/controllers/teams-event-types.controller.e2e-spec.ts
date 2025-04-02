@@ -217,6 +217,32 @@ describe("Organizations Event Types Endpoints", () => {
       );
     });
 
+    it("should not allow creating an event type with integration not installed on team", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation",
+        slug: "coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "zoom",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teamMember1.id,
+          },
+          {
+            userId: teamMember2.id,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(400);
+    });
+
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: `teams-event-types-collective-${randomString()}`,
@@ -304,8 +330,8 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("collective");
-          evaluateHost(body.hosts[0], data.hosts[0]);
-          evaluateHost(body.hosts[1], data.hosts[1]);
+          evaluateHost(body.hosts?.[0] || { userId: -1 }, data.hosts[0]);
+          evaluateHost(body.hosts?.[1] || { userId: -1 }, data.hosts[1]);
           expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
@@ -443,6 +469,22 @@ describe("Organizations Event Types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/v2/teams/${team.id}/event-types/999999`)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should not allow to update event type with integration not installed on team", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        locations: [
+          {
+            type: "integration",
+            integration: "office365-video",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/teams/${team.id}/event-types/${collectiveEventType.id}`)
         .send(body)
         .expect(400);
     });

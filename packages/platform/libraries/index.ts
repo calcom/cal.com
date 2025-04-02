@@ -61,7 +61,7 @@ export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
@@ -116,3 +116,4 @@ export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
 
 export { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/trpc/server/routers/viewer/attributes/findTeamMembersMatchingAttributeLogic.schema";
+export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";

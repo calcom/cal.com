@@ -1,7 +1,7 @@
 import type { Membership } from "@prisma/client";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,15 +19,11 @@ export const webhookProcedure = authedProcedure
       if (!memberships) return false;
       if (teamId) {
         return memberships.some(
-          (membership) =>
-            membership.teamId === teamId &&
-            (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+          (membership) => membership.teamId === teamId && checkAdminOrOwner(membership.role)
         );
       }
       return memberships.some(
-        (membership) =>
-          membership.userId === ctx.user.id &&
-          (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+        (membership) => membership.userId === ctx.user.id && checkAdminOrOwner(membership.role)
       );
     };
 
@@ -70,9 +66,7 @@ export const webhookProcedure = authedProcedure
           const userHasAdminOwnerPermissionInTeam =
             user &&
             user.teams.some(
-              (membership) =>
-                membership.teamId === webhook.teamId &&
-                (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+              (membership) => membership.teamId === webhook.teamId && checkAdminOrOwner(membership.role)
             );
 
           if (!userHasAdminOwnerPermissionInTeam) {

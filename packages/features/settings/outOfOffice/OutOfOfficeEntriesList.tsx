@@ -19,7 +19,9 @@ import {
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
+  DataTableSegment,
 } from "@calcom/features/data-table";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,7 +33,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -245,14 +246,16 @@ function OutOfOfficeEntriesListContent() {
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
-                        const offset = dayjs().utcOffset();
+                        const startDateOffset = -1 * item.start.getTimezoneOffset();
+                        const endDateOffset = -1 * item.end.getTimezoneOffset();
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
+                            startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
                           },
-                          offset,
+                          startDateOffset,
+                          endDateOffset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,
@@ -343,12 +346,17 @@ function OutOfOfficeEntriesListContent() {
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
-        ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
         ToolbarRight={
           <>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }
         EmptyView={

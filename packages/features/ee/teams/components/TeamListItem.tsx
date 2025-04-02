@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "@calcom/ee/teams/components/MemberInvitationModal";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -17,7 +19,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -81,7 +83,7 @@ export default function TeamListItem(props: Props) {
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
-  const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
+  const isAdmin = checkAdminOrOwner(props.team.role);
   const { hideDropdown, setHideDropdown } = props;
 
   const hideInvitationModal = () => {

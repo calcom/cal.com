@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
@@ -23,7 +24,6 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import {
   useTeamMembersWithSegment,

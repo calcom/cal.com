@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -18,7 +19,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { Form } from "@calcom/ui/components/form";
