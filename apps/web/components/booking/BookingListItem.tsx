@@ -692,12 +692,15 @@ function BookingListItem(booking: BookingItemProps) {
               <>
                 {isPending &&
                   // Show accept/reject buttons for:
-                  // 1. The primary organizer
-                  // 2. Anyone who is part of the team (if it's a team event)
-                  // 3. Round Robin and Collective events need specific handling
+                  // 1. The primary organizer (host)
+                  // 2. Team event members who aren't bookers
+                  // 3. Round Robin event members who aren't bookers
+                  // 4. ALL Collective event members/hosts
                   (booking.user?.email === userEmail ||
-                  booking.eventType?.team ||
-                  booking.eventType?.schedulingType === SchedulingType.ROUND_ROBIN ||
+                  (booking.eventType?.team &&
+                    !booking.attendees.some((attendee) => attendee.email === userEmail)) ||
+                  (booking.eventType?.schedulingType === SchedulingType.ROUND_ROBIN &&
+                    !booking.attendees.some((attendee) => attendee.email === userEmail)) ||
                   booking.eventType?.schedulingType === SchedulingType.COLLECTIVE ? (
                     <TableActions actions={pendingActions} />
                   ) : (
