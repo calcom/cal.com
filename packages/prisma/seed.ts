@@ -2,7 +2,6 @@ import type { Membership, Team, User } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
-import type z from "zod";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
@@ -15,10 +14,10 @@ import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@ca
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
+import type { TeamMetadata } from "./ark-utils";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
-import type { teamMetadataSchema } from "./zod-utils";
 
 type PlatformUser = {
   email: string;
@@ -98,7 +97,7 @@ const setupPlatformUser = async (user: PlatformUser) => {
 
 const createTeam = async (team: Prisma.TeamCreateInput) => {
   try {
-    const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+    const requestedSlug = (team.metadata as TeamMetadata)?.requestedSlug;
     if (requestedSlug) {
       const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
       if (unpublishedTeam) {
@@ -216,7 +215,7 @@ async function createTeamAndAddUsers(
   };
   const createTeam = async (team: Prisma.TeamCreateInput) => {
     try {
-      const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+      const requestedSlug = (team.metadata as TeamMetadata)?.requestedSlug;
       if (requestedSlug) {
         const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
         if (unpublishedTeam) {
@@ -311,7 +310,8 @@ async function createOrganizationAndAddMembersAndTeams({
             user: {
               ...member.memberData,
               password: member.memberData.password.create?.hash,
-            },
+              // TODO: these pre-existing type errors should be resolved
+            } as never,
             eventTypes: [
               {
                 title: "30min",

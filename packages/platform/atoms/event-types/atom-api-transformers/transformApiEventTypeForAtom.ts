@@ -26,7 +26,7 @@ import type {
 import {
   bookerLayoutOptions,
   BookerLayouts,
-  bookerLayouts as bookerLayoutsSchema,
+  bookerLayoutsSchema,
   userMetadata as userMetadataSchema,
   eventTypeBookingFields,
   EventTypeMetaDataSchema,
