@@ -15,14 +15,10 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
-
-  const ssr = await ssrInit(context);
 
   const booking = await BookingRepository.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
@@ -76,7 +72,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   //find out if the meeting is in the past
   const isPast = booking?.endTime <= exitDate;
-  if (isPast) {
+  const testingUid =
+    CAL_VIDEO_MEETING_LINK_FOR_TESTING && CAL_VIDEO_MEETING_LINK_FOR_TESTING?.split("/").pop();
+  const isTestingLink = booking?.uid === testingUid;
+
+  if (isPast && !isTestingLink) {
     return {
       redirect: {
         destination: `/video/meeting-ended/${booking?.uid}`,
@@ -153,7 +153,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
-      trpcState: ssr.dehydrate(),
     },
   };
 }
