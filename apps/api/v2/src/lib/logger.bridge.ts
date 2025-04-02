@@ -1,5 +1,22 @@
 import { Injectable, Logger as NestLogger, Scope } from "@nestjs/common";
 
+// 1. Define an interface for the settings
+interface IMyLoggerSettings {
+  minLevel: number; // Example: 0=debug, 1=info, 2=warn, 3=error
+  displayTimestamp: boolean;
+  logFormat: "pretty" | "json" | "simple";
+  // Add any other settings you need, mimicking tslog or your own requirements
+  // e.g., name?: string; displayFunctionName?: boolean; etc.
+}
+
+// Define log level constants (optional but recommended for readability)
+const LogLevel = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+};
+
 /**
  * This logger acts as a bridge between Nest.js Logger and log calls originating
  * from platform libraries. It forwards logs to NestLogger, allowing centralization
@@ -11,6 +28,25 @@ export class Logger {
   private readonly nestLogger = new NestLogger("LoggerBridge");
   // Prefix to add to messages for this instance
   private prefix = "";
+
+  // Add a public `settings` property, typed with the interface
+  public settings: IMyLoggerSettings;
+
+  // Define default settings
+  private static readonly defaultSettings: IMyLoggerSettings = {
+    minLevel: LogLevel.INFO, // Default to INFO level
+    displayTimestamp: true,
+    logFormat: "pretty",
+  };
+
+  constructor(userSettings?: Partial<IMyLoggerSettings>) {
+    // Merge default settings with user-provided settings
+    // User settings override defaults
+    this.settings = {
+      ...Logger.defaultSettings,
+      ...userSettings,
+    };
+  }
 
   /**
    * Creates a new LoggerBridge instance with a specific prefix.
