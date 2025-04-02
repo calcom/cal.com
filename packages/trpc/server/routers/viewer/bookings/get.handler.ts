@@ -617,7 +617,7 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
                 members: membershipCondition,
                 id: orgId,
               }
-            : { isOrganization: false, members: membershipCondition },
+            : { isOrganization: false, members: membershipCondition, parentId: null },
         },
       },
     },
