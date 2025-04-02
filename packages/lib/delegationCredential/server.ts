@@ -105,7 +105,18 @@ const _buildDelegatedCalendarCredential = ({
   delegationCredential: DelegationCredential;
   user: User;
 }) => {
-  log.debug("buildDelegationCredential", safeStringify({ delegationCredential, user }));
+  log.debug(
+    "buildDelegationCredential",
+    safeStringify({
+      delegationCredential: {
+        id: delegationCredential.id,
+      },
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    })
+  );
   // TODO: Build for other platforms as well
   if (!isValidWorkspaceSlug(delegationCredential.workspacePlatform.slug)) {
     log.warn(

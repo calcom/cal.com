@@ -82,7 +82,9 @@ const getCalendarsEvents = async (
       .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
     const credential = calendarToCredentialMap.get(calendarService);
     const isADelegationCredential = credential && isDelegationCredential({ credentialId: credential.id });
-
+    // We want to fallback to primary calendar when no selectedCalendars are passed
+    // Default behaviour for Google Calendar is to use all available calendars, which isn't good default.
+    const allowFallbackToPrimary = isADelegationCredential;
     if (!passedSelectedCalendars.length) {
       if (!isADelegationCredential) {
         // It was done to fix the secondary calendar connections from always checking the conflicts even if intentional no calendars are selected.
@@ -110,7 +112,8 @@ const getCalendarsEvents = async (
       dateFrom,
       dateTo,
       passedSelectedCalendars,
-      shouldServeCache
+      shouldServeCache,
+      allowFallbackToPrimary
     );
     performance.mark("eventBusyDatesEnd");
     performance.measure(

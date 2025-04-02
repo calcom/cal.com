@@ -1,7 +1,10 @@
+import logger from "@calcom/lib/logger";
+
 import { Task } from "./repository";
-import { type TaskerCreate, type Tasker } from "./tasker";
+import { type TaskerCreate, type Tasker, TaskResultStatus } from "./tasker";
 import tasksMap, { tasksConfig } from "./tasks";
 
+const log = logger.getSubLogger({ prefix: ["internal-tasker"] });
 /**
  * This is the default internal Tasker that uses the Task repository to create tasks.
  * It doesn't have any external dependencies and is suitable for most use cases.
@@ -27,8 +30,21 @@ export class InternalTasker implements Tasker {
       const taskConfig = tasksConfig[task.type as keyof typeof tasksConfig];
       const taskHandler = await taskHandlerGetter();
       return taskHandler(task.payload)
-        .then(async () => {
-          await Task.succeed(task.id);
+        .then(async (result) => {
+          // undefined result means consider completed
+          if (!result) {
+            await Task.succeed(task.id);
+            return;
+          }
+
+          if (result.status === TaskResultStatus.Completed) {
+            await Task.succeed(task.id);
+          } else if (result.status === TaskResultStatus.Progressing) {
+            await Task.updateProgress({ taskId: task.id, payload: result.newPayload });
+          } else if (result.status === TaskResultStatus.NoWorkToDo) {
+            // Do nothing
+            log.debug(`Task ${task.id} has no work to do`);
+          }
         })
         .catch(async (error) => {
           console.info(`Retrying task ${task.id}: ${error}`);
@@ -47,5 +63,8 @@ export class InternalTasker implements Tasker {
   async cleanup(): Promise<void> {
     const count = await Task.cleanup();
     console.info(`Cleaned up ${count} tasks`);
+  }
+  async cancelWhere(query: { payloadContains: string }): Promise<number> {
+    return await Task.cancelWhere(query);
   }
 }

@@ -1,6 +1,27 @@
 import type { z } from "zod";
 
 export type TaskerTypes = "internal" | "redis";
+export const enum TaskResultStatus {
+  Completed = "completed",
+  Progressing = "progressing",
+  NoWorkToDo = "noWorkToDo",
+}
+
+export type TaskResult =
+  | {
+      status: TaskResultStatus.Progressing;
+      // Required payload update to record the progress
+      newPayload: string;
+    }
+  | {
+      // No work to do. Used by long running tasks when there is nothing to do at the moment by the task.
+      status: TaskResultStatus.NoWorkToDo;
+    }
+  | {
+      status: TaskResultStatus.Completed;
+    }
+  | void;
+
 type TaskPayloads = {
   sendEmail: string;
   sendWebhook: string;
@@ -18,9 +39,12 @@ type TaskPayloads = {
     typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
   >;
   createCRMEvent: z.infer<typeof import("./tasks/crm/schema").createCRMEventSchema>;
+  delegationCredentialSelectedCalendars: z.infer<
+    typeof import("./tasks/delegationCredentialSelectedCalendars").ZDelegationCredentialSelectedCalendarsPayloadSchema
+  >;
 };
 export type TaskTypes = keyof TaskPayloads;
-export type TaskHandler = (payload: string) => Promise<void>;
+export type TaskHandler = (payload: string) => Promise<TaskResult>;
 export type TaskerCreate = <TaskKey extends keyof TaskPayloads>(
   type: TaskKey,
   payload: TaskPayloads[TaskKey],
@@ -31,4 +55,5 @@ export interface Tasker {
   create: TaskerCreate;
   processQueue(): Promise<void>;
   cleanup(): Promise<void>;
+  cancelWhere(query: { payloadContains: string }): Promise<number>;
 }

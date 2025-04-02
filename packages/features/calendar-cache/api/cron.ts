@@ -1,12 +1,15 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
+
+const log = logger.getSubLogger({ prefix: ["CalendarCacheCron"] });
 
 const validateRequest = (req: NextApiRequest) => {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -71,12 +74,12 @@ const handleCalendarsToUnwatch = async () => {
           await SelectedCalendarRepository.updateById(id, {
             error: "Missing credentialId and delegationCredentialId",
           });
-          console.log("no credentialId and delegationCredentialId for SelecedCalendar: ", id);
+          log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromDwdOrRegularCredential({
+        const cc = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
           credentialId,
-          dwdId: delegationCredentialId,
+          delegationCredentialId,
           userId,
         });
         await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
@@ -99,12 +102,12 @@ const handleCalendarsToWatch = async () => {
           await SelectedCalendarRepository.updateById(id, {
             error: "Missing credentialId and delegationCredentialId",
           });
-          console.log("no credentialId and delegationCredentialId for SelecedCalendar: ", id);
+          log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromDwdOrRegularCredential({
+        const cc = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
           credentialId,
-          dwdId: delegationCredentialId,
+          delegationCredentialId,
           userId,
         });
         await cc.watchCalendar({ calendarId: externalId, eventTypeIds });

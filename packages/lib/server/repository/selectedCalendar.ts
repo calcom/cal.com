@@ -218,7 +218,7 @@ export class SelectedCalendarRepository {
       orderBy: {
         externalId: "asc",
       },
-    };
+    } as const;
 
     return await prisma.selectedCalendar.findFirst({
       where: {

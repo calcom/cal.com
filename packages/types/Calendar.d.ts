@@ -272,7 +272,8 @@ export interface Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean
+    shouldServeCache?: boolean,
+    fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
