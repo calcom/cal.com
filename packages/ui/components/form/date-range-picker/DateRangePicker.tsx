@@ -33,20 +33,22 @@ export function DatePickerWithRange({
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
     if (!dates.startDate) {
-      // If no start date set it as both start and end date
+      // If no start date, set it as both start and end date
       onDatesChange({ startDate: date, endDate: date });
-    } else if (!dates.endDate) {
+    } else if (dates.startDate && !dates.endDate) {
       const startDate = date < dates.startDate ? date : dates.startDate;
       const endDate = date < dates.startDate ? dates.startDate : date;
       onDatesChange({ startDate, endDate });
-    } else {
+    } else if (dates.startDate && dates.endDate) {
       // If both dates exist
-      if (date.getTime() === dates.startDate.getTime() && dates.endDate) {
+      if (date.getTime() === dates.startDate.getTime()) {
         onDatesChange({ startDate: date, endDate: date });
-      } else if (date <= dates.endDate) {
+      } else if (date.getTime() === dates.endDate?.getTime()) {
+        onDatesChange({ startDate: date, endDate: date });
+      } else if (date < dates.startDate) {
         onDatesChange({ startDate: date, endDate: dates.endDate });
-      } else {
-        onDatesChange({ startDate: date, endDate: date });
+      } else if (date > dates.startDate) {
+        onDatesChange({ startDate: dates.startDate, endDate: date });
       }
     }
   }
