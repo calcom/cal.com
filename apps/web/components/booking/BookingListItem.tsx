@@ -371,7 +371,7 @@ function BookingListItem(booking: BookingItemProps) {
   if (isDisabledRescheduling) {
     bookedActions.forEach((action) => {
       if (action.id === "edit_booking") {
-        action.actions = action.actions.filter(
+        action.actions = action?.actions.filter(
           ({ id }) => id !== "reschedule" && id !== "reschedule_request"
         );
       }
