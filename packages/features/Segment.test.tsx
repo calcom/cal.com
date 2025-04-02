@@ -63,7 +63,7 @@ const mockAttributesWithSingleSelect = () => {
 vi.mock("@calcom/trpc", () => ({
   trpc: {
     viewer: {
-      appRoutingForms: {
+      routingForms: {
         getAttributesForTeam: {
           useQuery: vi.fn(),
         },
