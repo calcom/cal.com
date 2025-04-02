@@ -2,10 +2,10 @@
 
 import { usePathname } from "next/navigation";
 
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
 
 import BillingCredits from "~/settings/billing/components/BillingCredits";
 

@@ -39,9 +39,20 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
+export function checkStaticFiles(pathname: string) {
+  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
+  // Skip Next.js internal paths (_next) and static assets
+  if (pathname.startsWith("/_next") || hasFileExtension) {
+    return NextResponse.next();
+  }
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
+
+  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
+  if (isStaticFile) return isStaticFile;
 
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
@@ -163,8 +174,9 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
 export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
+  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
+  // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
   matcher: [
-    "/",
     "/403",
     "/500",
     "/icons",
@@ -194,10 +206,16 @@ export const config = {
     "/booking/:path*",
     "/payment/:path*",
     "/routing-forms/:path*",
-    "/team/:path*",
-    "/org/:path*",
-    "/:user/:type/",
-    "/:user/",
+    "/org/:orgSlug/instant-meeting/team/:slug/:type",
+    "/org/:orgSlug/team/:slug/:type",
+    "/org/:orgSlug/team/:slug",
+    "/org/:orgSlug/:user/:type",
+    "/org/:orgSlug/:user",
+    "/org/:orgSlug",
+    "/team/:slug/:type",
+    "/team/:slug",
+    "/:user/:type",
+    "/:user",
   ],
 };
 

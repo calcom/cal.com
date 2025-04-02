@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
@@ -35,12 +36,13 @@ import {
   Redirect,
   UnauthorizedException,
   Req,
+  HttpException,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO } from "@calcom/platform-constants";
+import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -56,7 +58,7 @@ export type OAuthCallbackState = {
 })
 @DocsTags("Conferencing")
 export class ConferencingController {
-  private readonly logger = new Logger("Platform Gcal Provider");
+  private readonly logger = new Logger("ConferencingController");
 
   constructor(
     private readonly tokensRepository: TokensRepository,
@@ -69,7 +71,14 @@ export class ConferencingController {
   @Post("/:app/connect")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Connect your conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET],
+    required: true,
+  })
   async connect(
     @GetUser("id") userId: number,
     @Param("app") app: string
@@ -91,7 +100,14 @@ export class ConferencingController {
   @Get("/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get OAuth conferencing app auth url" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -137,6 +153,12 @@ export class ConferencingController {
   @UseGuards()
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "conferencing apps oauths callback" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   async save(
     @Query("state") state: string,
     @Param("app") app: string,
@@ -144,6 +166,10 @@ export class ConferencingController {
     @Query("error") error: string | undefined,
     @Query("error_description") error_description: string | undefined
   ): Promise<{ url: string }> {
+    if (!state) {
+      throw new BadRequestException("Missing `state` query param");
+    }
+
     const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
     try {
       const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
@@ -169,6 +195,9 @@ export class ConferencingController {
           );
       }
     } catch (error) {
+      if (error instanceof HttpException || error instanceof Error) {
+        this.logger.error(error.message);
+      }
       return {
         url: decodedCallbackState.onErrorReturnTo ?? "",
       };
@@ -178,6 +207,7 @@ export class ConferencingController {
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "List your conferencing applications" })
   async listInstalledConferencingApps(
     @GetUser("id") userId: number
@@ -194,18 +224,26 @@ export class ConferencingController {
   @Post("/:app/default")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Set your default conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
+    required: true,
+  })
   async default(
-    @GetUser("id") userId: number,
+    @GetUser() user: UserWithProfile,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
-    await this.conferencingService.setDefaultConferencingApp(userId, app);
+    await this.conferencingService.setDefaultConferencingApp(user, app);
     return { status: SUCCESS_STATUS };
   }
 
   @Get("/default")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get your default conferencing application" })
   async getDefault(@GetUser("id") userId: number): Promise<GetDefaultConferencingAppOutputResponseDto> {
     const defaultconferencingApp = await this.conferencingService.getUserDefaultConferencingApp(userId);
@@ -215,7 +253,14 @@ export class ConferencingController {
   @Delete("/:app/disconnect")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Disconnect your conferencing application" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO],
+    required: true,
+  })
   async disconnect(
     @GetUser() user: UserWithProfile,
     @Param("app") app: string

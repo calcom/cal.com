@@ -3,6 +3,7 @@ import { Locales } from "@/lib/enums/locales";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
+import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
@@ -30,11 +31,10 @@ import {
   Query,
   NotFoundException,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { Pagination } from "@calcom/platform-types";
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
@@ -42,6 +42,11 @@ import { Pagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, OAuthClientGuard, OrganizationRolesGuard)
 @DocsTags("Platform / Managed Users")
+@ApiHeader({
+  name: X_CAL_SECRET_KEY,
+  description: "OAuth client secret key",
+  required: true,
+})
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 
@@ -57,20 +62,14 @@ export class OAuthClientUsersController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getManagedUsers(
     @Param("clientId") oAuthClientId: string,
-    @Query() queryParams: Pagination
+    @Query() queryParams: GetManagedUsersInput
   ): Promise<GetManagedUsersOutput> {
     this.logger.log(`getting managed users with data for OAuth Client with ID ${oAuthClientId}`);
-    const { offset, limit } = queryParams;
-
-    const existingUsers = await this.userRepository.findManagedUsersByOAuthClientId(
-      oAuthClientId,
-      offset ?? 0,
-      limit ?? 50
-    );
+    const managedUsers = await this.oAuthClientUsersService.getManagedUsers(oAuthClientId, queryParams);
 
     return {
       status: SUCCESS_STATUS,
-      data: existingUsers.map((user) => this.getResponseUser(user)),
+      data: managedUsers.map((user) => this.getResponseUser(user)),
     };
   }
 
@@ -85,14 +84,11 @@ export class OAuthClientUsersController {
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
+    if (!client) {
+      throw new NotFoundException(`OAuth Client with ID ${oAuthClientId} not found`);
+    }
 
-    const isPlatformManaged = true;
-    const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
-      oAuthClientId,
-      body,
-      isPlatformManaged,
-      client?.organizationId
-    );
+    const { user, tokens } = await this.oAuthClientUsersService.createOAuthClientUser(client, body);
 
     return {
       status: SUCCESS_STATUS,
