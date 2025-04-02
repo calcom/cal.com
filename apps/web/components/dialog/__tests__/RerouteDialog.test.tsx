@@ -89,7 +89,31 @@ vi.mock("@calcom/ui/components/tooltip", () => ({
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
-      appRoutingForms: {
+      routingForms: {
+        findTeamMembersMatchingAttributeLogicOfRoute: {
+          useMutation: vi.fn(({ onSuccess }) => {
+            return {
+              mutate: vi.fn(() => {
+                onSuccess({
+                  result: {
+                    users: [
+                      {
+                        id: 1,
+                        name: "Matching User 1",
+                        email: "matching-user-1@example.com",
+                      },
+                      {
+                        id: 2,
+                        name: "Matching User 2",
+                        email: "matching-user-2@example.com",
+                      },
+                    ],
+                  },
+                });
+              }),
+            };
+          }),
+        },
         getResponseWithFormFields: {
           useQuery: vi.fn(() => ({
             data: {
@@ -175,32 +199,6 @@ vi.mock("@calcom/trpc/react", () => ({
             },
             isPending: false,
           })),
-        },
-      },
-      routingForms: {
-        findTeamMembersMatchingAttributeLogicOfRoute: {
-          useMutation: vi.fn(({ onSuccess }) => {
-            return {
-              mutate: vi.fn(() => {
-                onSuccess({
-                  result: {
-                    users: [
-                      {
-                        id: 1,
-                        name: "Matching User 1",
-                        email: "matching-user-1@example.com",
-                      },
-                      {
-                        id: 2,
-                        name: "Matching User 2",
-                        email: "matching-user-2@example.com",
-                      },
-                    ],
-                  },
-                });
-              }),
-            };
-          }),
         },
       },
     },
