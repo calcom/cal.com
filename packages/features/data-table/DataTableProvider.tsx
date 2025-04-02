@@ -15,10 +15,11 @@ import {
   type FilterSegmentOutput,
   type ActiveFilters,
 } from "./lib/types";
+import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
 export type DataTableContextType = {
   tableIdentifier: string;
-  ctaContainerRef?: React.RefObject<HTMLDivElement>;
+  ctaContainerRef: React.RefObject<HTMLDivElement>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
@@ -69,7 +70,7 @@ export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
   defaultPageSize = DEFAULT_PAGE_SIZE,
-  ctaContainerClassName,
+  ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
 }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
@@ -110,6 +111,7 @@ export function DataTableProvider({
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
+      setSegmentIdAndSaveToLocalStorage(null);
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));

@@ -676,7 +676,6 @@ test.describe("Out of office", () => {
       );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
@@ -777,7 +776,6 @@ test.describe("Out of office", () => {
         );
         await page.locator('[data-testid="add-filter-item-dateRange"]').click();
         await entriesListRespPromise;
-        await page.locator('[data-testid="add-filter-button"]').click(); //close popover
 
         //1 OOO record should be visible for member3, end=currentDate-4days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
