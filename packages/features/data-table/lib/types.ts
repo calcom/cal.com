@@ -247,7 +247,7 @@ export type FilterSegmentOutput = {
   columnVisibility: Record<string, boolean>;
   columnSizing: Record<string, number>;
   perPage: number;
-  searchTerm?: string | null;
+  searchTerm: string | null;
   createdAt: Date;
   updatedAt: Date;
   userId: number;

@@ -172,6 +172,7 @@ export function DataTableProvider({
     columnVisibility,
     columnSizing,
     pageSize,
+    searchTerm,
     defaultPageSize,
     segmentId,
     setSegmentId,
@@ -181,6 +182,7 @@ export function DataTableProvider({
     setColumnSizing,
     setPageSize,
     setPageIndex,
+    setSearchTerm,
   });
 
   const clearAll = useCallback(
