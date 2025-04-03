@@ -16,6 +16,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 export interface Option {
   label: string;
+  value?: string;
   id?: string;
   [key: string]: any;
 }
@@ -26,13 +27,41 @@ interface MultiOptionInputProps<TFieldValues extends FieldValues> {
    * @example "fields.0.options" or "questions"
    */
   fieldArrayName: ArrayPath<TFieldValues>;
+  /**
+   * Whether to display as key-value pairs
+   * @default false
+   */
+  keyValueMode?: boolean;
+  /**
+   * Label for the key field in key-value mode
+   * @default "Key"
+   */
+  keyLabel?: string;
+  /**
+   * Label for the value field in key-value mode
+   * @default "Value"
+   */
+  valueLabel?: string;
+  /**
+   * Custom regex pattern to validate keys
+   */
+  keyPattern?: string;
   addOptionLabel?: string;
   optionPlaceholders?: string[];
+  /**
+   * Placeholders for value fields in key-value mode
+   */
+  valuePlaceholders?: string[];
   defaultNumberOfOptions?: number;
   /**
    * Delimiters to split pasted text on. Defaults to ["\n", ","]
+   * For key-value pairs, will try to split on ":" or "=" between key and value
    */
   pasteDelimiters?: string[];
+  /**
+   * Delimiters to split key-value pairs on. Defaults to [":", "="]
+   */
+  keyValueDelimiters?: string[];
   /**
    * Whether to show move up/down buttons. Defaults to true
    */
@@ -50,10 +79,16 @@ interface MultiOptionInputProps<TFieldValues extends FieldValues> {
 
 export const MultiOptionInput = <TFieldValues extends FieldValues>({
   fieldArrayName,
+  keyValueMode = false,
+  keyLabel = "Key",
+  valueLabel = "Value",
+  keyPattern,
   addOptionLabel = "Add an option",
   optionPlaceholders = ["Option 1", "Option 2", "Option 3", "Option 4"],
+  valuePlaceholders = ["Value 1", "Value 2", "Value 3", "Value 4"],
   defaultNumberOfOptions = 4,
   pasteDelimiters = ["\n", ","],
+  keyValueDelimiters = [":", "="],
   showMoveButtons = true,
   showRemoveButton: _showRemoveButton,
   minOptions = 1,
@@ -77,7 +112,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
   if (options.length === 0) {
     const defaultOptions = Array(defaultNumberOfOptions)
       .fill(0)
-      .map(() => ({ label: "", id: uuidv4() }));
+      .map(() => ({ label: "", value: "", id: uuidv4() }));
     replaceOptions(defaultOptions as PathValue<TFieldValues, Path<TFieldValues>>);
   }
 
@@ -87,11 +122,29 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
     const paste = event.clipboardData.getData("text");
     // Split on any of the delimiters
     const delimiterRegex = new RegExp(`[${pasteDelimiters.join("")}]+`);
+    const keyValueRegex = new RegExp(
+      `([^${keyValueDelimiters.join("")}]+)([${keyValueDelimiters.join("")}])(.+)`
+    );
+
     const optionsBeingPasted = paste
       .split(delimiterRegex)
-      .map((optionLabel) => optionLabel.trim())
-      .filter((optionLabel) => optionLabel)
-      .map((optionLabel) => ({ label: optionLabel.trim(), id: uuidv4() }));
+      .map((optionText) => optionText.trim())
+      .filter((optionText) => optionText)
+      .map((optionText) => {
+        // If in key-value mode, try to parse as key-value
+        if (keyValueMode) {
+          const match = optionText.match(keyValueRegex);
+          if (match) {
+            return {
+              label: match[1].trim(),
+              value: match[3].trim(),
+              id: uuidv4(),
+            };
+          }
+          return { label: optionText, value: "", id: uuidv4() };
+        }
+        return { label: optionText, id: uuidv4() };
+      });
 
     if (optionsBeingPasted.length === 1) {
       // If there is only one option, let the default paste behavior handle it
@@ -115,7 +168,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
   };
 
   const addOption = () => {
-    appendOption({ label: "", id: uuidv4() } as PathValue<TFieldValues, Path<TFieldValues>>);
+    appendOption({ label: "", value: "", id: uuidv4() } as PathValue<TFieldValues, Path<TFieldValues>>);
   };
 
   const handleRemoveOption = (index: number) => {
@@ -135,36 +188,87 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
 
   return (
     <div className="w-full">
+      {keyValueMode && (
+        <div className="mb-2 flex items-center px-2">
+          <div className="flex-grow">
+            <span className="text-subtle text-xs font-medium">{keyLabel}</span>
+          </div>
+          <div className="flex-grow">
+            <span className="text-subtle text-xs font-medium">{valueLabel}</span>
+          </div>
+          {/* Space for buttons */}
+          <div className="w-12" />
+        </div>
+      )}
       <ul ref={animationRef}>
         {options.map((option, index) => (
           <li
             key={option.id || `option-${index}`}
             className="group mt-2 flex items-center gap-2"
             onPaste={(event) => handlePasteInOptionAtIndex(event, index)}>
-            <div className="flex-grow">
-              <TextField
-                disabled={disabled}
-                containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
-                className="border-0 focus:ring-0 focus:ring-offset-0"
-                labelSrOnly
-                placeholder={optionPlaceholders[index] ?? "New Option"}
-                type="text"
-                required
-                addOnClassname="bg-transparent border-0"
-                {...control.register(`${fieldArrayName}.${index}.label` as Path<TFieldValues>)}
-                addOnSuffix={
-                  showRemoveButton ? (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveOption(index)}
-                      aria-label="Remove option"
-                      disabled={disabled}>
-                      <Icon name="x" className="h-4 w-4" />
-                    </button>
-                  ) : null
-                }
-              />
-            </div>
+            {keyValueMode ? (
+              // Key-value pair mode
+              <div className="flex w-full gap-2">
+                <div className="flex-grow">
+                  <TextField
+                    disabled={disabled}
+                    labelSrOnly
+                    placeholder={optionPlaceholders[index] ?? "Key"}
+                    pattern={keyPattern}
+                    type="text"
+                    required
+                    addOnClassname="bg-transparent border-0"
+                    {...control.register(`${fieldArrayName}.${index}.label` as Path<TFieldValues>)}
+                  />
+                </div>
+                <div className="flex-grow">
+                  <TextField
+                    disabled={disabled}
+                    labelSrOnly
+                    placeholder={valuePlaceholders[index] ?? "Value"}
+                    type="text"
+                    required
+                    addOnClassname="bg-transparent border-0"
+                    {...control.register(`${fieldArrayName}.${index}.value` as Path<TFieldValues>)}
+                    addOnSuffix={
+                      showRemoveButton ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveOption(index)}
+                          aria-label="Remove option"
+                          disabled={disabled}>
+                          <Icon name="x" className="h-4 w-4" />
+                        </button>
+                      ) : null
+                    }
+                  />
+                </div>
+              </div>
+            ) : (
+              // Standard mode
+              <div className="flex-grow">
+                <TextField
+                  disabled={disabled}
+                  labelSrOnly
+                  placeholder={optionPlaceholders[index] ?? "New Option"}
+                  type="text"
+                  required
+                  addOnClassname="bg-transparent border-0"
+                  {...control.register(`${fieldArrayName}.${index}.label` as Path<TFieldValues>)}
+                  addOnSuffix={
+                    showRemoveButton ? (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveOption(index)}
+                        aria-label="Remove option"
+                        disabled={disabled}>
+                        <Icon name="x" className="h-4 w-4" />
+                      </button>
+                    ) : null
+                  }
+                />
+              </div>
+            )}
             {showMoveButtons && (
               <div className="flex flex-col">
                 <button

@@ -9,6 +9,7 @@ type FormValues = {
   newlineOptions: Array<{ label: string; id: string }>;
   commaOptions: Array<{ label: string; id: string }>;
   customOptions: Array<{ label: string; id: string }>;
+  keyValueOptions: Array<{ label: string; value: string; id: string }>;
 };
 
 export const PasteExample: React.FC = () => {
@@ -39,6 +40,21 @@ export const PasteExample: React.FC = () => {
                 optionPlaceholders={["Paste here..."]}
                 defaultNumberOfOptions={1}
                 pasteDelimiters={[","]}
+              />
+            </div>
+
+            <div className="flex flex-col space-y-2">
+              <h3 className="text-emphasis text-sm">Key-Value Pair Paste Support</h3>
+              <p className="text-subtle text-xs">
+                Try pasting: &ldquo;NODE_ENV=production&rdquo; or &ldquo;KEY1:value1, KEY2:value2&rdquo;
+              </p>
+              <MultiOptionInput<FormValues>
+                fieldArrayName="keyValueOptions"
+                keyValueMode
+                optionPlaceholders={["Key..."]}
+                valuePlaceholders={["Value..."]}
+                defaultNumberOfOptions={1}
+                keyValueDelimiters={[":", "="]}
               />
             </div>
 

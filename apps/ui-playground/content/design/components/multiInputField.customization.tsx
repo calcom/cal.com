@@ -9,6 +9,7 @@ type FormValues = {
   customPlaceholders: Array<{ label: string; id: string }>;
   noMoveButtons: Array<{ label: string; id: string }>;
   customLabel: Array<{ label: string; id: string }>;
+  keyValuePairs: Array<{ label: string; value: string; id: string }>;
 };
 
 export const CustomizationExample: React.FC = () => {
@@ -19,6 +20,21 @@ export const CustomizationExample: React.FC = () => {
       <FormProvider {...methods}>
         <div className="space-y-6">
           <div className="space-y-4">
+            <div className="flex flex-col space-y-2">
+              <h3 className="text-emphasis text-sm">Key-Value Pairs</h3>
+              <p className="text-subtle text-xs">Allows inputting keys and values</p>
+              <MultiOptionInput<FormValues>
+                fieldArrayName="keyValuePairs"
+                keyValueMode
+                keyLabel="Environment Variable"
+                valueLabel="Value"
+                optionPlaceholders={["NODE_ENV", "PORT", "DATABASE_URL"]}
+                valuePlaceholders={["production", "3000", "postgres://..."]}
+                defaultNumberOfOptions={3}
+                keyValueDelimiters={[":", "="]}
+              />
+            </div>
+
             <div className="flex flex-col space-y-2">
               <h3 className="text-emphasis text-sm">Custom Placeholders</h3>
               <MultiOptionInput<FormValues>
