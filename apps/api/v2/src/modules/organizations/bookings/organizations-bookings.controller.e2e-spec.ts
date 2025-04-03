@@ -1,13 +1,10 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -22,26 +19,28 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_08_13,
+  X_CAL_CLIENT_ID,
+  X_CAL_SECRET_KEY,
+} from "@calcom/platform-constants";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
-describe("Bookings Endpoints 2024-08-13", () => {
-  describe("Team bookings", () => {
+describe("Organizations Bookings Endpoints 2024-08-13", () => {
+  describe("Organization bookings", () => {
     let app: INestApplication;
     let organization: Team;
-    let team1: Team;
-    let team2: Team;
 
     let userRepositoryFixture: UserRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
@@ -55,26 +54,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const teamUserEmail = `team-bookings-user1-${randomString()}@api.com`;
-    const teamUserEmail2 = `team-bookings-user2-${randomString()}@api.com`;
-    let teamUser: User;
-    let teamUser2: User;
+    const orgUserEmail = "org-user-1-bookings@api.com";
+    const orgUserEmail2 = "org-user-2-bookings@api.com";
+    const nonOrgUserEmail1 = "non-org-user-1-bookings@api.com";
+    let orgUser: User;
+    let orgUser2: User;
+    let nonOrgUser1: User;
+    let team1: Team;
 
-    let team1EventTypeId: number;
-    let team2EventTypeId: number;
-    let phoneOnlyEventTypeId: number;
-
-    const team1EventTypeSlug = `team-bookings-event-type-${randomString()}`;
-    const team2EventTypeSlug = `team-bookings-event-type-${randomString()}`;
-    const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomString()}`;
-
-    let phoneBasedBooking: BookingOutput_2024_08_13;
+    let orgEventTypeId: number;
+    let orgEventTypeId2: number;
+    let nonOrgEventTypeId: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
-        teamUserEmail,
+        orgUserEmail2,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+          imports: [AppModule, OrganizationsTeamsBookingsModule],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -94,37 +90,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await organizationsRepositoryFixture.create({
-        name: `team-bookings-organization-${randomString()}`,
+      organization = await organizationsRepositoryFixture.create({ name: "organization bookings" });
+      team1 = await teamRepositoryFixture.create({
+        name: "team orgs booking 1",
+        isOrganization: false,
+        parent: { connect: { id: organization.id } },
       });
       oAuthClient = await createOAuthClient(organization.id);
 
-      team1 = await teamRepositoryFixture.create({
-        name: `team-bookings-team1-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: organization.id } },
-        createdByOAuthClient: {
-          connect: {
-            id: oAuthClient.id,
-          },
-        },
-      });
-
-      team2 = await teamRepositoryFixture.create({
-        name: `team-bookings-team2-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: organization.id } },
-        createdByOAuthClient: {
-          connect: {
-            id: oAuthClient.id,
-          },
-        },
-      });
-
-      teamUser = await userRepositoryFixture.create({
-        email: teamUserEmail,
+      nonOrgUser1 = await userRepositoryFixture.create({
+        email: nonOrgUserEmail1,
         locale: "it",
-        name: "orgUser1team1",
+        name: "NonOrgUser1Bookings",
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
@@ -132,10 +109,21 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
-      teamUser2 = await userRepositoryFixture.create({
-        email: teamUserEmail2,
+      orgUser = await userRepositoryFixture.create({
+        email: orgUserEmail,
+        locale: "it",
+        name: "orgUser1Bookings",
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
+      });
+
+      orgUser2 = await userRepositoryFixture.create({
+        email: orgUserEmail2,
         locale: "es",
-        name: "orgUser2team1",
+        name: "orgUser2Bookings",
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
@@ -144,16 +132,45 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `team-bookings-2024-08-13-schedule-${randomString()}`,
+        name: "working time",
         timeZone: "Europe/Rome",
         isDefault: true,
       };
-      await schedulesService.createUserSchedule(teamUser.id, userSchedule);
-      await schedulesService.createUserSchedule(teamUser2.id, userSchedule);
+      await schedulesService.createUserSchedule(orgUser.id, userSchedule);
+      await schedulesService.createUserSchedule(orgUser2.id, userSchedule);
+      await schedulesService.createUserSchedule(nonOrgUser1.id, userSchedule);
+
+      const orgEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: team1.id },
+        },
+        title: "Collective Event Type",
+        slug: "org-bookings-collective-event-type",
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      const orgEventType2 = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team1.id },
+        },
+        title: "Collective Event Type",
+        slug: "org-bookings-round-robin-event-type",
+        length: 60,
+        assignAllTeamMembers: false,
+        bookingFields: [],
+        locations: [],
+      });
+
+      orgEventTypeId2 = orgEventType2.id;
 
       await profileRepositoryFixture.create({
-        uid: `usr-${teamUser.id}`,
-        username: teamUserEmail,
+        uid: `usr-${orgUser.id}`,
+        username: orgUserEmail,
         organization: {
           connect: {
             id: organization.id,
@@ -161,14 +178,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
         user: {
           connect: {
-            id: teamUser.id,
+            id: orgUser.id,
           },
         },
       });
 
       await profileRepositoryFixture.create({
-        uid: `usr-${teamUser2.id}`,
-        username: teamUserEmail2,
+        uid: `usr-${orgUser2.id}`,
+        username: orgUserEmail2,
         organization: {
           connect: {
             id: organization.id,
@@ -176,149 +193,63 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
         user: {
           connect: {
-            id: teamUser2.id,
+            id: orgUser2.id,
           },
         },
       });
 
       await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: teamUser.id } },
+        role: "OWNER",
+        user: { connect: { id: orgUser.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "OWNER",
+        user: { connect: { id: orgUser2.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "ADMIN",
+        user: { connect: { id: orgUser.id } },
         team: { connect: { id: team1.id } },
         accepted: true,
       });
 
       await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: teamUser.id } },
-        team: { connect: { id: team2.id } },
+        role: "OWNER",
+        user: { connect: { id: orgUser2.id } },
+        team: { connect: { id: team1.id } },
         accepted: true,
       });
 
-      await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: teamUser2.id } },
-        team: { connect: { id: team2.id } },
-        accepted: true,
-      });
-
-      const team1EventType = await eventTypesRepositoryFixture.createTeamEventType({
-        schedulingType: "COLLECTIVE",
-        team: {
-          connect: { id: team1.id },
+      const nonOrgEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Non Org Event Type",
+          slug: "non-org-event-type",
+          length: 60,
+          bookingFields: [],
+          locations: [],
         },
-        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
-        slug: team1EventTypeSlug,
-        length: 60,
-        assignAllTeamMembers: true,
-        bookingFields: [],
-        locations: [],
-      });
+        nonOrgUser1.id
+      );
 
-      team1EventTypeId = team1EventType.id;
-
-      const phoneOnlyEventType = await eventTypesRepositoryFixture.createTeamEventType({
-        schedulingType: "ROUND_ROBIN",
-        team: {
-          connect: { id: team1.id },
-        },
-        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
-        slug: phoneOnlyEventTypeSlug,
-        length: 15,
-        assignAllTeamMembers: false,
-        hosts: {
-          connectOrCreate: [
-            {
-              where: {
-                userId_eventTypeId: {
-                  userId: teamUser.id,
-                  eventTypeId: team1EventTypeId,
-                },
-              },
-              create: {
-                userId: teamUser.id,
-                isFixed: true,
-              },
-            },
-          ],
-        },
-        bookingFields: [
-          {
-            name: "name",
-            type: "name",
-            label: "your name",
-            sources: [{ id: "default", type: "default", label: "Default" }],
-            variant: "fullName",
-            editable: "system",
-            required: true,
-            defaultLabel: "your_name",
-            variantsConfig: {
-              variants: {
-                fullName: {
-                  fields: [{ name: "fullName", type: "text", label: "your name", required: true }],
-                },
-              },
-            },
-          },
-          {
-            name: "email",
-            type: "email",
-            label: "your email",
-            sources: [{ id: "default", type: "default", label: "Default" }],
-            editable: "system",
-            required: false,
-            defaultLabel: "email_address",
-          },
-          {
-            name: "attendeePhoneNumber",
-            type: "phone",
-            label: "phone_number",
-            sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
-            editable: "user",
-            required: true,
-            placeholder: "",
-          },
-          {
-            name: "rescheduleReason",
-            type: "textarea",
-            views: [{ id: "reschedule", label: "Reschedule View" }],
-            sources: [{ id: "default", type: "default", label: "Default" }],
-            editable: "system-but-optional",
-            required: false,
-            defaultLabel: "reason_for_reschedule",
-            defaultPlaceholder: "reschedule_placeholder",
-          },
-        ],
-        locations: [],
-      });
-
-      phoneOnlyEventTypeId = phoneOnlyEventType.id;
-
-      const team2EventType = await eventTypesRepositoryFixture.createTeamEventType({
-        schedulingType: "COLLECTIVE",
-        team: {
-          connect: { id: team2.id },
-        },
-        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
-        slug: team2EventTypeSlug,
-        length: 60,
-        assignAllTeamMembers: true,
-        bookingFields: [],
-        locations: [],
-      });
-
-      team2EventTypeId = team2EventType.id;
+      orgEventTypeId = orgEventType.id;
+      nonOrgEventTypeId = nonOrgEventType.id;
 
       await hostsRepositoryFixture.create({
         isFixed: true,
         user: {
           connect: {
-            id: teamUser.id,
+            id: orgUser.id,
           },
         },
         eventType: {
           connect: {
-            id: team1EventType.id,
+            id: orgEventType.id,
           },
         },
       });
@@ -327,26 +258,26 @@ describe("Bookings Endpoints 2024-08-13", () => {
         isFixed: true,
         user: {
           connect: {
-            id: teamUser.id,
+            id: orgUser2.id,
           },
         },
         eventType: {
           connect: {
-            id: team2EventType.id,
+            id: orgEventType.id,
           },
         },
       });
 
       await hostsRepositoryFixture.create({
-        isFixed: true,
+        isFixed: false,
         user: {
           connect: {
-            id: teamUser2.id,
+            id: orgUser2.id,
           },
         },
         eventType: {
           connect: {
-            id: team2EventType.id,
+            id: orgEventType2.id,
           },
         },
       });
@@ -357,11 +288,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await app.init();
     });
 
-    describe("create team bookings", () => {
-      it("should create a team 1 booking", async () => {
+    describe("create organization bookings", () => {
+      it("should create an collective organization booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-          eventTypeId: team1EventTypeId,
+          start: new Date(Date.UTC(2030, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: orgEventTypeId,
           attendee: {
             name: "alice",
             email: "alice@gmail.com",
@@ -387,13 +318,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
               expect(data.hosts.length).toEqual(1);
-              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.hosts[0].id).toEqual(orgUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 9, 14, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
-              expect(data.eventTypeId).toEqual(team1EventTypeId);
-              expect(data.attendees.length).toEqual(1);
+              expect(data.eventTypeId).toEqual(orgEventTypeId);
+              expect(data.attendees.length).toEqual(2);
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
@@ -411,14 +342,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a phone based booking", async () => {
-        const phoneNumber = "+919876543210";
+      it("should create a round robin organization booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
-          eventTypeId: phoneOnlyEventTypeId,
+          start: new Date(Date.UTC(2030, 0, 10, 13, 0, 0)).toISOString(),
+          eventTypeId: orgEventTypeId2,
           attendee: {
             name: "alice",
-            phoneNumber,
+            email: "alice@gmail.com",
             timeZone: "Europe/Madrid",
             language: "es",
           },
@@ -441,25 +371,22 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
               expect(data.hosts.length).toEqual(1);
-              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.hosts[0].id).toEqual(orgUser2.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 15, 15, 0)).toISOString());
-              expect(data.duration).toEqual(15);
-              expect(data.eventTypeId).toEqual(phoneOnlyEventTypeId);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 10, 14, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(orgEventTypeId2);
               expect(data.attendees.length).toEqual(1);
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
-                email: "919876543210@sms.cal.com",
-                phoneNumber: body.attendee.phoneNumber,
+                email: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
               });
               expect(data.meetingUrl).toEqual(body.meetingUrl);
               expect(data.absentHost).toEqual(false);
-              expect(data.bookingFieldsResponses.attendeePhoneNumber).toEqual(phoneNumber);
-              phoneBasedBooking = data;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -468,15 +395,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a team 2 booking", async () => {
+      it("should create a non organization booking for org-user-1", async () => {
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
-          eventTypeId: team2EventTypeId,
+          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          eventTypeId: nonOrgEventTypeId,
           attendee: {
-            name: "bob",
-            email: "bob@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
+            name: orgUser.name ?? "",
+            email: orgUserEmail,
+            timeZone: orgUser.timeZone ?? "Europe/Madrid",
+            language: "en",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
         };
@@ -497,25 +424,71 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
               expect(data.hosts.length).toEqual(1);
-              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.hosts[0].id).toEqual(nonOrgUser1.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 11, 0, 0)).toISOString());
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
-              expect(data.eventTypeId).toEqual(team2EventTypeId);
-              expect(data.attendees.length).toEqual(2);
+              expect(data.eventTypeId).toEqual(nonOrgEventTypeId);
+              expect(data.attendees.length).toEqual(1);
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
-                email: body.attendee.email,
+                email: orgUserEmail,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
               });
-              expect(data.attendees[1]).toEqual({
-                name: teamUser2.name,
-                email: teamUser2.email,
-                timeZone: teamUser2.timeZone,
-                language: teamUser2.locale,
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a non organization booking for org-user-2", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 11, 13, 0, 0)).toISOString(),
+          eventTypeId: nonOrgEventTypeId,
+          attendee: {
+            name: orgUser2.name ?? "",
+            email: orgUserEmail2,
+            timeZone: orgUser2.timeZone ?? "Europe/Madrid",
+            language: "en",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(nonOrgUser1.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 11, 14, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(nonOrgEventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: orgUserEmail2,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
                 absent: false,
               });
               expect(data.meetingUrl).toEqual(body.meetingUrl);
@@ -529,11 +502,36 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
-    describe("get team bookings", () => {
-      it("should get bookings by teamId", async () => {
+    describe("get organization bookings", () => {
+      it("should get bookings by organizationId", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?teamId=${team1.id}`)
+          .get(`/v2/organizations/${organization.id}/bookings`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(4);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
+            );
+          });
+      });
+
+      it("should get bookings by organizationId", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?userIds=${orgUser.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
@@ -545,13 +543,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(2);
-            expect(data[0].eventTypeId).toEqual(team1EventTypeId);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, nonOrgEventTypeId].sort()
+            );
           });
       });
 
-      it("should get bookings by teamId", async () => {
+      it("should get bookings by organizationId and userIds", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?teamId=${team2.id}`)
+          .get(
+            `/v2/organizations/${organization.id}/bookings?userIds=${orgUser.id},${orgUser2.id}&skip=0&take=250`
+          )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -563,40 +565,16 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(1);
-            expect(data[0].eventTypeId).toEqual(team2EventTypeId);
+            expect(data.length).toEqual(4);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
+            );
           });
       });
 
-      it("should get bookings by teamId and eventTypeId", async () => {
+      it("should get bookings by organizationId and userId", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?teamId=${team2.id}&eventTypeId=${team2EventTypeId}`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            const data: (
-              | BookingOutput_2024_08_13
-              | RecurringBookingOutput_2024_08_13
-              | GetSeatedBookingOutput_2024_08_13
-            )[] = responseBody.data;
-            expect(data.length).toEqual(1);
-            expect(data[0].eventTypeId).toEqual(team2EventTypeId);
-          });
-      });
-
-      it("should not get bookings by teamId and non existing eventTypeId", async () => {
-        return request(app.getHttpServer())
-          .get(`/v2/bookings?teamId=${team2.id}&eventTypeId=90909`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(400);
-      });
-
-      it("should get bookings by teamIds", async () => {
-        return request(app.getHttpServer())
-          .get(`/v2/bookings?teamIds=${team1.id},${team2.id}`)
+          .get(`/v2/organizations/${organization.id}/bookings?userIds=${orgUser2.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -609,61 +587,86 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(3);
-            expect(data.find((booking) => booking.eventTypeId === team1EventTypeId)).toBeDefined();
-            expect(data.find((booking) => booking.eventTypeId === team2EventTypeId)).toBeDefined();
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId].sort()
+            );
           });
       });
-    });
 
-    describe("reschedule", () => {
-      it("should reschedule phone based booking", async () => {
-        const body: RescheduleBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2035, 0, 8, 14, 0, 0)).toISOString(),
-          reschedulingReason: "Flying to mars that day",
-        };
-
+      it("should fail to get bookings by organizationId and Id of a user that does not exist", async () => {
         return request(app.getHttpServer())
-          .post(`/v2/bookings/${phoneBasedBooking.uid}/reschedule`)
-          .send(body)
+          .get(`/v2/organizations/${organization.id}/bookings?userIds=972930`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
+          .expect(400);
+      });
+
+      it("should fail to get bookings by organizationId and Id of a user that does not belong to the org", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?userIds=${nonOrgUser1.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+
+      it("should get bookings by organizationId and non org event-type id", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?eventTypeIds=${nonOrgEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
           .then(async (response) => {
-            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [nonOrgEventTypeId, nonOrgEventTypeId].sort()
+            );
+          });
+      });
 
-            if (responseDataIsBooking(responseBody.data)) {
-              const data: BookingOutput_2024_08_13 = responseBody.data;
-              expect(data.id).toBeDefined();
-              expect(data.uid).toBeDefined();
-              expect(data.hosts.length).toEqual(1);
-              expect(data.hosts[0].id).toEqual(teamUser.id);
-              expect(data.status).toEqual("accepted");
-              expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 8, 14, 15, 0)).toISOString());
-              expect(data.duration).toEqual(15);
-              expect(data.eventTypeId).toEqual(phoneOnlyEventTypeId);
-              expect(data.attendees.length).toEqual(1);
-              expect(data.attendees[0]).toEqual({
-                name: phoneBasedBooking.attendees[0].name,
-                email: phoneBasedBooking.attendees[0].email,
-                phoneNumber: phoneBasedBooking.attendees[0].phoneNumber,
-                timeZone: phoneBasedBooking.attendees[0].timeZone,
-                language: phoneBasedBooking.attendees[0].language,
-                absent: false,
-              });
-              expect(data.meetingUrl).toEqual(phoneBasedBooking.meetingUrl);
-              expect(data.absentHost).toEqual(false);
-              expect(data.bookingFieldsResponses.attendeePhoneNumber).toEqual(
-                phoneBasedBooking.bookingFieldsResponses.attendeePhoneNumber
-              );
-              phoneBasedBooking = data;
-            } else {
-              throw new Error(
-                "Invalid response data - expected booking but received array of possibly recurring bookings"
-              );
-            }
+      it("should get bookings by organizationId and org event-type id", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?eventTypeIds=${orgEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(1);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual([orgEventTypeId].sort());
+          });
+      });
+
+      it("should get bookings by organizationId and org + non org event-type ids", async () => {
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${organization.id}/bookings?eventTypeIds=${orgEventTypeId2},${nonOrgEventTypeId}`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(3);
+            expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
+              [orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
+            );
           });
       });
     });
@@ -688,9 +691,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
-      await userRepositoryFixture.deleteByEmail(teamUser.email);
-      await userRepositoryFixture.deleteByEmail(teamUserEmail2);
-      await bookingsRepositoryFixture.deleteAllBookings(teamUser.id, teamUser.email);
+      await userRepositoryFixture.deleteByEmail(orgUser.email);
+      await userRepositoryFixture.deleteByEmail(orgUser2.email);
+      await userRepositoryFixture.deleteByEmail(nonOrgUser1.email);
+      await bookingsRepositoryFixture.deleteAllBookings(orgUser.id, orgUser.email);
+      await bookingsRepositoryFixture.deleteAllBookings(orgUser2.id, orgUser2.email);
+      await bookingsRepositoryFixture.deleteAllBookings(nonOrgUser1.id, nonOrgUser1.email);
       await app.close();
     });
   });
