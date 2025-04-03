@@ -1,3 +1,4 @@
+import { captureException } from "@sentry/nextjs";
 import { createInstance } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -8,17 +9,25 @@ const MAX_RETRIES = 3;
 async function loadFallbackTranslations() {
   try {
     const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`);
-    if (res) {
-      return await res.json();
+    if (!res.ok) {
+      throw new Error(`Failed to fetch fallback translations: ${res.status}`);
     }
-  } catch {
-    console.error("Could not fetch fallback translations.");
+    return await res.json();
+  } catch (error) {
+    captureException(error, {
+      extra: {
+        context: "fallback_translations",
+        url: `${WEBAPP_URL}/static/locales/en/common.json`,
+      },
+    });
+    console.error("Could not fetch fallback translations:", error);
   }
   return;
 }
 
 async function loadTranslations(locale: string, ns: string) {
   let retries = 0;
+  let lastError = null;
 
   while (retries < MAX_RETRIES) {
     try {
@@ -26,21 +35,49 @@ async function loadTranslations(locale: string, ns: string) {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch translations: ${response.status}`);
+        throw new Error(
+          `Failed to fetch translations: ${response.status}, attempt ${
+            retries + 1
+          }/${MAX_RETRIES} for ${locale}/${ns}`
+        );
       }
 
       return await response.json();
     } catch (error) {
+      lastError = error;
       retries++;
 
       if (retries < MAX_RETRIES) {
         // Add a small delay between retries to give the network time to recover
         const delay = Math.pow(2, retries) * 100;
         await new Promise((resolve) => setTimeout(resolve, delay));
-        console.warn(`Retry ${retries}/${MAX_RETRIES} loading translations for ${locale}/${ns}`);
       }
+
+      captureException(error, {
+        extra: {
+          context: "translation_fetch",
+          locale,
+          namespace: ns,
+          attempt: retries,
+          url: `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`,
+        },
+      });
     }
   }
+
+  // All retries failed, report this specific scenario with context
+  captureException(lastError, {
+    extra: {
+      context: "translation_fetch_all_failed",
+      locale,
+      namespace: ns,
+      attempts: MAX_RETRIES,
+      url: `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`,
+    },
+  });
+  console.error(
+    `Failed to load translations for ${locale}/${ns} after ${MAX_RETRIES} attempts, using fallback`
+  );
 
   const fallbackTranslations = await loadFallbackTranslations();
   return fallbackTranslations ?? {};
