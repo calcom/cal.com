@@ -10,7 +10,7 @@ const baseUpdateSchema = {
   sorting: ZSortingState.optional(),
   columnVisibility: ZColumnVisibility.optional(),
   columnSizing: ZColumnSizing.optional(),
-  searchTerm: z.string().optional(),
+  searchTerm: z.string().nullable().optional(),
   perPage: z.number().int().min(1).optional(),
 };
 
