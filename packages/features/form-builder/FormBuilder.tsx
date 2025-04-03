@@ -838,7 +838,7 @@ function VariantFields({
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{`${fieldForm.getValues("name")}.${f.name}`}</span>
+                  <span className="text-muted">{f.name}</span>
                 </Label>
               )}
               <InputField
