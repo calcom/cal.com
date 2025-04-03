@@ -201,7 +201,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
               stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
             ),
             teamMembersMatchingAttributeLogic,
-            formResponseId: formResponseId ?? null,
+            formResponseId: formResponseId,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
