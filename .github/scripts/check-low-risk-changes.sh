@@ -3,13 +3,11 @@
 set -eo pipefail
 
 # --- Configuration ---
-# Max lines changed (added + deleted) allowed per file for it to be considered low-risk.
+# Lines changed threshold - PR changes with more lines are automatically considered high-risk
 MAX_LINES_CHANGED=10
-# Base branch to compare against
+
 BASE_BRANCH="origin/main"
-# Platform owner patterns (taken from .github/CODEOWNERS)
-# Add all relevant patterns here. Needs careful mapping from CODEOWNERS.
-# Example:
+
 PLATFORM_PATTERNS=(
   "^apps/api/"
   "^packages/app-store/applecalendar/"
@@ -31,26 +29,17 @@ PLATFORM_PATTERNS=(
   "^packages/platform/"
   "^packages/prisma/"
   "^packages/trpc/server/routers/viewer/slots/"
-  # Add other patterns owned by @calcom/Platform or @calcom/Foundation if they act as platform owners
 )
-# Keywords indicating potentially low-risk changes (types, imports, exports, signatures)
-# This is a basic heuristic.
-LOW_RISK_KEYWORDS_REGEX='(^\\+|^-) *(import|export|type|interface|class|enum|const|let|var|function|=>|\\):| *[a-zA-Z_][a-zA-Z0-9_]*\\?: *[a-zA-Z0-9_<>\[\]]+\;?)'
-# Regex to detect changes likely *inside* function/method bodies (heuristic)
-# Avoid lines starting with +/- followed by something other than keywords or comments,
-# especially if indented or containing common code constructs. This is very approximate.
-POTENTIAL_CODE_LOGIC_REGEX='(^\+|^-) *(  +|\t+|\{|\}|if|for|while|return|await|\.)'
 
-# --- Logic ---
+# --- Core Logic ---
 
 echo "Checking for high-risk changes requiring platform owner approval..."
 echo "Base branch: $BASE_BRANCH"
 echo "Max lines changed per file: $MAX_LINES_CHANGED"
 
-# Ensure base branch exists and is fetched
+# Fetch base branch for diff comparison
 git fetch origin main --depth=1 || { echo "Error: Failed to fetch base branch '$BASE_BRANCH'."; exit 1; }
 
-# Get list of changed files compared to base branch
 changed_files=$(git diff --name-only $BASE_BRANCH...HEAD)
 if [ -z "$changed_files" ]; then
   echo "No changed files detected. Skipping check."
@@ -61,10 +50,9 @@ echo -e "\nChanged files:\n$changed_files"
 
 high_risk_found=false
 
-# Loop through each changed file
 while IFS= read -r file; do
   is_platform_file=false
-  # Check if the file matches any platform pattern
+  
   for pattern in "${PLATFORM_PATTERNS[@]}"; do
     if [[ "$file" =~ $pattern ]]; then
       is_platform_file=true
@@ -75,7 +63,7 @@ while IFS= read -r file; do
   if $is_platform_file; then
     echo -e "\nChecking platform file: $file"
 
-    # Get the diffstat (added/deleted lines) for the file
+    # First risk heuristic: Line count - too many changes are automatically high-risk
     diff_stat=$(git diff --numstat $BASE_BRANCH...HEAD -- "$file")
     added_lines=$(echo "$diff_stat" | awk '{print $1}')
     deleted_lines=$(echo "$diff_stat" | awk '{print $2}')
@@ -86,51 +74,42 @@ while IFS= read -r file; do
     if [ "$total_lines" -gt "$MAX_LINES_CHANGED" ]; then
       echo "Risk Assessment: HIGH (Exceeded max lines changed: $total_lines > $MAX_LINES_CHANGED)"
       high_risk_found=true
-      continue # Move to the next file
+      continue
     fi
 
-    # Get the actual diff content
+    # Second risk heuristic: Content analysis - look for actual code changes vs type/interface changes
     diff_content=$(git diff $BASE_BRANCH...HEAD -- "$file")
-    changed_lines_content=$(echo "$diff_content" | grep -E '^(\+|\-)' | grep -vE '^(\+\+\+)|(---)') # Extract lines starting with + or -
+    changed_lines_content=$(echo "$diff_content" | grep -E '^(\+|\-)' | grep -vE '^(\+\+\+)|(---)') 
 
-    # Print diff content for debugging
     echo -e "\nChanged content in '$file':"
     echo "$changed_lines_content"
     
-    # Initialize flags
     high_risk_found_in_file=false
     
-    # Simple line-by-line analysis instead of complex regex
+    # Examine each changed line for potential logic modifications
     while IFS= read -r line; do
-      # Skip empty lines
       [ -z "$line" ] && continue
       
-      # Extract first character (+ or -)
       first_char="${line:0:1}"
-      # Skip lines not starting with + or - (though our input should only have these)
       [[ "$first_char" != "+" && "$first_char" != "-" ]] && continue
       
-      # Strip the + or - prefix for analysis
       content="${line:1}"
-      # Trim leading whitespace
       content="${content#"${content%%[![:space:]]*}"}"
       
-      # Low risk patterns - check if line DOES match any of these patterns
+      # Safe changes: imports, exports, type definitions, interface declarations, etc.
       if [[ "$content" == import* ]] || 
          [[ "$content" == export* ]] || 
          [[ "$content" == type* ]] || 
          [[ "$content" == interface* ]] ||
          [[ "$content" == enum* ]] || 
-         [[ "$content" =~ ^[a-zA-Z_][a-zA-Z0-9_]*(\?)?:\ .* ]] || # Property definition like "prop?: type"
-         [[ "$content" =~ ^(const|let|var)\ [a-zA-Z_][a-zA-Z0-9_]*:\ .* ]]; then # Variable declaration with type
-        # This is a low-risk line - skip it
+         [[ "$content" =~ ^[a-zA-Z_][a-zA-Z0-9_]*(\?)?:\ .* ]] || 
+         [[ "$content" =~ ^(const|let|var)\ [a-zA-Z_][a-zA-Z0-9_]*:\ .* ]]; then
         continue
       fi
       
-      # If we get here, it's a potentially high-risk line
+      # Any other changes are considered potentially high-risk
       echo "Potential complex code change: $line"
       high_risk_found_in_file=true
-      # No need to check more lines if we found a high-risk change
       break
     done <<< "$changed_lines_content"
     
@@ -147,8 +126,8 @@ echo "--- Check Complete --- "
 
 if $high_risk_found; then
   echo "Result: HIGH RISK changes detected in platform-owned files. Manual approval required."
-  exit 1 # Fail the check
+  exit 1 
 else
   echo "Result: LOW RISK changes detected (or no platform files changed). No automatic failure."
-  exit 0 # Pass the check
+  exit 0 
 fi 
