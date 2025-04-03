@@ -3,6 +3,7 @@ import { createInstance } from "i18next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const i18nInstanceCache = new Map<string, any>();
+const MAX_RETRIES = 3;
 
 async function loadFallbackTranslations() {
   try {
@@ -17,14 +18,32 @@ async function loadFallbackTranslations() {
 }
 
 async function loadTranslations(locale: string, ns: string) {
-  try {
-    const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-    const response = await fetch(url);
-    return await response.json();
-  } catch (error) {
-    const fallbackTranslations = await loadFallbackTranslations();
-    return fallbackTranslations ?? {};
+  let retries = 0;
+
+  while (retries < MAX_RETRIES) {
+    try {
+      const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch translations: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      retries++;
+
+      if (retries < MAX_RETRIES) {
+        // Add a small delay between retries to give the network time to recover
+        const delay = Math.pow(2, retries) * 100;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        console.warn(`Retry ${retries}/${MAX_RETRIES} loading translations for ${locale}/${ns}`);
+      }
+    }
   }
+
+  const fallbackTranslations = await loadFallbackTranslations();
+  return fallbackTranslations ?? {};
 }
 
 export const getTranslation = async (locale: string, ns: string) => {
@@ -45,7 +64,8 @@ export const getTranslation = async (locale: string, ns: string) => {
     },
     fallbackLng: "en",
   });
-
-  i18nInstanceCache.set(cacheKey, _i18n);
+  if (Object.keys(resources).length > 0) {
+    i18nInstanceCache.set(cacheKey, _i18n);
+  }
   return _i18n.getFixedT(locale, ns);
 };
