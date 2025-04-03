@@ -30,13 +30,18 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
 
   const teamId = session.metadata?.teamId ? Number(session.metadata.teamId) : null;
 
+  /*
+    already schedule SMS are still sent via email (SMS are scheduled 2 hours in advance)
+    new SMS are scheduled as per normal
+  */
   if (teamId) {
-    await prisma.creditBalance.upsert({
+    prisma.creditBalance.upsert({
       where: {
         teamId: teamId,
       },
       update: {
         additionalCredits: { increment: nrOfCredits },
+        limitReachedAt: null,
       },
       create: {
         teamId: teamId,
@@ -44,6 +49,7 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
       },
       select: {
         additionalCredits: true,
+        limitReachedAt: true,
       },
     });
   } else {
@@ -53,6 +59,7 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
       },
       update: {
         additionalCredits: { increment: nrOfCredits },
+        limitReachedAt: null,
       },
       create: {
         userId: user.id,

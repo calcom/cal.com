@@ -1,6 +1,7 @@
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
+import { hasAvailableCredits } from "@calcom/features/ee/billing/lib/credits";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
@@ -93,7 +94,17 @@ export const scheduleSMS = async (
   teamId: number | null,
   whatsapp = false
 ) => {
-  //check if there are available credits otherwise dont schedule and send as email instead
+  const hasCredits = await hasAvailableCredits({ userId, teamId });
+
+  if (!hasCredits) {
+    log.debug(
+      `SMS not scheduled because ${
+        teamId ? `Team id ${teamId} ` : `User id ${userId} `
+      } has no available credits`
+    );
+    return;
+  }
+
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {

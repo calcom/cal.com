@@ -3,14 +3,19 @@ import twilio from "twilio";
 
 import { handleLowCreditBalance, payCredits } from "@calcom/features/ee/billing/lib/credits";
 import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 
 const twilioClient = createTwilioClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!IS_SMS_CREDITS_ENABLED) {
+    return res.status(200).send(`SMS credits are not enabled`);
+  }
+
   const authToken = process.env.TWILIO_TOKEN;
   const twilioSignature = req.headers["x-twilio-signature"];
-  const baseUrl = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback`;
+  const baseUrl = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook`;
 
   const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
   const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
@@ -56,19 +61,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const paymentDetails = await payCredits({
           quantity: credits,
           details: `SMS: ${parsedBookingUid}`,
-          userId: parsedUserId,
+          userId: parsedTeamId ? null : parsedUserId, // never charge user for team workflows
           teamId: parsedTeamId,
         });
 
         if (!paymentDetails) {
-          return res.status(401).send("No team or user paid credits");
+          return res.status(400).send("Credit payment failed");
         }
 
-        handleLowCreditBalance({
-          userId: parsedUserId,
-          teamId: paymentDetails.teamId,
-          remainingCredits: paymentDetails.remainingCredits,
-        });
+        handleLowCreditBalance(paymentDetails);
 
         return res
           .status(200)
@@ -78,7 +79,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             }`
           );
       }
-      return res.status(200).send(`SMS not yet delivered`);
+      return res.status(200).send(`SMS not yet sent`);
     }
   }
   return res.status(401).send("Missing or invalid Twilio signature");

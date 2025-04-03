@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 import { getAllCreditsForTeam, getAllCreditsForUser } from "@calcom/trpc/server/routers/viewer/credits/util";
@@ -43,6 +44,95 @@ export async function getMonthlyCredits(teamId: number) {
   return totalMonthlyCredits;
 }
 
+async function hasTeamAvailableCredits(teamId: number) {
+  const team = await prisma.team.findUnique({
+    where: {
+      id: teamId,
+    },
+    select: {
+      credits: {
+        select: {
+          limitReachedAt: true,
+          additionalCredits: true,
+        },
+      },
+      parent: {
+        select: {
+          credits: {
+            select: {
+              limitReachedAt: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (team?.parent) {
+    // check if org has available credits
+    if (!team?.parent.credits?.limitReachedAt) {
+      return true;
+    }
+
+    // check if a team has left over additional credits
+    if (team?.credits?.additionalCredits && team?.credits.additionalCredits > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  // non org event type
+  if (!team?.credits?.limitReachedAt) {
+    return true;
+  }
+  return false;
+}
+
+export async function hasAvailableCredits({
+  userId,
+  teamId,
+}: {
+  userId?: number | null;
+  teamId?: number | null;
+}) {
+  if (!IS_SMS_CREDITS_ENABLED) return true;
+
+  if (teamId) {
+    return hasTeamAvailableCredits(teamId);
+  }
+
+  if (userId) {
+    const userCredits = await prisma.creditBalance.findUnique({
+      where: {
+        userId,
+      },
+    });
+
+    //check if user has available credits
+    if (userCredits?.additionalCredits && userCredits.additionalCredits > 0) {
+      return true;
+    }
+
+    const teams = await prisma.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+      },
+    });
+
+    //check if user is member of team that has available credits
+    for (const team of teams) {
+      const hasAvailableCredits = await hasTeamAvailableCredits(team.id);
+      if (hasAvailableCredits) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  return false;
+}
+
 export async function payCredits({
   quantity,
   details,
@@ -51,73 +141,47 @@ export async function payCredits({
 }: {
   quantity: number;
   details: string;
-  userId?: number | null;
+  userId?: number | null; // either userId or teamId is is given never both
   teamId?: number | null;
 }) {
-  let teamToUse: { id: number; monthly: number; additional: number } | undefined;
-  let fallbackTeam: { id: number; monthly: number; additional: number } | undefined;
-
-  let userIdToUse: number | undefined;
-
-  let userTeams = [];
+  let teamToPay: { id: number; monthly: number; additional: number; remainingCredits: number } | undefined;
 
   if (userId) {
-    userTeams = await prisma.membership.findMany({
-      where: {
-        userId,
-        accepted: true,
-      },
-    });
-
     // if user has enough credits, use their credits
     const userCredits = await getAllCreditsForUser(userId);
     if (userCredits.additionalCredits >= quantity) {
-      userIdToUse = userId;
-    }
-  }
-
-  if (teamId && !userIdToUse) {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-    });
-
-    let teamIdToCharge = team?.parentId ? team.parentId : team?.id;
-
-    if (!team && userId) {
-      const userOrgMembership = await prisma.membership.findFirst({
-        where: {
-          userId,
-          accepted: true,
-          team: {
-            isOrganization: true,
+      await prisma.creditExpenseLog.create({
+        data: {
+          credits: quantity,
+          details,
+          creditType: CreditType.ADDITIONAL,
+          date: new Date(),
+          creditBalance: {
+            connectOrCreate: {
+              where: { userId },
+              create: { userId },
+            },
           },
         },
       });
-      teamIdToCharge = userOrgMembership?.teamId ?? teamIdToCharge;
+
+      return {
+        userId,
+        additionalCredits: quantity,
+        monthlyCredits: 0,
+        remainingCredits: userCredits.additionalCredits - quantity,
+      };
     }
 
-    if (teamIdToCharge) {
-      const { totalRemainingMonthlyCredits, additionalCredits } = await getAllCreditsForTeam(teamIdToCharge);
-
-      if (totalRemainingMonthlyCredits + additionalCredits >= quantity) {
-        teamToUse = {
-          id: teamIdToCharge,
-          monthly: totalRemainingMonthlyCredits,
-          additional: totalRemainingMonthlyCredits < quantity ? quantity - totalRemainingMonthlyCredits : 0,
-        };
-      } else {
-        fallbackTeam = {
-          id: teamIdToCharge,
-          monthly: quantity - additionalCredits,
-          additional: 0,
-        };
-      }
-    }
-
-    if (!teamToUse && userId) {
-      // check if user is part of any team that has enough credits
+    if (!teamId) {
+      //todo: check if user is part of org
+      // teamId is never give if we have userId
+      const teams = await prisma.membership.findMany({
+        where: {
+          userId,
+          accepted: true,
+        },
+      });
 
       // find teams that have enough credits
       const teamsWithCredits = await Promise.all(
@@ -135,47 +199,62 @@ export async function payCredits({
         (team) => team.totalRemainingMonthlyCredits + team.additionalCredits >= quantity
       );
 
-      if (teamsWithEnoughCredits.length > 0) {
-        teamToUse = {
+      const hasTeamWithEnoughCredits = teamsWithEnoughCredits.length > 0;
+
+      if (teamsWithEnoughCredits.length === 0) {
+        const hasEnoughMonthlyCredits = teamsWithEnoughCredits[0].totalRemainingMonthlyCredits >= quantity;
+        teamToPay = {
           id: teamsWithEnoughCredits[0].teamId,
-          monthly: teamsWithEnoughCredits[0].totalRemainingMonthlyCredits,
-          additional:
-            teamsWithEnoughCredits[0].totalRemainingMonthlyCredits < quantity
-              ? quantity - teamsWithEnoughCredits[0].totalRemainingMonthlyCredits
-              : 0,
+          monthly: hasEnoughMonthlyCredits
+            ? quantity
+            : teamsWithEnoughCredits[0].totalRemainingMonthlyCredits,
+          additional: hasEnoughMonthlyCredits
+            ? 0
+            : quantity - teamsWithEnoughCredits[0].totalRemainingMonthlyCredits,
+          remainingCredits:
+            teamsWithEnoughCredits[0].totalRemainingMonthlyCredits +
+            teamsWithEnoughCredits[0].additionalCredits -
+            quantity,
         };
-      } else if (!fallbackTeam) {
-        fallbackTeam = {
+      } else {
+        teamToPay = {
           id: sortedTeamsWithCredits[0].teamId,
-          monthly: quantity - sortedTeamsWithCredits[0].additionalCredits,
-          additional: 0,
+          monthly: sortedTeamsWithCredits[0].totalRemainingMonthlyCredits,
+          additional: sortedTeamsWithCredits[0].additionalCredits,
+          remainingCredits: 0,
         };
       }
     }
   }
 
-  if (userIdToUse) {
-    await prisma.creditExpenseLog.create({
-      data: {
-        credits: quantity,
-        details,
-        creditType: CreditType.ADDITIONAL,
-        date: new Date(),
-        creditBalance: {
-          connectOrCreate: {
-            where: { userId: userIdToUse },
-            create: { userId: userIdToUse },
-          },
-        },
+  if (teamId && !teamToPay) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id: teamId,
       },
     });
 
-    return { userId: userIdToUse, additionalCredits: quantity, remainingCredits: 0 };
+    const teamIdToCharge = team?.parentId ? team.parentId : team?.id;
+    //if org has not enough credits, check also team
+    if (teamIdToCharge) {
+      const { totalRemainingMonthlyCredits, additionalCredits } = await getAllCreditsForTeam(teamIdToCharge);
+
+      const hasRemainingCredits = totalRemainingMonthlyCredits + additionalCredits >= quantity;
+
+      if (hasRemainingCredits) {
+        const hasEnoughMonthlyCredits = totalRemainingMonthlyCredits >= quantity;
+        teamToPay = {
+          id: teamIdToCharge,
+          monthly: hasEnoughMonthlyCredits ? quantity : totalRemainingMonthlyCredits,
+          additional: hasEnoughMonthlyCredits ? 0 : quantity - totalRemainingMonthlyCredits,
+          remainingCredits: totalRemainingMonthlyCredits + additionalCredits - quantity,
+        };
+      }
+    }
   }
-  const teamToPay = teamToUse || fallbackTeam;
 
   if (teamToPay) {
-    const { monthly, additional, id } = teamToPay;
+    const { monthly, additional, id, remainingCredits } = teamToPay;
 
     if (monthly) {
       await prisma.creditExpenseLog.create({
@@ -210,7 +289,7 @@ export async function payCredits({
         },
       });
     }
-    return { teamId: id, additionalCredits: additional, monthlyCredits: monthly, remainingCredits: 0 };
+    return { teamId: id, additionalCredits: additional, monthlyCredits: monthly, remainingCredits };
   }
 }
 
@@ -219,7 +298,7 @@ export async function handleLowCreditBalance({
   teamId,
   remainingCredits,
 }: {
-  userId?: number | null; // user id is always given if it's a user workflows
+  userId?: number | null; // either userId or teamId is given never both
   teamId?: number | null;
   remainingCredits: number;
 }) {
@@ -235,15 +314,16 @@ export async function handleLowCreditBalance({
     // user paid with left over personal credits, but is on a team/org plan, so we don't need to handle low credit balance
     if (team) return;
 
-    if (remainingCredits < 500) {
+    // don't hard code credits amount
+    const warningLimitUser = 500;
+    if (remainingCredits < warningLimitUser) {
       const creditBalance = await prisma.creditBalance.findUnique({
         where: { userId },
       });
 
       if (creditBalance?.limitReachedAt) return; // user has already reached limit
 
-      if (!remainingCredits) {
-        // user balance is 0 or below 0
+      if (remainingCredits <= 0) {
         //await sendDisableSmsEmail(userId);
         await prisma.creditBalance.update({
           where: { userId },
@@ -252,7 +332,7 @@ export async function handleLowCreditBalance({
           },
         });
 
-        //cancelScheduledSmsAndScheduleEmails({ userId: parsedUserId }); -- only user workflows
+        //cancelScheduledSmsAndScheduleEmails({ userId: parsedUserId }); --> only from user worklfows
         return;
       }
 
@@ -280,8 +360,7 @@ export async function handleLowCreditBalance({
 
       if (dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month"))) return; // team has already reached limit this month
 
-      if (!remainingCredits) {
-        // team balance is 0 or below 0
+      if (remainingCredits <= 0) {
         //await sendDisableSmsEmail(teamId);
         await prisma.creditBalance.update({
           where: { teamId },
@@ -290,12 +369,7 @@ export async function handleLowCreditBalance({
           },
         });
 
-        //cancelScheduledSmsAndScheduleEmails({ userId: parsedUserId });
-        //-->
-        //all team workflows but also all of the user workflows  that font have anyother teams with vredits left
-        // I need a function that tells me that as user has no other teams with credits left
-        // This function needs to be called if a team member of that team has sms scheduled (we only schedule 2 hours in advance)
-        // These sms will always be turned into emails, once new credits are added we everything after the 2 hours will be scheduled again
+        //cancelScheduledSmsAndScheduleEmails({ teamId }); --> team workflows, and also user workflows if the user has no credits or other team with credits
         return;
       }
 
