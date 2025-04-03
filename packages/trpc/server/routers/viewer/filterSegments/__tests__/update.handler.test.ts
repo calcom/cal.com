@@ -2,8 +2,9 @@ import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
 
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { updateHandler } from "../update.handler";
 import { type TUpdateFilterSegmentInputSchema } from "../update.schema";
@@ -14,31 +15,50 @@ describe("updateHandler", () => {
     name: "Test User",
   } as NonNullable<TrpcSessionUser>;
 
+  const baseInput = {
+    tableIdentifier: "bookings",
+    activeFilters: [
+      {
+        f: "status",
+        v: {
+          type: ColumnFilterType.SINGLE_SELECT as const,
+          data: "active",
+        },
+      },
+    ],
+    sorting: [{ id: "date", desc: true }],
+    columnVisibility: {},
+    columnSizing: {},
+    perPage: 10,
+    searchTerm: "test search",
+  };
+
   it("should update a user-scoped filter segment", async () => {
     // Create a user-scoped segment first
     const segment = await prismock.filterSegment.create({
       data: {
+        ...baseInput,
         userId: mockUser.id,
         scope: "USER",
-        tableIdentifier: "bookings",
         name: "My Bookings",
-        activeFilters: { f: "status" },
-        sorting: [{ id: "date", desc: true }],
-        columnVisibility: {},
-        columnSizing: {},
-        perPage: 10,
       },
     });
 
     const input: TUpdateFilterSegmentInputSchema = {
+      ...baseInput,
       id: segment.id,
       scope: "USER",
       name: "Updated Bookings",
-      activeFilters: { f: "status" },
-      sorting: [{ id: "date", desc: true }],
-      columnVisibility: {},
-      columnSizing: {},
-      perPage: 20,
+      searchTerm: "updated search",
+      activeFilters: [
+        {
+          f: "status",
+          v: {
+            type: ColumnFilterType.SINGLE_SELECT as const,
+            data: "inactive",
+          },
+        },
+      ],
     };
 
     const result = await updateHandler({
@@ -48,13 +68,17 @@ describe("updateHandler", () => {
 
     expect(result).toEqual(
       expect.objectContaining({
-        id: segment.id,
+        userId: mockUser.id,
+        scope: "USER",
+        tableIdentifier: "bookings",
         name: "Updated Bookings",
-        activeFilters: { f: "status" },
-        sorting: [{ id: "date", desc: true }],
-        columnVisibility: {},
-        columnSizing: {},
-        perPage: 20,
+        searchTerm: "updated search",
+        activeFilters: [
+          {
+            f: "status",
+            v: { type: ColumnFilterType.SINGLE_SELECT as const, data: "inactive" },
+          },
+        ],
       })
     );
   });
@@ -81,16 +105,11 @@ describe("updateHandler", () => {
     // Create a team-scoped segment
     const segment = await prismock.filterSegment.create({
       data: {
+        ...baseInput,
         userId: mockUser.id,
         teamId: team.id,
         scope: "TEAM",
-        tableIdentifier: "bookings",
         name: "Team Bookings",
-        activeFilters: { f: "status" },
-        sorting: [{ id: "date", desc: true }],
-        columnVisibility: {},
-        columnSizing: {},
-        perPage: 10,
       },
     });
 
@@ -99,11 +118,16 @@ describe("updateHandler", () => {
       scope: "TEAM",
       teamId: team.id,
       name: "Updated Team Bookings",
-      activeFilters: { f: "status" },
-      sorting: [{ id: "date", desc: false }],
-      columnVisibility: {},
-      columnSizing: {},
-      perPage: 15,
+      searchTerm: "updated search",
+      activeFilters: [
+        {
+          f: "status",
+          v: {
+            type: ColumnFilterType.SINGLE_SELECT as const,
+            data: "inactive",
+          },
+        },
+      ],
     };
 
     const result = await updateHandler({
@@ -114,12 +138,17 @@ describe("updateHandler", () => {
     expect(result).toEqual(
       expect.objectContaining({
         id: segment.id,
+        teamId: team.id,
+        scope: "TEAM",
+        tableIdentifier: "bookings",
         name: "Updated Team Bookings",
-        activeFilters: { f: "status" },
-        sorting: [{ id: "date", desc: false }],
-        columnVisibility: {},
-        columnSizing: {},
-        perPage: 15,
+        searchTerm: "updated search",
+        activeFilters: [
+          {
+            f: "status",
+            v: { type: ColumnFilterType.SINGLE_SELECT as const, data: "inactive" },
+          },
+        ],
       })
     );
   });
