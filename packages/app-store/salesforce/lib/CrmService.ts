@@ -1059,7 +1059,6 @@ export default class SalesforceCRMService implements CRM {
     // Search the fields and ensure 1. they exist 2. they're the right type
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
-
     if (!existingFields.length) {
       this.log.warn(`No fields found for record type ${personRecordType}`);
       return;
@@ -1193,6 +1192,11 @@ export default class SalesforceCRMService implements CRM {
             writeOnRecordBody[field.name] = picklistValue;
             continue;
           }
+        } else if (field.type === SalesforceFieldType.CHECKBOX) {
+          // If the checkbox field value is not a boolean for some reason, default to if it's a falsely value
+          const checkboxValue = !!fieldConfig.value;
+          writeOnRecordBody[field.name] = checkboxValue;
+          continue;
         }
       }
 

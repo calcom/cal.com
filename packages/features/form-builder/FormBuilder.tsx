@@ -365,7 +365,7 @@ function Options({
     <div className={className}>
       <Label>{label}</Label>
       <div className="bg-muted rounded-md p-4">
-        <ul ref={animationRef}>
+        <ul ref={animationRef} className="flex flex-col gap-1">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center">
@@ -838,7 +838,7 @@ function VariantFields({
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{`${fieldForm.getValues("name")}.${f.name}`}</span>
+                  <span className="text-muted">{f.name}</span>
                 </Label>
               )}
               <InputField
