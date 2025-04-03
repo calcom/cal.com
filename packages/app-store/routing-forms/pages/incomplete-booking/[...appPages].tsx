@@ -10,10 +10,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 import SingleForm, {
@@ -158,7 +158,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                         />
                       </div>
                       <div>
-                        <InputField value={action.value} readOnly />
+                        <InputField value={action.value as string} readOnly />
                       </div>
                       <div>
                         <Select

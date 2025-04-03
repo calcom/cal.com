@@ -175,7 +175,7 @@ export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || 
 export const WEBSITE_PRIVACY_POLICY_URL =
   process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.com/privacy";
 export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.com/terms";
-export const REPLEXICA_API_KEY = process.env.REPLEXICA_API_KEY;
+export const LINGO_DOT_DEV_API_KEY = process.env.LINGO_DOT_DEV_API_KEY;
 
 /**
  * The maximum number of days we should check for if we don't find all required bookable days
@@ -207,6 +207,7 @@ export const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
 ];
 export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",") || [];
+export const SCANNING_WORKFLOW_STEPS = !IS_SELF_HOSTED && process.env.AKISMET_API_KEY;
 
 export const IS_PLAIN_CHAT_ENABLED =
   !!process.env.NEXT_PUBLIC_PLAIN_CHAT_ID && process.env.NEXT_PUBLIC_PLAIN_CHAT_ID !== "";

@@ -5,28 +5,20 @@ import { HttpError } from "@calcom/lib/http-error";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-export const validateOriginalRescheduledBooking = async (
-  originalRescheduledBooking: OriginalRescheduledBooking
-) => {
-  if (!originalRescheduledBooking) {
+export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
+  const originalBooking = await BookingRepository.findOriginalRescheduledBooking(uid, seatsEventType);
+
+  if (!originalBooking) {
     throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
   }
 
-  if (
-    originalRescheduledBooking.status === BookingStatus.CANCELLED &&
-    !originalRescheduledBooking.rescheduled
-  ) {
-    throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
+  if (originalBooking.status === BookingStatus.CANCELLED && !originalBooking.rescheduled) {
+    throw new HttpError({ statusCode: 400, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
   }
-};
-
-export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
-  const originalBooking = await BookingRepository.findOriginalRescheduledBooking(uid, seatsEventType);
-  validateOriginalRescheduledBooking(originalBooking);
 
   return originalBooking;
 }
 
-export type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+export type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking> | null;
 
-export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
+export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>> | null;

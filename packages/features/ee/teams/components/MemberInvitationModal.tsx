@@ -4,6 +4,10 @@ import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
+
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -15,7 +19,7 @@ import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { TextAreaField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
@@ -76,9 +80,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
 
   // Check current org role and not team role
-  const isOrgAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
 
   const canSeeOrganization = currentOrg?.isPrivate
     ? isOrgAdminOrOwner

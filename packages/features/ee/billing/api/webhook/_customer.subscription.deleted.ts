@@ -1,4 +1,3 @@
-import { HttpCode } from "./__handler";
 import type { LazyModule, SWHMap } from "./__handler";
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
@@ -28,10 +27,22 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
     throw new Error(`Unable to determine Product ID from subscription: ${subscription.id}`);
   }
   const handlerGetter = handlers[productId as any];
-  if (!handlerGetter) throw new HttpCode(202, `No product handler found for product: ${productId}`);
+  if (!handlerGetter) {
+    console.log("No product handler found for product", productId);
+    return {
+      success: false,
+      message: `No product handler found for product: ${productId}`,
+    };
+  }
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe products.
-  if (!handler) throw new HttpCode(202, `No product handler found for product: ${productId}`);
+  if (!handler) {
+    console.log("No product handler found for product", productId);
+    return {
+      success: false,
+      message: `No product handler found for product: ${productId}`,
+    };
+  }
   return await handler(data);
 };
 

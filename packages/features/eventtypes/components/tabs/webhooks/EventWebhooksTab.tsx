@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
@@ -15,7 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 
