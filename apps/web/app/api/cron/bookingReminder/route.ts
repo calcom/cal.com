@@ -91,7 +91,7 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    for (const booking of bookings.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
+    for (const booking of bookingsToRemind.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
       const { user } = booking;
       const name = user?.name || user?.username;
       if (!user || !name || !user.timeZone) {

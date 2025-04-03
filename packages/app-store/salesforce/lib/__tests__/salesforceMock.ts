@@ -1,3 +1,4 @@
+import { parseQuery, composeQuery } from "@jetstreamapp/soql-parser-js";
 import { vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
@@ -43,7 +44,11 @@ export const createSalesforceMock = () => {
   };
 
   // Query parser and responder
-  const handleQuery = (query: string) => {
+  const handleQuery = (rawQuery: string) => {
+    const parsedQuery = parseQuery(rawQuery);
+    // Validated Query
+    const query = composeQuery(parsedQuery);
+
     // Simple SOQL parser
     console.log({ query });
     const fromMatch = query.match(/FROM\s+(\w+)/i);
@@ -139,7 +144,8 @@ export const createSalesforceMock = () => {
       if (whereClause.includes("Website IN")) {
         const websitesMatch = whereClause.match(/Website IN \((.+)\)/i);
         if (websitesMatch) {
-          const websites = websitesMatch[1].split(",").map((w) => w.trim());
+          // Split by comma, trim spaces and quotes
+          const websites = websitesMatch[1].split(",").map((w) => w.trim().replace(/^'|'$/g, ""));
           result = result.filter((r) => websites.includes(r.Website));
         }
       }

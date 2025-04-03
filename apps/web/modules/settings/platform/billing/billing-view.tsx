@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
@@ -56,7 +56,7 @@ export default function PlatformBillingUpgrade() {
   if (!isPlatformUser)
     return (
       <div>
-        <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
+        <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
           <NoPlatformPlan />
         </Shell>
       </div>
@@ -68,7 +68,6 @@ export default function PlatformBillingUpgrade() {
         heading={t("platform_billing")}
         title={t("platform_billing")}
         withoutMain={false}
-        withoutSeo={true}
         subtitle={t("manage_billing_description")}
         isPlatformUser={true}>
         <>

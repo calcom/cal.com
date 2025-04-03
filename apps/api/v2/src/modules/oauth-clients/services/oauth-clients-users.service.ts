@@ -1,22 +1,28 @@
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { Locales } from "@/lib/enums/locales";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
+import { KeysDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
+import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
+import { User, CreationSource, PlatformOAuthClient, AccessToken, RefreshToken } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
+  private readonly logger = new Logger("OAuthClientUsersService");
+
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly schedulesService: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly calendarsService: CalendarsService
   ) {}
 
   async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
@@ -60,6 +66,7 @@ export class OAuthClientUsersService {
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
+          language: body.locale ?? Locales.EN,
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
@@ -73,9 +80,9 @@ export class OAuthClientUsersService {
       user.avatarUrl = updatedUser.avatarUrl;
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
-      oAuthClientId,
-      user.id
+    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+      user.id,
+      oAuthClientId
     );
 
     if (oAuthClient.areDefaultEventTypesEnabled) {
@@ -87,13 +94,25 @@ export class OAuthClientUsersService {
       user.defaultScheduleId = defaultSchedule.id;
     }
 
+    try {
+      this.logger.log(`Setting default calendars in db for user with id ${user.id}`);
+      await this.calendarsService.getCalendars(user.id);
+    } catch (err) {
+      this.logger.error(`Could not get calendars of new managed user with id ${user.id}`);
+    }
+
     return {
       user,
-      tokens: {
-        accessToken,
-        accessTokenExpiresAt,
-        refreshToken,
-      },
+      tokens: this.getResponseOAuthTokens(accessToken, refreshToken),
+    };
+  }
+
+  getResponseOAuthTokens(accessToken: AccessToken, refreshToken: RefreshToken): KeysDto {
+    return {
+      accessToken: accessToken.secret,
+      refreshToken: refreshToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt.valueOf(),
+      refreshTokenExpiresAt: refreshToken.expiresAt.valueOf(),
     };
   }
 

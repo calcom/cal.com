@@ -16,7 +16,6 @@ type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>
 vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui", () => ({}));
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));

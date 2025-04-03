@@ -142,13 +142,19 @@ export class StripeService {
   }
 
   async checkIfIndividualStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
+    const stripeCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
+      "stripe_payment",
+      userId
+    );
 
     return await this.validateStripeCredentials(stripeCredentials);
   }
 
   async checkIfTeamStripeAccountConnected(teamId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const stripeCredentials = await this.credentialRepository.getByTypeAndTeamId("stripe_payment", teamId);
+    const stripeCredentials = await this.credentialRepository.findCredentialByTypeAndTeamId(
+      "stripe_payment",
+      teamId
+    );
 
     return await this.validateStripeCredentials(stripeCredentials);
   }

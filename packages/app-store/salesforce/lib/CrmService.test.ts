@@ -568,7 +568,22 @@ describe("SalesforceCRMService", () => {
     it("should return all possible account websites from email domain", () => {
       const result = service.getAllPossibleAccountWebsiteFromEmailDomain("example.com");
       expect(result).toEqual(
-        "example.com, www.example.com, http://www.example.com, http://example.com, https://www.example.com, https://example.com"
+        "'example.com', 'www.example.com', 'http://www.example.com', 'http://example.com', 'https://www.example.com', 'https://example.com'"
+      );
+    });
+  });
+
+  describe("getAccountBasedOnEmailDomainOfContacts", () => {
+    it("should return the account ID based on email domain", async () => {
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce(accountQueryResponse);
+
+      await service.getAccountBasedOnEmailDomainOfContacts("test@example.com");
+      expect(querySpy).toHaveBeenNthCalledWith(
+        1,
+        `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${service.getAllPossibleAccountWebsiteFromEmailDomain(
+          "example.com"
+        )}) LIMIT 1`
       );
     });
   });

@@ -61,7 +61,7 @@ export async function postHandler(request: NextRequest) {
     return NextResponse.json({ message: "Test request successful" });
   }
 
-  const headersList = headers();
+  const headersList = await headers();
   const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
   if (!testMode) {
