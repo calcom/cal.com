@@ -1152,6 +1152,7 @@ model WorkflowStep {
   sender                    String?
   numberVerificationPending Boolean            @default(true)
   includeCalendarEvent      Boolean            @default(false)
+  verifiedAt                DateTime?
 
   @@index([workflowId])
 }
