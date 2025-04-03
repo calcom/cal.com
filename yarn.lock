@@ -2297,7 +2297,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.167"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.171"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3336,13 +3336,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.167":
-  version: 0.0.167
-  resolution: "@calcom/platform-libraries@npm:0.0.167"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.171":
+  version: 0.0.171
+  resolution: "@calcom/platform-libraries@npm:0.0.171"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: ad11f150cbabdb999e6e28f2930660f890f520294914b20c00af665d4ed27643a26294b003a473a7e7c6a9cc39a4df52578820de2e5403922d6b06f84524ffeb
+  checksum: 8941ebb4436883d1472a82e9178410ead2d5d73101ce285c1d3acd2da6ab9829d787d24e92fe95561d404a862b28b098d5875fbe6b5c4a07666d2dabae84f288
   languageName: node
   linkType: hard
 
@@ -3809,7 +3809,7 @@ __metadata:
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.76.0
     "@daily-co/daily-react": ^0.22.0
-    "@dub/analytics": ^0.0.15
+    "@dub/analytics": ^0.0.27
     "@dub/embed-core": ^0.0.10
     "@dub/embed-react": ^0.0.10
     "@formkit/auto-animate": 1.0.0-beta.5
@@ -4437,12 +4437,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dub/analytics@npm:^0.0.15":
-  version: 0.0.15
-  resolution: "@dub/analytics@npm:0.0.15"
+"@dub/analytics@npm:^0.0.27":
+  version: 0.0.27
+  resolution: "@dub/analytics@npm:0.0.27"
   dependencies:
     server-only: ^0.0.1
-  checksum: afff2252db4a43593efc5c990fd684b5423f47978191078d3b788a7c3e51f912cf21a65d4cfdffe57a20dbe3a89c5f4ac47ff2899e266ae4ac0653a58ff0076f
+  checksum: 8c617f2911593a356c663dddd82395693c9d96db71ac0c96f8b7d4f3588de5a2764797e610c7c6958011c6c2e63244eeb2681ef17548769f0bf7fd6d8f11fac7
   languageName: node
   linkType: hard
 
