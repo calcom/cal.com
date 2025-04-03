@@ -16,6 +16,7 @@ import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { BookerI18nextProvider } from "@calcom/web/components/bookerI18nextProvider";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -585,9 +586,19 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
+  const event = props.event;
+  const interfaceLanguage = event.data?.interfaceLanguage;
+
+  const shouldUseCustomInterfaceLanguage = interfaceLanguage && props.userLocale !== interfaceLanguage;
   return (
     <LazyMotion strict features={loadFramerFeatures}>
-      <BookerComponent {...props} />
+      {shouldUseCustomInterfaceLanguage ? (
+        <BookerI18nextProvider locale={interfaceLanguage}>
+          <BookerComponent {...props} />
+        </BookerI18nextProvider>
+      ) : (
+        <BookerComponent {...props} />
+      )}
     </LazyMotion>
   );
 };

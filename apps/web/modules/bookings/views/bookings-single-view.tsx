@@ -58,6 +58,7 @@ import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
+import { BookerI18nextProvider } from "@calcom/web/components/bookerI18nextProvider";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
@@ -98,7 +99,27 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-export default function Success(props: PageProps) {
+export default function SuccessWrapper(props: PageProps) {
+  const { data: session } = useSession();
+
+  const interfaceLanguage = props.eventType.interfaceLanguage;
+
+  const shouldUseCustomInterfaceLanguage = interfaceLanguage && interfaceLanguage !== session?.user.locale;
+
+  return (
+    <>
+      {shouldUseCustomInterfaceLanguage ? (
+        <BookerI18nextProvider locale={interfaceLanguage}>
+          <Success {...props} />
+        </BookerI18nextProvider>
+      ) : (
+        <Success {...props} />
+      )}
+    </>
+  );
+}
+
+function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
