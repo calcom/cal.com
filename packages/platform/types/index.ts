@@ -15,3 +15,5 @@ export * from "./routing-forms";
 export * from "./me";
 
 export type TestLowRiskChange = { id: string };
+
+export type AnotherLowRiskType = { name: string; value: number };
