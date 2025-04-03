@@ -1,5 +1,6 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
@@ -7,7 +8,6 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
-import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -31,16 +31,15 @@ import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function handler(req: NextRequest) {
+  const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    res.status(405).json({ message: "No SendGrid API key or email" });
-    return;
+    return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
   }
 
   // delete batch_ids with already past scheduled date from scheduled_sends
@@ -105,8 +104,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const unscheduledReminders: PartialWorkflowReminder[] = await getAllUnscheduledReminders();
 
   if (!unscheduledReminders.length) {
-    res.status(200).json({ message: "No Emails to schedule" });
-    return;
+    return NextResponse.json({ message: "No Emails to schedule" }, { status: 200 });
   }
 
   for (const reminder of unscheduledReminders) {
@@ -214,12 +212,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ),
           };
           const emailLocale = locale || "en";
+          const brandingDisabled = reminder.booking.eventType?.team
+            ? !!reminder.booking.eventType?.team?.hideBranding
+            : !!reminder.booking.user?.hideBranding;
+
           const emailSubject = customTemplate(
             reminder.workflowStep.emailSubject || "",
             variables,
             emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           ).text;
           emailContent.emailSubject = emailSubject;
           emailContent.emailBody = customTemplate(
@@ -227,7 +229,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             variables,
             emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           ).html;
 
           emailBodyEmpty =
@@ -238,21 +240,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
             ).text.length === 0;
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
-          emailContent = emailReminderTemplate(
-            false,
-            reminder.booking.user?.locale || "en",
-            reminder.workflowStep.action,
-            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            reminder.booking.startTime.toISOString() || "",
-            reminder.booking.endTime.toISOString() || "",
-            reminder.booking.eventType?.title || "",
-            timeZone || "",
-            reminder.booking.location || "",
-            bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
-            attendeeName || "",
-            name || "",
-            !!reminder.booking.user?.hideBranding
-          );
+          const brandingDisabled = reminder.booking.eventType?.team
+            ? !!reminder.booking.eventType?.team?.hideBranding
+            : !!reminder.booking.user?.hideBranding;
+
+          emailContent = emailReminderTemplate({
+            isEditingMode: false,
+            locale: reminder.booking.user?.locale || "en",
+            action: reminder.workflowStep.action,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+            startTime: reminder.booking.startTime.toISOString() || "",
+            endTime: reminder.booking.endTime.toISOString() || "",
+            eventName: reminder.booking.eventType?.title || "",
+            timeZone: timeZone || "",
+            location: reminder.booking.location || "",
+            meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
+            otherPerson: attendeeName || "",
+            name: name || "",
+            isBrandingDisabled: brandingDisabled,
+          });
         } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
           const organizerOrganizationProfile = await prisma.profile.findFirst({
             where: {
@@ -312,6 +318,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               language: { translate: t, locale: booking.user?.locale ?? "en" },
             },
             attendees,
+            location: bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl || booking.location,
+            title: booking.title || booking.eventType?.title || "",
           };
 
           sendEmailPromises.push(
@@ -368,21 +376,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const emailBodyEmpty = false;
 
-        emailContent = emailReminderTemplate(
-          false,
-          reminder.booking.user?.locale || "en",
-          WorkflowActions.EMAIL_ATTENDEE,
-          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-          reminder.booking.startTime.toISOString() || "",
-          reminder.booking.endTime.toISOString() || "",
-          reminder.booking.eventType?.title || "",
-          timeZone || "",
-          reminder.booking.location || "",
-          bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
-          attendeeName || "",
-          name || "",
-          !!reminder.booking.user?.hideBranding
-        );
+        const brandingDisabled = reminder.booking.eventType?.team
+          ? !!reminder.booking.eventType?.team?.hideBranding
+          : !!reminder.booking.user?.hideBranding;
+
+        emailContent = emailReminderTemplate({
+          isEditingMode: false,
+          locale: reminder.booking.user?.locale || "en",
+          action: WorkflowActions.EMAIL_ATTENDEE,
+          timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+          startTime: reminder.booking.startTime.toISOString() || "",
+          endTime: reminder.booking.endTime.toISOString() || "",
+          eventName: reminder.booking.eventType?.title || "",
+          timeZone: timeZone || "",
+          location: reminder.booking.location || "",
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
+          otherPerson: attendeeName || "",
+          name: name || "",
+          isBrandingDisabled: brandingDisabled,
+        });
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
 
@@ -424,9 +436,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   });
 
-  res.status(200).json({ message: `${unscheduledReminders.length} Emails to schedule` });
+  return NextResponse.json({ message: `${unscheduledReminders.length} Emails to schedule` }, { status: 200 });
 }
-
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});

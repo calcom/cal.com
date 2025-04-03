@@ -1,61 +1,47 @@
-import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import cn from "@calcom/lib/classNames";
-import useApp from "@calcom/lib/hooks/useApp";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
-import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DropdownMenuSeparator,
-  Form,
-  Meta,
-  SettingsToggle,
-  showToast,
-  TextAreaField,
-  TextField,
-  Tooltip,
-  VerticalDivider,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { VerticalDivider } from "@calcom/ui/components/divider";
+import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
+import { Form } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { findMatchingRoute } from "../lib/processRoute";
-import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
+import type { FormResponse, NonRouterRoute, RoutingFormWithResponseCount, RoutingForm } from "../types/types";
+import type { NewFormDialogState } from "./FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
+import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
-
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-
-export type RoutingFormWithResponseCount = RoutingForm & {
-  team: {
-    slug: Team["slug"];
-    name: Team["name"];
-  } | null;
-  _count: {
-    responses: number;
-  };
-};
 
 const Actions = ({
   form,
@@ -67,7 +53,6 @@ const Actions = ({
   };
 }) => {
   const { t } = useLocale();
-  const { data: typeformApp } = useApp("typeform");
 
   return (
     <div className="flex items-center">
@@ -76,7 +61,7 @@ const Actions = ({
         <VerticalDivider />
       </div>
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
-        <Tooltip content={t("preview")}>
+        <Tooltip sideOffset={4} content={t("preview")} side="bottom">
           <FormAction
             routingForm={form}
             color="secondary"
@@ -96,9 +81,9 @@ const Actions = ({
           type="button"
           StartIcon="link"
           tooltip={t("copy_link_to_form")}
+          tooltipSide="bottom"
         />
-
-        <Tooltip content={t("download_responses")}>
+        <Tooltip sideOffset={4} content={t("download_responses")} side="bottom">
           <FormAction
             data-testid="download-responses"
             routingForm={form}
@@ -116,6 +101,7 @@ const Actions = ({
           variant="icon"
           StartIcon="code"
           tooltip={t("embed")}
+          tooltipSide="bottom"
         />
         <DropdownMenuSeparator />
         <FormAction
@@ -127,20 +113,8 @@ const Actions = ({
           color="secondary"
           type="button"
           tooltip={t("delete")}
+          tooltipSide="bottom"
         />
-        {typeformApp?.isInstalled ? (
-          <FormActionsDropdown>
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("Copy Typeform Redirect Url")}
-            </FormAction>
-          </FormActionsDropdown>
-        ) : null}
       </ButtonGroup>
 
       <div className="flex md:hidden">
@@ -182,17 +156,6 @@ const Actions = ({
             StartIcon="code">
             {t("embed")}
           </FormAction>
-          {typeformApp ? (
-            <FormAction
-              data-testid="copy-redirect-url"
-              routingForm={form}
-              action="copyRedirectUrl"
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("Copy Typeform Redirect Url")}
-            </FormAction>
-          ) : null}
           <DropdownMenuSeparator className="hidden sm:block" />
           <FormAction
             action="_delete"
@@ -255,9 +218,11 @@ type MembersMatchResultType = {
 const TeamMembersMatchResult = ({
   membersMatchResult,
   chosenRouteName,
+  showAllData,
 }: {
   membersMatchResult: MembersMatchResultType;
   chosenRouteName: string;
+  showAllData: boolean;
 }) => {
   const { t } = useLocale();
   if (!membersMatchResult) return null;
@@ -284,6 +249,7 @@ const TeamMembersMatchResult = ({
 
   const renderQueue = () => {
     if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
+      if (!showAllData) return <div className="mt-4">{t("no_active_queues")}asdf</div>;
       if (membersMatchResult.checkedFallback) {
         return (
           <span className="font-semibold">
@@ -311,12 +277,14 @@ const TeamMembersMatchResult = ({
               <thead>
                 <tr className="border-b text-left">
                   <th className="py-2 pr-4">#</th>
-                  <th className="py-2 pr-4">Email</th>
-                  <th className="py-2 pr-4">Bookings</th>
-                  {membersMatchResult.perUserData.weights ? <th className="py-2">Weight</th> : null}
-                  {membersMatchResult.perUserData.calibrations ? <th className="py-2">Calibration</th> : null}
+                  <th className="py-2 pr-4">{t("email")}</th>
+                  <th className="py-2 pr-4">{t("bookings")}</th>
+                  {membersMatchResult.perUserData.weights ? <th className="py-2">{t("weight")}</th> : null}
+                  {membersMatchResult.perUserData.calibrations ? (
+                    <th className="py-2">{t("calibration")}</th>
+                  ) : null}
                   {membersMatchResult.perUserData.bookingShortfalls ? (
-                    <th className="border-l py-2 pl-2">Shortfall</th>
+                    <th className="border-l py-2 pl-2">{t("shortfall")}</th>
                   ) : null}
                 </tr>
               </thead>
@@ -353,41 +321,61 @@ const TeamMembersMatchResult = ({
 
   return (
     <div className="text-default mt-2 space-y-2">
-      <div data-testid="chosen-route">
-        {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
-      </div>
-      <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
-        {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
-        {hasMainWarnings && (
-          <Alert className="mt-2" severity="warning" title={membersMatchResult.mainWarnings?.join(", ")} />
-        )}
-      </div>
-      <div data-testid="attribute-logic-fallback-matched" className={cn(hasFallbackWarnings && "text-error")}>
-        {t("attribute_logic_fallback_matched")}:{" "}
-        <span className="font-semibold">{renderFallbackLogicStatus()}</span>
-        {hasFallbackWarnings && (
-          <Alert
-            className="mt-2"
-            severity="warning"
-            title={membersMatchResult.fallbackWarnings?.join(", ")}
-          />
-        )}
-      </div>
+      {showAllData ? (
+        <>
+          <div data-testid="chosen-route">
+            {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
+          </div>
+          <div data-testid="attribute-logic-matched" className={classNames(hasMainWarnings && "text-error")}>
+            {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
+            {hasMainWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.mainWarnings?.join(", ")}
+              />
+            )}
+          </div>
+          <div
+            data-testid="attribute-logic-fallback-matched"
+            className={classNames(hasFallbackWarnings && "text-error")}>
+            {t("attribute_logic_fallback_matched")}:{" "}
+            <span className="font-semibold">{renderFallbackLogicStatus()}</span>
+            {hasFallbackWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.fallbackWarnings?.join(", ")}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
       <div className="mt-4">
         {membersMatchResult.contactOwnerEmail ? (
           <div data-testid="contact-owner-email">
             {t("contact_owner")}:{" "}
             <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
           </div>
-        ) : (
+        ) : showAllData ? (
           <div data-testid="contact-owner-email">
             {t("contact_owner")}: <span className="font-semibold">Not found</span>
           </div>
+        ) : (
+          <></>
         )}
         <div className="mt-2" data-testid="matching-members">
-          {membersMatchResult.isUsingAttributeWeights
-            ? t("matching_members_queue_using_attribute_weights")
-            : t("matching_members_queue_using_event_assignee_weights")}
+          {showAllData ? (
+            <>
+              {membersMatchResult.isUsingAttributeWeights
+                ? t("matching_members_queue_using_attribute_weights")
+                : t("matching_members_queue_using_event_assignee_weights")}
+            </>
+          ) : (
+            <></>
+          )}
           {renderQueue()}
         </div>
       </div>
@@ -410,21 +398,22 @@ type UptoDateForm = Brand<
   "UptoDateForm"
 >;
 
-export const TestFormDialog = ({
+export const TestForm = ({
   form,
-  isTestPreviewOpen,
-  setIsTestPreviewOpen,
+  supportsTeamMembersMatchingLogic,
+  showAllData = true,
+  renderFooter,
 }: {
-  form: UptoDateForm;
-  isTestPreviewOpen: boolean;
-  setIsTestPreviewOpen: (value: boolean) => void;
+  form: UptoDateForm | RoutingForm;
+  supportsTeamMembersMatchingLogic: boolean;
+  showAllData?: boolean;
+  renderFooter?: (onClose: () => void) => React.ReactNode;
 }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
   const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
-  const isTeamForm = !!form.teamId;
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
 
   const resetMembersMatchResult = () => {
@@ -458,19 +447,22 @@ export const TestFormDialog = ({
     let eventTypeRedirectUrl: string | null = null;
 
     if (route?.action?.type === "eventTypeRedirectUrl") {
-      eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-        eventTypeRedirectUrl: route.action.value,
-        form,
-        allURLSearchParams: new URLSearchParams(),
-      });
-      setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+      // only needed in routing form testing (type UptoDateForm)
+      if ("team" in form) {
+        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: route.action.value,
+          form,
+          allURLSearchParams: new URLSearchParams(),
+        });
+        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+      }
     }
 
     setChosenRoute(route || null);
 
     if (!route) return;
 
-    if (isTeamForm) {
+    if (supportsTeamMembersMatchingLogic) {
       findTeamMembersMatchingAttributeLogicMutation.mutate({
         formId: form.id,
         response,
@@ -481,7 +473,7 @@ export const TestFormDialog = ({
     }
   }
 
-  const renderTestResult = () => {
+  const renderTestResult = (showAllData: boolean) => {
     if (!form.routes || !chosenRoute) return null;
 
     const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
@@ -492,6 +484,33 @@ export const TestFormDialog = ({
       }
       return `Route ${chosenRouteIndex + 1}`;
     };
+
+    const renderTeamMembersMatchResult = (showAllData: boolean, isPending: boolean) => {
+      if (!supportsTeamMembersMatchingLogic) return null;
+      if (isPending) return <div>Loading...</div>;
+
+      return (
+        <div>
+          <TeamMembersMatchResult
+            chosenRouteName={chosenRouteName()}
+            membersMatchResult={membersMatchResult}
+            showAllData={showAllData}
+          />
+        </div>
+      );
+    };
+
+    if (!showAllData) {
+      if (
+        chosenRoute.action.type !== "customPageMessage" &&
+        chosenRoute.action.type !== "externalRedirectUrl"
+      ) {
+        {
+          return renderTeamMembersMatchResult(false, findTeamMembersMatchingAttributeLogicMutation.isPending);
+        }
+      }
+      return <div className="mt-4">{t("no_active_queues")}</div>;
+    }
 
     return (
       <div className="bg-subtle text-default mt-5 rounded-md p-3">
@@ -530,7 +549,7 @@ export const TestFormDialog = ({
               <span className="text-default underline">
                 <a
                   target="_blank"
-                  className={cn(
+                  className={classNames(
                     findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
                   )}
                   href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
@@ -539,18 +558,10 @@ export const TestFormDialog = ({
                   {chosenRoute.action.value}
                 </a>
               </span>
-              {isTeamForm ? (
-                !findTeamMembersMatchingAttributeLogicMutation.isPending ? (
-                  <div>
-                    <TeamMembersMatchResult
-                      chosenRouteName={chosenRouteName()}
-                      membersMatchResult={membersMatchResult}
-                    />
-                  </div>
-                ) : (
-                  <div>Loading...</div>
-                )
-              ) : null}
+              {renderTeamMembersMatchResult(
+                showAllData,
+                findTeamMembersMatchingAttributeLogicMutation.isPending
+              )}
             </div>
           )}
         </div>
@@ -558,36 +569,69 @@ export const TestFormDialog = ({
     );
   };
 
+  const onClose = () => {
+    setChosenRoute(null);
+    setResponse({});
+  };
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        resetMembersMatchResult();
+        testRouting();
+      }}>
+      <div className="px-1">
+        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+      </div>
+      {!renderFooter ? (
+        <div className="mt-4">
+          <Button type="submit">{t("show_matching_hosts")}</Button>
+        </div>
+      ) : (
+        <></>
+      )}
+      <div>{renderTestResult(showAllData)}</div>
+      {renderFooter?.(onClose)}
+    </form>
+  );
+};
+
+export const TestFormDialog = ({
+  form,
+  isTestPreviewOpen,
+  setIsTestPreviewOpen,
+}: {
+  form: UptoDateForm;
+  isTestPreviewOpen: boolean;
+  setIsTestPreviewOpen: (value: boolean) => void;
+}) => {
+  const { t } = useLocale();
+  const isSubTeamForm = !!form.team?.parentId;
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
       <DialogContent size="md" enableOverflow>
         <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
         <div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              resetMembersMatchResult();
-              testRouting();
-            }}>
-            <div className="px-1">
-              {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-            </div>
-            <div>{renderTestResult()}</div>
-            <DialogFooter>
-              <DialogClose
-                color="secondary"
-                onClick={() => {
-                  setIsTestPreviewOpen(false);
-                  setChosenRoute(null);
-                  setResponse({});
-                }}>
-                {t("close")}
-              </DialogClose>
-              <Button type="submit" data-testid="test-routing">
-                {t("test_routing")}
-              </Button>
-            </DialogFooter>
-          </form>
+          <TestForm
+            form={form}
+            supportsTeamMembersMatchingLogic={isSubTeamForm}
+            renderFooter={(onClose) => (
+              <DialogFooter>
+                <DialogClose
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    onClose();
+                  }}>
+                  {t("close")}
+                </DialogClose>
+                <Button type="submit" data-testid="test-routing">
+                  {t("test_routing")}
+                </Button>
+              </DialogFooter>
+            )}
+          />
         </div>
       </DialogContent>
     </Dialog>
@@ -597,8 +641,11 @@ export const TestFormDialog = ({
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
+  const { data: user } = useMeQuery();
+  const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
@@ -667,8 +714,10 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             ...data,
           });
         }}>
-        <FormActionsProvider appUrl={appUrl}>
-          <Meta title={form.name} description={form.description || ""} />
+        <FormActionsProvider
+          appUrl={appUrl}
+          newFormDialogState={newFormDialogState}
+          setNewFormDialogState={setNewFormDialogState}>
           <ShellMain
             heading={
               <div className="flex">
@@ -681,180 +730,203 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               </div>
             }
             subtitle={form.description || ""}
-            backPath={`/${appUrl}/forms`}
+            backPath={`${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
-            <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
-              <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
-                <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
-                  <TextField
-                    type="text"
-                    containerClassName="mb-6"
-                    placeholder={t("title")}
-                    {...hookForm.register("name")}
-                  />
-                  <TextAreaField
-                    rows={3}
-                    id="description"
-                    data-testid="description"
-                    placeholder={t("form_description_placeholder")}
-                    {...hookForm.register("description")}
-                    defaultValue={form.description || ""}
-                  />
+            <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
+              <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
+                <TextField
+                  type="text"
+                  containerClassName="mb-6"
+                  placeholder={t("title")}
+                  {...hookForm.register("name")}
+                />
+                <TextAreaField
+                  rows={3}
+                  id="description"
+                  data-testid="description"
+                  placeholder={t("form_description_placeholder")}
+                  {...hookForm.register("description")}
+                  defaultValue={form.description || ""}
+                />
 
-                  <div className="mt-6">
-                    {form.teamId ? (
-                      <div className="flex flex-col">
-                        <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
-                          {t("routing_forms_send_email_to")}
-                        </span>
-                        <AddMembersWithSwitch
-                          teamId={form.teamId}
-                          teamMembers={form.teamMembers.map((member) => ({
-                            value: member.id.toString(),
-                            label: member.name || member.email,
-                            avatar: member.avatarUrl || "",
-                            email: member.email,
-                            isFixed: true,
-                            defaultScheduleId: member.defaultScheduleId,
-                          }))}
-                          value={sendUpdatesTo.map((userId) => ({
-                            isFixed: true,
-                            userId: userId,
-                            priority: 2,
-                            weight: 100,
-                            scheduleId: 1,
-                          }))}
-                          onChange={(value) => {
-                            hookForm.setValue(
-                              "settings.sendUpdatesTo",
-                              value.map((teamMember) => teamMember.userId),
-                              { shouldDirty: true }
-                            );
-                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
-                              shouldDirty: true,
-                            });
-                          }}
-                          assignAllTeamMembers={sendToAll}
-                          setAssignAllTeamMembers={(value) => {
-                            hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
-                          }}
-                          automaticAddAllEnabled={true}
-                          isFixed={true}
-                          onActive={() => {
-                            hookForm.setValue(
-                              "settings.sendUpdatesTo",
-                              form.teamMembers.map((teamMember) => teamMember.id),
-                              { shouldDirty: true }
-                            );
-                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
-                              shouldDirty: true,
-                            });
-                          }}
-                          placeholder={t("select_members")}
-                          containerClassName="!px-0 !pb-0 !pt-0"
-                        />
-                      </div>
-                    ) : (
-                      <Controller
-                        name="settings.emailOwnerOnSubmission"
-                        control={hookForm.control}
-                        render={({ field: { value, onChange } }) => {
-                          return (
-                            <SettingsToggle
-                              title={t("routing_forms_send_email_owner")}
-                              description={t("routing_forms_send_email_owner_description")}
-                              checked={value}
-                              onCheckedChange={(val) => {
-                                onChange(val);
-                                hookForm.unregister("settings.sendUpdatesTo");
-                              }}
-                            />
+                <div className="mt-6">
+                  {form.teamId ? (
+                    <div className="flex flex-col">
+                      <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
+                        {t("routing_forms_send_email_to")}
+                      </span>
+                      <AddMembersWithSwitch
+                        data-testid="routing-form-select-members"
+                        teamId={form.teamId}
+                        teamMembers={form.teamMembers.map((member) => ({
+                          value: member.id.toString(),
+                          label: member.name || member.email,
+                          avatar: member.avatarUrl || "",
+                          email: member.email,
+                          isFixed: true,
+                          defaultScheduleId: member.defaultScheduleId,
+                        }))}
+                        value={sendUpdatesTo.map((userId) => ({
+                          isFixed: true,
+                          userId: userId,
+                          priority: 2,
+                          weight: 100,
+                          scheduleId: 1,
+                        }))}
+                        onChange={(value) => {
+                          hookForm.setValue(
+                            "settings.sendUpdatesTo",
+                            value.map((teamMember) => teamMember.userId),
+                            { shouldDirty: true }
                           );
+                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                            shouldDirty: true,
+                          });
                         }}
+                        assignAllTeamMembers={sendToAll}
+                        setAssignAllTeamMembers={(value) => {
+                          hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
+                        }}
+                        automaticAddAllEnabled={true}
+                        isFixed={true}
+                        onActive={() => {
+                          hookForm.setValue(
+                            "settings.sendUpdatesTo",
+                            form.teamMembers.map((teamMember) => teamMember.id),
+                            { shouldDirty: true }
+                          );
+                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                            shouldDirty: true,
+                          });
+                        }}
+                        placeholder={t("select_members")}
+                        containerClassName="!px-0 !pb-0 !pt-0"
                       />
-                    )}
-                  </div>
-
-                  {form.routers.length ? (
-                    <div className="mt-6">
-                      <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                        {t("routers")}
-                      </div>
-                      <p className="text-default -mt-1 text-xs leading-normal">
-                        {t("modifications_in_fields_warning")}
-                      </p>
-                      <div className="flex">
-                        {form.routers.map((router) => {
-                          return (
-                            <div key={router.id} className="mr-2">
-                              <Link href={`${appUrl}/route-builder/${router.id}`}>
-                                <Badge variant="gray">{router.name}</Badge>
-                              </Link>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
-                  ) : null}
-
-                  {connectedForms?.length ? (
-                    <div className="mt-6">
-                      <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                        {t("connected_forms")}
-                      </div>
-                      <p className="text-default -mt-1 text-xs leading-normal">
-                        {t("form_modifications_warning")}
-                      </p>
-                      <div className="flex">
-                        {connectedForms.map((router) => {
-                          return (
-                            <div key={router.id} className="mr-2">
-                              <Link href={`${appUrl}/route-builder/${router.id}`}>
-                                <Badge variant="default">{router.name}</Badge>
-                              </Link>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="mt-6">
-                    <Button
-                      color="secondary"
-                      data-testid="test-preview"
-                      onClick={() => setIsTestPreviewOpen(true)}>
-                      {t("test_preview")}
-                    </Button>
-                  </div>
-                  {form.routes?.every(isFallbackRoute) && (
-                    <Alert
-                      className="mt-6 !bg-orange-100 font-semibold text-orange-900"
-                      iconClassName="!text-orange-900"
-                      severity="neutral"
-                      title={t("no_routes_defined")}
+                  ) : (
+                    <Controller
+                      name="settings.emailOwnerOnSubmission"
+                      control={hookForm.control}
+                      render={({ field: { value, onChange } }) => {
+                        return (
+                          <SettingsToggle
+                            title={t("routing_forms_send_email_owner")}
+                            description={t("routing_forms_send_email_owner_description")}
+                            checked={value}
+                            onCheckedChange={(val) => {
+                              onChange(val);
+                              hookForm.unregister("settings.sendUpdatesTo");
+                            }}
+                          />
+                        );
+                      }}
                     />
                   )}
-                  {!form._count?.responses && (
-                    <>
-                      <Alert
-                        className="mt-2 px-4 py-3"
-                        severity="neutral"
-                        title={t("no_responses_yet")}
-                        CustomIcon="message-circle"
-                      />
-                    </>
+                </div>
+
+                {form.routers.length ? (
+                  <div className="mt-6">
+                    <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
+                      {t("routers")}
+                    </div>
+                    <p className="text-default -mt-1 text-xs leading-normal">
+                      {t("modifications_in_fields_warning")}
+                    </p>
+                    <div className="flex">
+                      {form.routers.map((router) => {
+                        return (
+                          <div key={router.id} className="mr-2">
+                            <Link href={`${appUrl}/route-builder/${router.id}`}>
+                              <Badge variant="gray">{router.name}</Badge>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {connectedForms?.length ? (
+                  <div className="mt-6">
+                    <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
+                      {t("connected_forms")}
+                    </div>
+                    <p className="text-default -mt-1 text-xs leading-normal">
+                      {t("form_modifications_warning")}
+                    </p>
+                    <div className="flex">
+                      {connectedForms.map((router) => {
+                        return (
+                          <div key={router.id} className="mr-2">
+                            <Link href={`${appUrl}/route-builder/${router.id}`}>
+                              <Badge variant="default">{router.name}</Badge>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-6 flex gap-2">
+                  <Button
+                    color="secondary"
+                    data-testid="test-preview"
+                    onClick={() => setIsTestPreviewOpen(true)}>
+                    {t("test_preview")}
+                  </Button>
+                  {IS_CALCOM && (
+                    <Tooltip content={t("contact_our_support_team")} side="right">
+                      <Button
+                        target="_blank"
+                        color="minimal"
+                        href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
+                          user?.email ?? ""
+                        )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(form.id)}`}>
+                        {t("need_help")}
+                      </Button>
+                    </Tooltip>
                   )}
                 </div>
-                <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                  <RoutingNavBar appUrl={appUrl} form={form} />
-                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
-                </div>
+                {form.routes?.every(isFallbackRoute) && (
+                  <Alert
+                    className="mt-6 !bg-orange-100 font-semibold text-orange-900"
+                    iconClassName="!text-orange-900"
+                    severity="neutral"
+                    title={t("no_routes_defined")}
+                  />
+                )}
+                {!form._count?.responses && (
+                  <>
+                    <Alert
+                      className="mt-2 px-4 py-3"
+                      severity="neutral"
+                      title={t("no_responses_yet")}
+                      CustomIcon="message-circle"
+                    />
+                  </>
+                )}
+              </div>
+              <div className="border-subtle bg-muted w-full rounded-md border p-8">
+                <RoutingNavBar
+                  appUrl={appUrl}
+                  form={form}
+                  hookForm={hookForm}
+                  setShowInfoLostDialog={setShowInfoLostDialog}
+                />
+                <Page hookForm={hookForm} form={form} appUrl={appUrl} />
               </div>
             </div>
           </ShellMain>
         </FormActionsProvider>
       </Form>
+      {showInfoLostDialog && (
+        <InfoLostWarningDialog
+          goToRoute={`${appUrl}/route-builder/${form?.id}`}
+          isOpenInfoLostDialog={showInfoLostDialog}
+          setIsOpenInfoLostDialog={setShowInfoLostDialog}
+        />
+      )}
       <TestFormDialog
         form={uptoDateForm}
         isTestPreviewOpen={isTestPreviewOpen}

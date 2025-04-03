@@ -8,8 +8,9 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { WizardLayout } from "@calcom/ui";
-import { Button, showToast } from "@calcom/ui";
+import { WizardLayout } from "@calcom/ui/components/layout";
+import { showToast } from "@calcom/ui/components/toast";
+import { Button } from "@calcom/ui/components/button";
 
 export const CreateTeamEventType = () => {
   const searchParams = useCompatSearchParams();
@@ -65,7 +66,7 @@ export const CreateTeamEventType = () => {
   );
 };
 
-export const GetLayout = (page: React.ReactElement) => {
+export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
@@ -77,7 +78,7 @@ export const GetLayout = (page: React.ReactElement) => {
       isOptionalCallback={() => {
         router.push(`/settings/teams/${teamId}/profile`);
       }}>
-      {page}
+      {children}
     </WizardLayout>
   );
 };

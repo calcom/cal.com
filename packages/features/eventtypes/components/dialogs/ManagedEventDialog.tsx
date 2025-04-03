@@ -1,8 +1,7 @@
-import { Trans } from "next-i18next";
-
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ConfirmationDialogContent, Dialog } from "@calcom/ui";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 
 interface ManagedEventDialogProps {
   slugExistsChildrenDialogOpen: ChildrenEventType[];
@@ -31,8 +30,13 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
         cancelBtnText={t("go_back")}
         onConfirm={onConfirm}>
         <p className="mt-5">
-          <Trans
-            i18nKey="managed_event_dialog_information"
+          <ServerTrans
+            t={t}
+            i18nKey={
+              slugExistsChildrenDialogOpen.length > 1
+                ? "managed_event_dialog_information_other"
+                : "managed_event_dialog_information_one"
+            }
             values={{
               names: `${slugExistsChildrenDialogOpen
                 .map((ch) => ch.owner.name)
@@ -42,7 +46,6 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
               } ${slugExistsChildrenDialogOpen.map((ch) => ch.owner.name).slice(-1)}`,
               slug,
             }}
-            count={slugExistsChildrenDialogOpen.length}
           />
         </p>{" "}
         <p className="mt-5">{t("managed_event_dialog_clarification")}</p>

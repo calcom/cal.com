@@ -19,6 +19,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -39,6 +40,8 @@ import {
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
+  const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
+
   describe("Seated bookings", () => {
     let app: INestApplication;
     let organization: Team;
@@ -51,22 +54,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "seated-bookings-controller-e2e@api.com";
+    const userEmail = `seated-bookings-user-${randomString()}@api.com`;
     let user: User;
 
-    const seatedTventTypeSlug = "peer-coding-seated";
-    const recurringSeatedTventTypeSlug = "peer-coding-recurring-seated";
     let seatedEventTypeId: number;
     let recurringSeatedEventTypeId: number;
     const maxRecurrenceCount = 3;
 
+    const seatedEventSlug = `seated-bookings-event-type-${randomString()}`;
+    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomString()}`;
+
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
-    const emailAttendeeOne = "mr_proper_seated@gmail.com";
-    const nameAttendeeOne = "Mr Proper Seated";
-    const emailAttendeeTwo = "mr_proper_friend_seated@gmail.com";
-    const nameAttendeeTwo = "Mr Proper Friend Seated";
+    const emailAttendeeOne = `seated-bookings-attendee1-${randomString()}@api.com`;
+    const nameAttendeeOne = `Attendee One ${randomString()}`;
+    const emailAttendeeTwo = `seated-bookings-attendee2-${randomString()}@api.com`;
+    const nameAttendeeTwo = `Attendee Two ${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -88,7 +92,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `seated-bookings-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -101,15 +107,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `seated-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: "peer coding",
-          slug: seatedTventTypeSlug,
+          title: `seated-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: seatedEventSlug,
           length: 60,
           seatsPerTimeSlot: 5,
           seatsShowAttendees: true,
@@ -123,8 +129,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "peer coding recurring",
-          slug: recurringSeatedTventTypeSlug,
+          title: `seated-bookings-2024-08-13-recurring-event-type-${randomString()}`,
+          slug: recurringSeatedEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
           seatsPerTimeSlot: 5,
@@ -200,7 +206,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(1);
             expect(data.attendees[0]).toEqual({
@@ -272,7 +278,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(2);
             // note(Lauris): first attendee is from previous test request
@@ -326,7 +332,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/abc-def-ghi",
+        location: googleMeetUrl,
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
@@ -366,7 +372,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(firstBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(firstBooking.attendees.length).toEqual(1);
             expect(firstBooking.attendees[0]).toEqual({
@@ -379,6 +385,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -401,7 +411,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(secondBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(secondBooking.attendees.length).toEqual(1);
             expect(secondBooking.attendees[0]).toEqual({
@@ -414,6 +424,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -575,7 +589,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(1);
             const attendee = createdSeatedBooking.attendees.find((a) => a.seatUid === body.seatUid);
@@ -629,7 +643,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(0);
             expect(data.location).toBeDefined();
@@ -681,22 +695,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "seated-bookings-controller-e2e@api.com";
+    const userEmail = `seated-bookings-user-${randomString()}@api.com`;
     let user: User;
 
-    const seatedTventTypeSlug = "peer-coding-seated";
-    const recurringSeatedTventTypeSlug = "peer-coding-recurring-seated";
     let seatedEventTypeId: number;
     let recurringSeatedEventTypeId: number;
     const maxRecurrenceCount = 3;
 
+    const seatedEventSlug = `seated-bookings-event-type-${randomString()}`;
+    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomString()}`;
+
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
-    const emailAttendeeOne = "mr_proper_first@gmail.com";
-    const nameAttendeeOne = "Mr Proper First";
-    const emailAttendeeTwo = "mr_proper_second@gmail.com";
-    const nameAttendeeTwo = "Mr Proper Second";
+    const emailAttendeeOne = `seated-bookings-attendee1-${randomString()}@api.com`;
+    const nameAttendeeOne = `Attendee One ${randomString()}`;
+    const emailAttendeeTwo = `seated-bookings-attendee2-${randomString()}@api.com`;
+    const nameAttendeeTwo = `Attendee Two ${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -718,7 +733,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `seated-bookings-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -731,20 +748,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `seated-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: "peer coding",
-          slug: seatedTventTypeSlug,
+          title: `seated-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: seatedEventSlug,
           length: 60,
-          seatsPerTimeSlot: 5,
-          seatsShowAttendees: true,
-          seatsShowAvailabilityCount: true,
-          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+          seatsPerTimeSlot: 3,
         },
         user.id
       );
@@ -753,14 +767,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "peer coding recurring",
-          slug: recurringSeatedTventTypeSlug,
+          title: `seated-bookings-2024-08-13-recurring-event-type-${randomString()}`,
+          slug: recurringSeatedEventSlug,
           length: 60,
+          seatsPerTimeSlot: 3,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
-          seatsPerTimeSlot: 5,
-          seatsShowAttendees: true,
-          seatsShowAvailabilityCount: true,
-          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
         },
         user.id
       );
@@ -796,7 +807,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/abc-def-ghi",
+        location: googleMeetUrl,
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
@@ -836,7 +847,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(firstBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(firstBooking.attendees.length).toEqual(1);
             expect(firstBooking.attendees[0]).toEqual({
@@ -849,6 +860,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -871,7 +886,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(secondBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(secondBooking.attendees.length).toEqual(1);
             expect(secondBooking.attendees[0]).toEqual({
@@ -884,6 +899,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -909,7 +928,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/abc-def-ghi",
+        location: googleMeetUrl,
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
@@ -949,10 +968,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(firstBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(firstBooking.attendees.length).toEqual(2);
-            expect(firstBooking.attendees[0]).toEqual({
+            const firstAttendee = firstBooking.attendees.find(
+              (attendee) => attendee.name === nameAttendeeOne
+            );
+            expect(firstAttendee).toEqual({
               name: nameAttendeeOne,
               email: emailAttendeeOne,
               timeZone: body.attendee.timeZone,
@@ -962,10 +984,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeOne,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: createdRecurringSeatedBooking[0].attendees[0].metadata,
             });
-            expect(firstBooking.attendees[1]).toEqual({
+            const secondAttendee = firstBooking.attendees.find(
+              (attendee) => attendee.name === nameAttendeeTwo
+            );
+            expect(secondAttendee).toEqual({
               name: nameAttendeeTwo,
               email: emailAttendeeTwo,
               timeZone: body.attendee.timeZone,
@@ -975,6 +1004,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeTwo,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });
@@ -997,7 +1030,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(secondBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(secondBooking.attendees.length).toEqual(2);
             expect(secondBooking.attendees[0]).toEqual({
@@ -1010,6 +1043,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeOne,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: createdRecurringSeatedBooking[0].attendees[0].metadata,
             });
@@ -1023,6 +1060,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               bookingFieldsResponses: {
                 name: nameAttendeeTwo,
                 ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
               },
               metadata: body.metadata,
             });

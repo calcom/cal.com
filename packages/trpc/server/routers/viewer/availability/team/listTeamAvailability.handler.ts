@@ -9,7 +9,7 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TListTeamAvailaiblityScheme } from "./listTeamAvailability.schema";
 
 type GetOptions = {
@@ -67,9 +67,7 @@ async function getTeamMembers({
     },
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
-    orderBy: {
-      id: "asc",
-    },
+    orderBy: [{ userId: "asc" }, { id: "asc" }], // Prisma require a unique field for tie breaking duplicate value for pagination
     distinct: ["userId"],
   });
 
@@ -146,15 +144,6 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
     .findMany({
       where: {
         userId: ctx.user.id,
-        ...(searchString
-          ? {
-              OR: [
-                { user: { username: { contains: searchString } } },
-                { user: { name: { contains: searchString } } },
-                { user: { email: { contains: searchString } } },
-              ],
-            }
-          : {}),
       },
       select: {
         id: true,

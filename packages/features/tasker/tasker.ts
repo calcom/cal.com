@@ -17,6 +17,8 @@ type TaskPayloads = {
   translateEventTypeData: z.infer<
     typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
   >;
+  createCRMEvent: z.infer<typeof import("./tasks/crm/schema").createCRMEventSchema>;
+  scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;

@@ -88,6 +88,9 @@ export class PaymentService implements IAbstractPaymentService {
         amount: payment.amount,
         currency: payment.currency,
         customer: customer.id,
+        automatic_payment_methods: {
+          enabled: true,
+        },
         metadata: {
           identifier: "cal.com",
           bookingId,
@@ -259,7 +262,7 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error(`Stripe paymentMethod does not exist for setupIntent ${setupIntent.id}`);
       }
 
-      const params = {
+      const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
         application_fee_amount: paymentFee,

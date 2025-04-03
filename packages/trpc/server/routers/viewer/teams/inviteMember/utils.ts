@@ -1,8 +1,9 @@
 import { randomBytes } from "crypto";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
@@ -20,6 +21,7 @@ import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -274,6 +276,7 @@ export async function createNewUsersConnectToOrgIfExists({
   weekStart,
   timeZone,
   language,
+  creationSource,
 }: {
   invitations: Invitation[];
   isOrg: boolean;
@@ -286,6 +289,7 @@ export async function createNewUsersConnectToOrgIfExists({
   weekStart?: string;
   timeZone?: string;
   language: string;
+  creationSource: CreationSource;
 }) {
   // fail if we have invalid emails
   invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
@@ -323,6 +327,7 @@ export async function createNewUsersConnectToOrgIfExists({
             timeFormat,
             weekStart,
             timeZone,
+            creationSource,
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
             ...(orgId
               ? {
@@ -346,20 +351,24 @@ export async function createNewUsersConnectToOrgIfExists({
                 accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
               },
             },
-            schedules: {
-              create: {
-                name: t("default_schedule_name"),
-                availability: {
-                  createMany: {
-                    data: defaultAvailability.map((schedule) => ({
-                      days: schedule.days,
-                      startTime: schedule.startTime,
-                      endTime: schedule.endTime,
-                    })),
+            ...(!isPlatformManaged
+              ? {
+                  schedules: {
+                    create: {
+                      name: t("default_schedule_name"),
+                      availability: {
+                        createMany: {
+                          data: defaultAvailability.map((schedule) => ({
+                            days: schedule.days,
+                            startTime: schedule.startTime,
+                            endTime: schedule.endTime,
+                          })),
+                        },
+                      },
+                    },
                   },
-                },
-              },
-            },
+                }
+              : {}),
           },
         });
 
@@ -409,10 +418,7 @@ export async function createMemberships({
           teamId,
           userId: invitee.id,
           accepted,
-          role:
-            organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
-              ? organizationRole
-              : invitee.newRole,
+          role: checkAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
         });
 
         // membership for the org
@@ -907,6 +913,7 @@ export async function handleNewUsersInvites({
   isOrg,
   autoAcceptEmailDomain,
   inviter,
+  creationSource,
 }: {
   invitationsForNewUsers: Invitation[];
   teamId: number;
@@ -918,6 +925,7 @@ export async function handleNewUsersInvites({
     name: string | null;
   };
   isOrg: boolean;
+  creationSource: CreationSource;
 }) {
   const translation = await getTranslation(language, "common");
 
@@ -929,6 +937,7 @@ export async function handleNewUsersInvites({
     autoAcceptEmailDomain: autoAcceptEmailDomain,
     parentId: team.parentId,
     language,
+    creationSource,
   });
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {

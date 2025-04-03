@@ -1,4 +1,4 @@
-import type { FilterValue } from "./types";
+import type { FilterValue, SortingState } from "./types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
@@ -6,13 +6,21 @@ import {
   isNumberFilterValue,
 } from "./utils";
 
-type makeWhereClauseProps = {
+type MakeWhereClauseProps = {
   columnName: string;
   filterValue: FilterValue;
   json?: true | { path: string[] };
 };
 
-export function makeWhereClause(props: makeWhereClauseProps) {
+export function makeOrderBy(sorting: SortingState) {
+  if (!sorting || !sorting.length) return undefined;
+
+  return sorting.map((sort) => ({
+    [sort.id]: sort.desc ? ("desc" as const) : ("asc" as const),
+  }));
+}
+
+export function makeWhereClause(props: MakeWhereClauseProps) {
   const { columnName, filterValue } = props;
   const isJson = props.json === true || (typeof props.json === "object" && props.json.path?.length > 0);
   const jsonPath = isJson && typeof props.json === "object" ? props.json.path : undefined;

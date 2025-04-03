@@ -1,16 +1,17 @@
 import type { z } from "zod";
 
-import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import type { EventLocationType } from "@calcom/lib/location";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { BookerLayoutSettings, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
-import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -22,7 +23,7 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type EventTypeApps = RouterOutputs["viewer"]["integrations"];
+export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -93,7 +94,9 @@ export type FormValues = {
   aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
-
+  useEventLevelSelectedCalendars: boolean;
+  disabledCancelling: boolean;
+  disabledRescheduling: boolean;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)
@@ -121,7 +124,7 @@ export type FormValues = {
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
-  metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  metadata: z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>;
   destinationCalendar: {
     integration: string;
     externalId: string;

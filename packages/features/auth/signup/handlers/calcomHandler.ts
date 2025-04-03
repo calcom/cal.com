@@ -1,11 +1,11 @@
 import type { NextApiResponse } from "next";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
@@ -14,6 +14,7 @@ import logger from "@calcom/lib/logger";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
@@ -38,6 +39,8 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       token: true,
     })
     .parse(req.body);
+
+  const billingService = new StripeBillingService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
 
@@ -95,7 +98,8 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   }
 
   // Create the customer in Stripe
-  const customer = await stripe.customers.create({
+
+  const customer = await billingService.createCustomer({
     email,
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
@@ -107,22 +111,18 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
 
   // Pro username, must be purchased
   if (req.usernameStatus.statusCode === 402) {
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await billingService.createSubscriptionCheckout({
       mode: "subscription",
-      customer: customer.id,
-      line_items: [
-        {
-          price: getPremiumMonthlyPlanPriceId(),
-          quantity: 1,
-        },
-      ],
-      success_url: returnUrl,
-      cancel_url: returnUrl,
-      allow_promotion_codes: true,
+      customerId: customer.stripeCustomerId,
+      successUrl: returnUrl,
+      cancelUrl: returnUrl,
+      priceId: getPremiumMonthlyPlanPriceId(),
+      quantity: 1,
+      allowPromotionCodes: true,
     });
 
     /** We create a username-less user until he pays */
-    checkoutSessionId = checkoutSession.id;
+    checkoutSessionId = checkoutSession.sessionId;
     username = null;
   }
 
@@ -167,7 +167,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         },
       });
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
-      const { membership } = await createOrUpdateMemberships({
+      await createOrUpdateMemberships({
         user,
         team,
       });
@@ -189,16 +189,17 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
   } else {
     // Create the user
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         email,
         locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
-          stripeCustomerId: customer.id,
+          stripeCustomerId: customer.stripeCustomerId,
           checkoutSessionId,
         },
+        creationSource: CreationSource.WEBAPP,
       },
     });
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
@@ -219,7 +220,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
   }
 
-  return res.status(201).json({ message: "Created user", stripeCustomerId: customer.id });
+  return res.status(201).json({ message: "Created user", stripeCustomerId: customer.stripeCustomerId });
 }
 
 export default usernameHandler(handler);

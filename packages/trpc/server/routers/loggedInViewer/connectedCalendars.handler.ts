@@ -1,6 +1,6 @@
-import { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 
@@ -15,11 +15,13 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
   const { user } = ctx;
   const onboarding = input?.onboarding || false;
 
-  const { connectedCalendars, destinationCalendar } = await getConnectedDestinationCalendars(
-    user,
-    onboarding,
-    prisma
-  );
+  const { connectedCalendars, destinationCalendar } =
+    await getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+      user,
+      onboarding,
+      eventTypeId: input?.eventTypeId ?? null,
+      prisma,
+    });
 
   return {
     connectedCalendars,

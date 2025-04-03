@@ -11,7 +11,9 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  confirmBooking,
   confirmReschedule,
+  expectSlotNotAllowedToBook,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -62,6 +64,40 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
 
 todo("check SSR and OG - Team Event Type");
 
+test.describe("user with a special character in the username", () => {
+  test("/[user] page shouldn't 404", async ({ page, users }) => {
+    const user = await users.create({ username: "franz-janßen" });
+    const response = await page.goto(`/${user.username}`);
+    expect(response?.status()).not.toBe(404);
+  });
+
+  test("/[user]/[type] page shouldn't 404", async ({ page, users }) => {
+    const user = await users.create({ username: "franz-janßen" });
+    const response = await page.goto(`/${user.username}/30-min`);
+    expect(response?.status()).not.toBe(404);
+  });
+
+  test("Should not throw 500 when redirecting user to his/her only event-type page even if username contains special characters", async ({
+    page,
+    users,
+  }) => {
+    const benny = await users.create({
+      username: "ßenny", // ß is a special character
+      eventTypes: [
+        {
+          title: "15 min",
+          slug: "15-min",
+          length: 15,
+        },
+      ],
+      overrideDefaultEventTypes: true,
+    });
+    // This redirects to /[user]/[type] because this user has only 1 event-type
+    const response = await page.goto(`/${benny.username}`);
+    expect(response?.status()).not.toBe(500);
+  });
+});
+
 test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
@@ -91,10 +127,7 @@ test.describe("free user", () => {
 
     await page.goto(bookingUrl);
 
-    // book same time spot again
-    await bookTimeSlot(page);
-
-    await page.locator("[data-testid=booking-fail]").waitFor({ state: "visible" });
+    await expectSlotNotAllowedToBook(page);
   });
 });
 
@@ -175,6 +208,8 @@ test.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
     });
+
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
@@ -205,6 +240,7 @@ test.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
     });
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
@@ -257,7 +293,7 @@ test.describe("pro user", () => {
     // go back to the booking page to re-book.
     await page.goto(pageUrl);
 
-    await bookTimeSlot(page);
+    await bookTimeSlot(page, { expectedStatusCode: 409 });
     await expect(page.getByText("Could not book the meeting.")).toBeVisible();
   });
 
@@ -274,7 +310,7 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="add-another-guest"]').click();
     await page.locator('input[type="email"]').nth(2).fill(additionalGuests[1]);
 
-    await page.locator('[data-testid="confirm-book-button"]').click();
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -284,23 +320,24 @@ test.describe("pro user", () => {
     await Promise.all(promises);
   });
 
-  test("Time slots should be reserved when selected", async ({ context, page }) => {
+  test("Time slots should be reserved when selected", async ({ context, page, browser }) => {
     const initialUrl = page.url();
     await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
-    const pageTwo = await context.newPage();
-    await pageTwo.goto(initialUrl);
-    await pageTwo.waitForURL(initialUrl);
-    await pageTwo.locator('[data-testid="event-type-link"]').first().click();
+    const newContext = await browser.newContext();
+    const pageTwoInNewContext = await newContext.newPage();
+    await pageTwoInNewContext.goto(initialUrl);
+    await pageTwoInNewContext.waitForURL(initialUrl);
+    await pageTwoInNewContext.locator('[data-testid="event-type-link"]').first().click();
 
-    await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
-    await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+    await pageTwoInNewContext.locator('[data-testid="incrementMonth"]').waitFor();
+    await pageTwoInNewContext.click('[data-testid="incrementMonth"]');
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
     // 9:30 should be the first available time slot
-    await pageTwo.locator('[data-testid="time"]').nth(0).waitFor();
-    const firstSlotAvailable = pageTwo.locator('[data-testid="time"]').nth(0);
+    await pageTwoInNewContext.locator('[data-testid="time"]').nth(0).waitFor();
+    const firstSlotAvailable = pageTwoInNewContext.locator('[data-testid="time"]').nth(0);
     // Find text inside the element
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:30");
@@ -397,6 +434,23 @@ test.describe("prefill", () => {
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
     });
   });
+
+  test("skip confirm step if all fields are prefilled from query params", async ({ page }) => {
+    await page.goto("/pro/30min");
+    const url = new URL(page.url());
+    url.searchParams.set("name", testName);
+    url.searchParams.set("email", testEmail);
+    url.searchParams.set("guests", "guest1@example.com");
+    url.searchParams.set("guests", "guest2@example.com");
+    url.searchParams.set("notes", "This is an additional note");
+    await page.goto(url.toString());
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await expect(page.locator('[data-testid="skip-confirm-book-button"]')).toBeVisible();
+    await page.click('[data-testid="skip-confirm-book-button"]');
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
 });
 
 test.describe("Booking on different layouts", () => {
@@ -420,11 +474,7 @@ test.describe("Booking on different layouts", () => {
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
     await page.locator('[name="notes"]').fill("Test notes");
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     // expect page to be booking page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -445,11 +495,7 @@ test.describe("Booking on different layouts", () => {
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
     await page.locator('[name="notes"]').fill("Test notes");
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     // expect page to be booking page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -479,6 +525,7 @@ test.describe("Booking round robin event", () => {
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("Does not book seated round robin host outside availability with date override", async ({
@@ -501,11 +548,7 @@ test.describe("Booking round robin event", () => {
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -531,16 +574,83 @@ test.describe("Booking round robin event", () => {
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     const hostSecondBooking = page.locator('[data-testid="booking-host-name"]');
     const hostNameSecondBooking = await hostSecondBooking.innerText();
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
+  });
+});
+
+test.describe("Event type with disabled cancellation and rescheduling", () => {
+  let bookingId: string;
+  let user: { username: string | null };
+
+  test.beforeEach(async ({ page, users }) => {
+    user = await users.create({
+      name: `Test-user-${randomString(4)}`,
+      eventTypes: [
+        {
+          title: "No Cancel No Reschedule",
+          slug: "no-cancel-no-reschedule",
+          length: 30,
+          disableCancelling: true,
+          disableRescheduling: true,
+        },
+      ],
+    });
+
+    // Book the event
+    await page.goto(`/${user.username}/no-cancel-no-reschedule`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page, {
+      name: "Test-user-1",
+      email: "test-booker@example.com",
+    });
+
+    // Verify booking was successful
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    const url = new URL(page.url());
+    const pathSegments = url.pathname.split("/");
+    bookingId = pathSegments[pathSegments.length - 1];
+  });
+
+  test("Reschedule and cancel buttons should be hidden on success page", async ({ page }) => {
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
+  });
+
+  test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
+    await page.goto(`/reschedule/${bookingId}`);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
+  });
+
+  test("Using rescheduleUid query parameter should redirect to success page", async ({ page }) => {
+    await page.goto(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
+  });
+
+  test("Should prevent cancellation and show an error message", async ({ page }) => {
+    const response = await page.request.post("/api/cancel", {
+      data: {
+        uid: bookingId,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    expect(response.status()).toBe(400);
+    const responseBody = await response.json();
+    expect(responseBody.message).toBe("This event type does not allow cancellations");
   });
 });

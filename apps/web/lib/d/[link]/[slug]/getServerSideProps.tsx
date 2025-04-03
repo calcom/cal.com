@@ -1,3 +1,5 @@
+import type { EmbedProps } from "app/WithEmbedSSR";
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -9,22 +11,19 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
+import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
-
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
@@ -37,6 +36,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
           users: {
             select: {
               username: true,
+              profiles: {
+                select: {
+                  id: true,
+                  organizationId: true,
+                  username: true,
+                },
+              },
             },
           },
           team: {
@@ -61,13 +67,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   if (!hashedLink) {
     return notFound;
   }
+  const username = hashedLink.eventType.users[0]?.username;
+  const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 
   if (hashedLink.eventType.team) {
     name = hashedLink.eventType.team.slug || "";
     hideBranding = hashedLink.eventType.team.hideBranding;
   } else {
-    const username = hashedLink.eventType.users[0]?.username;
-
     if (!username) {
       return notFound;
     }
@@ -85,8 +91,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       }
     }
 
+    name = profileUsername || username;
+
     const [user] = await UserRepository.findUsersByUsername({
-      usernameList: [username],
+      usernameList: [name],
       orgSlug: org,
     });
 
@@ -94,7 +102,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    name = username;
     hideBranding = user.hideBranding;
   }
 
@@ -107,7 +114,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
+  const caller = await createRouterCaller(publicViewerRouter);
+
+  const eventData = await caller.event({
     username: name,
     eventSlug: slug,
     isTeamEvent,
@@ -121,6 +130,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
         eventData.metadata?.multipleDuration,
@@ -131,7 +141,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       booking,
       user: name,
       slug,
-      trpcState: ssr.dehydrate(),
       isBrandingHidden: hideBranding,
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.

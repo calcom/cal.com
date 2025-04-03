@@ -5,14 +5,15 @@ const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
-const { i18n } = require("./next-i18next.config");
 const {
-  orgHostPath,
+  i18n: { locales },
+} = require("./next-i18next.config");
+const {
+  nextJsOrgRewriteConfig,
   orgUserRoutePath,
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
-
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 const isOrganizationsEnabled =
@@ -119,72 +120,77 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+const orgDomainMatcherConfig = {
+  root: nextJsOrgRewriteConfig.disableRootPathRewrite
+    ? null
+    : {
+        has: [
+          {
+            type: "host",
+            value: nextJsOrgRewriteConfig.orgHostPath,
+          },
+        ],
+        source: "/",
+      },
 
-const matcherConfigRootPath = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: "/",
-};
+  rootEmbed: nextJsOrgRewriteConfig.disableRootEmbedPathRewrite
+    ? null
+    : {
+        has: [
+          {
+            type: "host",
+            value: nextJsOrgRewriteConfig.orgHostPath,
+          },
+        ],
+        source: "/embed",
+      },
 
-const matcherConfigRootPathEmbed = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: "/embed",
-};
+  user: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserRoutePath,
+  },
 
-const matcherConfigUserRoute = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: orgUserRoutePath,
-};
+  userType: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserTypeRoutePath,
+  },
 
-const matcherConfigUserTypeRoute = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: orgUserTypeRoutePath,
-};
-
-const matcherConfigUserTypeEmbedRoute = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: orgUserTypeEmbedRoutePath,
+  userTypeEmbed: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserTypeEmbedRoutePath,
+  },
 };
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
+  serverExternalPackages: [
+    "deasync",
+    "http-cookie-agent", // Dependencies of @ewsjs/xhr
+    "rest-facade",
+    "superagent-proxy", // Dependencies of @tryvital/vital-node
+    "superagent", // Dependencies of akismet
+    "formidable", // Dependencies of akismet
+  ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
-    instrumentationHook: true,
-    serverActions: true,
-  },
-  i18n: {
-    ...i18n,
-    defaultLocale: "en",
-    locales: ["en"],
-    localeDetection: false,
+    turbo: {},
   },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
@@ -197,7 +203,6 @@ const nextConfig = {
   },
   transpilePackages: [
     "@calcom/app-store",
-    "@calcom/core",
     "@calcom/dayjs",
     "@calcom/emails",
     "@calcom/embed-core",
@@ -234,6 +239,8 @@ const nextConfig = {
             /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
         })
       );
+
+      config.externals.push("formidable");
     }
 
     config.plugins.push(
@@ -272,7 +279,6 @@ const nextConfig = {
       fs: false,
       // ignore module resolve errors caused by the server component bundler
       "pg-native": false,
-      "superagent-proxy": false,
     };
 
     /**
@@ -287,14 +293,24 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    const { orgSlug } = nextJsOrgRewriteConfig;
     const beforeFiles = [
+      {
+        // This should be the first item in `beforeFiles` to take precedence over other rewrites
+        source: `/(${locales.join("|")})/:path*`,
+        destination: "/:path*",
+      },
       {
         source: "/forms/:formQuery*",
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
-        source: "/router/:path*",
-        destination: "/apps/routing-forms/router/:path*",
+        source: "/routing",
+        destination: "/routing/forms",
+      },
+      {
+        source: "/routing/:path*",
+        destination: "/apps/routing-forms/:path*",
       },
       {
         source: "/success/:path*",
@@ -326,29 +342,33 @@ const nextConfig = {
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(isOrganizationsEnabled
         ? [
+            orgDomainMatcherConfig.root
+              ? {
+                  ...orgDomainMatcherConfig.root,
+                  destination: `/team/${orgSlug}?isOrgProfile=1`,
+                }
+              : null,
+            orgDomainMatcherConfig.rootEmbed
+              ? {
+                  ...orgDomainMatcherConfig.rootEmbed,
+                  destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
+                }
+              : null,
             {
-              ...matcherConfigRootPath,
-              destination: "/team/:orgSlug?isOrgProfile=1",
+              ...orgDomainMatcherConfig.user,
+              destination: `/org/${orgSlug}/:user`,
             },
             {
-              ...matcherConfigRootPathEmbed,
-              destination: "/team/:orgSlug/embed?isOrgProfile=1",
+              ...orgDomainMatcherConfig.userType,
+              destination: `/org/${orgSlug}/:user/:type`,
             },
             {
-              ...matcherConfigUserRoute,
-              destination: "/org/:orgSlug/:user",
-            },
-            {
-              ...matcherConfigUserTypeRoute,
-              destination: "/org/:orgSlug/:user/:type",
-            },
-            {
-              ...matcherConfigUserTypeEmbedRoute,
-              destination: "/org/:orgSlug/:user/:type/embed",
+              ...orgDomainMatcherConfig.userTypeEmbed,
+              destination: `/org/${orgSlug}/:user/:type/embed`,
             },
           ]
         : []),
-    ];
+    ].filter(Boolean);
 
     let afterFiles = [
       {
@@ -371,6 +391,11 @@ const nextConfig = {
         source: "/icons/sprite.svg",
         destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
       },
+      // for @dub/analytics, @see: https://d.to/reverse-proxy
+      {
+        source: "/_proxy/dub/track/:path",
+        destination: "https://api.dub.co/track/:path",
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[
@@ -392,11 +417,17 @@ const nextConfig = {
     };
   },
   async headers() {
+    const { orgSlug } = nextJsOrgRewriteConfig;
     // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
     // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
     const CORP_CROSS_ORIGIN_HEADER = {
       key: "Cross-Origin-Resource-Policy",
       value: "cross-origin",
+    };
+
+    const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = {
+      key: "Access-Control-Allow-Origin",
+      value: "*",
     };
 
     return [
@@ -468,53 +499,65 @@ const nextConfig = {
         },
         {
           source: "/icons/sprite.svg",
-          headers: [CORP_CROSS_ORIGIN_HEADER],
+          headers: [CORP_CROSS_ORIGIN_HEADER, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER],
         },
       ],
       ...(isOrganizationsEnabled
         ? [
+            orgDomainMatcherConfig.root
+              ? {
+                  ...orgDomainMatcherConfig.root,
+                  headers: [
+                    {
+                      key: "X-Cal-Org-path",
+                      value: `/team/${orgSlug}`,
+                    },
+                  ],
+                }
+              : null,
             {
-              ...matcherConfigRootPath,
+              ...orgDomainMatcherConfig.user,
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/team/:orgSlug",
+                  value: `/org/${orgSlug}/:user`,
                 },
               ],
             },
             {
-              ...matcherConfigUserRoute,
+              ...orgDomainMatcherConfig.userType,
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user",
+                  value: `/org/${orgSlug}/:user/:type`,
                 },
               ],
             },
             {
-              ...matcherConfigUserTypeRoute,
+              ...orgDomainMatcherConfig.userTypeEmbed,
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user/:type",
-                },
-              ],
-            },
-            {
-              ...matcherConfigUserTypeEmbedRoute,
-              headers: [
-                {
-                  key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user/:type/embed",
+                  value: `/org/${orgSlug}/:user/:type/embed`,
                 },
               ],
             },
           ]
         : []),
-    ];
+    ].filter(Boolean);
   },
   async redirects() {
     const redirects = [
+      {
+        source: "/settings/organizations",
+        destination: "/settings/organizations/profile",
+        permanent: false,
+      },
+      {
+        source: "/apps/routing-forms",
+        destination: "/routing/forms",
+        permanent: false,
+      },
       {
         source: "/api/app-store/:path*",
         destination: "/app-store/:path*",
@@ -591,10 +634,10 @@ const nextConfig = {
           {
             type: "header",
             key: "host",
-            value: orgHostPath,
+            value: nextJsOrgRewriteConfig.orgHostPath,
           },
         ],
-        destination: "/event-types?openIntercom=true",
+        destination: "/event-types?openPlain=true",
         permanent: true,
       },
       {

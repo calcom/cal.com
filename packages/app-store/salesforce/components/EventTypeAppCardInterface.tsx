@@ -1,5 +1,6 @@
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import type z from "zod";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -8,7 +9,12 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Switch, Alert, Select, Button, InputField, showToast } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { InputField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import {
   SalesforceRecordEnum,
@@ -16,7 +22,7 @@ import {
   SalesforceFieldType,
   DateFieldTypeData,
 } from "../lib/enums";
-import type { appDataSchema } from "../zod";
+import type { appDataSchema, writeToRecordEntrySchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const pathname = usePathname();
@@ -41,6 +47,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
 
   const { t } = useLocale();
 
@@ -57,6 +64,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     { label: t("text"), value: SalesforceFieldType.TEXT },
     { label: t("date"), value: SalesforceFieldType.DATE },
     { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
+    { label: t("checkbox"), value: SalesforceFieldType.CHECKBOX },
+    { label: t("picklist"), value: SalesforceFieldType.PICKLIST },
+    { label: t("custom"), value: SalesforceFieldType.CUSTOM },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
@@ -66,16 +76,27 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     { label: t("only_if_field_is_empty"), value: WhenToWriteToRecord.FIELD_EMPTY },
   ];
 
-  const [whenToWriteToPersonRecord, setWhenToWriteToPersonRecord] = useState(whenToWriteToRecordOptions[0]);
+  const [whenToWriteToPersonRecord, setWhenToWriteToPersonRecord] = useState(
+    whenToWriteToRecordOptions.find((option) => option.value === WhenToWriteToRecord.FIELD_EMPTY) ??
+      whenToWriteToRecordOptions[0]
+  );
 
   const dateFieldValueOptions = [
     { label: t("booking_start_date"), value: DateFieldTypeData.BOOKING_START_DATE },
     { label: t("booking_created_date"), value: DateFieldTypeData.BOOKING_CREATED_DATE },
   ];
 
-  const [dateFieldValue, setDateValue] = useState(dateFieldValueOptions[0]);
+  const checkboxFieldValueOptions = [
+    { label: t("true"), value: true },
+    { label: t("false"), value: false },
+  ];
 
-  const [newOnBookingWriteToPersonObjectField, setNewOnBookingWriteToPersonObjectField] = useState({
+  const [dateFieldValue, setDateValue] = useState(dateFieldValueOptions[0]);
+  const [checkboxFieldValue, setCheckboxFieldValue] = useState(checkboxFieldValueOptions[0]);
+
+  const [newOnBookingWriteToPersonObjectField, setNewOnBookingWriteToPersonObjectField] = useState<
+    z.infer<typeof writeToRecordEntrySchema>
+  >({
     field: "",
     fieldType: writeToPersonObjectFieldType.value,
     value: "",
@@ -208,7 +229,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("value")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToEventObjectMap).map((key) => (
+                {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
                   <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />
@@ -302,7 +323,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div>{t("when_to_write")}</div>
               </div>
               <div>
-                {...Object.keys(onBookingWriteToRecordFields).map((key) => (
+                {Object.keys(onBookingWriteToRecordFields).map((key) => (
                   <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
                     <div>
                       <InputField value={key} readOnly />
@@ -323,8 +344,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                           )}
                           isDisabled={true}
                         />
+                      ) : onBookingWriteToRecordFields[key].fieldType === SalesforceFieldType.CHECKBOX ? (
+                        <Select
+                          value={checkboxFieldValueOptions.find(
+                            (option) => option.value === onBookingWriteToRecordFields[key].value
+                          )}
+                          isDisabled={true}
+                        />
                       ) : (
-                        <InputField value={onBookingWriteToRecordFields[key].value} readOnly />
+                        <InputField value={onBookingWriteToRecordFields[key].value as string} readOnly />
                       )}
                     </div>
                     <div>
@@ -372,6 +400,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                             ...newOnBookingWriteToPersonObjectField,
                             fieldType: e.value,
                             ...(e.value === SalesforceFieldType.DATE && { value: dateFieldValue.value }),
+                            ...(e.value === SalesforceFieldType.CHECKBOX && {
+                              value: checkboxFieldValue.value,
+                            }),
                           });
                         }
                       }}
@@ -392,9 +423,23 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                           }
                         }}
                       />
+                    ) : writeToPersonObjectFieldType.value === SalesforceFieldType.CHECKBOX ? (
+                      <Select
+                        options={checkboxFieldValueOptions}
+                        value={checkboxFieldValue}
+                        onChange={(e) => {
+                          if (e) {
+                            setCheckboxFieldValue(e);
+                            setNewOnBookingWriteToPersonObjectField({
+                              ...newOnBookingWriteToPersonObjectField,
+                              value: e.value,
+                            });
+                          }
+                        }}
+                      />
                     ) : (
                       <InputField
-                        value={newOnBookingWriteToPersonObjectField.value}
+                        value={newOnBookingWriteToPersonObjectField.value as string}
                         onChange={(e) =>
                           setNewOnBookingWriteToPersonObjectField({
                             ...newOnBookingWriteToPersonObjectField,
@@ -428,7 +473,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   !(
                     newOnBookingWriteToPersonObjectField.field &&
                     newOnBookingWriteToPersonObjectField.fieldType &&
-                    newOnBookingWriteToPersonObjectField.value &&
+                    newOnBookingWriteToPersonObjectField.value !== "" &&
                     newOnBookingWriteToPersonObjectField.whenToWrite
                   )
                 }
@@ -515,6 +560,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     }}
                   />
                 </div>
+                {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
+                  <div className="my-4">
+                    <Switch
+                      label={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
+                      labelOnLeading
+                      checked={roundRobinSkipFallbackToLeadOwner}
+                      onCheckedChange={(checked) => {
+                        setAppData("roundRobinSkipFallbackToLeadOwner", checked);
+                      }}
+                    />
+                  </div>
+                ) : null}
                 <div className="my-4">
                   <Switch
                     label={t("salesforce_if_free_email_domain_skip_owner_check")}

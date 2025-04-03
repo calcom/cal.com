@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
   customInputSchema,
@@ -70,11 +71,13 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     bookingFields: eventTypeBookingFields,
     assignRRMembersUsingSegment: z.boolean().optional(),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
+    useEventLevelSelectedCalendars: z.boolean().optional(),
+    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);
 
-const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
+export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
   aiPhoneCallConfig: aiPhoneCallConfig.refine(
     (data) => {
       if (!data) return true;
@@ -91,6 +94,4 @@ const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
   ),
 }).strict();
 // only run infer over the simple type, excluding refines/transforms.
-type TUpdateInputSchema = z.infer<typeof BaseEventTypeUpdateInput>;
-
-export { ZUpdateInputSchema, type TUpdateInputSchema };
+export type TUpdateInputSchema = z.infer<typeof BaseEventTypeUpdateInput>;

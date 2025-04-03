@@ -3,17 +3,35 @@ import { z } from "zod";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
 
-const writeToRecordEntry = z.object({
-  value: z.string(),
+const writeToBookingEntry = z.object({
+  value: z.union([z.string(), z.boolean()]),
   fieldType: z.nativeEnum(SalesforceFieldType),
   whenToWrite: z.nativeEnum(WhenToWriteToRecord),
 });
+
+export const writeToRecordEntrySchema = z.object({
+  field: z.string(),
+  fieldType: z.nativeEnum(SalesforceFieldType),
+  value: z.union([z.string(), z.boolean()]),
+  whenToWrite: z.nativeEnum(WhenToWriteToRecord),
+});
+
+export const writeToRecordDataSchema = z.record(z.string(), writeToBookingEntry);
 
 export const routingFormOptions = z
   .object({
     rrSkipToAccountLookupField: z.boolean().optional(),
     rrSKipToAccountLookupFieldName: z.string().optional(),
   })
+  .optional();
+
+export const routingFormIncompleteBookingDataSchema = z.object({
+  writeToRecordObject: writeToRecordDataSchema.optional(),
+});
+
+const optionalBooleanOnlyRunTimeValidation = z
+  .any()
+  .refine((val) => typeof val === "boolean" || val === undefined)
   .optional();
 
 export const appDataSchema = eventTypeAppCardZod.extend({
@@ -23,6 +41,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
     .default(SalesforceRecordEnum.CONTACT)
     .optional(),
   ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
+  roundRobinSkipFallbackToLeadOwner: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),
   createEventOn: z.nativeEnum(SalesforceRecordEnum).default(SalesforceRecordEnum.CONTACT).optional(),
   createNewContactUnderAccount: z.boolean().optional(),
@@ -35,7 +54,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   sendNoShowAttendeeData: z.boolean().optional(),
   sendNoShowAttendeeDataField: z.string().optional(),
   onBookingWriteToRecord: z.boolean().optional(),
-  onBookingWriteToRecordFields: z.record(z.string(), writeToRecordEntry).optional(),
+  onBookingWriteToRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
   ignoreGuests: z.boolean().optional(),
 });
 

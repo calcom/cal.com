@@ -7,7 +7,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import {
   useOAuthClientWebhooks,
@@ -73,14 +73,6 @@ export default function EditOAuthClientWebhooks() {
                     value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
                     label: "recording_transcription_generated",
                   },
-                  {
-                    value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_hosts_cal_video_no_show",
-                  },
-                  {
-                    value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_guests_cal_video_no_show",
-                  },
                 ]}
                 onSubmit={async (data) => {
                   try {
@@ -126,7 +118,7 @@ export default function EditOAuthClientWebhooks() {
 
   return (
     <div>
-      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

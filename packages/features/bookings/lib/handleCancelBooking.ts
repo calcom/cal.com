@@ -1,13 +1,11 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { z } from "zod";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -15,136 +13,46 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { bookingMetadataSchema, EventTypeMetaDataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getBookingToDelete } from "./getBookingToDelete";
+import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
-async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
-  return await prisma.booking.findUniqueOrThrow({
-    where: {
-      id,
-      uid,
-    },
-    select: {
-      ...bookingMinimalSelect,
-      recurringEventId: true,
-      userId: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-          credentials: { select: credentialForCalendarServiceSelect }, // Not leaking at the moment, be careful with
-          email: true,
-          timeZone: true,
-          timeFormat: true,
-          name: true,
-          destinationCalendar: true,
-        },
-      },
-      location: true,
-      references: {
-        select: {
-          uid: true,
-          type: true,
-          externalCalendarId: true,
-          credentialId: true,
-          thirdPartyRecurringEventId: true,
-        },
-      },
-      payment: true,
-      paid: true,
-      eventType: {
-        select: {
-          slug: true,
-          owner: {
-            select: {
-              id: true,
-              hideBranding: true,
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              name: true,
-              parentId: true,
-            },
-          },
-          parentId: true,
-          parent: {
-            select: {
-              teamId: true,
-            },
-          },
-          userId: true,
-          recurringEvent: true,
-          title: true,
-          eventName: true,
-          description: true,
-          requiresConfirmation: true,
-          price: true,
-          currency: true,
-          length: true,
-          seatsPerTimeSlot: true,
-          bookingFields: true,
-          seatsShowAttendees: true,
-          metadata: true,
-          schedulingType: true,
-          hosts: {
-            select: {
-              user: true,
-            },
-          },
-          workflows: {
-            select: {
-              workflow: {
-                select: workflowSelect,
-              },
-            },
-          },
-        },
-      },
-      uid: true,
-      id: true,
-      eventTypeId: true,
-      destinationCalendar: true,
-      smsReminderNumber: true,
-      workflowReminders: true,
-      seatsReferences: true,
-      responses: true,
-      iCalUID: true,
-      iCalSequence: true,
-    },
-  });
-}
-
-export type CustomRequest = NextApiRequest & {
-  userId?: number;
-  bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
+type PlatformParams = {
   platformClientId?: string;
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
   platformBookingUrl?: string;
   arePlatformEmailsEnabled?: boolean;
 };
+
+export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
+
+export type CancelBookingInput = {
+  userId?: number;
+  bookingData: z.infer<typeof bookingCancelInput>;
+} & PlatformParams;
 
 export type HandleCancelBookingResponse = {
   success: boolean;
@@ -154,7 +62,8 @@ export type HandleCancelBookingResponse = {
   bookingUid: string;
 };
 
-async function handler(req: CustomRequest) {
+async function handler(input: CancelBookingInput) {
+  const body = input.bookingData;
   const {
     id,
     uid,
@@ -163,20 +72,34 @@ async function handler(req: CustomRequest) {
     seatReferenceUid,
     cancelledBy,
     cancelSubsequentBookings,
-  } = bookingCancelInput.parse(req.body);
-  req.bookingToDelete = await getBookingToDelete(id, uid);
+    internalNote,
+  } = bookingCancelInput.parse(body);
+  const bookingToDelete = await getBookingToDelete(id, uid);
   const {
-    bookingToDelete,
     userId,
     platformBookingUrl,
     platformCancelUrl,
     platformClientId,
     platformRescheduleUrl,
     arePlatformEmailsEnabled,
-  } = req;
+  } = input;
 
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  if (bookingToDelete.eventType?.disableCancelling) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "This event type does not allow cancellations",
+    });
+  }
+
+  if (!platformClientId && !cancellationReason && bookingToDelete.userId == userId) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Cancellation reason is required when you are the host",
+    });
   }
 
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
@@ -345,7 +268,10 @@ async function handler(req: CustomRequest) {
 
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
-    req,
+    {
+      seatReferenceUid: seatReferenceUid,
+      bookingToDelete,
+    },
     dataForWebhooks,
     bookingToDelete?.eventType?.metadata as EventTypeMetadata
   );
@@ -495,6 +421,13 @@ async function handler(req: CustomRequest) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    if (!!bookingToDelete.payment.length) {
+      await processPaymentRefund({
+        booking: bookingToDelete,
+        teamId,
+      });
+    }
   }
 
   /** TODO: Remove this without breaking functionality */
@@ -545,6 +478,15 @@ async function handler(req: CustomRequest) {
     log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
   });
 
+  if (internalNote && teamId) {
+    await handleInternalNote({
+      internalNote,
+      booking: bookingToDelete,
+      userId: userId || -1,
+      teamId: teamId,
+    });
+  }
+
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   try {
@@ -558,7 +500,6 @@ async function handler(req: CustomRequest) {
   } catch (error) {
     console.error("Error deleting event", error);
   }
-  req.statusCode = 200;
   return {
     success: true,
     message: "Booking successfully cancelled.",

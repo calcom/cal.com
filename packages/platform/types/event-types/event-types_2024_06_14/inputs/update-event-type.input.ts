@@ -24,16 +24,20 @@ import {
   AddressFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
-  EmailFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
-  NameFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
   NumberFieldInput_2024_06_14,
   PhoneFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
   SelectFieldInput_2024_06_14,
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
   ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
@@ -69,10 +73,12 @@ import {
   InputAttendeePhoneLocation_2024_06_14,
   InputIntegrationLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
+  InputOrganizersDefaultApp_2024_06_14,
   InputPhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
+  ValidateTeamLocations_2024_06_14,
 } from "./locations.input";
-import type { InputLocation_2024_06_14 } from "./locations.input";
+import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
 
@@ -104,10 +110,14 @@ import { Seats_2024_06_14 } from "./seats.input";
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
-  NameFieldInput_2024_06_14,
-  EmailFieldInput_2024_06_14
+  NameDefaultFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14
 )
-export class UpdateEventTypeInput_2024_06_14 {
+class BaseUpdateEventTypeInput {
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -120,7 +130,7 @@ export class UpdateEventTypeInput_2024_06_14 {
   @ArrayUnique()
   @IsInt({ each: true })
   @Min(1, { each: true })
-  @DocsProperty({
+  @DocsPropertyOptional({
     example: [15, 30, 60],
     description:
       "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
@@ -143,32 +153,17 @@ export class UpdateEventTypeInput_2024_06_14 {
   description?: string;
 
   @IsOptional()
-  @ValidateLocations_2024_06_14()
-  @DocsPropertyOptional({
-    description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-    oneOf: [
-      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
-    ],
-    type: "array",
-  })
-  @Type(() => Object)
-  locations?: InputLocation_2024_06_14[];
-
-  @IsOptional()
   @ValidateInputBookingFields_2024_06_14()
   @DocsPropertyOptional({
     description:
       "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
     oneOf: [
-      { $ref: getSchemaPath(NameFieldInput_2024_06_14) },
-      { $ref: getSchemaPath(EmailFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(NotesDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(GuestsDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(RescheduleReasonDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(PhoneFieldInput_2024_06_14) },
       { $ref: getSchemaPath(AddressFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TextFieldInput_2024_06_14) },
@@ -189,7 +184,7 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, person booking this event't cant add guests via their emails.",
+    description: "If true, person booking this event can't add guests via their emails.",
   })
   disableGuests?: boolean;
 
@@ -213,7 +208,7 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsInt()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "Time spaces that can be pre-pended before an event to give more time before it.",
+    description: "Time spaces that can be prepended before an event to give more time before it.",
   })
   beforeEventBuffer?: number;
 
@@ -367,9 +362,9 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsString()
   @DocsPropertyOptional({
-    description: `Customizable event name with valid variables: 
-      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, 
-      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, 
+    description: `Customizable event name with valid variables:
+      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},
+      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},
       {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}`,
     example: "{Event type title} between {Organiser} and {Scheduler}",
   })
@@ -398,8 +393,28 @@ export class UpdateEventTypeInput_2024_06_14 {
   })
   successRedirectUrl?: string;
 }
+export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
+  @IsOptional()
+  @ValidateLocations_2024_06_14()
+  @DocsPropertyOptional({
+    description:
+      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+    oneOf: [
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
+    ],
+    type: "array",
+  })
+  @Type(() => Object)
+  locations?: InputLocation_2024_06_14[];
+}
 
-export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {
+export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
@@ -414,4 +429,24 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_20
     description: "If true, all current and future team members will be assigned to this event type",
   })
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  @ValidateTeamLocations_2024_06_14()
+  @DocsPropertyOptional({
+    description:
+      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+    oneOf: [
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputOrganizersDefaultApp_2024_06_14) },
+    ],
+    type: "array",
+  })
+  @Type(() => Object)
+  locations?: InputTeamLocation_2024_06_14[];
 }

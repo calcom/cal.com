@@ -6,6 +6,7 @@ import {
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -21,6 +22,8 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
     schedulingType?: SchedulingType | null;
     hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
   };
+  rescheduleReason?: string | null;
+  cancellationReason?: string | null;
   bookerUrl: string;
 };
 
@@ -37,6 +40,7 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
+  isDryRun?: boolean;
 }
 
 const processWorkflowStep = async (
@@ -50,6 +54,8 @@ const processWorkflowStep = async (
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
+  if (!step?.verifiedAt) return;
+
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
       identifier: `sms:${workflow.teamId ? "team:" : "user:"}${workflow.teamId || workflow.userId}`,
@@ -76,6 +82,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
+      verifiedAt: step.verifiedAt,
     });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -103,7 +110,25 @@ const processWorkflowStep = async (
           ? [emailAttendeeSendToOverride]
           : evt.attendees?.map((attendee) => attendee.email);
 
-        sendTo = attendees;
+        const limitGuestsDate = new Date("2025-01-13");
+
+        if (workflow.userId) {
+          const user = await prisma.user.findFirst({
+            where: {
+              id: workflow.userId,
+            },
+            select: {
+              createdDate: true,
+            },
+          });
+          if (user?.createdDate && user.createdDate > limitGuestsDate) {
+            sendTo = attendees.slice(0, 1);
+          } else {
+            sendTo = attendees;
+          }
+        } else {
+          sendTo = attendees;
+        }
 
         break;
     }
@@ -125,6 +150,7 @@ const processWorkflowStep = async (
       hideBranding,
       seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
+      verifiedAt: step.verifiedAt,
     });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -144,6 +170,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
+      verifiedAt: step.verifiedAt,
     });
   }
 };
@@ -159,7 +186,9 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
+    isDryRun = false,
   } = args;
+  if (isDryRun) return;
   if (isNotConfirmed || !workflows.length) return;
 
   for (const workflow of workflows) {

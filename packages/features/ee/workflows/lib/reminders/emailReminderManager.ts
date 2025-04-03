@@ -54,6 +54,7 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   isMandatoryReminder?: boolean;
+  verifiedAt: Date | null;
 }
 
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
@@ -72,7 +73,14 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     includeCalendarEvent,
     isMandatoryReminder,
     action,
+    verifiedAt,
   } = args;
+
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
+  }
+
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -160,7 +168,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true`,
+      cancelReason: evt.cancellationReason,
       rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}`,
+      rescheduleReason: evt.rescheduleReason,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
       noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
       attendeeTimezone: evt.attendees[0].timeZone,
@@ -183,20 +193,20 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       hideBranding
     ).html;
   } else if (template === WorkflowTemplates.REMINDER) {
-    emailContent = emailReminderTemplate(
-      false,
-      evt.organizer.language.locale,
+    emailContent = emailReminderTemplate({
+      isEditingMode: false,
+      locale: evt.organizer.language.locale,
       action,
-      evt.organizer.timeFormat,
+      timeFormat: evt.organizer.timeFormat,
       startTime,
       endTime,
-      evt.title,
+      eventName: evt.title,
       timeZone,
-      evt.location || "",
-      bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
-      attendeeName,
-      name
-    );
+      location: evt.location || "",
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
+      otherPerson: attendeeName,
+      name,
+    });
   } else if (template === WorkflowTemplates.RATING) {
     emailContent = emailRatingTemplate({
       isEditingMode: true,

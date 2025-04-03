@@ -2,11 +2,10 @@
 
 import { usePathname } from "next/navigation";
 
-import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
@@ -14,15 +13,26 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 
 import { CtaRow } from "~/settings/billing/billing-view";
 
+declare global {
+  interface Window {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
+      open: () => void;
+    };
+  }
+}
+
 export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
-  const { open } = useIntercom();
   const returnTo = pathname;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = async () => {
-    await open();
+    if (window.Plain) {
+      window.Plain.open();
+    }
   };
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
     useGetUserAttributes();
@@ -46,7 +56,7 @@ export default function PlatformBillingUpgrade() {
   if (!isPlatformUser)
     return (
       <div>
-        <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+        <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
           <NoPlatformPlan />
         </Shell>
       </div>
@@ -57,7 +67,6 @@ export default function PlatformBillingUpgrade() {
       <Shell
         heading={t("platform_billing")}
         title={t("platform_billing")}
-        hideHeadingOnMobile
         withoutMain={false}
         subtitle={t("manage_billing_description")}
         isPlatformUser={true}>

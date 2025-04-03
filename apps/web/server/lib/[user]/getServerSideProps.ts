@@ -1,4 +1,4 @@
-import type { DehydratedState } from "@tanstack/react-query";
+import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
@@ -18,13 +18,9 @@ import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import type { EmbedProps } from "@lib/withEmbedSsr";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
-  trpcState: DehydratedState;
   profile: {
     name: string;
     image: string;
@@ -64,6 +60,7 @@ type UserPageProps = {
     | "hidden"
     | "lockTimeZoneToggleOnBookingPage"
     | "requiresConfirmation"
+    | "canSendCalVideoTranscriptionEmails"
     | "requiresBookerEmailVerification"
     | "price"
     | "currency"
@@ -73,7 +70,6 @@ type UserPageProps = {
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
-  const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const usernameList = getUsernameList(context.query.user as string);
@@ -105,7 +101,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
 
   if (isDynamicGroup) {
-    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    const destinationUrl = encodeURI(`/${usernameList.join("+")}/dynamic`);
+
+    // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
+    // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
     const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
     const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
@@ -162,7 +161,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     return {
       redirect: {
         permanent: false,
-        destination: `${urlDestination}?${urlQuery}`,
+        destination: `${encodeURI(urlDestination)}?${urlQuery}`,
       },
     };
   }
@@ -193,7 +192,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
-      trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
     },
