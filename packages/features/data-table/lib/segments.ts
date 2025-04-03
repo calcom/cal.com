@@ -107,7 +107,8 @@ export function useSegments({
         sorting.length > 0 ||
         Object.keys(columnVisibility).length > 0 ||
         Object.keys(columnSizing).length > 0 ||
-        pageSize !== defaultPageSize
+        pageSize !== defaultPageSize ||
+        searchTerm?.length > 0
       );
     } else {
       // if a segment is selected, we can save the segment if the active filters, sorting, etc. are different from the segment
