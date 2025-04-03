@@ -128,16 +128,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let crmAppSlug: string | null = null;
   try {
     const result = await handleResponse({
-      query: { formId: serializableForm.id },
-      req: {
-        body: {
-          ...response,
-          formFillerId: uuidv4(),
-          chosenRouteId: matchingRoute.id,
-          isPreview: isBookingDryRun,
-        },
-      },
+      response,
       form: serializableForm,
+      formFillerId: uuidv4(),
+      chosenRouteId: matchingRoute.id,
+      isPreview: isBookingDryRun,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic ?? null;
     formResponseId = result.formResponse?.id ? Number(result.formResponse.id) : null;

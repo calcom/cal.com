@@ -5,7 +5,8 @@ import type { JsonTree } from "react-awesome-query-builder";
 import type { z } from "zod";
 
 import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";

@@ -45,19 +45,11 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
   });
 
   return handleResponse({
-    query: { formId: serializableForm.id },
-    req: {
-      body: {
-        ...response,
-        formFillerId,
-        chosenRouteId,
-        isPreview,
-        routes: form.routes || [],
-        fields: form.fields || [],
-        settings: form.settings || {},
-      },
-    },
+    response,
     form: serializableForm,
+    formFillerId,
+    chosenRouteId,
+    isPreview,
   });
 };
 
