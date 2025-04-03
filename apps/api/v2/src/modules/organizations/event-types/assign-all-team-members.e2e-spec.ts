@@ -264,7 +264,7 @@ describe("Assign all team members", () => {
   });
 
   describe("should setup event types using assignAllTeamMembers true", () => {
-    it("should not be able to setup team event type if no hosts nor assignAllTeamMembers provided", async () => {
+    it("should be able to setup team event type if no hosts nor assignAllTeamMembers provided", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation round robin",
         slug: `organizations-event-types-round-robin-${randomString()}`,
@@ -279,7 +279,18 @@ describe("Assign all team members", () => {
         .send(body)
         .set(X_CAL_SECRET_KEY, oAuthClient.secret)
         .set(X_CAL_CLIENT_ID, oAuthClient.id)
-        .expect(400);
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+      const data = responseBody.data;
+      expect(data.title).toEqual(body.title);
+      expect(data.hosts).toEqual([]);
+      expect(data.schedulingType).toEqual("collective");
+      console.log("asap data", JSON.stringify(data, null, 2));
+      const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
+      expect(eventTypeHosts.length).toEqual(0);
     });
 
     it("should setup collective event type assignAllTeamMembers true", async () => {
