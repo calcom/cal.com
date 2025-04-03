@@ -96,6 +96,11 @@ while IFS= read -r file; do
       content="${line:1}"
       content="${content#"${content%%[![:space:]]*}"}"
       
+      # Ignore lines that are empty after stripping prefix and trimming (e.g., just '+' or '-')
+      if [ -z "$content" ]; then
+        continue
+      fi
+      
       # Safe changes: imports, exports, type definitions, interface declarations, etc.
       if [[ "$content" == import* ]] || 
          [[ "$content" == export* ]] || 
