@@ -48,6 +48,7 @@ export const createUsersAndConnectToOrg = async ({
         creationSource: CreationSource.WEBAPP,
       };
     }),
+    skipDuplicates: true,
   });
 
   const users = await prisma.user.findMany({
@@ -58,6 +59,7 @@ export const createUsersAndConnectToOrg = async ({
     },
     select: dSyncUserSelect,
   });
+
   // Assign created users to organization
   for (const user of users) {
     await createOrUpdateMemberships({
