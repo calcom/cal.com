@@ -1,7 +1,7 @@
 "use client";
 
-// eslint-disable-next-line no-restricted-imports
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
