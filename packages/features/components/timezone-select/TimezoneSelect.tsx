@@ -122,7 +122,7 @@ export function TimezoneSelectComponent({
         }),
         menuList: (base) => ({
           ...base,
-          height: grow ? "h-auto " : size === "sm" ? "200px" : "150px",
+          height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
         }),
       }}
       onInputChange={handleInputChange}
