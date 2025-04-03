@@ -653,30 +653,6 @@ export const EventAdvancedTab = ({
           />
         )}
       />
-
-      <Controller
-        name="canSendCalVideoTranscriptionEmails"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames(
-              "text-sm",
-              customClassNames?.canSendCalVideoTranscriptionEmails?.label
-            )}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.canSendCalVideoTranscriptionEmails?.container
-            )}
-            title={t("send_cal_video_transcription_emails")}
-            data-testid="send-cal-video-transcription-emails"
-            {...sendCalVideoTranscriptionEmailsProps}
-            description={t("description_send_cal_video_transcription_emails")}
-            descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
       <Controller
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (
