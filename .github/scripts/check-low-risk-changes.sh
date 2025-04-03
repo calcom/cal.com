@@ -35,7 +35,7 @@ PLATFORM_PATTERNS=(
 )
 # Keywords indicating potentially low-risk changes (types, imports, exports, signatures)
 # This is a basic heuristic.
-LOW_RISK_KEYWORDS_REGEX='(^\+|^-) *(import|export|type|interface|class|enum|const|let|var|function|=>|\):)'
+LOW_RISK_KEYWORDS_REGEX='(^\\+|^-) *(import|export|type|interface|class|enum|const|let|var|function|=>|\\):| *[a-zA-Z_][a-zA-Z0-9_]*\\?: *[a-zA-Z0-9_<>\[\]]+\;?)'
 # Regex to detect changes likely *inside* function/method bodies (heuristic)
 # Avoid lines starting with +/- followed by something other than keywords or comments,
 # especially if indented or containing common code constructs. This is very approximate.
@@ -93,19 +93,52 @@ while IFS= read -r file; do
     diff_content=$(git diff $BASE_BRANCH...HEAD -- "$file")
     changed_lines_content=$(echo "$diff_content" | grep -E '^(\+|\-)' | grep -vE '^(\+\+\+)|(---)') # Extract lines starting with + or -
 
-    # Heuristic Check: Look for lines *not* matching low-risk patterns
-    # and potentially matching code logic patterns.
-    suspicious_lines=$(echo "$changed_lines_content" | grep -vE "$LOW_RISK_KEYWORDS_REGEX" ) # Lines NOT matching keywords
-    # Further filter suspicious lines to find those potentially indicating code logic
-    potential_logic=$(echo "$suspicious_lines" | grep -E "$POTENTIAL_CODE_LOGIC_REGEX")
-
-    if [ -n "$potential_logic" ]; then
-        echo "Potential complex code changes detected:"
-        echo "$potential_logic" | head -n 5 # Show first few suspicious lines
-        echo "Risk Assessment: HIGH (Potential complex logic changes found)"
-        high_risk_found=true
+    # Print diff content for debugging
+    echo -e "\nChanged content in '$file':"
+    echo "$changed_lines_content"
+    
+    # Initialize flags
+    high_risk_found_in_file=false
+    
+    # Simple line-by-line analysis instead of complex regex
+    while IFS= read -r line; do
+      # Skip empty lines
+      [ -z "$line" ] && continue
+      
+      # Extract first character (+ or -)
+      first_char="${line:0:1}"
+      # Skip lines not starting with + or - (though our input should only have these)
+      [[ "$first_char" != "+" && "$first_char" != "-" ]] && continue
+      
+      # Strip the + or - prefix for analysis
+      content="${line:1}"
+      # Trim leading whitespace
+      content="${content#"${content%%[![:space:]]*}"}"
+      
+      # Low risk patterns - check if line DOES match any of these patterns
+      if [[ "$content" == import* ]] || 
+         [[ "$content" == export* ]] || 
+         [[ "$content" == type* ]] || 
+         [[ "$content" == interface* ]] ||
+         [[ "$content" == enum* ]] || 
+         [[ "$content" =~ ^[a-zA-Z_][a-zA-Z0-9_]*(\?)?:\ .* ]] || # Property definition like "prop?: type"
+         [[ "$content" =~ ^(const|let|var)\ [a-zA-Z_][a-zA-Z0-9_]*:\ .* ]]; then # Variable declaration with type
+        # This is a low-risk line - skip it
+        continue
+      fi
+      
+      # If we get here, it's a potentially high-risk line
+      echo "Potential complex code change: $line"
+      high_risk_found_in_file=true
+      # No need to check more lines if we found a high-risk change
+      break
+    done <<< "$changed_lines_content"
+    
+    if $high_risk_found_in_file; then
+      echo "Risk Assessment: HIGH (Potential complex code changes found)"
+      high_risk_found=true
     else
-        echo "Risk Assessment: LOW (Changes appear limited to types/imports/signatures within line limit)"
+      echo "Risk Assessment: LOW (Changes appear limited to types/imports/signatures within line limit)"
     fi
   fi
 done <<< "$changed_files"
