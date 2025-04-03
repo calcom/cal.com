@@ -46,7 +46,7 @@ export const OrgTeamsFilter = () => {
     if (orgTeamsType === "org") {
       return { text: t("all"), placeholder: undefined, imageUrl: data?.[0]?.logoUrl };
     } else if (orgTeamsType === "yours") {
-      return { text: t("yours"), placeholder: currentUserName, imageUrl: session.data?.user.avatarUrl };
+      return { text: t("yours"), placeholder: currentUserName, imageUrl: session?.user.avatarUrl };
     } else if (orgTeamsType === "team") {
       const selectedTeam = data?.find((item) => {
         return item.id === selectedTeamId;
@@ -119,7 +119,7 @@ export const OrgTeamsFilter = () => {
           icon={
             <Avatar
               alt={`${currentUserName} avatar`}
-              imageSrc={getPlaceholderAvatar(session.data?.user.avatarUrl, currentUserName)}
+              imageSrc={getPlaceholderAvatar(session?.user.avatarUrl, currentUserName)}
               size="xsm"
             />
           }

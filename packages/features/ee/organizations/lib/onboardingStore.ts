@@ -166,7 +166,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   if (status === "unauthenticated") {
     const searchString = !searchParams ? "" : `${searchParams.toString()}`;
     router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
-    return;
+    // fall thru, even though kinda useless this makes sure the types stay intact
   }
 
   return { useOnboardingStore, isLoadingOrgOnboarding, dbOnboarding: organizationOnboarding };

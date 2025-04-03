@@ -234,7 +234,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           <div className="flex space-x-1">
             <p>{member.name || member.email || t("team_member")}</p>
             {/* Assume that the first member of the team is the creator */}
-            {member.id === session.data?.user.id && <Badge variant="green">{t("you")}</Badge>}
+            {member.id === session?.user.id && <Badge variant="green">{t("you")}</Badge>}
             {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
             {member.role === MembershipRole.MEMBER && <Badge variant="gray">{t("member")}</Badge>}
 
@@ -248,7 +248,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           )}
         </div>
       </div>
-      {(member.role !== "OWNER" || isAdminOrOwner) && member.id !== session.data?.user.id && (
+      {(member.role !== "OWNER" || isAdminOrOwner) && member.id !== session?.user.id && (
         <Button
           data-testid="remove-member-button"
           StartIcon="trash-2"

@@ -111,12 +111,8 @@ const MembersView = () => {
               />
             )}
 
-            {team && session.data && (
-              <DisableTeamImpersonation
-                teamId={team.id}
-                memberId={session.data.user.id}
-                disabled={isInviteOpen}
-              />
+            {team && session && (
+              <DisableTeamImpersonation teamId={team.id} memberId={session.user.id} disabled={isInviteOpen} />
             )}
 
             {team && team.id && (isAdmin || isOrgAdminOrOwner) && (
