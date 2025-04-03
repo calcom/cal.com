@@ -41,7 +41,7 @@ export const AvailabilitySettingsWebWrapper = ({
   const isPending = isFetchingPending && !scheduleProp;
   const schedule = scheduleProp ?? scheduleData;
 
-  const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
+  const { data: travelSchedulesData } = trpc.viewer.travelSchedules.get.useQuery(undefined, {
     enabled: !travelSchedulesProp,
   });
   const travelSchedules = travelSchedulesProp ?? travelSchedulesData;

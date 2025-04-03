@@ -3,6 +3,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +12,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogClose,
@@ -186,14 +186,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <div className="flex flex-row">
+                      <div className="flex gap-3">
                         <span className="text-default">{user.name}</span>
-                        <span className="ml-3">/{user.username}</span>
-                        {user.locked && (
-                          <span className="ml-3">
-                            <Icon name="lock" />
+                        <span>/{user.username}</span>
+                        {user.profiles[0]?.username && (
+                          <span className="flex items-center gap-1">
+                            <Icon name="building" className="text-subtle size-5" />
+                            <span>{user.profiles[0]?.username}</span>
                           </span>
                         )}
+                        {user.locked && <Icon name="lock" />}
                         <br />
                       </div>
                       <span className="break-all">{user.email}</span>

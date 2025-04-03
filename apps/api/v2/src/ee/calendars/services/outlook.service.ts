@@ -71,7 +71,7 @@ export class OutlookService implements OAuthCalendarApp {
   }
 
   async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const office365CalendarCredentials = await this.credentialRepository.getByTypeAndUserId(
+    const office365CalendarCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
       "office365_calendar",
       userId
     );
