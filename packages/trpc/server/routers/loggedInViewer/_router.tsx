@@ -16,7 +16,6 @@ import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
-import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
 
 const NAMESPACE = "loggedInViewer";
 
@@ -29,7 +28,6 @@ type AppsRouterHandlerCache = {
   updateProfile?: typeof import("./updateProfile.handler").updateProfileHandler;
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
   routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
-  workflowOrder?: typeof import("./workflowOrder.handler").workflowOrderHandler;
   submitFeedback?: typeof import("./submitFeedback.handler").submitFeedbackHandler;
   locationOptions?: typeof import("./locationOptions.handler").locationOptionsHandler;
   deleteCredential?: typeof import("./deleteCredential.handler").deleteCredentialHandler;
@@ -142,19 +140,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.routingFormOrder({ ctx, input });
-  }),
-
-  workflowOrder: authedProcedure.input(ZWorkflowOrderInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.workflowOrder) {
-      UNSTABLE_HANDLER_CACHE.workflowOrder = (await import("./workflowOrder.handler")).workflowOrderHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.workflowOrder) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.workflowOrder({ ctx, input });
   }),
 
   //Comment for PR: eventTypePosition is not used anywhere
