@@ -15,17 +15,27 @@ import {
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
-const log = logger.getSubLogger({ prefix: ["dsync/handleGroupEvents"] });
-
 const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: number) => {
-  log.debug("called", safeStringify(event));
+  const log = logger.getSubLogger({
+    prefix: [`dsync/handleGroupEvents: directoryId: ${event.directory_id}`],
+  });
+
+  log.info(
+    "called",
+    safeStringify({
+      event: event.event,
+      tenant: event.tenant,
+      product: event.product,
+    })
+  );
   // Find the group name associated with the event
   const eventData = event.data as Group;
-
   // If the group doesn't have any members assigned then return early
   if (!eventData.raw.members.length) {
     return;
   }
+
+  log.info(`Event contains ${eventData.raw.members.length} members`);
 
   const groupNames = await prisma.dSyncTeamGroupMapping.findMany({
     where: {
@@ -67,6 +77,8 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     userEmails = eventData.raw.members.map((member: { display: string }) => member.display);
   }
 
+  log.info(`Event contains ${userEmails.length} emails`);
+
   // Find existing users
   const users = await prisma.user.findMany({
     where: {
@@ -97,6 +109,9 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
 
   const newUserEmails = userEmails.filter((email) => !users.find((user) => user.email === email));
   let newUsers;
+
+  log.info(`Event processing ${newUserEmails.length} new users and ${users.length} existing users`);
+
   // For each team linked to the dsync group name provision members
   for (const group of groupNames) {
     if (newUserEmails.length) {
