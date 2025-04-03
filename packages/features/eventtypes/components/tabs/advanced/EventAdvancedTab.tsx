@@ -586,45 +586,49 @@ export const EventAdvancedTab = ({
         customClassNames={customClassNames?.requiresConfirmation}
       />
 
-      <Controller
-        name="disableCancelling"
-        render={({ field: { onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("disable_cancelling")}
-            data-testid="disable-cancelling-toggle"
-            {...disableCancellingLocked}
-            description={t("description_disable_cancelling")}
-            checked={disableCancelling}
-            onCheckedChange={(val) => {
-              setDisableCancelling(val);
-              onChange(val);
-            }}
+      {!isPlatform && (
+        <>
+          <Controller
+            name="disableCancelling"
+            render={({ field: { onChange } }) => (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                title={t("disable_cancelling")}
+                data-testid="disable-cancelling-toggle"
+                {...disableCancellingLocked}
+                description={t("description_disable_cancelling")}
+                checked={disableCancelling}
+                onCheckedChange={(val) => {
+                  setDisableCancelling(val);
+                  onChange(val);
+                }}
+              />
+            )}
           />
-        )}
-      />
 
-      <Controller
-        name="disableRescheduling"
-        render={({ field: { onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("disable_rescheduling")}
-            data-testid="disable-rescheduling-toggle"
-            {...disableReschedulingLocked}
-            description={t("description_disable_rescheduling")}
-            checked={disableRescheduling}
-            onCheckedChange={(val) => {
-              setDisableRescheduling(val);
-              onChange(val);
-            }}
+          <Controller
+            name="disableRescheduling"
+            render={({ field: { onChange } }) => (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                title={t("disable_rescheduling")}
+                data-testid="disable-rescheduling-toggle"
+                {...disableReschedulingLocked}
+                description={t("description_disable_rescheduling")}
+                checked={disableRescheduling}
+                onCheckedChange={(val) => {
+                  setDisableRescheduling(val);
+                  onChange(val);
+                }}
+              />
+            )}
           />
-        )}
-      />
+        </>
+      )}
 
       <Controller
         name="canSendCalVideoTranscriptionEmails"
