@@ -15,10 +15,11 @@ import {
   type FilterSegmentOutput,
   type ActiveFilters,
 } from "./lib/types";
+import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
 export type DataTableContextType = {
   tableIdentifier: string;
-  ctaContainerRef?: React.RefObject<HTMLDivElement>;
+  ctaContainerRef: React.RefObject<HTMLDivElement>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
@@ -37,8 +38,8 @@ export type DataTableContextType = {
 
   pageIndex: number;
   pageSize: number;
-  setPageIndex: (pageIndex: number) => void;
-  setPageSize: (pageSize: number) => void;
+  setPageIndex: (pageIndex: number | null) => void;
+  setPageSize: (pageSize: number | null) => void;
 
   offset: number;
   limit: number;
@@ -69,7 +70,7 @@ export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
   defaultPageSize = DEFAULT_PAGE_SIZE,
-  ctaContainerClassName,
+  ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
 }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
@@ -110,15 +111,24 @@ export function DataTableProvider({
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
-      setPageIndex(0);
-      setActiveFilters((prev) => prev.filter((filter) => exclude?.includes(filter.f)));
+      setSegmentIdAndSaveToLocalStorage(null);
+      setPageIndex(null);
+      setActiveFilters((prev) => {
+        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
+        return remainingFilters.length === 0 ? null : remainingFilters;
+      });
     },
     [setActiveFilters, setPageIndex]
   );
 
+  const setPageIndexWrapper = useCallback(
+    (newPageIndex: number | null) => setPageIndex(newPageIndex || null),
+    [setPageIndex]
+  );
+
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
-      setPageIndex(0);
+      setPageIndex(null);
       setActiveFilters((prev) => {
         let added = false;
         const newFilters = prev.map((item) => {
@@ -139,18 +149,21 @@ export function DataTableProvider({
 
   const removeFilter = useCallback(
     (columnId: string) => {
-      setPageIndex(0);
-      setActiveFilters((prev) => prev.filter((filter) => filter.f !== columnId));
+      setPageIndex(null);
+      setActiveFilters((prev) => {
+        const remainingFilters = prev.filter((filter) => filter.f !== columnId);
+        return remainingFilters.length === 0 ? null : remainingFilters;
+      });
     },
     [setActiveFilters, setPageIndex]
   );
 
   const setPageSizeAndGoToFirstPage = useCallback(
-    (newPageSize: number) => {
-      setPageSize(newPageSize);
-      setPageIndex(0);
+    (newPageSize: number | null) => {
+      setPageSize(newPageSize === defaultPageSize ? null : newPageSize);
+      setPageIndex(null);
     },
-    [setPageSize, setPageIndex]
+    [setPageSize, setPageIndex, defaultPageSize]
   );
 
   const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
@@ -197,7 +210,7 @@ export function DataTableProvider({
         setColumnSizing,
         pageIndex,
         pageSize,
-        setPageIndex,
+        setPageIndex: setPageIndexWrapper,
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
