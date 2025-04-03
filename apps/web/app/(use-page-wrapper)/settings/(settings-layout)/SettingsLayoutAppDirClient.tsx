@@ -7,20 +7,26 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect, useState, useMemo } from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { VerticalTabItemProps } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, Icon, Skeleton, VerticalTabItem } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
+import { Icon } from "@calcom/ui/components/icon";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { VerticalTabItem } from "@calcom/ui/components/navigation";
+import { Skeleton } from "@calcom/ui/components/skeleton";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -35,6 +41,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "conferencing", href: "/settings/my-account/conferencing" },
         { name: "appearance", href: "/settings/my-account/appearance" },
         { name: "out_of_office", href: "/settings/my-account/out-of-office" },
+        { name: "push_notifications", href: "/settings/my-account/push-notifications" },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
@@ -109,10 +116,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
         },
-        // {
-        //   name: "domain_wide_delegation",
-        //   href: "/settings/organizations/domain-wide-delegation",
-        // },
       ],
     },
     {
@@ -153,7 +156,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({ name: "create_your_org", href: "/settings/organizations/new" });
+      tab.children?.push({ name: "create_org", href: "/settings/organizations/new" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
@@ -166,15 +169,21 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "directory_sync"];
+const organizationAdminKeys = [
+  "privacy",
+  "billing",
+  "OAuth Clients",
+  "SSO",
+  "directory_sync",
+  "delegation_credential",
+];
 
-const useTabs = () => {
+const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-  const isOrgAdminOrOwner =
-    orgBranding?.role === MembershipRole.ADMIN || orgBranding?.role === MembershipRole.OWNER;
+  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   const processTabsMemod = useMemo(() => {
     const processedTabs = getTabs(orgBranding).map((tab) => {
@@ -196,6 +205,14 @@ const useTabs = () => {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
+          });
+        }
+
+        // Add delegation-credential menu item only if feature flag is enabled
+        if (isDelegationCredentialEnabled) {
+          newArray.push({
+            name: "delegation_credential",
+            href: "/settings/organizations/delegation-credential",
           });
         }
 
@@ -232,7 +249,7 @@ const useTabs = () => {
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
 
   return processTabsMemod;
 };
@@ -363,8 +380,7 @@ const TeamListCollapsible = () => {
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
-                  {(team.role === MembershipRole.OWNER ||
-                    team.role === MembershipRole.ADMIN ||
+                  {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
                     (team.isOrgAdmin && team.isOrgAdmin)) && (
@@ -418,7 +434,6 @@ const SettingsSidebarContainer = ({
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
-  const tabsWithPermissions = useTabs();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
       teamId: number | undefined;
@@ -428,6 +443,10 @@ const SettingsSidebarContainer = ({
   const session = useSession();
   const { data: _currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org && !currentOrgProp,
+  });
+
+  const tabsWithPermissions = useTabs({
+    isDelegationCredentialEnabled: !!_currentOrg?.features?.delegationCredential,
   });
 
   const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
@@ -507,7 +526,7 @@ const SettingsSidebarContainer = ({
                         isExternalLink={child.isExternalLink}
                         href={child.href || "/"}
                         textClassNames="text-emphasis font-medium text-sm"
-                        className={`me-5 h-7 !px-2 ${
+                        className={`me-5 h-7 w-auto !px-2 ${
                           tab.children && index === tab.children?.length - 1 && "!mb-3"
                         }`}
                         disableChevron
@@ -720,7 +739,6 @@ export default function SettingsLayoutAppDirClient({
 
   return (
     <Shell
-      withoutSeo={true}
       flexChildrenContainer
       {...rest}
       SidebarContainer={

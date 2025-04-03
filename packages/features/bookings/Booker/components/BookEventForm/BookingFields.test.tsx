@@ -1,15 +1,29 @@
-import "@calcom/ui/__mocks__/ui";
-
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, fireEvent, screen } from "@testing-library/react";
 import * as React from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
-import { expect } from "vitest";
-import { vi } from "vitest";
+import { expect, vi } from "vitest";
+
+import PhoneInput from "@calcom/features/components/phone-input/PhoneInput";
 
 import { getBookingFieldsWithSystemFields } from "../../../lib/getBookingFields";
 import { BookingFields } from "./BookingFields";
+
+// Mock PhoneInput to avoid calling the lazy import
+vi.mock("@calcom/features/components/phone-input", () => {
+  return {
+    default: PhoneInput,
+  };
+});
+
+vi.mock("@calcom/ui/components/address", async (originalImport) => {
+  const { AddressInputNonLazy } = (await originalImport()) as Record<string, unknown>;
+  // Dynamic imports of Components are not supported in Vitest. So, we use the non-lazy version of the components
+  return {
+    AddressInput: AddressInputNonLazy,
+  };
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormMethods = UseFormReturn<any>;

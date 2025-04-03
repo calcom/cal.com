@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { X_CAL_CLIENT_ID_HEADER, X_CAL_SECRET_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -28,7 +29,7 @@ import {
   HttpStatus,
   Delete,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -40,13 +41,19 @@ const SCALE = "SCALE";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Orgs")
+@ApiHeader(X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(X_CAL_SECRET_KEY_HEADER)
 export class OrganizationsOrganizationsController {
   constructor(private readonly managedOrganizationsService: ManagedOrganizationsService) {}
 
   @Post()
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
-  @ApiOperation({ summary: "Create an organization within an organization" })
+  @ApiOperation({
+    summary: "Create an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   async createOrganization(
     @Param("orgId", ParseIntPipe) managerOrganizationId: number,
     @GetUser() authUser: ApiAuthGuardUser,
@@ -67,7 +74,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Get("/:managedOrganizationId")
-  @ApiOperation({ summary: "Get an organization within an organization" })
+  @ApiOperation({
+    summary: "Get an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   @UseGuards(IsManagedOrgInManagerOrg)
   async getOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number
@@ -82,7 +93,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Get("/")
-  @ApiOperation({ summary: "Get all organizations within an organization" })
+  @ApiOperation({
+    summary: "Get all organizations within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   async getOrganizations(
     @Param("orgId", ParseIntPipe) managerOrganizationId: number
   ): Promise<GetManagedOrganizationsOutput> {
@@ -98,7 +113,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Patch("/:managedOrganizationId")
-  @ApiOperation({ summary: "Update an organization within an organization" })
+  @ApiOperation({
+    summary: "Update an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   @UseGuards(IsManagedOrgInManagerOrg)
   @HttpCode(HttpStatus.OK)
   async updateOrganization(
@@ -119,7 +138,11 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Delete("/:managedOrganizationId")
-  @ApiOperation({ summary: "Delete an organization within an organization" })
+  @ApiOperation({
+    summary: "Delete an organization within an organization",
+    description:
+      "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+  })
   @UseGuards(IsManagedOrgInManagerOrg)
   async deleteOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number

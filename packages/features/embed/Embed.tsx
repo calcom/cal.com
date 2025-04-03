@@ -14,6 +14,9 @@ import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings"
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import type { Slot } from "@calcom/features/schedules";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
@@ -23,25 +26,19 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  ColorPicker,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  HorizontalTabs,
-  Icon,
-  Label,
-  Select,
-  showToast,
-  Switch,
-  TextField,
-  TimezoneSelect,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Select, ColorPicker } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
+import { EmbedTheme } from "./lib/constants";
 import { getDimension } from "./lib/getDimension";
 import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "./lib/hooks/useEmbedParams";
@@ -66,12 +63,6 @@ type GotoStateProps = {
   month?: string | null;
   dialog?: string;
 };
-
-const enum Theme {
-  auto = "auto",
-  light = "light",
-  dark = "dark",
-}
 
 const queryParamsForDialog = [
   "embedType",
@@ -102,7 +93,7 @@ function useRouterHelpers() {
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams ?? undefined);
+    const newQuery = new URLSearchParams(searchParams.toString());
     newQuery.delete("slug");
     newQuery.delete("pages");
     Object.keys(newSearchParams).forEach((key) => {
@@ -113,7 +104,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams ?? undefined);
+    const params = new URLSearchParams(searchParams.toString());
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -177,7 +168,10 @@ function useEmbedGoto(noQueryParamMode = false) {
   return { gotoState, resetState, gotoEmbedTypeSelectionState };
 }
 
-const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
+const ThemeSelectControl = ({
+  children,
+  ...props
+}: ControlProps<{ value: EmbedTheme; label: string }, false>) => {
   return (
     <components.Control {...props}>
       <Icon name="sun" className="text-subtle mr-2 h-4 w-4" />
@@ -286,7 +280,8 @@ const EmailEmbed = ({
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
-  const onTimeSelect = (time: string) => {
+  const handleSlotClick = (slot: Slot) => {
+    const { time } = slot;
     if (!eventType) {
       return null;
     }
@@ -360,7 +355,7 @@ const EmailEmbed = ({
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
-              isPending={schedule.isPending}
+              isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
                 setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
@@ -393,7 +388,7 @@ const EmailEmbed = ({
                     ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
                     : undefined
                 }
-                onTimeSelect={onTimeSelect}
+                handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
                 event={event}
@@ -698,12 +693,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
-  const { data: userSettings } = trpc.viewer.me.useQuery();
+  const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
   const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+    const _searchParams = new URLSearchParams(searchParams.toString());
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
     return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
@@ -762,7 +757,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       height: "100%",
       config: defaultConfig,
     } as PreviewState["inline"],
-    theme: Theme.auto,
+    theme: EmbedTheme.auto,
     layout: defaultConfig.layout,
     floatingPopup: {
       config: defaultConfig,
@@ -880,9 +875,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   }
 
   const ThemeOptions = [
-    { value: Theme.auto, label: "Auto" },
-    { value: Theme.dark, label: "Dark Theme" },
-    { value: Theme.light, label: "Light Theme" },
+    { value: EmbedTheme.auto, label: "Auto" },
+    { value: EmbedTheme.dark, label: "Dark EmbedTheme" },
+    { value: EmbedTheme.light, label: "Light EmbedTheme" },
   ];
 
   const layoutOptions = [
@@ -1111,7 +1106,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <CollapsibleContent>
                     <div className="text-sm">
                       <Label className="mb-6">
-                        <div className="mb-2">Theme</div>
+                        <div className="mb-2">EmbedTheme</div>
                         <Select
                           className="w-full"
                           defaultValue={ThemeOptions[0]}

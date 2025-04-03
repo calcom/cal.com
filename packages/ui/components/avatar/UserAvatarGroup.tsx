@@ -2,7 +2,8 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type { User } from "@calcom/prisma/client";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { AvatarGroup } from "@calcom/ui";
+
+import { AvatarGroup } from "./AvatarGroup";
 
 type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> & {
   users: (Pick<User, "name" | "username" | "avatarUrl"> & {

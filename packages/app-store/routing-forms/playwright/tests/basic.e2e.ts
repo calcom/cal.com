@@ -145,13 +145,15 @@ test.describe("Routing Forms", () => {
       await verifyFieldOptionsInRule(options, page);
     });
 
-    test.describe("F1<-F2 Relationship", () => {
+    // This feature is disable till it is fully supported and tested with Routing Form with Attributes.
+    test.describe.skip("F1<-F2 Relationship", () => {
       test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
         await page.goto(`/routing-forms/forms`);
         const form2Id = await addForm(page, { name: "F2" });
 
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+          name: "F1",
           description: "Form 1 Description",
           field: {
             label: "F1 Field1",
@@ -160,6 +162,7 @@ test.describe("Routing Forms", () => {
         });
 
         const { types } = await addOneFieldAndDescriptionAndSaveForm(form2Id, page, {
+          name: "F2",
           description: "Form 2 Description",
           field: {
             label: "F2 Field1",
@@ -185,6 +188,7 @@ test.describe("Routing Forms", () => {
         await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
         // Add 1 more field in F1
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+          name: "F1",
           field: {
             label: "F1 Field2",
             typeIndex: 1,
@@ -824,9 +828,12 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
+  const appRoutingFormsRespPromise = page.waitForResponse((response) =>
+    /\/api\/trpc\/appRoutingForms*/.test(response.url())
+  );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await appRoutingFormsRespPromise;
   await page.click('[data-testid="add-field"]');
-  await page.fill('[data-testid="description"]', form.description);
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
@@ -872,6 +879,7 @@ async function addAllTypesOfFieldsAndSaveForm(
     fields.push({ identifier: identifier, label, type: fieldTypeLabel });
   }
 
+  await page.fill('[data-testid="description"]', form.description);
   await saveCurrentForm(page);
   return {
     fieldTypesList,
