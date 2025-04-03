@@ -23,7 +23,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (Number.isNaN(typeParam)) {
-    notFound();
+    return notFound();
   }
 
   if (!session?.user?.id) {
