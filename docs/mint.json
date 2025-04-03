@@ -191,6 +191,7 @@
           "group": "Atoms",
           "icon": "atom",
           "pages": [
+            "platform/atoms/cal-provider",
             "platform/atoms/google-calendar-connect",
             "platform/atoms/outlook-calendar-connect",
             "platform/atoms/apple-calendar-connect",
