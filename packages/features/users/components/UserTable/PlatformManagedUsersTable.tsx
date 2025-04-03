@@ -58,7 +58,7 @@ type PlatformManagedUsersTableProps = {
 
 export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps) {
   return (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider defaultPageSize={25} tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
