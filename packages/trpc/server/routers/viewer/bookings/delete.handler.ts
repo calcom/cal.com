@@ -35,6 +35,15 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
       references: true,
       payment: true,
       workflowReminders: true,
+      eventType: {
+        include: {
+          team: {
+            include: {
+              members: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -42,8 +51,20 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     throw new Error("Booking not found");
   }
 
+  const isTeamEvent = booking.eventType?.team;
+
   if (booking.userId !== user.id) {
-    throw new Error("Unauthorized: You don't have permission to delete this booking");
+    if (isTeamEvent) {
+      const isTeamAdmin = booking.eventType?.team?.members.some(
+        (member) => member.userId === user.id && member.role === "ADMIN"
+      );
+
+      if (!isTeamAdmin) {
+        throw new Error("Unauthorized: Only team admins can delete team event bookings");
+      }
+    } else {
+      throw new Error("Unauthorized: You don't have permission to delete this booking");
+    }
   }
 
   await prisma.booking.delete({

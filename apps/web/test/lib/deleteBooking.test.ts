@@ -209,4 +209,109 @@ describe("Booking deletion", () => {
 
     expect(prismaMock.booking.deleteMany).not.toHaveBeenCalledTimes(1);
   });
+
+  it("should allow team admin to delete team event booking", async () => {
+    const mockBooking = {
+      id: 1,
+      status: BookingStatus.ACCEPTED,
+      userId: 456, // Different from requesting user
+      eventType: {
+        team: {
+          members: [
+            { userId: 123, role: "ADMIN" }, // Requesting user is team admin
+          ],
+        },
+      },
+    } as Booking;
+
+    prismaMock.booking.findFirst.mockResolvedValue(mockBooking);
+    prismaMock.booking.delete.mockResolvedValue(mockBooking);
+
+    const mockCtx = {
+      user: {
+        id: 123, // Admin user
+        email: "test@example.com",
+        username: "testuser",
+        name: "Test User",
+        avatar: "avatar.png",
+        organization: {
+          id: null,
+          isOrgAdmin: false,
+          metadata: null,
+          requestedSlug: null,
+        },
+        organizationId: null,
+        locale: "en",
+        defaultBookerLayouts: {
+          enabledLayouts: [BookerLayouts.MONTH_VIEW],
+          defaultLayout: BookerLayouts.MONTH_VIEW,
+        },
+        timeZone: "UTC",
+        weekStart: "Monday",
+        startTime: 0,
+        endTime: 1440,
+        bufferTime: 0,
+        destinationCalendar: null,
+      } as NonNullable<TrpcSessionUser>,
+    };
+
+    await expect(
+      deleteHandler({
+        ctx: mockCtx,
+        input: { id: 1 },
+      })
+    ).resolves.not.toThrow();
+  });
+
+  it("should prevent non-admin team member from deleting team event booking", async () => {
+    const mockBooking = {
+      id: 1,
+      status: BookingStatus.ACCEPTED,
+      userId: 456,
+      eventType: {
+        team: {
+          members: [
+            { userId: 123, role: "MEMBER" }, // Requesting user is regular member
+          ],
+        },
+      },
+    } as Booking;
+
+    prismaMock.booking.findFirst.mockResolvedValue(mockBooking);
+
+    const mockCtx = {
+      user: {
+        id: 123, // Non-admin user
+        email: "test@example.com",
+        username: "testuser",
+        name: "Test User",
+        avatar: "avatar.png",
+        organization: {
+          id: null,
+          isOrgAdmin: false,
+          metadata: null,
+          requestedSlug: null,
+        },
+        organizationId: null,
+        locale: "en",
+        defaultBookerLayouts: {
+          enabledLayouts: [BookerLayouts.MONTH_VIEW],
+          defaultLayout: BookerLayouts.MONTH_VIEW,
+        },
+        timeZone: "UTC",
+        weekStart: "Monday",
+        startTime: 0,
+        endTime: 1440,
+        bufferTime: 0,
+        destinationCalendar: null,
+      } as NonNullable<TrpcSessionUser>,
+    };
+
+    await expect(
+      deleteHandler({
+        ctx: mockCtx,
+        input: { id: 1 },
+      })
+    ).rejects.toThrow(/only team admins/i);
+  });
 });
