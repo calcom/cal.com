@@ -2,6 +2,7 @@ import type { User as PrismaUser } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -252,17 +253,20 @@ export class ProfileRepository {
   static createMany({
     users,
     organizationId,
+    orgAutoAcceptEmail,
   }: {
-    users: { id: number; username: string; email: string }[];
+    users: { id: number; username: string | null; email: string }[];
     organizationId: number;
+    orgAutoAcceptEmail: string;
   }) {
     return prisma.profile.createMany({
       data: users.map((user) => ({
         uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
-        username: user.username || user.email.split("@")[0],
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
       })),
+      skipDuplicates: true,
     });
   }
 
