@@ -6,6 +6,8 @@ import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
@@ -72,7 +74,8 @@ export class BookingsService_2024_08_13 {
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
-    private readonly platformBookingsService: PlatformBookingsService
+    private readonly platformBookingsService: PlatformBookingsService,
+    private readonly oAuthClientRepository: OAuthClientRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -146,14 +149,33 @@ export class BookingsService_2024_08_13 {
 
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
-    const bookings = await handleNewRecurringBooking(bookingRequest);
+    const bookings = await handleNewRecurringBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+      noEmail: bookingRequest.noEmail,
+    });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
   async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
-    const bookings = await handleNewRecurringBooking(bookingRequest);
+    const bookings = await handleNewRecurringBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
     );
@@ -161,7 +183,16 @@ export class BookingsService_2024_08_13 {
 
   async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    const booking = await handleNewBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -177,7 +208,16 @@ export class BookingsService_2024_08_13 {
 
   async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    const booking = await handleNewBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -226,6 +266,10 @@ export class BookingsService_2024_08_13 {
   }
 
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
+    if (queryParams.attendeeEmail) {
+      queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
+    }
+
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
@@ -281,6 +325,35 @@ export class BookingsService_2024_08_13 {
     return formattedBookings;
   }
 
+  async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {
+    // note(Lauris): this is to handle attendees that are managed users - in attendee table their email is one of managed users e.g
+    // urdasdqinm+clxyyy21o0003sbk7yw5z6tzg@example.com but if attendeeEmail is passed as urdasdqinm@example.com then we check if user whose
+    // access token is used is a managed user and if attendee with passed email has managed user email composed of passed email without oAuth client id +
+    // authenticated user oAuth client id.
+    const oAuthClient = await this.oAuthClientRepository.getByUserId(user.id);
+    if (!oAuthClient) {
+      return queryParamsAttendeeEmail;
+    }
+    // note(Lauris): query param already contains oAuth client id in the attendeeEmail
+    if (queryParamsAttendeeEmail.includes(oAuthClient.id)) {
+      return queryParamsAttendeeEmail;
+    }
+
+    const managedAttendeeEmail = OAuthClientUsersService.getOAuthUserEmail(
+      oAuthClient.id,
+      queryParamsAttendeeEmail
+    );
+    const [attendee, managedAttendee] = await Promise.all([
+      this.usersRepository.findByEmail(queryParamsAttendeeEmail),
+      this.usersRepository.findByEmail(managedAttendeeEmail),
+    ]);
+    if (!attendee && managedAttendee) {
+      return managedAttendeeEmail;
+    }
+
+    return queryParamsAttendeeEmail;
+  }
+
   async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
     try {
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
@@ -288,7 +361,16 @@ export class BookingsService_2024_08_13 {
         bookingUid,
         body
       );
-      const booking = await handleNewBooking(bookingRequest);
+      const booking = await handleNewBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
       if (!booking.uid) {
         throw new Error("Booking missing uid");
       }
@@ -344,7 +426,16 @@ export class BookingsService_2024_08_13 {
     }
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
-    const res = await handleCancelBooking(bookingRequest);
+    const res = await handleCancelBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+      platformClientId: bookingRequest.platformClientId,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+    });
+
     if (!res.onlyRemovedAttendee) {
       await this.billingService.cancelUsageByBookingUid(res.bookingUid);
     }

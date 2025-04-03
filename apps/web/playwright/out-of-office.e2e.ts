@@ -8,7 +8,8 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse, localize } from "./lib/testUtils";
+import { localize } from "./lib/localize";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -675,7 +676,6 @@ test.describe("Out of office", () => {
       );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
@@ -776,7 +776,6 @@ test.describe("Out of office", () => {
         );
         await page.locator('[data-testid="add-filter-item-dateRange"]').click();
         await entriesListRespPromise;
-        await page.locator('[data-testid="add-filter-button"]').click(); //close popover
 
         //1 OOO record should be visible for member3, end=currentDate-4days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);

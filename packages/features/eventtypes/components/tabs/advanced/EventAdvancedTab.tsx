@@ -331,6 +331,7 @@ const calendarComponents = {
      * a team event. Since we don't have logic to handle each attendee calendar (for now).
      */
 
+    const isPlatform = useIsPlatform();
     const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
     const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
     const showConnectedCalendarSettings =
@@ -364,19 +365,21 @@ const calendarComponents = {
             ? showConnectedCalendarSettings && (
                 <div className="mt-4">
                   <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    <SelectedCalendarsSettingsWebWrapper
-                      eventTypeId={eventType.id}
-                      disabledScope={SelectedCalendarSettingsScope.User}
-                      disableConnectionModification={true}
-                      scope={selectedCalendarSettingsScope}
-                      destinationCalendarId={destinationCalendar?.externalId}
-                      setScope={(scope) => {
-                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
+                    {!isPlatform && (
+                      <SelectedCalendarsSettingsWebWrapper
+                        eventTypeId={eventType.id}
+                        disabledScope={SelectedCalendarSettingsScope.User}
+                        disableConnectionModification={true}
+                        scope={selectedCalendarSettingsScope}
+                        destinationCalendarId={destinationCalendar?.externalId}
+                        setScope={(scope) => {
+                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                            shouldDirty: true,
+                          });
+                        }}
+                      />
+                    )}
                   </Suspense>
                 </div>
               )
@@ -526,21 +529,19 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      {!isPlatform && (
-        <calendarComponents.CalendarSettings
-          verifiedSecondaryEmails={verifiedSecondaryEmails}
-          userEmail={userEmail}
-          calendarsQuery={calendarsQuery}
-          isTeamEventType={!!team}
-          isChildrenManagedEventType={isChildrenManagedEventType}
-          customClassNames={customClassNames}
-          eventNameLocked={eventNameLocked}
-          eventNamePlaceholder={eventNamePlaceholder}
-          setShowEventNameTip={setShowEventNameTip}
-          showToast={showToast}
-          eventType={eventType}
-        />
-      )}
+      <calendarComponents.CalendarSettings
+        verifiedSecondaryEmails={verifiedSecondaryEmails}
+        userEmail={userEmail}
+        calendarsQuery={calendarsQuery}
+        isTeamEventType={!!team}
+        isChildrenManagedEventType={isChildrenManagedEventType}
+        customClassNames={customClassNames}
+        eventNameLocked={eventNameLocked}
+        eventNamePlaceholder={eventNamePlaceholder}
+        setShowEventNameTip={setShowEventNameTip}
+        showToast={showToast}
+        eventType={eventType}
+      />
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
