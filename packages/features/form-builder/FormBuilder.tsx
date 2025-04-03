@@ -625,6 +625,7 @@ function FieldEditDialog({
                     ) : (
                       <>
                         <InputField
+                          data-testid="name"
                           required
                           {...fieldForm.register("name")}
                           containerClassName="mt-6"
