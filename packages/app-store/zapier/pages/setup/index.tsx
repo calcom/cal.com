@@ -1,12 +1,15 @@
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export interface IZapierSetupProps {
   inviteLink?: string;
@@ -18,7 +21,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -121,13 +124,19 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                     </a>
                   </li>
                 )}
-                <Trans i18nKey="zapier_setup_instructions">
-                  <li>Log into your Zapier account and create a new Zap.</li>
-                  <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
-                  <li>Choose your account and then enter your Unique API Key.</li>
-                  <li>Test your Trigger.</li>
-                  <li>You&apos;re set!</li>
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="zapier_setup_instructions"
+                  components={[
+                    <li key="instruction_1">Log into your Zapier account and create a new Zap.</li>,
+                    <li key="instruction_2">
+                      Select Cal.com as your Trigger app. Also choose a Trigger event.
+                    </li>,
+                    <li key="instruction_3">Choose your account and then enter your Unique API Key.</li>,
+                    <li key="instruction_4">Test your Trigger.</li>,
+                    <li key="instruction_5">You&apos;re set!</li>,
+                  ]}
+                />
               </ol>
               <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>

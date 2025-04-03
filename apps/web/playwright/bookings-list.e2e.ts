@@ -70,6 +70,7 @@ test.describe("Bookings", () => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       await page.goto(`/bookings/upcoming`);
+      await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
@@ -233,6 +234,7 @@ test.describe("Bookings", () => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       await page.goto(`/bookings/past`);
+      await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
@@ -339,17 +341,23 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.goto(`/bookings/upcoming`);
+    await bookingsGetResponse;
 
     await page.locator('[data-testid="add-filter-button"]').click();
     await page.locator('[data-testid="add-filter-item-userId"]').click();
     await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
 
+    const bookingsGetResponse2 = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page
       .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
       .click();
-
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await bookingsGetResponse2;
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee

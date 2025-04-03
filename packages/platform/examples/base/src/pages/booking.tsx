@@ -91,6 +91,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <>
             <Booker
+              // timeZones={["Europe/London", "Asia/Kolkata"]}
+              // isBookingDryRun={true}
               bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
               eventSlug={eventTypeSlug}
               onCreateBookingSuccess={(data) => {
@@ -107,6 +109,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               }}
               metadata={{ CustomKey: "CustomValue" }}
               duration={eventTypeDuration}
+              confirmButtonDisabled={false}
               customClassNames={{
                 bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
                 datePickerCustomClassNames: {
@@ -119,12 +122,16 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
                   availableTimes: "!bg-[#D7CEF5]",
                 },
+                confirmStep: {
+                  confirmButton: "!bg-purple-700",
+                  backButton: "text-purple-700 hover:!bg-purple-700 hover:!text-white",
+                },
               }}
               {...(isTeamEvent
                 ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
                 : { username: props.calUsername })}
               hostsLimit={3}
-              selectedDate={new Date("2025-03-25")}
+              // selectedDate={new Date("2025-03-25")}
               allowUpdatingUrlParams={true}
             />
           </>

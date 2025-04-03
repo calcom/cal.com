@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
@@ -71,7 +71,6 @@ export default function Platform() {
             subtitle={t("platform_description")}
             title={t("platform")}
             description={t("platform_description")}
-            withoutSeo={true}
             withoutMain={false}
             isPlatformUser={true}>
             <HelpCards />
@@ -89,7 +88,6 @@ export default function Platform() {
         // hence we pass isPlatformUser boolean as prop
         isPlatformUser={true}
         withoutMain={false}
-        withoutSeo={true}
         SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
