@@ -36,6 +36,7 @@ import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
@@ -878,7 +879,6 @@ const calculateHostsAndAvailabilities = async ({
     input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
   const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
-  const allUserIds = Array.from(userIdAndEmailMap.keys());
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
 
@@ -927,7 +927,6 @@ const calculateHostsAndAvailabilities = async ({
       }
     }
   }
-
 
   const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
     monitorCallbackAsync(BookingRepo.findAllExistingBookingsForEventTypeBetween, {
