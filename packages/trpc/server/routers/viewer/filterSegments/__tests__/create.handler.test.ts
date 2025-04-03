@@ -21,7 +21,7 @@ describe("createHandler", () => {
       {
         f: "status",
         v: {
-          type: ColumnFilterType.SINGLE_SELECT as const,
+          type: ColumnFilterType.SINGLE_SELECT,
           data: "active",
         },
       },

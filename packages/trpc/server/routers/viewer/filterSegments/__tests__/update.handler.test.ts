@@ -21,7 +21,7 @@ describe("updateHandler", () => {
       {
         f: "status",
         v: {
-          type: ColumnFilterType.SINGLE_SELECT as const,
+          type: ColumnFilterType.SINGLE_SELECT,
           data: "active",
         },
       },
@@ -54,7 +54,7 @@ describe("updateHandler", () => {
         {
           f: "status",
           v: {
-            type: ColumnFilterType.SINGLE_SELECT as const,
+            type: ColumnFilterType.SINGLE_SELECT,
             data: "inactive",
           },
         },
@@ -76,7 +76,7 @@ describe("updateHandler", () => {
         activeFilters: [
           {
             f: "status",
-            v: { type: ColumnFilterType.SINGLE_SELECT as const, data: "inactive" },
+            v: { type: ColumnFilterType.SINGLE_SELECT, data: "inactive" },
           },
         ],
       })
@@ -123,7 +123,7 @@ describe("updateHandler", () => {
         {
           f: "status",
           v: {
-            type: ColumnFilterType.SINGLE_SELECT as const,
+            type: ColumnFilterType.SINGLE_SELECT,
             data: "inactive",
           },
         },
@@ -146,7 +146,7 @@ describe("updateHandler", () => {
         activeFilters: [
           {
             f: "status",
-            v: { type: ColumnFilterType.SINGLE_SELECT as const, data: "inactive" },
+            v: { type: ColumnFilterType.SINGLE_SELECT, data: "inactive" },
           },
         ],
       })
@@ -158,7 +158,12 @@ describe("updateHandler", () => {
       id: 999,
       scope: "USER",
       name: "Updated Bookings",
-      activeFilters: { f: "status" },
+      activeFilters: [
+        {
+          f: "status",
+          v: { type: ColumnFilterType.SINGLE_SELECT, data: "inactive" },
+        },
+      ],
       sorting: [{ id: "date", desc: true }],
       columnVisibility: {},
       columnSizing: {},
@@ -200,7 +205,12 @@ describe("updateHandler", () => {
         scope: "TEAM",
         tableIdentifier: "bookings",
         name: "Team Bookings",
-        activeFilters: { f: "status" },
+        activeFilters: [
+          {
+            f: "status",
+            v: { type: ColumnFilterType.SINGLE_SELECT, data: "active" },
+          },
+        ],
         sorting: [{ id: "date", desc: true }],
         columnVisibility: {},
         columnSizing: {},
@@ -213,7 +223,12 @@ describe("updateHandler", () => {
       scope: "TEAM",
       teamId: team.id,
       name: "Updated Team Bookings",
-      activeFilters: { f: "status" },
+      activeFilters: [
+        {
+          f: "status",
+          v: { type: ColumnFilterType.SINGLE_SELECT, data: "inactive" },
+        },
+      ],
       sorting: [{ id: "date", desc: true }],
       columnVisibility: {},
       columnSizing: {},
