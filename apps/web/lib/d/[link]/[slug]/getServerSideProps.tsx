@@ -25,9 +25,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
-
   const hashedLinkSelect = {
     id: true,
     link: true,
@@ -45,7 +42,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
                 id: true,
                 organizationId: true,
                 username: true,
-
               },
             },
           },
