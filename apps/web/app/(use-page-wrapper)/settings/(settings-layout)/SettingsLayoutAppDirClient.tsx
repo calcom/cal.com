@@ -450,7 +450,7 @@ const SettingsSidebarContainer = ({
   });
 
   const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !otherTeamsProp,
+    enabled: !!session?.user?.org && !otherTeamsProp,
   });
   const currentOrg = currentOrgProp ?? _currentOrg;
   const otherTeams = otherTeamsProp ?? _otherTeams;

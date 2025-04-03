@@ -44,7 +44,7 @@ function ConnectAndJoin() {
     },
   });
 
-  if (session.status === "loading") return <p>{t("loading")}</p>;
+  if (status === "loading") return <p>{t("loading")}</p>;
 
   if (!token) return <p>{t("token_not_found")}</p>;
 

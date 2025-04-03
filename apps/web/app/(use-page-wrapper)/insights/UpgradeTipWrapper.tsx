@@ -49,7 +49,7 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
           </ButtonGroup>
         </div>
       }>
-      {!session.data?.user ? null : children}
+      {!session?.user ? null : children}
     </UpgradeTip>
   );
 }

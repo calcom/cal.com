@@ -24,7 +24,7 @@ export default function SetupInformation(props: PageProps) {
         callbackUrl: `/apps/${slug}/setup`,
       });
       router.replace(`/auth/login?${urlSearchParams.toString()}`);
-      return;
+      return null;
     // default: passthru
   }
 
