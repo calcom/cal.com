@@ -11,19 +11,14 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
-import {
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  SkeletonAvatar,
-} from "@calcom/ui/components/skeleton";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 type ChangePasswordSessionFormValues = {
@@ -55,7 +50,7 @@ const SkeletonLoader = () => {
 };
 
 const PasswordView = ({ user }: PasswordViewProps) => {
-  const { data } = useSession();
+  const { data: session } = useSession();
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const metadata = userMetadataSchema.safeParse(user?.metadata);
@@ -98,7 +93,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       formMethods.resetField("oldPassword");
       formMethods.resetField("newPassword");
 
-      if (data?.user.role === "INACTIVE_ADMIN") {
+      if (session?.user.role === "INACTIVE_ADMIN") {
         /*
       AdminPasswordBanner component relies on the role returned from the session.
       Next-Auth doesn't provide a way to revalidate the session cookie,
@@ -165,8 +160,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
 
-  const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
-  const isUser = data?.user.role === "USER";
+  const passwordMinLength = session?.user.role === "USER" ? 7 : 15;
+  const isUser = session?.user.role === "USER";
 
   return (
     <>

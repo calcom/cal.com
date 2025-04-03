@@ -70,13 +70,11 @@ export default function InstantEventController({
   isTeamEvent,
 }: InstantEventControllerProps) {
   const { t } = useLocale();
-  const session = useSession();
+  const { data: session, status } = useSession();
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
-  const [parameters, setParameters] = useState<string[]>(
-    formMethods.getValues("instantMeetingParameters") || []
-  );
+  const [parameters, setParameters] = useState(formMethods.getValues("instantMeetingParameters") || []);
 
   const { shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
@@ -85,12 +83,10 @@ export default function InstantEventController({
   });
 
   const instantLocked = shouldLockDisableProps("isInstantEvent");
-
-  const isOrg = !!session.data?.user?.org?.id;
-
+  const isOrg = !!session?.user?.org?.id;
   const { data, isPending } = trpc.viewer.availability.list.useQuery(undefined);
 
-  if (session.status === "loading" || isPending || !data) return <></>;
+  if (status === "loading" || isPending || !data) return <></>;
 
   const schedules = data.schedules;
 

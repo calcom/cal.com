@@ -28,13 +28,13 @@ type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][num
 
 const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
-  const session = useSession();
+  const { status } = useSession();
   const telemetry = useTelemetry();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
     { teamId, isOrg },
-    { enabled: session.status === "authenticated" }
+    { enabled: status === "authenticated" }
   );
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
     }
   }, []);
 
-  if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
+  if (status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
   return <AddNewTeamMembersForm teamId={teamId} isOrg={isOrg} />;
 };
@@ -205,8 +205,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
+  const { data: session } = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
   const bookerUrl = member.bookerUrl;
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {

@@ -32,7 +32,7 @@ export const TeamsFilter = ({
   useProfileFilter?: boolean;
 }) => {
   const { t } = useLocale();
-  const session = useSession();
+  const { data: session } = useSession();
   const [search, setSearch] = useState("");
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
@@ -65,8 +65,8 @@ export const TeamsFilter = ({
 
   if (!teams || !teams.length) return null;
 
-  const userId = session.data?.user?.id || 0;
-  const upId = session.data?.upId || "";
+  const userId = session?.user?.id || 0;
+  const upId = session?.upId || "";
   const isUserInQuery = useProfileFilter ? query.upIds?.includes(upId) : query.userIds?.includes(userId);
   return (
     <div className="flex items-center">

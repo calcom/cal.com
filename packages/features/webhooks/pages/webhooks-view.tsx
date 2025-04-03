@@ -10,8 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
-import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
@@ -30,11 +30,11 @@ const SkeletonLoader = () => {
 
 const WebhooksView = () => {
   const { t } = useLocale();
-  const session = useSession();
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const { data: session, status } = useSession();
+  const isAdmin = session?.user.role === UserPermissionRole.ADMIN;
 
   const { data, isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
-    enabled: session.status === "authenticated",
+    enabled: status === "authenticated",
   });
 
   if (isPending || !data) {

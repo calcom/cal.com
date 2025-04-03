@@ -32,8 +32,8 @@ export function SaveFilterSegmentButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTeamSegment, setIsTeamSegment] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number>();
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
+  const { data: session } = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
   const form = useForm<FormValues>({
     defaultValues: {

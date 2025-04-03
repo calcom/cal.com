@@ -32,7 +32,7 @@ type PageProps = {
 
 function WorkflowsPage({ filteredList }: PageProps) {
   const { t } = useLocale();
-  const session = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
@@ -74,7 +74,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
           title={t("workflows")}
           description={t("workflows_to_automate_notifications")}
           CTA={
-            session.data?.hasValidLicense ? (
+            session?.hasValidLicense ? (
               <CreateButtonWithTeamsList
                 subtitle={t("new_workflow_subtitle").toUpperCase()}
                 createFunction={(teamId?: number) => {
@@ -136,10 +136,10 @@ const Filter = (props: {
     }>
   >;
 }) => {
-  const session = useSession();
-  const userId = session.data?.user.id || 0;
-  const user = session.data?.user.name || "";
-  const userName = session.data?.user.username;
+  const { data: session } = useSession();
+  const userId = session?.user.id || 0;
+  const user = session?.user.name || "";
+  const userName = session?.user.username;
   const userAvatar = `${WEBAPP_URL}/${userName}/avatar.png`;
 
   const teams = props.profiles.filter((profile) => !!profile.teamId);

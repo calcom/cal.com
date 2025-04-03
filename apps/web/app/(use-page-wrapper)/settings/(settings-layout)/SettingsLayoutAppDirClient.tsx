@@ -179,10 +179,10 @@ const organizationAdminKeys = [
 ];
 
 const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
-  const session = useSession();
+  const { data: session } = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isAdmin = session?.user.role === UserPermissionRole.ADMIN;
   const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   const processTabsMemod = useMemo(() => {
@@ -440,9 +440,9 @@ const SettingsSidebarContainer = ({
       teamMenuOpen: boolean;
     }[]
   >();
-  const session = useSession();
+  const { data: session } = useSession();
   const { data: _currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !currentOrgProp,
+    enabled: !!session?.user?.org && !currentOrgProp,
   });
 
   const tabsWithPermissions = useTabs({

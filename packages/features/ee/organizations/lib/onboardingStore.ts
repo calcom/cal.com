@@ -113,15 +113,16 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
 );
 
 export const useOnboarding = (params?: { step?: "start" | "status" | null }) => {
-  const session = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const path = usePathname();
-  const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
     trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
   const { reset, onboardingId } = useOnboardingStore();
   const step = params?.step ?? null;
+  const isAdmin = session?.user?.role === UserPermissionRole.ADMIN;
+
   useEffect(() => {
     if (isLoadingOrgOnboarding) {
       return;
@@ -161,14 +162,12 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
   }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
 
-  useEffect(() => {
-    if (session.status === "loading") {
-      return;
-    }
-    if (!session.data) {
-      const searchString = !searchParams ? "" : `${searchParams.toString()}`;
-      router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
-    }
-  }, [session, router, path, searchParams]);
+  // Check if the user is authenticated, if not, redirect to login
+  if (status === "unauthenticated") {
+    const searchString = !searchParams ? "" : `${searchParams.toString()}`;
+    router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
+    return;
+  }
+
   return { useOnboardingStore, isLoadingOrgOnboarding, dbOnboarding: organizationOnboarding };
 };

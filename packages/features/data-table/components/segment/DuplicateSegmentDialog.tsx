@@ -31,8 +31,8 @@ export function DuplicateSegmentDialog({
   });
   const { setSegmentId } = useDataTable();
   const utils = trpc.useUtils();
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
+  const { data: session } = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
   const { mutate: createSegment, isPending } = trpc.viewer.filterSegments.create.useMutation({
     onSuccess: ({ id }) => {

@@ -70,9 +70,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
   const trpcContext = trpc.useUtils();
-  const session = useSession();
+  const { data: session } = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
+    enabled: !!session?.user?.org,
   });
 
   const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();

@@ -169,8 +169,8 @@ function DropdownItemWithSubmenu({
 }) {
   const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
+  const { data: session } = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
   // Filter submenu items based on segment type and user role
   const filteredSubmenuItems = submenuItems.filter((item) => {

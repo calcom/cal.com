@@ -16,15 +16,16 @@ export default function SetupInformation(props: PageProps) {
   const slug = searchParams?.get("slug") as string;
   const { status } = useSession();
 
-  if (status === "loading") {
-    return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
-  }
-
-  if (status === "unauthenticated") {
-    const urlSearchParams = new URLSearchParams({
-      callbackUrl: `/apps/${slug}/setup`,
-    });
-    router.replace(`/auth/login?${urlSearchParams.toString()}`);
+  switch (status) {
+    case "loading":
+      return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
+    case "unauthenticated":
+      const urlSearchParams = new URLSearchParams({
+        callbackUrl: `/apps/${slug}/setup`,
+      });
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
+      return;
+    // default: passthru
   }
 
   return <AppSetupPage slug={slug} {...props} />;

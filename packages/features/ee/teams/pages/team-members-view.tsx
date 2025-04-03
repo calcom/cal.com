@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 
@@ -17,12 +16,11 @@ import MemberList from "../components/MemberList";
 import TeamInviteList from "../components/TeamInviteList";
 
 const MembersView = () => {
-  const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
   const router = useRouter();
-  const session = useSession();
-  const org = session?.data?.user.org;
+  const { data: session } = useSession();
+  const org = session?.user.org;
   const params = useParamsWithFallback();
 
   const teamId = Number(params.id);

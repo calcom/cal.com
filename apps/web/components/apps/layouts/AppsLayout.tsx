@@ -15,11 +15,12 @@ type AppsLayoutProps = {
 
 export default function AppsLayout({ children, actions, emptyStore, ...rest }: AppsLayoutProps) {
   const { t } = useLocale();
-  const session = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   const router = useRouter();
-  const isAdmin = session.data?.user.role === "ADMIN";
+  const isAdmin = session?.user.role === "ADMIN";
 
-  if (session.status === "loading") return <></>;
+  if (loading) return <></>;
   return (
     <Shell {...rest} actions={actions?.("block")}>
       <div className="flex flex-col xl:flex-row">

@@ -138,7 +138,6 @@ export function EditUserSheet({
                 <EditForm
                   selectedUser={loadedUser}
                   avatarUrl={loadedUser.avatarUrl ?? avatarURL}
-                  domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
                   dispatch={dispatch}
                 />
               </>

@@ -7,7 +7,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 
 const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
   const orgBranding = useOrgBranding();
-  const session = useSession();
+  const { data: session } = useSession();
   const urlPrefix = orgBranding
     ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
     : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`;
@@ -15,7 +15,7 @@ const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
     <EventSetupTab
       urlPrefix={urlPrefix}
       hasOrgBranding={!!orgBranding}
-      orgId={session.data?.user.org?.id}
+      orgId={session?.user.org?.id}
       {...props}
     />
   );

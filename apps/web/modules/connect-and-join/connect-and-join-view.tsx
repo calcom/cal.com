@@ -23,8 +23,8 @@ function ConnectAndJoin() {
   const [meetingUrl, setMeetingUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  const session = useSession();
-  const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
+  const { status, data: session } = useSession();
+  const isUserPartOfOrg = status === "authenticated" && !!session.user?.org;
 
   const mutation = trpc.viewer.connectAndJoin.useMutation({
     onSuccess: (res) => {

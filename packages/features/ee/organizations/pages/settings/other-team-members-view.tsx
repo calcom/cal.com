@@ -67,9 +67,9 @@ export const memberInvitationModalRef = {
 
 export const TeamMembersCTA = () => {
   const { t } = useLocale();
-  const session = useSession();
+  const { data: session } = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
+    enabled: !!session?.user?.org,
   });
 
   const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
@@ -94,7 +94,6 @@ const MembersView = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
-  const session = useSession();
   const utils = trpc.useUtils();
   // const [query, setQuery] = useState<string | undefined>("");
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");

@@ -21,11 +21,11 @@ export type OrgTeamsType = "org" | "team" | "yours";
 export const OrgTeamsFilter = () => {
   const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = useInsightsOrgTeams();
   const { t } = useLocale();
-  const session = useSession();
-  const currentOrgId = session.data?.user.org?.id;
-  const currentUserName = session.data?.user.name;
+  const { data: session } = useSession();
+  const currentOrgId = session?.user.org?.id;
+  const currentUserName = session?.user.name;
 
-  const [query, setQuery] = useState<string>("");
+  const [query, setQuery] = useState("");
 
   const { data } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
