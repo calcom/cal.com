@@ -22,7 +22,7 @@ async function loadFallbackTranslations() {
     });
     console.error("Could not fetch fallback translations:", error);
   }
-  return;
+  return {};
 }
 
 async function loadTranslations(locale: string, ns: string) {
@@ -80,7 +80,7 @@ async function loadTranslations(locale: string, ns: string) {
   );
 
   const fallbackTranslations = await loadFallbackTranslations();
-  return fallbackTranslations ?? {};
+  return fallbackTranslations;
 }
 
 export const getTranslation = async (locale: string, ns: string) => {
