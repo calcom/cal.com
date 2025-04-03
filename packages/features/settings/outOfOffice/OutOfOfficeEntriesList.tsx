@@ -16,6 +16,7 @@ import {
   DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
+  useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
@@ -71,7 +72,6 @@ export default function OutOfOfficeEntriesList() {
 function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
@@ -81,6 +81,7 @@ function OutOfOfficeEntriesListContent() {
     setOpenModal(true);
   };
 
+  const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
@@ -348,7 +349,7 @@ function OutOfOfficeEntriesListContent() {
         paginationMode="infinite"
         ToolbarLeft={
           <>
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.FilterBar table={table} />
           </>
         }
