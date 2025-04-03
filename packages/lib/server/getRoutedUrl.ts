@@ -111,7 +111,22 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     };
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  let matchingRoute;
+  try {
+    matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  } catch (e) {
+    if (e instanceof TRPCError) {
+      return {
+        props: {
+          ...pageProps,
+          form: serializableForm,
+          message: e.message,
+        },
+      };
+    }
+
+    throw e;
+  }
 
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
