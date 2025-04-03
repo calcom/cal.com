@@ -26,13 +26,7 @@ export function findMatchingRoute({
 
   // a check for req fields
   const missingRequiredFields =
-    form.fields?.filter((field) => {
-      return (
-        field.required &&
-        !field.deleted &&
-        (!response[field.id] || response[field.id].value === undefined || response[field.id].value === "")
-      );
-    }) || [];
+    form.fields?.filter((field) => field.required && !field.deleted && !response[field.id]?.value) || [];
 
   if (missingRequiredFields.length > 0) {
     const missingFieldLabels = missingRequiredFields.map((f: { label: string }) => f.label).join(", ");
