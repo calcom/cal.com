@@ -1,13 +1,15 @@
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { Locales } from "@/lib/enums/locales";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
+import { KeysDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
-import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
+import { User, CreationSource, PlatformOAuthClient, AccessToken, RefreshToken } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
@@ -64,6 +66,7 @@ export class OAuthClientUsersService {
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
+          language: body.locale ?? Locales.EN,
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
@@ -77,9 +80,9 @@ export class OAuthClientUsersService {
       user.avatarUrl = updatedUser.avatarUrl;
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
-      oAuthClientId,
-      user.id
+    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+      user.id,
+      oAuthClientId
     );
 
     if (oAuthClient.areDefaultEventTypesEnabled) {
@@ -100,11 +103,16 @@ export class OAuthClientUsersService {
 
     return {
       user,
-      tokens: {
-        accessToken,
-        accessTokenExpiresAt,
-        refreshToken,
-      },
+      tokens: this.getResponseOAuthTokens(accessToken, refreshToken),
+    };
+  }
+
+  getResponseOAuthTokens(accessToken: AccessToken, refreshToken: RefreshToken): KeysDto {
+    return {
+      accessToken: accessToken.secret,
+      refreshToken: refreshToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt.valueOf(),
+      refreshTokenExpiresAt: refreshToken.expiresAt.valueOf(),
     };
   }
 

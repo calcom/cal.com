@@ -5,4 +5,5 @@ export {
   Label as RadioLabel,
   Radio,
   RadioField,
+  Root,
 } from "./Radio";
