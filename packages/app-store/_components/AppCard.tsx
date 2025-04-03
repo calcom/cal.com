@@ -5,7 +5,11 @@ import { useTranslation } from "react-i18next";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
+import { Switch } from "@calcom/ui/components/form";
+import { Badge } from "@calcom/ui/components/badge";
+import { Icon } from "@calcom/ui/components/icon";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
 
 import type { CredentialOwner } from "../types";

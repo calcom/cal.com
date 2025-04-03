@@ -43,7 +43,7 @@ const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile")
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy").then((mod) => mod.default));
 const UnpublishedEntity = dynamic(() =>
-  import("@calcom/ui/components/unpublished-entity/UnpublishedEntity").then((mod) => mod.UnpublishedEntity)
+  import("@calcom/ui/components/unpublished-entity").then((mod) => mod.UnpublishedEntity)
 );
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
@@ -83,6 +83,7 @@ const BookerComponent = ({
   renderCaptcha,
   hashedLink,
   confirmButtonDisabled,
+  timeZones,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -404,11 +405,17 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
+                  timeZones={timeZones}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
-                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
+                      <DatePicker
+                        event={event}
+                        slots={schedule?.data?.slots}
+                        isLoading={schedule.isPending}
+                        scrollToTimeSlots={scrollToTimeSlots}
+                      />
                     </div>
                   )}
               </BookerSection>
@@ -440,7 +447,8 @@ const BookerComponent = ({
                   datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
                 }}
                 event={event}
-                schedule={schedule}
+                slots={schedule?.data?.slots}
+                isLoading={schedule.isPending}
                 scrollToTimeSlots={scrollToTimeSlots}
               />
             </BookerSection>

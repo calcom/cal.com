@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import classNames from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
-import Switch from "./Switch";
+import { Switch } from "./Switch";
 
 type Props = {
   children?: ReactNode;
@@ -26,7 +26,7 @@ type Props = {
   hideSwitch?: boolean;
 };
 
-function SettingsToggle({
+export function SettingsToggle({
   checked,
   onCheckedChange,
   description,
@@ -123,5 +123,3 @@ function SettingsToggle({
     </>
   );
 }
-
-export default SettingsToggle;

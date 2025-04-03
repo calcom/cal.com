@@ -4,7 +4,7 @@ import React from "react";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
 
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 import { AttributeForm } from "../AttributesForm";
 
@@ -13,6 +13,18 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
     t: (key: string) => key,
   })),
 }));
+
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => ({
+      push: vi.fn(() => {
+        return;
+      }),
+    })),
+  };
+});
 
 type InitialOption = {
   id?: string;

@@ -10,6 +10,7 @@ import {
   DataTableProvider,
   DataTableWrapper,
   DataTableFilters,
+  DataTableSegment,
   ColumnFilterType,
   useFilterValue,
   ZMultiSelectFilterValue,
@@ -19,8 +20,11 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { Alert, EmptyScreen, HorizontalTabs } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -371,10 +375,14 @@ function BookingsContent({ status }: BookingsProps) {
                 paginationMode="standard"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-                    <DataTableFilters.ActiveFilters table={table} />
-                    <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+                    <DataTableFilters.FilterBar table={table} />
+                  </>
+                }
+                ToolbarRight={
+                  <>
                     <DataTableFilters.ClearFiltersButton />
+                    <DataTableSegment.SaveButton />
+                    <DataTableSegment.Select />
                   </>
                 }
                 LoaderView={<SkeletonLoader />}

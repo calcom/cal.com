@@ -1,6 +1,6 @@
 "use client";
 
-import type { SSRConfig } from "next-i18next";
+import type { SSRConfig } from "next-i18next/dist/types/types";
 // import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
