@@ -1,0 +1,66 @@
+---
+title: MultiOptionInput
+---
+import { RenderComponentWithSnippet } from "@/app/components/render"
+import { Row } from "@/app/components/row"
+import { StatesExample } from "./multiInputField.states"
+import { PasteExample } from "./multiInputField.paste"
+import { CustomizationExample } from "./multiInputField.customization"
+
+## Overview
+
+The MultiOptionInput component is a flexible form input that allows users to manage a list of options with features like:
+- Adding and removing options
+- Reordering options with move up/down buttons
+- Pasting multiple options with configurable delimiters
+- Minimum options requirement
+- Customizable placeholders and labels
+
+## States
+
+MultiOptionInput in different states: default, disabled, and with minimum options.
+
+<StatesExample/>
+
+## Paste Support
+
+Demonstrates the paste functionality with different delimiters. Users can paste comma-separated values, newline-separated values, or use custom delimiters.
+
+<PasteExample/>
+
+## Customization
+
+Examples of different customization options like placeholders, move buttons, and remove buttons.
+
+<CustomizationExample/>
+
+## Usage
+
+```tsx
+import { MultiOptionInput } from "@calcom/ui/components/form/inputs/MultiOptionInput";
+import { useForm, FormProvider } from "react-hook-form";
+
+type FormValues = {
+  options: Array<{ label: string; id: string }>;
+};
+
+const MyForm = () => {
+  const methods = useForm<FormValues>();
+  
+  return (
+    <FormProvider {...methods}>
+      <form>
+        <MultiOptionInput<FormValues>
+          fieldArrayName="options"
+          optionPlaceholders={["Option 1", "Option 2"]}
+          defaultNumberOfOptions={2}
+          pasteDelimiters={["\n", ","]} // Optional
+          showMoveButtons={true} // Optional
+          minOptions={1} // Optional
+          addOptionLabel="Add another option" // Optional
+        />
+      </form>
+    </FormProvider>
+  );
+};
+```
