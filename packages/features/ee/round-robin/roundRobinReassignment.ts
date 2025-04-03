@@ -499,6 +499,7 @@ export const roundRobinReassignment = async ({
             reminderBody: true,
             sender: true,
             includeCalendarEvent: true,
+            verifiedAt: true,
           },
         },
       },
@@ -534,6 +535,7 @@ export const roundRobinReassignment = async ({
           hideBranding: true,
           includeCalendarEvent: workflowStep.includeCalendarEvent,
           workflowStepId: workflowStep.id,
+          verifiedAt: workflowStep.verifiedAt,
         });
       }
 
