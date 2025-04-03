@@ -178,7 +178,7 @@ export async function getBookings({
     eventTypeIdsFromTeamIdsFilter,
     attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
-    eventTypeIdsWhereUserIsAdminOrOwener,
+    eventTypeIdsWhereUserIsAdminOrOwner,
     userIdsAndEmailsWhereUserIsAdminOrOwner,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
@@ -221,7 +221,7 @@ export async function getBookings({
   } else {
     // Filter by emails for auth user.
     const userEmailFilter = { equals: user.email };
-    // Auth user is ORG_OWNER/ADMIN, filter by emails of members of the organization
+    // Auth user is ORG_OWNER/ADMIN or TEAM_OWNER/ADMIN, filter by emails of members of the organization or team
     const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsAdminOrOwner?.length
       ? { in: userEmailsWhereUserIsAdminOrOwner }
       : undefined;
@@ -232,18 +232,26 @@ export async function getBookings({
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
     // 3. Current user is an attendee via seats reference
     orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
-    // 4. Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
+    // 4. Scope depends on `user.orgId`:
+    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
+    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
     userEmailsFilterWhereUserIsOrgAdminOrOwner &&
       orConditions.push({ attendees: { some: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } });
-    // 5. Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
+    // 5. Scope depends on `user.orgId`:
+    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
+    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
     userEmailsFilterWhereUserIsOrgAdminOrOwner &&
       orConditions.push({
         seatsReferences: { some: { attendee: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } },
       });
-    // 6. Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
-    eventTypeIdsWhereUserIsAdminOrOwener?.length &&
-      orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwener } });
-    // 7.  Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
+    // 6. Scope depends on `user.orgId`:
+    // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
+    // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
+    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
+      orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwner } });
+    // 7. Scope depends on `user.orgId`:
+    // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
+    // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
     userIdsWhereUserIsAdminOrOwner?.length &&
       orConditions.push({ userId: { in: userIdsWhereUserIsAdminOrOwner } });
   }
@@ -259,7 +267,7 @@ export async function getBookings({
   }
 
   // 3. Filter by specific Event Type IDs (if provided)
-  // If both teamIsd filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
+  // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
   if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
     andConditions.push({ eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter } });
   }
@@ -324,6 +332,8 @@ export async function getBookings({
     OR: orConditions,
     AND: andConditions,
   };
+
+  log.info(`Get bookings where clause for user ${user.id}`, JSON.stringify(whereClause));
 
   const [plainBookings, totalCount] = await Promise.all([
     prisma.booking.findMany({
@@ -405,7 +415,6 @@ export async function getBookings({
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
-
   log.info(
     `fetching all bookings for ${user.id}`,
     safeStringify({

@@ -265,7 +265,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number; userIds?: number[] }) {
+  async getBookings(
+    queryParams: GetBookingsInput_2024_08_13,
+    user: { email: string; id: number; orgId?: number },
+    userIds?: number[]
+  ) {
     if (queryParams.attendeeEmail) {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
