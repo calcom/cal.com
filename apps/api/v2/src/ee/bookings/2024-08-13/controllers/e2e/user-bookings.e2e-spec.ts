@@ -586,6 +586,65 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
+      it("should get a booking with icsUid", async () => {
+        const mockBooking = await bookingsRepositoryFixture.create({
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `booking-in-the-past-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+          rating: 10,
+          iCalUID: "ics-uid",
+        });
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${mockBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toEqual(mockBooking.id);
+              expect(data.uid).toEqual(mockBooking.uid);
+              expect(data.icsUid).toEqual(mockBooking.iCalUID);
+              await bookingsRepositoryFixture.deleteById(mockBooking.id);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
+              );
+            }
+          });
+      });
+
       it("should get 1 recurrence of a recurring booking", async () => {
         const recurrenceUid = createdRecurringBooking[0].uid;
         return request(app.getHttpServer())

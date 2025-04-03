@@ -149,14 +149,33 @@ export class BookingsService_2024_08_13 {
 
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
-    const bookings = await handleNewRecurringBooking(bookingRequest);
+    const bookings = await handleNewRecurringBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+      noEmail: bookingRequest.noEmail,
+    });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
   async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
-    const bookings = await handleNewRecurringBooking(bookingRequest);
+    const bookings = await handleNewRecurringBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
     );
@@ -164,7 +183,16 @@ export class BookingsService_2024_08_13 {
 
   async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    const booking = await handleNewBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -180,7 +208,16 @@ export class BookingsService_2024_08_13 {
 
   async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
+    const booking = await handleNewBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      hostname: bookingRequest.headers?.host || "",
+      platformClientId: bookingRequest.platformClientId,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+      platformBookingLocation: bookingRequest.platformBookingLocation,
+    });
 
     if (!booking.uid) {
       throw new Error("Booking missing uid");
@@ -228,7 +265,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
+  async getBookings(
+    queryParams: GetBookingsInput_2024_08_13,
+    user: { email: string; id: number; orgId?: number },
+    userIds?: number[]
+  ) {
     if (queryParams.attendeeEmail) {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
@@ -237,7 +278,10 @@ export class BookingsService_2024_08_13 {
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
       take: queryParams.take ?? 100,
-      filters: this.inputService.transformGetBookingsFilters(queryParams),
+      filters: {
+        ...this.inputService.transformGetBookingsFilters(queryParams),
+        ...(userIds?.length ? { userIds } : {}),
+      },
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
@@ -324,7 +368,16 @@ export class BookingsService_2024_08_13 {
         bookingUid,
         body
       );
-      const booking = await handleNewBooking(bookingRequest);
+      const booking = await handleNewBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
       if (!booking.uid) {
         throw new Error("Booking missing uid");
       }
