@@ -288,7 +288,6 @@ describe("Assign all team members", () => {
       expect(data.title).toEqual(body.title);
       expect(data.hosts).toEqual([]);
       expect(data.schedulingType).toEqual("collective");
-      console.log("asap data", JSON.stringify(data, null, 2));
       const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
       expect(eventTypeHosts.length).toEqual(0);
     });
