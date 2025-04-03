@@ -1,5 +1,5 @@
-name: Cache Database
-description: Cache the database for faster CI runs
+name: Setup Database
+description: Centralized database setup with caching for CI runs
 inputs:
   E2E_TEST_CALCOM_QA_EMAIL:
     required: false
@@ -12,11 +12,17 @@ inputs:
     description: "E2E test Cal.com QA GCal credentials"
   E2E_TEST_CALCOM_GCAL_KEYS:
     required: false
-    description: "E2E test Cal.com GCal keys"
+    description: "E2E test Cal.com QA GCal keys"
+  DATABASE_URL:
+    required: true
+    description: "Database connection URL"
+  DATABASE_DIRECT_URL:
+    required: true
+    description: "Direct database connection URL"
 outputs:
-  cache-hit:
-    description: "Whether the cache was hit"
-    value: ${{ steps.cache-db.outputs.cache-hit }}
+  database-ready:
+    description: "Whether the database is ready to use"
+    value: ${{ steps.setup-db.outputs.database-ready }}
 runs:
   using: "composite"
   steps:
@@ -24,16 +30,18 @@ runs:
       id: cache-db
       uses: buildjet/cache@v4
       env:
-        cache-name: db-v1
+        cache-name: db-v2
       with:
         path: |
           .cache/db
-        key: ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-${{ hashFiles('packages/prisma/migrations/**/*.sql') }}
+        key: ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-${{ hashFiles('packages/prisma/migrations/**/*.sql') }}-${{ hashFiles('packages/prisma/seed.ts') }}
         restore-keys: |
+          ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-${{ hashFiles('packages/prisma/migrations/**/*.sql') }}-
           ${{ env.cache-name }}-${{ hashFiles('packages/prisma/schema.prisma') }}-
           ${{ env.cache-name }}-
 
     - name: Setup Database
+      id: setup-db
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
       run: |
@@ -51,6 +59,7 @@ runs:
             [ -n "${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}" ] && echo "E2E_TEST_CALCOM_GCAL_KEYS=${{ inputs.E2E_TEST_CALCOM_GCAL_KEYS }}"
           } > .cache/db/env
         fi
+        echo "database-ready=true" >> $GITHUB_OUTPUT
 
     - name: Restore Database
       if: steps.cache-db.outputs.cache-hit == 'true'
@@ -66,3 +75,4 @@ runs:
           source .cache/db/env
           set +a
         fi
+        echo "database-ready=true" >> $GITHUB_OUTPUT 
