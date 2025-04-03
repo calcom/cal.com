@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useForm, FormProvider } from "react-hook-form";
 
-import { MultiOptionInput } from "@calcom/ui/components/form/inputs/MultiOptionInput";
+import { MultiOptionInput } from "@calcom/ui/components/form";
 
 type FormValues = {
   newlineOptions: Array<{ label: string; id: string }>;
