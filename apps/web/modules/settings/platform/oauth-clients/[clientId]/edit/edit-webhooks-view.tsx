@@ -7,7 +7,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import {
   useOAuthClientWebhooks,
@@ -42,7 +42,7 @@ export default function EditOAuthClientWebhooks() {
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell withoutSeo={true} title={t("webhook_update_form")} isPlatformUser={true}>
+        <Shell title={t("webhook_update_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
@@ -72,14 +72,6 @@ export default function EditOAuthClientWebhooks() {
                   {
                     value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
                     label: "recording_transcription_generated",
-                  },
-                  {
-                    value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_hosts_cal_video_no_show",
-                  },
-                  {
-                    value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_guests_cal_video_no_show",
                   },
                 ]}
                 onSubmit={async (data) => {
@@ -126,7 +118,7 @@ export default function EditOAuthClientWebhooks() {
 
   return (
     <div>
-      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

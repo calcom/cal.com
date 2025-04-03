@@ -1,22 +1,17 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import {
-  showToast,
-  Form,
-  SettingsToggle,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogClose,
-  Button,
-  RadioGroup as RadioArea,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { showToast } from "@calcom/ui/components/toast";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";

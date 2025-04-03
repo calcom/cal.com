@@ -2,12 +2,10 @@ import type { GetServerSidePropsResult, GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.config";
+import { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const paramsSchema = z.object({
   pages: z.array(z.string()),
@@ -43,7 +41,7 @@ export async function getServerSideProps(
     };
   }
 
-  const result = await getServerSideProps(context as AppGetServerSidePropsContext, prisma, user, ssrInit);
+  const result = await getServerSideProps(context as AppGetServerSidePropsContext, prisma, user);
 
   if (result.notFound) {
     return { notFound: true };
