@@ -6,7 +6,6 @@ import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { useEmailVerifyCheck } from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const shouldShowOnboarding = (
@@ -32,24 +31,23 @@ export const ONBOARDING_NEXT_REDIRECT = {
 
 export function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
-  const query = useMeQuery();
-  const user = query.data;
+  const { data: user, isLoading } = useMeQuery();
   const flags = useFlagMap();
 
-  const { data: email } = useEmailVerifyCheck();
+  const needsEmailVerification =
+    !user?.emailVerified && user?.identityProvider === "CAL" && flags["email-verification"];
 
-  const needsEmailVerification = !email?.isVerified && flags["email-verification"];
-
-  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
+  const shouldRedirectToOnboarding = user && shouldShowOnboarding(user);
+  const canRedirect = !isLoading && shouldRedirectToOnboarding && !needsEmailVerification;
 
   useEffect(() => {
-    if (isRedirectingToOnboarding && !needsEmailVerification) {
+    if (canRedirect) {
       router.replace("/getting-started");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRedirectingToOnboarding, needsEmailVerification]);
+  }, [canRedirect, router]);
 
   return {
-    isRedirectingToOnboarding,
+    isLoading,
+    shouldRedirectToOnboarding,
   };
 }
