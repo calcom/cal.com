@@ -106,7 +106,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
   });
 
   const handleRemoveSlot = () => {
-    if (event) {
+    if (event?.id && slotReservationId) {
       removeSelectedSlot.mutate({ uid: slotReservationId });
     }
   };
