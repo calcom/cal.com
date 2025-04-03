@@ -244,9 +244,9 @@ describe("Reschedule Tests - Booker Calendar Conflicts", () => {
       body: mockBookingData,
     });
 
-    await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-      ErrorCode.NoAvailableUsersFound
-    );
+    await expect(
+      async () => await handleNewBooking({ bookingData: req.body as Record<string, any> })
+    ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
   });
 
   it("Should allow rescheduling when booker has no calendar conflict", async () => {
@@ -336,7 +336,7 @@ describe("Reschedule Tests - Booker Calendar Conflicts", () => {
       userId: 102,
     });
 
-    const { uid } = await handleNewBooking(req);
+    const { uid } = await handleNewBooking({ bookingData: req.body as Record<string, any>, userId: 102 });
     expect(uid).toBeTruthy();
   });
 });
