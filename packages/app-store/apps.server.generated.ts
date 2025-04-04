@@ -32,6 +32,7 @@ import * as giphyApi from "./giphy/api";
 import * as googlecalendarApi from "./googlecalendar/api";
 import * as googlevideoApi from "./googlevideo/api";
 import * as granolaApi from "./granola/api";
+import * as greetmateApi from "./greetmate-ai/api";
 import * as gtmApi from "./gtm/api";
 import * as hitpayApi from "./hitpay/api";
 import * as horizonWorkroomsApi from "./horizon-workrooms/api";
@@ -137,6 +138,7 @@ export const apiHandlers = {
   googlecalendar: googlecalendarApi,
   googlevideo: googlevideoApi,
   granola: granolaApi,
+  "greetmate-api": greetmateApi,
   gtm: gtmApi,
   hitpay: hitpayApi,
   "horizon-workrooms": horizonWorkroomsApi,
