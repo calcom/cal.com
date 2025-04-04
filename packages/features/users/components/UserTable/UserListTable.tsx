@@ -134,19 +134,18 @@ function UserListTableContent() {
   });
 
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
 
   const columnFilters = useColumnFilters();
 
-  const { limit, offset, ctaContainerRef } = useDataTable();
+  const { limit, offset, searchTerm, ctaContainerRef } = useDataTable();
 
   const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
       limit,
       offset,
-      searchTerm: debouncedSearchTerm,
+      searchTerm,
       expand: ["attributes"],
       filters: columnFilters,
     },
@@ -483,7 +482,7 @@ function UserListTableContent() {
         const result = await utils.viewer.organizations.listMembers.fetch({
           limit,
           offset,
-          searchTerm: debouncedSearchTerm,
+          searchTerm,
           expand: ["attributes"],
           filters: columnFilters,
         });
@@ -531,7 +530,7 @@ function UserListTableContent() {
         paginationMode="standard"
         ToolbarLeft={
           <>
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             <DataTableFilters.FilterBar table={table} />
           </>
