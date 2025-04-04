@@ -107,7 +107,11 @@ export const getEventTypesFromDB = async (id: number, additionalSelect?: string[
   return {
     isDynamic: false,
     ...restEventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({
+      ...eventType,
+      isOrgTeamEvent,
+      workflows: eventType.workflows.map((wf) => ({ workflow: wf.workflow })),
+    }),
     metadata,
   };
 };
