@@ -1,3 +1,4 @@
+import { VitalClient } from "@tryvital/vital-node";
 import type { ClientConfig } from "@tryvital/vital-node/dist/lib/models";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -22,7 +23,6 @@ export async function initVitalClient() {
   )
     throw Error("Missing properties in vital-automation DB keys");
   vitalEnv = appKeys;
-  const { VitalClient } = await import("@tryvital/vital-node");
   vitalClient = new VitalClient({
     region: appKeys.region,
     api_key: appKeys.api_key || "",
