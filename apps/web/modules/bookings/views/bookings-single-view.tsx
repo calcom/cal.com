@@ -367,11 +367,33 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+  const isWithinCancellationRestrictionTime = () => {
+    if (!eventType?.cancellationRestrictionTime || !date) return false;
+    if (isHost) return false;
 
-  const canCancel = !eventType?.disableCancelling;
-  const canReschedule = !eventType?.disableRescheduling;
+    const hoursToStart = date.diff(dayjs(), "hours");
+    return hoursToStart <= (eventType.cancellationRestrictionTime as number);
+  };
+
+  const isWithinReschedulingRestrictionTime = () => {
+    if (!eventType?.reschedulingRestrictionTime || !date) return false;
+    if (isHost) return false;
+
+    const hoursToStart = date.diff(dayjs(), "hours");
+    return hoursToStart <= (eventType.reschedulingRestrictionTime as number);
+  };
+
+  const canCancelOrReschedule =
+    (!eventType?.disableCancelling && !isWithinCancellationRestrictionTime()) ||
+    (!eventType?.disableRescheduling && !isWithinReschedulingRestrictionTime());
+  const canCancelAndReschedule =
+    !eventType?.disableCancelling &&
+    !isWithinCancellationRestrictionTime() &&
+    !eventType?.disableRescheduling &&
+    !isWithinReschedulingRestrictionTime();
+
+  const canCancel = !eventType?.disableCancelling && !isWithinCancellationRestrictionTime();
+  const canReschedule = !eventType?.disableRescheduling && !isWithinReschedulingRestrictionTime();
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
@@ -724,6 +746,15 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
+                              {eventType?.reschedulingRestrictionTime &&
+                                isWithinReschedulingRestrictionTime() &&
+                                !isHost && (
+                                  <div className="text-error mb-2 mt-2">
+                                    {t("time_based_restriction_message", {
+                                      hours: eventType.reschedulingRestrictionTime as number,
+                                    })}
+                                  </div>
+                                )}
                               {!props.recurringBookings &&
                                 (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
                                 canReschedule && (
@@ -780,6 +811,11 @@ export default function Success(props: PageProps) {
                             currentUserEmail={currentUserEmail}
                             isHost={isHost}
                             internalNotePresets={props.internalNotePresets}
+                            cancellationRestrictionTime={
+                              isWithinCancellationRestrictionTime()
+                                ? (eventType.cancellationRestrictionTime as number)
+                                : undefined
+                            }
                           />
                         </>
                       ))}

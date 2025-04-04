@@ -501,6 +501,14 @@ export const EventAdvancedTab = ({
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
+  const [cancellationRestrictionTime, setCancellationRestrictionTime] = useState(
+    eventType.cancellationRestrictionTime || 0
+  );
+
+  const [reschedulingRestrictionTime, setReschedulingRestrictionTime] = useState(
+    eventType.reschedulingRestrictionTime || 0
+  );
+
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
@@ -596,40 +604,110 @@ export const EventAdvancedTab = ({
           <Controller
             name="disableCancelling"
             render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_cancelling")}
-                data-testid="disable-cancelling-toggle"
-                {...disableCancellingLocked}
-                description={t("description_disable_cancelling")}
-                checked={disableCancelling}
-                onCheckedChange={(val) => {
-                  setDisableCancelling(val);
-                  onChange(val);
-                }}
-              />
+              <>
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                  title={t("disable_cancelling")}
+                  data-testid="disable-cancelling-toggle"
+                  {...disableCancellingLocked}
+                  description={t("description_disable_cancelling")}
+                  checked={disableCancelling}
+                  onCheckedChange={(val) => {
+                    setDisableCancelling(val);
+                    onChange(val);
+                    if (val) {
+                      setCancellationRestrictionTime(0);
+                      formMethods.setValue("cancellationRestrictionTime", 0, { shouldDirty: true });
+                    }
+                  }}
+                />
+                {!disableCancelling && (
+                  <div className="ml-10 mt-4 flex items-center space-x-2">
+                    <Controller
+                      name="cancellationRestrictionTime"
+                      render={({ field: { onChange } }) => (
+                        <>
+                          <Label htmlFor="cancellationRestrictionTime">
+                            {t("disable_cancellation_within_hours_of_start")}
+                          </Label>
+                          <div className="flex items-center space-x-2">
+                            <TextField
+                              id="cancellationRestrictionTime"
+                              type="number"
+                              min={0}
+                              value={cancellationRestrictionTime}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value) || 0;
+                                setCancellationRestrictionTime(val);
+                                onChange(val);
+                              }}
+                              className="w-20"
+                            />
+                            <Label htmlFor="cancellationRestrictionTime">{t("hours")}</Label>
+                          </div>
+                        </>
+                      )}
+                    />
+                  </div>
+                )}
+              </>
             )}
           />
 
           <Controller
             name="disableRescheduling"
             render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling")}
-                data-testid="disable-rescheduling-toggle"
-                {...disableReschedulingLocked}
-                description={t("description_disable_rescheduling")}
-                checked={disableRescheduling}
-                onCheckedChange={(val) => {
-                  setDisableRescheduling(val);
-                  onChange(val);
-                }}
-              />
+              <>
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                  title={t("disable_rescheduling")}
+                  data-testid="disable-rescheduling-toggle"
+                  {...disableReschedulingLocked}
+                  description={t("description_disable_rescheduling")}
+                  checked={disableRescheduling}
+                  onCheckedChange={(val) => {
+                    setDisableRescheduling(val);
+                    onChange(val);
+                    if (val) {
+                      setReschedulingRestrictionTime(0);
+                      formMethods.setValue("reschedulingRestrictionTime", 0, { shouldDirty: true });
+                    }
+                  }}
+                />
+                {!disableRescheduling && (
+                  <div className="ml-10 mt-4 flex items-center space-x-2">
+                    <Controller
+                      name="reschedulingRestrictionTime"
+                      render={({ field: { onChange } }) => (
+                        <>
+                          <Label htmlFor="reschedulingRestrictionTime">
+                            {t("disable_rescheduling_within_hours_of_start")}
+                          </Label>
+                          <div className="flex items-center space-x-2">
+                            <TextField
+                              id="reschedulingRestrictionTime"
+                              type="number"
+                              min={0}
+                              value={reschedulingRestrictionTime}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value) || 0;
+                                setReschedulingRestrictionTime(val);
+                                onChange(val);
+                              }}
+                              className="w-20"
+                            />
+                            <Label htmlFor="reschedulingRestrictionTime">{t("hours")}</Label>
+                          </div>
+                        </>
+                      )}
+                    />
+                  </div>
+                )}
+              </>
             )}
           />
         </>
