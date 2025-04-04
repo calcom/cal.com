@@ -3,12 +3,12 @@ import { router } from "../../../trpc";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 
-type AppsRouterHandlerCache = {
+type CalVideoRouterHandlerCache = {
   getCalVideoRecordings?: typeof import("./getCalVideoRecordings.handler").getCalVideoRecordingsHandler;
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
+const UNSTABLE_HANDLER_CACHE: CalVideoRouterHandlerCache = {};
 
 export const calVideoRouter = router({
   getCalVideoRecordings: authedProcedure
