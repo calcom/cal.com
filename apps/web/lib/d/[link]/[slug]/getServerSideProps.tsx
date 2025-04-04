@@ -1,6 +1,5 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -21,7 +20,7 @@ export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
   if (!session?.user?.id) {
-    redirect("/auth/login");
+    return { redirect: { permanent: false, destination: "/auth/login" } };
   }
   const sessionUserId = session.user.id;
 

@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -18,7 +17,7 @@ const paramsSchema = z.object({
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerSession({ req: context.req });
   if (!session?.user?.id) {
-    redirect("/auth/login");
+    return { redirect: { permanent: false, destination: "/auth/login" } };
   }
   const sessionUserId = session.user.id;
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
