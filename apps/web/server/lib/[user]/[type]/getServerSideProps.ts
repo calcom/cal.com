@@ -1,4 +1,4 @@
-import type { DehydratedState } from "@tanstack/react-query";
+import { createRouterCaller } from "app/_trpc/context";
 import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
@@ -13,6 +13,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
+import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
@@ -40,7 +41,6 @@ type Props = {
   bookingUid: string | null;
   user: string;
   slug: string;
-  trpcState: DehydratedState;
   isBrandingHidden: boolean;
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
@@ -57,7 +57,18 @@ async function processReschedule({
   rescheduleUid: string | string[] | undefined;
 }) {
   if (!rescheduleUid) return;
+
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+
+  if (booking?.eventType?.disableRescheduling) {
+    return {
+      redirect: {
+        destination: `/booking/${rescheduleUid}`,
+        permanent: false,
+      },
+    };
+  }
+
   // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
   if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
     props.booking = booking;
@@ -103,8 +114,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const org = isValidOrgDomain ? currentOrgDomain : null;
   if (!org) {
@@ -135,7 +144,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
+  const caller = await createRouterCaller(publicViewerRouter);
+  const eventData = await caller.event({
     username: usernames.join("+"),
     eventSlug: slug,
     org,
@@ -171,7 +181,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     },
     user: usernames.join("+"),
     slug,
-    trpcState: ssr.dehydrate(),
     isBrandingHidden: false,
     isSEOIndexable: true,
     themeBasis: null,
@@ -215,8 +224,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
   const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
@@ -231,7 +238,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
+  const caller = await createRouterCaller(publicViewerRouter);
+  const eventData = await caller.event({
     username,
     eventSlug: slug,
     org,
@@ -270,7 +278,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     },
     user: username,
     slug,
-    trpcState: ssr.dehydrate(),
     isBrandingHidden: user?.hideBranding,
     isSEOIndexable: allowSEOIndexing,
     themeBasis: username,

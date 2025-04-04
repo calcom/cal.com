@@ -3,7 +3,6 @@ import { z } from "zod";
 import { locales as i18nLocales } from "@calcom/lib/i18n";
 import logger from "@calcom/lib/logger";
 import { EventTypeTranslationRepository } from "@calcom/lib/server/repository/eventTypeTranslation";
-import { ReplexicaService } from "@calcom/lib/server/service/replexica";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 export const ZTranslateEventDataPayloadSchema = z.object({
@@ -49,7 +48,7 @@ async function processTranslations({
     );
 
     const translations = await Promise.all(
-      targetLocales.map((targetLocale) => ReplexicaService.localizeText(text, userLocale, targetLocale))
+      targetLocales.map((targetLocale) => LingoDotDevService.localizeText(text, userLocale, targetLocale))
     );
 
     // Filter out null translations and their corresponding locales

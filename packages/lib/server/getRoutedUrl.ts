@@ -17,6 +17,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
+import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
@@ -34,7 +35,11 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
+export const getRoutedUrl = (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
+  return monitorCallbackAsync(_getRoutedUrl, context);
+};
+
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -118,6 +123,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
+  let crmContactOwnerEmail: string | null = null;
+  let crmContactOwnerRecordType: string | null = null;
+  let crmAppSlug: string | null = null;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -133,6 +141,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       ...timeTaken,
       ...result.timeTaken,
     };
+    crmContactOwnerEmail = result.crmContactOwnerEmail;
+    crmContactOwnerRecordType = result.crmContactOwnerRecordType;
+    crmAppSlug = result.crmAppSlug;
   } catch (e) {
     if (e instanceof TRPCError) {
       return {
@@ -163,7 +174,6 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       response,
       serializableForm.fields
     );
-
     return {
       redirect: {
         destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
@@ -181,6 +191,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
+            crmContactOwnerEmail,
+            crmContactOwnerRecordType,
+            crmAppSlug,
           }),
           isEmbed: pageProps.isEmbed,
         }),
