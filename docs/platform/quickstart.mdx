@@ -121,7 +121,7 @@ then will make a request to your refresh token endpoint to get a new access toke
 
 ## 5. Managing refresh token expiry
 
-Each refresh token is valid for 1 year. If your customers are active then when access token is refreshed the refresh token is refreshed too, so all good there.
+Each refresh token is valid for 1 year. When a managed user's access token is refreshed, the refresh token is refreshed too.
 However, to make sure that refresh tokens do not expire for less active users you have 2 options:
 1. If you decode the refresh token there is `expiresAt` date (it is a jwt token so you can decode it using some library from npm). You could have a cron job that checks all of your users refresh tokens and sees if the refresh token
 is about to expire, then refresh tokens using the [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) endpoint.
