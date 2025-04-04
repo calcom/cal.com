@@ -34,7 +34,7 @@ export default function DisconnectIntegration(props: {
       setModalOpen(false);
     },
     async onSettled() {
-      await utils.viewer.connectedCalendars.invalidate();
+      await utils.viewer.calendars.connectedCalendars.invalidate();
       await utils.viewer.apps.integrations.invalidate();
     },
   });

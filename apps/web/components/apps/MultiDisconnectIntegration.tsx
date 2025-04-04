@@ -47,7 +47,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
       setConfirmationDialogOpen(false);
     },
     async onSettled() {
-      await utils.viewer.connectedCalendars.invalidate();
+      await utils.viewer.calendars.connectedCalendars.invalidate();
       await utils.viewer.apps.integrations.invalidate();
     },
   });
