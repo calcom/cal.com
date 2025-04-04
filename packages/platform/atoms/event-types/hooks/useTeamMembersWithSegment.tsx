@@ -4,19 +4,16 @@ import { useMemo } from "react";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type {
+  ApiResponse,
+  ApiSuccessResponse,
+  TeamMemberDto,
+  FindTeamMembersMatchingAttributeOutputDto,
+} from "@calcom/platform-types";
 import { trpc } from "@calcom/trpc/react";
 
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import http from "../../lib/http";
-
-type TeamMembersAttributesReturnType = {
-  result: Array<{
-    id: number;
-    name: string | null;
-    email: string;
-  }>;
-};
 
 interface UseTeamMembersWithSegmentProps {
   initialTeamMembers: TeamMember[];
@@ -27,12 +24,6 @@ interface UseTeamMembersWithSegmentProps {
   value: Host[];
 }
 
-interface TeamMemberResult {
-  id: number;
-  name: string | null;
-  email: string;
-}
-
 const useProcessTeamMembersData = ({
   initialTeamMembers,
   assignRRMembersUsingSegment,
@@ -41,7 +32,7 @@ const useProcessTeamMembersData = ({
 }: {
   initialTeamMembers: TeamMember[];
   assignRRMembersUsingSegment: boolean;
-  matchingTeamMembersWithResult?: { result?: TeamMemberResult[] };
+  matchingTeamMembersWithResult?: { result: TeamMemberDto[] | null };
   value: Host[];
 }) => {
   const teamMembers = useMemo(() => {
@@ -92,9 +83,9 @@ export const useTeamMembersWithSegmentPlatform = ({
   const { data: matchingTeamMembersWithResult, isPending } = useQuery({
     queryKey: ["teamMembersMatchingAttribute", teamId, orgId, queryValue],
     queryFn: async () => {
-      return http?.get<ApiResponse<TeamMembersAttributesReturnType>>(pathname).then((res) => {
+      return http?.get<ApiResponse<FindTeamMembersMatchingAttributeOutputDto>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
-          return (res.data as ApiSuccessResponse<TeamMembersAttributesReturnType>).data;
+          return (res.data as ApiSuccessResponse<FindTeamMembersMatchingAttributeOutputDto>).data;
         }
         throw new Error(res.data.error.message);
       });
