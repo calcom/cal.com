@@ -1,5 +1,6 @@
 import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -93,6 +94,10 @@ async function processSeatedEvent({
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
+  if (!session?.user?.id) {
+    redirect("/auth/login");
+  }
+  const sessionUserId = session.user.id;
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
 
@@ -134,7 +139,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
     },
-    session?.user?.id
+    sessionUserId
   );
 
   if (!eventData) {
@@ -177,6 +182,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
+  if (!session?.user?.id) {
+    redirect("/auth/login");
+  }
+  const sessionUserId = session.user.id;
+
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
@@ -217,7 +227,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
     },
-    session?.user?.id
+    sessionUserId
   );
 
   if (!eventData) {
