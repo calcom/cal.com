@@ -84,7 +84,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
-    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
+    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId, [
+        "cancellationRestrictionTime",
+        "reschedulingRestrictionTime",
+      ]);
   if (!eventTypeRaw) {
     return {
       notFound: true,
