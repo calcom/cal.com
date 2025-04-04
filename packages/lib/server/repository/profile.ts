@@ -255,7 +255,7 @@ export class ProfileRepository {
     organizationId,
     orgAutoAcceptEmail,
   }: {
-    users: { id: number; username: string; email: string }[];
+    users: { id: number; username: string | null; email: string }[];
     organizationId: number;
     orgAutoAcceptEmail: string;
   }) {
