@@ -88,6 +88,13 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
+  if (bookingToDelete.eventType?.disableCancelling) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "This event type does not allow cancellations",
+    });
+  }
+
   if (!platformClientId && !cancellationReason && bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,
