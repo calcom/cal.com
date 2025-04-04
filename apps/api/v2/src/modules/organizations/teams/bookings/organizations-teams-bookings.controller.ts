@@ -1,6 +1,11 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+  OPTIONAL_API_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -13,7 +18,7 @@ import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { GetOrganizationsTeamsBookingsInput_2024_08_13 } from "@/modules/organizations/teams/bookings/inputs/get-organizations-teams-bookings.input";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
@@ -24,6 +29,9 @@ import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams / Bookings")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsBookingsController {
   constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
 
@@ -35,9 +43,13 @@ export class OrganizationsTeamsBookingsController {
   async getAllOrgTeamBookings(
     @Query() queryParams: GetOrganizationsTeamsBookingsInput_2024_08_13,
     @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings({ ...queryParams, teamId }, user);
+    const bookings = await this.bookingsService.getBookings(
+      { ...queryParams, teamId },
+      { email: user.email, id: user.id, orgId }
+    );
 
     return {
       status: SUCCESS_STATUS,

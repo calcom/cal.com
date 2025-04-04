@@ -1,4 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -30,10 +35,11 @@ import {
   Patch,
   Post,
   Body,
-  Headers,
+  Req,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
+import { Request } from "express";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { OrgTeamOutputDto } from "@calcom/platform-types";
@@ -46,11 +52,13 @@ import { Team } from "@calcom/prisma/client";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsController {
   constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
 
   @Get()
-  @DocsTags("Teams")
   @ApiOperation({ summary: "Get all teams" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -148,8 +156,9 @@ export class OrganizationsTeamsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgTeamDto,
     @GetUser() user: UserWithProfile,
-    @Headers(X_CAL_CLIENT_ID) oAuthClientId?: string
+    @Req() req: Request
   ): Promise<OrgTeamOutputResponseDto> {
+    const oAuthClientId = req.headers[X_CAL_CLIENT_ID] as string | undefined;
     const team = oAuthClientId
       ? await this.organizationsTeamsService.createPlatformOrgTeam(orgId, oAuthClientId, body, user)
       : await this.organizationsTeamsService.createOrgTeam(orgId, body, user);

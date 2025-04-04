@@ -1,13 +1,13 @@
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -17,7 +17,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({ req });
 
   const typeParam = parseInt(asStringOrThrow(query.type));
-  const ssr = await ssrInit(context);
 
   if (Number.isNaN(typeParam)) {
     const notFound = {
@@ -37,9 +36,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return redirect;
   }
   const getEventTypeById = async (eventTypeId: number) => {
-    await ssr.viewer.eventTypes.get.prefetch({ id: eventTypeId });
+    const caller = await createRouterCaller(eventTypesRouter);
+
     try {
-      const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: eventTypeId });
+      const { eventType } = await caller.get({ id: eventTypeId });
       return eventType;
     } catch (e: unknown) {
       logger.error(safeStringify(e));
@@ -61,7 +61,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       eventType,
       type: typeParam,
-      trpcState: ssr.dehydrate(),
     },
   };
 };
