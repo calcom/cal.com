@@ -15,7 +15,6 @@ export class FindTeamMembersMatchingAttributeQueryDto {
 
   @ApiPropertyOptional({
     type: Boolean,
-    required: false,
   })
   enablePerf?: boolean;
 
