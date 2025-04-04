@@ -208,6 +208,10 @@ describe("OAuth Client Users Endpoints", () => {
         locale: Locales.FR,
         name: "Alice Smith",
         avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+        bio: "I am a bio",
+        metadata: {
+          key: "value",
+        },
       };
 
       const response = await request(app.getHttpServer())
@@ -231,6 +235,8 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      expect(responseBody.data.user.bio).toEqual(requestBody.bio);
+      expect(responseBody.data.user.metadata).toEqual(requestBody.metadata);
       const [emailUser, emailDomain] = responseBody.data.user.email.split("@");
       const [domainName, TLD] = emailDomain.split(".");
       expect(responseBody.data.user.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
@@ -272,6 +278,10 @@ describe("OAuth Client Users Endpoints", () => {
         locale: Locales.FR,
         name: "Bob Smith",
         avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+        bio: "I am a bio",
+        metadata: {
+          key: "value",
+        },
       };
 
       const response = await request(app.getHttpServer())
@@ -295,6 +305,8 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      expect(responseBody.data.user.bio).toEqual(requestBody.bio);
+      expect(responseBody.data.user.metadata).toEqual(requestBody.metadata);
 
       const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
       expect(accessToken).toBeDefined();
@@ -333,6 +345,10 @@ describe("OAuth Client Users Endpoints", () => {
         locale: Locales.FR,
         name: "Alice Smith",
         avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+        bio: "I am a bio",
+        metadata: {
+          key: "value",
+        },
       };
 
       const response = await request(app.getHttpServer())
@@ -356,6 +372,8 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
+      expect(responseBody.data.user.bio).toEqual(requestBody.bio);
+      expect(responseBody.data.user.metadata).toEqual(requestBody.metadata);
 
       const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
       expect(accessToken).toBeDefined();
@@ -479,6 +497,10 @@ describe("OAuth Client Users Endpoints", () => {
       expect(userOne?.name).toEqual(postResponseData.user.name);
       expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
       expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
+      expect(userOne?.bio).toEqual(postResponseData.user.bio);
+      expect(userOne?.metadata).toEqual(postResponseData.user.metadata);
+      expect(userTwo?.bio).toEqual(postResponseDataTwo.user.bio);
+      expect(userTwo?.metadata).toEqual(postResponseDataTwo.user.metadata);
     });
 
     it(`/GET: managed user by original email`, async () => {
@@ -496,6 +518,8 @@ describe("OAuth Client Users Endpoints", () => {
       const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
       expect(userOne?.email).toEqual(postResponseData.user.email);
       expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userOne?.bio).toEqual(postResponseData.user.bio);
+      expect(userOne?.metadata).toEqual(postResponseData.user.metadata);
     });
 
     it(`/GET: managed users by original emails`, async () => {
@@ -518,6 +542,10 @@ describe("OAuth Client Users Endpoints", () => {
       expect(userOne?.name).toEqual(postResponseData.user.name);
       expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
       expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
+      expect(userOne?.bio).toEqual(postResponseData.user.bio);
+      expect(userOne?.metadata).toEqual(postResponseData.user.metadata);
+      expect(userTwo?.bio).toEqual(postResponseDataTwo.user.bio);
+      expect(userTwo?.metadata).toEqual(postResponseDataTwo.user.metadata);
     });
 
     it(`/GET: managed user by oAuth email`, async () => {
@@ -540,6 +568,8 @@ describe("OAuth Client Users Endpoints", () => {
       const userOne = responseBody.data.find((user) => user.email === postResponseData.user.email);
       expect(userOne?.email).toEqual(postResponseData.user.email);
       expect(userOne?.name).toEqual(postResponseData.user.name);
+      expect(userOne?.bio).toEqual(postResponseData.user.bio);
+      expect(userOne?.metadata).toEqual(postResponseData.user.metadata);
     });
 
     it(`should error /GET if managed user email is invalid`, async () => {
@@ -576,6 +606,10 @@ describe("OAuth Client Users Endpoints", () => {
       expect(userOne?.name).toEqual(postResponseData.user.name);
       expect(userTwo?.email).toEqual(postResponseDataTwo.user.email);
       expect(userTwo?.name).toEqual(postResponseDataTwo.user.name);
+      expect(userOne?.bio).toEqual(postResponseData.user.bio);
+      expect(userOne?.metadata).toEqual(postResponseData.user.metadata);
+      expect(userTwo?.bio).toEqual(postResponseDataTwo.user.bio);
+      expect(userTwo?.metadata).toEqual(postResponseDataTwo.user.metadata);
     });
 
     it(`/GET/:id`, async () => {
@@ -592,6 +626,9 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.email).toEqual(
         OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, userEmail)
       );
+      expect(responseBody.data.name).toEqual(postResponseData.user.name);
+      expect(responseBody.data.bio).toEqual(postResponseData.user.bio);
+      expect(responseBody.data.metadata).toEqual(postResponseData.user.metadata);
     });
 
     it(`/PUT/:id`, async () => {
@@ -612,6 +649,9 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.email).toEqual(
         OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, userUpdatedEmail)
       );
+      expect(responseBody.data.name).toEqual(postResponseData.user.name);
+      expect(responseBody.data.bio).toEqual(postResponseData.user.bio);
+      expect(responseBody.data.metadata).toEqual(postResponseData.user.metadata);
       const [emailUser, emailDomain] = responseBody.data.email.split("@");
       const [domainName, TLD] = emailDomain.split(".");
       expect(responseBody.data.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
