@@ -36,7 +36,7 @@ import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
-import loadFramerFeatures from "./framer-features";
+import framerFeatures from "./framer-features";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
@@ -579,7 +579,7 @@ const BookerComponent = ({
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
   return (
-    <LazyMotion strict features={loadFramerFeatures}>
+    <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />
     </LazyMotion>
   );
