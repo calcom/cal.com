@@ -225,7 +225,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
 
     // Add users to team event types if assignAllTeamMembers is enabled
     await addNewMembersToEventTypes({
-      userIds: [...newUsers.map((user) => user.id), ...users.map((user) => user.id)],
+      userIds: [...(newUsers ? newUsers.map((user) => user.id) : []), ...users.map((user) => user.id)],
       teamId: group.teamId,
     });
   }
