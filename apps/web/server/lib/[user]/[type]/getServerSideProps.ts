@@ -1,6 +1,5 @@
 import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -95,7 +94,7 @@ async function processSeatedEvent({
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
   if (!session?.user?.id) {
-    redirect("/auth/login");
+    return { redirect: { permanent: false, destination: "/auth/login" } };
   }
   const sessionUserId = session.user.id;
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
@@ -183,7 +182,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
   if (!session?.user?.id) {
-    redirect("/auth/login");
+    return { redirect: { permanent: false, destination: "/auth/login" } };
   }
   const sessionUserId = session.user.id;
 
