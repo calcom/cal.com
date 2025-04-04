@@ -132,7 +132,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           accepted: true,
         })),
       });
-      await Promise.all(
+      await Promise.allSettled(
         newUserEmails.map((email) => {
           return sendSignupToOrganizationEmail({
             usernameOrEmail: email,
@@ -141,6 +141,16 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
             inviterName: org.name,
             teamId: group.teamId,
             isOrg: false,
+          }).catch((error) => {
+            log.error(
+              "Failed to send signup to organization email",
+              safeStringify({
+                email,
+                organizationId,
+                teamId: group.teamId,
+              }),
+              error
+            );
           });
         })
       );
