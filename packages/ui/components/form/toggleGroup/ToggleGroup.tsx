@@ -56,7 +56,7 @@ export const ToggleGroup = ({
         }}
         className={classNames(
           `bg-subtle border-subtle rounded-[10px] border p-0.5`,
-          orientation === "horizontal" && "min-h-9 inline-flex gap-0.5 rtl:flex-row-reverse",
+          orientation === "horizontal" && "inline-flex gap-0.5 rtl:flex-row-reverse",
           orientation === "vertical" && "flex w-fit flex-col gap-0.5",
           props.className,
           isFullWidth && "w-full",
@@ -69,7 +69,7 @@ export const ToggleGroup = ({
               value={option.value}
               data-testid={`toggle-group-item-${option.value}`}
               className={classNames(
-                "aria-checked:bg-default aria-checked:border-subtle rounded-lg border border-transparent p-1.5 text-sm leading-tight transition aria-checked:shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]",
+                "aria-checked:bg-default aria-checked:border-subtle rounded-lg border border-transparent p-1.5 text-sm leading-none transition aria-checked:shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]",
                 option.disabled
                   ? "text-gray-400 hover:cursor-not-allowed"
                   : "text-default [&[aria-checked='false']]:hover:text-emphasis",
