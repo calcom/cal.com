@@ -26,6 +26,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
     import("./delegationCredentialSelectedCalendars").then(
       (module) => module.delegationCredentialSelectedCalendars
     ),
+  scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
 };
 
 export const tasksConfig: Partial<

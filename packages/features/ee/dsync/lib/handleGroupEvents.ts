@@ -4,6 +4,7 @@ import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAn
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import {
@@ -95,6 +96,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
   const translation = await getTranslation("en", "common");
 
   const newUserEmails = userEmails.filter((email) => !users.find((user) => user.email === email));
+  let newUsers;
   // For each team linked to the dsync group name provision members
   for (const group of groupNames) {
     if (newUserEmails.length) {
@@ -103,7 +105,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
         identityProvider: IdentityProvider.CAL,
         identityProviderId: null,
       };
-      const newUsers = await createUsersAndConnectToOrg({
+      newUsers = await createUsersAndConnectToOrg({
         createUsersAndConnectToOrgProps,
         org,
       });
@@ -159,7 +161,6 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     const newOrgMembers = users.filter(
       (user) => !user.profiles.find((profile) => profile.organizationId === organizationId)
     );
-
     await Promise.all([
       ...newMembers.map(async (user) => {
         const translation = await getTranslation(user.locale || "en", "common");
@@ -188,6 +189,15 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           },
           organizationId,
         });
+      }),
+    ]);
+    // Add users to team event types if assignAllTeamMembers is enabled
+    await Promise.all([
+      ...(newUsers?.map((newUser) => {
+        return updateNewTeamMemberEventTypes(newUser.id, group.teamId);
+      }) ?? []),
+      ...users.map((user) => {
+        return updateNewTeamMemberEventTypes(user.id, group.teamId);
       }),
     ]);
   }

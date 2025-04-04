@@ -42,6 +42,7 @@ type TaskPayloads = {
   delegationCredentialSelectedCalendars: z.infer<
     typeof import("./tasks/delegationCredentialSelectedCalendars").ZDelegationCredentialSelectedCalendarsPayloadSchema
   >;
+  scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<TaskResult>;
