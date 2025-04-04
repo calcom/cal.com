@@ -427,9 +427,12 @@ export async function isTeamMember(userId: number, teamId: number) {
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,
+  includeWorkflow = true,
+  includeUserConnect = true,
 }: {
   eventType: Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>;
   userId: number;
+  includeWorkflow?: boolean;
 }) {
   const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
@@ -461,14 +464,18 @@ export function generateNewChildEventTypeDataForDB({
     rrSegmentQueryValue: (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
     onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
     userId,
-    users: {
-      connect: [{ id: userId }],
-    },
+    ...(includeUserConnect && {
+      users: {
+        connect: [{ id: userId }],
+      },
+    }),
     parentId: eventType.id,
     hidden: false,
-    workflows: currentWorkflowIds && {
-      create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
-    },
+    ...(includeWorkflow && {
+      workflows: currentWorkflowIds && {
+        create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
+      },
+    }),
   };
 }
 
@@ -528,6 +535,8 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
               generateNewChildEventTypeDataForDB({
                 eventType,
                 userId,
+                includeWorkflow: false,
+                includeUserConnect: false,
               })
             )
           )
@@ -558,7 +567,6 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
           .flat(),
         skipDuplicates: true,
       })
-
       .catch((error) => {
         log.error(
           `Failed to add new members as hosts`,
@@ -569,4 +577,52 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
         );
       }),
   ]);
+
+  // Connect to users and workflows
+  const createdChildrenEventTypes = await prisma.eventType.findMany({
+    where: {
+      userId: {
+        in: userIds,
+      },
+      parent: {
+        id: {
+          in: managedEventTypes.map((eventType) => eventType.id),
+        },
+      },
+    },
+    select: {
+      id: true,
+      workflows: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (createdChildrenEventTypes.length > 0) {
+    await Promise.allSettled([
+      prisma.workflowsOnEventTypes
+        .createMany({
+          data: createdChildrenEventTypes
+            .map((eventType) =>
+              eventType.workflows.map((workflow) => ({
+                eventTypeId: eventType.id,
+                workflowId: workflow.id,
+              }))
+            )
+            .flat(),
+          skipDuplicates: true,
+        })
+        .catch((error) => {
+          log.error(
+            `Failed to connect new children event types to workflows`,
+            safeStringify({
+              teamId,
+              error,
+            })
+          );
+        }),
+    ]);
+  }
 }
