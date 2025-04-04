@@ -250,6 +250,51 @@ export class ProfileRepository {
     });
   }
 
+  static async createManyForExistingUsers({
+    users,
+    organizationId,
+    orgAutoAcceptEmail,
+  }: {
+    users: { id: number; username: string; email: string }[];
+    organizationId: number;
+    orgAutoAcceptEmail: string;
+  }) {
+    return await prisma.profile.createMany({
+      data: users.map((user) => ({
+        uid: ProfileRepository.generateProfileUid(),
+        userId: user.id,
+        organizationId,
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
+        movedFromUser: {
+          connect: {
+            id: user.id,
+          },
+        },
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  static async createManyPromise({
+    users,
+    organizationId,
+    orgAutoAcceptEmail,
+  }: {
+    users: { id: number; username: string | null; email: string }[];
+    organizationId: number;
+    orgAutoAcceptEmail: string;
+  }) {
+    return await prisma.profile.createMany({
+      data: users.map((user) => ({
+        uid: ProfileRepository.generateProfileUid(),
+        userId: user.id,
+        organizationId,
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
+      })),
+      skipDuplicates: true,
+    });
+  }
+
   static createMany({
     users,
     organizationId,
