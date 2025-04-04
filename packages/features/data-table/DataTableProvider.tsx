@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
-import { useSegments } from "./lib/segments";
+import { useSegments as useSegmentsHook } from "./lib/segments";
 import {
   type FilterValue,
   ZSorting,
@@ -17,6 +17,7 @@ import {
   type FilterSegmentOutput,
   type ActiveFilters,
 } from "./lib/types";
+import { useSegmentsNoop } from "./lib/useSegmentsNoop";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
 export type DataTableContextType = {
@@ -69,6 +70,12 @@ interface DataTableProviderProps {
   children: React.ReactNode;
   ctaContainerClassName?: string;
   defaultPageSize?: number;
+  /**
+   * If true, the segments will be disabled.
+   * This is useful for documentation purposes as we don't have a way have TRPC or session inside of ui-playground
+   * @default false
+   */
+  isDocs?: boolean;
 }
 
 export function DataTableProvider({
@@ -76,6 +83,7 @@ export function DataTableProvider({
   children,
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
+  isDocs = false,
 }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
@@ -164,6 +172,8 @@ export function DataTableProvider({
     },
     [setPageSize, setPageIndex, defaultPageSize]
   );
+
+  const useSegments = isDocs ? useSegmentsNoop : useSegmentsHook;
 
   const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
     tableIdentifier,
