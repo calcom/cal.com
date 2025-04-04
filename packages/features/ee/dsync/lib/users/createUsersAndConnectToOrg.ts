@@ -62,7 +62,7 @@ export const createUsersAndConnectToOrg = async ({
   });
 
   // Create profiles for new users
-  await ProfileRepository.createMany({
+  await ProfileRepository.createManyPromise({
     users,
     organizationId: org.id,
     orgAutoAcceptEmail: org.organizationSettings?.orgAutoAcceptEmail ?? "",
