@@ -14,7 +14,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { EventType, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -66,6 +66,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let user: User;
 
     let eventTypeId: number;
+    let eventType: EventType;
     const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
     const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
@@ -128,6 +129,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         user.id
       );
       eventTypeId = event.id;
+      eventType = event;
 
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
@@ -1654,6 +1656,135 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.uid).toEqual(rescheduledBooking.uid);
               expect(data.rescheduledByEmail).toEqual(rescheduledByEmail);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+    });
+
+    describe("book by username and event type slug", () => {
+      it("should not create a booking by if neither event type id nor username and event type slug provided", async () => {
+        const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
+        const body = {
+          start: new Date(Date.UTC(2036, 0, 8, 15, 0, 0)).toISOString(),
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: googleMeetUrl,
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+          guests: ["bob@gmail.com"],
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(
+          response.body.error.message.includes(
+            "Either eventTypeId OR (eventTypeSlug + username) must be provided"
+          )
+        ).toBe(true);
+      });
+
+      it("should create a booking by username and event type slug", async () => {
+        const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2036, 0, 8, 15, 0, 0)).toISOString(),
+          eventTypeSlug: eventType.slug,
+          username: user.username || "",
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: googleMeetUrl,
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+          guests: ["bob@gmail.com"],
+        };
+
+        const beforeCreate = new Date();
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const afterCreate = new Date();
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2036, 0, 8, 16, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(eventTypeId);
+              expect(data.eventType).toEqual({
+                id: eventTypeId,
+                slug: eventTypeSlug,
+              });
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.location).toEqual(body.location);
+              expect(data.meetingUrl).toEqual(body.location);
+              expect(data.absentHost).toEqual(false);
+              expect(data.bookingFieldsResponses).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                ...body.bookingFieldsResponses,
+                guests: body.guests,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
+              });
+              expect(data.guests).toEqual(body.guests);
+
+              // Check createdAt date is between the time of the request and after the request
+              const createdAtDate = new Date(data.createdAt);
+              expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
+              // Check updatedAt date is between the time of the request and after the request
+              expect(data.updatedAt).toBeDefined();
+              const updatedAtDate = data.updatedAt ? new Date(data.updatedAt) : null;
+              expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
+              expect(data.metadata).toEqual(body.metadata);
+              createdBooking = data;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
