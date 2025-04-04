@@ -1,13 +1,14 @@
-import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -15,6 +16,11 @@ const paramsSchema = z.object({
 });
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getServerSession({ req: context.req });
+  if (!session?.user?.id) {
+    redirect("/auth/login");
+  }
+  const sessionUserId = session.user.id;
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
   const { duration: queryDuration } = context.query;
 
@@ -39,16 +45,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const caller = await createRouterCaller(eventTypesRouter);
-
-  const eventData = await caller.getPublicEvent({
-    username: teamSlug,
-    eventSlug: meetingSlug,
-    isTeamEvent: true,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
-
+  const eventData = await EventTypeRepository.getPublicEvent(
+    {
+      username: teamSlug,
+      eventSlug: meetingSlug,
+      isTeamEvent: true,
+      org,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    },
+    sessionUserId
+  );
   if (!eventData || !org) {
     return {
       notFound: true,
