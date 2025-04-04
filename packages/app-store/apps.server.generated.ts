@@ -138,7 +138,7 @@ export const apiHandlers = {
   googlecalendar: googlecalendarApi,
   googlevideo: googlevideoApi,
   granola: granolaApi,
-  "greetmate-api": greetmateApi,
+  "greetmate-ai": greetmateApi,
   gtm: gtmApi,
   hitpay: hitpayApi,
   "horizon-workrooms": horizonWorkroomsApi,
