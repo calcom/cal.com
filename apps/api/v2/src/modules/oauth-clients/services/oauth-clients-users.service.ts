@@ -43,7 +43,7 @@ export class OAuthClientUsersService {
       );
     } else {
       const email = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
-      user = (
+      const createdUser = (
         await createNewUsersConnectToOrgIfExists({
           invitations: [
             {
@@ -69,15 +69,14 @@ export class OAuthClientUsersService {
           language: body.locale ?? Locales.EN,
         })
       )[0];
-      await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
-      const updatedUser = await this.userRepository.update(user.id, {
+      await this.userRepository.addToOAuthClient(createdUser.id, oAuthClientId);
+      user = await this.userRepository.update(createdUser.id, {
         name: body.name,
         locale: body.locale,
         avatarUrl: body.avatarUrl,
+        bio: body.bio,
+        metadata: body.metadata,
       });
-      user.locale = updatedUser.locale;
-      user.name = updatedUser.name;
-      user.avatarUrl = updatedUser.avatarUrl;
     }
 
     const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
