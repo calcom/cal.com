@@ -4,6 +4,7 @@ import { BillingModule } from "@/modules/billing/billing.module";
 import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { DestinationCalendarsModule } from "@/modules/destination-calendars/destination-calendars.module";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
+import { OrganizationsBookingsModule } from "@/modules/organizations/bookings/organizations.bookings.module";
 import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
 import { OrganizationsUsersBookingsModule } from "@/modules/organizations/users/bookings/organizations-users-bookings.module";
 import { RouterModule } from "@/modules/router/router.module";
@@ -29,6 +30,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     ConferencingModule,
     OrganizationsTeamsBookingsModule,
     OrganizationsUsersBookingsModule,
+    OrganizationsBookingsModule,
     RouterModule,
   ],
 })

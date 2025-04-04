@@ -12,6 +12,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -34,7 +35,6 @@ import {
   ApiBody,
   ApiExtraModels,
 } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -80,7 +80,10 @@ import {
 export class BookingsController_2024_08_13 {
   private readonly logger = new Logger("BookingsController_2024_08_13");
 
-  constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
+  constructor(
+    private readonly bookingsService: BookingsService_2024_08_13,
+    private readonly usersService: UsersService
+  ) {}
 
   @Post("/")
   @ApiOperation({
@@ -165,9 +168,15 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({ summary: "Get all bookings" })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
-    @GetUser() user: User
+    @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(queryParams, user);
+    const profile = this.usersService.getUserMainProfile(user);
+
+    const bookings = await this.bookingsService.getBookings(queryParams, {
+      email: user.email,
+      id: user.id,
+      orgId: profile?.organizationId,
+    });
 
     return {
       status: SUCCESS_STATUS,
