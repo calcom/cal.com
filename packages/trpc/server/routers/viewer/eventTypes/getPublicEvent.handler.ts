@@ -1,4 +1,4 @@
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -13,13 +13,5 @@ type GetOptions = {
 };
 
 export const getPublicEventHandler = async ({ ctx, input }: GetOptions) => {
-  return await getPublicEvent(
-    input.username,
-    input.eventSlug,
-    input.isTeamEvent,
-    input.org,
-    ctx.prisma,
-    input.fromRedirectOfNonOrgLink,
-    ctx.user.id
-  );
+  return await EventTypeRepository.getPublicEvent(input, ctx.user.id);
 };
