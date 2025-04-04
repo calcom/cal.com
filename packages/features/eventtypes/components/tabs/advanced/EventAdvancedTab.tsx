@@ -1,3 +1,4 @@
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, Suspense } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -58,6 +59,7 @@ import {
   SettingsToggle,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { RadioField } from "@calcom/ui/components/radio";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -501,6 +503,14 @@ export const EventAdvancedTab = ({
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
+  const [cancellationRestrictionTime, setCancellationRestrictionTime] = useState(
+    eventType.metadata?.cancellationRestrictionTime || 0
+  );
+
+  const [reschedulingRestrictionTime, setReschedulingRestrictionTime] = useState(
+    eventType.metadata?.reschedulingRestrictionTime || 0
+  );
+
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
@@ -596,40 +606,150 @@ export const EventAdvancedTab = ({
           <Controller
             name="disableCancelling"
             render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_cancelling")}
-                data-testid="disable-cancelling-toggle"
-                {...disableCancellingLocked}
-                description={t("description_disable_cancelling")}
-                checked={disableCancelling}
-                onCheckedChange={(val) => {
-                  setDisableCancelling(val);
-                  onChange(val);
-                }}
-              />
+              <>
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    disableCancelling && "rounded-b-none"
+                  )}
+                  title={t("disable_cancelling")}
+                  data-testid="disable-cancelling-toggle"
+                  {...disableCancellingLocked}
+                  description={t("description_disable_cancelling")}
+                  checked={disableCancelling}
+                  onCheckedChange={(val) => {
+                    setDisableCancelling(val);
+                    onChange(val);
+                    if (val) {
+                      setCancellationRestrictionTime(0);
+                      formMethods.setValue("metadata.cancellationRestrictionTime", 0, { shouldDirty: true });
+                    }
+                  }}>
+                  {disableCancelling && (
+                    <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                      <RadioGroup.Root
+                        defaultValue={eventType.metadata?.cancellationRestrictionTime ? "time" : "always"}
+                        onValueChange={(val) => {
+                          if (val === "always") {
+                            setCancellationRestrictionTime(0);
+                            formMethods.setValue("metadata.cancellationRestrictionTime", 0, {
+                              shouldDirty: true,
+                            });
+                          }
+                        }}>
+                        <div className="flex flex-col flex-wrap justify-start gap-y-2">
+                          <RadioField label={t("always")} id="cancellation-always" value="always" />
+                          <RadioField
+                            label={
+                              <>
+                                <div className="flex items-center">
+                                  <span>{t("within")}</span>
+                                  <div className="mx-2 inline-flex items-center">
+                                    <TextField
+                                      id="cancellationRestrictionTime"
+                                      type="number"
+                                      min={0}
+                                      value={cancellationRestrictionTime}
+                                      onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 0;
+                                        setCancellationRestrictionTime(val);
+                                        formMethods.setValue("metadata.cancellationRestrictionTime", val, {
+                                          shouldDirty: true,
+                                        });
+                                      }}
+                                      className="w-20"
+                                    />
+                                  </div>
+                                  <span>{t("hours_of_event")}</span>
+                                </div>
+                              </>
+                            }
+                            id="cancellation-time"
+                            value="time"
+                          />
+                        </div>
+                      </RadioGroup.Root>
+                    </div>
+                  )}
+                </SettingsToggle>
+              </>
             )}
           />
 
           <Controller
             name="disableRescheduling"
             render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling")}
-                data-testid="disable-rescheduling-toggle"
-                {...disableReschedulingLocked}
-                description={t("description_disable_rescheduling")}
-                checked={disableRescheduling}
-                onCheckedChange={(val) => {
-                  setDisableRescheduling(val);
-                  onChange(val);
-                }}
-              />
+              <>
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    disableRescheduling && "rounded-b-none"
+                  )}
+                  title={t("disable_rescheduling")}
+                  data-testid="disable-rescheduling-toggle"
+                  {...disableReschedulingLocked}
+                  description={t("description_disable_rescheduling")}
+                  checked={disableRescheduling}
+                  onCheckedChange={(val) => {
+                    setDisableRescheduling(val);
+                    onChange(val);
+                    if (val) {
+                      setReschedulingRestrictionTime(0);
+                      formMethods.setValue("metadata.reschedulingRestrictionTime", 0, { shouldDirty: true });
+                    }
+                  }}>
+                  {disableRescheduling && (
+                    <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                      <RadioGroup.Root
+                        defaultValue={eventType.metadata?.reschedulingRestrictionTime ? "time" : "always"}
+                        onValueChange={(val) => {
+                          if (val === "always") {
+                            setReschedulingRestrictionTime(0);
+                            formMethods.setValue("metadata.reschedulingRestrictionTime", 0, {
+                              shouldDirty: true,
+                            });
+                          }
+                        }}>
+                        <div className="flex flex-col flex-wrap justify-start gap-y-2">
+                          <RadioField label={t("always")} id="rescheduling-always" value="always" />
+                          <RadioField
+                            label={
+                              <>
+                                <div className="flex items-center">
+                                  <span>{t("within")}</span>
+                                  <div className="mx-2 inline-flex items-center">
+                                    <TextField
+                                      id="reschedulingRestrictionTime"
+                                      type="number"
+                                      min={0}
+                                      value={reschedulingRestrictionTime}
+                                      onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 0;
+                                        setReschedulingRestrictionTime(val);
+                                        formMethods.setValue("metadata.reschedulingRestrictionTime", val, {
+                                          shouldDirty: true,
+                                        });
+                                      }}
+                                      className="w-20"
+                                    />
+                                  </div>
+                                  <span>{t("hours_of_event")}</span>
+                                </div>
+                              </>
+                            }
+                            id="rescheduling-time"
+                            value="time"
+                          />
+                        </div>
+                      </RadioGroup.Root>
+                    </div>
+                  )}
+                </SettingsToggle>
+              </>
             )}
           />
         </>
