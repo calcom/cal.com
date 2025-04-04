@@ -10,7 +10,6 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 
 import { ZDelegationCredentialSelectedCalendarsPayloadSchema } from "./schema";
 
-export { ZDelegationCredentialSelectedCalendarsPayloadSchema } from "./schema";
 const log = logger.getSubLogger({ prefix: ["[tasker] delegationCredentialSelectedCalendars"] });
 
 export async function delegationCredentialSelectedCalendars(payload: string): Promise<TaskResult> {
@@ -141,7 +140,7 @@ export async function delegationCredentialSelectedCalendars(payload: string): Pr
       }),
     };
   } catch (error) {
-    log.error("Error in delegationCredentialSelectedCalendars task:", error);
+    log.error("Error in delegationCredentialSelectedCalendars task:", safeStringify(error));
     throw error;
   }
 }

@@ -24,11 +24,11 @@ import {
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { getUserCredential } from "@calcom/lib/service/credential/getUserCredential";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -71,26 +71,35 @@ type GoogleChannelProps = {
   expiration?: string | null;
 };
 
-const buildWhereClauseForSelectedCalendar = ({
+/**
+ * Ensures that we get a where clause that targets appropriate SelectedCalendar based on the credential being Regular or Delegation
+ */
+const buildWhereClauseForSelectedCalendarToTargetCredential = ({
   credentialId,
   userId,
+  delegationCredentialId,
 }: {
   credentialId: number;
   userId: number | null;
+  delegationCredentialId: string | null;
 }) => {
   let where;
-  if (isDelegationCredential({ credentialId })) {
-    if (!userId) {
-      log.error("Skipping querying SelectedCalendar as `userId` is missing, needed for delegation");
-      return;
-    }
+  const credential = getUserCredential({ userId, delegationCredentialId, credentialId });
+  if (!credential) {
+    // Fallback to regular credential case in the worst case instead of crashing.
+    return {
+      credentialId,
+    };
+  }
+  if (credential.type === "delegation") {
     // Delegation Credential is common for all members of an organization, so we must use userId
     where = {
-      userId,
+      userId: credential.userId,
+      // We don't check for delegationCredentialId because Delegation Credential feature could be toggled on/off and we should be able to use a SelectedCalendar created using Regular Credential even when Delegation Credential is on
     };
   } else {
     where = {
-      credentialId,
+      credentialId: credential.credentialId,
     };
   }
   return where;
@@ -710,6 +719,19 @@ export default class GoogleCalendarService implements Calendar {
     return await this.fetchAvailability(args);
   }
 
+  getValidCalendars<T extends { id?: string | null }>(cals: T[]) {
+    return cals.filter((cal): cal is T & { id: string } => !!cal.id);
+  }
+
+  filterPrimaryCalendar(cals: calendar_v3.Schema$CalendarListEntry[]) {
+    const validCals = this.getValidCalendars(cals);
+    const primaryCal = validCals.find((cal) => !!cal.primary);
+    if (primaryCal) {
+      return primaryCal;
+    }
+    return validCals[0];
+  }
+
   async getCacheOrFetchAvailability(
     args: FreeBusyArgs,
     shouldServeCache?: boolean
@@ -734,7 +756,8 @@ export default class GoogleCalendarService implements Calendar {
   async getAvailabilityWithTimeZones(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
@@ -758,9 +781,16 @@ export default class GoogleCalendarService implements Calendar {
           };
         });
       }
+      if (!fallbackToPrimary) return [];
 
-      // we ever reach that code, we already check before if selectedCalendarIds is empty
-      return [];
+      const primaryCalendar = this.filterPrimaryCalendar(cals);
+      if (!primaryCalendar) return [];
+      return [
+        {
+          id: primaryCalendar.id,
+          timeZone: primaryCalendar.timeZone || "",
+        },
+      ];
     };
 
     try {
@@ -817,15 +847,10 @@ export default class GoogleCalendarService implements Calendar {
       if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
       const cals = await this.getAllCalendars(calendar, ["id", "primary"]);
       if (!cals.length) return [];
-      const validCalIds = cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
-      const primaryCal = cals.find((cal): cal is { id: string } => !!cal.primary && !!cal.id);
-      if (fallbackToPrimary) {
-        if (primaryCal) {
-          return [primaryCal.id];
-        }
-        return [validCalIds[0]];
-      }
-      return validCalIds;
+      if (!fallbackToPrimary) return this.getValidCalendars(cals).map((cal) => cal.id);
+      const primaryCalendar = this.filterPrimaryCalendar(cals);
+      if (!primaryCalendar) return [];
+      return [primaryCalendar.id];
     };
 
     try {
@@ -950,9 +975,10 @@ export default class GoogleCalendarService implements Calendar {
       return;
     }
 
-    const whereSelectedCalendar = buildWhereClauseForSelectedCalendar({
+    const whereSelectedCalendar = buildWhereClauseForSelectedCalendarToTargetCredential({
       credentialId: this.credential.id,
       userId: this.credential.userId,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
     });
 
     const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
@@ -1027,9 +1053,10 @@ export default class GoogleCalendarService implements Calendar {
     const eventTypeIdsToBeUnwatched = eventTypeIds;
     const calendarCache = await CalendarCache.init(null);
 
-    const where = buildWhereClauseForSelectedCalendar({
+    const where = buildWhereClauseForSelectedCalendarToTargetCredential({
       credentialId,
       userId: this.credential.userId,
+      delegationCredentialId: this.credential.delegatedToId ?? null,
     });
     const calendarsWithSameCredentialId = await SelectedCalendarRepository.findMany({
       where,
@@ -1192,6 +1219,7 @@ export default class GoogleCalendarService implements Calendar {
         ...data,
         integration: this.integrationName,
         credentialId: this.credential.id,
+        delegationCredentialId: this.credential.delegatedToId ?? null,
         userId: this.credential.userId,
       },
       eventTypeIds,

@@ -40,7 +40,7 @@ type TaskPayloads = {
   >;
   createCRMEvent: z.infer<typeof import("./tasks/crm/schema").createCRMEventSchema>;
   delegationCredentialSelectedCalendars: z.infer<
-    typeof import("./tasks/delegationCredentialSelectedCalendars").ZDelegationCredentialSelectedCalendarsPayloadSchema
+    typeof import("./tasks/delegationCredentialSelectedCalendars/schema").ZDelegationCredentialSelectedCalendarsPayloadSchema
   >;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
 };

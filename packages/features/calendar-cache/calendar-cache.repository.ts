@@ -1,17 +1,13 @@
 import type { Prisma } from "@prisma/client";
 
 import { uniqueBy } from "@calcom/lib/array";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getUserCredential } from "@calcom/lib/service/credential/getUserCredential";
 import prisma from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
-import type {
-  ICalendarCacheRepository,
-  DelegationCredentialArgs,
-  CredentialArgs,
-} from "./calendar-cache.repository.interface";
+import type { ICalendarCacheRepository, CredentialArgs } from "./calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "./lib/datesForCache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
@@ -32,17 +28,6 @@ function parseKeyForCache(args: FreeBusyArgs): string {
 }
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
-
-const validatedDelegationUserCredential = ({ userId, delegationCredentialId }: DelegationCredentialArgs) => {
-  if (!userId || !delegationCredentialId) {
-    return null;
-  }
-
-  return {
-    userId,
-    delegationCredentialId,
-  };
-};
 
 export class CalendarCacheRepository implements ICalendarCacheRepository {
   calendar: Calendar | null;
@@ -73,37 +58,40 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     return response;
   }
 
-  async findUnique({
+  async findUnexpiredUnique({
     credentialId,
-    delegationUserCredential,
+    delegationCredentialId,
+    userId,
     key,
   }: {
     credentialId: number | null;
-    delegationUserCredential: { delegationCredentialId: string; userId: number } | null;
+    delegationCredentialId: string | null;
+    userId: number | null;
     key: string;
   }) {
-    log.debug("findUnique", safeStringify({ credentialId, delegationUserCredential, key }));
-    if (delegationUserCredential) {
+    log.debug("findUnexpiredUnique", safeStringify({ credentialId, delegationCredentialId, userId, key }));
+    const credential = getUserCredential({ userId, delegationCredentialId, credentialId });
+    if (!credential) {
+      return null;
+    }
+    if (credential.type === "delegation") {
       const calendarCaches = await prisma.calendarCache.findMany({
         where: {
-          delegationCredentialId: delegationUserCredential.delegationCredentialId,
-          userId: delegationUserCredential.userId,
+          delegationCredentialId: credential.delegationCredentialId,
+          userId: credential.userId,
           key,
           expiresAt: { gte: new Date(Date.now()) },
         },
       });
       return calendarCaches[0] ?? null;
-    } else if (credentialId) {
+    } else {
       return prisma.calendarCache.findFirst({
         where: {
-          credentialId,
+          credentialId: credential.credentialId,
           key,
           expiresAt: { gte: new Date(Date.now()) },
         },
       });
-    } else {
-      log.error("findUnique: No credentialId or delegationCredentialId provided");
-      return null;
     }
   }
 
@@ -117,8 +105,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   }) {
     log.debug("getCachedAvailability", safeStringify({ credentialId, delegationCredentialId, userId, args }));
     const key = parseKeyForCache(args);
-    const delegationUserCredential = validatedDelegationUserCredential({ userId, delegationCredentialId });
-    const cached = await this.findUnique({ credentialId, delegationUserCredential, key });
+    const cached = await this.findUnexpiredUnique({ credentialId, delegationCredentialId, userId, key });
     log.info("Cached availability result", safeStringify({ key, cached }));
     return cached;
   }
@@ -140,26 +127,22 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       safeStringify({ delegationCredentialId, userId, credentialId, args, value })
     );
     const key = parseKeyForCache(args);
-    const delegationCredential = validatedDelegationUserCredential({ userId, delegationCredentialId });
+    const credential = getUserCredential({ userId, delegationCredentialId, credentialId });
+    if (!credential) {
+      return;
+    }
     let where;
-    if (delegationCredential) {
+    if (credential.type === "delegation") {
       where = {
-        delegationCredentialId: delegationCredential.delegationCredentialId,
-        userId: delegationCredential.userId,
-        key,
-      };
-    } else if (credentialId) {
-      if (isDelegationCredential({ credentialId })) {
-        log.error("upsertCachedAvailability: delegationCredential seems to be invalid");
-        return;
-      }
-      where = {
-        credentialId,
+        delegationCredentialId: credential.delegationCredentialId,
+        userId: credential.userId,
         key,
       };
     } else {
-      log.error("upsertCachedAvailability: No credentialId or delegationCredential provided");
-      return;
+      where = {
+        credentialId: credential.credentialId,
+        key,
+      };
     }
 
     const existingCache = await prisma.calendarCache.findFirst({
@@ -178,12 +161,16 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     } else {
+      const credentialData =
+        credential.type === "credential"
+          ? { credentialId: credential.credentialId }
+          : { delegationCredentialId: credential.delegationCredentialId };
+
       await prisma.calendarCache.create({
         data: {
           key,
-          credentialId: isDelegationCredential({ credentialId }) ? null : credentialId,
-          delegationCredentialId: delegationCredential?.delegationCredentialId ?? null,
-          userId: delegationCredential?.userId ?? null,
+          ...credentialData,
+          userId: credential.userId,
           value,
           expiresAt: new Date(Date.now() + CACHING_TIME),
         },
@@ -192,28 +179,24 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   }
 
   async deleteManyByCredential({ delegationCredentialId, credentialId, userId }: CredentialArgs) {
-    const delegationCredential = validatedDelegationUserCredential({ userId, delegationCredentialId });
+    const credential = getUserCredential({ userId, delegationCredentialId, credentialId });
+    if (!credential) {
+      return;
+    }
 
-    if (delegationCredential) {
+    if (credential.type === "delegation") {
       await prisma.calendarCache.deleteMany({
         where: {
-          delegationCredentialId: delegationCredential.delegationCredentialId,
-          userId: delegationCredential.userId,
-        },
-      });
-    } else if (credentialId) {
-      if (isDelegationCredential({ credentialId })) {
-        log.error("deleteMany: delegationCredential seems to be invalid");
-        return;
-      }
-      await prisma.calendarCache.deleteMany({
-        where: {
-          credentialId,
+          delegationCredentialId: credential.delegationCredentialId,
+          userId: credential.userId,
         },
       });
     } else {
-      log.error("deleteMany: No credentialId or delegationCredentialId provided");
-      return;
+      await prisma.calendarCache.deleteMany({
+        where: {
+          credentialId: credential.credentialId,
+        },
+      });
     }
   }
 }

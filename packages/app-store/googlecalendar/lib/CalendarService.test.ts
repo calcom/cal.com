@@ -227,6 +227,57 @@ async function createCredentialForCalendarService({
   } as CredentialForCalendarServiceWithEmail;
 }
 
+async function createSelectedCalendarForDelegationCredential(data: {
+  userId: number;
+  credentialId: null;
+  delegationCredentialId: string;
+  externalId: string;
+  integration: string;
+  googleChannelId: string | null;
+  googleChannelKind: string | null;
+  googleChannelResourceId: string | null;
+  googleChannelResourceUri: string | null;
+  googleChannelExpiration: string | null;
+}) {
+  if (!data.delegationCredentialId) {
+    throw new Error("delegationCredentialId is required");
+  }
+  return await prismock.selectedCalendar.create({
+    data: {
+      ...data,
+      credentialId: null,
+    },
+  });
+}
+
+async function createSelectedCalendarForRegularCredential(data: {
+  userId: number;
+  delegationCredentialId: null;
+  credentialId: number;
+  externalId: string;
+  integration: string;
+  googleChannelId: string | null;
+  googleChannelKind: string | null;
+  googleChannelResourceId: string | null;
+  googleChannelResourceUri: string | null;
+  googleChannelExpiration: string | null;
+}) {
+  if (!data.credentialId) {
+    throw new Error("credentialId is required");
+  }
+
+  if (data.credentialId < 0) {
+    throw new Error("credentialId cannot be negative");
+  }
+
+  return await prismock.selectedCalendar.create({
+    data: {
+      ...data,
+      credentialId: data.credentialId,
+    },
+  });
+}
+
 const defaultDelegatedCredential = {
   serviceAccountKey: {
     client_email: "service@example.com",
@@ -244,7 +295,7 @@ async function createDelegationCredentialForCalendarService({
   delegatedTo?: typeof defaultDelegatedCredential;
   delegationCredentialId: string;
 }) {
-  await createCredentialForCalendarService({
+  return await createCredentialForCalendarService({
     user: user || {
       email: "service@example.com",
     },
@@ -268,6 +319,8 @@ const createMockJWTInstance = ({
       scopes: ["https://www.googleapis.com/auth/calendar"],
       subject: email,
     },
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     authorize: authorizeError ? vi.fn().mockRejectedValue(authorizeError) : vi.fn().mockResolvedValue(),
     createScoped: vi.fn(),
     getRequestMetadataAsync: vi.fn(),
@@ -290,7 +343,6 @@ const createMockJWTInstance = ({
   };
 
   vi.mocked(JWT).mockImplementation(() => {
-    console.log("mockJWTInstance", mockJWTInstance);
     lastCreatedJWT = mockJWTInstance;
     return mockJWTInstance as unknown as JWT;
   });
@@ -754,10 +806,13 @@ describe("Watching and unwatching calendar", () => {
   test("Calendar can be watched and unwatched", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const calendarService = new CalendarService(credentialInDb1);
+
     await calendarService.watchCalendar({
       calendarId: testSelectedCalendar.externalId,
       eventTypeIds: [null],
     });
+
+    // Watching a non-existent selectedCalendar creates it
     const watchedCalendar = await prismock.selectedCalendar.findFirst({
       where: {
         userId: credentialInDb1.userId!,
@@ -814,74 +869,122 @@ describe("Watching and unwatching calendar", () => {
     expect(calendarAfterUnwatch?.id).toBeDefined();
   });
 
-  test.only("SelectedCalendar having delegationCredential can be watched and unwatched", async () => {
-    const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
-      user: { email: "user1@example.com" },
-      delegationCredentialId: "delegation-credential-id-1",
-    });
-    const delegationCredential1Member2 = await createDelegationCredentialForCalendarService({
-      user: { email: "user2@example.com" },
-      delegationCredentialId: "delegation-credential-id-1",
-    });
-    const calendarService = new CalendarService(delegationCredential1Member1);
-    await calendarService.watchCalendar({
-      calendarId: testSelectedCalendar.externalId,
-      eventTypeIds: [null],
-    });
-    const watchedCalendar = await prismock.selectedCalendar.findFirst({
-      where: {
-        userId: delegationCredential1.userId!,
-        externalId: testSelectedCalendar.externalId,
-        integration: "google_calendar",
-      },
-    });
+  describe("Delegation Credential", () => {
+    test("On watching a SelectedCalendar having delegationCredential, it should set googleChannelId and other props", async () => {
+      const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
+        user: { email: "user1@example.com" },
+        delegationCredentialId: "delegation-credential-id-1",
+      });
 
-    expect(watchedCalendar).toEqual(
-      expect.objectContaining({
-        userId: 1,
-        eventTypeId: null,
-        integration: "google_calendar",
-        externalId: "example@cal.com",
-        credentialId: 1,
-        delegationCredentialId: null,
+      await prismock.selectedCalendar.create({
+        data: {
+          userId: delegationCredential1Member1.userId!,
+          externalId: testSelectedCalendar.externalId,
+          integration: "google_calendar",
+        },
+      });
+
+      const calendarService = new CalendarService(delegationCredential1Member1);
+      await calendarService.watchCalendar({
+        calendarId: testSelectedCalendar.externalId,
+        eventTypeIds: [null],
+      });
+
+      expectGoogleSubscriptionToHaveOccurredAndClearMock({
+        calendarId: testSelectedCalendar.externalId,
+      });
+
+      const calendars = await prismock.selectedCalendar.findMany();
+      // Ensure no new calendar is created
+      expect(calendars).toHaveLength(1);
+      const watchedCalendar = calendars[0];
+
+      await expectSelectedCalendarToHaveGoogleChannelProps(watchedCalendar.id, {
         googleChannelId: "mock-channel-id",
         googleChannelKind: "api#channel",
         googleChannelResourceId: "mock-resource-id",
         googleChannelResourceUri: "mock-resource-uri",
         googleChannelExpiration: "1111111111",
-      })
-    );
-
-    expect(watchedCalendar?.id).toBeDefined();
-
-    await calendarService.unwatchCalendar({
-      calendarId: testSelectedCalendar.externalId,
-      eventTypeIds: [null],
-    });
-    const calendarAfterUnwatch = await prismock.selectedCalendar.findFirst({
-      where: {
-        userId: credentialInDb1.userId!,
-        externalId: testSelectedCalendar.externalId,
-        integration: "google_calendar",
-      },
+      });
     });
 
-    expect(calendarAfterUnwatch).toEqual(
-      expect.objectContaining({
-        userId: 1,
-        eventTypeId: null,
-        integration: "google_calendar",
-        externalId: "example@cal.com",
+    test("On unwatching a SelectedCalendar connected to a Regular Credential, it should remove googleChannelId and other props", async () => {
+      const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
+        user: { email: "user1@example.com" },
+        delegationCredentialId: "delegation-credential-id-1",
+      });
+
+      await createSelectedCalendarForRegularCredential({
+        userId: delegationCredential1Member1.userId!,
         credentialId: 1,
         delegationCredentialId: null,
-        googleChannelId: null,
-        googleChannelKind: null,
-        googleChannelResourceId: null,
-        googleChannelResourceUri: null,
-        googleChannelExpiration: null,
-      })
-    );
-    expect(calendarAfterUnwatch?.id).toBeDefined();
+        externalId: testSelectedCalendar.externalId,
+        integration: "google_calendar",
+        googleChannelId: "mock-channel-id",
+        googleChannelKind: "api#channel",
+        googleChannelResourceId: "mock-resource-id",
+        googleChannelResourceUri: "mock-resource-uri",
+        googleChannelExpiration: "1111111111",
+      });
+
+      const calendarService = new CalendarService(delegationCredential1Member1);
+      await calendarService.unwatchCalendar({
+        calendarId: testSelectedCalendar.externalId,
+        eventTypeIds: [null],
+      });
+
+      expectGoogleUnsubscriptionToHaveOccurredAndClearMock([
+        {
+          resourceId: "mock-resource-id",
+          channelId: "mock-channel-id",
+        },
+      ]);
+
+      const calendars = await prismock.selectedCalendar.findMany();
+      expect(calendars).toHaveLength(1);
+      const calendarAfterUnwatch = calendars[0];
+
+      expectSelectedCalendarToNotHaveGoogleChannelProps(calendarAfterUnwatch.id);
+    });
+
+    test("On unwatching a SelectedCalendar connected to Delegation Credential, it should remove googleChannelId and other props", async () => {
+      const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
+        user: { email: "user1@example.com" },
+        delegationCredentialId: "delegation-credential-id-1",
+      });
+
+      await createSelectedCalendarForDelegationCredential({
+        userId: delegationCredential1Member1.userId!,
+        delegationCredentialId: delegationCredential1Member1.delegatedToId!,
+        credentialId: null,
+        externalId: testSelectedCalendar.externalId,
+        integration: "google_calendar",
+        googleChannelId: "mock-channel-id",
+        googleChannelKind: "api#channel",
+        googleChannelResourceId: "mock-resource-id",
+        googleChannelResourceUri: "mock-resource-uri",
+        googleChannelExpiration: "1111111111",
+      });
+
+      const calendarService = new CalendarService(delegationCredential1Member1);
+      await calendarService.unwatchCalendar({
+        calendarId: testSelectedCalendar.externalId,
+        eventTypeIds: [null],
+      });
+
+      expectGoogleUnsubscriptionToHaveOccurredAndClearMock([
+        {
+          resourceId: "mock-resource-id",
+          channelId: "mock-channel-id",
+        },
+      ]);
+
+      const calendars = await prismock.selectedCalendar.findMany();
+      expect(calendars).toHaveLength(1);
+      const calendarAfterUnwatch = calendars[0];
+
+      expectSelectedCalendarToNotHaveGoogleChannelProps(calendarAfterUnwatch.id);
+    });
   });
 
   test("watchCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
@@ -927,6 +1030,62 @@ describe("Watching and unwatching calendar", () => {
     });
 
     expectGoogleSubscriptionToNotHaveOccurredAndClearMock();
+    // Google Subscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
+    await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id, {
+      googleChannelId: "mock-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "mock-resource-id",
+      googleChannelResourceUri: "mock-resource-uri",
+      googleChannelExpiration: "1111111111",
+    });
+  });
+
+  test("watchCalendar should do google subscription if already subscribed but for different calendarId", async () => {
+    const credentialInDb1 = await createCredentialForCalendarService();
+    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
+    const userLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb1.userId!,
+      externalId: "externalId@cal.com",
+      integration: "google_calendar",
+      eventTypeId: null,
+      credentialId: credentialInDb1.id,
+    });
+
+    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb1.userId!,
+      externalId: "externalId2@cal.com",
+      integration: "google_calendar",
+      eventTypeId: 1,
+      credentialId: credentialInDb1.id,
+    });
+
+    await calendarCache.watchCalendar({
+      calendarId: userLevelCalendar.externalId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
+    });
+
+    expectGoogleSubscriptionToHaveOccurredAndClearMock({
+      calendarId: userLevelCalendar.externalId,
+    });
+
+    await expectSelectedCalendarToHaveGoogleChannelProps(userLevelCalendar.id, {
+      googleChannelId: "mock-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "mock-resource-id",
+      googleChannelResourceUri: "mock-resource-uri",
+      googleChannelExpiration: "1111111111",
+    });
+
+    // Watch different selectedcalendar with same externalId and credentialId
+    await calendarCache.watchCalendar({
+      calendarId: eventTypeLevelCalendar.externalId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
+    });
+
+    expectGoogleSubscriptionToHaveOccurredAndClearMock({
+      calendarId: eventTypeLevelCalendar.externalId,
+    });
+
     // Google Subscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
     await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id, {
       googleChannelId: "mock-channel-id",
@@ -1219,7 +1378,9 @@ describe("Delegation Credential Error handling", () => {
 
     const calendarService = new CalendarService(credentialWithDelegation);
 
-    await expect(calendarService.listCalendars()).rejects.toThrow("User might not exist in Google Workspace");
+    await expect(calendarService.listCalendars()).rejects.toThrow(
+      `User ${credentialWithDelegation.user?.email} might not exist in Google Workspace`
+    );
   });
 
   test("handles general DelegationCredential authorization errors appropriately", async () => {
@@ -1353,7 +1514,9 @@ describe("GoogleCalendarService credential handling", () => {
 
     const calendarService = new CalendarService(credentialWithDelegation);
 
-    await expect(calendarService.listCalendars()).rejects.toThrow("User might not exist in Google Workspace");
+    await expect(calendarService.listCalendars()).rejects.toThrow(
+      `User ${credentialWithDelegation.user?.email} might not exist in Google Workspace`
+    );
   });
 
   test("handles general DelegationCredential authorization errors appropriately", async () => {

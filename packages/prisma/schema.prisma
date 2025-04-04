@@ -775,6 +775,10 @@ model SelectedCalendar {
   googleChannelResourceId          String?
   googleChannelResourceUri         String?
   googleChannelExpiration          String?
+
+  // Note that delegationCredentialId or credentialId aren't part of the unique constraint.
+  // This is so that if there are duplicate connections to the same Calendar for a user, still SelectedCalendar entry remains same.
+  // It also allows a situation where when an organization switch from Regular Credentials to Delegation Credentials, the existing SelectedCalendar entries(for Regular Credentials ) are reused and vice versa.
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId           String?
 

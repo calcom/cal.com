@@ -23,7 +23,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
   delegationCredentialSelectedCalendars: () =>
-    import("./delegationCredentialSelectedCalendars").then(
+    import("./delegationCredentialSelectedCalendars/createSelectedCalendars").then(
       (module) => module.delegationCredentialSelectedCalendars
     ),
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
