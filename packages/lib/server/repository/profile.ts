@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -259,20 +260,43 @@ export class ProfileRepository {
     organizationId: number;
     orgAutoAcceptEmail: string;
   }) {
-    return await prisma.profile.createMany({
+    await prisma.profile.createMany({
       data: users.map((user) => ({
         uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
         username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
-        movedFromUser: {
-          connect: {
-            id: user.id,
-          },
-        },
       })),
       skipDuplicates: true,
     });
+
+    // Populate the movedFromUser
+    const createdProfiles = await prisma.profile.findMany({
+      where: {
+        userId: {
+          in: users.map((user) => user.id),
+        },
+        organizationId,
+      },
+    });
+
+    for (let i = 0; i < createdProfiles.length; i += DATABASE_CHUNK_SIZE) {
+      const profilesBatch = createdProfiles.slice(i, i + DATABASE_CHUNK_SIZE);
+      await Promise.allSettled([
+        profilesBatch.map((profile) => {
+          prisma.user.update({
+            where: {
+              id: profile.userId,
+            },
+            data: {
+              movedToProfile: {
+                connect: { id: profile.id },
+              },
+            },
+          });
+        }),
+      ]);
+    }
   }
 
   static async createManyPromise({
