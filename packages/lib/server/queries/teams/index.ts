@@ -422,6 +422,54 @@ export async function isTeamMember(userId: number, teamId: number) {
   }));
 }
 
+export function generateNewChildEventTypeDataForDB({
+  eventType,
+  userId,
+}: {
+  eventType: Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>;
+  userId: number;
+}) {
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
+    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  });
+
+  const managedEventTypeValues = allManagedEventTypePropsZod
+    .omit(unlockedManagedEventTypeProps)
+    .parse(eventType);
+
+  // Define the values for unlocked properties to use on creation, not updation
+  const unlockedEventTypeValues = allManagedEventTypePropsZod
+    .pick(unlockedManagedEventTypeProps)
+    .parse(eventType);
+
+  // Calculate if there are new workflows for which assigned members will get too
+  const currentWorkflowIds = Array.isArray(eventType.workflows)
+    ? eventType.workflows.map((wf) => wf.workflowId)
+    : [];
+
+  return {
+    ...managedEventTypeValues,
+    ...unlockedEventTypeValues,
+    bookingLimits: (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+    recurringEvent: (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+    metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
+    bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
+    durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+    eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
+    rrSegmentQueryValue: (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
+    onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+    userId,
+    users: {
+      connect: [{ id: userId }],
+    },
+    parentId: eventType.id,
+    hidden: false,
+    workflows: currentWorkflowIds && {
+      create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
+    },
+  };
+}
+
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
   const eventTypesToAdd = await prisma.eventType.findMany({
     where: {
@@ -435,51 +483,15 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
     },
   });
 
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
-    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
-  });
-
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
         if (eventType.schedulingType === "MANAGED") {
-          const managedEventTypeValues = allManagedEventTypePropsZod
-            .omit(unlockedManagedEventTypeProps)
-            .parse(eventType);
-
-          // Define the values for unlocked properties to use on creation, not updation
-          const unlockedEventTypeValues = allManagedEventTypePropsZod
-            .pick(unlockedManagedEventTypeProps)
-            .parse(eventType);
-
-          // Calculate if there are new workflows for which assigned members will get too
-          const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
-
           return prisma.eventType.create({
-            data: {
-              ...managedEventTypeValues,
-              ...unlockedEventTypeValues,
-              bookingLimits:
-                (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-              recurringEvent:
-                (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-              metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-              bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-              durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-              eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-              rrSegmentQueryValue:
-                (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
-              onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+            data: generateNewChildEventTypeDataForDB({
+              eventType,
               userId,
-              users: {
-                connect: [{ id: userId }],
-              },
-              parentId: eventType.id,
-              hidden: false,
-              workflows: currentWorkflowIds && {
-                create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
-              },
-            },
+            }),
           });
         } else {
           return prisma.eventType.update({
