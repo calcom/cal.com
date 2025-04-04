@@ -13,6 +13,7 @@ export default {
     "./node_modules/fumadocs-ui/dist/**/*.js",
     "../../internal/ui/src/**/*.tsx",
     "../../internal/icons/src/**/*.tsx",
+    "../../packages/ui/components/**/*.{ts,tsx}",
   ],
   plugins: [...base.plugins],
   theme: base.theme,
