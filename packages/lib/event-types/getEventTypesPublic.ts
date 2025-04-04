@@ -57,6 +57,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
         "EventType"."canSendCalVideoTranscriptionEmails"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL
+        AND "EventType"."userId" IS NOT NULL
         AND "EventType"."id" IN (
           SELECT "uet1"."A" FROM "_user_eventtype" AS "uet1"
           INNER JOIN "users" AS "u1" ON "u1"."id" = "uet1"."B"

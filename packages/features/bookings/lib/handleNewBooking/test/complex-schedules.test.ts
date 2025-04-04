@@ -10,7 +10,6 @@ import {
   mockCalendarToHaveNoBusySlots,
   BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
@@ -157,12 +156,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
             email: booker.email,
