@@ -3,7 +3,7 @@ import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+import { addNewMembersToEventTypes } from "@calcom/lib/server/queries";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -224,14 +224,10 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     });
 
     // Add users to team event types if assignAllTeamMembers is enabled
-    await Promise.all([
-      ...(newUsers?.map((newUser) => {
-        return updateNewTeamMemberEventTypes(newUser.id, group.teamId);
-      }) ?? []),
-      ...users.map((user) => {
-        return updateNewTeamMemberEventTypes(user.id, group.teamId);
-      }),
-    ]);
+    await addNewMembersToEventTypes({
+      userIds: [...newUsers.map((user) => user.id), ...users.map((user) => user.id)],
+      teamId: group.teamId,
+    });
   }
 };
 

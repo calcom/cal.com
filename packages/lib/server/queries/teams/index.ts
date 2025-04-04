@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -470,8 +471,8 @@ export function generateNewChildEventTypeDataForDB({
   };
 }
 
-export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
-  const eventTypesToAdd = await prisma.eventType.findMany({
+async function getEventTypesToAddNewMembers(teamId: number) {
+  return await prisma.eventType.findMany({
     where: {
       team: { id: teamId },
       assignAllTeamMembers: true,
@@ -482,6 +483,10 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
       schedulingType: true,
     },
   });
+}
+
+export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
+  const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
@@ -501,4 +506,59 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
         }
       })
     ));
+}
+
+export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: number[]; teamId: number }) {
+  const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
+
+  const managedEventTypes = eventTypesToAdd.filter((eventType) => eventType.schedulingType === "MANAGED");
+  const teamEventTypes = eventTypesToAdd.filter((eventType) => eventType.schedulingType !== "MANAGED");
+
+  await Promise.allSettled([
+    prisma.eventType
+      .createMany({
+        data: managedEventTypes
+          .map((eventType) =>
+            userIds.map((userId) =>
+              generateNewChildEventTypeDataForDB({
+                eventType,
+                userId,
+              })
+            )
+          )
+          .flat(),
+        skipDuplicates: true,
+      })
+      .catch((error) => {
+        log.error(
+          `Failed to add new members to managed event types`,
+          safeStringify({
+            teamId,
+            error,
+          })
+        );
+      }),
+    prisma.hosts
+      .createMany({
+        data: teamEventTypes.map((eventType) => {
+          userIds.map((userId) => {
+            return {
+              userId,
+              eventTypeId: eventType.id,
+              isFixed: eventType.schedulingType === "COLLECTIVE",
+            };
+          });
+        }),
+        skipDuplicates: true,
+      })
+      .catch((error) => {
+        log.error(
+          `Failed to add new members as hosts`,
+          safeStringify({
+            teamId,
+            error,
+          })
+        );
+      }),
+  ]);
 }
