@@ -812,7 +812,7 @@ export default function Success(props: PageProps) {
                             isHost={isHost}
                             internalNotePresets={props.internalNotePresets}
                             cancellationRestrictionTime={
-                              isWithinCancellationRestrictionTime()
+                              isWithinCancellationRestrictionTime() && eventType.metadata
                                 ? (eventType.metadata.cancellationRestrictionTime as number)
                                 : undefined
                             }

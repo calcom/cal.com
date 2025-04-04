@@ -176,8 +176,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         (user) =>
           user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
       ) ||
-      eventType.hosts.some(
-        ({ user }) =>
+      eventType.hosts?.some(
+        ({ user }: { user: any }) =>
           user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
       )
     );
