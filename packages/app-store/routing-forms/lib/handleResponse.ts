@@ -30,6 +30,24 @@ export type Form = SerializableForm<
   }
 >;
 
+export interface HandleResponseResult {
+  isPreview: boolean;
+  formResponse: {
+    id: number;
+    formId: string;
+    response: Record<string, any>;
+    chosenRouteId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  teamMembersMatchingAttributeLogic: number[] | null;
+  crmContactOwnerEmail: string | null;
+  crmContactOwnerRecordType: string | null;
+  crmAppSlug: string | null;
+  attributeRoutingConfig: any | null;
+  timeTaken: Record<string, number | null>;
+}
+
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
 export const handleResponse = (...args: Parameters<typeof _handleResponse>) => {
@@ -49,7 +67,7 @@ const _handleResponse = async ({
   formFillerId: string;
   chosenRouteId: string | null;
   isPreview: boolean;
-}) => {
+}): Promise<HandleResponseResult> => {
   try {
     if (!form.fields) {
       // There is no point in submitting a form that doesn't have fields defined
