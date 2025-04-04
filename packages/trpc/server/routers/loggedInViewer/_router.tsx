@@ -3,7 +3,6 @@ import { importHandler, router } from "../../trpc";
 import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
-import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
@@ -22,7 +21,6 @@ type AppsRouterHandlerCache = {
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
   routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
   submitFeedback?: typeof import("./submitFeedback.handler").submitFeedbackHandler;
-  deleteCredential?: typeof import("./deleteCredential.handler").deleteCredentialHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
@@ -114,21 +112,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.submitFeedback({ ctx, input });
-  }),
-
-  deleteCredential: authedProcedure.input(ZDeleteCredentialInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.deleteCredential) {
-      UNSTABLE_HANDLER_CACHE.deleteCredential = (
-        await import("./deleteCredential.handler")
-      ).deleteCredentialHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.deleteCredential) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.deleteCredential({ ctx, input });
   }),
   teamsAndUserProfilesQuery,
   connectAndJoin: authedProcedure.input(ZConnectAndJoinInputSchema).mutation(async ({ ctx, input }) => {

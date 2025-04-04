@@ -183,7 +183,7 @@ export const ConferencingAppsViewWebWrapper = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(

@@ -11,6 +11,7 @@ export const ENDPOINTS = [
   "bookings",
   "calendars",
   "calVideo",
+  "credentials",
   "deploymentSetup",
   "dsync",
   "eventTypes",

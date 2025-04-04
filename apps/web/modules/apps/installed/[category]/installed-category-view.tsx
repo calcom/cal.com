@@ -207,7 +207,7 @@ export default function InstalledApps({ category }: PageProps) {
     updateData({ isOpen: true, credentialId, teamId });
   };
 
-  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
