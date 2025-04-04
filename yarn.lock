@@ -3723,6 +3723,7 @@ __metadata:
     "@testing-library/user-event": ^14.6.1
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
+    "@types/uuid": ^10.0.0
     "@wojtekmaj/react-daterange-picker": ^3.3.1
     class-variance-authority: ^0.4.0
     cmdk: ^0.2.0
@@ -3744,6 +3745,7 @@ __metadata:
     react-select: ^5.7.0
     tailwind-merge: ^1.13.2
     typescript: ^5.8.2
+    uuid: ^11.1.0
   languageName: unknown
   linkType: soft
 
@@ -17601,6 +17603,13 @@ __metadata:
   version: 8.3.1
   resolution: "@types/uuid@npm:8.3.1"
   checksum: b41bdc5e86c6f0f1899306be10455636da0f2168c9489b869edd6837ddeb7c0e501b1ff7d857402462986bada2a379125743dd895fa801d03437cd632116a373
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "@types/uuid@npm:10.0.0"
+  checksum: e3958f8b0fe551c86c14431f5940c3470127293280830684154b91dc7eb3514aeb79fe3216968833cf79d4d1c67f580f054b5be2cd562bebf4f728913e73e944
   languageName: node
   linkType: hard
 
@@ -45694,7 +45703,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.0.5":
+"uuid@npm:^11.0.5, uuid@npm:^11.1.0":
   version: 11.1.0
   resolution: "uuid@npm:11.1.0"
   bin:
