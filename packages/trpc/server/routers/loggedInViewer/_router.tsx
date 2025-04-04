@@ -8,7 +8,6 @@ import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
-import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
@@ -29,7 +28,6 @@ type AppsRouterHandlerCache = {
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
   routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
   submitFeedback?: typeof import("./submitFeedback.handler").submitFeedbackHandler;
-  locationOptions?: typeof import("./locationOptions.handler").locationOptionsHandler;
   deleteCredential?: typeof import("./deleteCredential.handler").deleteCredentialHandler;
   getCalVideoRecordings?: typeof import("./getCalVideoRecordings.handler").getCalVideoRecordingsHandler;
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
@@ -156,21 +154,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.submitFeedback({ ctx, input });
-  }),
-
-  locationOptions: authedProcedure.input(ZLocationOptionsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
-      UNSTABLE_HANDLER_CACHE.locationOptions = (
-        await import("./locationOptions.handler")
-      ).locationOptionsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx, input });
   }),
 
   deleteCredential: authedProcedure.input(ZDeleteCredentialInputSchema).mutation(async ({ ctx, input }) => {
