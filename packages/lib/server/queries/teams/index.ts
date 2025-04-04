@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
@@ -509,6 +510,10 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
 }
 
 export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: number[]; teamId: number }) {
+  const log = logger.getSubLogger({
+    prefix: ["addNewMembersToEventTypes"],
+  });
+
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
   const managedEventTypes = eventTypesToAdd.filter((eventType) => eventType.schedulingType === "MANAGED");
@@ -538,7 +543,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
           })
         );
       }),
-    prisma.hosts
+    prisma.host
       .createMany({
         data: teamEventTypes.map((eventType) => {
           userIds.map((userId) => {
