@@ -173,14 +173,15 @@ export async function handler(req: NextRequest) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(
-          sendTo,
-          message,
-          reminder.scheduledDate,
-          senderID,
+        const scheduledSMS = await twilio.scheduleSMS({
+          phoneNumber: sendTo,
+          body: message,
+          scheduledDate: reminder.scheduledDate,
+          sender: senderID,
+          bookingUid: reminder.booking.uid,
           userId,
-          teamId
-        );
+          teamId,
+        });
 
         if (scheduledSMS) {
           await prisma.workflowReminder.update({

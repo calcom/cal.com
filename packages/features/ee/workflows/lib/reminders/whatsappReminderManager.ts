@@ -168,15 +168,16 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledWHATSAPP = await twilio.scheduleSMS(
-            reminderPhone,
-            textMessage,
-            scheduledDate.toDate(),
-            "",
+          const scheduledWHATSAPP = await twilio.scheduleSMS({
+            phoneNumber: reminderPhone,
+            body: textMessage,
+            scheduledDate: scheduledDate.toDate(),
+            sender: "",
+            bookingUid: evt.uid ?? "", // is uid given here?
             userId,
             teamId,
-            true
-          );
+            isWhatsapp: true,
+          });
 
           if (scheduledWHATSAPP) {
             await prisma.workflowReminder.create({
