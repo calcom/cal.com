@@ -45,7 +45,10 @@ import {
 import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
 import { EventType } from "@calcom/prisma/client";
 
-type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
+type BookingRequest = NextApiRequest & {
+  userId: number | undefined;
+  noEmail: boolean | undefined;
+} & OAuthRequestParams;
 
 type OAuthRequestParams = {
   platformClientId: string;
@@ -223,7 +226,13 @@ export class InputBookingsService_2024_08_13 {
       creationSource: CreationSource.API_V2,
     }));
 
-    return newRequest as unknown as BookingRequest;
+    return {
+      ...newRequest,
+      headers: {
+        hostname: request.headers["host"] || "",
+        forcedSlug: request.headers["x-cal-force-slug"] as string | undefined,
+      },
+    } as unknown as BookingRequest;
   }
 
   transformLocation(location: string | BookingInputLocation_2024_08_13): {

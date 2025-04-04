@@ -505,6 +505,8 @@ export class EventTypeRepository {
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
       disableGuests: true,
+      disableCancelling: true,
+      disableRescheduling: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
