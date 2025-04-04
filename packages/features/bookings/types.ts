@@ -7,7 +7,7 @@ import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type { DatePickerProps } from "../calendars/DatePicker";
 
-export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
+export type PublicEvent = NonNullable<RouterOutputs["viewer"]["eventTypes"]["getPublicEvent"]>;
 
 export type BookerEventQuery = {
   isSuccess: boolean;

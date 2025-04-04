@@ -18,7 +18,7 @@ export const BookingFields = ({
   isDynamicGroupBooking,
   bookingData,
 }: {
-  fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
+  fields: NonNullable<RouterOutputs["viewer"]["eventTypes"]["getPublicEvent"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
