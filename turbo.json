@@ -241,6 +241,7 @@
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
+    "AKISMET_API_KEY",
     "API_KEY_PREFIX",
     "APP_USER_NAME",
     "BASECAMP3_CLIENT_ID",

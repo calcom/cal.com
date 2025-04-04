@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.1.11",
+  "version": "5.1.15",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -44,7 +44,7 @@
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.76.0",
     "@daily-co/daily-react": "^0.22.0",
-    "@dub/analytics": "^0.0.15",
+    "@dub/analytics": "^0.0.27",
     "@dub/embed-core": "^0.0.10",
     "@dub/embed-react": "^0.0.10",
     "@formkit/auto-animate": "1.0.0-beta.5",

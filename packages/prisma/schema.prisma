@@ -132,6 +132,8 @@ model EventType {
   afterEventBuffer                        Int                       @default(0)
   seatsPerTimeSlot                        Int?
   onlyShowFirstAvailableSlot              Boolean                   @default(false)
+  disableCancelling                       Boolean?                  @default(false)
+  disableRescheduling                     Boolean?                  @default(false)
   seatsShowAttendees                      Boolean?                  @default(false)
   seatsShowAvailabilityCount              Boolean?                  @default(true)
   schedulingType                          SchedulingType?
@@ -1151,6 +1153,7 @@ model WorkflowStep {
   sender                    String?
   numberVerificationPending Boolean            @default(true)
   includeCalendarEvent      Boolean            @default(false)
+  verifiedAt                DateTime?
 
   @@index([workflowId])
 }
