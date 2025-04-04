@@ -86,7 +86,7 @@ export const Badge = function Badge(props: BadgeProps) {
   const Children = () => (
     <>
       {withDot ? (
-        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" data-testid="go-primitive-dot">
           <circle cx="4" cy="4" r="4" />
         </svg>
       ) : null}
