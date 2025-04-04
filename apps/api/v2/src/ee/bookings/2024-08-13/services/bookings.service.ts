@@ -265,7 +265,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
+  async getBookings(
+    queryParams: GetBookingsInput_2024_08_13,
+    user: { email: string; id: number; orgId?: number },
+    userIds?: number[]
+  ) {
     if (queryParams.attendeeEmail) {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
@@ -274,7 +278,10 @@ export class BookingsService_2024_08_13 {
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
       take: queryParams.take ?? 100,
-      filters: this.inputService.transformGetBookingsFilters(queryParams),
+      filters: {
+        ...this.inputService.transformGetBookingsFilters(queryParams),
+        ...(userIds?.length ? { userIds } : {}),
+      },
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
