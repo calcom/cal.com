@@ -27,6 +27,51 @@ interface UseTeamMembersWithSegmentProps {
   value: Host[];
 }
 
+interface TeamMemberResult {
+  id: number;
+  name: string | null;
+  email: string;
+}
+
+const useProcessTeamMembersData = ({
+  initialTeamMembers,
+  assignRRMembersUsingSegment,
+  matchingTeamMembersWithResult,
+  value,
+}: {
+  initialTeamMembers: TeamMember[];
+  assignRRMembersUsingSegment: boolean;
+  matchingTeamMembersWithResult?: { result?: TeamMemberResult[] };
+  value: Host[];
+}) => {
+  const teamMembers = useMemo(() => {
+    if (assignRRMembersUsingSegment && matchingTeamMembersWithResult?.result) {
+      return matchingTeamMembersWithResult.result.map((member) => ({
+        value: member.id.toString(),
+        label: member.name || member.email,
+        email: member.email,
+        avatar: "",
+      }));
+    }
+    return initialTeamMembers;
+  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
+
+  const localWeightsInitialValues = useMemo(
+    () =>
+      teamMembers.reduce<Record<string, number>>((acc, member) => {
+        const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
+        acc[member.value] = memberInValue?.weight ?? 100;
+        return acc;
+      }, {}),
+    [teamMembers, value]
+  );
+
+  return {
+    teamMembers,
+    localWeightsInitialValues,
+  };
+};
+
 export const useTeamMembersWithSegmentPlatform = ({
   initialTeamMembers,
   assignRRMembersUsingSegment,
@@ -57,27 +102,12 @@ export const useTeamMembersWithSegmentPlatform = ({
     enabled: isInit && !!teamId && !!orgId,
   });
 
-  const teamMembers = useMemo(() => {
-    if (assignRRMembersUsingSegment && matchingTeamMembersWithResult?.result) {
-      return matchingTeamMembersWithResult.result.map((member) => ({
-        value: member.id.toString(),
-        label: member.name || member.email,
-        email: member.email,
-        avatar: "",
-      }));
-    }
-    return initialTeamMembers;
-  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
-
-  const localWeightsInitialValues = useMemo(
-    () =>
-      teamMembers.reduce<Record<string, number>>((acc, member) => {
-        const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
-        acc[member.value] = memberInValue?.weight ?? 100;
-        return acc;
-      }, {}),
-    [teamMembers, value]
-  );
+  const { teamMembers, localWeightsInitialValues } = useProcessTeamMembersData({
+    initialTeamMembers,
+    assignRRMembersUsingSegment,
+    matchingTeamMembersWithResult,
+    value,
+  });
 
   return {
     teamMembers,
@@ -105,27 +135,12 @@ export const useTeamMembersWithSegment = ({
       }
     );
 
-  const teamMembers = useMemo(() => {
-    if (assignRRMembersUsingSegment && matchingTeamMembersWithResult?.result) {
-      return matchingTeamMembersWithResult.result.map((member) => ({
-        value: member.id.toString(),
-        label: member.name || member.email,
-        email: member.email,
-        avatar: "", // Add avatar with fallback to empty string
-      }));
-    }
-    return initialTeamMembers;
-  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
-
-  const localWeightsInitialValues = useMemo(
-    () =>
-      teamMembers.reduce<Record<string, number>>((acc, member) => {
-        const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
-        acc[member.value] = memberInValue?.weight ?? 100;
-        return acc;
-      }, {}),
-    [teamMembers, value]
-  );
+  const { teamMembers, localWeightsInitialValues } = useProcessTeamMembersData({
+    initialTeamMembers,
+    assignRRMembersUsingSegment,
+    matchingTeamMembersWithResult,
+    value,
+  });
 
   return {
     teamMembers,
