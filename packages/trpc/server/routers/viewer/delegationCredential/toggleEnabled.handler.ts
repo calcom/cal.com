@@ -1,5 +1,6 @@
 import type { z } from "zod";
 
+import tasker from "@calcom/features/tasker";
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/delegationCredential/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
@@ -39,17 +40,25 @@ export async function toggleDelegationCredentialEnabled(
   loggedInUser: Omit<LoggedInUser, "locale" | "emailVerified">,
   input: z.infer<typeof DelegationCredentialToggleEnabledSchema>
 ) {
-  if (input.enabled) {
+  const { id: delegationCredentialId, enabled } = input;
+  if (enabled) {
     await assertWorkspaceConfigured({
-      delegationCredentialId: input.id,
+      delegationCredentialId,
       user: loggedInUser,
+    });
+    tasker.create("delegationCredentialSelectedCalendars", {
+      delegationCredentialId,
+    });
+  } else {
+    await tasker.cancelWhere({
+      payloadContains: `"delegationCredentialId":"${delegationCredentialId}"`,
     });
   }
 
   const updatedDelegationCredential = await DelegationCredentialRepository.updateById({
-    id: input.id,
+    id: delegationCredentialId,
     data: {
-      enabled: input.enabled,
+      enabled,
     },
   });
 

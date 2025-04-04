@@ -6,7 +6,7 @@ class CRMScheduler {
     return tasker.create(
       "createCRMEvent",
       { bookingUid },
-      { maxAttempts: tasksConfig.createCRMEvent.maxAttempts ?? 5 }
+      { maxAttempts: tasksConfig.createCRMEvent?.maxAttempts ?? 5 }
     );
   }
 }

@@ -1,12 +1,15 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
+
+const log = logger.getSubLogger({ prefix: ["CalendarCacheCron"] });
 
 const validateRequest = (req: NextApiRequest) => {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -22,7 +25,14 @@ function logRejected(result: PromiseSettledResult<unknown>) {
 }
 
 function getUniqueCalendarsByExternalId<
-  T extends { externalId: string; eventTypeId: number | null; credentialId: number | null; id: string }
+  T extends {
+    externalId: string;
+    eventTypeId: number | null;
+    credentialId: number | null;
+    userId: number;
+    id: string;
+    delegationCredentialId: string | null;
+  }
 >(calendars: T[]) {
   type ExternalId = string;
   return calendars.reduce(
@@ -31,7 +41,9 @@ function getUniqueCalendarsByExternalId<
         acc[sc.externalId] = {
           eventTypeIds: [sc.eventTypeId],
           credentialId: sc.credentialId,
+          userId: sc.userId,
           id: sc.id,
+          delegationCredentialId: sc.delegationCredentialId,
         };
       } else {
         acc[sc.externalId].eventTypeIds.push(sc.eventTypeId);
@@ -44,6 +56,8 @@ function getUniqueCalendarsByExternalId<
         eventTypeIds: SelectedCalendarEventTypeIds;
         credentialId: number | null;
         id: string;
+        userId: number;
+        delegationCredentialId: string | null;
       }
     >
   );
@@ -54,14 +68,20 @@ const handleCalendarsToUnwatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { eventTypeIds, credentialId, id }]) => {
-        if (!credentialId) {
+      async ([externalId, { eventTypeIds, credentialId, userId, delegationCredentialId, id }]) => {
+        if (!credentialId && !delegationCredentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
-          console.log("no credentialId for SelecedCalendar: ", id);
+          await SelectedCalendarRepository.updateById(id, {
+            error: "Missing credentialId and delegationCredentialId",
+          });
+          log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromCredentialId(credentialId);
+        const cc = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
+          credentialId,
+          delegationCredentialId,
+          userId,
+        });
         await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
       }
     )
@@ -76,14 +96,20 @@ const handleCalendarsToWatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { credentialId, eventTypeIds, id }]) => {
-        if (!credentialId) {
+      async ([externalId, { credentialId, delegationCredentialId, eventTypeIds, id, userId }]) => {
+        if (!credentialId && !delegationCredentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
-          console.log("no credentialId for SelecedCalendar: ", id);
+          await SelectedCalendarRepository.updateById(id, {
+            error: "Missing credentialId and delegationCredentialId",
+          });
+          log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromCredentialId(credentialId);
+        const cc = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
+          credentialId,
+          delegationCredentialId,
+          userId,
+        });
         await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
       }
     )

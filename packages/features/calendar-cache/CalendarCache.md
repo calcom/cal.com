@@ -3,7 +3,7 @@
 ## Responsibilities
 - File:`/api/calendar-cache/cron` - Runs every minute and takes care of two things:
   1. Watching calendars
-    - Identifies calendars that are not watched(identified by `googleChannelId` being null) and watches them
+    - Identifies selectedCalendars that are not watched(identified by `googleChannelId` being null) and watches them
       - When feature is enabled, it starts watching all related calendars
       - This is how a newly added SelectedCalendar record gets its googleChannel props set
       - CalendarService.watchCalendar ensures that the new subscription is not created unnecessarily, reusing existing SelectedCalendar googleChannel props when possible.
