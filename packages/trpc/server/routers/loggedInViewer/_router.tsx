@@ -9,7 +9,6 @@ import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuer
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
-import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
 
 const NAMESPACE = "loggedInViewer";
 
@@ -17,7 +16,6 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 type AppsRouterHandlerCache = {
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
-  updateProfile?: typeof import("./updateProfile.handler").updateProfileHandler;
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
   routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
   submitFeedback?: typeof import("./submitFeedback.handler").submitFeedbackHandler;
@@ -45,19 +43,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.stripeCustomer({ ctx });
-  }),
-
-  updateProfile: authedProcedure.input(ZUpdateProfileInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.updateProfile) {
-      UNSTABLE_HANDLER_CACHE.updateProfile = (await import("./updateProfile.handler")).updateProfileHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.updateProfile) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.updateProfile({ ctx, input });
   }),
 
   unlinkConnectedAccount: authedProcedure.mutation(async (opts) => {
