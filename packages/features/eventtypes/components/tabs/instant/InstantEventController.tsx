@@ -5,6 +5,7 @@ import { useFormContext, Controller } from "react-hook-form";
 import { components } from "react-select";
 import type { OptionProps, SingleValueProps } from "react-select";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetup, FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
@@ -15,11 +16,11 @@ import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberU
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
-import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";

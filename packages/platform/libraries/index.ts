@@ -61,7 +61,7 @@ export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
@@ -113,3 +113,4 @@ export { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
 export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
+export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
