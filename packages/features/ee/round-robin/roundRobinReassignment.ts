@@ -57,7 +57,7 @@ export const roundRobinReassignment = async ({
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
-  teamMemberEmail: string | null;
+  teamMemberEmail?: string;
   reassignedById: number;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({

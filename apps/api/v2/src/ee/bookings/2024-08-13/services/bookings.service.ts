@@ -185,7 +185,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createRecurringBooking(
+    request: Request,
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
@@ -202,7 +206,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createRecurringSeatedBooking(
+    request: Request,
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
@@ -219,7 +227,11 @@ export class BookingsService_2024_08_13 {
     );
   }
 
-  async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13,  eventType: EventTypeWithOwnerAndTeam) {
+  async createRegularBooking(
+    request: Request,
+    body: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
@@ -244,7 +256,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createSeatedBooking(
+    request: Request,
+    body: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
@@ -565,7 +581,7 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  async reassignBooking(bookingUid: string, requestUser: UserWithProfile, teamMemberEmail: string | null) {
+  async reassignBooking(bookingUid: string, requestUser: UserWithProfile, teamMemberEmail?: string) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
@@ -584,7 +600,7 @@ export class BookingsService_2024_08_13 {
       orgId: profile?.organizationId || null,
       emailsEnabled,
       platformClientParams,
-      teamMemberEmail: teamMemberEmail,
+      teamMemberEmail: teamMemberEmail || undefined,
       reassignedById: requestUser.id,
     });
 
