@@ -206,7 +206,14 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, smsMessage, senderID, userId, teamId);
+        await twilio.sendSMS({
+          phoneNumber: reminderPhone,
+          body: smsMessage,
+          sender: senderID,
+          bookingUid: "todo: bookingUid",
+          userId,
+          teamId,
+        });
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
       }
@@ -221,14 +228,15 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledSMS = await twilio.scheduleSMS(
-            reminderPhone,
-            smsMessage,
-            scheduledDate.toDate(),
-            senderID,
+          const scheduledSMS = await twilio.scheduleSMS({
+            phoneNumber: reminderPhone,
+            body: smsMessage,
+            scheduledDate: scheduledDate.toDate(),
+            sender: senderID,
+            bookingUid: "todo: bookingUid",
             userId,
-            teamId
-          );
+            teamId,
+          });
 
           if (scheduledSMS) {
             await prisma.workflowReminder.create({

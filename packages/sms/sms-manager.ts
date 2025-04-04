@@ -37,7 +37,14 @@ const handleSendingSMS = ({
       if (!team?.parent?.isOrganization) return;
 
       await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
-      const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
+      await twilio.sendSMS({
+        phoneNumber: reminderPhone,
+        body: smsMessage,
+        sender: senderID,
+        bookingUid: "todo: bookingUid",
+        teamId,
+      });
+
       resolve(sms);
     } catch (e) {
       reject(console.error(`twilio.sendSMS failed`, e));
