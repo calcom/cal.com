@@ -1273,7 +1273,7 @@
     "/v2/organizations/{orgId}/bookings": {
       "get": {
         "operationId": "OrganizationsBookingsController_getAllOrgTeamBookings",
-        "summary": "Get organization team bookings",
+        "summary": "Get Organization Bookings",
         "parameters": [
           {
             "name": "status",
@@ -4281,7 +4281,7 @@
         "summary": "Get all bookings of an organization user",
         "parameters": [
           {
-            "name": "userId",
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
